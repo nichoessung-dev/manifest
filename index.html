@@ -245,7 +245,10 @@ select.mini,.theme-btn,.auth-btn,.fsel select,.saved-chip,.btn,.sheet input,.chi
 /* supported-agents strip */
 .agents-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:6px}
 .agents-strip .lbl{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-right:2px}
-.agent-pill{font-family:var(--f-mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+.agent-logos{display:flex;align-items:center}
+.agent-logo{width:34px;height:34px;border-radius:50%;background:#fff;border:1px solid var(--line);object-fit:contain;padding:5px;margin-left:-9px;box-shadow:0 2px 7px rgba(20,30,60,.14)}
+.agent-logo:first-child{margin-left:0}
+.agent-more{width:34px;height:34px;border-radius:50%;background:var(--fill);color:var(--fill-ink);display:grid;place-items:center;font-family:var(--f-mono);font-size:10.5px;font-weight:700;margin-left:-9px;border:2px solid var(--surface)}
 /* bigger search */
 .deck{background:var(--ground);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;padding-block:16px}
 .deck .wrap{display:flex;align-items:stretch;gap:12px}
@@ -331,7 +334,7 @@ select.mini,.theme-btn,.auth-btn,.fsel select,.saved-chip,.btn,.sheet input,.chi
     <h1 class="hero-h" data-i18n="hero_h">Every good find, in one index.</h1>
     <p class="hero-sub" data-i18n="hero_sub">Weidian, Taobao and 1688, quality-checked and ready to order through your agent.</p>
     <div class="hero-stats" id="hero-stats"></div>
-    <div class="agents-strip"><span class="lbl">Supported agents</span><span class="agent-pill">MyCNBox</span><span class="agent-pill">CNFans</span><span class="agent-pill">MuleBuy</span><span class="agent-pill">KakoBuy</span><span class="agent-pill">ACBUY</span><span class="agent-pill">Hoobuy</span><span class="agent-pill">Sugargoo</span><span class="agent-pill">+ more</span></div>
+    <div class="agents-strip"><span class="lbl">Supported agents</span><div class="agent-logos"><img class="agent-logo" src="https://www.google.com/s2/favicons?domain=mycnbox.com&sz=64" alt="MyCNBox" title="MyCNBox" loading="lazy"><img class="agent-logo" src="https://www.google.com/s2/favicons?domain=cnfans.com&sz=64" alt="CNFans" title="CNFans" loading="lazy"><img class="agent-logo" src="https://www.google.com/s2/favicons?domain=mulebuy.com&sz=64" alt="MuleBuy" title="MuleBuy" loading="lazy"><img class="agent-logo" src="https://www.google.com/s2/favicons?domain=kakobuy.com&sz=64" alt="KakoBuy" title="KakoBuy" loading="lazy"><img class="agent-logo" src="https://www.google.com/s2/favicons?domain=acbuy.com&sz=64" alt="ACBUY" title="ACBUY" loading="lazy"><img class="agent-logo" src="https://www.google.com/s2/favicons?domain=hoobuy.com&sz=64" alt="Hoobuy" title="Hoobuy" loading="lazy"><img class="agent-logo" src="https://www.google.com/s2/favicons?domain=sugargoo.com&sz=64" alt="Sugargoo" title="Sugargoo" loading="lazy"><img class="agent-logo" src="https://www.google.com/s2/favicons?domain=superbuy.com&sz=64" alt="Superbuy" title="Superbuy" loading="lazy"><span class="agent-more">+8</span></div></div>
   </div>
   <div class="hero-strip" id="hero-strip" aria-hidden="true"></div>
 </section>
