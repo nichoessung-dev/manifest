@@ -1,0 +1,720 @@
+<title>Manifest Catalog</title>
+<meta name="description" content="Cross-border finds from Weidian, Taobao and 1688, quality-checked and ready to buy through your agent.">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Manifest — cross-border finds, quality-checked">
+<meta property="og:description" content="Browse Weidian, Taobao and 1688 finds with QC photos and one-tap agent buy links.">
+<meta property="og:site_name" content="Manifest">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://REPLACE-WITH-YOUR-DOMAIN/">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"Manifest","description":"Cross-border finds from Weidian, Taobao and 1688, quality-checked and ready to buy through your agent.","inLanguage":["en","no","zh","es","de"]}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#FFFFFF; --surface:#FFFFFF; --surface-2:#F5F5F4;
+  --ink:#0A0A0A; --muted:#6C6A67; --faint:#9A9895;
+  --line:#E4E3E0; --line-2:#111110;
+  --fill:#0E0E0D; --fill-ink:#FFFFFF; --danger:#B23B2E;
+  --radius:2px; --maxw:1280px;
+  --f-disp:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0A0A0A; --surface:#0F0F0E; --surface-2:#161615;
+    --ink:#F3F2EF; --muted:#9C9A96; --faint:#6E6C68;
+    --line:#242322; --line-2:#EDECE9;
+    --fill:#F3F2EF; --fill-ink:#0A0A0A; --danger:#E5715F;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0A0A0A; --surface:#0F0F0E; --surface-2:#161615;
+  --ink:#F3F2EF; --muted:#9C9A96; --faint:#6E6C68;
+  --line:#242322; --line-2:#EDECE9;
+  --fill:#F3F2EF; --fill-ink:#0A0A0A; --danger:#E5715F;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+body.intro .card{animation:rise .3s ease both}
+.hero-h,.hero-sub,.hero-stats{animation:rise .42s ease both}
+.hero-sub{animation-delay:.05s}.hero-stats{animation-delay:.1s}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-inline:22px}
+
+.hero{border-bottom:1.5px solid var(--line-2)}
+.hero-in{padding-block:46px 28px;display:flex;flex-direction:column;gap:18px}
+.hero-h{font-family:var(--f-disp);font-weight:800;font-size:clamp(30px,5.2vw,54px);line-height:1.02;letter-spacing:-.035em;margin:0;max-width:15ch;text-wrap:balance}
+.hero-sub{font-size:clamp(15px,1.9vw,18px);color:var(--muted);margin:0;max-width:52ch;line-height:1.55}
+.hero-stats{display:flex;gap:28px;flex-wrap:wrap;font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.02em;padding-top:2px}
+.hero-stats .stat b{color:var(--ink);font-weight:600;font-size:14px;font-variant-numeric:tabular-nums}
+.hero-strip{display:flex;gap:1px;overflow-x:auto;background:var(--line);border-top:1px solid var(--line);scrollbar-width:thin}
+.ftile{position:relative;flex:0 0 auto;width:154px;aspect-ratio:1;background:var(--surface);border:none;padding:0;cursor:pointer;overflow:hidden}
+.ftile canvas{width:100%;height:100%;display:block;transition:transform .3s}
+.ftile:hover canvas{transform:scale(1.04)}
+.fstamp{position:absolute;left:8px;bottom:8px;font-family:var(--f-mono);font-size:9.5px;color:#fff;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.4);padding:2px 6px;backdrop-filter:blur(2px)}
+@media(max-width:560px){.ftile{width:124px}.hero-in{padding-block:32px 22px}}
+.btn.oauth{width:100%;justify-content:center;background:var(--ground);color:var(--ink);border:1px solid var(--line-2);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.oi{font-family:var(--f-mono);font-weight:700}
+.ordiv{display:flex;align-items:center;gap:10px;color:var(--faint);font-family:var(--f-mono);font-size:11px;margin:4px 0 12px}
+.ordiv:before,.ordiv:after{content:"";flex:1;height:1px;background:var(--line)}
+.masthead{border-bottom:1.5px solid var(--line-2)}
+.mast-top{border-top:5px solid var(--line-2)}
+.mast-row{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding-block:14px 12px}
+.brand{display:flex;align-items:baseline;gap:12px;text-decoration:none;flex-wrap:wrap}
+.brand b{font-family:var(--f-disp);font-weight:800;font-size:29px;line-height:.9;letter-spacing:-.03em}
+.brand .tag{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding-bottom:3px}
+.mast-tools{display:flex;align-items:center;gap:8px;flex:none;position:relative}
+.selwrap{position:relative}
+.selwrap svg{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:11px;height:11px;color:var(--muted);pointer-events:none}
+select.mini,.theme-btn,.auth-btn{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.02em;color:var(--ink);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius);padding:7px 22px 7px 9px;appearance:none}
+.theme-btn{padding:7px 9px;width:34px;display:grid;place-items:center}
+.theme-btn svg{width:14px;height:14px}
+.auth-btn{padding:7px 12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.auth-btn[data-in="1"]{background:var(--fill);color:var(--fill-ink);border-color:var(--fill)}
+.menu{position:absolute;top:44px;right:0;background:var(--surface);border:1px solid var(--line-2);min-width:160px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.14)}
+.menu button{display:block;width:100%;text-align:left;font-family:var(--f-mono);font-size:12px;padding:10px 12px;background:none;border:none;border-bottom:1px solid var(--line)}
+.menu button:last-child{border-bottom:none}
+.menu button:hover{background:var(--surface-2)}
+
+.deck{border-bottom:1.5px solid var(--line-2);background:var(--ground);position:sticky;top:0;z-index:30}
+.deck .wrap{display:flex;align-items:stretch;gap:0}
+.search{flex:1;position:relative;display:flex;align-items:center}
+.search svg{position:absolute;left:2px;width:16px;height:16px;color:var(--muted)}
+.search input{width:100%;border:none;background:transparent;color:var(--ink);font-family:var(--f-body);font-size:15px;padding:14px 12px 14px 26px}
+.search input:focus{outline:none}
+.search input::placeholder{color:var(--faint)}
+.deck .sortwrap{display:flex;align-items:center;border-left:1px solid var(--line);position:relative}
+.deck select.sort{height:100%;font-family:var(--f-mono);font-size:12px;border:none;background:transparent;color:var(--ink);padding:0 26px 0 14px;appearance:none}
+.deck .sortwrap svg{position:absolute;right:10px;width:11px;height:11px;color:var(--muted);pointer-events:none}
+
+.filters-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-block:10px}
+.fsel{position:relative}
+.fsel>svg{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:11px;height:11px;color:var(--muted);pointer-events:none}
+.fsel select{font-family:var(--f-mono);font-size:11.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:7px 24px 7px 10px;appearance:none;max-width:180px}
+.starcount{font-family:var(--f-mono);font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.starcount:empty{display:none}
+.tag:empty{display:none}
+.subdeck{border-bottom:1px solid var(--line)}
+.subdeck .wrap{display:flex;align-items:center;gap:14px;padding-block:10px;flex-wrap:wrap}
+.chips{display:flex;gap:0;flex-wrap:wrap;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.chip{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.03em;padding:6px 12px;background:var(--surface);color:var(--muted);border:none;border-right:1px solid var(--line)}
+.chip:last-child{border-right:none}
+.chip[aria-pressed="true"]{background:var(--fill);color:var(--fill-ink)}
+.saved-chip{font-family:var(--f-mono);font-size:11.5px;padding:6px 12px;background:var(--surface);color:var(--muted);border:1px solid var(--line);border-radius:var(--radius);display:flex;align-items:center;gap:6px}
+.saved-chip[aria-pressed="true"]{background:var(--fill);color:var(--fill-ink);border-color:var(--fill)}
+.saved-chip svg{width:12px;height:12px}
+.eyebrow{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.spacer{flex:1 1 auto;min-width:6px}
+.count{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+main{padding-block:26px 64px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(226px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+@media(max-width:520px){.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}}
+.card{background:var(--surface);text-align:left;display:flex;flex-direction:column;position:relative;transition:background .12s;cursor:pointer}
+.card:hover{background:var(--surface-2)}
+.card:hover .thumb canvas{transform:scale(1.03)}
+.thumb{position:relative;aspect-ratio:1/1;overflow:hidden;border-bottom:1px solid var(--line)}
+.thumb canvas{width:100%;height:100%;display:block;transition:transform .3s ease}
+.stamp{position:absolute;top:9px;left:9px;font-family:var(--f-mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;color:#fff;border:1px solid rgba(255,255,255,.55);background:rgba(0,0,0,.35);backdrop-filter:blur(2px)}
+.qc{position:absolute;top:9px;right:9px;font-family:var(--f-mono);font-size:9.5px;font-weight:600;display:flex;align-items:center;gap:3px;padding:3px 6px;background:var(--fill);color:var(--fill-ink)}
+.qc svg{width:9px;height:9px}
+.fav{position:absolute;bottom:9px;right:9px;width:30px;height:30px;display:grid;place-items:center;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.5);backdrop-filter:blur(2px);color:#fff;border-radius:2px}
+.fav svg{width:15px;height:15px}
+.fav[aria-pressed="true"]{background:#fff;color:#0A0A0A;border-color:#fff}
+.fav[aria-pressed="true"] svg{fill:#0A0A0A}
+.card .body{padding:11px 12px 13px;display:flex;flex-direction:column;gap:5px;flex:1}
+.code{font-family:var(--f-mono);font-size:10px;color:var(--faint);letter-spacing:.03em}
+.title{font-size:13px;font-weight:500;line-height:1.34;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.68em}
+.price-row{display:flex;align-items:baseline;gap:8px;margin-top:auto;padding-top:6px;border-top:1px solid var(--line)}
+.price{font-family:var(--f-mono);font-weight:600;font-size:14.5px;font-variant-numeric:tabular-nums}
+.subprice{font-family:var(--f-mono);font-size:10.5px;color:var(--faint)}
+.cat{font-family:var(--f-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin-left:auto}
+
+.overlay{position:fixed;inset:0;z-index:60;background:rgba(10,10,10,.55);opacity:0;pointer-events:none;transition:opacity .18s}
+.overlay.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;z-index:61;height:100%;width:min(580px,100%);background:var(--surface);border-left:1.5px solid var(--line-2);transform:translateX(100%);transition:transform .24s cubic-bezier(.4,.14,.3,1);display:flex;flex-direction:column;overflow:hidden}
+.drawer.open{transform:none}
+@media(max-width:560px){.drawer{width:100%;top:auto;bottom:0;height:93%;border-left:none;border-top:1.5px solid var(--line-2);transform:translateY(100%)}.drawer.open{transform:none}}
+.drawer header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);flex:none}
+.drawer header .code{font-size:11.5px}
+.x{width:32px;height:32px;border:1px solid var(--line-2);background:var(--ground);color:var(--ink);display:grid;place-items:center;flex:none}
+.x svg{width:15px;height:15px}
+.dbody{overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:20px}
+.gmain{aspect-ratio:4/3;overflow:hidden;border:1px solid var(--line)}
+.gmain canvas{width:100%;height:100%;display:block}
+.gtabs{display:flex;gap:0;margin-top:9px;border:1px solid var(--line);width:fit-content}
+.gtab{font-family:var(--f-mono);font-size:11px;padding:6px 12px;background:var(--surface);color:var(--muted);border:none;border-right:1px solid var(--line)}
+.gtab:last-child{border-right:none}
+.gtab[aria-pressed="true"]{background:var(--fill);color:var(--fill-ink)}
+.thumbs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:9px}
+.thumbs canvas{width:100%;aspect-ratio:1;border:1px solid var(--line);cursor:pointer;display:block}
+.d-titlerow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.d-title{font-family:var(--f-disp);font-weight:700;font-size:24px;line-height:1.12;margin:0;text-wrap:balance}
+.d-fav{flex:none;width:38px;height:38px;border:1px solid var(--line-2);background:var(--ground);display:grid;place-items:center;color:var(--ink)}
+.d-fav svg{width:17px;height:17px}
+.d-fav[aria-pressed="true"]{background:var(--fill);color:var(--fill-ink);border-color:var(--fill)}
+.d-fav[aria-pressed="true"] svg{fill:var(--fill-ink)}
+.d-price{display:flex;align-items:baseline;gap:10px;margin-top:8px}
+.d-price .p{font-family:var(--f-mono);font-weight:600;font-size:22px;font-variant-numeric:tabular-nums}
+.d-price .u{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{font-family:var(--f-mono);font-size:10.5px;padding:4px 9px;border:1px solid var(--line);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.sec-label{font-family:var(--f-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--faint);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.variants{display:flex;flex-wrap:wrap;gap:7px}
+.variant{font-size:12px;font-family:var(--f-mono);padding:6px 10px;border:1px solid var(--line);display:flex;gap:9px;align-items:center}
+.variant .vp{font-weight:600}
+.desc{font-size:14.5px;color:color-mix(in srgb,var(--ink) 88%,var(--muted));margin:0;max-width:60ch;line-height:1.6}
+.seller{font-size:13px;color:var(--muted);margin:.8em 0 0}
+.seller b{color:var(--ink);font-weight:600}
+.agents{display:flex;flex-direction:column;gap:7px}
+.agent{display:flex;align-items:center;justify-content:space-between;gap:10px;text-decoration:none;padding:13px 15px;font-weight:600;font-size:14px}
+.agent.primary{background:var(--fill);color:var(--fill-ink)}
+.agent.ghost{background:var(--ground);border:1px solid var(--line-2);color:var(--ink)}
+.agent .r{font-family:var(--f-mono);font-size:10.5px;opacity:.75;font-weight:500;letter-spacing:.03em}
+.agent.soon{opacity:.5;cursor:default}
+.foot-note{font-family:var(--f-mono);font-size:10.5px;color:var(--faint);line-height:1.6}
+/* comments */
+.clist{display:flex;flex-direction:column;gap:12px}
+.citem{border:1px solid var(--line);padding:11px 12px}
+.citem .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.cname{font-family:var(--f-mono);font-size:11.5px;font-weight:600}
+.cdate{font-family:var(--f-mono);font-size:10px;color:var(--faint)}
+.cbody{font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.cdel{font-family:var(--f-mono);font-size:10px;color:var(--danger);background:none;border:none;padding:0}
+.cmeta{font-family:var(--f-mono);font-size:11.5px;color:var(--faint)}
+.cform{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.cform textarea{font-family:var(--f-body);font-size:13.5px;border:1px solid var(--line-2);background:var(--ground);color:var(--ink);padding:10px;min-height:64px;resize:vertical}
+.cform .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.btn{font-family:var(--f-mono);font-size:12px;font-weight:600;padding:9px 16px;border:1px solid var(--fill);background:var(--fill);color:var(--fill-ink)}
+.btn.ghost{background:var(--ground);color:var(--ink);border-color:var(--line-2)}
+.cerr{font-family:var(--f-mono);font-size:11px;color:var(--danger)}
+
+.empty{text-align:center;padding:80px 20px;color:var(--muted)}
+.empty b{display:block;font-family:var(--f-disp);font-weight:700;font-size:22px;color:var(--ink);margin-bottom:6px}
+footer{border-top:1.5px solid var(--line-2);padding:22px 0 44px;color:var(--muted);font-size:12.5px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
+footer .mono{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+
+@media(max-width:560px){
+  .mast-row{flex-wrap:wrap;gap:10px 12px}
+  .brand b{font-size:24px}
+  .mast-tools{width:100%;justify-content:space-between}
+  .auth-btn{max-width:120px}
+  .subdeck .wrap{gap:10px}
+  .hero-h{letter-spacing:-.02em}
+}
+.modal{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(10,10,10,.55);padding:20px}
+.sheet{background:var(--surface);border:1.5px solid var(--line-2);width:min(400px,100%);padding:22px}
+.sheet h3{font-family:var(--f-disp);font-weight:700;font-size:22px;margin:0 0 6px}
+.sheet p{font-size:13.5px;color:var(--muted);margin:0 0 14px}
+.sheet input{width:100%;font-family:var(--f-body);font-size:15px;border:1px solid var(--line-2);background:var(--ground);color:var(--ink);padding:11px 12px;margin-bottom:10px}
+.sheet .btn{width:100%;justify-content:center;text-align:center}
+.auth-status{font-family:var(--f-mono);font-size:11.5px;margin:12px 0 0;min-height:1em}
+.sheet-x{position:absolute}
+</style>
+
+<div class="masthead">
+  <div class="mast-top"></div>
+  <div class="wrap mast-row">
+    <a class="brand" href="#" aria-label="Manifest home">
+      <b>Manifest</b>
+      <span class="tag" data-i18n="footer">Cross-border finds, quality-checked.</span>
+    </a>
+    <div class="mast-tools">
+      <div class="selwrap"><select class="mini" id="lang" aria-label="Language"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+      <div class="selwrap"><select class="mini" id="cur" aria-label="Currency"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+      <button class="auth-btn" id="auth-btn" data-in="0">Sign in</button>
+      <button class="theme-btn" id="theme" aria-label="Toggle light or dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg></button>
+      <div class="menu" id="acct-menu" hidden></div>
+    </div>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="wrap hero-in">
+    <h1 class="hero-h" data-i18n="hero_h">Every good find, in one index.</h1>
+    <p class="hero-sub" data-i18n="hero_sub">Weidian, Taobao and 1688, quality-checked and ready to order through your agent.</p>
+    <div class="hero-stats" id="hero-stats"></div>
+  </div>
+  <div class="hero-strip" id="hero-strip" aria-hidden="true"></div>
+</section>
+
+<div class="deck">
+  <div class="wrap">
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="q" type="search" autocomplete="off" aria-label="Search products">
+    </label>
+    <div class="sortwrap">
+      <select class="sort" id="sort" aria-label="Sort"></select>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+  </div>
+</div>
+
+<div class="subdeck">
+  <div class="wrap filters-row">
+    <div class="fsel"><select id="f-source" aria-label="Source"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+    <div class="fsel"><select id="f-type" aria-label="Type"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+    <div class="fsel"><select id="f-color" aria-label="Colour"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+    <div class="fsel"><select id="f-price" aria-label="Price"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+    <button class="saved-chip" id="saved-chip" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></svg><span data-i18n="saved">Saved</span></button>
+    <span class="spacer"></span>
+    <span class="count" id="count">—</span>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden><b data-i18n="nothing_t">Nothing matches that</b><span data-i18n="nothing_b">Try another search or clear the filters.</span></div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="mono">Manifest — sample catalog</span>
+    <span data-i18n="footer_line">Product data and QC via qualit.ly / TMAPI. Buy links via your agent.</span>
+    <span class="spacer"></span>
+    <a class="mono" href="https://discord.gg/Pf3zpG3E4" target="_blank" rel="noopener">Discord</a>
+    <a class="mono" href="/terms.html">Terms</a>
+    <a class="mono" href="/privacy.html">Privacy &amp; cookies</a>
+    <span class="mono" id="foot-count"></span>
+  </div>
+</footer>
+
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Product detail"></aside>
+
+<div class="modal" id="auth-modal" hidden>
+  <div class="sheet">
+    <h3 data-i18n="magic_title">Sign in</h3>
+    <p data-i18n="magic_sub">We email you a one-tap link. No password to remember.</p>
+    <button class="btn oauth" id="auth-google"><span class="oi">G</span><span data-i18n="cont_google">Continue with Google</span></button>
+    <button class="btn oauth" id="auth-apple"><svg class="oi" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M16.4 12.6c0-2 1.6-3 1.7-3-.9-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7-.6 0-1.6-.7-2.6-.7-1.3 0-2.6.8-3.3 2-1.4 2.4-.4 6 1 8 .7 1 1.4 2 2.5 2 1 0 1.3-.6 2.5-.6s1.5.6 2.6.6 1.7-1 2.4-2c.5-.7.7-1.1 1-1.9-2.4-.9-2.4-3.2-2.4-3.2zM14.6 6.3c.6-.7 1-1.6.9-2.6-.8 0-1.9.6-2.5 1.3-.5.6-1 1.5-.9 2.5.9.1 1.8-.5 2.5-1.2z"/></svg><span data-i18n="cont_apple">Continue with Apple</span></button>
+    <div class="ordiv"><span data-i18n="or">or</span></div>
+    <input id="auth-email" type="email" autocomplete="email" placeholder="you@email.com">
+    <button class="btn" id="auth-send" data-i18n="send_link">Send magic link</button>
+    <p class="auth-status" id="auth-status"></p>
+    <button class="btn ghost" id="auth-cancel" style="width:100%;margin-top:10px" data-i18n="cancel">Cancel</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+/* ============================================================================
+   DATA LAYER — swap sample data for the real feed here (same shape).
+   ========================================================================== */
+const AFFILIATE_REF = "LHYDVW";
+const AGENTS = {
+  mycnbox: { name:"MyCNBox", build:(p)=>`https://mycnbox.com/goodsDetail?mallType=${p.platform}&itemId=${p.id}&referId=${AFFILIATE_REF}` },
+};
+function loadProducts(){
+  return [
+    {id:"5738118972",platform:"weidian",cat:"Tops",title:"Cashmere-Blend Elbow-Patch Sweater",price:185,qc:20,seller:"Dream Harbor Premium Apparel",variants:[["Dark Royal Blue · L",185],["Medium Grey · M",185],["Army Green · XL",189]],desc:"12-gauge pullover knit, 10% cashmere, cowhide elbow patches. Medium weight, ready-to-wear sizing runs true. A spring 2026 arrival from the seller's premium line."},
+    {id:"7741220641",platform:"taobao",cat:"Tops",title:"Heavyweight Boxy Hoodie 420g",price:129,qc:12,seller:"Northbund Basics",variants:[["Off-White · M",129],["Charcoal · L",129],["Faded Black · XL",129]],desc:"420gsm loopback cotton, dropped shoulder, boxy fit. Heavy garment-dyed fleece with a broken-in hand from the first wear."},
+    {id:"931736356187",platform:"1688",cat:"Bottoms",title:"Wide-Leg Nylon Cargo Trousers",price:98,qc:8,seller:"Canton Workwear Factory",variants:[["Sand · M",98],["Black · L",98],["Olive · XL",102]],desc:"Ripstop nylon, six-pocket wide leg with drawcord hem. Wholesale factory listing, minimum size run applies at bulk."},
+    {id:"6620933471",platform:"weidian",cat:"Footwear",title:"Suede Chunky Trainer 'Cloud'",price:268,qc:34,seller:"Sole Archive HK",variants:[["EU41",268],["EU42",268],["EU43",268],["EU44",272]],desc:"Layered suede upper on a segmented foam midsole. Batch photographed extensively, one of the shop's most-QC'd pairs."},
+    {id:"7788451190",platform:"taobao",cat:"Outerwear",title:"Washed Denim Trucker Jacket",price:215,qc:16,seller:"Indigo Standard",variants:[["Mid Wash · M",215],["Mid Wash · L",215],["Ecru · L",219]],desc:"14oz washed denim, boxy Type-III cut, corozo buttons. Stonewashed for a soft, worn drape out of the box."},
+    {id:"5512098334",platform:"1688",cat:"Accessories",title:"Ribbed Merino Beanie",price:39,qc:5,seller:"Yiwu Knit Co.",variants:[["Oatmeal",39],["Black",39],["Rust",39]],desc:"Fine-gauge merino rib, double-layer cuff. Factory-direct, colours ship mixed at wholesale quantities."},
+    {id:"6109887425",platform:"weidian",cat:"Bags",title:"Leather Flap Crossbody",price:340,qc:22,seller:"Meridian Leather Works",variants:[["Cognac",340],["Black",340]],desc:"Full-grain cowhide, brushed hardware, adjustable strap. Hand-finished edges, QC set includes hardware close-ups."},
+    {id:"7203344815",platform:"taobao",cat:"Tops",title:"Pima Cotton Pocket Tee, 3-Pack",price:88,qc:9,seller:"Northbund Basics",variants:[["White ×3",88],["Mixed neutrals ×3",88]],desc:"Long-staple pima jersey, chest pocket, mid weight. Sold as a three-pack, true medium fit."},
+    {id:"9931002647",platform:"1688",cat:"Outerwear",title:"Technical Shell Windbreaker",price:176,qc:11,seller:"Canton Workwear Factory",variants:[["Black · M",176],["Storm Grey · L",176],["Black · XL",180]],desc:"Seam-sealed 3-layer shell, packable, pit zips. Factory listing with a graded size run."},
+    {id:"6640551203",platform:"weidian",cat:"Bottoms",title:"Pleated Wool Trousers",price:152,qc:14,seller:"Atelier Sung",variants:[["Charcoal · 30",152],["Charcoal · 32",152],["Brown · 32",156]],desc:"Single-pleat wool blend, tapered leg, unfinished hem for tailoring. Mid-weight suiting cloth."},
+    {id:"7455120988",platform:"taobao",cat:"Footwear",title:"Retro Runner 'Panda'",price:199,qc:41,seller:"Sole Archive HK",variants:[["EU40",199],["EU41",199],["EU42",199],["EU43",199]],desc:"Two-tone leather runner on a gum sole. The shop's single most-QC'd model, batches shot from every angle."},
+    {id:"5098773310",platform:"1688",cat:"Bags",title:"Canvas Tote 18oz",price:45,qc:3,seller:"Yiwu Knit Co.",variants:[["Natural",45],["Black",45]],desc:"18oz cotton canvas, boxed base, inner pocket. Factory-direct, light QC coverage on this listing."},
+    {id:"6712399540",platform:"weidian",cat:"Tops",title:"Hand-Knit Mohair Cardigan",price:240,qc:18,seller:"Atelier Sung",variants:[["Sage · M",240],["Sage · L",240],["Cocoa · L",244]],desc:"Brushed mohair blend, hand-linked seams, shell buttons. Fuzzy halo softens with wear."},
+    {id:"7889100223",platform:"taobao",cat:"Outerwear",title:"Waxed Cotton Field Jacket",price:298,qc:27,seller:"Indigo Standard",variants:[["Olive · M",298],["Olive · L",298],["Brown · XL",304]],desc:"8oz waxed cotton, corduroy collar, bellows pockets. Re-waxable, patinas at the seams over time."},
+  ];
+}
+</script>
+
+<script>
+/* ================= BACKEND (Supabase) ================= */
+const SUPABASE_URL = "https://uptpghuduqjqmrxwatbm.supabase.co";
+const SUPABASE_KEY = "sb_publishable_qFcO570Cpl0_VWS6e_sAUg_noD-2XmY";
+let sb = null, ME = null, BACKEND_OK = false;
+try{ if(window.supabase&&window.supabase.createClient){ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); BACKEND_OK = true; } }catch(e){ BACKEND_OK=false; }
+
+/* ================= i18n ================= */
+const LANGS = { en:"English", no:"Norsk", zh:"中文", es:"Español", de:"Deutsch" };
+const T = {
+ en:{search_ph:"Search finds, e.g. hoodie, cargo, trainer…",sources_label:"Source",all_sources:"All sources",all_types:"All types",saved:"Saved",sort_featured:"Featured",sort_low:"Price low to high",sort_high:"Price high to low",sort_qc:"Most QC photos",count:"{n} of {t} finds",indexed:"{n} items indexed",nothing_t:"Nothing matches that",nothing_b:"Try another search or clear the filters.",saved_empty_t:"No saved items yet",saved_empty_b:"Tap the heart on any find to save it here.",listing:"Listing photos",qc:"QC",variants:"Variants",description:"Description",seller:"Seller",buy_head:"Buy through your agent",buy_via:"Buy via {a}",more:"more agents",add_ready:"add links when ready",note:"Links carry your ref {r}. Images here are placeholders in this preview; real listing and QC photos load from the feed on your live site.",footer:"Cross-border finds, quality-checked.",footer_line:"Product data and QC via qualit.ly / TMAPI. Buy links via your agent.",sign_in:"Sign in",sign_out:"Sign out",magic_title:"Sign in",magic_sub:"We email you a one-tap link. No password to remember.",send_link:"Send magic link",cancel:"Cancel",check_email:"Check your email for the sign-in link.",auth_off:"Sign-in runs on the live site (this preview can't reach the server).",comments:"Comments",comment_ph:"Share sizing, quality, fit… (no outside links)",post:"Post",sign_in_comment:"Sign in to comment",no_comments:"No comments yet. Be the first.",links_blocked:"Outside links aren't allowed in comments.",comments_off:"Comments run on your live site.",you:"you",delete:"Delete",hero_h:"Every good find, in one index.",hero_sub:"Weidian, Taobao and 1688, quality-checked and ready to order through your agent.",stat_finds:"finds",stat_markets:"marketplaces",stat_qc:"QC photos",cont_google:"Continue with Google",cont_apple:"Continue with Apple",or:"or",all_colours:"All colours",any_price:"Any price"},
+ no:{search_ph:"Søk i funn, f.eks. hettegenser, cargo, sko…",sources_label:"Kilde",all_sources:"Alle kilder",all_types:"Alle typer",saved:"Lagret",sort_featured:"Utvalgte",sort_low:"Pris lav til høy",sort_high:"Pris høy til lav",sort_qc:"Flest QC-bilder",count:"{n} av {t} funn",indexed:"{n} varer indeksert",nothing_t:"Ingen treff",nothing_b:"Prøv et annet søk eller fjern filtrene.",saved_empty_t:"Ingen lagrede varer ennå",saved_empty_b:"Trykk på hjertet på et funn for å lagre det her.",listing:"Produktbilder",qc:"QC",variants:"Varianter",description:"Beskrivelse",seller:"Selger",buy_head:"Kjøp via agenten din",buy_via:"Kjøp via {a}",more:"flere agenter",add_ready:"legg til lenker senere",note:"Lenkene bruker referansen din {r}. Bildene her er plassholdere; ekte produkt- og QC-bilder lastes fra feeden på den ferdige siden.",footer:"Grensekryssende funn, kvalitetssjekket.",footer_line:"Produktdata og QC via qualit.ly / TMAPI. Kjøpslenker via agenten din.",sign_in:"Logg inn",sign_out:"Logg ut",magic_title:"Logg inn",magic_sub:"Vi sender deg en engangslenke på e-post. Ingen passord.",send_link:"Send innloggingslenke",cancel:"Avbryt",check_email:"Sjekk e-posten for innloggingslenken.",auth_off:"Innlogging virker på den ferdige siden (forhåndsvisningen når ikke serveren).",comments:"Kommentarer",comment_ph:"Del størrelse, kvalitet, passform… (ingen eksterne lenker)",post:"Publiser",sign_in_comment:"Logg inn for å kommentere",no_comments:"Ingen kommentarer ennå. Bli den første.",links_blocked:"Eksterne lenker er ikke tillatt i kommentarer.",comments_off:"Kommentarer virker på den ferdige siden.",you:"deg",delete:"Slett",hero_h:"Alle de gode funnene, på ett sted.",hero_sub:"Weidian, Taobao og 1688, kvalitetssjekket og klare til bestilling via agenten din.",stat_finds:"funn",stat_markets:"markedsplasser",stat_qc:"QC-bilder",cont_google:"Fortsett med Google",cont_apple:"Fortsett med Apple",or:"eller",all_colours:"Alle farger",any_price:"Enhver pris"},
+ zh:{search_ph:"搜索商品，如卫衣、工装裤、球鞋…",sources_label:"来源",all_sources:"全部来源",all_types:"全部类型",saved:"收藏",sort_featured:"精选",sort_low:"价格从低到高",sort_high:"价格从高到低",sort_qc:"QC 图最多",count:"{n} / {t} 件",indexed:"已收录 {n} 件",nothing_t:"没有匹配结果",nothing_b:"换个搜索词或清除筛选。",saved_empty_t:"还没有收藏",saved_empty_b:"点任意商品上的爱心即可收藏。",listing:"商品图",qc:"QC",variants:"规格",description:"描述",seller:"卖家",buy_head:"通过代购购买",buy_via:"通过 {a} 购买",more:"更多代购",add_ready:"稍后添加链接",note:"链接带有你的推广码 {r}。此预览中的图片为占位图；正式站点会加载真实商品图和 QC 图。",footer:"跨境好物，已质检。",footer_line:"商品数据与 QC 来自 qualit.ly / TMAPI，购买链接经由你的代购。",sign_in:"登录",sign_out:"退出",magic_title:"登录",magic_sub:"我们会给你发送一次性登录链接，无需密码。",send_link:"发送登录链接",cancel:"取消",check_email:"请查收邮件中的登录链接。",auth_off:"登录在正式站点可用（预览无法连接服务器）。",comments:"评论",comment_ph:"分享尺码、质量、版型…（请勿放外部链接）",post:"发布",sign_in_comment:"登录后评论",no_comments:"还没有评论，来抢沙发。",links_blocked:"评论中不允许外部链接。",comments_off:"评论在正式站点可用。",you:"你",delete:"删除",hero_h:"好物，尽在一处。",hero_sub:"微店、淘宝、1688，已质检，可通过代购下单。",stat_finds:"件商品",stat_markets:"个平台",stat_qc:"张 QC 图",cont_google:"使用 Google 继续",cont_apple:"使用 Apple 继续",or:"或",all_colours:"全部颜色",any_price:"任意价格"},
+ es:{search_ph:"Busca artículos, p. ej. sudadera, cargo, zapatillas…",sources_label:"Fuente",all_sources:"Todas las fuentes",all_types:"Todos los tipos",saved:"Guardados",sort_featured:"Destacados",sort_low:"Precio: menor a mayor",sort_high:"Precio: mayor a menor",sort_qc:"Más fotos QC",count:"{n} de {t} artículos",indexed:"{n} artículos indexados",nothing_t:"Nada coincide",nothing_b:"Prueba otra búsqueda o quita los filtros.",saved_empty_t:"Aún no hay guardados",saved_empty_b:"Toca el corazón en cualquier artículo para guardarlo aquí.",listing:"Fotos del anuncio",qc:"QC",variants:"Variantes",description:"Descripción",seller:"Vendedor",buy_head:"Compra con tu agente",buy_via:"Comprar con {a}",more:"más agentes",add_ready:"añade enlaces luego",note:"Los enlaces llevan tu código {r}. Las imágenes son de muestra; las reales y de QC se cargan del feed en tu sitio.",footer:"Hallazgos transfronterizos, con control de calidad.",footer_line:"Datos de producto y QC vía qualit.ly / TMAPI. Enlaces de compra vía tu agente.",sign_in:"Entrar",sign_out:"Salir",magic_title:"Entrar",magic_sub:"Te enviamos un enlace de un toque. Sin contraseña.",send_link:"Enviar enlace",cancel:"Cancelar",check_email:"Revisa tu correo para el enlace de acceso.",auth_off:"El acceso funciona en el sitio final (la vista previa no llega al servidor).",comments:"Comentarios",comment_ph:"Comparte talla, calidad, ajuste… (sin enlaces externos)",post:"Publicar",sign_in_comment:"Entra para comentar",no_comments:"Sin comentarios aún. Sé el primero.",links_blocked:"No se permiten enlaces externos en los comentarios.",comments_off:"Los comentarios funcionan en tu sitio final.",you:"tú",delete:"Eliminar",hero_h:"Cada buen hallazgo, en un solo índice.",hero_sub:"Weidian, Taobao y 1688, con control de calidad y listos para pedir con tu agente.",stat_finds:"artículos",stat_markets:"plataformas",stat_qc:"fotos QC",cont_google:"Continuar con Google",cont_apple:"Continuar con Apple",or:"o",all_colours:"Todos los colores",any_price:"Cualquier precio"},
+ de:{search_ph:"Artikel suchen, z. B. Hoodie, Cargo, Sneaker…",sources_label:"Quelle",all_sources:"Alle Quellen",all_types:"Alle Typen",saved:"Gemerkt",sort_featured:"Empfohlen",sort_low:"Preis aufsteigend",sort_high:"Preis absteigend",sort_qc:"Meiste QC-Fotos",count:"{n} von {t} Funden",indexed:"{n} Artikel erfasst",nothing_t:"Keine Treffer",nothing_b:"Andere Suche versuchen oder Filter zurücksetzen.",saved_empty_t:"Noch nichts gemerkt",saved_empty_b:"Tippe das Herz auf einem Fund, um ihn hier zu speichern.",listing:"Angebotsfotos",qc:"QC",variants:"Varianten",description:"Beschreibung",seller:"Verkäufer",buy_head:"Über deinen Agenten kaufen",buy_via:"Kaufen über {a}",more:"weitere Agenten",add_ready:"Links später hinzufügen",note:"Links enthalten deinen Ref-Code {r}. Bilder sind Platzhalter; echte Angebots- und QC-Fotos werden auf deiner Live-Seite geladen.",footer:"Grenzüberschreitende Funde, qualitätsgeprüft.",footer_line:"Produktdaten und QC über qualit.ly / TMAPI. Kauf-Links über deinen Agenten.",sign_in:"Anmelden",sign_out:"Abmelden",magic_title:"Anmelden",magic_sub:"Wir senden dir einen Ein-Klick-Link per E-Mail. Kein Passwort.",send_link:"Link senden",cancel:"Abbrechen",check_email:"Sieh in deiner E-Mail nach dem Anmeldelink.",auth_off:"Die Anmeldung läuft auf der Live-Seite (die Vorschau erreicht den Server nicht).",comments:"Kommentare",comment_ph:"Teile Größe, Qualität, Passform… (keine externen Links)",post:"Senden",sign_in_comment:"Zum Kommentieren anmelden",no_comments:"Noch keine Kommentare. Sei der Erste.",links_blocked:"Externe Links sind in Kommentaren nicht erlaubt.",comments_off:"Kommentare laufen auf deiner Live-Seite.",you:"du",delete:"Löschen",hero_h:"Jeder gute Fund, in einem Index.",hero_sub:"Weidian, Taobao und 1688, qualitätsgeprüft und bereit zur Bestellung über deinen Agenten.",stat_finds:"Funde",stat_markets:"Marktplätze",stat_qc:"QC-Fotos",cont_google:"Weiter mit Google",cont_apple:"Weiter mit Apple",or:"oder",all_colours:"Alle Farben",any_price:"Jeder Preis"}
+};
+
+const CUR = { CNY:{sym:"¥",rate:1}, USD:{sym:"$",rate:0.14}, EUR:{sym:"€",rate:0.13}, NOK:{sym:"kr ",rate:1.45}, GBP:{sym:"£",rate:0.11} };
+
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const PLAT = {weidian:{label:"Weidian"},taobao:{label:"Taobao"},"1688":{label:"1688"}};
+
+let ALL = loadProducts();
+const BY_ID = Object.fromEntries(ALL.map(p=>[p.id,p]));
+let state = { plat:"all", cat:"all", color:"all", price:"all", q:"", sort:"feat", lang:"en", cur:"USD", saved:false };
+try{ Object.assign(state, JSON.parse(localStorage.getItem("manifest.state")||"{}")); }catch(e){}
+if(!T[state.lang]) state.lang="en";
+if(!CUR[state.cur]) state.cur="USD";
+state.saved=false;
+
+const t = (k)=> (T[state.lang]&&T[state.lang][k]) || T.en[k] || k;
+const save = ()=>{ try{ localStorage.setItem("manifest.state", JSON.stringify(state)); }catch(e){} };
+const conv = (cny)=> Math.round(cny*CUR[state.cur].rate);
+const price = (cny)=> `${CUR[state.cur].sym}${conv(cny).toLocaleString("en-US")}`;
+const subprice = (cny)=> state.cur==="CNY"? "" : `¥${cny.toLocaleString("en-US")}`;
+const esc = (s)=> String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ================= favorites ================= */
+const LS_FAV="manifest.faves";
+let FAVES=new Set();
+let STARS={};
+const starCount=(id)=>STARS[id]||0;
+const fmtStar=(id)=>{const n=starCount(id);return n>0?("★ "+n):"";};
+async function loadStars(){ if(!sb)return; try{ const {data,error}=await sb.rpc("star_counts"); if(error)throw error; const m={}; (data||[]).forEach(r=>{m[r.product_id]=Number(r.n)||0;}); STARS=m; render(); }catch(e){} }
+function loadLocalFaves(){ try{ FAVES=new Set(JSON.parse(localStorage.getItem(LS_FAV)||"[]")); }catch(e){ FAVES=new Set(); } }
+function saveLocalFaves(){ try{ localStorage.setItem(LS_FAV, JSON.stringify([...FAVES])); }catch(e){} }
+async function loadServerFaves(){
+  if(!sb||!ME) return;
+  try{ const {data,error}=await sb.from("favorites").select("product_id"); if(error)throw error; if(data) FAVES=new Set(data.map(r=>r.product_id)); }catch(e){}
+}
+async function mergeLocalToServer(){
+  if(!sb||!ME||!FAVES.size) return;
+  try{ const rows=[...FAVES].map(id=>({user_id:ME.id,product_id:id,platform:(BY_ID[id]||{}).platform||null}));
+    await sb.from("favorites").upsert(rows,{onConflict:"user_id,product_id"}); }catch(e){}
+}
+function syncFavUI(id){
+  const on=FAVES.has(id);
+  $$(`[data-fav="${id}"]`).forEach(b=>b.setAttribute("aria-pressed",String(on)));
+  $$(`[data-sc="${id}"]`).forEach(e=>{e.textContent=fmtStar(id);});
+}
+async function toggleFav(p){
+  const had=FAVES.has(p.id);
+  if(had){FAVES.delete(p.id);STARS[p.id]=Math.max(0,starCount(p.id)-1);} else {FAVES.add(p.id);STARS[p.id]=starCount(p.id)+1;}
+  saveLocalFaves(); syncFavUI(p.id);
+  if(sb&&ME){ try{
+    if(had) await sb.from("favorites").delete().eq("user_id",ME.id).eq("product_id",p.id);
+    else await sb.from("favorites").insert({user_id:ME.id,product_id:p.id,platform:p.platform});
+  }catch(e){} }
+  if(state.saved) render();
+}
+
+/* ================= placeholder tiles ================= */
+function hashN(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h;}
+function isDark(){const a=document.documentElement.getAttribute("data-theme");return a?a==="dark":matchMedia("(prefers-color-scheme:dark)").matches;}
+function drawTile(canvas,p,seed=0){
+  if(!canvas||!p) return; canvas.__p=p; canvas.__seed=seed;
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  const r=canvas.getBoundingClientRect();
+  const w=Math.max(2,Math.round((r.width||226)*dpr)),h=Math.max(2,Math.round((r.height||226)*dpr));
+  canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext("2d"), dark=isDark();
+  const tone=(hashN(p.id)+seed*17)%12;
+  const L=dark?(12+tone):(95-tone);
+  ctx.fillStyle=`hsl(36 6% ${L}%)`; ctx.fillRect(0,0,w,h);
+  const cx=w/2, cy=h*0.46, s=Math.min(w,h)*0.15;
+  ctx.strokeStyle=dark?"rgba(255,255,255,.15)":"rgba(20,16,12,.13)"; ctx.lineWidth=1.5*dpr; ctx.lineJoin="round";
+  ctx.strokeRect(cx-s*1.15, cy-s*0.85, s*2.3, s*1.7);
+  ctx.beginPath(); ctx.arc(cx-s*0.5, cy-s*0.25, s*0.26, 0, 7); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx-s*1.15, cy+s*0.85); ctx.lineTo(cx-s*0.2, cy-s*0.05); ctx.lineTo(cx+s*0.45, cy+s*0.45); ctx.lineTo(cx+s*1.0, cy-s*0.15); ctx.lineTo(cx+s*1.15, cy+s*0.02); ctx.stroke();
+  ctx.fillStyle=dark?"rgba(255,255,255,.32)":"rgba(20,16,12,.3)";
+  ctx.font=`500 ${9.5*dpr}px "IBM Plex Mono",monospace`; ctx.textBaseline="bottom";
+  ctx.textAlign="left"; ctx.fillText(`#${p.id}`, 10*dpr, h-9*dpr);
+  ctx.textAlign="right"; ctx.fillText(p.cat, w-10*dpr, h-9*dpr); ctx.textAlign="left";
+}
+const HEART = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></svg>`;
+
+/* ================= static labels ================= */
+function applyStatic(){
+  document.documentElement.lang=state.lang;
+  $$("[data-i18n]").forEach(el=>{ el.textContent=t(el.dataset.i18n); });
+  $("#q").placeholder=t("search_ph");
+  const sortSel=$("#sort");
+  sortSel.innerHTML=[["feat","sort_featured"],["low","sort_low"],["high","sort_high"],["qc","sort_qc"]].map(([v,k])=>`<option value="${v}">${t(k)}</option>`).join("");
+  sortSel.value=state.sort;
+  $("#lang").innerHTML=Object.entries(LANGS).map(([k,v])=>`<option value="${k}">${v}</option>`).join(""); $("#lang").value=state.lang;
+  $("#cur").innerHTML=Object.keys(CUR).map(k=>`<option value="${k}">${CUR[k].sym.trim()} ${k}</option>`).join(""); $("#cur").value=state.cur;
+  updateAuthUI();
+  updateHero();
+}
+function parseColor(v){ const name=String(v).split("·")[0].trim(); if(!name||/^(EU\d+|[SMLX]{1,3}|\d+)$/i.test(name)||/×\s*\d/.test(name)) return null; return name; }
+function productColors(p){ return p.variants.map(v=>parseColor(v[0])).filter(Boolean); }
+function allColors(){ const s=new Set(); ALL.forEach(p=>productColors(p).forEach(c=>s.add(c))); return [...s].sort(); }
+function buildFilters(){
+  const src=$("#f-source"); src.innerHTML=`<option value="all">${t("all_sources")}</option><option value="weidian">Weidian</option><option value="taobao">Taobao</option><option value="1688">1688</option>`; src.value=state.plat;
+  const ty=$("#f-type"); ty.innerHTML=`<option value="all">${t("all_types")}</option>`+[...new Set(ALL.map(p=>p.cat))].sort().map(c=>`<option value="${c}">${c}</option>`).join(""); ty.value=state.cat;
+  const co=$("#f-color"); co.innerHTML=`<option value="all">${t("all_colours")}</option>`+allColors().map(c=>`<option value="${c}">${c}</option>`).join(""); co.value=state.color;
+  const pr=$("#f-price"); pr.innerHTML=`<option value="all">${t("any_price")}</option><option value="lo">&lt; ${price(100)}</option><option value="mid">${price(100)}–${price(200)}</option><option value="hi">&gt; ${price(200)}</option>`; pr.value=state.price;
+}
+function filtered(){
+  let list=ALL.filter(p=>{
+    if(state.saved && !FAVES.has(p.id)) return false;
+    if(state.plat!=="all"&&p.platform!==state.plat)return false;
+    if(state.cat!=="all"&&p.cat!==state.cat)return false;
+    if(state.color!=="all"&&!productColors(p).includes(state.color))return false;
+    if(state.price==="lo"&&!(p.price<100))return false;
+    if(state.price==="mid"&&!(p.price>=100&&p.price<=200))return false;
+    if(state.price==="hi"&&!(p.price>200))return false;
+    if(state.q){const q=state.q.toLowerCase();if(!(`${p.title} ${p.cat} ${p.seller} ${p.id}`.toLowerCase().includes(q)))return false;}
+    return true;
+  });
+  const s=state.sort;
+  if(s==="low")list.sort((a,b)=>a.price-b.price);
+  else if(s==="high")list.sort((a,b)=>b.price-a.price);
+  else if(s==="qc")list.sort((a,b)=>b.qc-a.qc);
+  return list;
+}
+function card(p){
+  const el=document.createElement("div"); el.className="card"; el.tabIndex=0; el.setAttribute("role","button");
+  const sub=subprice(p.price);
+  el.innerHTML=`
+    <div class="thumb">
+      <canvas aria-hidden="true"></canvas>
+      <span class="stamp">${PLAT[p.platform].label}</span>
+      ${p.qc?`<span class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>${p.qc} QC</span>`:""}
+      <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button>
+    </div>
+    <div class="body">
+      <span class="code">#${p.id}</span>
+      <span class="title">${esc(p.title)}</span>
+      <span class="price-row">
+        <span class="price">${price(p.price)}</span>
+        ${sub?`<span class="subprice">${sub}</span>`:""}
+        <span class="starcount" data-sc="${p.id}">${fmtStar(p.id)}</span>
+        <span class="cat">${p.cat}</span>
+      </span>
+    </div>`;
+  const open=()=>openDetail(p);
+  el.addEventListener("click",e=>{ if(e.target.closest(".fav"))return; open(); });
+  el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();open();} });
+  el.querySelector(".fav").addEventListener("click",e=>{ e.stopPropagation(); toggleFav(p); });
+  requestAnimationFrame(()=>drawTile($("canvas",el),p));
+  return el;
+}
+function render(){
+  const list=filtered(), grid=$("#grid"), empty=$("#empty");
+  grid.innerHTML="";
+  list.forEach(p=>grid.appendChild(card(p)));
+  if(list.length===0){
+    empty.hidden=false;
+    if(state.saved){ empty.querySelector("b").textContent=t("saved_empty_t"); empty.querySelector("span").textContent=t("saved_empty_b"); }
+    else { empty.querySelector("b").textContent=t("nothing_t"); empty.querySelector("span").textContent=t("nothing_b"); }
+  } else empty.hidden=true;
+  $("#count").textContent=t("count").replace("{n}",list.length).replace("{t}",ALL.length);
+  $("#foot-count").textContent=t("indexed").replace("{n}",ALL.length);
+  const fs=$("#f-source"),ft=$("#f-type"),fc=$("#f-color"),fp=$("#f-price");
+  if(fs)fs.value=state.plat; if(ft)ft.value=state.cat; if(fc)fc.value=state.color; if(fp)fp.value=state.price;
+  $("#saved-chip").setAttribute("aria-pressed",String(state.saved));
+  save();
+}
+
+/* ================= drawer ================= */
+const overlay=$("#overlay"), drawer=$("#drawer"); let lastFocus=null;
+function agentRow(p){
+  const rows=Object.entries(AGENTS).map(([k,a],i)=>{
+    const url=a.build(p);
+    return `<a class="agent ${i===0?'primary':'ghost'}" href="${url}" target="_blank" rel="noopener"><span>${t("buy_via").replace("{a}",a.name)}</span><span class="r">${p.platform} · ${AFFILIATE_REF}</span></a>`;
+  }).join("");
+  return rows+`<div class="agent ghost soon"><span>+ ${t("more")}</span><span class="r">${t("add_ready")}</span></div>`;
+}
+function openDetail(p){
+  lastFocus=document.activeElement; const qcN=p.qc||0; const sub=subprice(p.price);
+  drawer.innerHTML=`
+    <header>
+      <span class="code">#${p.id} · ${PLAT[p.platform].label}</span>
+      <button class="x" id="close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </header>
+    <div class="dbody">
+      <div>
+        <div class="gmain"><canvas id="gmain" aria-hidden="true"></canvas></div>
+        <div class="gtabs">
+          <button class="gtab" data-mode="listing" aria-pressed="true">${t("listing")}</button>
+          <button class="gtab" data-mode="qc" aria-pressed="false">${t("qc")} ${qcN}</button>
+        </div>
+        <div class="thumbs" id="thumbs"></div>
+      </div>
+      <div>
+        <div class="d-titlerow">
+          <h2 class="d-title">${esc(p.title)}</h2>
+          <button class="d-fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button>
+        </div>
+        <div class="d-price"><span class="p">${price(p.price)}</span>${sub?`<span class="u">${sub}</span>`:""}</div>
+        <div class="meta">
+          <span class="tag">${p.cat}</span><span class="tag">${qcN} ${t("qc")}</span><span class="tag">${p.variants.length} ${t("variants").toLowerCase()}</span><span class="tag" data-sc="${p.id}">${fmtStar(p.id)}</span>
+        </div>
+      </div>
+      <div><p class="sec-label">${t("variants")}</p>
+        <div class="variants">${p.variants.map(v=>`<span class="variant">${esc(v[0])}<span class="vp">${price(v[1])}</span></span>`).join("")}</div></div>
+      <div><p class="sec-label">${t("description")}</p><p class="desc">${esc(p.desc)}</p><p class="seller">${t("seller")}: <b>${esc(p.seller)}</b></p></div>
+      <div><p class="sec-label">${t("buy_head")}</p><div class="agents">${agentRow(p)}</div>
+        <p class="foot-note" style="margin-top:11px">${t("note").replace("{r}",AFFILIATE_REF)}</p></div>
+      <div><p class="sec-label">${t("comments")}</p><div id="comments"><p class="cmeta">…</p></div></div>
+    </div>`;
+  overlay.classList.add("open"); drawer.classList.add("open"); document.body.style.overflow="hidden";
+  const mode={m:"listing"};
+  const gal=(active=0)=>{
+    const seed=mode.m==="qc"?100:0;
+    drawTile($("#gmain"),p,seed+active);
+    const th=$("#thumbs"); th.innerHTML="";
+    const n=mode.m==="qc"?Math.min(qcN||1,10):5;
+    for(let i=0;i<n;i++){const c=document.createElement("canvas");th.appendChild(c);requestAnimationFrame(()=>drawTile(c,p,seed+i));c.addEventListener("click",()=>gal(i));}
+  };
+  requestAnimationFrame(()=>gal(0));
+  $$(".gtab",drawer).forEach(tb=>tb.addEventListener("click",()=>{mode.m=tb.dataset.mode;$$(".gtab",drawer).forEach(x=>x.setAttribute("aria-pressed",String(x===tb)));gal(0);}));
+  $("#close",drawer).addEventListener("click",closeDetail);
+  drawer.querySelector(".d-fav").addEventListener("click",()=>toggleFav(p));
+  loadComments(p.id,$("#comments",drawer));
+  $("#close",drawer).focus();
+}
+function closeDetail(){overlay.classList.remove("open");drawer.classList.remove("open");document.body.style.overflow="";if(lastFocus)lastFocus.focus();}
+overlay.addEventListener("click",closeDetail);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&drawer.classList.contains("open"))closeDetail();});
+
+/* ================= comments ================= */
+async function loadComments(pid,host){
+  if(!host) return;
+  if(!sb){ host.innerHTML=`<p class="cmeta">${t("comments_off")}</p>`+commentForm(pid); wireForm(pid,host); return; }
+  host.innerHTML=`<p class="cmeta">…</p>`;
+  try{
+    const {data,error}=await sb.from("comments").select("id,body,created_at,user_id,profiles(username)").eq("product_id",pid).eq("hidden",false).order("created_at",{ascending:false}).limit(50);
+    if(error)throw error;
+    renderComments(host,pid,data||[]);
+  }catch(e){ host.innerHTML=`<p class="cmeta">${t("comments_off")}</p>`+commentForm(pid); wireForm(pid,host); }
+}
+function renderComments(host,pid,rows){
+  const list = rows.length? `<div class="clist">`+rows.map(c=>{
+    const name = (c.profiles&&c.profiles.username)? "@"+esc(c.profiles.username) : "@"+t("you");
+    const mine = ME && c.user_id===ME.id;
+    const d = new Date(c.created_at).toLocaleDateString();
+    return `<div class="citem"><div class="top"><span class="cname">${name}</span><span class="cdate">${d}</span></div><div class="cbody">${esc(c.body)}</div>${mine?`<button class="cdel" data-del="${c.id}">${t("delete")}</button>`:""}</div>`;
+  }).join("")+`</div>` : `<p class="cmeta">${t("no_comments")}</p>`;
+  host.innerHTML=list+commentForm(pid);
+  wireForm(pid,host);
+  $$("[data-del]",host).forEach(b=>b.addEventListener("click",async()=>{ try{ await sb.from("comments").delete().eq("id",b.dataset.del); loadComments(pid,host); }catch(e){} }));
+}
+function commentForm(pid){
+  if(ME){
+    return `<div class="cform"><textarea id="cbody" placeholder="${t("comment_ph")}" maxlength="2000"></textarea><div class="row"><span class="cerr" id="cerr"></span><button class="btn" id="cpost">${t("post")}</button></div></div>`;
+  }
+  return `<div class="cform"><button class="btn ghost" id="cin">${t("sign_in_comment")}</button></div>`;
+}
+function wireForm(pid,host){
+  const inBtn=$("#cin",host); if(inBtn) inBtn.addEventListener("click",openAuth);
+  const postBtn=$("#cpost",host);
+  if(postBtn) postBtn.addEventListener("click",async()=>{
+    const ta=$("#cbody",host), err=$("#cerr",host); const body=(ta.value||"").trim();
+    if(!body) return;
+    if(/https?:\/\//i.test(body)){ err.textContent=t("links_blocked"); return; }
+    err.textContent=""; postBtn.disabled=true;
+    try{ const {error}=await sb.from("comments").insert({product_id:pid,user_id:ME.id,body}); if(error)throw error; ta.value=""; loadComments(pid,host); }
+    catch(e){ err.textContent=(e&&/check|violat/i.test(e.message||""))? t("links_blocked") : t("comments_off"); postBtn.disabled=false; }
+  });
+}
+
+/* ================= auth ================= */
+function updateAuthUI(){
+  const b=$("#auth-btn");
+  if(ME){ const name=(ME.email||"me").split("@")[0]; b.textContent="@"+name; b.dataset.in="1"; }
+  else { b.textContent=t("sign_in"); b.dataset.in="0"; }
+}
+function openAuth(){ $("#auth-modal").hidden=false; $("#auth-status").textContent=""; setTimeout(()=>$("#auth-email").focus(),30); }
+function closeAuth(){ $("#auth-modal").hidden=true; }
+async function sendMagic(){
+  const email=($("#auth-email").value||"").trim(); const st=$("#auth-status");
+  if(!/.+@.+\..+/.test(email)){ st.textContent=t("magic_sub"); return; }
+  if(!sb){ st.textContent=t("auth_off"); return; }
+  st.textContent="…";
+  try{ const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin}}); if(error)throw error; st.textContent=t("check_email"); }
+  catch(e){ st.textContent=t("auth_off"); }
+}
+function toggleMenu(){
+  const m=$("#acct-menu");
+  if(!m.hidden){ m.hidden=true; return; }
+  m.innerHTML=`<button id="m-saved">${t("saved")}</button><button id="m-out">${t("sign_out")}</button>`;
+  m.hidden=false;
+  $("#m-saved",m).addEventListener("click",()=>{ m.hidden=true; state.saved=true; render(); });
+  $("#m-out",m).addEventListener("click",async()=>{ m.hidden=true; try{ await sb.auth.signOut(); }catch(e){} ME=null; loadLocalFaves(); updateAuthUI(); render(); });
+}
+async function initAuth(){
+  if(!sb) return;
+  try{
+    const {data}=await sb.auth.getUser(); ME=data&&data.user||null;
+    if(ME){ await mergeLocalToServer(); await loadServerFaves(); }
+    updateAuthUI(); render();
+  }catch(e){ /* offline preview */ }
+  try{
+    sb.auth.onAuthStateChange(async(_e,session)=>{
+      ME=session&&session.user||null;
+      if(ME){ await mergeLocalToServer(); await loadServerFaves(); }
+      else loadLocalFaves();
+      updateAuthUI(); render();
+    });
+  }catch(e){}
+}
+
+/* ================= controls ================= */
+$("#f-source").addEventListener("change",e=>{state.plat=e.target.value;render();});
+$("#f-type").addEventListener("change",e=>{state.cat=e.target.value;render();});
+$("#f-color").addEventListener("change",e=>{state.color=e.target.value;render();});
+$("#f-price").addEventListener("change",e=>{state.price=e.target.value;render();});
+$("#saved-chip").addEventListener("click",()=>{state.saved=!state.saved;render();});
+let qt;$("#q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{state.q=e.target.value.trim();render();},110);});
+$("#sort").addEventListener("change",e=>{state.sort=e.target.value;render();});
+$("#lang").addEventListener("change",e=>{state.lang=e.target.value;save();applyStatic();buildFilters();render();});
+$("#cur").addEventListener("change",e=>{state.cur=e.target.value;save();buildFilters();render();});
+$("#auth-btn").addEventListener("click",()=>{ if(ME) toggleMenu(); else openAuth(); });
+$("#auth-send").addEventListener("click",sendMagic);
+$("#auth-cancel").addEventListener("click",closeAuth);
+$("#auth-modal").addEventListener("click",e=>{ if(e.target.id==="auth-modal") closeAuth(); });
+$("#theme").addEventListener("click",()=>{const next=isDark()?"light":"dark";document.documentElement.setAttribute("data-theme",next);try{localStorage.setItem("manifest.theme",next);}catch(e){}render();redrawAll();});
+try{const th=localStorage.getItem("manifest.theme");if(th)document.documentElement.setAttribute("data-theme",th);}catch(e){}
+document.addEventListener("click",e=>{ const m=$("#acct-menu"); if(!m.hidden && !e.target.closest("#acct-menu") && e.target.id!=="auth-btn") m.hidden=true; });
+
+/* ================= hero + featured ================= */
+function updateHero(){
+  const el=$("#hero-stats"); if(!el)return;
+  const qcTotal=ALL.reduce((s,p)=>s+(p.qc||0),0);
+  const stats=[[ALL.length,t("stat_finds")],[3,t("stat_markets")],[qcTotal,t("stat_qc")]];
+  el.innerHTML=stats.map(([n,l])=>`<span class="stat"><b>${n.toLocaleString("en-US")}</b> ${l}</span>`).join("");
+}
+function renderFeatured(){
+  const strip=$("#hero-strip"); if(!strip)return; strip.innerHTML="";
+  [...ALL].sort((a,b)=>b.qc-a.qc).slice(0,6).forEach(p=>{
+    const tl=document.createElement("button"); tl.className="ftile"; tl.type="button";
+    tl.innerHTML=`<canvas aria-hidden="true"></canvas><span class="fstamp">${PLAT[p.platform].label} · ${p.qc} QC</span>`;
+    tl.addEventListener("click",()=>openDetail(p)); strip.appendChild(tl);
+    requestAnimationFrame(()=>drawTile(tl.querySelector("canvas"),p,7));
+  });
+}
+function redrawAll(){ $$("canvas").forEach(c=>{ if(c.__p) drawTile(c,c.__p,c.__seed||0); }); }
+function oauth(provider){ if(!sb){ $("#auth-status").textContent=t("auth_off"); return; } try{ sb.auth.signInWithOAuth({provider,options:{redirectTo:location.origin}}); }catch(e){ $("#auth-status").textContent=t("auth_off"); } }
+$("#auth-google").addEventListener("click",()=>oauth("google"));
+$("#auth-apple").addEventListener("click",()=>oauth("apple"));
+
+/* ================= boot ================= */
+loadLocalFaves();
+applyStatic();
+buildFilters();
+renderFeatured();
+$("#q").value=state.q||"";
+render();
+initAuth();
+loadStars();
+document.body.classList.add("intro");
+setTimeout(()=>document.body.classList.remove("intro"),700);
+addEventListener("resize",()=>{clearTimeout(window.__rz);window.__rz=setTimeout(redrawAll,220);});
+</script>
