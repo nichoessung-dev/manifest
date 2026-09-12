@@ -647,6 +647,14 @@ async function toggleFav(p){
 /* ================= placeholder tiles ================= */
 function hashN(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h;}
 function isDark(){const a=document.documentElement.getAttribute("data-theme");return a?a==="dark":matchMedia("(prefers-color-scheme:dark)").matches;}
+const TILE_ICONS={
+  Tops:["M35,25 L43,25 L50,32 L57,25 L65,25 L80,33 L72,47 L66,43 L66,80 L34,80 L34,43 L28,47 L20,33 Z"],
+  Outerwear:["M35,25 L43,25 L50,32 L57,25 L65,25 L80,33 L72,47 L66,43 L66,80 L34,80 L34,43 L28,47 L20,33 Z","M50,33 L50,80"],
+  Bottoms:["M36,26 L64,26 L66,80 L55,80 L50,50 L45,80 L34,80 Z"],
+  Footwear:["M18,64 L18,71 L74,71 L80,66 L80,61 L54,55 L46,49 L36,49 L33,55 L24,57 L18,61 Z"],
+  Bags:["M32,44 L68,44 L72,80 L28,80 Z","M40,44 C40,26 60,26 60,44"],
+  Accessories:["M50,80 A23,23 0 1 1 50,34 A23,23 0 1 1 50,80 Z","M42,33 L58,33 L50,19 Z"]
+};
 function drawTile(canvas,p,seed=0){
   if(!canvas||!p) return; canvas.__p=p; canvas.__seed=seed;
   const dpr=Math.min(2,window.devicePixelRatio||1);
@@ -657,21 +665,23 @@ function drawTile(canvas,p,seed=0){
   const hue=hashN(p.id), v=(hue+seed*23)>>>0;
   const g=ctx.createLinearGradient(0,0,w,h);
   if(dark){
-    g.addColorStop(0,`hsl(${216+(hue%16)} 32% ${14+(hue%6)}%)`);
-    g.addColorStop(1,`hsl(${224+(v%12)} 27% ${21+(v%7)}%)`);
+    g.addColorStop(0,`hsl(${216+(hue%16)} 30% ${13+(hue%5)}%)`);
+    g.addColorStop(1,`hsl(${224+(v%12)} 26% ${19+(v%6)}%)`);
   }else{
-    g.addColorStop(0,`hsl(${214+(hue%14)} 32% ${96-(hue%4)}%)`);
-    g.addColorStop(1,`hsl(${220+(v%12)} 24% ${89-(v%6)}%)`);
+    g.addColorStop(0,`hsl(${214+(hue%10)} 34% ${99-(hue%2)}%)`);
+    g.addColorStop(1,`hsl(${219+(v%10)} 28% ${95-(v%3)}%)`);
   }
   ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
-  ctx.fillStyle=dark?"rgba(255,255,255,.035)":"rgba(30,43,73,.045)";
-  ctx.beginPath(); ctx.arc(w*(0.78+((v%5)-2)*0.03), h*0.15, Math.min(w,h)*0.55, 0, 7); ctx.fill();
-  const letter=((p.title||"?").trim().charAt(0)||"?").toUpperCase();
-  ctx.fillStyle=dark?"rgba(233,237,245,.11)":"rgba(30,43,73,.11)";
-  ctx.font=`800 ${Math.round(Math.min(w,h)*0.6)}px "Hanken Grotesk",system-ui,sans-serif`;
-  ctx.textAlign="center"; ctx.textBaseline="middle";
-  ctx.fillText(letter,w/2,h*0.47);
-  ctx.fillStyle=dark?"rgba(233,237,245,.34)":"rgba(30,43,73,.32)";
+  const S=Math.min(w,h);
+  ctx.fillStyle=dark?"rgba(255,255,255,.05)":"#E9EEF7";
+  ctx.beginPath(); ctx.arc(w/2, h*0.44, S*0.31, 0, 7); ctx.fill();
+  const paths=(TILE_ICONS[p.cat]||TILE_ICONS.Tops);
+  ctx.save();
+  ctx.translate(w/2, h*0.44); const k=S*0.0052; ctx.scale(k,k); ctx.translate(-50,-50);
+  ctx.strokeStyle=dark?"#9DB2E0":"#26395E"; ctx.lineWidth=2.4; ctx.lineJoin="round"; ctx.lineCap="round";
+  for(const d of paths){ try{ ctx.stroke(new Path2D(d)); }catch(e){} }
+  ctx.restore();
+  ctx.fillStyle=dark?"rgba(233,237,245,.32)":"rgba(30,43,73,.30)";
   ctx.font=`600 ${9.5*dpr}px "IBM Plex Mono",monospace`; ctx.textBaseline="bottom"; ctx.textAlign="left";
   ctx.fillText(`#${p.id}`, 10*dpr, h-9*dpr);
 }
@@ -961,6 +971,17 @@ $("#q").value=state.q||"";
 render();
 initAuth();
 loadStars();
+/* real product images: images.json is a simple { "<id>": "<url>" } map produced by the enrichment pipeline. Absent = placeholders, no error. */
+(function loadImages(){
+  try{
+    fetch("images.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(map=>{
+      if(!map||typeof map!=="object") return;
+      let n=0;
+      for(const id in map){ if(BY_ID[id]&&map[id]){ BY_ID[id].img=map[id]; n++; } }
+      if(n){ render(); renderFeatured(); }
+    }).catch(()=>{});
+  }catch(e){}
+})();
 document.body.classList.add("intro");
 
 /* ================= Puro Classico: tools, router, gate, tools-pages ================= */
