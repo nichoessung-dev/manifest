@@ -58,7 +58,7 @@ body.intro .card{animation:rise .3s ease both}
 .hero-sub{animation-delay:.05s}.hero-stats{animation-delay:.1s}
 .wrap{max-width:var(--maxw);margin:0 auto;padding-inline:22px}
 
-.hero{border-bottom:1.5px solid var(--line-2)}
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);background:radial-gradient(1100px 460px at 88% -22%, color-mix(in srgb,var(--accent) 15%, transparent), transparent 62%)}
 .hero-in{padding-block:46px 28px;display:flex;flex-direction:column;gap:18px}
 .hero-h{font-family:var(--f-disp);font-weight:800;font-size:clamp(30px,5.2vw,54px);line-height:1.02;letter-spacing:-.035em;margin:0;max-width:15ch;text-wrap:balance}
 .hero-sub{font-size:clamp(15px,1.9vw,18px);color:var(--muted);margin:0;max-width:52ch;line-height:1.55}
@@ -261,7 +261,7 @@ select.mini,.theme-btn,.auth-btn,.fsel select,.saved-chip,.btn,.sheet input,.chi
 /* cleaner cards */
 .grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;background:transparent;border:none}
 @media(max-width:520px){.grid{grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px}}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:transform .16s,box-shadow .16s,border-color .16s}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(20,30,60,.05);transition:transform .16s,box-shadow .16s,border-color .16s}
 .card:hover{background:var(--surface);border-color:var(--line-2);box-shadow:0 12px 30px rgba(20,30,60,.10);transform:translateY(-2px)}
 .thumb{border-bottom:1px solid var(--line)}
 .stamp{border-radius:999px;background:rgba(20,30,60,.55);border-color:rgba(255,255,255,.4)}
@@ -653,17 +653,26 @@ function drawTile(canvas,p,seed=0){
   const w=Math.max(2,Math.round((r.width||226)*dpr)),h=Math.max(2,Math.round((r.height||226)*dpr));
   canvas.width=w;canvas.height=h;
   const ctx=canvas.getContext("2d"), dark=isDark();
-  const tone=(hashN(p.id)+seed*17)%12;
-  const L=dark?(12+tone):(95-tone);
-  ctx.fillStyle=`hsl(36 6% ${L}%)`; ctx.fillRect(0,0,w,h);
-  const cx=w/2, cy=h*0.46, s=Math.min(w,h)*0.15;
-  ctx.strokeStyle=dark?"rgba(255,255,255,.15)":"rgba(20,16,12,.13)"; ctx.lineWidth=1.5*dpr; ctx.lineJoin="round";
-  ctx.strokeRect(cx-s*1.15, cy-s*0.85, s*2.3, s*1.7);
-  ctx.beginPath(); ctx.arc(cx-s*0.5, cy-s*0.25, s*0.26, 0, 7); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx-s*1.15, cy+s*0.85); ctx.lineTo(cx-s*0.2, cy-s*0.05); ctx.lineTo(cx+s*0.45, cy+s*0.45); ctx.lineTo(cx+s*1.0, cy-s*0.15); ctx.lineTo(cx+s*1.15, cy+s*0.02); ctx.stroke();
-  ctx.fillStyle=dark?"rgba(255,255,255,.32)":"rgba(20,16,12,.3)";
-  ctx.font=`500 ${9.5*dpr}px "IBM Plex Mono",monospace`; ctx.textBaseline="bottom";
-  ctx.textAlign="left"; ctx.fillText(`#${p.id}`, 10*dpr, h-9*dpr);
+  const hue=hashN(p.id), v=(hue+seed*23)>>>0;
+  const g=ctx.createLinearGradient(0,0,w,h);
+  if(dark){
+    g.addColorStop(0,`hsl(${216+(hue%16)} 32% ${14+(hue%6)}%)`);
+    g.addColorStop(1,`hsl(${224+(v%12)} 27% ${21+(v%7)}%)`);
+  }else{
+    g.addColorStop(0,`hsl(${214+(hue%14)} 32% ${96-(hue%4)}%)`);
+    g.addColorStop(1,`hsl(${220+(v%12)} 24% ${89-(v%6)}%)`);
+  }
+  ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+  ctx.fillStyle=dark?"rgba(255,255,255,.035)":"rgba(30,43,73,.045)";
+  ctx.beginPath(); ctx.arc(w*(0.78+((v%5)-2)*0.03), h*0.15, Math.min(w,h)*0.55, 0, 7); ctx.fill();
+  const letter=((p.title||"?").trim().charAt(0)||"?").toUpperCase();
+  ctx.fillStyle=dark?"rgba(233,237,245,.11)":"rgba(30,43,73,.11)";
+  ctx.font=`800 ${Math.round(Math.min(w,h)*0.6)}px "Hanken Grotesk",system-ui,sans-serif`;
+  ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillText(letter,w/2,h*0.47);
+  ctx.fillStyle=dark?"rgba(233,237,245,.34)":"rgba(30,43,73,.32)";
+  ctx.font=`600 ${9.5*dpr}px "IBM Plex Mono",monospace`; ctx.textBaseline="bottom"; ctx.textAlign="left";
+  ctx.fillText(`#${p.id}`, 10*dpr, h-9*dpr);
 }
 const HEART = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></svg>`;
 
