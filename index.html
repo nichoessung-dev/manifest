@@ -120,6 +120,9 @@ select.mini,.theme-btn,.auth-btn{font-family:var(--f-mono);font-size:11.5px;lett
 .menu button{display:block;width:100%;text-align:left;font-family:var(--f-disp);font-weight:500;font-size:13px;color:var(--ink);padding:9px 12px;background:none;border:none;border-radius:8px;cursor:pointer;transition:background-color .13s ease}
 .menu button:hover{background:var(--surface-2)}
 
+.toolbar{position:sticky;top:0;z-index:31;background:var(--ground)}
+.toolbar .deck{position:static}
+.toolbar .subdeck{background:var(--ground)}
 .deck{border-bottom:1.5px solid var(--line-2);background:var(--ground);position:sticky;top:0;z-index:30}
 .deck .wrap{display:flex;align-items:stretch;gap:0}
 .search{flex:1;position:relative;display:flex;align-items:center}
@@ -639,6 +642,7 @@ body.pp-open .drawer{height:auto;bottom:0}
   <div class="hero-strip" id="hero-strip"></div>
 </section>
 
+<div class="toolbar">
 <div class="deck">
   <div class="wrap">
     <label class="search">
@@ -667,6 +671,7 @@ body.pp-open .drawer{height:auto;bottom:0}
     <span class="spacer"></span>
     <span class="count" id="count">–</span>
   </div>
+</div>
 </div>
 
 <main>
