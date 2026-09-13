@@ -120,6 +120,7 @@ select.mini,.theme-btn,.auth-btn{font-family:var(--f-mono);font-size:11.5px;lett
 .saved-chip{font-family:var(--f-mono);font-size:11.5px;padding:6px 12px;background:var(--surface);color:var(--muted);border:1px solid var(--line);border-radius:var(--radius);display:flex;align-items:center;gap:6px}
 .saved-chip[aria-pressed="true"]{background:var(--fill);color:var(--fill-ink);border-color:var(--fill)}
 .saved-chip svg{width:12px;height:12px}
+.sort-fsel{margin-left:auto}
 .eyebrow{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
 .spacer{flex:1 1 auto;min-width:6px}
 .count{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -363,20 +364,18 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <input id="q" type="search" autocomplete="off" aria-label="Search products">
     </label>
-    <div class="sortwrap">
-      <select class="sort" id="sort" aria-label="Sort"></select>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-    </div>
   </div>
 </div>
 
 <div class="subdeck">
   <div class="wrap filters-row">
-    <div class="fsel"><select id="f-source" aria-label="Source"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
     <div class="fsel"><select id="f-type" aria-label="Type"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
-    <div class="fsel"><select id="f-color" aria-label="Colour"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+    <div class="fsel"><select id="f-brand" aria-label="Brand"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
     <div class="fsel"><select id="f-price" aria-label="Price"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+    <div class="fsel"><select id="f-color" aria-label="Colour"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+    <div class="fsel"><select id="f-source" aria-label="Source"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
     <button class="saved-chip" id="saved-chip" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></svg><span data-i18n="saved">Saved</span></button>
+    <div class="fsel sort-fsel"><select class="sort" id="sort" aria-label="Sort"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
     <span class="spacer"></span>
     <span class="count" id="count">—</span>
   </div>
@@ -542,7 +541,7 @@ try{ if(window.supabase&&window.supabase.createClient){ sb = window.supabase.cre
 /* ================= i18n ================= */
 const LANGS = { en:"English", no:"Norsk", zh:"中文", es:"Español", de:"Deutsch" };
 const T = {
- en:{search_ph:"Search finds, e.g. hoodie, cargo, trainer…",sources_label:"Source",all_sources:"All sources",all_types:"All types",saved:"Saved",sort_featured:"Featured",sort_low:"Price low to high",sort_high:"Price high to low",sort_qc:"Most QC photos",count:"{n} of {t} finds",indexed:"{n} items indexed",nothing_t:"Nothing matches that",nothing_b:"Try another search or clear the filters.",saved_empty_t:"No saved items yet",saved_empty_b:"Tap the heart on any find to save it here.",listing:"Listing photos",qc:"QC",variants:"Variants",description:"Description",seller:"Seller",buy_head:"Buy through your agent",buy_via:"Buy via {a}",more:"more agents",add_ready:"add links when ready",note:"Buy links carry your ref {r}. Titles, prices, QC counts and ratings are real community data. Product photos are placeholders for now, connect an item-image feed to show real listing and QC photos.",footer:"Cross-border finds, quality-checked.",footer_line:"Community-sourced finds, indexed for easy browsing. Buy links via your agent.",sign_in:"Sign in",sign_out:"Sign out",magic_title:"Sign in",magic_sub:"We email you a one-tap link. No password to remember.",send_link:"Send magic link",cancel:"Cancel",check_email:"Check your email for the sign-in link.",auth_off:"Sign-in runs on the live site (this preview can't reach the server).",comments:"Comments",comment_ph:"Share sizing, quality, fit… (no outside links)",post:"Post",sign_in_comment:"Sign in to comment",no_comments:"No comments yet. Be the first.",links_blocked:"Outside links aren't allowed in comments.",comments_off:"Comments run on your live site.",you:"you",delete:"Delete",hero_h:"The only replica spreadsheet you'll ever need.",hero_sub:"Quality-checked Weidian, Taobao and 1688 finds. Search it, save it, order through your agent.",stat_finds:"finds",stat_markets:"marketplaces",stat_qc:"QC photos",cont_google:"Continue with Google",cont_apple:"Continue with Apple",or:"or",all_colours:"All colours",any_price:"Any price"},
+ en:{search_ph:"Search finds, e.g. hoodie, cargo, trainer…",sources_label:"Source",all_sources:"All sources",all_types:"All types",saved:"Saved",sort_featured:"Featured",sort_low:"Price low to high",sort_high:"Price high to low",sort_qc:"Most QC photos",sort_pop:"Most popular",sort_recent:"Recent",all_brands:"All brands",count:"{n} of {t} finds",indexed:"{n} items indexed",nothing_t:"Nothing matches that",nothing_b:"Try another search or clear the filters.",saved_empty_t:"No saved items yet",saved_empty_b:"Tap the heart on any find to save it here.",listing:"Listing photos",qc:"QC",variants:"Variants",description:"Description",seller:"Seller",buy_head:"Buy through your agent",buy_via:"Buy via {a}",more:"more agents",add_ready:"add links when ready",note:"Buy links carry your ref {r}. Titles, prices, QC counts and ratings are real community data. Product photos are placeholders for now, connect an item-image feed to show real listing and QC photos.",footer:"Cross-border finds, quality-checked.",footer_line:"Community-sourced finds, indexed for easy browsing. Buy links via your agent.",sign_in:"Sign in",sign_out:"Sign out",magic_title:"Sign in",magic_sub:"We email you a one-tap link. No password to remember.",send_link:"Send magic link",cancel:"Cancel",check_email:"Check your email for the sign-in link.",auth_off:"Sign-in runs on the live site (this preview can't reach the server).",comments:"Comments",comment_ph:"Share sizing, quality, fit… (no outside links)",post:"Post",sign_in_comment:"Sign in to comment",no_comments:"No comments yet. Be the first.",links_blocked:"Outside links aren't allowed in comments.",comments_off:"Comments run on your live site.",you:"you",delete:"Delete",hero_h:"The only replica spreadsheet you'll ever need.",hero_sub:"Quality-checked Weidian, Taobao and 1688 finds. Search it, save it, order through your agent.",stat_finds:"finds",stat_markets:"marketplaces",stat_qc:"QC photos",cont_google:"Continue with Google",cont_apple:"Continue with Apple",or:"or",all_colours:"All colours",any_price:"Any price"},
  no:{search_ph:"Søk i funn, f.eks. hettegenser, cargo, sko…",sources_label:"Kilde",all_sources:"Alle kilder",all_types:"Alle typer",saved:"Lagret",sort_featured:"Utvalgte",sort_low:"Pris lav til høy",sort_high:"Pris høy til lav",sort_qc:"Flest QC-bilder",count:"{n} av {t} funn",indexed:"{n} varer indeksert",nothing_t:"Ingen treff",nothing_b:"Prøv et annet søk eller fjern filtrene.",saved_empty_t:"Ingen lagrede varer ennå",saved_empty_b:"Trykk på hjertet på et funn for å lagre det her.",listing:"Produktbilder",qc:"QC",variants:"Varianter",description:"Beskrivelse",seller:"Selger",buy_head:"Kjøp via agenten din",buy_via:"Kjøp via {a}",more:"flere agenter",add_ready:"legg til lenker senere",note:"Lenkene bruker referansen din {r}. Bildene her er plassholdere; ekte produkt- og QC-bilder lastes fra feeden på den ferdige siden.",footer:"Grensekryssende funn, kvalitetssjekket.",footer_line:"Produktdata og QC via qualit.ly / TMAPI. Kjøpslenker via agenten din.",sign_in:"Logg inn",sign_out:"Logg ut",magic_title:"Logg inn",magic_sub:"Vi sender deg en engangslenke på e-post. Ingen passord.",send_link:"Send innloggingslenke",cancel:"Avbryt",check_email:"Sjekk e-posten for innloggingslenken.",auth_off:"Innlogging virker på den ferdige siden (forhåndsvisningen når ikke serveren).",comments:"Kommentarer",comment_ph:"Del størrelse, kvalitet, passform… (ingen eksterne lenker)",post:"Publiser",sign_in_comment:"Logg inn for å kommentere",no_comments:"Ingen kommentarer ennå. Bli den første.",links_blocked:"Eksterne lenker er ikke tillatt i kommentarer.",comments_off:"Kommentarer virker på den ferdige siden.",you:"deg",delete:"Slett",hero_h:"Den eneste funn-listen du trenger.",hero_sub:"Kvalitetssjekkede funn fra Weidian, Taobao og 1688. Søk, lagre, bestill via agenten din.",stat_finds:"funn",stat_markets:"markedsplasser",stat_qc:"QC-bilder",cont_google:"Fortsett med Google",cont_apple:"Fortsett med Apple",or:"eller",all_colours:"Alle farger",any_price:"Enhver pris"},
  zh:{search_ph:"搜索商品，如卫衣、工装裤、球鞋…",sources_label:"来源",all_sources:"全部来源",all_types:"全部类型",saved:"收藏",sort_featured:"精选",sort_low:"价格从低到高",sort_high:"价格从高到低",sort_qc:"QC 图最多",count:"{n} / {t} 件",indexed:"已收录 {n} 件",nothing_t:"没有匹配结果",nothing_b:"换个搜索词或清除筛选。",saved_empty_t:"还没有收藏",saved_empty_b:"点任意商品上的爱心即可收藏。",listing:"商品图",qc:"QC",variants:"规格",description:"描述",seller:"卖家",buy_head:"通过代购购买",buy_via:"通过 {a} 购买",more:"更多代购",add_ready:"稍后添加链接",note:"链接带有你的推广码 {r}。此预览中的图片为占位图；正式站点会加载真实商品图和 QC 图。",footer:"跨境好物，已质检。",footer_line:"商品数据与 QC 来自 qualit.ly / TMAPI，购买链接经由你的代购。",sign_in:"登录",sign_out:"退出",magic_title:"登录",magic_sub:"我们会给你发送一次性登录链接，无需密码。",send_link:"发送登录链接",cancel:"取消",check_email:"请查收邮件中的登录链接。",auth_off:"登录在正式站点可用（预览无法连接服务器）。",comments:"评论",comment_ph:"分享尺码、质量、版型…（请勿放外部链接）",post:"发布",sign_in_comment:"登录后评论",no_comments:"还没有评论，来抢沙发。",links_blocked:"评论中不允许外部链接。",comments_off:"评论在正式站点可用。",you:"你",delete:"删除",hero_h:"你唯一需要的好物清单。",hero_sub:"微店、淘宝、1688 的质检好物。搜索、收藏、通过代购下单。",stat_finds:"件商品",stat_markets:"个平台",stat_qc:"张 QC 图",cont_google:"使用 Google 继续",cont_apple:"使用 Apple 继续",or:"或",all_colours:"全部颜色",any_price:"任意价格"},
  es:{search_ph:"Busca artículos, p. ej. sudadera, cargo, zapatillas…",sources_label:"Fuente",all_sources:"Todas las fuentes",all_types:"Todos los tipos",saved:"Guardados",sort_featured:"Destacados",sort_low:"Precio: menor a mayor",sort_high:"Precio: mayor a menor",sort_qc:"Más fotos QC",count:"{n} de {t} artículos",indexed:"{n} artículos indexados",nothing_t:"Nada coincide",nothing_b:"Prueba otra búsqueda o quita los filtros.",saved_empty_t:"Aún no hay guardados",saved_empty_b:"Toca el corazón en cualquier artículo para guardarlo aquí.",listing:"Fotos del anuncio",qc:"QC",variants:"Variantes",description:"Descripción",seller:"Vendedor",buy_head:"Compra con tu agente",buy_via:"Comprar con {a}",more:"más agentes",add_ready:"añade enlaces luego",note:"Los enlaces llevan tu código {r}. Las imágenes son de muestra; las reales y de QC se cargan del feed en tu sitio.",footer:"Hallazgos transfronterizos, con control de calidad.",footer_line:"Datos de producto y QC vía qualit.ly / TMAPI. Enlaces de compra vía tu agente.",sign_in:"Entrar",sign_out:"Salir",magic_title:"Entrar",magic_sub:"Te enviamos un enlace de un toque. Sin contraseña.",send_link:"Enviar enlace",cancel:"Cancelar",check_email:"Revisa tu correo para el enlace de acceso.",auth_off:"El acceso funciona en el sitio final (la vista previa no llega al servidor).",comments:"Comentarios",comment_ph:"Comparte talla, calidad, ajuste… (sin enlaces externos)",post:"Publicar",sign_in_comment:"Entra para comentar",no_comments:"Sin comentarios aún. Sé el primero.",links_blocked:"No se permiten enlaces externos en los comentarios.",comments_off:"Los comentarios funcionan en tu sitio final.",you:"tú",delete:"Eliminar",hero_h:"La única lista de finds que necesitas.",hero_sub:"Finds de Weidian, Taobao y 1688, con control de calidad. Búscalos, guárdalos y pide con tu agente.",stat_finds:"artículos",stat_markets:"plataformas",stat_qc:"fotos QC",cont_google:"Continuar con Google",cont_apple:"Continuar con Apple",or:"o",all_colours:"Todos los colores",any_price:"Cualquier precio"},
@@ -557,8 +556,19 @@ const PLAT = {weidian:{label:"Weidian"},taobao:{label:"Taobao"},"1688":{label:"1
 
 let ALL = loadProducts();
 const BY_ID = Object.fromEntries(ALL.map(p=>[p.id,p]));
-let state = { plat:"all", cat:"all", color:"all", price:"all", q:"", sort:"feat", lang:"en", cur:"USD", saved:false };
-try{ Object.assign(state, JSON.parse(localStorage.getItem("manifest.state")||"{}")); }catch(e){}
+let state = { plat:"all", cat:"all", brand:"all", color:"all", price:"all", q:"", sort:"pop", lang:"en", cur:"USD", saved:false };
+try{
+  const _sv=localStorage.getItem("manifest.state");
+  if(_sv){ Object.assign(state, JSON.parse(_sv)); }
+  else {
+    const loc=(navigator.language||"en").toLowerCase(), lc=loc.split("-")[0], rg=(loc.split("-")[1]||"").toUpperCase();
+    const LMAP={nb:"no",nn:"no",no:"no",zh:"zh",es:"es",de:"de"};
+    if(LMAP[lc]) state.lang=LMAP[lc];
+    const CMAP={NO:"NOK",SE:"SEK",DK:"DKK",GB:"GBP",UK:"GBP",US:"USD",CH:"CHF",PL:"PLN",CA:"CAD",AU:"AUD",JP:"JPY",CN:"CNY"};
+    const EU=["DE","FR","IT","ES","NL","IE","AT","BE","PT","FI","GR","EE","LV","LT","SK","SI","LU"];
+    if(CMAP[rg]) state.cur=CMAP[rg]; else if(EU.includes(rg)) state.cur="EUR";
+  }
+}catch(e){}
 if(!T[state.lang]) state.lang="en";
 if(!CUR[state.cur]) state.cur="USD";
 state.saved=false;
@@ -650,7 +660,7 @@ function applyStatic(){
   $$("[data-i18n]").forEach(el=>{ el.textContent=t(el.dataset.i18n); });
   $("#q").placeholder=t("search_ph");
   const sortSel=$("#sort");
-  sortSel.innerHTML=[["feat","sort_featured"],["low","sort_low"],["high","sort_high"],["qc","sort_qc"]].map(([v,k])=>`<option value="${v}">${t(k)}</option>`).join("");
+  sortSel.innerHTML=[["pop","sort_pop"],["recent","sort_recent"],["feat","sort_featured"],["low","sort_low"],["high","sort_high"],["qc","sort_qc"]].map(([v,k])=>`<option value="${v}">${t(k)}</option>`).join("");
   sortSel.value=state.sort;
   $("#lang").innerHTML=Object.entries(LANGS).map(([k,v])=>`<option value="${k}">${v}</option>`).join(""); $("#lang").value=state.lang;
   $("#cur").innerHTML=Object.keys(CUR).map(k=>`<option value="${k}">${CUR[k].sym.trim()} ${k}</option>`).join(""); $("#cur").value=state.cur;
@@ -665,6 +675,7 @@ function allColors(){ const s=new Set(); ALL.forEach(p=>productColors(p).forEach
 function buildFilters(){
   const src=$("#f-source"); src.innerHTML=`<option value="all">${t("all_sources")}</option><option value="weidian">Weidian</option><option value="taobao">Taobao</option><option value="1688">1688</option>`; src.value=state.plat;
   const ty=$("#f-type"); ty.innerHTML=`<option value="all">${t("all_types")}</option>`+[...new Set(ALL.map(p=>p.cat))].sort().map(c=>`<option value="${c}">${c}</option>`).join(""); ty.value=state.cat;
+  const br=$("#f-brand"); if(br){br.innerHTML=`<option value="all">${t("all_brands")}</option>`+[...new Set(ALL.map(p=>p.brand).filter(Boolean))].sort().map(b=>`<option value="${b}">${b}</option>`).join(""); br.value=state.brand;}
   const co=$("#f-color"); co.innerHTML=`<option value="all">${t("all_colours")}</option>`+allColors().map(c=>`<option value="${c}">${c}</option>`).join(""); co.value=state.color;
   const pr=$("#f-price"); pr.innerHTML=`<option value="all">${t("any_price")}</option><option value="lo">&lt; ${price(100)}</option><option value="mid">${price(100)}–${price(200)}</option><option value="hi">&gt; ${price(200)}</option>`; pr.value=state.price;
 }
@@ -673,17 +684,20 @@ function filtered(){
     if(state.saved && !FAVES.has(p.id)) return false;
     if(state.plat!=="all"&&p.platform!==state.plat)return false;
     if(state.cat!=="all"&&p.cat!==state.cat)return false;
+    if(state.brand&&state.brand!=="all"&&p.brand!==state.brand)return false;
     if(state.color!=="all"&&!productColors(p).includes(state.color))return false;
     if(state.price==="lo"&&!(p.price<100))return false;
     if(state.price==="mid"&&!(p.price>=100&&p.price<=200))return false;
     if(state.price==="hi"&&!(p.price>200))return false;
-    if(state.q){const q=state.q.toLowerCase();if(!(`${p.title} ${p.cat} ${p.seller} ${p.id}`.toLowerCase().includes(q)))return false;}
+    if(state.q){const q=state.q.toLowerCase();if(!(`${p.title} ${p.brand||""} ${p.cat} ${p.seller} ${p.id}`.toLowerCase().includes(q)))return false;}
     return true;
   });
-  const s=state.sort;
+  const s=state.sort, ord=id=>ALL.findIndex(x=>x.id===id);
   if(s==="low")list.sort((a,b)=>a.price-b.price);
   else if(s==="high")list.sort((a,b)=>b.price-a.price);
   else if(s==="qc")list.sort((a,b)=>b.qc-a.qc);
+  else if(s==="pop")list.sort((a,b)=>(b.views||0)-(a.views||0)||ord(a.id)-ord(b.id));
+  else if(s==="recent")list.sort((a,b)=>ord(b.id)-ord(a.id));
   return list;
 }
 function card(p){
@@ -693,8 +707,6 @@ function card(p){
     <div class="thumb">
       <canvas aria-hidden="true"></canvas>
       ${p.img?`<img class="pimg" src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">`:""}
-      <span class="stamp">${PLAT[p.platform].label}</span>
-      ${p.qc?`<span class="qc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>${p.qc} QC</span>`:""}
       <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button>
     </div>
     <div class="body">
@@ -725,8 +737,8 @@ function render(){
   } else empty.hidden=true;
   $("#count").textContent=t("count").replace("{n}",list.length).replace("{t}",ALL.length);
   $("#foot-count").textContent=t("indexed").replace("{n}",ALL.length);
-  const fs=$("#f-source"),ft=$("#f-type"),fc=$("#f-color"),fp=$("#f-price");
-  if(fs)fs.value=state.plat; if(ft)ft.value=state.cat; if(fc)fc.value=state.color; if(fp)fp.value=state.price;
+  const fs=$("#f-source"),ft=$("#f-type"),fc=$("#f-color"),fp=$("#f-price"),fb=$("#f-brand");
+  if(fs)fs.value=state.plat; if(ft)ft.value=state.cat; if(fc)fc.value=state.color; if(fp)fp.value=state.price; if(fb)fb.value=state.brand;
   $("#saved-chip").setAttribute("aria-pressed",String(state.saved));
   save();
 }
@@ -744,7 +756,7 @@ function openDetail(p,fromHash){
   lastFocus=document.activeElement; const qcN=p.qc||0; const sub=subprice(p.price);
   drawer.innerHTML=`
     <header>
-      <span class="code">#${p.id} · ${PLAT[p.platform].label}</span>
+      <span class="code">${PLAT[p.platform].label}</span>
       <button class="x" id="close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </header>
     <div class="dbody">
@@ -885,6 +897,7 @@ async function initAuth(){
 /* ================= controls ================= */
 $("#f-source").addEventListener("change",e=>{state.plat=e.target.value;render();});
 $("#f-type").addEventListener("change",e=>{state.cat=e.target.value;render();});
+$("#f-brand")&&$("#f-brand").addEventListener("change",e=>{state.brand=e.target.value;render();});
 $("#f-color").addEventListener("change",e=>{state.color=e.target.value;render();});
 $("#f-price").addEventListener("change",e=>{state.price=e.target.value;render();});
 $("#saved-chip").addEventListener("click",()=>{state.saved=!state.saved;render();});
@@ -904,14 +917,14 @@ document.addEventListener("click",e=>{ const m=$("#acct-menu"); if(!m.hidden && 
 function updateHero(){
   const el=$("#hero-stats"); if(!el)return;
   const qcTotal=ALL.reduce((s,p)=>s+(p.qc||0),0);
-  const stats=[[ALL.length,t("stat_finds")],[3,t("stat_markets")],[qcTotal,t("stat_qc")]];
+  const stats=[[ALL.length,t("stat_finds")],[3,t("stat_markets")]];
   el.innerHTML=stats.map(([n,l])=>`<span class="stat"><b>${n.toLocaleString("en-US")}</b> ${l}</span>`).join("");
 }
 function renderFeatured(){
   const strip=$("#hero-strip"); if(!strip)return; strip.innerHTML="";
   [...ALL].sort((a,b)=>b.qc-a.qc).slice(0,6).forEach(p=>{
     const tl=document.createElement("button"); tl.className="ftile"; tl.type="button";
-    tl.innerHTML=`<canvas aria-hidden="true"></canvas><span class="fstamp">${PLAT[p.platform].label} · ${p.qc} QC</span>`;
+    tl.innerHTML=`<canvas aria-hidden="true"></canvas><span class="fstamp">${PLAT[p.platform].label}</span>`;
     tl.addEventListener("click",()=>openDetail(p)); strip.appendChild(tl);
     requestAnimationFrame(()=>drawTile(tl.querySelector("canvas"),p,7));
   });
