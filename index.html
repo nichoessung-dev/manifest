@@ -489,6 +489,19 @@ footer a:hover{color:var(--ink)}
 .pp-filters .fsel select{font-family:var(--f-mono);font-size:12px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:7px 26px 7px 12px;appearance:none;height:34px}
 .pp-filters .fchev{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:11px;height:11px;color:var(--muted);pointer-events:none}
 
+
+/* gallery favourite overlay */
+.gallery-fav{position:absolute;top:12px;right:12px;z-index:3;width:42px;height:42px;border-radius:12px;background:color-mix(in srgb,var(--surface) 78%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);box-shadow:0 4px 14px rgba(8,14,30,.22)}
+.gallery-fav svg{width:20px;height:20px}
+/* qc checker thumbnails */
+.qc-thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:12px}
+.qc-thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#f2f5fa}
+
+
+/* product page: keep the main top menu visible */
+body.pp-open .masthead{position:fixed;top:0;left:0;right:0;z-index:90;background:var(--ground)}
+body.pp-open .drawer{height:auto;bottom:0}
+
 </style>
 
 <div class="masthead">
@@ -642,8 +655,11 @@ footer a:hover{color:var(--ink)}
   <div class="tool-box">
     <label for="qc-in">Product link or item ID</label>
     <input class="tool-in" id="qc-in" type="text" placeholder="https://&hellip; or 561084669154">
+    <div class="row-btns"><button class="btn" id="qc-go">Check QC photos</button></div>
+    <div class="tool-out empty" id="qc-out">Paste a link or item ID to pull real QC photos.</div>
+    <div class="qc-thumbs" id="qc-thumbs"></div>
+    <p class="body" style="margin-top:12px;font-size:13px;color:var(--faint)">QC photos only exist for items already bought and inspected, so newer finds may not have any yet. Other finders:</p>
     <div class="row-btns" id="qc-btns"></div>
-    <p class="body" style="margin-top:12px;font-size:13px;color:var(--faint)">QC photos only exist for items that have already been bought and inspected, so newer finds may not have any yet.</p>
   </div>
 </section>
 
@@ -1230,14 +1246,14 @@ function openDetail(p,fromHash){
       <button class="p-back" id="close" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg><span>${t("back")}</span></button>
       <span class="code">${PLAT[p.platform].label}</span>
       <div class="p-top-actions">
-        <div class="d-jump"><svg class="d-jump-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="d-search" type="search" autocomplete="off" placeholder="${t("find_search_ph")}"><div class="d-jump-res" id="d-jump-res" hidden></div></div>
+        
         <button class="dshare" id="dshare" title="${t("share")}" aria-label="${t("share")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 15V3"/><path d="m8 7 4-4 4 4"/></svg></button>
       </div>
     </div>
     <div class="dbody">
       <div class="d-grid">
         <div class="d-media">
-          <div class="gmain"><canvas id="gmain" aria-hidden="true"></canvas></div>
+          <div class="gmain"><canvas id="gmain" aria-hidden="true"></canvas><button class="d-fav gallery-fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button></div>
           <div class="gtabs">
             <button class="gtab" data-mode="listing" aria-pressed="${p.img?'true':'false'}">${t("listing")}</button>
             <button class="gtab" data-mode="qc" aria-pressed="${p.img?'false':'true'}">${t("qc")} ${qcN}</button>
@@ -1245,10 +1261,7 @@ function openDetail(p,fromHash){
           <div class="thumbs" id="thumbs"></div>
         </div>
         <div class="d-info">
-          <div class="d-titlerow">
-            <h1 class="d-title">${esc(p.title)}</h1>
-            <button class="d-fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button>
-          </div>
+          <div class="d-titlerow"><h1 class="d-title">${esc(p.title)}</h1></div>
           <div class="d-price"><span class="p">${price(p.price)}</span>${sub?`<span class="u">${sub}</span>`:""}</div>
           <div class="meta">
             <span class="tag">${p.cat}</span><span class="tag">${qcN} ${t("qc")}</span><span class="tag">${p.variants.length} ${t("variants").toLowerCase()}</span><span class="tag" data-sc="${p.id}">${fmtStar(p.id)}</span>
@@ -1322,7 +1335,7 @@ function openDetail(p,fromHash){
   enhanceDrawer(p);
   $("#close",drawer).focus();
 }
-function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;restoreMeta();try{render();if($("#sort"))$("#sort").value=state.sort;if($("#q"))$("#q").value=state.q||"";}catch(e){}overlay.classList.remove("open");drawer.classList.remove("open");drawer.__pid=null;document.body.style.overflow="";if(lastFocus)lastFocus.focus();if(!fromHash&&location.hash.indexOf("#p/")===0){try{history.replaceState(null,"",location.pathname+location.search);}catch(e){location.hash="";}}}
+function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;restoreMeta();document.body.classList.remove("pp-open");drawer.style.top="";try{render();if($("#sort"))$("#sort").value=state.sort;if($("#q"))$("#q").value=state.q||"";}catch(e){}overlay.classList.remove("open");drawer.classList.remove("open");drawer.__pid=null;document.body.style.overflow="";if(lastFocus)lastFocus.focus();if(!fromHash&&location.hash.indexOf("#p/")===0){try{history.replaceState(null,"",location.pathname+location.search);}catch(e){location.hash="";}}}
 overlay.addEventListener("click",closeDetail);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&drawer.classList.contains("open"))closeDetail();});
 
@@ -1567,24 +1580,39 @@ function pcExtract(url){
     const r=pcExtract(inp.value);
     if(!r.id){ out.textContent="Couldn't find an item ID in that link. Paste a full product or agent link."; out.classList.remove("empty"); copy.hidden=true; openb.hidden=true; return; }
     const plat=r.platform||"taobao";
-    const link="https://mycnbox.com/goodsDetail?mallType="+plat+"&itemId="+r.id+"&referId="+AFFILIATE_REF;
-    out.textContent=link; out.classList.remove("empty");
+    const sel=(typeof AGENTS!=="undefined"&&AGENTS[state.agent])?state.agent:"mycnbox";
+    const link=AGENTS[sel].build({platform:plat,itemId:r.id,id:r.id});
+    out.innerHTML='<div style="font-family:var(--f-mono);font-size:11.5px;color:var(--muted);margin-bottom:6px">'+esc(plat)+' · '+esc(r.id)+' · via '+esc(AGENTS[sel].name)+'</div><span style="word-break:break-all">'+esc(link)+'</span>'; out.classList.remove("empty");
     copy.hidden=false; openb.hidden=false; openb.href=link;
     copy.onclick=()=>{ try{navigator.clipboard.writeText(link);copy.textContent="Copied";setTimeout(()=>copy.textContent="Copy link",1400);}catch(e){} };
   }
   go.addEventListener("click",run);
   inp.addEventListener("keydown",e=>{if(e.key==="Enter")run();});
 })();
-/* qc checker */
+/* qc checker: pulls real QC via /api/qc */
 (function(){
-  const btns=$("#qc-btns"); if(!btns) return;
-  const links=[["Open rep.tools QC Finder","https://rep.tools/qc-finder"],["Open KakoBuy QC Finder","https://kakobuyqcfinder.com"],["Open CNFans","https://cnfans.com"]];
-  links.forEach(([label,href],i)=>{const a=document.createElement("a");a.className="btn"+(i?" ghost":"");a.target="_blank";a.rel="noopener";a.href=href;a.textContent=label;btns.appendChild(a);});
+  const inp=$("#qc-in"),go=$("#qc-go"),out=$("#qc-out"),th=$("#qc-thumbs"),btns=$("#qc-btns"); if(!inp)return;
+  const links=[["rep.tools","https://rep.tools/qc-finder"],["KakoBuy finder","https://kakobuyqcfinder.com"],["CNFans","https://cnfans.com"]];
+  if(btns) links.forEach(([label,href])=>{const a=document.createElement("a");a.className="btn ghost";a.target="_blank";a.rel="noopener";a.href=href;a.textContent=label;btns.appendChild(a);});
+  async function run(){
+    const r=pcExtract(inp.value);
+    if(!r.id){ out.textContent="Couldn't find an item ID. Paste a full product/agent link or the numeric ID."; out.classList.remove("empty"); th.innerHTML=""; return; }
+    const plat=r.platform||"weidian";
+    out.textContent="Checking QC for "+plat+" · "+r.id+"…"; out.classList.remove("empty"); th.innerHTML="";
+    try{
+      const res=await fetch("/api/qc?storefront="+encodeURIComponent(plat)+"&id="+encodeURIComponent(r.id));
+      const d=res.ok?await res.json():null; const data=(d&&d.data)?d.data:d;
+      const n=(data&&data.qc_count)||0; const thumbs=(data&&(data.thumbnails||data.qc_preview))||[];
+      if(n>0||thumbs.length){ out.innerHTML="<b>"+n+"</b> QC photo"+(n===1?"":"s")+" found for "+plat+" · "+r.id+"."; th.innerHTML=thumbs.map(u=>'<img src="'+esc(u)+'" alt="" loading="lazy">').join(""); }
+      else { out.textContent="No QC photos indexed yet for "+plat+" · "+r.id+". Try a finder below."; }
+    }catch(e){ out.textContent="Couldn't reach the QC service. Try a finder below."; }
+  }
+  go.addEventListener("click",run); inp.addEventListener("keydown",e=>{if(e.key==="Enter")run();});
 })();
 /* weight estimator: link/type -> rough shipped weight */
 (function(){
   const link=$("#we-link"),cat=$("#we-cat"),out=$("#we-out"); if(!out)return;
-  const W={"T-Shirts":250,"Shirts":350,"Shorts":350,"Hoodies & Sweaters":700,"Jackets":900,"Pants":600,"Shoes":1050,"Bags":550,"Accessories":200};
+  const W={"T-Shirts":250,"Shirts":350,"Shorts":350,"Hoodies & Sweaters":700,"Jackets":900,"Pants":600,"Shoes":1050,"Bags":550,"Accessories":200,"Hats":220,"Shirts & Polos":330};
   function run(){
     let note="";
     if(link&&link.value.trim()){ try{ const r=pcExtract(link.value.trim()); if(r&&r.id){ const m=ALL.find(p=>p.itemId===r.id); if(m){ cat.value=m.cat; note=" · matched "+m.title; } } }catch(e){} }
@@ -1735,6 +1763,8 @@ setTimeout(autoRefreshReports,2600);
 /* ---- orchestrator ---- */
 function enhanceDrawer(p){
   setProductMeta(p);
+  document.body.classList.add("pp-open");
+  { const _mh=document.querySelector(".masthead"); if(_mh) drawer.style.top=_mh.offsetHeight+"px"; }
   const sh=$("#dshare",drawer);
   if(sh) sh.addEventListener("click",async()=>{
     const url=location.origin+location.pathname+"#p/"+encodeURIComponent(p.id);
