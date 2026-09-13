@@ -3,37 +3,66 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Terms of Service — Manifest</title>
+<title>Terms of Service — Puro Classico</title>
+<meta name="description" content="Terms of Service for Puro Classico — a product catalogue linking to independent purchasing agents for Weidian, Taobao and 1688 finds.">
 <meta name="robots" content="index,follow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-:root{--bg:#fff;--ink:#0a0a0a;--muted:#6c6a67;--line:#e4e3e0}
-@media(prefers-color-scheme:dark){:root{--bg:#0a0a0a;--ink:#f3f2ef;--muted:#9c9a96;--line:#242322}}
+:root{
+  --ground:#F6F8FB; --surface:#FFFFFF; --surface-2:#EDF1F7;
+  --ink:#16203A; --muted:#5A6478; --faint:#98A2B4;
+  --line:#E2E7F0; --accent:#2E4B86; --radius:9px;
+  --f-disp:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0C1220; --surface:#111A2E; --surface-2:#1A2740;
+  --ink:#E9EDF5; --muted:#93A0B7; --faint:#5E6B84;
+  --line:#22304C; --accent:#7C9BE0;
+}}
+[data-theme="dark"]{
+  --ground:#0C1220; --surface:#111A2E; --surface-2:#1A2740;
+  --ink:#E9EDF5; --muted:#93A0B7; --faint:#5E6B84;
+  --line:#22304C; --accent:#7C9BE0;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hanken Grotesk",system-ui,sans-serif;line-height:1.6}
-.wrap{max-width:760px;margin:0 auto;padding:48px 22px 80px}
-a{color:inherit}
-h1{font-weight:800;font-size:clamp(28px,5vw,40px);letter-spacing:-.03em;margin:0 0 6px}
-.updated{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);margin-bottom:26px}
-h2{font-weight:600;font-size:18px;margin:32px 0 8px;letter-spacing:-.01em}
-p,li{color:color-mix(in srgb,var(--ink) 88%,var(--muted));max-width:64ch}
-.note{border:1px solid var(--line);padding:14px 16px;font-size:13.5px;color:var(--muted);margin:22px 0 8px}
-.back{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);text-decoration:none;display:inline-block;margin-bottom:28px}
-hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-disp);line-height:1.62;-webkit-font-smoothing:antialiased}
+.topbar{position:sticky;top:0;z-index:5;backdrop-filter:saturate(1.4) blur(12px);background:color-mix(in srgb,var(--ground) 82%,transparent);border-bottom:1px solid var(--line)}
+.topbar .in{max-width:820px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-weight:800;letter-spacing:-.03em;font-size:20px;text-decoration:none;color:var(--ink)}
+.brand b{color:var(--accent);font-weight:800}
+.brand-back{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-decoration:none}
+.wrap{max-width:820px;margin:0 auto;padding:44px 22px 96px}
+a{color:var(--accent)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+h1{font-weight:800;font-size:clamp(30px,5.4vw,44px);letter-spacing:-.035em;margin:0 0 6px}
+.updated{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin-bottom:26px}
+h2{font-weight:700;font-size:19px;margin:34px 0 8px;letter-spacing:-.015em}
+p,li{color:color-mix(in srgb,var(--ink) 90%,var(--muted));max-width:66ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-top:22px}
+.note{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;font-size:13.5px;color:var(--muted);margin:22px 0 8px}
+hr{border:none;border-top:1px solid var(--line);margin:30px 0}
+footer{max-width:820px;margin:0 auto;padding:0 22px 60px;font-family:var(--f-mono);font-size:12px;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap}
+footer a{color:var(--muted)}
 </style>
 </head>
 <body>
+<div class="topbar"><div class="in">
+  <a class="brand" href="/">Puro <b>Classico</b></a>
+  <a class="brand-back" href="/">← Back to catalog</a>
+</div></div>
 <div class="wrap">
-<a class="back" href="/">← Manifest</a>
+<p class="eyebrow">Legal</p>
 <h1>Terms of Service</h1>
 <div class="updated">Last updated: 12 September 2026</div>
 
 <div class="note">Template for review. This is a generic starting point, not legal advice. Have a qualified professional adapt it to your business and to Norwegian and EU law before you rely on it.</div>
 
-<h2>1. About Manifest</h2>
-<p>Manifest is a product catalogue. We index items listed on third-party marketplaces (Weidian, Taobao, 1688) and link you to independent purchasing agents who handle any purchase, payment, quality check and shipping. We do not sell, stock, ship or take payment for any item.</p>
+<div class="card">
+<h2>1. About Puro Classico</h2>
+<p>Puro Classico is a product catalogue. We index items listed on third-party marketplaces (Weidian, Taobao, 1688) and link you to independent purchasing agents who handle any purchase, payment, quality check and shipping. We do not sell, stock, ship or take payment for any item.</p>
 
 <h2>2. Affiliate disclosure</h2>
 <p>Some outbound links are affiliate links. If you order through them, we may earn a commission at no extra cost to you. This never changes the price you pay the agent.</p>
@@ -45,10 +74,10 @@ hr{border:none;border-top:1px solid var(--line);margin:28px 0}
 <p>You are responsible for activity on your account and for anything you post. Comments must be lawful and must not contain external links, spam, or others' personal information. We may edit, hide or remove content and suspend accounts that break these rules.</p>
 
 <h2>5. Intellectual property</h2>
-<p>The Manifest name, design and original content are ours. Marketplace and brand names belong to their owners and are used for identification only.</p>
+<p>The Puro Classico name, design and original content are ours. Marketplace and brand names belong to their owners and are used for identification only.</p>
 
 <h2>6. Limitation of liability</h2>
-<p>To the extent permitted by law, Manifest is not liable for losses arising from your use of the site, from third-party marketplaces or agents, or from any transaction you enter into with them.</p>
+<p>To the extent permitted by law, Puro Classico is not liable for losses arising from your use of the site, from third-party marketplaces or agents, or from any transaction you enter into with them.</p>
 
 <h2>7. Changes</h2>
 <p>We may update these terms. Continued use after changes means you accept the updated terms.</p>
@@ -58,9 +87,16 @@ hr{border:none;border-top:1px solid var(--line);margin:28px 0}
 
 <h2>9. Contact</h2>
 <p>Questions: reach us on <a href="https://discord.gg/Pf3zpG3E4">our Discord</a>.</p>
+</div>
 
 <hr>
-<a class="back" href="/privacy.html">Privacy &amp; cookies →</a>
+<a class="brand-back" href="/privacy.html" style="font-size:13px">Privacy &amp; cookies →</a>
 </div>
+<footer>
+  <a href="/">Puro Classico</a>
+  <a href="/terms.html">Terms</a>
+  <a href="/privacy.html">Privacy</a>
+  <a href="https://discord.gg/Pf3zpG3E4">Discord</a>
+</footer>
 </body>
 </html>

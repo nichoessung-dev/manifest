@@ -325,6 +325,63 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
 .wtable{width:100%;border-collapse:collapse;margin-top:14px;font-size:13.5px}
 .wtable td,.wtable th{border:1px solid var(--line);padding:9px 12px;text-align:left;font-family:var(--f-mono)}
 .wtable th{background:var(--surface-2);color:var(--muted);font-weight:600}
+
+/* ---- price range slider ---- */
+.price-ctrl{position:relative}
+.price-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px;cursor:pointer;white-space:nowrap}
+.price-btn svg{width:14px;height:14px;color:var(--muted)}
+.price-btn:hover{border-color:var(--accent)}
+.price-pop{position:absolute;z-index:40;top:44px;left:0;width:250px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 44px rgba(8,14,30,.28);padding:14px 16px 18px}
+.pp-head{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.pp-clear{background:none;border:none;color:var(--accent);font:inherit;font-size:12.5px;cursor:pointer;padding:0}
+.pp-vals{display:flex;justify-content:space-between;font-weight:600;font-size:14px;color:var(--ink);margin-bottom:8px}
+.pp-slider{position:relative;height:26px}
+.pp-track{position:absolute;left:0;right:0;top:11px;height:4px;border-radius:3px;background:var(--surface-2)}
+.pp-fill{position:absolute;top:11px;height:4px;border-radius:3px;background:var(--accent)}
+.pp-slider input[type=range]{position:absolute;left:0;top:2px;width:100%;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none;height:22px}
+.pp-slider input[type=range]:focus{outline:none}
+.pp-slider input[type=range]::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;height:18px;width:18px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:pointer;margin-top:0}
+.pp-slider input[type=range]::-moz-range-thumb{pointer-events:auto;height:16px;width:16px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);cursor:pointer}
+.pp-slider input[type=range]::-webkit-slider-runnable-track{height:22px;background:none}
+.pp-slider input[type=range]::-moz-range-track{height:22px;background:none}
+/* ---- drawer share button ---- */
+.dshare{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;margin-right:8px}
+.dshare svg{width:17px;height:17px}
+.dshare:hover,.dshare.ok{border-color:var(--accent);color:var(--accent)}
+/* ---- in-drawer search ---- */
+.d-jump{position:relative;margin:2px 0 4px;display:flex;align-items:center}
+.d-jump-ic{position:absolute;left:12px;width:16px;height:16px;color:var(--muted);pointer-events:none}
+.d-jump input{width:100%;height:40px;padding:0 14px 0 36px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink);font:inherit;font-size:14px}
+.d-jump input:focus{outline:none;border-color:var(--accent)}
+.d-jump-res{position:absolute;z-index:30;top:44px;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 36px rgba(8,14,30,.26);overflow:hidden;max-height:280px;overflow-y:auto}
+.jump-item{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;padding:10px 14px;border:none;border-bottom:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:13.5px;cursor:pointer}
+.jump-item:last-child{border-bottom:none}
+.jump-item:hover{background:var(--surface-2)}
+.jump-p{color:var(--muted);white-space:nowrap}
+/* ---- similar row ---- */
+.similar-wrap{margin-top:4px}
+.similar-row{display:grid;grid-auto-flow:column;grid-auto-columns:132px;gap:12px;overflow-x:auto;padding:4px 2px 8px;scroll-snap-type:x proximity}
+.sim-card{scroll-snap-align:start;display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:8px;cursor:pointer;color:var(--ink)}
+.sim-card:hover{border-color:var(--accent)}
+.sim-thumb{display:block;aspect-ratio:1;border-radius:7px;background:var(--surface-2);overflow:hidden}
+.sim-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.sim-t{font-size:12px;line-height:1.3;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sim-p{font-size:12px;color:var(--muted)}
+/* ---- report link ---- */
+.report-row{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.report-link{background:none;border:none;color:var(--muted);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:0}
+.report-link:hover{color:var(--danger)}
+.report-link:disabled{opacity:.5;cursor:default;text-decoration:none}
+.report-status{font-size:12.5px;color:var(--accent)}
+/* ---- toast ---- */
+.pc-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(12px);background:var(--fill);color:var(--fill-ink);padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999}
+.pc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ---- blog ---- */
+.blog-eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+.post{border-top:1px solid var(--line);padding:22px 0}
+.post h2{font-size:20px;font-weight:700;letter-spacing:-.015em;margin:0 0 8px}
+.post .body{color:var(--muted);max-width:70ch;line-height:1.7}
+
 </style>
 
 <div class="masthead">
@@ -344,7 +401,7 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
           <a href="#affiliate">Affiliate Program</a>
           <div class="tools-sep"></div>
           <div class="tools-label">Guides</div>
-          <a href="#tutorials">Tutorials</a>
+          <a href="#tutorials">Guides &amp; Blog</a>
         </div>
       </div>
       <div class="selwrap"><select class="mini" id="lang" aria-label="Language"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
@@ -381,7 +438,14 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
   <div class="wrap filters-row">
     <div class="fsel"><select id="f-type" aria-label="Type"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
     <div class="fsel"><select id="f-brand" aria-label="Brand"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
-    <div class="fsel"><select id="f-price" aria-label="Price"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+    <div class="price-ctrl">
+      <button type="button" class="price-btn" id="price-btn" aria-expanded="false" aria-haspopup="true"><span id="price-label" data-i18n="any_price">Any price</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="price-pop" id="price-pop" hidden>
+        <div class="pp-head"><span data-i18n="price_range">Price range</span><button type="button" class="pp-clear" id="price-clear" data-i18n="any_price">Any price</button></div>
+        <div class="pp-vals"><span id="pp-min">–</span><span id="pp-max">–</span></div>
+        <div class="pp-slider"><div class="pp-track"></div><div class="pp-fill" id="pp-fill"></div><input type="range" id="pr-min" min="0" max="100" value="0" aria-label="Minimum price"><input type="range" id="pr-max" min="0" max="100" value="100" aria-label="Maximum price"></div>
+      </div>
+    </div>
     <div class="fsel"><select id="f-color" aria-label="Colour"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
     <div class="fsel"><select id="f-source" aria-label="Source"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
     <button class="saved-chip" id="saved-chip" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></svg><span data-i18n="saved">Saved</span></button>
@@ -523,13 +587,49 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
 
 <section class="page" id="pg-tutorials" hidden>
   <a class="page-back" href="#">&larr; Back to catalog</a>
-  <h1>Tutorials</h1>
-  <p class="lead">New to buying from China through an agent? Start here.</p>
-  <div class="faq"><b>1. How ordering actually works</b><p class="body">Find something here, hit the buy link, and it opens on your agent (MyCNBox). The agent buys it from the seller, receives it at their warehouse, takes QC photos for you, then ships it internationally once you approve.</p></div>
-  <div class="faq"><b>2. What "QC" means</b><p class="body">Quality Control photos are pictures of your exact item taken at the warehouse before it ships, so you can check quality and flaws and either approve, ask for more photos, or refund.</p></div>
-  <div class="faq"><b>3. Picking a shipping line</b><p class="body">Cheaper lines are slower and riskier; premium lines (DHL/EMS) are faster and more reliable. Heavier hauls get cheaper per-kg, so consolidating a few items in one shipment usually saves money.</p></div>
-  <div class="faq"><b>4. Rep glossary</b><p class="body"><b>W2C</b> = where to cop (the buy link). <b>Batch</b> = a specific factory version of an item. <b>GP</b> = group purchase. <b>Haul</b> = a batch of items shipped together. <b>1:1</b> = as close to retail as it gets.</p></div>
-  <div class="faq"><b>5. Staying safe</b><p class="body">Order plain, avoid obvious branding on the shipping label, and use trusted lines for your region. Keep hauls reasonable in value.</p></div>
+  <p class="blog-eyebrow" data-i18n="blog_title">Guides &amp; Blog</p>
+  <h1>Buying from China through an agent — the complete guide</h1>
+  <p class="lead" data-i18n="blog_sub">How buying from China through an agent actually works — QC, shipping, agents and more.</p>
+
+  <article class="post">
+    <h2>1. How ordering actually works</h2>
+    <p class="body">Find something in the catalog, hit the buy link, and it opens on your agent (MyCNBox by default). The agent buys the item from the marketplace seller on your behalf, receives it at their warehouse, takes <b>QC photos</b> for you to check, then ships it internationally once you approve. You pay the agent — never the site — and the whole flow is: <em>find → agent buys → warehouse QC → you approve → ship.</em></p>
+  </article>
+
+  <article class="post">
+    <h2>2. What "QC" means and how to read it</h2>
+    <p class="body">Quality Control photos are pictures of your <b>exact item</b> taken at the warehouse before it ships, so you can check stitching, prints, logos, hardware and flaws. From the QC you can approve, ask for more angles, or request a refund. On Puro Classico, the QC tab on each product pulls real buyer QC photos so you can see the batch quality before you commit.</p>
+  </article>
+
+  <article class="post">
+    <h2>3. Picking a shipping line</h2>
+    <p class="body">Cheaper lines are slower and carry more risk; premium lines (DHL, EMS) are faster and more reliable. Heavier shipments get cheaper per-kilo, so <b>consolidating</b> several items into one haul usually saves money. Use the freight calculator in the Tools menu to estimate cost before you order.</p>
+  </article>
+
+  <article class="post">
+    <h2>4. Rep glossary — the words you'll see</h2>
+    <p class="body"><b>W2C</b> = where to cop (the buy link). <b>Batch</b> = a specific factory version of an item. <b>GP</b> = group purchase. <b>Haul</b> = a batch of items shipped together. <b>1:1</b> = as close to retail as it gets. <b>QC</b> = quality-control photos. <b>Agent</b> = the middleman who buys, stores and ships for you.</p>
+  </article>
+
+  <article class="post">
+    <h2>5. Staying safe and smart</h2>
+    <p class="body">Order plain, avoid obvious branding on the shipping label, and use trusted lines for your region. Keep haul values reasonable to limit customs exposure. Read the QC carefully — it is your one chance to catch a bad batch before it ships halfway around the world.</p>
+  </article>
+
+  <article class="post">
+    <h2>6. FAQ</h2>
+    <p class="body"><b>Do I pay Puro Classico?</b> No — you pay your agent directly. We only index finds and link out. <b>Are prices exact?</b> They track the live marketplace listing and can change. <b>Why do some items have no QC?</b> QC photos only exist once someone has already bought and inspected that item, so newer finds may not have them yet.</p>
+  </article>
+
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Blog","name":"Puro Classico Guides","description":"Guides on buying from China through an agent: QC, shipping, agents and rep terminology.","blogPost":[
+   {"@type":"BlogPosting","headline":"How ordering through an agent works","articleSection":"Guide"},
+   {"@type":"BlogPosting","headline":"What QC means and how to read it","articleSection":"Guide"},
+   {"@type":"BlogPosting","headline":"Picking a shipping line","articleSection":"Guide"},
+   {"@type":"BlogPosting","headline":"Rep glossary","articleSection":"Guide"},
+   {"@type":"BlogPosting","headline":"Staying safe and smart","articleSection":"Guide"}
+  ]}
+  </script>
 </section>
 
 <section class="page" id="pg-affiliate" hidden>
@@ -591,13 +691,19 @@ let sb = null, ME = null, BACKEND_OK = false;
 try{ if(window.supabase&&window.supabase.createClient){ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); BACKEND_OK = true; } }catch(e){ BACKEND_OK=false; }
 
 /* ================= i18n ================= */
-const LANGS = { en:"English", no:"Norsk", zh:"中文", es:"Español", de:"Deutsch" };
+const LANGS = { en:"English", no:"Norsk", sv:"Svenska", da:"Dansk", de:"Deutsch", nl:"Nederlands", fr:"Français", it:"Italiano", es:"Español", zh:"中文" };
 const T = {
- en:{search_ph:"Search finds, e.g. hoodie, cargo, trainer…",sources_label:"Source",all_sources:"All sources",all_types:"All types",saved:"Saved",sort_featured:"Featured",sort_low:"Price low to high",sort_high:"Price high to low",sort_qc:"Most QC photos",sort_pop:"Most popular",sort_recent:"Recent",all_brands:"All brands",count:"{n} of {t} finds",indexed:"{n} items indexed",nothing_t:"Nothing matches that",nothing_b:"Try another search or clear the filters.",saved_empty_t:"No saved items yet",saved_empty_b:"Tap the heart on any find to save it here.",listing:"Listing photos",qc:"QC",variants:"Variants",description:"Description",seller:"Seller",buy_head:"Buy through your agent",buy_via:"Buy via {a}",more:"more agents",add_ready:"add links when ready",note:"Buy links carry your ref {r}. Titles, prices, QC counts and ratings are real community data. Product photos are placeholders for now, connect an item-image feed to show real listing and QC photos.",footer:"Cross-border finds, quality-checked.",footer_line:"Community-sourced finds, indexed for easy browsing. Buy links via your agent.",sign_in:"Sign in",sign_out:"Sign out",settings:"Settings",magic_title:"Sign in",magic_sub:"We email you a one-tap link. No password to remember.",send_link:"Send magic link",cancel:"Cancel",check_email:"Check your email for the sign-in link.",auth_off:"Sign-in runs on the live site (this preview can't reach the server).",comments:"Comments",comment_ph:"Share sizing, quality, fit… (no outside links)",post:"Post",sign_in_comment:"Sign in to comment",no_comments:"No comments yet. Be the first.",links_blocked:"Outside links aren't allowed in comments.",comments_off:"Comments run on your live site.",you:"you",delete:"Delete",hero_h:"The only replica spreadsheet you'll ever need.",hero_sub:"Quality-checked Weidian, Taobao and 1688 finds. Search it, save it, order through your agent.",stat_finds:"finds",stat_markets:"marketplaces",stat_qc:"QC photos",cont_google:"Continue with Google",cont_apple:"Continue with Apple",or:"or",all_colours:"All colours",any_price:"Any price"},
+ en:{search_ph:"Search finds, e.g. hoodie, cargo, trainer…",sources_label:"Source",all_sources:"All sources",all_types:"All types",saved:"Saved",sort_featured:"Featured",sort_low:"Price low to high",sort_high:"Price high to low",sort_qc:"Most QC photos",sort_pop:"Most popular",sort_recent:"Recent",all_brands:"All brands",count:"{n} of {t} finds",indexed:"{n} items indexed",nothing_t:"Nothing matches that",nothing_b:"Try another search or clear the filters.",saved_empty_t:"No saved items yet",saved_empty_b:"Tap the heart on any find to save it here.",listing:"Listing photos",qc:"QC",variants:"Variants",description:"Description",seller:"Seller",buy_head:"Buy through your agent",buy_via:"Buy via {a}",more:"more agents",add_ready:"add links when ready",note:"Buy links carry your ref {r}. Titles, prices, QC counts and ratings are real community data. Product photos are placeholders for now, connect an item-image feed to show real listing and QC photos.",footer:"Cross-border finds, quality-checked.",footer_line:"Community-sourced finds, indexed for easy browsing. Buy links via your agent.",sign_in:"Sign in",sign_out:"Sign out",settings:"Settings",magic_title:"Sign in",magic_sub:"We email you a one-tap link. No password to remember.",send_link:"Send magic link",cancel:"Cancel",check_email:"Check your email for the sign-in link.",auth_off:"Sign-in runs on the live site (this preview can't reach the server).",comments:"Comments",comment_ph:"Share sizing, quality, fit… (no outside links)",post:"Post",sign_in_comment:"Sign in to comment",no_comments:"No comments yet. Be the first.",links_blocked:"Outside links aren't allowed in comments.",comments_off:"Comments run on your live site.",you:"you",delete:"Delete",hero_h:"The only replica spreadsheet you'll ever need.",hero_sub:"Quality-checked Weidian, Taobao and 1688 finds. Search it, save it, order through your agent.",stat_finds:"finds",stat_markets:"marketplaces",stat_qc:"QC photos",cont_google:"Continue with Google",cont_apple:"Continue with Apple",or:"or",all_colours:"All colours",any_price:"Any price",blog_title:"Guides & Blog",blog_sub:"How buying from China through an agent actually works — QC, shipping, agents and more.",read_more:"Read",similar:"Similar finds",find_search_ph:"Jump to another find…",report_link:"Report broken link",report_thanks:"Thanks — we will re-check this link.",share:"Share",copied:"Link copied",price_range:"Price range",in_stock_note:"Prices update from the live catalog."},
  no:{search_ph:"Søk i funn, f.eks. hettegenser, cargo, sko…",sources_label:"Kilde",all_sources:"Alle kilder",all_types:"Alle typer",saved:"Lagret",sort_featured:"Utvalgte",sort_low:"Pris lav til høy",sort_high:"Pris høy til lav",sort_qc:"Flest QC-bilder",count:"{n} av {t} funn",indexed:"{n} varer indeksert",nothing_t:"Ingen treff",nothing_b:"Prøv et annet søk eller fjern filtrene.",saved_empty_t:"Ingen lagrede varer ennå",saved_empty_b:"Trykk på hjertet på et funn for å lagre det her.",listing:"Produktbilder",qc:"QC",variants:"Varianter",description:"Beskrivelse",seller:"Selger",buy_head:"Kjøp via agenten din",buy_via:"Kjøp via {a}",more:"flere agenter",add_ready:"legg til lenker senere",note:"Lenkene bruker referansen din {r}. Bildene her er plassholdere; ekte produkt- og QC-bilder lastes fra feeden på den ferdige siden.",footer:"Grensekryssende funn, kvalitetssjekket.",footer_line:"Produktdata og QC via qualit.ly / TMAPI. Kjøpslenker via agenten din.",sign_in:"Logg inn",sign_out:"Logg ut",magic_title:"Logg inn",magic_sub:"Vi sender deg en engangslenke på e-post. Ingen passord.",send_link:"Send innloggingslenke",cancel:"Avbryt",check_email:"Sjekk e-posten for innloggingslenken.",auth_off:"Innlogging virker på den ferdige siden (forhåndsvisningen når ikke serveren).",comments:"Kommentarer",comment_ph:"Del størrelse, kvalitet, passform… (ingen eksterne lenker)",post:"Publiser",sign_in_comment:"Logg inn for å kommentere",no_comments:"Ingen kommentarer ennå. Bli den første.",links_blocked:"Eksterne lenker er ikke tillatt i kommentarer.",comments_off:"Kommentarer virker på den ferdige siden.",you:"deg",delete:"Slett",hero_h:"Den eneste funn-listen du trenger.",hero_sub:"Kvalitetssjekkede funn fra Weidian, Taobao og 1688. Søk, lagre, bestill via agenten din.",stat_finds:"funn",stat_markets:"markedsplasser",stat_qc:"QC-bilder",cont_google:"Fortsett med Google",cont_apple:"Fortsett med Apple",or:"eller",all_colours:"Alle farger",any_price:"Enhver pris"},
  zh:{search_ph:"搜索商品，如卫衣、工装裤、球鞋…",sources_label:"来源",all_sources:"全部来源",all_types:"全部类型",saved:"收藏",sort_featured:"精选",sort_low:"价格从低到高",sort_high:"价格从高到低",sort_qc:"QC 图最多",count:"{n} / {t} 件",indexed:"已收录 {n} 件",nothing_t:"没有匹配结果",nothing_b:"换个搜索词或清除筛选。",saved_empty_t:"还没有收藏",saved_empty_b:"点任意商品上的爱心即可收藏。",listing:"商品图",qc:"QC",variants:"规格",description:"描述",seller:"卖家",buy_head:"通过代购购买",buy_via:"通过 {a} 购买",more:"更多代购",add_ready:"稍后添加链接",note:"链接带有你的推广码 {r}。此预览中的图片为占位图；正式站点会加载真实商品图和 QC 图。",footer:"跨境好物，已质检。",footer_line:"商品数据与 QC 来自 qualit.ly / TMAPI，购买链接经由你的代购。",sign_in:"登录",sign_out:"退出",magic_title:"登录",magic_sub:"我们会给你发送一次性登录链接，无需密码。",send_link:"发送登录链接",cancel:"取消",check_email:"请查收邮件中的登录链接。",auth_off:"登录在正式站点可用（预览无法连接服务器）。",comments:"评论",comment_ph:"分享尺码、质量、版型…（请勿放外部链接）",post:"发布",sign_in_comment:"登录后评论",no_comments:"还没有评论，来抢沙发。",links_blocked:"评论中不允许外部链接。",comments_off:"评论在正式站点可用。",you:"你",delete:"删除",hero_h:"你唯一需要的好物清单。",hero_sub:"微店、淘宝、1688 的质检好物。搜索、收藏、通过代购下单。",stat_finds:"件商品",stat_markets:"个平台",stat_qc:"张 QC 图",cont_google:"使用 Google 继续",cont_apple:"使用 Apple 继续",or:"或",all_colours:"全部颜色",any_price:"任意价格"},
  es:{search_ph:"Busca artículos, p. ej. sudadera, cargo, zapatillas…",sources_label:"Fuente",all_sources:"Todas las fuentes",all_types:"Todos los tipos",saved:"Guardados",sort_featured:"Destacados",sort_low:"Precio: menor a mayor",sort_high:"Precio: mayor a menor",sort_qc:"Más fotos QC",count:"{n} de {t} artículos",indexed:"{n} artículos indexados",nothing_t:"Nada coincide",nothing_b:"Prueba otra búsqueda o quita los filtros.",saved_empty_t:"Aún no hay guardados",saved_empty_b:"Toca el corazón en cualquier artículo para guardarlo aquí.",listing:"Fotos del anuncio",qc:"QC",variants:"Variantes",description:"Descripción",seller:"Vendedor",buy_head:"Compra con tu agente",buy_via:"Comprar con {a}",more:"más agentes",add_ready:"añade enlaces luego",note:"Los enlaces llevan tu código {r}. Las imágenes son de muestra; las reales y de QC se cargan del feed en tu sitio.",footer:"Hallazgos transfronterizos, con control de calidad.",footer_line:"Datos de producto y QC vía qualit.ly / TMAPI. Enlaces de compra vía tu agente.",sign_in:"Entrar",sign_out:"Salir",magic_title:"Entrar",magic_sub:"Te enviamos un enlace de un toque. Sin contraseña.",send_link:"Enviar enlace",cancel:"Cancelar",check_email:"Revisa tu correo para el enlace de acceso.",auth_off:"El acceso funciona en el sitio final (la vista previa no llega al servidor).",comments:"Comentarios",comment_ph:"Comparte talla, calidad, ajuste… (sin enlaces externos)",post:"Publicar",sign_in_comment:"Entra para comentar",no_comments:"Sin comentarios aún. Sé el primero.",links_blocked:"No se permiten enlaces externos en los comentarios.",comments_off:"Los comentarios funcionan en tu sitio final.",you:"tú",delete:"Eliminar",hero_h:"La única lista de finds que necesitas.",hero_sub:"Finds de Weidian, Taobao y 1688, con control de calidad. Búscalos, guárdalos y pide con tu agente.",stat_finds:"artículos",stat_markets:"plataformas",stat_qc:"fotos QC",cont_google:"Continuar con Google",cont_apple:"Continuar con Apple",or:"o",all_colours:"Todos los colores",any_price:"Cualquier precio"},
  de:{search_ph:"Artikel suchen, z. B. Hoodie, Cargo, Sneaker…",sources_label:"Quelle",all_sources:"Alle Quellen",all_types:"Alle Typen",saved:"Gemerkt",sort_featured:"Empfohlen",sort_low:"Preis aufsteigend",sort_high:"Preis absteigend",sort_qc:"Meiste QC-Fotos",count:"{n} von {t} Funden",indexed:"{n} Artikel erfasst",nothing_t:"Keine Treffer",nothing_b:"Andere Suche versuchen oder Filter zurücksetzen.",saved_empty_t:"Noch nichts gemerkt",saved_empty_b:"Tippe das Herz auf einem Fund, um ihn hier zu speichern.",listing:"Angebotsfotos",qc:"QC",variants:"Varianten",description:"Beschreibung",seller:"Verkäufer",buy_head:"Über deinen Agenten kaufen",buy_via:"Kaufen über {a}",more:"weitere Agenten",add_ready:"Links später hinzufügen",note:"Links enthalten deinen Ref-Code {r}. Bilder sind Platzhalter; echte Angebots- und QC-Fotos werden auf deiner Live-Seite geladen.",footer:"Grenzüberschreitende Funde, qualitätsgeprüft.",footer_line:"Produktdaten und QC über qualit.ly / TMAPI. Kauf-Links über deinen Agenten.",sign_in:"Anmelden",sign_out:"Abmelden",magic_title:"Anmelden",magic_sub:"Wir senden dir einen Ein-Klick-Link per E-Mail. Kein Passwort.",send_link:"Link senden",cancel:"Abbrechen",check_email:"Sieh in deiner E-Mail nach dem Anmeldelink.",auth_off:"Die Anmeldung läuft auf der Live-Seite (die Vorschau erreicht den Server nicht).",comments:"Kommentare",comment_ph:"Teile Größe, Qualität, Passform… (keine externen Links)",post:"Senden",sign_in_comment:"Zum Kommentieren anmelden",no_comments:"Noch keine Kommentare. Sei der Erste.",links_blocked:"Externe Links sind in Kommentaren nicht erlaubt.",comments_off:"Kommentare laufen auf deiner Live-Seite.",you:"du",delete:"Löschen",hero_h:"Die einzige Finds-Liste, die du brauchst.",hero_sub:"Qualitätsgeprüfte Finds von Weidian, Taobao und 1688. Suchen, speichern, über deinen Agenten bestellen.",stat_finds:"Funde",stat_markets:"Marktplätze",stat_qc:"QC-Fotos",cont_google:"Weiter mit Google",cont_apple:"Weiter mit Apple",or:"oder",all_colours:"Alle Farben",any_price:"Jeder Preis"}
+,
+ sv:{search_ph:"Sök fynd, t.ex. hoodie, cargo, sneaker…",sources_label:"Källa",all_sources:"Alla källor",all_types:"Alla typer",saved:"Sparade",sort_featured:"Utvalda",sort_low:"Pris lågt till högt",sort_high:"Pris högt till lågt",sort_qc:"Flest QC-foton",sort_pop:"Populärast",sort_recent:"Senaste",all_brands:"Alla märken",count:"{n} av {t} fynd",indexed:"{n} varor indexerade",nothing_t:"Inga träffar",nothing_b:"Prova en annan sökning eller rensa filtren.",saved_empty_t:"Inget sparat än",saved_empty_b:"Tryck på hjärtat på ett fynd för att spara det här.",listing:"Annonsfoton",qc:"QC",variants:"Varianter",description:"Beskrivning",seller:"Säljare",buy_head:"Köp via din agent",buy_via:"Köp via {a}",more:"fler agenter",add_ready:"lägg till länkar senare",note:"Köplänkar innehåller din kod {r}. Titlar, priser, QC-antal och betyg är riktig community-data.",footer:"Gränsöverskridande fynd, kvalitetskontrollerade.",footer_line:"Community-fynd, indexerade för enkel bläddring. Köplänkar via din agent.",sign_in:"Logga in",sign_out:"Logga ut",settings:"Inställningar",magic_title:"Logga in",magic_sub:"Vi mejlar en länk med ett klick. Inget lösenord.",send_link:"Skicka länk",cancel:"Avbryt",check_email:"Kolla mejlen efter inloggningslänken.",auth_off:"Inloggning körs på liveplatsen (förhandsvisningen når inte servern).",comments:"Kommentarer",comment_ph:"Dela storlek, kvalitet, passform… (inga externa länkar)",post:"Skicka",sign_in_comment:"Logga in för att kommentera",no_comments:"Inga kommentarer än. Bli först.",links_blocked:"Externa länkar tillåts inte i kommentarer.",comments_off:"Kommentarer körs på din liveplats.",you:"du",delete:"Radera",hero_h:"Den enda fyndlistan du behöver.",hero_sub:"Kvalitetskontrollerade fynd från Weidian, Taobao och 1688. Sök, spara, beställ via din agent.",stat_finds:"fynd",stat_markets:"marknadsplatser",stat_qc:"QC-foton",cont_google:"Fortsätt med Google",cont_apple:"Fortsätt med Apple",or:"eller",all_colours:"Alla färger",any_price:"Valfritt pris",blog_title:"Guider & blogg",blog_sub:"Så fungerar köp från Kina via en agent — QC, frakt, agenter och mer.",read_more:"Läs",similar:"Liknande fynd",find_search_ph:"Hoppa till ett annat fynd…",report_link:"Rapportera trasig länk",report_thanks:"Tack — vi kollar länken igen.",share:"Dela",copied:"Länk kopierad",price_range:"Prisintervall"},
+ da:{search_ph:"Søg fund, f.eks. hoodie, cargo, sneaker…",sources_label:"Kilde",all_sources:"Alle kilder",all_types:"Alle typer",saved:"Gemte",sort_featured:"Fremhævet",sort_low:"Pris lav til høj",sort_high:"Pris høj til lav",sort_qc:"Flest QC-billeder",sort_pop:"Mest populære",sort_recent:"Nyeste",all_brands:"Alle mærker",count:"{n} af {t} fund",indexed:"{n} varer indekseret",nothing_t:"Ingen match",nothing_b:"Prøv en anden søgning eller ryd filtrene.",saved_empty_t:"Intet gemt endnu",saved_empty_b:"Tryk på hjertet på et fund for at gemme det her.",listing:"Annoncefotos",qc:"QC",variants:"Varianter",description:"Beskrivelse",seller:"Sælger",buy_head:"Køb via din agent",buy_via:"Køb via {a}",more:"flere agenter",add_ready:"tilføj links senere",note:"Købslinks indeholder din kode {r}. Titler, priser, QC-antal og bedømmelser er ægte community-data.",footer:"Grænseoverskridende fund, kvalitetstjekket.",footer_line:"Community-fund, indekseret for nem browsing. Købslinks via din agent.",sign_in:"Log ind",sign_out:"Log ud",settings:"Indstillinger",magic_title:"Log ind",magic_sub:"Vi sender et link med ét klik på mail. Ingen adgangskode.",send_link:"Send link",cancel:"Annuller",check_email:"Tjek din mail for login-linket.",auth_off:"Login kører på live-siden (forhåndsvisningen når ikke serveren).",comments:"Kommentarer",comment_ph:"Del størrelse, kvalitet, pasform… (ingen eksterne links)",post:"Send",sign_in_comment:"Log ind for at kommentere",no_comments:"Ingen kommentarer endnu. Vær den første.",links_blocked:"Eksterne links er ikke tilladt i kommentarer.",comments_off:"Kommentarer kører på din live-side.",you:"dig",delete:"Slet",hero_h:"Den eneste fund-liste du behøver.",hero_sub:"Kvalitetstjekkede fund fra Weidian, Taobao og 1688. Søg, gem, bestil via din agent.",stat_finds:"fund",stat_markets:"markedspladser",stat_qc:"QC-billeder",cont_google:"Fortsæt med Google",cont_apple:"Fortsæt med Apple",or:"eller",all_colours:"Alle farver",any_price:"Enhver pris",blog_title:"Guides & blog",blog_sub:"Sådan fungerer køb fra Kina via en agent — QC, fragt, agenter og mere.",read_more:"Læs",similar:"Lignende fund",find_search_ph:"Hop til et andet fund…",report_link:"Rapportér død link",report_thanks:"Tak — vi tjekker linket igen.",share:"Del",copied:"Link kopieret",price_range:"Prisinterval"},
+ fr:{search_ph:"Rechercher, ex. hoodie, cargo, sneaker…",sources_label:"Source",all_sources:"Toutes les sources",all_types:"Tous les types",saved:"Enregistrés",sort_featured:"À la une",sort_low:"Prix croissant",sort_high:"Prix décroissant",sort_qc:"Plus de photos QC",sort_pop:"Les plus populaires",sort_recent:"Récents",all_brands:"Toutes les marques",count:"{n} sur {t} trouvailles",indexed:"{n} articles indexés",nothing_t:"Aucun résultat",nothing_b:"Essayez une autre recherche ou effacez les filtres.",saved_empty_t:"Rien d enregistré",saved_empty_b:"Touchez le cœur d une trouvaille pour l enregistrer ici.",listing:"Photos de l annonce",qc:"QC",variants:"Variantes",description:"Description",seller:"Vendeur",buy_head:"Acheter via votre agent",buy_via:"Acheter via {a}",more:"autres agents",add_ready:"ajouter les liens plus tard",note:"Les liens d achat portent votre code {r}. Titres, prix, nombre de QC et notes sont des données réelles de la communauté.",footer:"Trouvailles transfrontalières, contrôlées.",footer_line:"Trouvailles de la communauté, indexées pour une navigation facile. Liens d achat via votre agent.",sign_in:"Se connecter",sign_out:"Se déconnecter",settings:"Paramètres",magic_title:"Se connecter",magic_sub:"Nous vous envoyons un lien en un clic par e-mail. Sans mot de passe.",send_link:"Envoyer le lien",cancel:"Annuler",check_email:"Vérifiez votre e-mail pour le lien de connexion.",auth_off:"La connexion fonctionne sur le site en ligne (l aperçu n atteint pas le serveur).",comments:"Commentaires",comment_ph:"Partagez taille, qualité, coupe… (pas de liens externes)",post:"Publier",sign_in_comment:"Connectez-vous pour commenter",no_comments:"Pas encore de commentaires. Soyez le premier.",links_blocked:"Les liens externes ne sont pas autorisés dans les commentaires.",comments_off:"Les commentaires fonctionnent sur votre site en ligne.",you:"vous",delete:"Supprimer",hero_h:"La seule liste de trouvailles qu il vous faut.",hero_sub:"Trouvailles contrôlées de Weidian, Taobao et 1688. Cherchez, enregistrez, commandez via votre agent.",stat_finds:"trouvailles",stat_markets:"marketplaces",stat_qc:"photos QC",cont_google:"Continuer avec Google",cont_apple:"Continuer avec Apple",or:"ou",all_colours:"Toutes les couleurs",any_price:"Tous les prix",blog_title:"Guides & blog",blog_sub:"Comment acheter en Chine via un agent — QC, expédition, agents et plus.",read_more:"Lire",similar:"Trouvailles similaires",find_search_ph:"Aller à une autre trouvaille…",report_link:"Signaler un lien mort",report_thanks:"Merci — nous revérifions ce lien.",share:"Partager",copied:"Lien copié",price_range:"Fourchette de prix"},
+ it:{search_ph:"Cerca, es. hoodie, cargo, sneaker…",sources_label:"Fonte",all_sources:"Tutte le fonti",all_types:"Tutti i tipi",saved:"Salvati",sort_featured:"In evidenza",sort_low:"Prezzo crescente",sort_high:"Prezzo decrescente",sort_qc:"Più foto QC",sort_pop:"Più popolari",sort_recent:"Recenti",all_brands:"Tutti i marchi",count:"{n} di {t} trovati",indexed:"{n} articoli indicizzati",nothing_t:"Nessun risultato",nothing_b:"Prova un altra ricerca o azzera i filtri.",saved_empty_t:"Ancora nulla salvato",saved_empty_b:"Tocca il cuore su un articolo per salvarlo qui.",listing:"Foto dell annuncio",qc:"QC",variants:"Varianti",description:"Descrizione",seller:"Venditore",buy_head:"Acquista tramite il tuo agente",buy_via:"Acquista tramite {a}",more:"altri agenti",add_ready:"aggiungi i link più tardi",note:"I link di acquisto contengono il tuo codice {r}. Titoli, prezzi, conteggi QC e valutazioni sono dati reali della community.",footer:"Trovati transfrontalieri, controllati.",footer_line:"Trovati dalla community, indicizzati per una navigazione facile. Link di acquisto tramite il tuo agente.",sign_in:"Accedi",sign_out:"Esci",settings:"Impostazioni",magic_title:"Accedi",magic_sub:"Ti inviamo un link con un tocco via email. Nessuna password.",send_link:"Invia link",cancel:"Annulla",check_email:"Controlla l email per il link di accesso.",auth_off:"L accesso funziona sul sito live (l anteprima non raggiunge il server).",comments:"Commenti",comment_ph:"Condividi taglia, qualità, vestibilità… (niente link esterni)",post:"Pubblica",sign_in_comment:"Accedi per commentare",no_comments:"Ancora nessun commento. Sii il primo.",links_blocked:"I link esterni non sono consentiti nei commenti.",comments_off:"I commenti funzionano sul tuo sito live.",you:"tu",delete:"Elimina",hero_h:"L unica lista di trovati che ti serve.",hero_sub:"Trovati controllati da Weidian, Taobao e 1688. Cerca, salva, ordina tramite il tuo agente.",stat_finds:"trovati",stat_markets:"marketplace",stat_qc:"foto QC",cont_google:"Continua con Google",cont_apple:"Continua con Apple",or:"o",all_colours:"Tutti i colori",any_price:"Qualsiasi prezzo",blog_title:"Guide & blog",blog_sub:"Come comprare dalla Cina tramite un agente — QC, spedizione, agenti e altro.",read_more:"Leggi",similar:"Trovati simili",find_search_ph:"Vai a un altro articolo…",report_link:"Segnala link rotto",report_thanks:"Grazie — ricontrolliamo il link.",share:"Condividi",copied:"Link copiato",price_range:"Fascia di prezzo"},
+ nl:{search_ph:"Zoek vondsten, bijv. hoodie, cargo, sneaker…",sources_label:"Bron",all_sources:"Alle bronnen",all_types:"Alle types",saved:"Opgeslagen",sort_featured:"Uitgelicht",sort_low:"Prijs laag naar hoog",sort_high:"Prijs hoog naar laag",sort_qc:"Meeste QC-foto s",sort_pop:"Populairst",sort_recent:"Recent",all_brands:"Alle merken",count:"{n} van {t} vondsten",indexed:"{n} items geïndexeerd",nothing_t:"Geen resultaten",nothing_b:"Probeer een andere zoekopdracht of wis de filters.",saved_empty_t:"Nog niets opgeslagen",saved_empty_b:"Tik op het hartje bij een vondst om die hier op te slaan.",listing:"Advertentiefoto s",qc:"QC",variants:"Varianten",description:"Beschrijving",seller:"Verkoper",buy_head:"Koop via je agent",buy_via:"Koop via {a}",more:"meer agents",add_ready:"links later toevoegen",note:"Kooplinks bevatten je code {r}. Titels, prijzen, QC-aantallen en beoordelingen zijn echte community-data.",footer:"Grensoverschrijdende vondsten, kwaliteitsgecontroleerd.",footer_line:"Community-vondsten, geïndexeerd voor makkelijk bladeren. Kooplinks via je agent.",sign_in:"Inloggen",sign_out:"Uitloggen",settings:"Instellingen",magic_title:"Inloggen",magic_sub:"We mailen je een link met één tik. Geen wachtwoord.",send_link:"Stuur link",cancel:"Annuleren",check_email:"Check je e-mail voor de inloglink.",auth_off:"Inloggen werkt op de live-site (de preview bereikt de server niet).",comments:"Reacties",comment_ph:"Deel maat, kwaliteit, pasvorm… (geen externe links)",post:"Plaatsen",sign_in_comment:"Log in om te reageren",no_comments:"Nog geen reacties. Wees de eerste.",links_blocked:"Externe links zijn niet toegestaan in reacties.",comments_off:"Reacties werken op je live-site.",you:"jij",delete:"Verwijderen",hero_h:"De enige vondstenlijst die je nodig hebt.",hero_sub:"Kwaliteitsgecontroleerde vondsten van Weidian, Taobao en 1688. Zoek, bewaar, bestel via je agent.",stat_finds:"vondsten",stat_markets:"marktplaatsen",stat_qc:"QC-foto s",cont_google:"Ga verder met Google",cont_apple:"Ga verder met Apple",or:"of",all_colours:"Alle kleuren",any_price:"Elke prijs",blog_title:"Gidsen & blog",blog_sub:"Hoe kopen uit China via een agent werkt — QC, verzending, agents en meer.",read_more:"Lees",similar:"Vergelijkbare vondsten",find_search_ph:"Spring naar een andere vondst…",report_link:"Meld dode link",report_thanks:"Bedankt — we checken de link opnieuw.",share:"Delen",copied:"Link gekopieerd",price_range:"Prijsbereik"}
 };
 
 const CUR = { USD:{sym:"$",rate:0.14}, EUR:{sym:"€",rate:0.13}, NOK:{sym:"kr ",rate:1.45}, SEK:{sym:"kr ",rate:1.47}, DKK:{sym:"kr ",rate:0.97}, GBP:{sym:"£",rate:0.11}, CHF:{sym:"CHF ",rate:0.125}, PLN:{sym:"zł ",rate:0.55}, CAD:{sym:"C$",rate:0.19}, AUD:{sym:"A$",rate:0.21}, JPY:{sym:"¥",rate:21}, CNY:{sym:"¥",rate:1} };
@@ -608,13 +714,13 @@ const PLAT = {weidian:{label:"Weidian"},taobao:{label:"Taobao"},"1688":{label:"1
 
 let ALL = loadProducts();
 const BY_ID = Object.fromEntries(ALL.map(p=>[p.id,p]));
-let state = { plat:"all", cat:"all", brand:"all", color:"all", price:"all", q:"", sort:"pop", lang:"en", cur:"USD", saved:false, username:"", agent:"mycnbox" };
+let state = { plat:"all", cat:"all", brand:"all", color:"all", price:"all", pmin:null, pmax:null, q:"", sort:"pop", lang:"en", cur:"USD", saved:false, username:"", agent:"mycnbox" };
 try{
   const _sv=localStorage.getItem("manifest.state");
   if(_sv){ Object.assign(state, JSON.parse(_sv)); }
   else {
     const loc=(navigator.language||"en").toLowerCase(), lc=loc.split("-")[0], rg=(loc.split("-")[1]||"").toUpperCase();
-    const LMAP={nb:"no",nn:"no",no:"no",zh:"zh",es:"es",de:"de"};
+    const LMAP={nb:"no",nn:"no",no:"no",sv:"sv",da:"da",zh:"zh",es:"es",de:"de",nl:"nl",fr:"fr",it:"it"};
     if(LMAP[lc]) state.lang=LMAP[lc];
     const CMAP={NO:"NOK",SE:"SEK",DK:"DKK",GB:"GBP",UK:"GBP",US:"USD",CH:"CHF",PL:"PLN",CA:"CAD",AU:"AUD",JP:"JPY",CN:"CNY"};
     const EU=["DE","FR","IT","ES","NL","IE","AT","BE","PT","FI","GR","EE","LV","LT","SK","SI","LU"];
@@ -729,7 +835,7 @@ function buildFilters(){
   const ty=$("#f-type"); ty.innerHTML=`<option value="all">${t("all_types")}</option>`+[...new Set(ALL.map(p=>p.cat))].sort().map(c=>`<option value="${c}">${c}</option>`).join(""); ty.value=state.cat;
   const br=$("#f-brand"); if(br){br.innerHTML=`<option value="all">${t("all_brands")}</option>`+[...new Set(ALL.map(p=>p.brand).filter(Boolean))].sort().map(b=>`<option value="${b}">${b}</option>`).join(""); br.value=state.brand;}
   const co=$("#f-color"); co.innerHTML=`<option value="all">${t("all_colours")}</option>`+allColors().map(c=>`<option value="${c}">${c}</option>`).join(""); co.value=state.color;
-  const pr=$("#f-price"); pr.innerHTML=`<option value="all">${t("any_price")}</option><option value="lo">&lt; ${price(100)}</option><option value="mid">${price(100)}–${price(200)}</option><option value="hi">&gt; ${price(200)}</option>`; pr.value=state.price;
+  updatePriceUI();
 }
 function filtered(){
   let list=ALL.filter(p=>{
@@ -738,9 +844,8 @@ function filtered(){
     if(state.cat!=="all"&&p.cat!==state.cat)return false;
     if(state.brand&&state.brand!=="all"&&p.brand!==state.brand)return false;
     if(state.color!=="all"&&!productColors(p).includes(state.color))return false;
-    if(state.price==="lo"&&!(p.price<100))return false;
-    if(state.price==="mid"&&!(p.price>=100&&p.price<=200))return false;
-    if(state.price==="hi"&&!(p.price>200))return false;
+    if(state.pmin!=null&&p.price<state.pmin)return false;
+    if(state.pmax!=null&&p.price>state.pmax)return false;
     if(state.q){const q=state.q.toLowerCase();if(!(`${p.title} ${p.brand||""} ${p.cat} ${p.seller} ${p.id}`.toLowerCase().includes(q)))return false;}
     return true;
   });
@@ -821,8 +926,10 @@ function openDetail(p,fromHash){
   drawer.innerHTML=`
     <header>
       <span class="code">${PLAT[p.platform].label}</span>
+      <button class="dshare" id="dshare" title="${t("share")}" aria-label="${t("share")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 15V3"/><path d="m8 7 4-4 4 4"/></svg></button>
       <button class="x" id="close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </header>
+    <div class="d-jump"><svg class="d-jump-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="d-search" type="search" autocomplete="off" placeholder="${t("find_search_ph")}"><div class="d-jump-res" id="d-jump-res" hidden></div></div>
     <div class="dbody">
       <div>
         <div class="gmain"><canvas id="gmain" aria-hidden="true"></canvas></div>
@@ -846,8 +953,9 @@ function openDetail(p,fromHash){
         <div class="variants">${p.variants.map(v=>`<span class="variant"><span class="sw" style="background:${swatch(v[0])}"></span>${esc(v[0])}</span>`).join("")}</div></div>
       <div><p class="sec-label">${t("description")}</p><p class="desc">${esc(p.desc)}</p><p class="seller">${t("seller")}: <b>${esc(p.seller)}</b></p></div>
       <div><p class="sec-label">${t("buy_head")}</p><div class="agents">${agentRow(p)}</div>
-        <p class="foot-note" style="margin-top:11px">${t("note").replace("{r}",AFFILIATE_REF)}</p></div>
+        <p class="foot-note" style="margin-top:11px">${t("note").replace("{r}",AFFILIATE_REF)}</p><div class="report-row"><button type="button" class="report-link" id="report-link">${t("report_link")}</button><span class="report-status" id="report-status"></span></div></div>
       <div><p class="sec-label">${t("comments")}</p><div id="comments"><p class="cmeta">…</p></div></div>
+      <div id="similar-wrap" class="similar-wrap"></div>
     </div>`;
   overlay.classList.add("open"); drawer.classList.add("open"); drawer.__pid=p.id; document.body.style.overflow="hidden"; if(!fromHash){ try{location.hash="p/"+encodeURIComponent(p.id);}catch(e){} }
   const mode={m:"listing"};
@@ -892,9 +1000,10 @@ function openDetail(p,fromHash){
   $("#close",drawer).addEventListener("click",closeDetail);
   drawer.querySelector(".d-fav").addEventListener("click",()=>toggleFav(p));
   loadComments(p.id,$("#comments",drawer));
+  enhanceDrawer(p);
   $("#close",drawer).focus();
 }
-function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;overlay.classList.remove("open");drawer.classList.remove("open");drawer.__pid=null;document.body.style.overflow="";if(lastFocus)lastFocus.focus();if(!fromHash&&location.hash.indexOf("#p/")===0){try{history.replaceState(null,"",location.pathname+location.search);}catch(e){location.hash="";}}}
+function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;restoreMeta();overlay.classList.remove("open");drawer.classList.remove("open");drawer.__pid=null;document.body.style.overflow="";if(lastFocus)lastFocus.focus();if(!fromHash&&location.hash.indexOf("#p/")===0){try{history.replaceState(null,"",location.pathname+location.search);}catch(e){location.hash="";}}}
 overlay.addEventListener("click",closeDetail);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&drawer.classList.contains("open"))closeDetail();});
 
@@ -1001,7 +1110,7 @@ $("#f-source").addEventListener("change",e=>{state.plat=e.target.value;render();
 $("#f-type").addEventListener("change",e=>{state.cat=e.target.value;render();});
 $("#f-brand")&&$("#f-brand").addEventListener("change",e=>{state.brand=e.target.value;render();});
 $("#f-color").addEventListener("change",e=>{state.color=e.target.value;render();});
-$("#f-price").addEventListener("change",e=>{state.price=e.target.value;render();});
+wirePriceSlider();
 $("#saved-chip").addEventListener("click",()=>{state.saved=!state.saved;render();});
 let qt;$("#q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{state.q=e.target.value.trim();render();},110);});
 $("#sort").addEventListener("change",e=>{state.sort=e.target.value;render();});
@@ -1173,4 +1282,143 @@ function pcExtract(url){
 
 setTimeout(()=>document.body.classList.remove("intro"),700);
 addEventListener("resize",()=>{clearTimeout(window.__rz);window.__rz=setTimeout(redrawAll,220);});
+
+/* ================= price slider + drawer enhancements ================= */
+var PMIN=0, PMAX=100, _priceReady=false;
+function _pfill(){
+  const f=$("#pp-fill"), a=$("#pr-min"), b=$("#pr-max"); if(!f||!a||!b)return;
+  const span=(PMAX-PMIN)||1;
+  const lo=(Math.min(+a.value,+b.value)-PMIN)/span*100;
+  const hi=(Math.max(+a.value,+b.value)-PMIN)/span*100;
+  f.style.left=lo+"%"; f.style.width=(hi-lo)+"%";
+}
+function updatePriceUI(){
+  if(!ALL||!ALL.length)return;
+  const ps=ALL.map(p=>p.price);
+  PMIN=Math.floor(Math.min(...ps)); PMAX=Math.ceil(Math.max(...ps));
+  const a=$("#pr-min"), b=$("#pr-max");
+  if(a&&b){
+    a.min=b.min=PMIN; a.max=b.max=PMAX;
+    a.value=(state.pmin!=null?state.pmin:PMIN);
+    b.value=(state.pmax!=null?state.pmax:PMAX);
+    $("#pp-min").textContent=price(+a.value);
+    $("#pp-max").textContent=price(+b.value);
+    _pfill();
+  }
+  const lab=$("#price-label");
+  if(lab){
+    if(state.pmin==null&&state.pmax==null) lab.textContent=t("any_price");
+    else lab.textContent=price(state.pmin!=null?state.pmin:PMIN)+" – "+price(state.pmax!=null?state.pmax:PMAX);
+  }
+}
+function wirePriceSlider(){
+  if(_priceReady)return; _priceReady=true;
+  const btn=$("#price-btn"), pop=$("#price-pop"), a=$("#pr-min"), b=$("#pr-max"), clr=$("#price-clear");
+  if(!btn||!pop||!a||!b)return;
+  const closePop=()=>{ pop.hidden=true; btn.setAttribute("aria-expanded","false"); };
+  btn.addEventListener("click",e=>{ e.stopPropagation(); const open=pop.hidden; pop.hidden=!open; btn.setAttribute("aria-expanded",String(open)); if(open)updatePriceUI(); });
+  pop.addEventListener("click",e=>e.stopPropagation());
+  document.addEventListener("click",()=>{ if(!pop.hidden)closePop(); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!pop.hidden)closePop(); });
+  let rt;
+  const onIn=()=>{
+    let lo=Math.min(+a.value,+b.value), hi=Math.max(+a.value,+b.value);
+    $("#pp-min").textContent=price(lo); $("#pp-max").textContent=price(hi); _pfill();
+    state.pmin=(lo<=PMIN?null:lo); state.pmax=(hi>=PMAX?null:hi);
+    const lab=$("#price-label"); if(lab)lab.textContent=(state.pmin==null&&state.pmax==null)?t("any_price"):price(lo)+" – "+price(hi);
+    clearTimeout(rt); rt=setTimeout(()=>{ render(); },90);
+  };
+  a.addEventListener("input",onIn); b.addEventListener("input",onIn);
+  if(clr)clr.addEventListener("click",()=>{ state.pmin=null; state.pmax=null; updatePriceUI(); render(); });
+  updatePriceUI();
+}
+
+/* ---- toast ---- */
+function toast(msg){
+  let el=$("#pc-toast");
+  if(!el){ el=document.createElement("div"); el.id="pc-toast"; el.className="pc-toast"; document.body.appendChild(el); }
+  el.textContent=msg; el.classList.add("show");
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("show"),1600);
+}
+
+/* ---- product-page meta ---- */
+let _metaSaved=null;
+function _mset(sel,attr,val){ let el=document.querySelector(sel); if(!el){ el=document.createElement("meta"); const m=sel.match(/\[(name|property)="?([^"\]]+)"?\]/); if(m)el.setAttribute(m[1],m[2]); document.head.appendChild(el);} if(val!=null)el.setAttribute("content",val); return el; }
+function _mget(sel){ const el=document.querySelector(sel); return el?el.getAttribute("content"):null; }
+function setProductMeta(p){
+  if(!_metaSaved) _metaSaved={title:document.title,desc:_mget('meta[name="description"]'),ogt:_mget('meta[property="og:title"]'),ogi:_mget('meta[property="og:image"]'),ogu:_mget('meta[property="og:url"]')};
+  const title=p.title+" — Puro Classico";
+  document.title=title;
+  _mset('meta[name="description"]','name', (p.brand?p.brand+" · ":"")+p.title+" — "+price(p.price)+". QC photos and agent buy links on Puro Classico.");
+  _mset('meta[property="og:title"]','property',title);
+  if(p.img)_mset('meta[property="og:image"]','property',p.img);
+  _mset('meta[property="og:url"]','property',location.origin+location.pathname+"#p/"+encodeURIComponent(p.id));
+}
+function restoreMeta(){ if(!_metaSaved)return; document.title=_metaSaved.title; if(_metaSaved.desc!=null)_mset('meta[name="description"]','name',_metaSaved.desc); if(_metaSaved.ogt!=null)_mset('meta[property="og:title"]','property',_metaSaved.ogt); if(_metaSaved.ogi!=null)_mset('meta[property="og:image"]','property',_metaSaved.ogi); if(_metaSaved.ogu!=null)_mset('meta[property="og:url"]','property',_metaSaved.ogu); }
+
+/* ---- similar finds ---- */
+function renderSimilar(p){
+  const wrap=$("#similar-wrap",drawer); if(!wrap)return;
+  let pool=ALL.filter(x=>x.id!==p.id && x.cat===p.cat);
+  if(pool.length<4){ pool=pool.concat(ALL.filter(x=>x.id!==p.id && x.brand&&x.brand===p.brand && x.cat!==p.cat)); }
+  const seen={}; pool=pool.filter(x=>seen[x.id]?false:(seen[x.id]=1)).slice(0,8);
+  if(!pool.length){ wrap.innerHTML=""; return; }
+  wrap.innerHTML='<p class="sec-label">'+t("similar")+'</p><div class="similar-row">'+pool.map(x=>
+    '<button class="sim-card" data-sim="'+x.id+'"><span class="sim-thumb">'+(x.img?'<img src="'+esc(x.img)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'')+'</span><span class="sim-t">'+esc(x.title)+'</span><span class="sim-p">'+price(x.price)+'</span></button>'
+  ).join("")+'</div>';
+  $$(".sim-card",wrap).forEach(b=>b.addEventListener("click",()=>{ const np=BY_ID[b.dataset.sim]; if(np)openDetail(np); }));
+}
+
+/* ---- in-drawer search ---- */
+function wireDrawerSearch(){
+  const inp=$("#d-search",drawer), res=$("#d-jump-res",drawer); if(!inp||!res)return;
+  const run=()=>{
+    const q=inp.value.trim().toLowerCase();
+    if(!q){ res.hidden=true; res.innerHTML=""; return; }
+    const hits=ALL.filter(x=>(x.title+" "+(x.brand||"")+" "+x.cat+" "+x.id).toLowerCase().includes(q)).slice(0,8);
+    if(!hits.length){ res.innerHTML='<div class="jump-item" style="cursor:default;color:var(--muted)">'+t("nothing_t")+'</div>'; res.hidden=false; return; }
+    res.innerHTML=hits.map(x=>'<button class="jump-item" data-jump="'+x.id+'"><span>'+esc(x.title)+'</span><span class="jump-p">'+price(x.price)+'</span></button>').join("");
+    res.hidden=false;
+    $$(".jump-item[data-jump]",res).forEach(b=>b.addEventListener("mousedown",e=>{ e.preventDefault(); const np=BY_ID[b.dataset.jump]; if(np){ inp.value=""; res.hidden=true; openDetail(np); } }));
+  };
+  inp.addEventListener("input",run);
+  inp.addEventListener("focus",run);
+  inp.addEventListener("blur",()=>setTimeout(()=>{ res.hidden=true; },160));
+}
+
+/* ---- dead-link reporting ---- */
+function _reports(){ try{ return new Set(JSON.parse(localStorage.getItem("pc.reports")||"[]")); }catch(e){ return new Set(); } }
+function _saveReports(s){ try{ localStorage.setItem("pc.reports",JSON.stringify([...s])); }catch(e){} }
+function isReported(id){ return _reports().has(id); }
+function reportLink(p){
+  const s=_reports(); s.add(p.id); _saveReports(s);
+  try{ if(typeof sb!=="undefined" && sb){ sb.from("link_reports").insert({product_id:String(p.id),platform:p.platform,item_id:String(p.itemId||p.id)}).then(()=>{},()=>{}); } }catch(e){}
+}
+function autoRefreshReports(){
+  const s=_reports(); if(!s.size||typeof qcFetch!=="function")return;
+  [...s].forEach(id=>{ const p=BY_ID[id]; if(!p)return;
+    qcFetch(p).then(d=>{ if(d && ((d.qc_count>0)||(d.thumbnails&&d.thumbnails.length))){ const ns=_reports(); ns.delete(id); _saveReports(ns); } });
+  });
+}
+setTimeout(autoRefreshReports,2600);
+
+/* ---- orchestrator ---- */
+function enhanceDrawer(p){
+  setProductMeta(p);
+  const sh=$("#dshare",drawer);
+  if(sh) sh.addEventListener("click",async()=>{
+    const url=location.origin+location.pathname+"#p/"+encodeURIComponent(p.id);
+    try{ if(navigator.share){ await navigator.share({title:p.title,url}); return; } }catch(e){}
+    try{ await navigator.clipboard.writeText(url); }catch(e){}
+    sh.classList.add("ok"); toast(t("copied")); setTimeout(()=>sh.classList.remove("ok"),1400);
+  });
+  const rb=$("#report-link",drawer), rs=$("#report-status",drawer);
+  if(rb){
+    if(isReported(p.id)){ if(rs)rs.textContent=t("report_thanks"); rb.disabled=true; }
+    rb.addEventListener("click",()=>{ reportLink(p); if(rs)rs.textContent=t("report_thanks"); rb.disabled=true; });
+  }
+  wireDrawerSearch();
+  renderSimilar(p);
+}
+
 </script>
