@@ -180,6 +180,7 @@ main{padding-block:26px 64px}
 .variants{display:flex;flex-wrap:wrap;gap:7px}
 .variant{font-size:12px;font-family:var(--f-mono);padding:6px 10px;border:1px solid var(--line);display:flex;gap:9px;align-items:center}
 .variant .vp{font-weight:600}
+.variant .sw{width:12px;height:12px;border-radius:50%;border:1px solid rgba(120,130,150,.35);flex:none}
 .desc{font-size:14.5px;color:color-mix(in srgb,var(--ink) 88%,var(--muted));margin:0;max-width:60ch;line-height:1.6}
 .seller{font-size:13px;color:var(--muted);margin:.8em 0 0}
 .seller b{color:var(--ink);font-weight:600}
@@ -253,6 +254,8 @@ select.mini,.theme-btn,.auth-btn,.fsel select,.saved-chip,.btn,.sheet input,.chi
 .tp-badge b{font-weight:800}
 .tp-label{color:var(--muted);font-size:11px}
 .tp-badge:hover{opacity:1}
+.brand-line{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:1px}
+.prating{color:#e0a416;font-size:11.5px;letter-spacing:1px;white-space:nowrap}
 .tools-sep{height:1px;background:var(--line);margin:7px 8px 4px}
 .tools-label{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);padding:2px 14px 5px}
 .tools-feature{display:flex;flex-direction:column;gap:1px}
@@ -331,7 +334,7 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
           <a href="#affiliate">Affiliate Program</a>
           <div class="tools-sep"></div>
           <div class="tools-label">Guides</div>
-          <a href="#tutorials" class="tools-feature">Tutorials<span>Step-by-step how-to guides</span></a>
+          <a href="#tutorials">Tutorials</a>
         </div>
       </div>
       <div class="selwrap"><select class="mini" id="lang" aria-label="Language"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
@@ -345,7 +348,7 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
 
 <section class="hero">
   <div class="wrap hero-in">
-    <h1 class="hero-h" data-i18n="hero_h">The only finds spreadsheet you'll ever need.</h1>
+    <h1 class="hero-h" data-i18n="hero_h">The only replica spreadsheet you'll ever need.</h1>
     <p class="hero-sub" data-i18n="hero_sub">Quality-checked Weidian, Taobao and 1688 finds. Search it, save it, order through your agent.</p>
     <div class="hero-stats" id="hero-stats"></div>
     <a class="tp-badge" href="https://www.trustpilot.com/review/mycnbox.com" target="_blank" rel="noopener noreferrer"><span class="tp-stars">★★★★★</span><b>4.8</b><span class="tp-label">on Trustpilot · 396 reviews</span></a>
@@ -539,7 +542,7 @@ try{ if(window.supabase&&window.supabase.createClient){ sb = window.supabase.cre
 /* ================= i18n ================= */
 const LANGS = { en:"English", no:"Norsk", zh:"中文", es:"Español", de:"Deutsch" };
 const T = {
- en:{search_ph:"Search finds, e.g. hoodie, cargo, trainer…",sources_label:"Source",all_sources:"All sources",all_types:"All types",saved:"Saved",sort_featured:"Featured",sort_low:"Price low to high",sort_high:"Price high to low",sort_qc:"Most QC photos",count:"{n} of {t} finds",indexed:"{n} items indexed",nothing_t:"Nothing matches that",nothing_b:"Try another search or clear the filters.",saved_empty_t:"No saved items yet",saved_empty_b:"Tap the heart on any find to save it here.",listing:"Listing photos",qc:"QC",variants:"Variants",description:"Description",seller:"Seller",buy_head:"Buy through your agent",buy_via:"Buy via {a}",more:"more agents",add_ready:"add links when ready",note:"Buy links carry your ref {r}. Titles, prices, QC counts and ratings are real community data. Product photos are placeholders for now, connect an item-image feed to show real listing and QC photos.",footer:"Cross-border finds, quality-checked.",footer_line:"Community-sourced finds, indexed for easy browsing. Buy links via your agent.",sign_in:"Sign in",sign_out:"Sign out",magic_title:"Sign in",magic_sub:"We email you a one-tap link. No password to remember.",send_link:"Send magic link",cancel:"Cancel",check_email:"Check your email for the sign-in link.",auth_off:"Sign-in runs on the live site (this preview can't reach the server).",comments:"Comments",comment_ph:"Share sizing, quality, fit… (no outside links)",post:"Post",sign_in_comment:"Sign in to comment",no_comments:"No comments yet. Be the first.",links_blocked:"Outside links aren't allowed in comments.",comments_off:"Comments run on your live site.",you:"you",delete:"Delete",hero_h:"The only finds spreadsheet you'll ever need.",hero_sub:"Quality-checked Weidian, Taobao and 1688 finds. Search it, save it, order through your agent.",stat_finds:"finds",stat_markets:"marketplaces",stat_qc:"QC photos",cont_google:"Continue with Google",cont_apple:"Continue with Apple",or:"or",all_colours:"All colours",any_price:"Any price"},
+ en:{search_ph:"Search finds, e.g. hoodie, cargo, trainer…",sources_label:"Source",all_sources:"All sources",all_types:"All types",saved:"Saved",sort_featured:"Featured",sort_low:"Price low to high",sort_high:"Price high to low",sort_qc:"Most QC photos",count:"{n} of {t} finds",indexed:"{n} items indexed",nothing_t:"Nothing matches that",nothing_b:"Try another search or clear the filters.",saved_empty_t:"No saved items yet",saved_empty_b:"Tap the heart on any find to save it here.",listing:"Listing photos",qc:"QC",variants:"Variants",description:"Description",seller:"Seller",buy_head:"Buy through your agent",buy_via:"Buy via {a}",more:"more agents",add_ready:"add links when ready",note:"Buy links carry your ref {r}. Titles, prices, QC counts and ratings are real community data. Product photos are placeholders for now, connect an item-image feed to show real listing and QC photos.",footer:"Cross-border finds, quality-checked.",footer_line:"Community-sourced finds, indexed for easy browsing. Buy links via your agent.",sign_in:"Sign in",sign_out:"Sign out",magic_title:"Sign in",magic_sub:"We email you a one-tap link. No password to remember.",send_link:"Send magic link",cancel:"Cancel",check_email:"Check your email for the sign-in link.",auth_off:"Sign-in runs on the live site (this preview can't reach the server).",comments:"Comments",comment_ph:"Share sizing, quality, fit… (no outside links)",post:"Post",sign_in_comment:"Sign in to comment",no_comments:"No comments yet. Be the first.",links_blocked:"Outside links aren't allowed in comments.",comments_off:"Comments run on your live site.",you:"you",delete:"Delete",hero_h:"The only replica spreadsheet you'll ever need.",hero_sub:"Quality-checked Weidian, Taobao and 1688 finds. Search it, save it, order through your agent.",stat_finds:"finds",stat_markets:"marketplaces",stat_qc:"QC photos",cont_google:"Continue with Google",cont_apple:"Continue with Apple",or:"or",all_colours:"All colours",any_price:"Any price"},
  no:{search_ph:"Søk i funn, f.eks. hettegenser, cargo, sko…",sources_label:"Kilde",all_sources:"Alle kilder",all_types:"Alle typer",saved:"Lagret",sort_featured:"Utvalgte",sort_low:"Pris lav til høy",sort_high:"Pris høy til lav",sort_qc:"Flest QC-bilder",count:"{n} av {t} funn",indexed:"{n} varer indeksert",nothing_t:"Ingen treff",nothing_b:"Prøv et annet søk eller fjern filtrene.",saved_empty_t:"Ingen lagrede varer ennå",saved_empty_b:"Trykk på hjertet på et funn for å lagre det her.",listing:"Produktbilder",qc:"QC",variants:"Varianter",description:"Beskrivelse",seller:"Selger",buy_head:"Kjøp via agenten din",buy_via:"Kjøp via {a}",more:"flere agenter",add_ready:"legg til lenker senere",note:"Lenkene bruker referansen din {r}. Bildene her er plassholdere; ekte produkt- og QC-bilder lastes fra feeden på den ferdige siden.",footer:"Grensekryssende funn, kvalitetssjekket.",footer_line:"Produktdata og QC via qualit.ly / TMAPI. Kjøpslenker via agenten din.",sign_in:"Logg inn",sign_out:"Logg ut",magic_title:"Logg inn",magic_sub:"Vi sender deg en engangslenke på e-post. Ingen passord.",send_link:"Send innloggingslenke",cancel:"Avbryt",check_email:"Sjekk e-posten for innloggingslenken.",auth_off:"Innlogging virker på den ferdige siden (forhåndsvisningen når ikke serveren).",comments:"Kommentarer",comment_ph:"Del størrelse, kvalitet, passform… (ingen eksterne lenker)",post:"Publiser",sign_in_comment:"Logg inn for å kommentere",no_comments:"Ingen kommentarer ennå. Bli den første.",links_blocked:"Eksterne lenker er ikke tillatt i kommentarer.",comments_off:"Kommentarer virker på den ferdige siden.",you:"deg",delete:"Slett",hero_h:"Den eneste funn-listen du trenger.",hero_sub:"Kvalitetssjekkede funn fra Weidian, Taobao og 1688. Søk, lagre, bestill via agenten din.",stat_finds:"funn",stat_markets:"markedsplasser",stat_qc:"QC-bilder",cont_google:"Fortsett med Google",cont_apple:"Fortsett med Apple",or:"eller",all_colours:"Alle farger",any_price:"Enhver pris"},
  zh:{search_ph:"搜索商品，如卫衣、工装裤、球鞋…",sources_label:"来源",all_sources:"全部来源",all_types:"全部类型",saved:"收藏",sort_featured:"精选",sort_low:"价格从低到高",sort_high:"价格从高到低",sort_qc:"QC 图最多",count:"{n} / {t} 件",indexed:"已收录 {n} 件",nothing_t:"没有匹配结果",nothing_b:"换个搜索词或清除筛选。",saved_empty_t:"还没有收藏",saved_empty_b:"点任意商品上的爱心即可收藏。",listing:"商品图",qc:"QC",variants:"规格",description:"描述",seller:"卖家",buy_head:"通过代购购买",buy_via:"通过 {a} 购买",more:"更多代购",add_ready:"稍后添加链接",note:"链接带有你的推广码 {r}。此预览中的图片为占位图；正式站点会加载真实商品图和 QC 图。",footer:"跨境好物，已质检。",footer_line:"商品数据与 QC 来自 qualit.ly / TMAPI，购买链接经由你的代购。",sign_in:"登录",sign_out:"退出",magic_title:"登录",magic_sub:"我们会给你发送一次性登录链接，无需密码。",send_link:"发送登录链接",cancel:"取消",check_email:"请查收邮件中的登录链接。",auth_off:"登录在正式站点可用（预览无法连接服务器）。",comments:"评论",comment_ph:"分享尺码、质量、版型…（请勿放外部链接）",post:"发布",sign_in_comment:"登录后评论",no_comments:"还没有评论，来抢沙发。",links_blocked:"评论中不允许外部链接。",comments_off:"评论在正式站点可用。",you:"你",delete:"删除",hero_h:"你唯一需要的好物清单。",hero_sub:"微店、淘宝、1688 的质检好物。搜索、收藏、通过代购下单。",stat_finds:"件商品",stat_markets:"个平台",stat_qc:"张 QC 图",cont_google:"使用 Google 继续",cont_apple:"使用 Apple 继续",or:"或",all_colours:"全部颜色",any_price:"任意价格"},
  es:{search_ph:"Busca artículos, p. ej. sudadera, cargo, zapatillas…",sources_label:"Fuente",all_sources:"Todas las fuentes",all_types:"Todos los tipos",saved:"Guardados",sort_featured:"Destacados",sort_low:"Precio: menor a mayor",sort_high:"Precio: mayor a menor",sort_qc:"Más fotos QC",count:"{n} de {t} artículos",indexed:"{n} artículos indexados",nothing_t:"Nada coincide",nothing_b:"Prueba otra búsqueda o quita los filtros.",saved_empty_t:"Aún no hay guardados",saved_empty_b:"Toca el corazón en cualquier artículo para guardarlo aquí.",listing:"Fotos del anuncio",qc:"QC",variants:"Variantes",description:"Descripción",seller:"Vendedor",buy_head:"Compra con tu agente",buy_via:"Comprar con {a}",more:"más agentes",add_ready:"añade enlaces luego",note:"Los enlaces llevan tu código {r}. Las imágenes son de muestra; las reales y de QC se cargan del feed en tu sitio.",footer:"Hallazgos transfronterizos, con control de calidad.",footer_line:"Datos de producto y QC vía qualit.ly / TMAPI. Enlaces de compra vía tu agente.",sign_in:"Entrar",sign_out:"Salir",magic_title:"Entrar",magic_sub:"Te enviamos un enlace de un toque. Sin contraseña.",send_link:"Enviar enlace",cancel:"Cancelar",check_email:"Revisa tu correo para el enlace de acceso.",auth_off:"El acceso funciona en el sitio final (la vista previa no llega al servidor).",comments:"Comentarios",comment_ph:"Comparte talla, calidad, ajuste… (sin enlaces externos)",post:"Publicar",sign_in_comment:"Entra para comentar",no_comments:"Sin comentarios aún. Sé el primero.",links_blocked:"No se permiten enlaces externos en los comentarios.",comments_off:"Los comentarios funcionan en tu sitio final.",you:"tú",delete:"Eliminar",hero_h:"La única lista de finds que necesitas.",hero_sub:"Finds de Weidian, Taobao y 1688, con control de calidad. Búscalos, guárdalos y pide con tu agente.",stat_finds:"artículos",stat_markets:"plataformas",stat_qc:"fotos QC",cont_google:"Continuar con Google",cont_apple:"Continuar con Apple",or:"o",all_colours:"Todos los colores",any_price:"Cualquier precio"},
@@ -656,6 +659,8 @@ function applyStatic(){
 }
 function parseColor(v){ const name=String(v).split("·")[0].trim(); if(!name||/^(one\s?size|os|EU\d+|[SMLX]{1,3}|\d+)$/i.test(name)||/×\s*\d/.test(name)) return null; return name; }
 function productColors(p){ return p.variants.map(v=>parseColor(v[0])).filter(Boolean); }
+const COLORMAP={navy:"#1f2f57","navy blue":"#1f2f57",white:"#f2f2ef",black:"#1a1a1a",grey:"#8a8f98",gray:"#8a8f98",beige:"#d8c9a8",cream:"#efe7d2",red:"#c0392b",pink:"#e39ac0",green:"#3a7d5b",yellow:"#e3c04a","light blue":"#a9c9e8",blue:"#2e5aa8",brown:"#7a5230",orange:"#e08a3c",purple:"#7a5aa8"};
+function swatch(name){return COLORMAP[String(name).toLowerCase().trim()]||"#c8ccd4";}
 function allColors(){ const s=new Set(); ALL.forEach(p=>productColors(p).forEach(c=>s.add(c))); return [...s].sort(); }
 function buildFilters(){
   const src=$("#f-source"); src.innerHTML=`<option value="all">${t("all_sources")}</option><option value="weidian">Weidian</option><option value="taobao">Taobao</option><option value="1688">1688</option>`; src.value=state.plat;
@@ -693,12 +698,12 @@ function card(p){
       <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button>
     </div>
     <div class="body">
-      <span class="code">#${p.id}</span>
+      ${p.brand?`<span class="brand-line">${esc(p.brand)}</span>`:""}
       <span class="title">${esc(p.title)}</span>
       <span class="price-row">
         <span class="price">${price(p.price)}</span>
         ${sub?`<span class="subprice">${sub}</span>`:""}
-        <span class="starcount" data-sc="${p.id}">${fmtStar(p.id)}</span>
+        ${p.rating?`<span class="prating" title="${p.rating} / 5">${"★".repeat(p.rating)}</span>`:`<span class="starcount" data-sc="${p.id}">${fmtStar(p.id)}</span>`}
         <span class="cat">${p.cat}</span>
       </span>
     </div>`;
@@ -735,7 +740,7 @@ function agentRow(p){
   }).join("");
   return rows+`<div class="agent ghost soon"><span>+ ${t("more")}</span><span class="r">${t("add_ready")}</span></div>`;
 }
-function openDetail(p){
+function openDetail(p,fromHash){
   lastFocus=document.activeElement; const qcN=p.qc||0; const sub=subprice(p.price);
   drawer.innerHTML=`
     <header>
@@ -762,13 +767,13 @@ function openDetail(p){
         </div>
       </div>
       <div><p class="sec-label">${t("variants")}</p>
-        <div class="variants">${p.variants.map(v=>`<span class="variant">${esc(v[0])}<span class="vp">${price(v[1])}</span></span>`).join("")}</div></div>
+        <div class="variants">${p.variants.map(v=>`<span class="variant"><span class="sw" style="background:${swatch(v[0])}"></span>${esc(v[0])}</span>`).join("")}</div></div>
       <div><p class="sec-label">${t("description")}</p><p class="desc">${esc(p.desc)}</p><p class="seller">${t("seller")}: <b>${esc(p.seller)}</b></p></div>
       <div><p class="sec-label">${t("buy_head")}</p><div class="agents">${agentRow(p)}</div>
         <p class="foot-note" style="margin-top:11px">${t("note").replace("{r}",AFFILIATE_REF)}</p></div>
       <div><p class="sec-label">${t("comments")}</p><div id="comments"><p class="cmeta">…</p></div></div>
     </div>`;
-  overlay.classList.add("open"); drawer.classList.add("open"); document.body.style.overflow="hidden";
+  overlay.classList.add("open"); drawer.classList.add("open"); drawer.__pid=p.id; document.body.style.overflow="hidden"; if(!fromHash){ try{location.hash="p/"+encodeURIComponent(p.id);}catch(e){} }
   const mode={m:"listing"};
   const gal=(active=0)=>{
     const seed=mode.m==="qc"?100:0;
@@ -791,7 +796,7 @@ function openDetail(p){
   loadComments(p.id,$("#comments",drawer));
   $("#close",drawer).focus();
 }
-function closeDetail(){overlay.classList.remove("open");drawer.classList.remove("open");document.body.style.overflow="";if(lastFocus)lastFocus.focus();}
+function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;overlay.classList.remove("open");drawer.classList.remove("open");drawer.__pid=null;document.body.style.overflow="";if(lastFocus)lastFocus.focus();if(!fromHash&&location.hash.indexOf("#p/")===0){try{history.replaceState(null,"",location.pathname+location.search);}catch(e){location.hash="";}}}
 overlay.addEventListener("click",closeDetail);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&drawer.classList.contains("open"))closeDetail();});
 
@@ -949,6 +954,17 @@ document.body.classList.add("intro");
 const PC_PAGES={"link-converter":"pg-link-converter","qc-checker":"pg-qc-checker","weight":"pg-weight","tutorials":"pg-tutorials","affiliate":"pg-affiliate"};
 function pcRoute(){
   const h=(location.hash||"").replace(/^#/,"");
+  const pm=h.match(/^p\/(.+)$/);
+  if(pm){
+    $$(".page").forEach(el=>el.hidden=true);
+    [".hero",".deck",".subdeck","main"].forEach(s=>{const el=document.querySelector(s);if(el)el.hidden=false;});
+    const menu=$("#tools-menu"); if(menu)menu.hidden=true;
+    const p=BY_ID[decodeURIComponent(pm[1])];
+    if(p){ if(!drawer.classList.contains("open")||drawer.__pid!==p.id) openDetail(p,true); }
+    else if(drawer.classList.contains("open")) closeDetail(true);
+    return;
+  }
+  if(drawer.classList.contains("open")) closeDetail(true);
   const pid=PC_PAGES[h];
   $$(".page").forEach(el=>el.hidden=true);
   const cat=!pid;
