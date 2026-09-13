@@ -41,7 +41,10 @@ export async function onRequestGet(context){
       "category": p.cat || undefined,
       "offers": {"@type":"Offer","price": usd.toFixed(2), "priceCurrency":"USD","availability":"https://schema.org/InStock","url": url}
     };
-    html = html.replace("</head>", '<script type="application/ld+json">' + JSON.stringify(ld) + "</script></head>");
+    // The document is a fragment with no </head>; inject before the first <style> (always present in <head>).
+    const ldTag = '<script type="application/ld+json">' + JSON.stringify(ld) + "</script>\n";
+    if (html.indexOf("<style>") !== -1) html = html.replace("<style>", ldTag + "<style>");
+    else html = ldTag + html;
   }
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=3600" } });
 }
