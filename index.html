@@ -804,6 +804,18 @@ function agentRow(p){
   }).join("");
   return rows+`<div class="agent ghost soon"><span>+ ${t("more")}</span><span class="r">${t("add_ready")}</span></div>`;
 }
+/* ============ live QC photos (qualit.ly via /api/qc proxy) ============ */
+const QC_CACHE={};
+function qcFetch(p){
+  const sf=p.platform, id=(p.itemId||p.id);
+  const key=sf+"/"+id;
+  if(QC_CACHE[key]) return QC_CACHE[key];
+  const pr=fetch("/api/qc?storefront="+encodeURIComponent(sf)+"&id="+encodeURIComponent(id))
+    .then(r=>r.ok?r.json():Promise.reject(r.status))
+    .then(d=>(d&&d.data)?d.data:d)
+    .catch(()=>null);
+  QC_CACHE[key]=pr; return pr;
+}
 function openDetail(p,fromHash){
   lastFocus=document.activeElement; const qcN=p.qc||0; const sub=subprice(p.price);
   drawer.innerHTML=`
@@ -839,19 +851,41 @@ function openDetail(p,fromHash){
     </div>`;
   overlay.classList.add("open"); drawer.classList.add("open"); drawer.__pid=p.id; document.body.style.overflow="hidden"; if(!fromHash){ try{location.hash="p/"+encodeURIComponent(p.id);}catch(e){} }
   const mode={m:"listing"};
+  const QCIMG={arr:null,loading:false};
   const gal=(active=0)=>{
-    const seed=mode.m==="qc"?100:0;
+    const isqc=mode.m==="qc"; const seed=isqc?100:0;
     const gm=$("#gmain"), gc=gm.parentElement;
     const oldi=gc.querySelector("img.pimg"); if(oldi)oldi.remove(); gm.style.display="";
-    if(p.img && mode.m==="listing"){
+    const mainUrl=isqc?(QCIMG.arr&&QCIMG.arr[active]):(mode.m==="listing"?p.img:null);
+    if(mainUrl){
       gm.style.display="none";
-      const im=document.createElement("img"); im.className="pimg"; im.src=p.img; im.alt="";
+      const im=document.createElement("img"); im.className="pimg"; im.src=mainUrl; im.alt="";
       im.onerror=()=>{im.remove(); gm.style.display=""; drawTile(gm,p,seed+active);};
       gc.appendChild(im);
     } else { drawTile(gm,p,seed+active); }
     const th=$("#thumbs"); th.innerHTML="";
-    const n=mode.m==="qc"?Math.min(qcN||1,10):5;
-    for(let i=0;i<n;i++){const c=document.createElement("canvas");th.appendChild(c);requestAnimationFrame(()=>drawTile(c,p,seed+i));c.addEventListener("click",()=>gal(i));}
+    const qcArr=isqc?QCIMG.arr:null;
+    const n=isqc?Math.min((qcArr?qcArr.length:qcN)||1,10):5;
+    for(let i=0;i<n;i++){
+      const u=qcArr?qcArr[i]:null;
+      if(u){
+        const im=document.createElement("img"); im.className="pthumb qcthumb"; im.loading="lazy"; im.src=u; im.alt="";
+        im.style.cssText="width:100%;height:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;display:block";
+        im.addEventListener("click",()=>gal(i));
+        im.onerror=()=>{const c=document.createElement("canvas"); im.replaceWith(c); drawTile(c,p,seed+i); c.addEventListener("click",()=>gal(i));};
+        th.appendChild(im);
+      } else {
+        const c=document.createElement("canvas"); th.appendChild(c); requestAnimationFrame(()=>drawTile(c,p,seed+i)); c.addEventListener("click",()=>gal(i));
+      }
+    }
+    if(isqc && !QCIMG.arr && !QCIMG.loading){
+      QCIMG.loading=true;
+      qcFetch(p).then(d=>{ QCIMG.loading=false;
+        const arr=(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails
+                 :((d&&Array.isArray(d.qc_preview)&&d.qc_preview.length)?d.qc_preview:null);
+        if(arr){ QCIMG.arr=arr; if(mode.m==="qc") gal(0); }
+      });
+    }
   };
   requestAnimationFrame(()=>gal(0));
   $$(".gtab",drawer).forEach(tb=>tb.addEventListener("click",()=>{mode.m=tb.dataset.mode;$$(".gtab",drawer).forEach(x=>x.setAttribute("aria-pressed",String(x===tb)));gal(0);}));
