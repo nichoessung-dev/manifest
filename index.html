@@ -123,6 +123,8 @@ select.mini,.theme-btn,.auth-btn{font-family:var(--f-mono);font-size:11.5px;lett
 .toolbar{position:sticky;top:var(--mast-h,0px);z-index:31;background:var(--ground)}
 .toolbar .deck{position:static}
 .toolbar .subdeck{background:var(--ground)}
+.gate-optin{display:flex;align-items:center;gap:8px;justify-content:center;font-size:12.5px;line-height:1.35;color:var(--muted);margin:2px 0 6px;cursor:pointer}
+.gate-optin input{width:15px;height:15px;accent-color:var(--fill);flex:none;cursor:pointer}
 .deck{border-bottom:1.5px solid var(--line-2);background:var(--ground);position:sticky;top:0;z-index:30}
 .deck .wrap{display:flex;align-items:stretch;gap:0}
 .search{flex:1;position:relative;display:flex;align-items:center}
@@ -736,6 +738,7 @@ body.pp-open .drawer{height:auto;bottom:0}
     <div class="ordiv"><span data-i18n="or">or</span></div>
     <form class="gate-email" id="gate-email-form" novalidate><input type="email" id="gate-email-input" autocomplete="email" placeholder="you@email.com" aria-label="Email"><button type="submit" class="btn" id="gate-email-send" data-i18n="send_link">Send magic link</button></form>
     <p class="gate-email-status" id="gate-email-status" aria-live="polite"></p>
+    <label class="gate-optin"><input type="checkbox" id="gate-optin"> <span>Email me new drops &amp; deals — unsubscribe anytime</span></label>
     <button class="gate-guest" id="gate-guest" data-i18n="cont_guest">Continue as guest</button>
   </div>
 </div>
@@ -3451,6 +3454,7 @@ function qcFetch(p){
   QC_CACHE[key]=pr; return pr;
 }
 function openDetail(p,fromHash){
+  try{ if(sb&&ME&&p&&p.id){ if(!window.__pv)window.__pv=new Set(); if(!window.__pv.has(p.id)){ window.__pv.add(p.id); sb.from("product_views").insert({user_id:ME.id,product_id:p.id,brand:p.brand||null,cat:p.cat||null}).then(()=>{},()=>{}); } } }catch(e){}
   lastFocus=document.activeElement; const qcN=p.qc||0; const sub=subprice(p.price);
   drawer.innerHTML=`
     <div class="p-top">
@@ -3651,17 +3655,23 @@ function toggleMenu(){
   $("#m-settings",m).addEventListener("click",()=>{ m.hidden=true; openSettings(); });
   $("#m-out",m).addEventListener("click",async()=>{ m.hidden=true; try{ await sb.auth.signOut(); }catch(e){} ME=null; loadLocalFaves(); updateAuthUI(); render(); });
 }
+async function syncProfile(){
+  if(!sb||!ME) return;
+  const row={id:ME.id, email:ME.email||null, updated_at:new Date().toISOString()};
+  try{ const v=localStorage.getItem("pc.optin"); if(v!==null) row.marketing_opt_in = v==="1"; }catch(e){}
+  try{ await sb.from("profiles").upsert(row,{onConflict:"id"}); }catch(e){}
+}
 async function initAuth(){
   if(!sb) return;
   try{
     const {data}=await sb.auth.getUser(); ME=data&&data.user||null;
-    if(ME){ await mergeLocalToServer(); await loadServerFaves(); restoreReturnHash(); }
+    if(ME){ await mergeLocalToServer(); await loadServerFaves(); syncProfile(); restoreReturnHash(); }
     updateAuthUI(); render();
   }catch(e){ /* offline preview */ }
   try{
     sb.auth.onAuthStateChange(async(_e,session)=>{
       ME=session&&session.user||null;
-      if(ME){ await mergeLocalToServer(); await loadServerFaves(); restoreReturnHash(); }
+      if(ME){ await mergeLocalToServer(); await loadServerFaves(); syncProfile(); restoreReturnHash(); }
       else loadLocalFaves();
       updateAuthUI(); render();
     });
@@ -3798,9 +3808,10 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
   const g=$("#gate"); if(!g) return;
   const done=(guest)=>{ g.hidden=true; if(guest){ try{localStorage.setItem("pc.gate","1");}catch(e){} } };
   const gg=$("#gate-google"),gd=$("#gate-discord"),gef=$("#gate-email-form"),gu=$("#gate-guest");
-  if(gg)gg.addEventListener("click",()=>{ done(false); try{oauth("google");}catch(e){} });
-  if(gd)gd.addEventListener("click",()=>{ done(false); try{oauth("discord");}catch(e){} });
-  if(gef)gef.addEventListener("submit",e=>{ e.preventDefault(); sendMagicGate(); });
+  const saveOptin=()=>{ try{ const c=$("#gate-optin"); localStorage.setItem("pc.optin",(c&&c.checked)?"1":"0"); }catch(e){} };
+  if(gg)gg.addEventListener("click",()=>{ saveOptin(); done(false); try{oauth("google");}catch(e){} });
+  if(gd)gd.addEventListener("click",()=>{ saveOptin(); done(false); try{oauth("discord");}catch(e){} });
+  if(gef)gef.addEventListener("submit",e=>{ e.preventDefault(); saveOptin(); sendMagicGate(); });
   { const gi=$("#gate-email-input"); if(gi)gi.addEventListener("input",()=>{ gi.classList.remove("err"); const s=$("#gate-email-status"); if(s){s.classList.remove("err"); if(s.textContent===t("invalid_email"))s.textContent=""; } }); }
   if(gu)gu.addEventListener("click",()=>done(true));
   g.addEventListener("click",e=>{ if(e.target===g) done(true); });
