@@ -3232,7 +3232,7 @@ function openDetail(p,fromHash){
             <span class="tag">${p.cat}</span><span class="tag">${qcN} ${t("qc")}</span><span class="tag">${p.variants.length} ${t("variants").toLowerCase()}</span><span class="tag" data-sc="${p.id}">${fmtStar(p.id)}</span>
           </div>
           <div class="buy-block"><p class="sec-label">${t("buy_head")}</p><div class="agents">${agentRow(p)}</div>
-            <p class="foot-note" style="margin-top:11px">${t("note").replace("{r}",AFFILIATE_REF)}</p><div class="report-row"><button type="button" class="report-link" id="report-link">${t("report_link")}</button><span class="report-status" id="report-status"></span></div></div>
+            <div class="report-row" style="margin-top:11px"><button type="button" class="report-link" id="report-link">${t("report_link")}</button><span class="report-status" id="report-status"></span></div></div>
           <div><p class="sec-label">${t("variants")}</p>
             <div class="variants">${p.variants.map(v=>{const std=/^standard$/i.test((v[0]||"").trim());return `<span class="variant${std?" swatch-only":""}"><span class="sw" style="background:${swatch(v[0])}"></span>${std?"":esc(v[0])}</span>`;}).join("")}</div></div>
         </div>
@@ -3254,7 +3254,7 @@ function openDetail(p,fromHash){
         <div class="grid" id="pp-grid"></div>
       </div>
     </div>`;
-  overlay.classList.add("open"); drawer.classList.add("open"); drawer.__pid=p.id; document.body.style.overflow="hidden"; if(!fromHash){ try{location.hash="p/"+encodeURIComponent(p.id);}catch(e){} }
+  overlay.classList.add("open"); drawer.classList.add("open"); drawer.__pid=p.id; document.body.style.overflow="hidden"; if(!fromHash){ try{ history.pushState(null,"","/product/"+encodeURIComponent(p.id)); }catch(e){ try{location.hash="p/"+encodeURIComponent(p.id);}catch(_){} } }
   const mode={m:(p.img?"listing":"qc")};
   const QCIMG={arr:null,loading:false};
   const gal=(active=0)=>{
@@ -3315,7 +3315,8 @@ function openDetail(p,fromHash){
   enhanceDrawer(p);
   $("#close",drawer).focus();
 }
-function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;restoreMeta();document.body.classList.remove("pp-open");drawer.style.top="";try{render();if($("#sort"))$("#sort").value=state.sort;if($("#q"))$("#q").value=state.q||"";}catch(e){}overlay.classList.remove("open");drawer.classList.remove("open");drawer.__pid=null;document.body.style.overflow="";if(lastFocus)lastFocus.focus();if(!fromHash&&location.hash.indexOf("#p/")===0){try{history.replaceState(null,"",location.pathname+location.search);}catch(e){location.hash="";}}}
+function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;restoreMeta();document.body.classList.remove("pp-open");drawer.style.top="";try{render();if($("#sort"))$("#sort").value=state.sort;if($("#q"))$("#q").value=state.q||"";}catch(e){}overlay.classList.remove("open");drawer.classList.remove("open");drawer.__pid=null;document.body.style.overflow="";if(lastFocus)lastFocus.focus();if(!fromHash){ if(location.pathname.indexOf("/product/")===0){ try{history.replaceState(null,"","/");}catch(e){} } else if(location.hash.indexOf("#p/")===0){ try{history.replaceState(null,"",location.pathname+location.search);}catch(e){location.hash="";} } }}
+window.addEventListener("popstate",()=>{ try{ const m=location.pathname.match(/^\/product\/(.+)$/); if(m){ const p=BY_ID[decodeURIComponent(m[1])]; if(p){ openDetail(p,true); return; } } if(drawer.classList.contains("open")) closeDetail(true); }catch(e){} });
 overlay.addEventListener("click",closeDetail);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&drawer.classList.contains("open"))closeDetail();});
 
@@ -3544,6 +3545,8 @@ function pcRoute(){
 }
 window.addEventListener("hashchange",pcRoute);
 pcRoute();
+/* SEO: after the hash router runs, open the product when landing on a real /product/<id> URL */
+try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid=decodeURIComponent(_pp[1]); if(typeof BY_ID!=="undefined"&&BY_ID[_pid]) openDetail(BY_ID[_pid],true); } }catch(e){}
 /* entry auth gate */
 (function(){
   const g=$("#gate"); if(!g) return;
@@ -3712,7 +3715,7 @@ function setProductMeta(p){
   _mset('meta[name="description"]','name', (p.brand?p.brand+" · ":"")+p.title+" – "+price(p.price)+". QC photos and agent buy links on Puro Classico.");
   _mset('meta[property="og:title"]','property',title);
   if(p.img)_mset('meta[property="og:image"]','property',p.img);
-  _mset('meta[property="og:url"]','property',location.origin+location.pathname+"#p/"+encodeURIComponent(p.id));
+  _mset('meta[property="og:url"]','property',location.origin+"/product/"+encodeURIComponent(p.id));
 }
 function restoreMeta(){ if(!_metaSaved)return; document.title=_metaSaved.title; if(_metaSaved.desc!=null)_mset('meta[name="description"]','name',_metaSaved.desc); if(_metaSaved.ogt!=null)_mset('meta[property="og:title"]','property',_metaSaved.ogt); if(_metaSaved.ogi!=null)_mset('meta[property="og:image"]','property',_metaSaved.ogi); if(_metaSaved.ogu!=null)_mset('meta[property="og:url"]','property',_metaSaved.ogu); }
 
@@ -3770,7 +3773,7 @@ function enhanceDrawer(p){
   { const _mh=document.querySelector(".masthead"); if(_mh) drawer.style.top=_mh.offsetHeight+"px"; }
   const sh=$("#dshare",drawer);
   if(sh) sh.addEventListener("click",async()=>{
-    const url=location.origin+location.pathname+"#p/"+encodeURIComponent(p.id);
+    const url=location.origin+"/product/"+encodeURIComponent(p.id);
     try{ if(navigator.share){ await navigator.share({title:p.title,url}); return; } }catch(e){}
     try{ await navigator.clipboard.writeText(url); }catch(e){}
     sh.classList.add("ok"); toast(t("copied")); setTimeout(()=>sh.classList.remove("ok"),1400);
