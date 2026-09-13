@@ -102,7 +102,7 @@ body.intro .card{animation:rise .3s ease both}
 .oi{font-family:var(--f-mono);font-weight:700}
 .ordiv{display:flex;align-items:center;gap:10px;color:var(--faint);font-family:var(--f-mono);font-size:11px;margin:4px 0 12px}
 .ordiv:before,.ordiv:after{content:"";flex:1;height:1px;background:var(--line)}
-.masthead{border-bottom:1.5px solid var(--line-2)}
+.masthead{border-bottom:1.5px solid var(--line-2);position:sticky;top:0;z-index:60;background:var(--ground)}
 .mast-top{border-top:5px solid var(--line-2)}
 .mast-row{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding-block:14px 12px}
 .brand{display:flex;align-items:baseline;gap:12px;text-decoration:none;flex-wrap:wrap}
@@ -120,7 +120,7 @@ select.mini,.theme-btn,.auth-btn{font-family:var(--f-mono);font-size:11.5px;lett
 .menu button{display:block;width:100%;text-align:left;font-family:var(--f-disp);font-weight:500;font-size:13px;color:var(--ink);padding:9px 12px;background:none;border:none;border-radius:8px;cursor:pointer;transition:background-color .13s ease}
 .menu button:hover{background:var(--surface-2)}
 
-.toolbar{position:sticky;top:0;z-index:31;background:var(--ground)}
+.toolbar{position:sticky;top:var(--mast-h,0px);z-index:31;background:var(--ground)}
 .toolbar .deck{position:static}
 .toolbar .subdeck{background:var(--ground)}
 .deck{border-bottom:1.5px solid var(--line-2);background:var(--ground);position:sticky;top:0;z-index:30}
@@ -628,6 +628,17 @@ body.pp-open .drawer{height:auto;bottom:0}
     </div>
   </div>
 </div>
+<script>
+(function(){
+  var m=document.querySelector('.masthead');
+  if(!m) return;
+  var set=function(){document.documentElement.style.setProperty('--mast-h', m.offsetHeight+'px');};
+  set();
+  if(window.ResizeObserver){ new ResizeObserver(set).observe(m); }
+  window.addEventListener('resize',set);
+  window.addEventListener('load',set);
+})();
+</script>
 
 <section class="hero">
   <div class="wrap hero-in">
