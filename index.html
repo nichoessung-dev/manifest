@@ -493,6 +493,7 @@ footer a:hover{color:var(--ink)}
       </div>
       <div class="selwrap"><select class="mini" id="lang" aria-label="Language"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
       <div class="selwrap"><select class="mini" id="cur" aria-label="Currency"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+      <div class="selwrap"><select class="mini" id="agent" aria-label="Agent"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
       <button class="auth-btn" id="auth-btn" data-in="0">Sign in</button>
       <a class="icon-btn" href="https://discord.gg/Pf3zpG3E4" target="_blank" rel="noopener" aria-label="Discord" title="Join our Discord"><img src="https://icons.duckduckgo.com/ip3/discord.com.ico" alt="Discord" onerror="this.parentElement.innerHTML='&#128172;'"></a>
       <button class="theme-btn" id="theme" aria-label="Toggle light or dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg></button>
@@ -746,8 +747,14 @@ footer a:hover{color:var(--ink)}
    DATA LAYER – swap sample data for the real feed here (same shape).
    ========================================================================== */
 const AFFILIATE_REF = "LHYDVW";
+const AGENT_REFS = { mycnbox:"LHYDVW", cnfans:"LHYDVW", mulebuy:"LHYDVW", kakobuy:"LHYDVW", orientdig:"LHYDVW", loongbuy:"LHYDVW" };
 const AGENTS = {
-  mycnbox: { name:"MyCNBox", build:(p)=>`https://mycnbox.com/goodsDetail?mallType=${p.platform}&itemId=${p.itemId||p.id}&referId=${AFFILIATE_REF}` },
+  mycnbox:  { name:"MyCNBox",  build:(p)=>`https://mycnbox.com/goodsDetail?mallType=${p.platform}&itemId=${p.itemId||p.id}&referId=${AGENT_REFS.mycnbox}` },
+  cnfans:   { name:"CNFans",   build:(p)=>`https://cnfans.com/product/?shop_type=${p.platform==='1688'?'ali_1688':p.platform}&id=${p.itemId||p.id}&ref=${AGENT_REFS.cnfans}` },
+  mulebuy:  { name:"MuleBuy",  build:(p)=>`https://mulebuy.com/product/?platform=${p.platform}&id=${p.itemId||p.id}&ref=${AGENT_REFS.mulebuy}` },
+  kakobuy:  { name:"KakoBuy",  build:(p)=>`https://www.kakobuy.com/item/details?platform=${p.platform}&id=${p.itemId||p.id}&affcode=${AGENT_REFS.kakobuy}` },
+  orientdig:{ name:"OrientDig",build:(p)=>`https://orientdig.com/product/?platform=${p.platform}&id=${p.itemId||p.id}&ref=${AGENT_REFS.orientdig}` },
+  loongbuy: { name:"LoongBuy", build:(p)=>`https://www.loongbuy.com/product-details?platform=${p.platform}&id=${p.itemId||p.id}&invitecode=${AGENT_REFS.loongbuy}` },
 };
 function loadProducts(){
   return [
@@ -914,6 +921,7 @@ function applyStatic(){
   sortSel.value=state.sort;
   $("#lang").innerHTML=Object.entries(LANGS).map(([k,v])=>`<option value="${k}">${v}</option>`).join(""); $("#lang").value=state.lang;
   $("#cur").innerHTML=Object.keys(CUR).map(k=>`<option value="${k}">${CUR[k].sym.trim()} ${k}</option>`).join(""); $("#cur").value=state.cur;
+  { const ag=$("#agent"); if(ag){ ag.innerHTML=Object.entries(AGENTS).map(([k,a])=>`<option value="${k}">${a.name}</option>`).join(""); ag.value=(AGENTS[state.agent]?state.agent:"mycnbox"); } }
   updateAuthUI();
   updateHero();
 }
@@ -995,11 +1003,12 @@ function render(){
 /* ================= drawer ================= */
 const overlay=$("#overlay"), drawer=$("#drawer"); let lastFocus=null;
 function agentRow(p){
-  const rows=Object.entries(AGENTS).map(([k,a],i)=>{
-    const url=a.build(p);
-    return `<a class="agent ${i===0?'primary':'ghost'}" href="${url}" target="_blank" rel="noopener"><span>${t("buy_via").replace("{a}",a.name)}</span><span class="r">${p.platform} · ${AFFILIATE_REF}</span></a>`;
+  const sel=AGENTS[state.agent]?state.agent:"mycnbox";
+  const order=[sel,...Object.keys(AGENTS).filter(k=>k!==sel)].slice(0,4);
+  return order.map((k,i)=>{
+    const a=AGENTS[k]; const url=a.build(p);
+    return `<a class="agent ${i===0?'primary':'ghost'}" href="${url}" target="_blank" rel="noopener"><span>${t("buy_via").replace("{a}",a.name)}</span><span class="r">${p.platform} · ${AGENT_REFS[k]}</span></a>`;
   }).join("");
-  return rows+`<div class="agent ghost soon"><span>+ ${t("more")}</span><span class="r">${t("add_ready")}</span></div>`;
 }
 /* ============ live QC photos (qualit.ly via /api/qc proxy) ============ */
 const QC_CACHE={};
@@ -1153,7 +1162,7 @@ function openAuth(){ showGate(); }
 function showGate(){ const g=$("#gate"); if(!g)return; g.hidden=false; const s=$("#gate-email-status"); if(s)s.textContent=""; }
 function openSettings(){
   const m=$("#settings-modal"); if(!m)return;
-  $("#set-username").value=state.username||""; $("#set-agent").value=state.agent||"mycnbox";
+  $("#set-username").value=state.username||""; { const sa=$("#set-agent"); if(sa){ sa.innerHTML=Object.entries(AGENTS).map(([k,a])=>`<option value="${k}">${a.name}</option>`).join(""); sa.value=state.agent||"mycnbox"; } }
   const sc=$("#set-cur"); sc.innerHTML=Object.keys(CUR).map(k=>`<option value="${k}">${CUR[k].sym.trim()} ${k}</option>`).join(""); sc.value=state.cur;
   const sl=$("#set-lang"); sl.innerHTML=Object.entries(LANGS).map(([k,v])=>`<option value="${k}">${v}</option>`).join(""); sl.value=state.lang;
   $("#set-status").textContent=""; m.hidden=false;
@@ -1212,6 +1221,7 @@ let qt;$("#q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{
 $("#sort").addEventListener("change",e=>{state.sort=e.target.value;render();});
 $("#lang").addEventListener("change",e=>{state.lang=e.target.value;save();applyStatic();buildFilters();render();});
 $("#cur").addEventListener("change",e=>{state.cur=e.target.value;save();buildFilters();render();});
+$("#agent")&&$("#agent").addEventListener("change",e=>{state.agent=e.target.value;save();render();if(drawer.classList.contains("open")&&drawer.__pid&&BY_ID[drawer.__pid])openDetail(BY_ID[drawer.__pid],true);});
 $("#auth-btn").addEventListener("click",()=>{ if(ME) toggleMenu(); else openAuth(); });
 $("#auth-send").addEventListener("click",sendMagic);
 $("#auth-cancel").addEventListener("click",closeAuth);
