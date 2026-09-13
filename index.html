@@ -299,6 +299,10 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
 .gate-card p{font-size:14px;color:var(--muted);margin:0 0 22px;line-height:1.5}
 .gate-card .btn{width:100%;justify-content:center;text-align:center;padding:14px;border-radius:14px;margin-bottom:10px;font-size:13.5px;gap:10px}
 .oi-img{width:18px;height:18px;object-fit:contain;border-radius:4px}
+.set-row{display:flex;flex-direction:column;gap:5px;text-align:left;margin-bottom:13px}
+.set-row label{font-size:11.5px;color:var(--muted);font-family:var(--f-mono);letter-spacing:.03em}
+.set-row input,.set-row select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font-size:14px;font-family:var(--f-body)}
+.set-row input:focus,.set-row select:focus{outline:none;border-color:var(--accent)}
 .gate-guest{display:inline-block;margin-top:10px;background:none;border:none;color:var(--faint);font-family:var(--f-mono);font-size:11.5px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .gate-guest:hover{color:var(--muted)}
 /* tool pages */
@@ -336,6 +340,7 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
           <a href="#link-converter">Link Converter</a>
           <a href="#qc-checker">QC Checker</a>
           <a href="#weight">Weight Estimator</a>
+          <a href="#freight">Freight Calculator</a>
           <a href="#affiliate">Affiliate Program</a>
           <div class="tools-sep"></div>
           <div class="tools-label">Guides</div>
@@ -413,12 +418,25 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
     <h3 data-i18n="magic_title">Sign in</h3>
     <p data-i18n="magic_sub">We email you a one-tap link. No password to remember.</p>
     <button class="btn oauth" id="auth-google"><span class="oi">G</span><span data-i18n="cont_google">Continue with Google</span></button>
-    <button class="btn oauth" id="auth-apple"><svg class="oi" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M16.4 12.6c0-2 1.6-3 1.7-3-.9-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7-.6 0-1.6-.7-2.6-.7-1.3 0-2.6.8-3.3 2-1.4 2.4-.4 6 1 8 .7 1 1.4 2 2.5 2 1 0 1.3-.6 2.5-.6s1.5.6 2.6.6 1.7-1 2.4-2c.5-.7.7-1.1 1-1.9-2.4-.9-2.4-3.2-2.4-3.2zM14.6 6.3c.6-.7 1-1.6.9-2.6-.8 0-1.9.6-2.5 1.3-.5.6-1 1.5-.9 2.5.9.1 1.8-.5 2.5-1.2z"/></svg><span data-i18n="cont_apple">Continue with Apple</span></button>
+    <button class="btn oauth" id="auth-discord"><img class="oi-img" src="https://icons.duckduckgo.com/ip3/discord.com.ico" alt="" onerror="this.remove()"><span>Continue with Discord</span></button>
     <div class="ordiv"><span data-i18n="or">or</span></div>
     <input id="auth-email" type="email" autocomplete="email" placeholder="you@email.com">
     <button class="btn" id="auth-send" data-i18n="send_link">Send magic link</button>
     <p class="auth-status" id="auth-status"></p>
     <button class="btn ghost" id="auth-cancel" style="width:100%;margin-top:10px" data-i18n="cancel">Cancel</button>
+  </div>
+</div>
+
+<div class="modal" id="settings-modal" hidden>
+  <div class="sheet">
+    <h3>Settings</h3>
+    <div class="set-row"><label for="set-username">Username</label><input id="set-username" type="text" placeholder="Your display name" maxlength="24" autocomplete="off"></div>
+    <div class="set-row"><label for="set-agent">Default agent</label><select id="set-agent"><option value="mycnbox">MyCNBox</option></select></div>
+    <div class="set-row"><label for="set-cur">Currency</label><select id="set-cur"></select></div>
+    <div class="set-row"><label for="set-lang">Language</label><select id="set-lang"></select></div>
+    <button class="btn" id="set-save" style="width:100%;margin-top:4px">Save</button>
+    <p class="auth-status" id="set-status"></p>
+    <button class="btn ghost" id="set-cancel" style="width:100%;margin-top:8px">Cancel</button>
   </div>
 </div>
 
@@ -428,7 +446,7 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
     <h2>Save your finds</h2>
     <p>Star finds, drop reviews and pick up where you left off. Free, takes a second.</p>
     <button class="btn oauth" id="gate-google"><img class="oi-img" src="https://icons.duckduckgo.com/ip3/google.com.ico" alt="" onerror="this.remove()"><span data-i18n="cont_google">Continue with Google</span></button>
-    <button class="btn oauth" id="gate-apple"><img class="oi-img" src="https://icons.duckduckgo.com/ip3/apple.com.ico" alt="" onerror="this.remove()"><span data-i18n="cont_apple">Continue with Apple</span></button>
+    <button class="btn oauth" id="gate-discord"><img class="oi-img" src="https://icons.duckduckgo.com/ip3/discord.com.ico" alt="" onerror="this.remove()"><span>Continue with Discord</span></button>
     <div class="ordiv"><span data-i18n="or">or</span></div>
     <button class="btn ghost" id="gate-email">Continue with email</button>
     <button class="gate-guest" id="gate-guest">Continue as guest</button>
@@ -467,12 +485,39 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
 <section class="page" id="pg-weight" hidden>
   <a class="page-back" href="#">&larr; Back to catalog</a>
   <h1>Weight Estimator</h1>
-  <p class="lead">A rough shipping cost for your haul by total weight. A ballpark to plan with, your agent's checkout is the real number.</p>
+  <p class="lead">Paste a find link, or pick the type, for a rough shipped weight. Feed it into the Freight Calculator for a cost.</p>
   <div class="tool-box">
-    <label for="we-in">Total weight (grams)</label>
-    <input class="tool-in" id="we-in" type="number" min="0" placeholder="e.g. 1500">
-    <div class="tool-out empty" id="we-out">Enter a weight to see estimates.</div>
-    <p class="body" style="margin-top:12px;font-size:13px;color:var(--faint)">Estimates only. Real cost depends on destination, shipping line, box size and fees.</p>
+    <label for="we-link">Product link (optional)</label>
+    <input class="tool-in" id="we-link" type="text" placeholder="https://&hellip; a Weidian / Taobao / 1688 or agent link">
+    <label for="we-cat" style="margin-top:16px">Item type</label>
+    <select class="tool-in" id="we-cat">
+      <option value="">Pick a type&hellip;</option>
+      <option value="T-Shirts">T-shirt</option>
+      <option value="Shirts">Shirt</option>
+      <option value="Shorts">Shorts</option>
+      <option value="Hoodies & Sweaters">Hoodie / Sweater</option>
+      <option value="Jackets">Jacket</option>
+      <option value="Pants">Trousers / Joggers</option>
+      <option value="Shoes">Shoes</option>
+      <option value="Bags">Bag</option>
+      <option value="Accessories">Accessory</option>
+    </select>
+    <div class="tool-out empty" id="we-out">Paste a link or pick a type to see an estimate.</div>
+    <p class="body" style="margin-top:12px;font-size:13px;color:var(--faint)">Rough shipped weight (item + packaging). Your agent weighs the real parcel at checkout.</p>
+  </div>
+</section>
+
+<section class="page" id="pg-freight" hidden>
+  <a class="page-back" href="#">&larr; Back to catalog</a>
+  <h1>Freight Calculator</h1>
+  <p class="lead">A ballpark shipping cost by destination and weight. Your agent's checkout is the real number.</p>
+  <div class="tool-box">
+    <label for="fr-country">Destination</label>
+    <select class="tool-in" id="fr-country"></select>
+    <label for="fr-weight" style="margin-top:16px">Weight (grams)</label>
+    <input class="tool-in" id="fr-weight" type="number" min="0" placeholder="e.g. 1500">
+    <div class="tool-out empty" id="fr-out">Pick a destination and weight to see estimates.</div>
+    <p class="body" style="margin-top:12px;font-size:13px;color:var(--faint)">Rough estimates. Real cost depends on the shipping line, box size, volumetric weight and fees.</p>
   </div>
 </section>
 
@@ -548,7 +593,7 @@ try{ if(window.supabase&&window.supabase.createClient){ sb = window.supabase.cre
 /* ================= i18n ================= */
 const LANGS = { en:"English", no:"Norsk", zh:"中文", es:"Español", de:"Deutsch" };
 const T = {
- en:{search_ph:"Search finds, e.g. hoodie, cargo, trainer…",sources_label:"Source",all_sources:"All sources",all_types:"All types",saved:"Saved",sort_featured:"Featured",sort_low:"Price low to high",sort_high:"Price high to low",sort_qc:"Most QC photos",sort_pop:"Most popular",sort_recent:"Recent",all_brands:"All brands",count:"{n} of {t} finds",indexed:"{n} items indexed",nothing_t:"Nothing matches that",nothing_b:"Try another search or clear the filters.",saved_empty_t:"No saved items yet",saved_empty_b:"Tap the heart on any find to save it here.",listing:"Listing photos",qc:"QC",variants:"Variants",description:"Description",seller:"Seller",buy_head:"Buy through your agent",buy_via:"Buy via {a}",more:"more agents",add_ready:"add links when ready",note:"Buy links carry your ref {r}. Titles, prices, QC counts and ratings are real community data. Product photos are placeholders for now, connect an item-image feed to show real listing and QC photos.",footer:"Cross-border finds, quality-checked.",footer_line:"Community-sourced finds, indexed for easy browsing. Buy links via your agent.",sign_in:"Sign in",sign_out:"Sign out",magic_title:"Sign in",magic_sub:"We email you a one-tap link. No password to remember.",send_link:"Send magic link",cancel:"Cancel",check_email:"Check your email for the sign-in link.",auth_off:"Sign-in runs on the live site (this preview can't reach the server).",comments:"Comments",comment_ph:"Share sizing, quality, fit… (no outside links)",post:"Post",sign_in_comment:"Sign in to comment",no_comments:"No comments yet. Be the first.",links_blocked:"Outside links aren't allowed in comments.",comments_off:"Comments run on your live site.",you:"you",delete:"Delete",hero_h:"The only replica spreadsheet you'll ever need.",hero_sub:"Quality-checked Weidian, Taobao and 1688 finds. Search it, save it, order through your agent.",stat_finds:"finds",stat_markets:"marketplaces",stat_qc:"QC photos",cont_google:"Continue with Google",cont_apple:"Continue with Apple",or:"or",all_colours:"All colours",any_price:"Any price"},
+ en:{search_ph:"Search finds, e.g. hoodie, cargo, trainer…",sources_label:"Source",all_sources:"All sources",all_types:"All types",saved:"Saved",sort_featured:"Featured",sort_low:"Price low to high",sort_high:"Price high to low",sort_qc:"Most QC photos",sort_pop:"Most popular",sort_recent:"Recent",all_brands:"All brands",count:"{n} of {t} finds",indexed:"{n} items indexed",nothing_t:"Nothing matches that",nothing_b:"Try another search or clear the filters.",saved_empty_t:"No saved items yet",saved_empty_b:"Tap the heart on any find to save it here.",listing:"Listing photos",qc:"QC",variants:"Variants",description:"Description",seller:"Seller",buy_head:"Buy through your agent",buy_via:"Buy via {a}",more:"more agents",add_ready:"add links when ready",note:"Buy links carry your ref {r}. Titles, prices, QC counts and ratings are real community data. Product photos are placeholders for now, connect an item-image feed to show real listing and QC photos.",footer:"Cross-border finds, quality-checked.",footer_line:"Community-sourced finds, indexed for easy browsing. Buy links via your agent.",sign_in:"Sign in",sign_out:"Sign out",settings:"Settings",magic_title:"Sign in",magic_sub:"We email you a one-tap link. No password to remember.",send_link:"Send magic link",cancel:"Cancel",check_email:"Check your email for the sign-in link.",auth_off:"Sign-in runs on the live site (this preview can't reach the server).",comments:"Comments",comment_ph:"Share sizing, quality, fit… (no outside links)",post:"Post",sign_in_comment:"Sign in to comment",no_comments:"No comments yet. Be the first.",links_blocked:"Outside links aren't allowed in comments.",comments_off:"Comments run on your live site.",you:"you",delete:"Delete",hero_h:"The only replica spreadsheet you'll ever need.",hero_sub:"Quality-checked Weidian, Taobao and 1688 finds. Search it, save it, order through your agent.",stat_finds:"finds",stat_markets:"marketplaces",stat_qc:"QC photos",cont_google:"Continue with Google",cont_apple:"Continue with Apple",or:"or",all_colours:"All colours",any_price:"Any price"},
  no:{search_ph:"Søk i funn, f.eks. hettegenser, cargo, sko…",sources_label:"Kilde",all_sources:"Alle kilder",all_types:"Alle typer",saved:"Lagret",sort_featured:"Utvalgte",sort_low:"Pris lav til høy",sort_high:"Pris høy til lav",sort_qc:"Flest QC-bilder",count:"{n} av {t} funn",indexed:"{n} varer indeksert",nothing_t:"Ingen treff",nothing_b:"Prøv et annet søk eller fjern filtrene.",saved_empty_t:"Ingen lagrede varer ennå",saved_empty_b:"Trykk på hjertet på et funn for å lagre det her.",listing:"Produktbilder",qc:"QC",variants:"Varianter",description:"Beskrivelse",seller:"Selger",buy_head:"Kjøp via agenten din",buy_via:"Kjøp via {a}",more:"flere agenter",add_ready:"legg til lenker senere",note:"Lenkene bruker referansen din {r}. Bildene her er plassholdere; ekte produkt- og QC-bilder lastes fra feeden på den ferdige siden.",footer:"Grensekryssende funn, kvalitetssjekket.",footer_line:"Produktdata og QC via qualit.ly / TMAPI. Kjøpslenker via agenten din.",sign_in:"Logg inn",sign_out:"Logg ut",magic_title:"Logg inn",magic_sub:"Vi sender deg en engangslenke på e-post. Ingen passord.",send_link:"Send innloggingslenke",cancel:"Avbryt",check_email:"Sjekk e-posten for innloggingslenken.",auth_off:"Innlogging virker på den ferdige siden (forhåndsvisningen når ikke serveren).",comments:"Kommentarer",comment_ph:"Del størrelse, kvalitet, passform… (ingen eksterne lenker)",post:"Publiser",sign_in_comment:"Logg inn for å kommentere",no_comments:"Ingen kommentarer ennå. Bli den første.",links_blocked:"Eksterne lenker er ikke tillatt i kommentarer.",comments_off:"Kommentarer virker på den ferdige siden.",you:"deg",delete:"Slett",hero_h:"Den eneste funn-listen du trenger.",hero_sub:"Kvalitetssjekkede funn fra Weidian, Taobao og 1688. Søk, lagre, bestill via agenten din.",stat_finds:"funn",stat_markets:"markedsplasser",stat_qc:"QC-bilder",cont_google:"Fortsett med Google",cont_apple:"Fortsett med Apple",or:"eller",all_colours:"Alle farger",any_price:"Enhver pris"},
  zh:{search_ph:"搜索商品，如卫衣、工装裤、球鞋…",sources_label:"来源",all_sources:"全部来源",all_types:"全部类型",saved:"收藏",sort_featured:"精选",sort_low:"价格从低到高",sort_high:"价格从高到低",sort_qc:"QC 图最多",count:"{n} / {t} 件",indexed:"已收录 {n} 件",nothing_t:"没有匹配结果",nothing_b:"换个搜索词或清除筛选。",saved_empty_t:"还没有收藏",saved_empty_b:"点任意商品上的爱心即可收藏。",listing:"商品图",qc:"QC",variants:"规格",description:"描述",seller:"卖家",buy_head:"通过代购购买",buy_via:"通过 {a} 购买",more:"更多代购",add_ready:"稍后添加链接",note:"链接带有你的推广码 {r}。此预览中的图片为占位图；正式站点会加载真实商品图和 QC 图。",footer:"跨境好物，已质检。",footer_line:"商品数据与 QC 来自 qualit.ly / TMAPI，购买链接经由你的代购。",sign_in:"登录",sign_out:"退出",magic_title:"登录",magic_sub:"我们会给你发送一次性登录链接，无需密码。",send_link:"发送登录链接",cancel:"取消",check_email:"请查收邮件中的登录链接。",auth_off:"登录在正式站点可用（预览无法连接服务器）。",comments:"评论",comment_ph:"分享尺码、质量、版型…（请勿放外部链接）",post:"发布",sign_in_comment:"登录后评论",no_comments:"还没有评论，来抢沙发。",links_blocked:"评论中不允许外部链接。",comments_off:"评论在正式站点可用。",you:"你",delete:"删除",hero_h:"你唯一需要的好物清单。",hero_sub:"微店、淘宝、1688 的质检好物。搜索、收藏、通过代购下单。",stat_finds:"件商品",stat_markets:"个平台",stat_qc:"张 QC 图",cont_google:"使用 Google 继续",cont_apple:"使用 Apple 继续",or:"或",all_colours:"全部颜色",any_price:"任意价格"},
  es:{search_ph:"Busca artículos, p. ej. sudadera, cargo, zapatillas…",sources_label:"Fuente",all_sources:"Todas las fuentes",all_types:"Todos los tipos",saved:"Guardados",sort_featured:"Destacados",sort_low:"Precio: menor a mayor",sort_high:"Precio: mayor a menor",sort_qc:"Más fotos QC",count:"{n} de {t} artículos",indexed:"{n} artículos indexados",nothing_t:"Nada coincide",nothing_b:"Prueba otra búsqueda o quita los filtros.",saved_empty_t:"Aún no hay guardados",saved_empty_b:"Toca el corazón en cualquier artículo para guardarlo aquí.",listing:"Fotos del anuncio",qc:"QC",variants:"Variantes",description:"Descripción",seller:"Vendedor",buy_head:"Compra con tu agente",buy_via:"Comprar con {a}",more:"más agentes",add_ready:"añade enlaces luego",note:"Los enlaces llevan tu código {r}. Las imágenes son de muestra; las reales y de QC se cargan del feed en tu sitio.",footer:"Hallazgos transfronterizos, con control de calidad.",footer_line:"Datos de producto y QC vía qualit.ly / TMAPI. Enlaces de compra vía tu agente.",sign_in:"Entrar",sign_out:"Salir",magic_title:"Entrar",magic_sub:"Te enviamos un enlace de un toque. Sin contraseña.",send_link:"Enviar enlace",cancel:"Cancelar",check_email:"Revisa tu correo para el enlace de acceso.",auth_off:"El acceso funciona en el sitio final (la vista previa no llega al servidor).",comments:"Comentarios",comment_ph:"Comparte talla, calidad, ajuste… (sin enlaces externos)",post:"Publicar",sign_in_comment:"Entra para comentar",no_comments:"Sin comentarios aún. Sé el primero.",links_blocked:"No se permiten enlaces externos en los comentarios.",comments_off:"Los comentarios funcionan en tu sitio final.",you:"tú",delete:"Eliminar",hero_h:"La única lista de finds que necesitas.",hero_sub:"Finds de Weidian, Taobao y 1688, con control de calidad. Búscalos, guárdalos y pide con tu agente.",stat_finds:"artículos",stat_markets:"plataformas",stat_qc:"fotos QC",cont_google:"Continuar con Google",cont_apple:"Continuar con Apple",or:"o",all_colours:"Todos los colores",any_price:"Cualquier precio"},
@@ -563,7 +608,7 @@ const PLAT = {weidian:{label:"Weidian"},taobao:{label:"Taobao"},"1688":{label:"1
 
 let ALL = loadProducts();
 const BY_ID = Object.fromEntries(ALL.map(p=>[p.id,p]));
-let state = { plat:"all", cat:"all", brand:"all", color:"all", price:"all", q:"", sort:"pop", lang:"en", cur:"USD", saved:false };
+let state = { plat:"all", cat:"all", brand:"all", color:"all", price:"all", q:"", sort:"pop", lang:"en", cur:"USD", saved:false, username:"", agent:"mycnbox" };
 try{
   const _sv=localStorage.getItem("manifest.state");
   if(_sv){ Object.assign(state, JSON.parse(_sv)); }
@@ -867,6 +912,22 @@ function updateAuthUI(){
   else { b.textContent=t("sign_in"); b.dataset.in="0"; }
 }
 function openAuth(){ $("#auth-modal").hidden=false; $("#auth-status").textContent=""; setTimeout(()=>$("#auth-email").focus(),30); }
+function openSettings(){
+  const m=$("#settings-modal"); if(!m)return;
+  $("#set-username").value=state.username||""; $("#set-agent").value=state.agent||"mycnbox";
+  const sc=$("#set-cur"); sc.innerHTML=Object.keys(CUR).map(k=>`<option value="${k}">${CUR[k].sym.trim()} ${k}</option>`).join(""); sc.value=state.cur;
+  const sl=$("#set-lang"); sl.innerHTML=Object.entries(LANGS).map(([k,v])=>`<option value="${k}">${v}</option>`).join(""); sl.value=state.lang;
+  $("#set-status").textContent=""; m.hidden=false;
+}
+document.addEventListener("click",e=>{ if(e.target.id==="set-cancel"||e.target.id==="settings-modal"){ $("#settings-modal").hidden=true; } });
+document.addEventListener("click",e=>{ if(e.target.id!=="set-save")return;
+  state.username=$("#set-username").value.trim(); state.agent=$("#set-agent").value;
+  state.cur=$("#set-cur").value; state.lang=$("#set-lang").value;
+  if(!CUR[state.cur])state.cur="USD"; if(!T[state.lang])state.lang="en";
+  save(); applyStatic(); buildFilters(); render();
+  if(sb&&ME&&state.username){ try{ sb.from("profiles").update({username:state.username}).eq("id",ME.id).then(()=>{},()=>{}); }catch(e){} }
+  $("#settings-modal").hidden=true; updateAuthUI();
+});
 function closeAuth(){ $("#auth-modal").hidden=true; }
 async function sendMagic(){
   const email=($("#auth-email").value||"").trim(); const st=$("#auth-status");
@@ -879,9 +940,9 @@ async function sendMagic(){
 function toggleMenu(){
   const m=$("#acct-menu");
   if(!m.hidden){ m.hidden=true; return; }
-  m.innerHTML=`<button id="m-saved">${t("saved")}</button><button id="m-out">${t("sign_out")}</button>`;
+  m.innerHTML=`<button id="m-settings">${t("settings")}</button><button id="m-out">${t("sign_out")}</button>`;
   m.hidden=false;
-  $("#m-saved",m).addEventListener("click",()=>{ m.hidden=true; state.saved=true; render(); });
+  $("#m-settings",m).addEventListener("click",()=>{ m.hidden=true; openSettings(); });
   $("#m-out",m).addEventListener("click",async()=>{ m.hidden=true; try{ await sb.auth.signOut(); }catch(e){} ME=null; loadLocalFaves(); updateAuthUI(); render(); });
 }
 async function initAuth(){
@@ -939,7 +1000,7 @@ function renderFeatured(){
 function redrawAll(){ $$("canvas").forEach(c=>{ if(c.__p) drawTile(c,c.__p,c.__seed||0); }); }
 function oauth(provider){ if(!sb){ $("#auth-status").textContent=t("auth_off"); return; } try{ sb.auth.signInWithOAuth({provider,options:{redirectTo:location.origin}}); }catch(e){ $("#auth-status").textContent=t("auth_off"); } }
 $("#auth-google").addEventListener("click",()=>oauth("google"));
-$("#auth-apple").addEventListener("click",()=>oauth("apple"));
+$("#auth-discord").addEventListener("click",()=>oauth("discord"));
 
 /* ================= boot ================= */
 loadLocalFaves();
@@ -971,7 +1032,7 @@ document.body.classList.add("intro");
     document.addEventListener("click",e=>{ if(!menu.hidden && !e.target.closest(".tools-nav")){menu.hidden=true;btn.setAttribute("aria-expanded","false");} });
   }
 })();
-const PC_PAGES={"link-converter":"pg-link-converter","qc-checker":"pg-qc-checker","weight":"pg-weight","tutorials":"pg-tutorials","affiliate":"pg-affiliate"};
+const PC_PAGES={"link-converter":"pg-link-converter","qc-checker":"pg-qc-checker","weight":"pg-weight","freight":"pg-freight","tutorials":"pg-tutorials","affiliate":"pg-affiliate"};
 function pcRoute(){
   const h=(location.hash||"").replace(/^#/,"");
   const pm=h.match(/^p\/(.+)$/);
@@ -1000,9 +1061,9 @@ pcRoute();
 (function(){
   const g=$("#gate"); if(!g) return;
   const done=(guest)=>{ g.hidden=true; if(guest){ try{localStorage.setItem("pc.gate","1");}catch(e){} } };
-  const gg=$("#gate-google"),ga=$("#gate-apple"),ge=$("#gate-email"),gu=$("#gate-guest");
+  const gg=$("#gate-google"),gd=$("#gate-discord"),ge=$("#gate-email"),gu=$("#gate-guest");
   if(gg)gg.addEventListener("click",()=>{ done(false); try{oauth("google");}catch(e){} });
-  if(ga)ga.addEventListener("click",()=>{ done(false); try{oauth("apple");}catch(e){} });
+  if(gd)gd.addEventListener("click",()=>{ done(false); try{oauth("discord");}catch(e){} });
   if(ge)ge.addEventListener("click",()=>{ done(false); try{openAuth();}catch(e){} });
   if(gu)gu.addEventListener("click",()=>done(true));
   g.addEventListener("click",e=>{ if(e.target===g) done(true); });
@@ -1047,18 +1108,33 @@ function pcExtract(url){
   const links=[["Open rep.tools QC Finder","https://rep.tools/qc-finder"],["Open KakoBuy QC Finder","https://kakobuyqcfinder.com"],["Open CNFans","https://cnfans.com"]];
   links.forEach(([label,href],i)=>{const a=document.createElement("a");a.className="btn"+(i?" ghost":"");a.target="_blank";a.rel="noopener";a.href=href;a.textContent=label;btns.appendChild(a);});
 })();
-/* weight estimator */
+/* weight estimator: link/type -> rough shipped weight */
 (function(){
-  const inp=$("#we-in"),out=$("#we-out");
-  if(!inp) return;
+  const link=$("#we-link"),cat=$("#we-cat"),out=$("#we-out"); if(!out)return;
+  const W={"T-Shirts":250,"Shirts":350,"Shorts":350,"Hoodies & Sweaters":700,"Jackets":900,"Pants":600,"Shoes":1050,"Bags":550,"Accessories":200};
   function run(){
-    const g=parseFloat(inp.value); if(!g||g<=0){ out.textContent="Enter a weight to see estimates."; out.classList.add("empty"); return; }
-    const kg=g/1000;
-    const lines=[["Economy line",6,5.5],["Standard registered",9,7.5],["Express (DHL/EMS)",15,11]];
-    const rows=lines.map(a=>{const usd=(a[1]+a[2]*kg); return a[0]+": ~$"+usd.toFixed(0)+"  ("+(Math.round(kg*10)/10)+"kg)";}).join("\n");
-    out.textContent=rows; out.classList.remove("empty");
+    let note="";
+    if(link&&link.value.trim()){ try{ const r=pcExtract(link.value.trim()); if(r&&r.id){ const m=ALL.find(p=>p.itemId===r.id); if(m){ cat.value=m.cat; note=" · matched "+m.title; } } }catch(e){} }
+    const c=cat.value; if(!c){ out.textContent="Paste a link or pick a type to see an estimate."; out.classList.add("empty"); return; }
+    const g=W[c]||400;
+    out.innerHTML="Estimated shipped weight: <b>~"+g+" g</b> ("+(g/1000).toFixed(2)+" kg)"+esc(note)+"<br><span style=\"color:var(--muted)\">Pop this into the Freight Calculator for a cost.</span>";
+    out.classList.remove("empty");
   }
-  inp.addEventListener("input",run);
+  link&&link.addEventListener("input",run); cat&&cat.addEventListener("change",run);
+})();
+/* freight calculator: destination + weight -> rough cost */
+(function(){
+  const co=$("#fr-country"),wt=$("#fr-weight"),out=$("#fr-out"); if(!co)return;
+  const ZONES={"Norway":"nordic","Sweden":"nordic","Denmark":"nordic","Finland":"nordic","United Kingdom":"eu","Germany":"eu","France":"eu","Netherlands":"eu","Italy":"eu","Spain":"eu","Poland":"eu","Ireland":"eu","Rest of Europe":"eu","United States":"na","Canada":"na","Australia":"oce","New Zealand":"oce","Rest of world":"row"};
+  const RATES={nordic:[["Economy",5,7],["Registered",7,10],["Express (DHL/EMS)",9,15]],eu:[["Economy",5,6.5],["Registered",7,9.5],["Express (DHL/EMS)",8,14]],na:[["Economy",6,8],["Registered",8,11],["Express (DHL/EMS)",9,16]],oce:[["Economy",6,9],["Registered",8,12],["Express (DHL/EMS)",10,17]],row:[["Economy",6,9],["Registered",8,12],["Express (DHL/EMS)",10,18]]};
+  co.innerHTML=Object.keys(ZONES).map(k=>`<option value="${k}">${k}</option>`).join(""); co.value="Norway";
+  function run(){
+    const g=parseFloat(wt.value); if(!g||g<=0){ out.textContent="Pick a destination and weight to see estimates."; out.classList.add("empty"); return; }
+    const kg=Math.max(0.1,g/1000), lines=RATES[ZONES[co.value]||"row"];
+    out.textContent=lines.map(a=>{const usd=a[1]+a[2]*kg; return a[0]+": ~"+price(Math.round(usd/0.14))+"  ("+kg.toFixed(1)+"kg)";}).join("\n");
+    out.classList.remove("empty");
+  }
+  co.addEventListener("change",run); wt.addEventListener("input",run);
 })();
 
 setTimeout(()=>document.body.classList.remove("intro"),700);
