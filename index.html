@@ -3025,7 +3025,7 @@ function applyStatic(){
   updateHero();
 }
 /* Custom masthead dropdowns — mirror the native <select> but render like the Tools menu (styled, on-brand). */
-function closeAllCsel(){ document.querySelectorAll(".cselmenu").forEach(m=>{m.hidden=true;}); document.querySelectorAll(".cselbtn").forEach(b=>b.setAttribute("aria-expanded","false")); }
+function closeAllCsel(){ document.querySelectorAll(".cselmenu").forEach(m=>{m.hidden=true;}); document.querySelectorAll(".cselbtn").forEach(b=>b.setAttribute("aria-expanded","false")); const tm=document.getElementById("tools-menu"); if(tm)tm.hidden=true; const tb=document.getElementById("tools-btn"); if(tb)tb.setAttribute("aria-expanded","false"); }
 document.addEventListener("click",()=>closeAllCsel());
 function enhanceMastSelects(){
   ["lang","cur","agent"].forEach(id=>{
@@ -3479,7 +3479,7 @@ document.body.classList.add("intro");
 (function(){
   const btn=$("#tools-btn"), menu=$("#tools-menu");
   if(btn&&menu){
-    btn.addEventListener("click",e=>{e.stopPropagation();const willOpen=menu.hidden;menu.hidden=!willOpen;btn.setAttribute("aria-expanded",String(willOpen));});
+    btn.addEventListener("click",e=>{e.stopPropagation();const willOpen=menu.hidden;try{closeAllCsel();}catch(_){}menu.hidden=!willOpen;btn.setAttribute("aria-expanded",String(willOpen));});
     document.addEventListener("click",e=>{ if(!menu.hidden && !e.target.closest(".tools-nav")){menu.hidden=true;btn.setAttribute("aria-expanded","false");} });
   }
 })();
