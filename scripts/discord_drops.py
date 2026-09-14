@@ -6,14 +6,14 @@
 # Secrets/env: DISCORD_WEBHOOK  (channel webhook URL; set as a GitHub Actions secret)
 # Optional env: DROPS_ROLE_ID   (a Discord role id to ping, e.g. a self-assign @Drops role)
 #               DROPS_PER_RUN   (max products to post per run, default 5)
-import json, os, time, urllib.request
+import json, os, time, random, urllib.request
 
 SITE   = "https://puroclassico.com"
 LOGO   = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/email/logo.png"
 NAVY   = 0x1a2740
 HOOK   = os.environ.get("DISCORD_WEBHOOK", "").strip()
 ROLE   = os.environ.get("DROPS_ROLE_ID", "").strip()
-LIMIT  = int(os.environ.get("DROPS_PER_RUN", "5"))
+LIMIT  = int(os.environ.get("DROPS_PER_RUN", "10"))
 PJSON  = "products.json"          # present in the repo checkout (root)
 POSTED = "discord_posted.json"    # list of ids already posted
 
@@ -53,12 +53,13 @@ def main():
         products = {str(x.get("id")): x for x in products if x.get("id")}
     posted = set(str(x) for x in load(POSTED, []))
 
-    # newest first: products.json preserves insertion order; new imports are appended at the end
-    unposted = [pid for pid in products.keys() if pid not in posted]
-    unposted = unposted[-LIMIT:][::-1]   # up to LIMIT newest, post oldest→newest visually
-
-    if not unposted:
-        print("No new products to post (%d already posted)." % len(posted)); return
+    # pick LIMIT RANDOM products that have never been posted before
+    pool = [pid for pid in products.keys() if pid not in posted]
+    if not pool:
+        print("Whole catalog has been posted (%d) — resetting the cycle." % len(posted))
+        posted = set(); pool = list(products.keys())
+    random.shuffle(pool)
+    unposted = pool[:LIMIT]
 
     sent = 0
     for pid in unposted:
