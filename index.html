@@ -5047,10 +5047,23 @@ function buildPPFilters(){
   const q=$("#pp-q",drawer); if(q){ q.value=state.q||""; q.setAttribute("placeholder",t("search_ph")); }
   const sv=$("#pp-saved",drawer); if(sv)sv.setAttribute("aria-pressed",String(state.saved));
 }
+const PP_PAGE=24;
+function ppGridMore(){
+  const g=$("#pp-grid",drawer); const list=drawer.__pplist; if(!g||!list)return;
+  let n=drawer.__ppn||0; const end=Math.min(n+PP_PAGE,list.length);
+  const frag=document.createDocumentFragment();
+  for(;n<end;n++) frag.appendChild(card(list[n]));
+  g.appendChild(frag); drawer.__ppn=n;
+  let s=g.querySelector("#pp-sentinel");
+  if(n<list.length){ if(!s){ s=document.createElement("div"); s.id="pp-sentinel"; s.style.cssText="grid-column:1/-1;height:1px"; g.appendChild(s);} else { g.appendChild(s); } if(window.__ppObs) window.__ppObs.observe(s); }
+  else if(s){ if(window.__ppObs)window.__ppObs.unobserve(s); s.remove(); }
+}
 function renderPPGrid(){
   const g=$("#pp-grid",drawer); if(!g)return;
-  const cur=drawer.__pid; g.innerHTML="";
-  filtered().filter(x=>x.id!==cur).forEach(x=>g.appendChild(card(x)));
+  const cur=drawer.__pid;
+  drawer.__pplist=filtered().filter(x=>x.id!==cur); drawer.__ppn=0; g.innerHTML="";
+  try{ if(window.__ppObs) window.__ppObs.disconnect(); window.__ppObs=new IntersectionObserver(es=>{es.forEach(e=>{ if(e.isIntersecting) ppGridMore(); });},{root:drawer.querySelector(".dbody")||null,rootMargin:"700px"}); }catch(e){}
+  ppGridMore();
 }
 function wirePPFilters(){
   const on=(id,ev,fn)=>{const el=$(id,drawer); if(el)el.addEventListener(ev,fn);};
