@@ -1,0 +1,31 @@
+name: Discord drops
+on:
+  schedule:
+    - cron: '0 9,21 * * *'   # 09:00 & 21:00 UTC daily
+  workflow_dispatch: {}
+permissions:
+  contents: write            # to commit the updated discord_posted.json back
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python scripts/discord_drops.py
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DROPS_ROLE_ID: ${{ secrets.DROPS_ROLE_ID }}
+          DROPS_PER_RUN: '5'
+      - name: Save posted state
+        run: |
+          if [ -n "$(git status --porcelain discord_posted.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add discord_posted.json
+            git commit -m "chore: update discord_posted.json [skip ci]"
+            git push
+          else
+            echo "no state change"
+          fi
