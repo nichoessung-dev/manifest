@@ -72,6 +72,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{max-width:100%;overflow-x:clip}
+a[href="/terms.html"],a[href$="terms.html"]{display:none!important}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 button{font-family:inherit;cursor:pointer;color:inherit}
 a{color:inherit}
@@ -4811,7 +4812,7 @@ async function renderAffiliate(){
   if(!ME){ el.innerHTML='<button class="btn" id="aff-signin" style="max-width:240px;justify-content:center">Sign in to get your link</button><p style="color:var(--muted);margin-top:8px">Free — it takes a few seconds.</p>'; const b=document.getElementById("aff-signin"); if(b)b.addEventListener("click",()=>openAuth()); return; }
   el.textContent="Loading…";
   let rows=[]; try{ const {data}=await sb.rpc("my_referrals"); rows=data||[]; }catch(e){}
-  const origin=location.origin;
+  const origin="https://puroclassico.com";
   if(rows.length){
     el.innerHTML=rows.map(r=>{ const link=origin+"/r/"+r.code; return `<div style="border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input readonly value="${esc(link)}" style="flex:1;min-width:170px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink);font-size:14px"><button class="btn aff-copy" data-l="${esc(link)}" style="width:auto;padding:10px 16px">Copy</button></div>
