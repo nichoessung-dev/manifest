@@ -1,7 +1,7 @@
 name: Discord drops
 on:
   schedule:
-    - cron: '0 9,21 * * *'   # 09:00 & 21:00 UTC daily
+    - cron: '0 15 * * *'   # 15:00 UTC daily
   workflow_dispatch: {}
 permissions:
   contents: write            # to commit the updated discord_posted.json back
@@ -17,7 +17,7 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DROPS_ROLE_ID: ${{ secrets.DROPS_ROLE_ID }}
-          DROPS_PER_RUN: '5'
+          DROPS_PER_RUN: '10'
       - name: Save posted state
         run: |
           if [ -n "$(git status --porcelain discord_posted.json)" ]; then
