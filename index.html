@@ -4139,7 +4139,7 @@ const BY_ID = Object.fromEntries(ALL.map(p=>[p.id,p]));
 let state = { plat:"all", cat:"all", brand:"all", color:"all", price:"all", pmin:null, pmax:null, q:"", sort:"feat", lang:"en", cur:"USD", saved:false, username:"", agent:"mycnbox" };
 try{
   const _sv=localStorage.getItem("manifest.state");
-  if(_sv){ Object.assign(state, JSON.parse(_sv)); }
+  if(_sv){ Object.assign(state, JSON.parse(_sv)); state.sort="feat"; }
   else {
     const loc=(navigator.language||"en").toLowerCase(), lc=loc.split("-")[0], rg=(loc.split("-")[1]||"").toUpperCase();
     const LMAP={nb:"no",nn:"no",no:"no",sv:"sv",da:"da",zh:"zh",es:"es",de:"de",nl:"nl",fr:"fr",it:"it"};
