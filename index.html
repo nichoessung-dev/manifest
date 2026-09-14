@@ -4149,7 +4149,7 @@ let FAVES=new Set();
 let STARS={};
 const starCount=(id)=>STARS[id]||0;
 const fmtStar=(id)=>{const n=starCount(id);return n>0?("★ "+n):"";};
-async function loadStars(){ if(!sb)return; try{ const {data,error}=await sb.rpc("star_counts"); if(error)throw error; const m={}; (data||[]).forEach(r=>{m[r.product_id]=Number(r.n)||0;}); STARS=m; render(); }catch(e){} }
+async function loadStars(){ if(!sb)return; try{ const {data,error}=await sb.rpc("star_counts"); if(error)throw error; const m={}; (data||[]).forEach(r=>{m[r.product_id]=Number(r.n)||0;}); STARS=m; if(!drawer.classList.contains("open")) render(); }catch(e){} }
 function loadLocalFaves(){ try{ FAVES=new Set(JSON.parse(localStorage.getItem(LS_FAV)||"[]")); }catch(e){ FAVES=new Set(); } }
 function saveLocalFaves(){ try{ localStorage.setItem(LS_FAV, JSON.stringify([...FAVES])); }catch(e){} }
 async function loadServerFaves(){
@@ -4580,7 +4580,7 @@ function toggleMenu(){
   m.innerHTML=`<button id="m-settings">${t("settings")}</button><button id="m-out">${t("sign_out")}</button>`;
   m.hidden=false;
   $("#m-settings",m).addEventListener("click",()=>{ m.hidden=true; openSettings(); });
-  $("#m-out",m).addEventListener("click",async()=>{ m.hidden=true; try{ await sb.auth.signOut(); }catch(e){} ME=null; loadLocalFaves(); updateAuthUI(); render(); });
+  $("#m-out",m).addEventListener("click",async()=>{ m.hidden=true; try{ await sb.auth.signOut(); }catch(e){} ME=null; loadLocalFaves(); updateAuthUI(); if(!drawer.classList.contains("open")) render(); });
 }
 async function syncProfile(){
   if(!sb||!ME) return;
@@ -4593,14 +4593,14 @@ async function initAuth(){
   try{
     const {data}=await sb.auth.getUser(); ME=data&&data.user||null;
     if(ME){ await mergeLocalToServer(); await loadServerFaves(); syncProfile(); restoreReturnHash(); }
-    updateAuthUI(); render();
+    updateAuthUI(); if(!drawer.classList.contains("open")) render();
   }catch(e){ /* offline preview */ }
   try{
     sb.auth.onAuthStateChange(async(_e,session)=>{
       ME=session&&session.user||null;
       if(ME){ await mergeLocalToServer(); await loadServerFaves(); syncProfile(); restoreReturnHash(); }
       else loadLocalFaves();
-      updateAuthUI(); render();
+      updateAuthUI(); if(!drawer.classList.contains("open")) render();
     });
   }catch(e){}
 }
