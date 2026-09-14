@@ -55,7 +55,8 @@ import urllib.parse
 def esc(s): return str(s if s is not None else "").replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace('"',"&quot;")
 
 def load_products():
-    r = urllib.request.urlopen(SITE + "/products.json", timeout=40)
+    req = urllib.request.Request(SITE + "/products.json", headers={"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"})
+    r = urllib.request.urlopen(req, timeout=40)
     d = json.loads(r.read().decode())
     # dict preserves insertion order; tail == most recently added
     ids = list(d.keys())
@@ -83,7 +84,7 @@ def grid(prods):
         cells = "".join(card(pid, p) for pid, p in pair)
         if len(pair) == 1: cells += '<td width="50%"></td>'
         rows += "<tr>%s</tr>" % cells
-    return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">%s</table>' % rows
+    return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + rows + '</table>'
 
 def wrap(inner, unsub):
     return ("""<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f4f2;margin:0;padding:32px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
