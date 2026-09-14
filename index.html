@@ -341,6 +341,7 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
 .mast-tools .icon-btn img{width:18px;height:18px;object-fit:contain;border-radius:5px}
 .mast-tools .theme-btn svg{width:16px;height:16px}
 @media(max-width:640px){.mast-div{display:none}.mast-tools{gap:1px}}
+@media(max-width:560px){.mast-tools .csel,.mast-tools .selwrap{display:none}.mast-tools{gap:8px}.mast-row{padding-block:8px}.mast-tools .auth-btn{height:38px;padding:0 18px;font-size:14px}.tools-btn{font-size:14px}}
 /* custom masthead dropdowns styled like the Tools menu */
 .selwrap>select.mini{display:none}
 .selwrap>svg{display:none}
@@ -4440,7 +4441,7 @@ function openDetail(p,fromHash){
     const mainUrl=isqc?(QCIMG.arr&&QCIMG.arr[active]):(mode.m==="listing"?p.img:null);
     if(mainUrl){
       gm.style.display="none";
-      const im=document.createElement("img"); im.className="pimg"; im.src=mainUrl; im.alt="";
+      const im=document.createElement("img"); im.className="pimg"; im.decoding="async"; im.loading="eager"; try{im.fetchPriority="high";}catch(e){} im.src=mainUrl; im.alt="";
       im.onerror=()=>{
         im.remove();
         // No listing photo available -> automatically fall back to QC photos if any exist.
@@ -4491,7 +4492,7 @@ function openDetail(p,fromHash){
   enhanceDrawer(p);
   $("#close",drawer).focus();
 }
-function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;restoreMeta();document.body.classList.remove("pp-open");drawer.style.top="";try{render();if($("#sort"))$("#sort").value=state.sort;if($("#q"))$("#q").value=state.q||"";}catch(e){}overlay.classList.remove("open");drawer.classList.remove("open");drawer.__pid=null;document.body.style.overflow="";if(lastFocus)lastFocus.focus();if(!fromHash){ if(location.pathname.indexOf("/product/")===0){ try{history.replaceState(null,"","/");}catch(e){} } else if(location.hash.indexOf("#p/")===0){ try{history.replaceState(null,"",location.pathname+location.search);}catch(e){location.hash="";} } }}
+function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;restoreMeta();document.body.classList.remove("pp-open");drawer.style.top="";try{render();if(!window.__featRendered){window.__featRendered=1;(window.requestIdleCallback||((f)=>setTimeout(f,60)))(()=>{try{renderFeatured();}catch(e){}});}if($("#sort"))$("#sort").value=state.sort;if($("#q"))$("#q").value=state.q||"";}catch(e){}overlay.classList.remove("open");drawer.classList.remove("open");drawer.__pid=null;document.body.style.overflow="";if(lastFocus)lastFocus.focus();if(!fromHash){ if(location.pathname.indexOf("/product/")===0){ try{history.replaceState(null,"","/");}catch(e){} } else if(location.hash.indexOf("#p/")===0){ try{history.replaceState(null,"",location.pathname+location.search);}catch(e){location.hash="";} } }}
 window.addEventListener("popstate",()=>{ try{ const m=location.pathname.match(/^\/product\/(.+)$/); if(m){ const p=BY_ID[decodeURIComponent(m[1])]; if(p){ openDetail(p,true); return; } } if(drawer.classList.contains("open")) closeDetail(true); }catch(e){} });
 overlay.addEventListener("click",closeDetail);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&drawer.classList.contains("open"))closeDetail();});
@@ -4677,9 +4678,10 @@ loadLocalFaves();
 try{ const _q=new URLSearchParams(location.search).get("q"); if(_q){ state.q=_q.trim(); } }catch(e){}
 applyStatic();
 buildFilters();
-renderFeatured();
 $("#q").value=state.q||"";
-render();
+/* PERF: on a /product/ page, skip the heavy homepage grid + marquee entirely (they render on "back"); on the homepage, render the grid now and defer the image-heavy marquee to idle so first paint is fast */
+const _PR=/^\/product\//.test(location.pathname);
+if(!_PR){ render(); (window.requestIdleCallback||((f)=>setTimeout(f,300)))(()=>{try{renderFeatured();window.__featRendered=1;}catch(e){}}); }
 initAuth();
 loadStars();
 /* real product images: images.json is a simple { "<id>": "<url>" } map produced by the enrichment pipeline. Absent = placeholders, no error. */
