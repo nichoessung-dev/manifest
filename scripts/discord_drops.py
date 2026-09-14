@@ -26,7 +26,9 @@ def load(p, default):
 def post(payload):
     req = urllib.request.Request(HOOK + "?wait=true",
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"}, method="POST")
+        headers={"Content-Type": "application/json",
+                 "User-Agent": "PuroClassicoBot/1.0 (+https://puroclassico.com)"},
+        method="POST")
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.status
 
