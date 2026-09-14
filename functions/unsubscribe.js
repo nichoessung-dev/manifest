@@ -19,7 +19,8 @@ function page(msg, sub){
 }
 
 async function unsubscribe(env, uid, token){
-  if(!uid || !token) return false;
+ try{
+  if(!uid || !token || !env || !env.UNSUB_SECRET || !env.SUPABASE_SERVICE_KEY) return false;
   const good = await hmacHex(env.UNSUB_SECRET, uid);
   // constant-time-ish compare
   if(token.length !== good.length) return false;
@@ -32,6 +33,7 @@ async function unsubscribe(env, uid, token){
     body: JSON.stringify({ marketing_opt_in:false })
   });
   return r.ok;
+ }catch(e){ return false; }
 }
 
 export async function onRequestGet(context){
