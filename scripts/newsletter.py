@@ -120,17 +120,8 @@ def run_welcome(profiles):
         time.sleep(0.3)
     print("welcome sent:", sent)
 
-def run_ordering(profiles):
-    """Ordering guide - the 2nd email in the sequence, sent a bit after the welcome.
-    Eligible = welcomed, not yet sent the guide, and welcomed >= GUIDE_DELAY_HOURS ago (or unknown)."""
-    delay_h = int(os.environ.get("GUIDE_DELAY_HOURS", "18"))
-    cutoff  = datetime.now(timezone.utc) - timedelta(hours=delay_h)
-    def eligible(pr):
-        if not pr.get("welcomed") or pr.get("ordering_sent"): return False
-        wa = pr.get("welcomed_at")
-        if not wa: return True
-        try: return datetime.fromisoformat(wa.replace("Z", "+00:00")) <= cutoff
-        except: return True
+def ordering_html(uid):
+    """Build the 'How to order' guide email HTML for the given user id (used by the real send + the test send)."""
     steps = [
         ("1", "Pick an agent", "An agent is the middleman that buys the item in China and ships it to you. Grab a new-member coupon bundle from the Welcome bonus page, then create a free account.", SITE + "/#welcome-bonus", "See welcome bonuses"),
         ("2", "Find your item, tap Buy", "Browse Puro Classico, open any find and tap <b>Buy via your agent</b>. The link opens the exact listing inside your agent, pre-filled - nothing to copy or paste.", None, None),
@@ -145,18 +136,30 @@ def run_ordering(profiles):
                  '<td style="padding:0 0 22px 6px;vertical-align:top;">'
                  '<div style="font-size:16px;font-weight:650;color:#111;margin:4px 0 4px;">%s</div>'
                  '<div style="font-size:14px;line-height:1.55;color:#555;">%s</div>%s</td></tr>') % (n, h, b, btn)
+    inner = ('<h1 style="margin:0 0 10px;font-size:22px;color:#111;font-weight:650;text-align:center;">How to order, in 4 steps</h1>'
+      '<p style="margin:0 auto 24px;font-size:15px;line-height:1.6;color:#444;max-width:440px;text-align:center;">First haul from China? It is easier than it looks. Here is the whole flow, start to finish.</p>'
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + rows + '</table>'
+      '<div style="height:1px;background:#ececea;margin:8px 0 22px;"></div>'
+      '<div style="text-align:center;"><a href="' + SITE + '" style="display:inline-block;padding:13px 32px;font-size:15px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Start browsing</a></div>'
+      '<p style="margin:18px auto 0;font-size:13.5px;line-height:1.6;color:#777;max-width:400px;text-align:center;">Stuck on anything? Ask in our <a href="https://discord.gg/Pf3zpG3E4" style="color:#5865F2;">Discord</a> - members share QC tips and haul reviews daily.</p>')
+    return wrap(inner, unsub_url(uid))
+
+def run_ordering(profiles):
+    """Ordering guide - the 2nd email in the sequence, sent GUIDE_DELAY_MINUTES after the welcome.
+    Eligible = welcomed, not yet sent the guide, and welcomed >= GUIDE_DELAY_MINUTES ago (or unknown)."""
+    delay_m = int(os.environ.get("GUIDE_DELAY_MINUTES", "1080"))   # default 18h; welcome.yml sets it to 1
+    cutoff  = datetime.now(timezone.utc) - timedelta(minutes=delay_m)
+    def eligible(pr):
+        if not pr.get("welcomed") or pr.get("ordering_sent"): return False
+        wa = pr.get("welcomed_at")
+        if not wa: return True
+        try: return datetime.fromisoformat(wa.replace("Z", "+00:00")) <= cutoff
+        except: return True
     sent = 0
     for pr in profiles:
         email = pr.get("email")
         if not email or not eligible(pr): continue
-        inner = ('<h1 style="margin:0 0 10px;font-size:22px;color:#111;font-weight:650;text-align:center;">How to order, in 4 steps</h1>'
-          '<p style="margin:0 auto 24px;font-size:15px;line-height:1.6;color:#444;max-width:440px;text-align:center;">First haul from China? It is easier than it looks. Here is the whole flow, start to finish.</p>'
-          '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + rows + '</table>'
-          '<div style="height:1px;background:#ececea;margin:8px 0 22px;"></div>'
-          '<div style="text-align:center;"><a href="' + SITE + '" style="display:inline-block;padding:13px 32px;font-size:15px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Start browsing</a></div>'
-          '<p style="margin:18px auto 0;font-size:13.5px;line-height:1.6;color:#777;max-width:400px;text-align:center;">Stuck on anything? Ask in our <a href="https://discord.gg/Pf3zpG3E4" style="color:#5865F2;">Discord</a> - members share QC tips and haul reviews daily.</p>')
-        html = wrap(inner, unsub_url(pr["id"]))
-        ok, msg = brevo_send(email, "How to order from Puro Classico (4 easy steps)", html, unsub_url(pr["id"]))
+        ok, msg = brevo_send(email, "How to order from Puro Classico (4 easy steps)", ordering_html(pr["id"]), unsub_url(pr["id"]))
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"ordering_sent": True}, {"Prefer": "return=minimal"})
             sent += 1; print("ordering ->", email)
@@ -165,6 +168,13 @@ def run_ordering(profiles):
         if sent >= MAX_SEND: break
         time.sleep(0.3)
     print("ordering sent:", sent)
+
+def run_ordering_test(_profiles=None):
+    """Send the ordering guide to a single TEST_EMAIL, ignoring DB gating and marking nothing. For previews."""
+    email = os.environ.get("TEST_EMAIL", "").strip()
+    if not email: print("TEST_EMAIL not set"); return
+    ok, msg = brevo_send(email, "How to order from Puro Classico (4 easy steps)", ordering_html("test"), None)
+    print(("ordering-test -> " + email) if ok else ("FAIL ordering-test " + email + " " + msg))
 
 def run_newsletter(profiles):
     prod, ids = load_products()
@@ -229,6 +239,8 @@ def run_newsletter(profiles):
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "newsletter"
+    if mode == "ordering-test":
+        run_ordering_test(); return
     if mode == "welcome":
         profiles = sb("profiles?select=id,email,welcomed,welcomed_at")     # welcome = transactional, all signups
     elif mode == "ordering":
