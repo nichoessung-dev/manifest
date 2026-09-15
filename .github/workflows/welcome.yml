@@ -1,8 +1,13 @@
 name: Welcome emails
 on:
   schedule:
-    - cron: '17 */4 * * *'   # every 4 hours: welcome new signups, then send the ordering guide to those welcomed >=18h ago
-  workflow_dispatch: {}
+    - cron: '17 */4 * * *'   # every 4 hours: welcome new signups, then ~1 min later send the ordering guide
+  workflow_dispatch:
+    inputs:
+      test_email:
+        description: 'If set, only send the ordering guide as a one-off test to this address (skips the normal welcome/guide flow).'
+        required: false
+        default: ''
 jobs:
   send:
     runs-on: ubuntu-latest
@@ -11,16 +16,33 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      # --- one-off test send (manual dispatch with test_email) ---
+      - name: Test ordering guide
+        if: ${{ github.event.inputs.test_email != '' }}
+        run: python scripts/newsletter.py ordering-test
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
+          TEST_EMAIL: ${{ github.event.inputs.test_email }}
+
+      # --- normal scheduled flow ---
       - name: Welcome new signups
+        if: ${{ github.event.inputs.test_email == '' }}
         run: python scripts/newsletter.py welcome
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
-      - name: Ordering guide (2nd in sequence)
+      - name: Wait ~1 minute
+        if: ${{ github.event.inputs.test_email == '' }}
+        run: sleep 70
+      - name: Ordering guide (1 min after welcome)
+        if: ${{ github.event.inputs.test_email == '' }}
         run: python scripts/newsletter.py ordering
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
-          GUIDE_DELAY_HOURS: '18'
+          GUIDE_DELAY_MINUTES: '1'
