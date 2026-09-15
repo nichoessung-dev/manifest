@@ -112,13 +112,59 @@ def run_welcome(profiles):
         html = wrap(inner, unsub_url(pr["id"]))
         ok, msg = brevo_send(email, "Welcome to Puro Classico - you're in", html, unsub_url(pr["id"]))
         if ok:
-            sb("profiles?id=eq." + pr["id"], "PATCH", {"welcomed": True}, {"Prefer": "return=minimal"})
+            sb("profiles?id=eq." + pr["id"], "PATCH", {"welcomed": True, "welcomed_at": datetime.now(timezone.utc).isoformat()}, {"Prefer": "return=minimal"})
             sent += 1; print("welcome ->", email)
         else:
             print("FAIL welcome", email, msg)
         if sent >= MAX_SEND: break
         time.sleep(0.3)
     print("welcome sent:", sent)
+
+def run_ordering(profiles):
+    """Ordering guide - the 2nd email in the sequence, sent a bit after the welcome.
+    Eligible = welcomed, not yet sent the guide, and welcomed >= GUIDE_DELAY_HOURS ago (or unknown)."""
+    delay_h = int(os.environ.get("GUIDE_DELAY_HOURS", "18"))
+    cutoff  = datetime.now(timezone.utc) - timedelta(hours=delay_h)
+    def eligible(pr):
+        if not pr.get("welcomed") or pr.get("ordering_sent"): return False
+        wa = pr.get("welcomed_at")
+        if not wa: return True
+        try: return datetime.fromisoformat(wa.replace("Z", "+00:00")) <= cutoff
+        except: return True
+    steps = [
+        ("1", "Pick an agent", "An agent is the middleman that buys the item in China and ships it to you. Grab a new-member coupon bundle from the Welcome bonus page, then create a free account.", SITE + "/#welcome-bonus", "See welcome bonuses"),
+        ("2", "Find your item, tap Buy", "Browse Puro Classico, open any find and tap <b>Buy via your agent</b>. The link opens the exact listing inside your agent, pre-filled - nothing to copy or paste.", None, None),
+        ("3", "Agent buys & checks it", "Pay your agent for the item. They order it from the seller, receive it into your personal warehouse and take <b>QC photos</b> so you can inspect it before it ever leaves China.", None, None),
+        ("4", "Approve QC, then ship", "Happy with the QC photos? Choose a courier, and the agent packs and ships your parcel. Order a few things first and <b>consolidate</b> them into one box to save a lot on shipping.", None, None),
+    ]
+    rows = ""
+    for n, h, b, url, cta in steps:
+        btn = ('<div style="margin-top:10px;"><a href="%s" style="display:inline-block;padding:9px 20px;font-size:13px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:8px;">%s</a></div>' % (url, cta)) if url else ""
+        rows += ('<tr><td style="padding:0 0 22px;vertical-align:top;width:44px;">'
+                 '<div style="width:32px;height:32px;border-radius:50%%;background:#111;color:#fff;font-weight:700;font-size:15px;text-align:center;line-height:32px;">%s</div></td>'
+                 '<td style="padding:0 0 22px 6px;vertical-align:top;">'
+                 '<div style="font-size:16px;font-weight:650;color:#111;margin:4px 0 4px;">%s</div>'
+                 '<div style="font-size:14px;line-height:1.55;color:#555;">%s</div>%s</td></tr>') % (n, h, b, btn)
+    sent = 0
+    for pr in profiles:
+        email = pr.get("email")
+        if not email or not eligible(pr): continue
+        inner = ('<h1 style="margin:0 0 10px;font-size:22px;color:#111;font-weight:650;text-align:center;">How to order, in 4 steps</h1>'
+          '<p style="margin:0 auto 24px;font-size:15px;line-height:1.6;color:#444;max-width:440px;text-align:center;">First haul from China? It is easier than it looks. Here is the whole flow, start to finish.</p>'
+          '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + rows + '</table>'
+          '<div style="height:1px;background:#ececea;margin:8px 0 22px;"></div>'
+          '<div style="text-align:center;"><a href="' + SITE + '" style="display:inline-block;padding:13px 32px;font-size:15px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Start browsing</a></div>'
+          '<p style="margin:18px auto 0;font-size:13.5px;line-height:1.6;color:#777;max-width:400px;text-align:center;">Stuck on anything? Ask in our <a href="https://discord.gg/Pf3zpG3E4" style="color:#5865F2;">Discord</a> - members share QC tips and haul reviews daily.</p>')
+        html = wrap(inner, unsub_url(pr["id"]))
+        ok, msg = brevo_send(email, "How to order from Puro Classico (4 easy steps)", html, unsub_url(pr["id"]))
+        if ok:
+            sb("profiles?id=eq." + pr["id"], "PATCH", {"ordering_sent": True}, {"Prefer": "return=minimal"})
+            sent += 1; print("ordering ->", email)
+        else:
+            print("FAIL ordering", email, msg)
+        if sent >= MAX_SEND: break
+        time.sleep(0.3)
+    print("ordering sent:", sent)
 
 def run_newsletter(profiles):
     prod, ids = load_products()
@@ -184,11 +230,13 @@ def run_newsletter(profiles):
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "newsletter"
     if mode == "welcome":
-        profiles = sb("profiles?select=id,email,welcomed")     # welcome = transactional, all signups
+        profiles = sb("profiles?select=id,email,welcomed,welcomed_at")     # welcome = transactional, all signups
+    elif mode == "ordering":
+        profiles = sb("profiles?welcomed=eq.true&select=id,email,welcomed,welcomed_at,ordering_sent")  # ordering guide = 2nd in sequence, transactional
     else:
         profiles = sb("profiles?marketing_opt_in=eq.true&select=id,email,welcomed")
     print("mode=%s profiles=%d" % (mode, len(profiles)))
-    (run_welcome if mode == "welcome" else run_newsletter)(profiles)
+    {"welcome": run_welcome, "ordering": run_ordering}.get(mode, run_newsletter)(profiles)
 
 if __name__ == "__main__":
     main()
