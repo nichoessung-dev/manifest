@@ -602,6 +602,10 @@ footer a:hover{color:var(--ink)}
 /* product page: keep the main top menu visible */
 body.pp-open .masthead{background:var(--ground)}
 body.pp-open .drawer{height:auto;bottom:0}
+/* product page has its own header — hide the catalog search/filter toolbar (both PC + mobile) */
+body.pp-open .toolbar{display:none!important}
+/* mobile: filters scroll away like PC; only the search bar stays sticky (display:contents lets .deck stick page-wide instead of only while .toolbar is on screen) */
+@media(max-width:560px){.toolbar{display:contents}.toolbar .deck{position:sticky;top:0;z-index:32}.subdeck{position:static}}
 @media(max-width:560px){body.pp-open{overflow:hidden}body.pp-open .masthead{display:none}body.pp-open .drawer{position:fixed;inset:0;height:100dvh;bottom:0}body.pp-open .drawer .dbody{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}}
 
 </style>
@@ -4856,7 +4860,6 @@ function openDetail(p,fromHash){
             <div class="variants">${p.variants.map(v=>{const std=/^standard$/i.test((v[0]||"").trim());return `<span class="variant${std?" swatch-only":""}"><span class="sw" style="background:${swatch(v[0])}"></span>${std?"":esc(v[0])}</span>`;}).join("")}</div></div>
         </div>
       </div>
-      <div class="d-wide"><p class="sec-label">${t("comments")}</p><div id="comments"><p class="cmeta">…</p></div></div>
       <div id="similar-wrap" class="similar-wrap"></div>
       <div class="d-wide" id="pp-browse">
         <p class="sec-label" data-i18n="browse_all">Browse all finds</p>
@@ -4930,7 +4933,6 @@ function openDetail(p,fromHash){
   $$(".gtab",drawer).forEach(tb=>tb.addEventListener("click",()=>{mode.m=tb.dataset.mode;$$(".gtab",drawer).forEach(x=>x.setAttribute("aria-pressed",String(x===tb)));gal(0);}));
   $("#close",drawer).addEventListener("click",()=>closeDetail());
   drawer.querySelector(".d-fav").addEventListener("click",()=>toggleFav(p));
-  loadComments(p.id,$("#comments",drawer));
   enhanceDrawer(p);
   $("#close",drawer).focus();
 }
@@ -4938,47 +4940,6 @@ function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;rest
 window.addEventListener("popstate",()=>{ try{ const m=location.pathname.match(/^\/product\/(.+)$/); if(m){ const p=BY_ID[decodeURIComponent(m[1])]; if(p){ openDetail(p,true); return; } } if(drawer.classList.contains("open")) closeDetail(true); }catch(e){} });
 overlay.addEventListener("click",closeDetail);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&drawer.classList.contains("open"))closeDetail();});
-
-/* ================= comments ================= */
-async function loadComments(pid,host){
-  if(!host) return;
-  if(!sb){ host.innerHTML=`<p class="cmeta">${t("comments_off")}</p>`+commentForm(pid); wireForm(pid,host); return; }
-  host.innerHTML=`<p class="cmeta">…</p>`;
-  try{
-    const {data,error}=await sb.from("comments").select("id,body,created_at,user_id,profiles(username)").eq("product_id",pid).eq("hidden",false).order("created_at",{ascending:false}).limit(50);
-    if(error)throw error;
-    renderComments(host,pid,data||[]);
-  }catch(e){ host.innerHTML=`<p class="cmeta">${t("comments_off")}</p>`+commentForm(pid); wireForm(pid,host); }
-}
-function renderComments(host,pid,rows){
-  const list = rows.length? `<div class="clist">`+rows.map(c=>{
-    const name = (c.profiles&&c.profiles.username)? "@"+esc(c.profiles.username) : "@"+t("you");
-    const mine = ME && c.user_id===ME.id;
-    const d = new Date(c.created_at).toLocaleDateString();
-    return `<div class="citem"><div class="top"><span class="cname">${name}</span><span class="cdate">${d}</span></div><div class="cbody">${esc(c.body)}</div>${mine?`<button class="cdel" data-del="${c.id}">${t("delete")}</button>`:""}</div>`;
-  }).join("")+`</div>` : `<p class="cmeta">${t("no_comments")}</p>`;
-  host.innerHTML=list+commentForm(pid);
-  wireForm(pid,host);
-  $$("[data-del]",host).forEach(b=>b.addEventListener("click",async()=>{ try{ await sb.from("comments").delete().eq("id",b.dataset.del); loadComments(pid,host); }catch(e){} }));
-}
-function commentForm(pid){
-  if(ME){
-    return `<div class="cform"><textarea id="cbody" placeholder="${t("comment_ph")}" maxlength="2000"></textarea><div class="row"><span class="cerr" id="cerr"></span><button class="btn" id="cpost">${t("post")}</button></div></div>`;
-  }
-  return `<div class="cform"><button class="btn ghost" id="cin">${t("sign_in_comment")}</button></div>`;
-}
-function wireForm(pid,host){
-  const inBtn=$("#cin",host); if(inBtn) inBtn.addEventListener("click",openAuth);
-  const postBtn=$("#cpost",host);
-  if(postBtn) postBtn.addEventListener("click",async()=>{
-    const ta=$("#cbody",host), err=$("#cerr",host); const body=(ta.value||"").trim();
-    if(!body) return;
-    if(/https?:\/\//i.test(body)){ err.textContent=t("links_blocked"); return; }
-    err.textContent=""; postBtn.disabled=true;
-    try{ const {error}=await sb.from("comments").insert({product_id:pid,user_id:ME.id,body}); if(error)throw error; ta.value=""; loadComments(pid,host); }
-    catch(e){ err.textContent=(e&&/check|violat/i.test(e.message||""))? t("links_blocked") : t("comments_off"); postBtn.disabled=false; }
-  });
-}
 
 /* ================= auth ================= */
 function updateAuthUI(){
@@ -5426,7 +5387,6 @@ setTimeout(autoRefreshReports,2600);
 function enhanceDrawer(p){
   setProductMeta(p);
   document.body.classList.add("pp-open");
-  { const _mh=document.querySelector(".masthead"); if(_mh) drawer.style.top=_mh.offsetHeight+"px"; }
   const sh=$("#dshare",drawer);
   if(sh) sh.addEventListener("click",async()=>{
     const url=location.origin+"/product/"+encodeURIComponent(p.id);
