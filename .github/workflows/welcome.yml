@@ -1,13 +1,17 @@
 name: Welcome emails
 on:
   schedule:
-    - cron: '17 */4 * * *'   # every 4 hours: welcome new signups, then ~1 min later send the ordering guide
+    - cron: '17 */4 * * *'   # every 4h: welcome -> (1 min) ordering guide -> (1 day) MyCNBox account nudge
   workflow_dispatch:
     inputs:
       test_email:
-        description: 'If set, only send the ordering guide as a one-off test to this address (skips the normal welcome/guide flow).'
+        description: 'If set, send a one-off TEST email to this address (skips the normal flow).'
         required: false
         default: ''
+      test_type:
+        description: 'Which test email: mycnbox or ordering'
+        required: false
+        default: 'mycnbox'
 jobs:
   send:
     runs-on: ubuntu-latest
@@ -18,16 +22,16 @@ jobs:
           python-version: '3.11'
 
       # --- one-off test send (manual dispatch with test_email) ---
-      - name: Test ordering guide
+      - name: Test email
         if: ${{ github.event.inputs.test_email != '' }}
-        run: python scripts/newsletter.py ordering-test
+        run: python scripts/newsletter.py "${{ github.event.inputs.test_type }}-test"
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
           TEST_EMAIL: ${{ github.event.inputs.test_email }}
 
-      # --- normal scheduled flow ---
+      # --- normal scheduled sequence ---
       - name: Welcome new signups
         if: ${{ github.event.inputs.test_email == '' }}
         run: python scripts/newsletter.py welcome
@@ -46,3 +50,11 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
           GUIDE_DELAY_MINUTES: '1'
+      - name: MyCNBox account nudge (1 day after signup)
+        if: ${{ github.event.inputs.test_email == '' }}
+        run: python scripts/newsletter.py mycnbox
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
+          AGENT_DELAY_MINUTES: '1440'
