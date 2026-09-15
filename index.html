@@ -681,7 +681,7 @@ body.pp-open .toolbar{display:none!important}
     <p class="hero-sub" data-i18n="hero_sub">Quality-checked Weidian, Taobao and 1688 finds. Search it, save it, order through your agent.</p>
     <div class="hero-stats" id="hero-stats"></div>
     <a class="tp-badge" href="https://www.trustpilot.com/review/mycnbox.com" target="_blank" rel="noopener noreferrer"><span class="tp-stars">★★★★★</span><b>4.8</b><span class="tp-label">on Trustpilot · 396 reviews</span></a>
-    <div class="agents-strip"><span class="lbl">Supported agents</span><div class="agent-logos"><img class="agent-logo" src="https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/email/mycnbox.png" alt="MyCNBox" title="MyCNBox" style="background:#E1301F;padding:0"><img class="agent-logo" src="https://icons.duckduckgo.com/ip3/kakobuy.com.ico" alt="KakoBuy" title="KakoBuy" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=kakobuy.com&sz=64'"><img class="agent-logo" src="https://icons.duckduckgo.com/ip3/sugargoo.com.ico" alt="Sugargoo" title="Sugargoo" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=sugargoo.com&sz=64'"><img class="agent-logo" src="https://icons.duckduckgo.com/ip3/oopbuy.com.ico" alt="Oopbuy" title="Oopbuy" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=oopbuy.com&sz=64'"><img class="agent-logo" src="https://icons.duckduckgo.com/ip3/lovegobuy.com.ico" alt="LoveGoBuy" title="LoveGoBuy" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=lovegobuy.com&sz=64'"></div></div>
+    <div class="agents-strip"><span class="lbl">Supported agents</span><div class="agent-logos"><img class="agent-logo" src="https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/email/mycnbox.png" alt="MyCNBox" title="MyCNBox" style="background:#E1301F;padding:0"><img class="agent-logo" src="https://icons.duckduckgo.com/ip3/kakobuy.com.ico" alt="KakoBuy" title="KakoBuy" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=kakobuy.com&sz=64'"><img class="agent-logo" src="https://icons.duckduckgo.com/ip3/sugargoo.com.ico" alt="Sugargoo" title="Sugargoo" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=sugargoo.com&sz=64'"><img class="agent-logo" src="https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/email/oopbuy.png" alt="Oopbuy" title="Oopbuy" style="background:#fff"><img class="agent-logo" src="https://icons.duckduckgo.com/ip3/lovegobuy.com.ico" alt="LoveGoBuy" title="LoveGoBuy" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=lovegobuy.com&sz=64'"></div></div>
     <button type="button" class="hero-cta" id="hero-cta"><span data-i18n="browse_products">Browse products</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button>
   </div>
   <div class="strip-head"><span data-i18n="recently_bought">Recently bought</span></div>
@@ -979,7 +979,7 @@ body.pp-open .toolbar{display:none!important}
    DATA LAYER – swap sample data for the real feed here (same shape).
    ========================================================================== */
 const AFFILIATE_REF = "LHYDVW";
-const AGENT_REFS = { mycnbox:"LHYDVW", kakobuy:"w5war" };
+const AGENT_REFS = { mycnbox:"LHYDVW", kakobuy:"w5war", lovegobuy:"9WJ54Y", oopbuy:"LHQC0OS8O", sugargoo:"3751749728009774836" };
 /* Build the ORIGINAL seller product URL from platform + id — agents that take a ?url= deep-link need this. */
 function origUrl(p){
   const id=p.itemId||p.id;
@@ -987,9 +987,13 @@ function origUrl(p){
   if(p.platform==="1688")   return `https://detail.1688.com/offer/${id}.html`;
   return `https://weidian.com/item.html?itemID=${id}`; // weidian default
 }
+/* Order here = order in the buy dropdown: MyCNBox, KakoBuy, LoveGoBuy, Oopbuy, Sugargoo. */
 const AGENTS = {
-  mycnbox:  { name:"MyCNBox",  domain:"mycnbox.com",  logo:"https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/email/mycnbox.png", build:(p)=>`https://mycnbox.com/goodsDetail?mallType=${p.platform}&itemId=${p.itemId||p.id}&referId=${AGENT_REFS.mycnbox}` },
-  kakobuy:  { name:"KakoBuy",  domain:"kakobuy.com",  logo:"https://icons.duckduckgo.com/ip3/kakobuy.com.ico", build:(p)=>`https://www.kakobuy.com/item/details?url=${encodeURIComponent(origUrl(p))}&affcode=${AGENT_REFS.kakobuy}` },
+  mycnbox:   { name:"MyCNBox",   domain:"mycnbox.com",   logo:"https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/email/mycnbox.png", build:(p)=>`https://mycnbox.com/goodsDetail?mallType=${p.platform}&itemId=${p.itemId||p.id}&referId=${AGENT_REFS.mycnbox}` },
+  kakobuy:   { name:"KakoBuy",   domain:"kakobuy.com",   logo:"https://icons.duckduckgo.com/ip3/kakobuy.com.ico", build:(p)=>`https://www.kakobuy.com/item/details?url=${encodeURIComponent(origUrl(p))}&affcode=${AGENT_REFS.kakobuy}` },
+  lovegobuy: { name:"LoveGoBuy", domain:"lovegobuy.com", logo:"https://icons.duckduckgo.com/ip3/lovegobuy.com.ico", build:(p)=>`https://www.lovegobuy.com/product?platform=${p.platform}&id=${p.itemId||p.id}&invite_code=${AGENT_REFS.lovegobuy}` },
+  oopbuy:    { name:"Oopbuy",    domain:"oopbuy.com",    logo:"https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/email/oopbuy.png", build:(p)=>`https://oopbuy.com/product/${p.platform}/${p.itemId||p.id}?inviteCode=${AGENT_REFS.oopbuy}` },
+  sugargoo:  { name:"Sugargoo",  domain:"sugargoo.com",  logo:"https://icons.duckduckgo.com/ip3/sugargoo.com.ico", build:(p)=>`https://www.sugargoo.com/#/home/productDetail?productLink=${encodeURIComponent(origUrl(p))}&memberId=${AGENT_REFS.sugargoo}` },
 };
 function agentLogo(a){ return `<img class="agent-ic" src="${a.logo||('https://icons.duckduckgo.com/ip3/'+a.domain+'.ico')}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=${a.domain}&sz=128'">`; }
 function loadProducts(){
