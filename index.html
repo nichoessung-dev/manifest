@@ -1281,10 +1281,29 @@ function _renderChunk(){
   const s=$("#grid-sentinel"); if(s) s.style.display=(_rn<_rlist.length)?"":"none";
 }
 let _sentObs=null;
+// Fill the viewport (+buffer) with chunks, synchronously, until the sentinel is pushed out of the
+// load zone or the list is exhausted. Synchronous + a scroll-listener backup so loading never stalls
+// (the IntersectionObserver alone stops firing once the sentinel stays inside its rootMargin).
+function _pump(){
+  let guard=0;
+  while(_rn<_rlist.length && guard++<60){
+    const s=$("#grid-sentinel"); if(!s) break;
+    const r=s.getBoundingClientRect();
+    if(r.top < (window.innerHeight+1000)) _renderChunk();
+    else break;
+  }
+}
+let _scrollHooked=false;
 function _ensureSentinelObserver(){
+  if(!_scrollHooked){ _scrollHooked=true;
+    const onScroll=()=>{ if(_rn>=_rlist.length) return; const s=$("#grid-sentinel"); if(!s) return;
+      if(s.getBoundingClientRect().top < (window.innerHeight+1000)) _pump(); };
+    window.addEventListener("scroll",onScroll,{passive:true});
+    window.addEventListener("resize",onScroll,{passive:true});
+  }
   if(_sentObs) return;
   const s=$("#grid-sentinel"); if(!s||!("IntersectionObserver" in window)) return;
-  _sentObs=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)) _renderChunk(); },{rootMargin:"800px 0px"});
+  _sentObs=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)) _pump(); },{rootMargin:"1000px 0px"});
   _sentObs.observe(s);
 }
 function render(){
