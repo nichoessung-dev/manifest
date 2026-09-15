@@ -1,7 +1,7 @@
 name: Welcome emails
 on:
   schedule:
-    - cron: '17 */4 * * *'   # every 4 hours: welcome new signups
+    - cron: '17 */4 * * *'   # every 4 hours: welcome new signups, then send the ordering guide to those welcomed >=18h ago
   workflow_dispatch: {}
 jobs:
   send:
@@ -11,8 +11,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python scripts/newsletter.py welcome
+      - name: Welcome new signups
+        run: python scripts/newsletter.py welcome
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
+      - name: Ordering guide (2nd in sequence)
+        run: python scripts/newsletter.py ordering
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
+          GUIDE_DELAY_HOURS: '18'
