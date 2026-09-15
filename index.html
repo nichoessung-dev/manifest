@@ -976,10 +976,10 @@ const VIEW_COUNTS = {"918932928316":1,"6716583439":1,"7728570755":1,"7584606843"
 let ALL = loadProducts();
 ALL.forEach(p=>{ p._rnd = Math.random(); p.views = VIEW_COUNTS[p.id] || 0; });   /* _rnd = stable per-load shuffle key; views = real popularity for the "Most popular" sort */
 const BY_ID = Object.fromEntries(ALL.map(p=>[p.id,p]));
-let state = { plat:"all", cat:"all", brand:"all", color:"all", price:"all", pmin:null, pmax:null, q:"", sort:"feat", lang:"en", cur:"USD", saved:false, username:"", agent:"mycnbox" };
+let state = { plat:"all", cat:"all", brand:"all", color:"all", price:"all", pmin:null, pmax:null, q:"", sort:"pop", lang:"en", cur:"USD", saved:false, username:"", agent:"mycnbox" };
 try{
   const _sv=localStorage.getItem("manifest.state");
-  if(_sv){ Object.assign(state, JSON.parse(_sv)); state.sort="feat"; }
+  if(_sv){ Object.assign(state, JSON.parse(_sv)); state.sort="pop"; }
   else {
     const loc=(navigator.language||"en").toLowerCase(), lc=loc.split("-")[0], rg=(loc.split("-")[1]||"").toUpperCase();
     const LMAP={nb:"no",nn:"no",no:"no",sv:"sv",da:"da",zh:"zh",es:"es",de:"de",nl:"nl",fr:"fr",it:"it"};
@@ -1161,7 +1161,7 @@ function filtered(){
   if(s==="low")list.sort((a,b)=>a.price-b.price);
   else if(s==="high")list.sort((a,b)=>b.price-a.price);
   else if(s==="qc")list.sort((a,b)=>b.qc-a.qc);
-  else if(s==="pop")list.sort((a,b)=>(b.views||0)-(a.views||0)||ord(a.id)-ord(b.id));
+  else if(s==="pop")list.sort((a,b)=>(b.views||0)-(a.views||0)||((a._rnd||0)-(b._rnd||0)));
   else if(s==="recent")list.sort((a,b)=>ord(b.id)-ord(a.id));
   else list.sort((a,b)=>(a._rnd||0)-(b._rnd||0));   /* default "feat": shuffled catalog order */
   return list;
