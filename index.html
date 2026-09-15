@@ -124,9 +124,10 @@ select.mini,.theme-btn,.auth-btn{font-family:var(--f-mono);font-size:11.5px;lett
 .menu button{display:block;width:100%;text-align:left;font-family:var(--f-disp);font-weight:500;font-size:13px;color:var(--ink);padding:9px 12px;background:none;border:none;border-radius:8px;cursor:pointer;transition:background-color .13s ease}
 .menu button:hover{background:var(--surface-2)}
 
-.toolbar{position:sticky;top:0;z-index:31;background:var(--ground)}
-.toolbar .deck{position:static}
-.toolbar .subdeck{background:var(--ground)}
+/* toolbar uses display:contents so its children stick page-wide (a sticky .toolbar box is broken by the html/body overflow-x:clip). PC: both search + filters stick; mobile: only search. */
+.toolbar{display:contents}
+.toolbar .deck{position:sticky;top:0;z-index:32;background:var(--ground)}
+.toolbar .subdeck{position:sticky;top:93px;z-index:31;background:var(--ground)}
 .gate-optin{display:flex;align-items:center;gap:8px;justify-content:center;font-size:12.5px;line-height:1.35;color:var(--muted);margin:2px 0 6px;cursor:pointer}
 .gate-optin input{width:15px;height:15px;accent-color:var(--fill);flex:none;cursor:pointer}
 .deck{border-bottom:1.5px solid var(--line-2);background:var(--ground);position:sticky;top:0;z-index:30}
@@ -593,7 +594,7 @@ footer a:hover{color:var(--ink)}
 .buy-dd-caret svg{width:16px;height:16px}
 .buy-dd-caret:hover{filter:brightness(1.12)}
 .buy-dd-menu{position:absolute;top:calc(100% + 8px);left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 16px 40px rgba(8,14,30,.28);overflow:hidden;z-index:20}
-.buy-dd-item{display:flex;align-items:center;gap:11px;padding:13px 16px;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line);font-size:14px;font-weight:600}
+.buy-dd-item{display:flex;align-items:center;gap:11px;padding:13px 16px;color:var(--ink);text-decoration:none;border:0;border-bottom:1px solid var(--line);font-size:14px;font-weight:600;width:100%;background:none;cursor:pointer;font-family:inherit;text-align:left}
 .buy-dd-item:last-child{border-bottom:none}
 .buy-dd-item:hover{background:var(--surface-2);color:var(--accent)}
 .agent-ic{width:22px;height:22px;border-radius:6px;object-fit:contain;background:#fff;padding:2px;flex:none;box-shadow:0 1px 3px rgba(8,14,30,.14)}
@@ -625,7 +626,14 @@ body.pp-open .drawer{height:auto;bottom:0}
 /* product page has its own header — hide the catalog search/filter toolbar (both PC + mobile) */
 body.pp-open .toolbar{display:none!important}
 /* mobile: filters scroll away like PC; only the search bar stays sticky (display:contents lets .deck stick page-wide instead of only while .toolbar is on screen) */
-@media(max-width:560px){.toolbar{display:contents}.toolbar .deck{position:sticky;top:0;z-index:32}.subdeck{position:static}}
+@media(max-width:560px){.toolbar .subdeck{position:static}
+/* mobile filters: one tidy horizontal-scroll row instead of an uneven wrap */
+.subdeck .wrap.filters-row{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:8px;padding-block:12px;padding-inline:1px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8px,#000 calc(100% - 20px),transparent);mask-image:linear-gradient(90deg,transparent,#000 8px,#000 calc(100% - 20px),transparent)}
+.subdeck .wrap.filters-row::-webkit-scrollbar{display:none}
+.subdeck .wrap.filters-row>*{flex:0 0 auto}
+.filters-row .spacer,.filters-row .count{display:none}
+.fselbtn{height:36px;font-size:13px}
+.saved-chip{height:36px}}
 @media(max-width:560px){body.pp-open{overflow:hidden}body.pp-open .masthead{display:none}body.pp-open .drawer{position:fixed;inset:0;height:100dvh;bottom:0}body.pp-open .drawer .dbody{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}}
 
 </style>
@@ -1303,7 +1311,11 @@ function agentRow(p){
   const main=AGENTS[sel];
   const others=Object.keys(AGENTS).filter(k=>k!==sel);
   const pop=`<span class="agent-badge">${t("most_popular")}</span>`;
-  const row=(k,cls)=>{ const a=AGENTS[k]; return `<a class="${cls}" href="${a.build(p)}" target="_blank" rel="noopener">${agentLogo(a)}<span class="agent-name">${t("buy_via").replace("{a}",a.name)}</span>${k==="mycnbox"?pop:""}</a>`; };
+  const row=(k,cls)=>{ const a=AGENTS[k]; const inner=`${agentLogo(a)}<span class="agent-name">${t("buy_via").replace("{a}",a.name)}</span>${k==="mycnbox"?pop:""}`;
+    // primary = real buy link (navigates); dropdown items = pick-agent buttons (no redirect)
+    return cls.indexOf("primary")>=0
+      ? `<a class="${cls}" href="${a.build(p)}" target="_blank" rel="noopener">${inner}</a>`
+      : `<button type="button" class="${cls}" data-agent="${k}">${inner}</button>`; };
   return `<div class="buy-dd">
     ${row(sel,"agent primary")}
     <button type="button" class="buy-dd-caret" id="buy-dd-caret" aria-expanded="false" aria-label="${t("more")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
@@ -1922,9 +1934,20 @@ function enhanceDrawer(p){
   wireDrawerSearch();
   renderSimilar(p);
   // buy dropdown
-  const caret=$("#buy-dd-caret",drawer), menu=$("#buy-dd-menu",drawer);
-  if(caret&&menu){ caret.addEventListener("click",e=>{ e.stopPropagation(); const open=menu.hidden; menu.hidden=!open; caret.setAttribute("aria-expanded",String(open)); });
-    document.addEventListener("click",()=>{ if(menu && !menu.hidden) menu.hidden=true; }); }
+  (function wireBuy(){
+    const caret=$("#buy-dd-caret",drawer), menu=$("#buy-dd-menu",drawer);
+    if(!caret||!menu) return;
+    caret.addEventListener("click",e=>{ e.stopPropagation(); const open=menu.hidden; menu.hidden=!open; caret.setAttribute("aria-expanded",String(open)); });
+    document.addEventListener("click",()=>{ if(menu && !menu.hidden) menu.hidden=true; });
+    // pick an agent from the menu -> set it as the selected agent + swap the top button in place (no redirect)
+    menu.querySelectorAll(".buy-dd-item").forEach(it=>it.addEventListener("click",e=>{
+      e.stopPropagation();
+      const k=it.getAttribute("data-agent");
+      if(k&&AGENTS[k]&&k!==state.agent){ state.agent=k; save();
+        const host=drawer.querySelector(".buy-block .agents"); if(host){ host.innerHTML=agentRow(p); wireBuy(); } }
+      else { menu.hidden=true; }
+    }));
+  })();
   // Gallery visibility — only show tabs/thumbs for photos that actually exist.
   (function(){
     const media=drawer.querySelector(".d-media"), grid=drawer.querySelector(".d-grid");
