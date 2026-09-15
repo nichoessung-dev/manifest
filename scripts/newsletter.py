@@ -20,6 +20,8 @@ ACTIVE_DAYS  = int(os.environ.get("ACTIVE_DAYS", "21"))
 MAX_SEND     = int(os.environ.get("MAX_SEND", "280"))   # Brevo free tier ~300/day
 LOGO = SUPA_URL + "/storage/v1/object/public/products/email/logo.png"
 DISC = SUPA_URL + "/storage/v1/object/public/products/email/discord.png"
+MYCNBOX_LOGO = SUPA_URL + "/storage/v1/object/public/products/email/mycnbox.png"
+MYCNBOX_URL  = "https://mycnbox.com/login/main-login?inviteCode=AACPYA"
 
 def sb(path, method="GET", body=None, extra=None):
     url = SUPA_URL + "/rest/v1/" + path
@@ -176,6 +178,47 @@ def run_ordering_test(_profiles=None):
     ok, msg = brevo_send(email, "How to order from Puro Classico (4 easy steps)", ordering_html("test"), None)
     print(("ordering-test -> " + email) if ok else ("FAIL ordering-test " + email + " " + msg))
 
+def mycnbox_html(uid):
+    """3rd email in the sequence: nudge to create a MyCNBox account (our featured agent)."""
+    inner = ('<div style="text-align:center;"><img src="' + MYCNBOX_LOGO + '" alt="MyCNBox" width="72" height="72" style="width:72px;height:72px;border-radius:16px;display:inline-block;"></div>'
+      '<h1 style="margin:16px 0 10px;font-size:22px;color:#111;font-weight:650;text-align:center;">Ready to order? Set up MyCNBox</h1>'
+      '<p style="margin:0 auto 22px;font-size:15px;line-height:1.6;color:#444;max-width:430px;text-align:center;">To actually buy your finds you\'ll need an <strong>agent</strong> - the service that buys each item in China, checks it and ships it to you. We\'ve tried them all, and <strong>MyCNBox</strong> is the one we recommend: the cleanest app, fast QC photos and the best new-member coupon bundle.</p>'
+      '<div style="text-align:center;"><a href="' + MYCNBOX_URL + '" style="display:inline-block;padding:14px 34px;font-size:15px;font-weight:650;color:#fff;background:#E1301F;text-decoration:none;border-radius:10px;">Create your free MyCNBox account</a></div>'
+      '<p style="margin:14px auto 0;font-size:13px;line-height:1.6;color:#999;max-width:400px;text-align:center;">Signing up is free and takes about a minute. Your new-member coupons are waiting - grab them before your first haul.</p>'
+      '<div style="height:1px;background:#ececea;margin:26px 0 20px;"></div>'
+      '<p style="margin:0 auto;font-size:13.5px;line-height:1.6;color:#777;max-width:420px;text-align:center;">New to all this? Read our quick <a href="' + SITE + '/#tutorial" style="color:#111;">How to order</a> guide first, or ask in the <a href="https://discord.gg/Pf3zpG3E4" style="color:#5865F2;">Discord</a>.</p>')
+    return wrap(inner, unsub_url(uid))
+
+def run_mycnbox(profiles):
+    """Sent AGENT_DELAY_MINUTES (default 1 day) after signup, once, to welcomed users who haven't had it yet."""
+    delay_m = int(os.environ.get("AGENT_DELAY_MINUTES", "1440"))
+    cutoff  = datetime.now(timezone.utc) - timedelta(minutes=delay_m)
+    def eligible(pr):
+        if not pr.get("welcomed") or pr.get("agent_sent"): return False
+        wa = pr.get("welcomed_at")
+        if not wa: return True
+        try: return datetime.fromisoformat(wa.replace("Z", "+00:00")) <= cutoff
+        except: return True
+    sent = 0
+    for pr in profiles:
+        email = pr.get("email")
+        if not email or not eligible(pr): continue
+        ok, msg = brevo_send(email, "Set up MyCNBox — your finds are waiting", mycnbox_html(pr["id"]), unsub_url(pr["id"]))
+        if ok:
+            sb("profiles?id=eq." + pr["id"], "PATCH", {"agent_sent": True}, {"Prefer": "return=minimal"})
+            sent += 1; print("mycnbox ->", email)
+        else:
+            print("FAIL mycnbox", email, msg)
+        if sent >= MAX_SEND: break
+        time.sleep(0.3)
+    print("mycnbox sent:", sent)
+
+def run_mycnbox_test(_profiles=None):
+    email = os.environ.get("TEST_EMAIL", "").strip()
+    if not email: print("TEST_EMAIL not set"); return
+    ok, msg = brevo_send(email, "Set up MyCNBox — your finds are waiting", mycnbox_html("test"), None)
+    print(("mycnbox-test -> " + email) if ok else ("FAIL mycnbox-test " + email + " " + msg))
+
 def run_newsletter(profiles):
     prod, ids = load_products()
     newest = [i for i in reversed(ids)]                      # most-recent first
@@ -241,14 +284,18 @@ def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "newsletter"
     if mode == "ordering-test":
         run_ordering_test(); return
+    if mode == "mycnbox-test":
+        run_mycnbox_test(); return
     if mode == "welcome":
         profiles = sb("profiles?select=id,email,welcomed,welcomed_at")     # welcome = transactional, all signups
     elif mode == "ordering":
         profiles = sb("profiles?welcomed=eq.true&select=id,email,welcomed,welcomed_at,ordering_sent")  # ordering guide = 2nd in sequence, transactional
+    elif mode == "mycnbox":
+        profiles = sb("profiles?welcomed=eq.true&select=id,email,welcomed,welcomed_at,agent_sent")  # 3rd in sequence: create-a-MyCNBox-account nudge
     else:
         profiles = sb("profiles?marketing_opt_in=eq.true&select=id,email,welcomed")
     print("mode=%s profiles=%d" % (mode, len(profiles)))
-    {"welcome": run_welcome, "ordering": run_ordering}.get(mode, run_newsletter)(profiles)
+    {"welcome": run_welcome, "ordering": run_ordering, "mycnbox": run_mycnbox}.get(mode, run_newsletter)(profiles)
 
 if __name__ == "__main__":
     main()
