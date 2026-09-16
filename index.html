@@ -1693,6 +1693,8 @@ function renderFeatured(){
 function redrawAll(){ $$("canvas").forEach(c=>{ if(c.__p) drawTile(c,c.__p,c.__seed||0); }); }
 async function oauth(provider){
   if(!sb){ $("#auth-status").textContent=t("auth_off"); return; }
+  /* capture the marketing-consent checkbox (if the gate is showing one) so OAuth sign-ups keep their choice */
+  try{ const c=document.getElementById("gate-optin"); if(c) localStorage.setItem("pc.optin", c.checked?"1":"0"); }catch(e){}
   saveReturnHash();
   const show=(msg)=>{ const a=$("#auth-status"); if(a)a.textContent=msg; const g=$("#gate-email-status"); if(g)g.textContent=msg; };
   try{
