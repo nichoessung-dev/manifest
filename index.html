@@ -492,6 +492,14 @@ body,.masthead,.deck,.subdeck,.card,.drawer,.page,.search,.search input,.mini,se
 .qc-cta{margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--ink);font-size:13.5px;font-weight:600;text-decoration:none;transition:background .15s,border-color .15s}
 .qc-cta:hover{background:var(--card,#161b26);border-color:var(--ink)}
 .qc-cta svg{width:17px;height:17px;flex:0 0 auto;opacity:.85}
+.optin-toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,140%);z-index:60;display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;max-width:min(92vw,560px);padding:13px 18px;background:#161d2e;color:#eef2fb;border:1px solid rgba(255,255,255,.10);border-radius:14px;box-shadow:0 12px 38px rgba(0,0,0,.42);font-size:14px;transition:transform .28s ease,opacity .28s ease;opacity:0}
+.optin-toast.show{transform:translate(-50%,0);opacity:1}
+.optin-toast .ot-msg{font-weight:600}
+.optin-toast .ot-btns{display:flex;gap:8px}
+.optin-toast button{border:0;border-radius:9px;padding:8px 15px;font-weight:700;font-size:13px;cursor:pointer}
+.optin-toast #ot-yes{background:#4b74d6;color:#fff}
+.optin-toast #ot-yes:hover{background:#3f66c4}
+.optin-toast #ot-no{background:transparent;color:#aeb8cc;border:1px solid rgba(255,255,255,.22)}
 .report-link{background:none;border:none;color:var(--muted);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:0}
 .report-link:hover{color:var(--danger)}
 .report-link:disabled{opacity:.5;cursor:default;text-decoration:none}
@@ -1404,7 +1412,7 @@ function qcFetch(p){
   QC_CACHE[key]=pr; return pr;
 }
 function openDetail(p,fromHash){
-  try{ if(sb&&ME&&p&&p.id){ if(!window.__pv)window.__pv=new Set(); if(!window.__pv.has(p.id)){ window.__pv.add(p.id); sb.from("product_views").insert({user_id:ME.id,product_id:p.id,brand:p.brand||null,cat:p.cat||null}).then(()=>{},()=>{}); } } }catch(e){}
+  try{ if(sb&&p&&p.id){ if(!window.__pv)window.__pv=new Set(); if(!window.__pv.has(p.id)){ window.__pv.add(p.id); sb.from("product_views").insert({user_id:(ME?ME.id:null),product_id:p.id,brand:p.brand||null,cat:p.cat||null}).then(()=>{},()=>{}); } } }catch(e){}
   lastFocus=document.activeElement; const qcN=p.qc||0; const sub=subprice(p.price);
   drawer.innerHTML=`
     <div class="p-top">
@@ -1574,8 +1582,21 @@ async function syncProfile(){
   const row={id:ME.id, email:ME.email||null, auth_provider:prov, updated_at:new Date().toISOString()};
   try{ const v=localStorage.getItem("pc.optin"); if(v!==null) row.marketing_opt_in = v==="1"; }catch(e){}
   try{ await sb.from("profiles").upsert(row,{onConflict:"id"}); }catch(e){}
+  try{ if(localStorage.getItem("pc.optin")===null) setTimeout(showOptinPrompt,1200); }catch(e){}   /* ask OAuth/new users to opt in */
   /* one-time referral attribution: set referred_by only if not already set */
   try{ const ref=getRef(); if(ref){ await sb.from("profiles").update({referred_by:ref, referred_at:new Date().toISOString()}).eq("id",ME.id).is("referred_by",null); } }catch(e){}
+}
+/* one-time marketing opt-in prompt (OAuth users never see the gate checkbox, so ask them here) */
+function showOptinPrompt(){
+  try{ if(!sb||!ME) return; if(localStorage.getItem("pc.optin")!==null) return; if(document.getElementById("optin-toast")) return; }catch(e){ return; }
+  const el=document.createElement("div"); el.id="optin-toast"; el.className="optin-toast";
+  el.innerHTML='<span class="ot-msg">🔔 Want first access to new drops &amp; restocks?</span><span class="ot-btns"><button type="button" id="ot-yes">Notify me</button><button type="button" id="ot-no">No thanks</button></span>';
+  document.body.appendChild(el); requestAnimationFrame(()=>el.classList.add("show"));
+  const choose=(v)=>{ try{ localStorage.setItem("pc.optin", v?"1":"0"); }catch(e){}
+    try{ if(sb&&ME) sb.from("profiles").update({marketing_opt_in:v, updated_at:new Date().toISOString()}).eq("id",ME.id).then(()=>{},()=>{}); }catch(e){}
+    el.classList.remove("show"); setTimeout(()=>el.remove(),250); };
+  el.querySelector("#ot-yes").addEventListener("click",()=>choose(true));
+  el.querySelector("#ot-no").addEventListener("click",()=>choose(false));
 }
 async function renderAffiliate(){
   const el=document.getElementById("aff-panel"); if(!el) return;
