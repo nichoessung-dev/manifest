@@ -1439,7 +1439,6 @@ function openDetail(p,fromHash){
             <span class="tag">${p.cat}</span><span class="tag">${qcN} ${t("qc")}</span><span class="tag">${p.variants.length} ${t("variants").toLowerCase()}</span><span class="tag" data-sc="${p.id}">${fmtStar(p.id)}</span>
           </div>
           <div class="buy-block"><p class="sec-label">${t("buy_head")}</p><div class="agents">${agentRow(p)}</div>
-            <a class="qc-cta" href="${(AGENTS[state.agent]||AGENTS.mycnbox).build(p)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>${t("qc_cta")}</span></a>
             <div class="report-row" style="margin-top:11px"><button type="button" class="report-link" id="report-link">${t("report_link")}</button><span class="report-status" id="report-status"></span></div></div>
           <div><p class="sec-label">${t("variants")}</p>
             <div class="variants">${p.variants.map(v=>{const std=/^standard$/i.test((v[0]||"").trim());return `<span class="variant${std?" swatch-only":""}"><span class="sw" style="background:${swatch(v[0])}"></span>${std?"":esc(v[0])}</span>`;}).join("")}</div></div>
