@@ -45,6 +45,7 @@
   </header>
 
   <div class="grid">
+    <div class="stat hero big"><div class="n" id="s-live" style="color:var(--good)"><span class="pulse"></span>–</div><div class="l">Live viewers now</div></div>
     <div class="stat hero big"><div class="n" id="s-total">–</div><div class="l">Total users</div></div>
     <div class="stat"><div class="n" id="s-email">–</div><div class="l">With email</div></div>
     <div class="stat"><div class="n" id="s-opt">–</div><div class="l">Marketing opt-ins</div></div>
@@ -59,9 +60,29 @@
   <div class="foot">Private page (not indexed). Numbers are live from the database. Emailable list = <b>With email</b>.</div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const SB="https://uptpghuduqjqmrxwatbm.supabase.co";
 const KEY="sb_publishable_qFcO570Cpl0_VWS6e_sAUg_noD-2XmY";
+/* ---- live viewers via realtime presence (same channel the site joins) ---- */
+(function(){
+  try{
+    if(!(window.supabase&&window.supabase.createClient)) return;
+    const c=window.supabase.createClient(SB,KEY);
+    const ch=c.channel("online-viewers");
+    function count(){
+      try{
+        const st=ch.presenceState()||{};
+        let n=0; for(const k in st){ n+=(st[k]||[]).length; }
+        document.getElementById("s-live").innerHTML='<span class="pulse"></span>'+n;
+      }catch(e){}
+    }
+    ch.on("presence",{event:"sync"},count)
+      .on("presence",{event:"join"},count)
+      .on("presence",{event:"leave"},count)
+      .subscribe();  // subscribe WITHOUT track() so this dashboard isn't counted
+  }catch(e){}
+})();
 function set(id,v){ document.getElementById(id).textContent=v; }
 async function load(){
   const err=document.getElementById("err"); err.hidden=true;
