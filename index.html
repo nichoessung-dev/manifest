@@ -685,7 +685,11 @@ body.pp-open .toolbar{display:none!important}
 .qc-badge{position:absolute;left:8px;bottom:8px;z-index:2;font-family:var(--f-mono);font-size:9.5px;background:rgba(12,16,28,.74);color:#fff;padding:3px 7px;border-radius:6px;letter-spacing:.02em;pointer-events:none}
 .pc-qc-sec{margin-top:2px}
 .pc-qc-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
-.pc-qc-t{flex:none;width:92px;height:92px;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:block;background:var(--surface)}
+.pc-qc-t{flex:none;width:92px;height:92px;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:block;background:var(--surface);padding:0;cursor:zoom-in}
+.pc-qclb{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;background:rgba(8,10,18,.88);padding:24px;cursor:zoom-out}
+.pc-qclb.on{display:flex}
+.pc-qclb img{max-width:96vw;max-height:92vh;object-fit:contain;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.pc-qclb-x{position:fixed;top:14px;right:18px;width:38px;height:38px;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:24px;border-radius:10px;cursor:pointer;line-height:1}
 .pc-qc-t img{width:100%;height:100%;object-fit:cover;display:block}
 .pc-qc-t:hover{border-color:var(--line-2)}
 .pc-qc-note{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:7px}
@@ -1365,7 +1369,7 @@ function card(p){
       <canvas aria-hidden="true"></canvas>
       ${p.img?`<img class="pimg" src="${esc(p.img)}" alt="${esc((p.brand?p.brand+' ':'')+p.title)} rep" loading="lazy" decoding="async" onerror="this.remove()">`:""}
       <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button>
-      ${(p.qc||0)>0?`<span class="qc-badge">\u{1F4F7} ${p.qc>99?"99+":p.qc}</span>`:""}
+      ${(p.qc||0)>=2?`<span class="qc-badge">\u{1F4F7} ${p.qc>99?"99+":p.qc}</span>`:""}
     </div>
     <div class="body">
       ${p.brand?`<span class="brand-line">${esc(p.brand)}</span>`:""}
@@ -1462,17 +1466,31 @@ function agentRow(p){
 }
 /* ============ live QC photos (qualit.ly via /api/qc proxy) ============ */
 const QC_CACHE={};
+function __pcLB(url){
+  var lb=document.getElementById("pc-qclb");
+  if(!lb){
+    lb=document.createElement("div"); lb.id="pc-qclb"; lb.className="pc-qclb";
+    lb.innerHTML='<button type="button" class="pc-qclb-x" aria-label="Close">\u00d7</button><img alt="QC photo">';
+    document.body.appendChild(lb);
+    var close=function(){ lb.classList.remove("on"); };
+    lb.addEventListener("click",function(e){ if(e.target===lb||e.target.classList.contains("pc-qclb-x")) close(); });
+    document.addEventListener("keydown",function(e){ if(e.key==="Escape") close(); });
+  }
+  lb.querySelector("img").src=url;
+  lb.classList.add("on");
+}
 function __pcQC(p){
   var sec=document.getElementById("pc-qc-sec"); if(!sec) return;
   sec.hidden=true; sec.innerHTML="";
-  if(!p || !(p.qc>0)) return;
+  if(!p || !(p.qc>=2)) return;
   qcFetch(p).then(function(d){
     var arr=(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails:((d&&Array.isArray(d.qc_preview)&&d.qc_preview.length)?d.qc_preview:null);
     if(!arr||!arr.length) return;
     var n=(d&&d.qc_count)||p.qc||arr.length;
     sec.innerHTML='<p class="sec-label">Real QC photos</p><div class="pc-qc-strip">'+
-      arr.slice(0,8).map(function(u){var s=String(u).replace(/"/g,"&quot;");return '<a class="pc-qc-t" href="'+s+'" target="_blank" rel="noopener noreferrer"><img src="'+s+'" loading="lazy" decoding="async" alt="Buyer QC photo"></a>';}).join('')+
+      arr.slice(0,8).map(function(u){var s=String(u).replace(/"/g,"&quot;");return '<button type="button" class="pc-qc-t" data-full="'+s+'"><img src="'+s+'" loading="lazy" decoding="async" alt="Buyer QC photo"></button>';}).join('')+
       '</div><p class="pc-qc-note">'+n+' buyer QC photos \u2014 tap to enlarge</p>';
+    sec.querySelectorAll(".pc-qc-t").forEach(function(b){ b.addEventListener("click",function(){ __pcLB(b.getAttribute("data-full")); }); });
     sec.hidden=false;
   }).catch(function(){});
 }
