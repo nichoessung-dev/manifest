@@ -1154,8 +1154,7 @@ try{
   if(_sv){ Object.assign(state, JSON.parse(_sv)); state.sort="pop"; }
   else {
     const loc=(navigator.language||"en").toLowerCase(), lc=loc.split("-")[0], rg=(loc.split("-")[1]||"").toUpperCase();
-    const LMAP={nb:"no",nn:"no",no:"no",sv:"sv",da:"da",zh:"zh",es:"es",de:"de",nl:"nl",fr:"fr",it:"it"};
-    if(LMAP[lc]) state.lang=LMAP[lc];
+    /* language auto-detect disabled: default to English (users can switch via the language picker) */
     const CMAP={NO:"NOK",SE:"SEK",DK:"DKK",GB:"GBP",UK:"GBP",US:"USD",CH:"CHF",PL:"PLN",CA:"CAD",AU:"AUD",JP:"JPY",CN:"CNY"};
     const EU=["DE","FR","IT","ES","NL","IE","AT","BE","PT","FI","GR","EE","LV","LT","SK","SI","LU"];
     if(CMAP[rg]) state.cur=CMAP[rg]; else if(EU.includes(rg)) state.cur="EUR";
