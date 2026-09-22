@@ -693,6 +693,22 @@ body.pp-open .toolbar{display:none!important}
 .pc-qc-t img{width:100%;height:100%;object-fit:cover;display:block}
 .pc-qc-t:hover{border-color:var(--line-2)}
 .pc-qc-note{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:7px}
+/* ---- mobile polish (added) ---- */
+@media(max-width:560px){
+  /* Masthead: MyCNBox CTA drops to its own full-width row so the tools row isn't crowded */
+  .mast-tools{flex-wrap:wrap;gap:8px;row-gap:8px}
+  .pc-mycnbox-btn{order:9;flex:0 0 100%;width:100%;height:42px;padding:0 14px;font-size:13.5px;border-radius:12px;display:flex;align-items:center;justify-content:center;letter-spacing:.01em}
+  .mast-tools .auth-btn{height:40px}
+  .mast-tools .icon-btn,.mast-tools .theme-btn{width:40px;height:40px}
+  .tools-btn{min-height:40px;display:inline-flex;align-items:center}
+  /* readable, tappable filter controls */
+  .fselbtn,.saved-chip{height:40px;font-size:13.5px}
+  .fsel select{font-size:13px;padding-block:9px}
+  select.sort{font-size:13.5px}
+  /* slightly larger card title/price for legibility */
+  .card .title{font-size:13.5px}
+  .card .price{font-size:15px}
+}
 </style>
 
 <div class="masthead">
