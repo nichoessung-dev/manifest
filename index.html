@@ -1904,7 +1904,7 @@ loadStars();
 /* real product images: images.json is a simple { "<id>": "<url>" } map produced by the enrichment pipeline. Absent = placeholders, no error. */
 (function loadImages(){
   try{
-    fetch("images.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(map=>{
+    Promise.resolve({ok:false}) /* images.json never existed; the fetch re-downloaded the whole page */.then(r=>r.ok?r.json():null).then(map=>{
       if(!map||typeof map!=="object") return;
       let n=0;
       for(const id in map){ if(BY_ID[id]&&map[id]){ BY_ID[id].img=map[id]; n++; } }
