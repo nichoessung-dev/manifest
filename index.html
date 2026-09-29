@@ -1474,7 +1474,7 @@ function card(p){
       <canvas aria-hidden="true"></canvas>
       ${p.img?`<img class="pimg" src="${esc(p.img)}" alt="${esc((p.brand?p.brand+' ':'')+p.title)} rep" loading="lazy" decoding="async" onerror="this.remove()">`:""}
       <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button>
-      ${(p.qc||0)>=2?`<span class="qc-badge">\u{1F4F7} ${p.qc>99?"99+":p.qc}</span>`:""}
+      ${(p.qc||0)>=2?`<span class="qc-badge">\u{1F4F7} QC</span>`:""}
     </div>
     <div class="body">
       ${p.brand?`<span class="brand-line">${esc(p.brand)}</span>`:""}
@@ -1636,7 +1636,7 @@ function openDetail(p,fromHash){
           <div class="d-titlerow"><h1 class="d-title">${esc(p.title)}</h1>${p.brand?`<span class="d-brand">${esc(p.brand)}</span>`:""}</div>
           <div class="d-price"><span class="p">${price(p.price)}</span>${sub?`<span class="u">${sub}</span>`:""}</div>
           <div class="meta">
-            <span class="tag">${p.cat}</span><span class="tag">${qcN} ${t("qc")}</span><span class="tag">${p.variants.length} ${t("variants").toLowerCase()}</span><span class="tag" data-sc="${p.id}">${fmtStar(p.id)}</span>
+            <span class="tag">${p.cat}</span><span class="tag">${p.variants.length} ${t("variants").toLowerCase()}</span><span class="tag" data-sc="${p.id}">${fmtStar(p.id)}</span>
           </div>
           <div class="buy-block"><p class="sec-label">${t("buy_head")}</p><div class="agents">${agentRow(p)}</div>
             <div class="report-row" style="margin-top:11px"><button type="button" class="report-link" id="report-link">${t("report_link")}</button><span class="report-status" id="report-status"></span></div></div>
@@ -1644,7 +1644,7 @@ function openDetail(p,fromHash){
             <div class="variants">${p.variants.map(v=>{const std=/^standard$/i.test((v[0]||"").trim());return `<span class="variant${std?" swatch-only":""}"><span class="sw" style="background:${swatch(v[0])}"></span>${std?"":esc(v[0])}</span>`;}).join("")}</div></div>
         </div>
       </div>
-      <div class="pc-qc-sec" id="pc-qc-sec" hidden></div>
+      
       <div id="similar-wrap" class="similar-wrap"></div>
       <div class="d-wide" id="pp-browse">
         <p class="sec-label" data-i18n="browse_all">Browse all finds</p>
@@ -1673,7 +1673,7 @@ function openDetail(p,fromHash){
     const gt=drawer.querySelector(".gtabs"); if(gt) gt.style.display="none";
     if(mode.m==="qc"){ if(p.img){ setMode("listing"); gal(0); } else gal(0); }
   };
-  const qcDrop=u=>{ if(QCIMG.arr) QCIMG.arr=QCIMG.arr.filter(x=>x!==u); };
+  const qcDrop=u=>{ if(QCIMG.arr) QCIMG.arr=QCIMG.arr.filter(x=>x!==u); const qt=drawer.querySelector('.gtab[data-mode="qc"]'); if(qt&&QCIMG.arr) qt.textContent=t("qc")+" "+QCIMG.arr.length; };
   const gal=(active=0)=>{
     const isqc=mode.m==="qc"; const seed=isqc?100:0;
     const gm=$("#gmain"), gc=gm.parentElement;
@@ -1705,7 +1705,7 @@ function openDetail(p,fromHash){
       gm.style.display="";
     } else { drawTile(gm,p,seed+active); }
     const th=$("#thumbs"); th.innerHTML="";
-    const qcArr=isqc?QCIMG.arr:null;
+    const qcArr=QCIMG.arr;
     // Only render REAL photo thumbnails (never placeholder tiles). Listing mode has a single image, so no strip.
     if(qcArr&&qcArr.length){
       const n=Math.min(qcArr.length,10);
@@ -1713,7 +1713,7 @@ function openDetail(p,fromHash){
         const u=qcArr[i]; if(!u)continue;
         const im=document.createElement("img"); im.className="pthumb qcthumb"; im.loading="lazy"; im.src=u; im.alt="";
         im.style.cssText="width:100%;height:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;display:block";
-        im.addEventListener("click",()=>gal(Math.max(0,(QCIMG.arr||[]).indexOf(u))));
+        im.addEventListener("click",()=>{ if(mode.m!=="qc") setMode("qc"); gal(Math.max(0,(QCIMG.arr||[]).indexOf(u))); });
         im.onerror=()=>{ im.remove(); qcDrop(u); if(!th.children.length){ th.style.display="none"; if(!(QCIMG.arr&&QCIMG.arr.length)) noQC(); } };
         th.appendChild(im);
       }
@@ -1728,7 +1728,7 @@ function openDetail(p,fromHash){
   };
   // Check for QC photos up front so the QC tab only shows when there is something to show.
   if(!(p.qc>0)) { requestAnimationFrame(()=>{ const qt=drawer.querySelector('.gtab[data-mode="qc"]'); if(qt) qt.style.display="none"; const gt=drawer.querySelector(".gtabs"); if(gt&&p.img) gt.style.display="none"; }); }
-  else qcFetch(p).then(d=>{ const arr=qcArrOf(d); if(!(arr&&arr.length)) noQC(); else if(QCIMG.arr===null) QCIMG.arr=arr.slice(); }).catch(()=>{});
+  else qcFetch(p).then(d=>{ const arr=qcArrOf(d); if(!(arr&&arr.length)) noQC(); else if(QCIMG.arr===null){ QCIMG.arr=arr.slice(); gal(0); } }).catch(()=>{});
   requestAnimationFrame(()=>gal(0));
   $$(".gtab",drawer).forEach(tb=>tb.addEventListener("click",()=>{mode.m=tb.dataset.mode;$$(".gtab",drawer).forEach(x=>x.setAttribute("aria-pressed",String(x===tb)));gal(0);}));
   $("#close",drawer).addEventListener("click",()=>closeDetail());
@@ -2301,7 +2301,7 @@ function enhanceDrawer(p){
       const hasQC=!!(arr&&arr.length);
       if(!hasListing&&!hasQC){ if(media)media.style.display="none"; if(grid)grid.classList.add("no-media"); return; }
       if(hasQC){
-        if(qcTab){ qcTab.style.display=""; qcTab.textContent=t("qc")+" "+((d&&d.qc_count)||arr.length); }
+        if(qcTab){ qcTab.style.display=""; qcTab.textContent=t("qc")+" "+arr.length; }
         if(listTab)listTab.style.display=hasListing?"":"none";
         // show the tab bar only when there's a real choice between listing + QC
         if(gt&&hasListing)gt.style.display="";
