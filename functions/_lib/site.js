@@ -158,7 +158,13 @@ export const GUIDE_LINKS = [
   ["How to read QC photos", "/guides/how-to-qc"],
   ["Rep sizing guide", "/guides/sizing"],
   ["Best shopping agent", "/guides/best-shopping-agent"],
+  ["How to buy from Taobao", "/guides/how-to-buy-from-taobao"],
+  ["How to buy from 1688", "/guides/how-to-buy-from-1688"],
+  ["MyCNBox review", "/guides/mycnbox-review"],
+  ["KakoBuy vs MyCNBox", "/guides/kakobuy-vs-mycnbox"],
+  ["Shipping lines explained", "/guides/shipping-lines"],
 ];
+export const TOOL_LINKS = [["Link converter", "/tools/link-converter"], ["QC checker", "/tools/qc-checker"], ["Weight estimator", "/tools/weight-estimator"], ["Shipping calculator", "/tools/shipping-calculator"]];
 
 function footer() {
   const { byBrand, brandSlug } = idx();
@@ -168,7 +174,8 @@ function footer() {
 ${col("Categories", Object.values(CATS).filter(c => c.slug !== "toys").map(c => [c.name, "/category/" + c.slug]))}
 ${col("Top brands", topBrands.map(b => [b + " reps", "/brand/" + brandSlug.get(b)]).concat([["All brands →", "/brands"]]))}
 ${col("Spreadsheets", [["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Old money reps", "/old-money"]])}
-${col("Guides", GUIDE_LINKS.concat([["All guides →", "/guides"]]))}
+${col("Guides", GUIDE_LINKS.slice(0, 7).concat([["All guides →", "/guides"]]))}
+${col("Tools & best reps", TOOL_LINKS.concat([["Best reps by model →", "/best"]]))}
 ${col("Puro Classico", [["Browse all finds", "/"], ["Discord community", "https://discord.gg/Pf3zpG3E4"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
 </div><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents may be affiliate links. Prices are shown as listed by the seller and can change. © Puro Classico</p></div></footer>`;
 }
@@ -198,7 +205,7 @@ ${extraHead}
 </head>
 <body>
 <header class="h"><div class="w"><a href="/" aria-label="Puro Classico home"><img src="/logo-wordmark.png" alt="Puro Classico" width="106" height="30"></a>
-<nav><a href="/">Browse finds</a><a href="/brands">Brands</a><a href="/category/sneakers">Sneakers</a><a href="/old-money">Old money</a><a href="/guides">Guides</a><a href="/how-to-order">How to order</a></nav>
+<nav><a href="/">Browse finds</a><a href="/brands">Brands</a><a href="/best">Best reps</a><a href="/old-money">Old money</a><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/how-to-order">How to order</a></nav>
 <a class="btn red hcta" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">Claim $500 MyCNBox coupons</a></div></header>
 <main><div class="w">
 ${body}
