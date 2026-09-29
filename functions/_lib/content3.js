@@ -102,6 +102,48 @@ export const GUIDES3 = {
 <h2>Before you buy</h2><ul><li>Look for real QC photos rather than seller photos (<a href="/guides/how-to-qc">how</a>).</li><li>Check sizing in centimetres (<a href="/guides/sizing">sizing guide</a>).</li><li>Estimate shipping first with the <a href="/tools/shipping-calculator">shipping calculator</a>.</li></ul>`,
     faq: [["What is the fastest way to find a rep?", "Search a spreadsheet like Puro Classico first; if it's not there, use your agent's image search."], ["How do I know if a seller is good?", "Look at real QC photos from other buyers, the listing's sales count and the seller's ratings inside your agent."]],
   },
+  "mycnbox-coupon-code": {
+    title: "MyCNBox Coupon Code & Invite Code 2026 — Up to $500 in New-Member Coupons",
+    desc: "Use MyCNBox invite code AACPYA to get up to $500 in new-member coupons. How to claim them, what they cover and how to use them on your first order.",
+    h1: "MyCNBox coupon code (up to $500)",
+    body: `<p class="lead">New MyCNBox members get a <strong>coupon bundle worth up to $500</strong>. Sign up with invite code <strong>AACPYA</strong> (or <a href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" rel="sponsored nofollow noopener" target="_blank">this sign-up link</a>, which fills it in for you) and the coupons appear in your account.</p>
+<h2>How to claim it</h2><ol class="steps">
+<li>Open <a href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" rel="sponsored nofollow noopener" target="_blank">MyCNBox sign-up</a> — the invite code <strong>AACPYA</strong> is added automatically.</li>
+<li>Create your free account.</li>
+<li>Find the coupons under your account's coupon section; they apply at checkout on your first orders.</li></ol>
+<h2>What the coupons cover</h2><p>The bundle is made up of several coupons with different minimum spends, mostly for international shipping. The exact split and expiry dates are shown in your account — check them before you order so you use the biggest ones on your first parcel.</p>
+<h2>Using them well</h2><ul><li>Combine several items into one parcel so the shipping coupons cover more.</li><li>Remove shoe boxes to cut volumetric weight (<a href="/tools/weight-estimator">weight estimator</a>).</li><li>Compare lines with the <a href="/tools/shipping-calculator">shipping calculator</a>.</li></ul>
+<p>Ready to shop? Browse the <a href="/mycnbox-spreadsheet">MyCNBox spreadsheet</a> — every find opens straight in MyCNBox. New to agents? Watch the <a href="/how-to-order">how-to-order video</a> or read our <a href="/guides/mycnbox-review">MyCNBox review</a>.</p>
+<p style="font-size:13px">Offer details are set by MyCNBox and can change; this link is an affiliate link.</p>`,
+    faq: [["What is the MyCNBox invite code?", "AACPYA. Signing up with it unlocks MyCNBox's new-member coupon bundle, worth up to $500."], ["Is the $500 a cash discount?", "No — it's a bundle of coupons with minimum spends, mostly for shipping. The exact coupons and expiry dates show in your account after sign-up."], ["Can existing users get the coupons?", "The bundle is for new members; existing accounts may get other promotions inside the app."]],
+  },
+  "kakobuy-coupon-code": {
+    title: "KakoBuy Coupon Code 2026 — Up to $410 in Welcome Coupons",
+    desc: "Get up to $410 in KakoBuy welcome coupons with invite code w5war. How to claim them and how to use them on your first haul.",
+    h1: "KakoBuy coupon code (up to $410)",
+    body: `<p class="lead">New KakoBuy members get a <strong>welcome coupon bundle worth up to $410</strong>. Sign up through <a href="https://ikako.vip/r/w5war" rel="sponsored nofollow noopener" target="_blank">this invite link</a> (code <strong>w5war</strong>) and the coupons are added to your account.</p>
+<h2>How to claim it</h2><ol class="steps"><li>Open the <a href="https://ikako.vip/r/w5war" rel="sponsored nofollow noopener" target="_blank">KakoBuy invite link</a>.</li><li>Register a free account.</li><li>Use the coupons at checkout — they're split into several coupons with minimum spends, mostly for shipping.</li></ol>
+<h2>Tips</h2><ul><li>Plan one bigger parcel rather than several small ones to use the larger shipping coupons.</li><li>Check coupon expiry dates in your account.</li></ul>
+<p>Browse the <a href="/kakobuy-spreadsheet">KakoBuy spreadsheet</a>, or compare agents in <a href="/guides/kakobuy-vs-mycnbox">KakoBuy vs MyCNBox</a> — MyCNBox currently has the bigger bundle (<a href="/guides/mycnbox-coupon-code">up to $500</a>).</p>
+<p style="font-size:13px">Offer details are set by KakoBuy and can change; this link is an affiliate link.</p>`,
+    faq: [["What is the KakoBuy invite code?", "w5war. Signing up through the invite link applies it automatically and unlocks the welcome coupons."], ["How much is the KakoBuy welcome bonus?", "Up to $410 in coupons, split across several coupons with minimum spends."]],
+  },
+  "agent-coupons": {
+    title: "Shopping Agent Coupons & Sign-Up Bonuses 2026 (MyCNBox, KakoBuy, Oopbuy…)",
+    desc: "Every current new-member coupon for rep shopping agents in one place: MyCNBox up to $500, KakoBuy up to $410, plus Oopbuy, LoveGoBuy and Sugargoo.",
+    h1: "Shopping agent coupons & sign-up bonuses",
+    body: `<p class="lead">Every major agent gives new members coupons, mostly for international shipping. Here's what each offers — sign up with the one you'll actually use, since coupons can't be moved between agents.</p>
+<table style="width:100%;border-collapse:collapse;margin:10px 0 18px"><tr><th style="text-align:left;padding:8px;border-bottom:1px solid var(--line)">Agent</th><th style="text-align:left;padding:8px;border-bottom:1px solid var(--line)">New-member bonus</th><th style="padding:8px;border-bottom:1px solid var(--line)"></th></tr>
+<tr><td style="padding:8px"><strong>MyCNBox</strong> (our #1 pick)</td><td style="padding:8px">Up to $500 coupon bundle · code AACPYA</td><td style="padding:8px"><a href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" rel="sponsored nofollow noopener" target="_blank">Claim</a> · <a href="/guides/mycnbox-coupon-code">details</a></td></tr>
+<tr><td style="padding:8px"><strong>KakoBuy</strong></td><td style="padding:8px">Up to $410 welcome coupons · code w5war</td><td style="padding:8px"><a href="https://ikako.vip/r/w5war" rel="sponsored nofollow noopener" target="_blank">Claim</a> · <a href="/guides/kakobuy-coupon-code">details</a></td></tr>
+<tr><td style="padding:8px"><strong>Oopbuy</strong></td><td style="padding:8px">New-user coupons on your first orders</td><td style="padding:8px"><a href="https://oopbuy.com/register?inviteCode=LHQC0OS8O" rel="sponsored nofollow noopener" target="_blank">Claim</a></td></tr>
+<tr><td style="padding:8px"><strong>LoveGoBuy</strong></td><td style="padding:8px">Welcome coupons for new members</td><td style="padding:8px"><a href="https://www.lovegobuy.com/?invite_code=9WJ54Y" rel="sponsored nofollow noopener" target="_blank">Claim</a></td></tr>
+<tr><td style="padding:8px"><strong>Sugargoo</strong></td><td style="padding:8px">New-member coupon pack</td><td style="padding:8px"><a href="https://www.sugargoo.com/register?memberId=3751749728009774836" rel="sponsored nofollow noopener" target="_blank">Claim</a></td></tr></table>
+<h2>How agent coupons work</h2><ul><li>They're a <strong>bundle of smaller coupons</strong>, each with a minimum spend — not cash.</li><li>Most apply to <strong>international shipping</strong>, so they're worth most on your first bigger parcel.</li><li>They <strong>expire</strong>; check the dates in your account.</li></ul>
+<p>Not sure which agent to pick? Read <a href="/guides/best-shopping-agent">best shopping agent</a>, then browse <a href="/">9,000+ finds</a>.</p>
+<p style="font-size:13px">Offers are set by each agent and can change. Links on this page are affiliate links.</p>`,
+    faq: [["Which shopping agent has the biggest sign-up bonus?", "MyCNBox currently offers the largest bundle, up to $500 in new-member coupons, followed by KakoBuy at up to $410."], ["Can I use coupons from one agent on another?", "No. Coupons only work on the agent that issued them."]],
+  },
 };
 
 // Short search term per model for titles/H1 ("Best Rolex Reps"); defaults to the model name.

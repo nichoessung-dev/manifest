@@ -167,6 +167,9 @@ export const GUIDE_LINKS = [
   ["Pandabuy alternatives", "/guides/pandabuy-alternatives"],
   ["Rep terms glossary (GL/RL, W2C…)", "/guides/rep-glossary"],
   ["How to find reps", "/guides/how-to-find-reps"],
+  ["MyCNBox coupon code ($500)", "/guides/mycnbox-coupon-code"],
+  ["KakoBuy coupon code ($410)", "/guides/kakobuy-coupon-code"],
+  ["All agent sign-up bonuses", "/guides/agent-coupons"],
 ];
 export const TOOL_LINKS = [["Link converter", "/tools/link-converter"], ["QC checker", "/tools/qc-checker"], ["Weight estimator", "/tools/weight-estimator"], ["Shipping calculator", "/tools/shipping-calculator"]];
 
