@@ -23,15 +23,24 @@ THUMB_PX = 480
 PRODUCT_FIELDS = ("title", "brand", "cat", "seller", "img", "price", "usd", "platform", "g")
 
 
-def load_catalog(path="index.html"):
-    html = open(path, encoding="utf-8").read()
+def read_catalog_items(html):
+    """Catalogue items from index.html: a <script type="application/json" id="pc-catalog"> block
+    (current format), or the older JS object literal inside loadProducts()."""
+    tag = '<script type="application/json" id="pc-catalog">'
+    i = html.find(tag)
+    if i >= 0:
+        j = html.find("</script>", i)
+        return json.loads(html[i + len(tag):j])
     start = html.find("return [", html.find("function loadProducts()"))
     if start < 0:
-        sys.exit("loadProducts() array not found in index.html")
+        sys.exit("catalogue not found in index.html")
     start += len("return ")
     end = html.find("];", start) + 1
-    # The array is a JS object literal: quote the bare keys so it parses as JSON.
     return json.loads(re.sub(r'([{,])([A-Za-z_]\w*):', r'\1"\2":', html[start:end]))
+
+
+def load_catalog(path="index.html"):
+    return read_catalog_items(open(path, encoding="utf-8").read())
 
 
 def write_if_changed(path, text):

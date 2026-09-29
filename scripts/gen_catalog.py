@@ -14,11 +14,25 @@ PREFIX = {
     "C": "https://ckiynlgfmlvlyaozuduc.supabase.co/storage/v1/object/public/",
 }
 
+def read_catalog_items(html):
+    """Catalogue items from index.html: a <script type="application/json" id="pc-catalog"> block
+    (current format), or the older JS object literal inside loadProducts()."""
+    tag = '<script type="application/json" id="pc-catalog">'
+    i = html.find(tag)
+    if i >= 0:
+        j = html.find("</script>", i)
+        return json.loads(html[i + len(tag):j])
+    start = html.find("return [", html.find("function loadProducts()"))
+    if start < 0:
+        sys.exit("catalogue not found in index.html")
+    start += len("return ")
+    end = html.find("];", start) + 1
+    return json.loads(re.sub(r'([{,])([A-Za-z_]\w*):', r'\1"\2":', html[start:end]))
+
+
 def main():
     html = open("index.html", encoding="utf-8").read()
-    s = html.find("return [", html.find("function loadProducts()")) + len("return ")
-    e = html.find("];", s) + 1
-    items = json.loads(re.sub(r'([{,])([A-Za-z_]\w*):', r'\1"\2":', html[s:e]))
+    items = read_catalog_items(html)
     b0 = html.find("const PC_BEST"); best = set(re.findall(r'"(\d+)"', html[b0:html.find("]);", b0)]))
     v0 = html.find("VIEW_COUNTS"); views = {}
     if v0 >= 0:
