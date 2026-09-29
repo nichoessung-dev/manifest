@@ -163,6 +163,10 @@ export const GUIDE_LINKS = [
   ["MyCNBox review", "/guides/mycnbox-review"],
   ["KakoBuy vs MyCNBox", "/guides/kakobuy-vs-mycnbox"],
   ["Shipping lines explained", "/guides/shipping-lines"],
+  ["What is a rep spreadsheet?", "/guides/what-is-a-rep-spreadsheet"],
+  ["Pandabuy alternatives", "/guides/pandabuy-alternatives"],
+  ["Rep terms glossary (GL/RL, W2C…)", "/guides/rep-glossary"],
+  ["How to find reps", "/guides/how-to-find-reps"],
 ];
 export const TOOL_LINKS = [["Link converter", "/tools/link-converter"], ["QC checker", "/tools/qc-checker"], ["Weight estimator", "/tools/weight-estimator"], ["Shipping calculator", "/tools/shipping-calculator"]];
 

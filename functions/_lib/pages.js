@@ -2,9 +2,11 @@
 import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, imgSrc, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, GUIDE_LINKS, TOOL_LINKS, BRAND_MIN } from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
-import { BRAND_INTRO2, MODELS, GUIDES2, TOOLS } from "./content2.js";
+import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS } from "./content2.js";
+import { MODELS3, GUIDES3, MODEL_TERM } from "./content3.js";
+const MODELS = MODELS2.concat(MODELS3);
 const BRAND_INTRO = Object.assign({}, BRAND_INTRO2, BRAND_INTRO1);
-const GUIDES = Object.assign({}, GUIDES1, GUIDES2);
+const GUIDES = Object.assign({}, GUIDES1, GUIDES2, GUIDES3);
 // model pages: which catalogue items belong to each model (by brand + title)
 let _models = null, _modelsIdx = null;
 export function models() {
@@ -193,11 +195,12 @@ export function renderModel(s, n) {
   const intro = `<p>${esc(m.intro)}</p><p>Below are all ${list.length} ${esc(m.name)} listings on Puro Classico, ranked by how often buyers view them — the top ones are usually the safest first pick. Prices run from ${priceRange(list)} before shipping.</p>
 <h3>What to check in QC</h3><ul>${m.qc.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`;
   const others = models().filter(x => x.slug !== s).slice(0, 14);
-  const faq = [[`Where can I buy a ${m.name} rep?`, `Puro Classico lists ${list.length} ${m.name} listings from Weidian, Taobao and 1688. Each opens directly in MyCNBox, KakoBuy, Oopbuy or another shopping agent.`],
+  const t = MODEL_TERM[s] || m.name;
+  const faq = [[`Where can I buy ${t} reps?`, `Puro Classico lists ${list.length} ${m.name} listings from Weidian, Taobao and 1688. Each opens directly in MyCNBox, KakoBuy, Oopbuy or another shopping agent.`],
                [`Which ${m.name} listing is best?`, `Start with the most-viewed listings at the top and compare their buyer QC photos. Check ${m.qc.join(", ")}.`]];
-  return hub({ path: "/best/" + s, n, list, title: `Best ${m.name} Rep (2026) — ${list.length} Listings Compared · Puro Classico`,
+  return hub({ path: "/best/" + s, n, list, title: `Best ${t} Reps (2026) — ${list.length} Listings Compared · Puro Classico`,
     desc: `Compare ${list.length} ${m.name} rep listings ranked by views, with prices (${priceRange(list)}) and what to check in QC.`,
-    h1: `Best ${m.name} reps`, intro, trail: [["Home", "/"], ["Best reps", "/best"], [m.name, "/best/" + s]], faq,
+    h1: `Best ${t} reps`, intro, trail: [["Home", "/"], ["Best reps", "/best"], [m.name, "/best/" + s]], faq,
     extra: `<h2>More models</h2><div class="chips">${others.map(x => `<a href="/best/${x.slug}">${esc(x.name)}</a>`).join("")}<a href="/best">All models →</a></div>` });
 }
 
