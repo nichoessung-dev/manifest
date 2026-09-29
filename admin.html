@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Admin · Puro Classico</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>
+  :root{--bg:#0C1220;--card:#141E34;--line:#26314D;--text:#F2F5FB;--muted:#94A0BD;--accent:#7B9AE0}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+  .w{max-width:1200px;margin:0 auto;padding:22px 16px 60px}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:6px}header h1{font-size:22px;margin:0}
+  .sub{color:var(--muted);margin:0 0 18px}.sub a{color:var(--accent)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .card .n{font-size:26px;font-weight:800}.card .l{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+  .chart{display:flex;align-items:flex-end;gap:3px;height:120px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:22px}
+  .chart div{flex:1;background:var(--accent);border-radius:3px 3px 0 0;min-height:1px;position:relative}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.tabs button{background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;font:inherit}
+  .tabs button.on{color:var(--text);border-color:var(--accent);background:rgba(123,154,224,.12)}
+  input{background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 12px;font:inherit;min-width:240px}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;white-space:nowrap}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}th.n{text-align:right}
+  td img{width:44px;height:44px;object-fit:contain;background:#f3f4f7;border-radius:8px;display:block}
+  td a{color:var(--text);text-decoration:none}td a:hover{color:var(--accent)}
+  .brand{color:var(--muted);font-size:12px}
+  .muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="w">
+  <header><h1>Puro Classico · Admin</h1><a href="/?admin=1" style="color:var(--accent)">Open site in admin mode →</a></header>
+  <p class="sub" id="gen">Loading stats…</p>
+  <div class="cards" id="cards"></div>
+  <h3 style="margin:0 0 8px">Views per day (last 30 days)</h3>
+  <div class="chart" id="chart"></div>
+  <div class="tabs" id="tabs">
+    <button data-k="7" class="on">Most viewed · 7 days</button><button data-k="30">Most viewed · 30 days</button><button data-k="all">Most viewed · all time</button><button data-k="fav">Most favourited</button><button data-k="brand">Brands</button>
+    <input id="q" placeholder="Filter by title, brand or ID">
+  </div>
+  <div id="tbl"></div>
+  <p class="muted" style="margin-top:14px">Stats are aggregated from Supabase every 6 hours by the "Stats" GitHub workflow (Actions → Stats → Run workflow to refresh now). Counts only — no user data.</p>
+</div>
+<script>
+(async function(){
+  const $=s=>document.querySelector(s);
+  const [stats, prods] = await Promise.all([
+    fetch("/data/stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch("/products.json").then(r=>r.json()).catch(()=>({}))
+  ]);
+  if(!stats){ $("#gen").textContent="No stats yet — run the Stats workflow in GitHub Actions."; return; }
+  const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const T=stats.totals||{};
+  $("#gen").innerHTML=`Updated ${new Date(stats.generated).toLocaleString()} · ${T.products_viewed||0} products viewed at least once · <a href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fwww.puroclassico.com%2F" target="_blank" rel="noopener">Search Console →</a>`;
+  const card=(n,l)=>`<div class="card"><div class="n">${(n||0).toLocaleString()}</div><div class="l">${l}</div></div>`;
+  $("#cards").innerHTML=card(T.views_7d,"Views · 7 days")+card(T.views_30d,"Views · 30 days")+card(T.views_all,"Views · all time")+card(T.favourites,"Favourites")+card(T.signed_in_viewers_30d,"Signed-in viewers · 30d");
+  const max=Math.max(1,...stats.daily.map(d=>d[1]));
+  $("#chart").innerHTML=stats.daily.map(([d,n])=>`<div title="${d}: ${n} views" style="height:${Math.round(n/max*100)}%"></div>`).join("");
+  const rows=Object.entries(stats.p).map(([id,v])=>{ const p=prods[id]||{}; const im=/\.supabase\.co\/storage\/v1\/object\/public\//.test(p.img||"")?"/api/img?u="+encodeURIComponent(p.img):(p.img||""); return {id,title:p.title||("#"+id),brand:p.brand||"",img:im,all:v[0],d30:v[1],d7:v[2],fav:v[3]}; });
+  let tab="7", q="";
+  function draw(){
+    const f=r=>!q||(r.title+" "+r.brand+" "+r.id).toLowerCase().includes(q);
+    if(tab==="brand"){
+      const m={}; rows.forEach(r=>{ const b=r.brand||"(none)"; m[b]=m[b]||{b,d7:0,d30:0,all:0,fav:0,n:0}; const x=m[b]; x.d7+=r.d7;x.d30+=r.d30;x.all+=r.all;x.fav+=r.fav;x.n++; });
+      const L=Object.values(m).filter(x=>!q||x.b.toLowerCase().includes(q)).sort((a,b)=>b.d30-a.d30||b.all-a.all).slice(0,200);
+      $("#tbl").innerHTML=`<table><tr><th>Brand</th><th class="n">Products viewed</th><th class="n">7d</th><th class="n">30d</th><th class="n">All</th><th class="n">★</th></tr>${L.map(x=>`<tr><td>${esc(x.b)}</td><td class="n">${x.n}</td><td class="n">${x.d7}</td><td class="n">${x.d30}</td><td class="n">${x.all}</td><td class="n">${x.fav}</td></tr>`).join("")}</table>`;
+      return;
+    }
+    const key={"7":"d7","30":"d30","all":"all","fav":"fav"}[tab];
+    const L=rows.filter(f).sort((a,b)=>b[key]-a[key]||b.d30-a.d30||b.all-a.all).slice(0,300);
+    $("#tbl").innerHTML=`<table><tr><th>#</th><th></th><th>Product</th><th class="n">7d</th><th class="n">30d</th><th class="n">All</th><th class="n">★</th></tr>${L.map((r,i)=>`<tr><td class="muted">${i+1}</td><td>${r.img?`<img src="${esc(r.img)}" loading="lazy" alt="">`:""}</td><td><a href="/product/${encodeURIComponent(r.id)}" target="_blank">${esc(r.title)}</a><div class="brand">${esc(r.brand)} · ${esc(r.id)}</div></td><td class="n">${r.d7}</td><td class="n">${r.d30}</td><td class="n">${r.all}</td><td class="n">${r.fav}</td></tr>`).join("")}</table>`;
+  }
+  document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{ document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b)); tab=b.dataset.k; draw(); });
+  $("#q").oninput=e=>{ q=e.target.value.trim().toLowerCase(); draw(); };
+  draw();
+})();
+</script>
+</body>
+</html>
