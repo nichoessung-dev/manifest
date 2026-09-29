@@ -25,6 +25,9 @@ export async function onRequest(ctx) {
   if (PASS.test(path)) return ctx.next();
   if (path.length > 1 && path.endsWith("/")) return Response.redirect(url.origin + path.replace(/\/+$/, "") + url.search, 301);
 
+  // /brand/Fendi, /Best/X ... -> one lowercase URL
+  if (path !== path.toLowerCase() && /^\/(brand|category|brands|old-money|guides|best|tools)\b|^\/[a-z]+-spreadsheet/i.test(path))
+    return Response.redirect(url.origin + path.toLowerCase() + url.search, 301);
   let m, res = undefined;
   if (/^\/(brand|category|brands|old-money|guides|best)|^\/[a-z]+-spreadsheet/.test(path)) await ensureStats(url.origin);
   if (path === "/sitemap.xml") return sitemapIndex();
