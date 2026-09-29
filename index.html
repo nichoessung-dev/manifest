@@ -1457,7 +1457,7 @@ function filtered(){
   if(s==="low")list.sort((a,b)=>a.price-b.price);
   else if(s==="high")list.sort((a,b)=>b.price-a.price);
   else if(s==="qc")list.sort((a,b)=>b.qc-a.qc);
-  else if(s==="pop")list.sort((a,b)=>popScore(b)-popScore(a)||(b.ft||0)-(a.ft||0)||((a._rnd||0)-(b._rnd||0)));
+  else if(s==="pop")list.sort((a,b)=>popScore(b)-popScore(a)||(b.favs||0)-(a.favs||0)||(b.viewsAll||0)-(a.viewsAll||0)||(b.best||0)-(a.best||0)||(b.ft||0)-(a.ft||0)||((a._rnd||0)-(b._rnd||0)));
   else if(s==="views7")list.sort((a,b)=>(b.views7||0)-(a.views7||0)||(b.views||0)-(a.views||0));
   else if(s==="views30")list.sort((a,b)=>(b.views||0)-(a.views||0)||(b.viewsAll||0)-(a.viewsAll||0));
   else if(s==="viewsAll")list.sort((a,b)=>(b.viewsAll||0)-(a.viewsAll||0));
@@ -1664,31 +1664,45 @@ function openDetail(p,fromHash){
   overlay.classList.add("open"); drawer.classList.add("open"); drawer.__pid=p.id; document.body.style.overflow="hidden"; if(!fromHash){ try{ history.pushState(null,"","/product/"+encodeURIComponent(p.id)); }catch(e){ try{location.hash="p/"+encodeURIComponent(p.id);}catch(_){} } }
   const mode={m:(p.img?"listing":"qc")};
   const QCIMG={arr:null,loading:false};
+  const qcArrOf=d=>(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails:((d&&Array.isArray(d.qc_preview)&&d.qc_preview.length)?d.qc_preview:null);
+  const setMode=m=>{ mode.m=m; $$(".gtab",drawer).forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.mode===m))); };
+  // No usable QC photos: hide the QC tab (and the tab bar if only one mode is left) and show the listing photo instead.
+  const noQC=()=>{
+    QCIMG.arr=[];
+    const qt=drawer.querySelector('.gtab[data-mode="qc"]'); if(qt) qt.style.display="none";
+    const gt=drawer.querySelector(".gtabs"); if(gt) gt.style.display="none";
+    if(mode.m==="qc"){ if(p.img){ setMode("listing"); gal(0); } else gal(0); }
+  };
+  const qcDrop=u=>{ if(QCIMG.arr) QCIMG.arr=QCIMG.arr.filter(x=>x!==u); };
   const gal=(active=0)=>{
     const isqc=mode.m==="qc"; const seed=isqc?100:0;
     const gm=$("#gmain"), gc=gm.parentElement;
     const oldi=gc.querySelector("img.pimg"); if(oldi)oldi.remove(); gm.style.display="";
+    const nq=gc.querySelector(".pc-noqc"); if(nq) nq.remove();
+    if(isqc && QCIMG.arr && active>=QCIMG.arr.length) active=0;
     const mainUrl=isqc?(QCIMG.arr&&QCIMG.arr[active]):(mode.m==="listing"?p.img:null);
     if(mainUrl){
       gm.style.display="none";
       const im=document.createElement("img"); im.className="pimg"; im.decoding="async"; im.loading="eager"; try{im.fetchPriority="high";}catch(e){} im.src=mainUrl; im.alt="";
       im.onerror=()=>{
         im.remove();
+        if(isqc){
+          // dead QC photo: drop it and try the next one; if none are left, fall back to the listing photo
+          qcDrop(mainUrl);
+          if(QCIMG.arr&&QCIMG.arr.length) gal(0); else noQC();
+          return;
+        }
         // No listing photo available -> automatically fall back to QC photos if any exist.
-        if(mode.m==="listing"){
-          qcFetch(p).then(d=>{
-            const arr=(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails
-                     :((d&&Array.isArray(d.qc_preview)&&d.qc_preview.length)?d.qc_preview:null);
-            if(arr&&arr.length){
-              QCIMG.arr=arr; mode.m="qc";
-              $$(".gtab",drawer).forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.mode==="qc")));
-              const gt=drawer.querySelector(".gtabs"); if(gt)gt.style.display="";
-              gal(0);
-            } else { gm.style.display=""; drawTile(gm,p,seed+active); }
-          }).catch(()=>{ gm.style.display=""; drawTile(gm,p,seed+active); });
-        } else { gm.style.display=""; drawTile(gm,p,seed+active); }
+        qcFetch(p).then(d=>{
+          const arr=qcArrOf(d);
+          if(arr&&arr.length){ QCIMG.arr=arr.slice(); setMode("qc"); const gt=drawer.querySelector(".gtabs"); if(gt)gt.style.display=""; gal(0); }
+          else { gm.style.display=""; drawTile(gm,p,seed+active); }
+        }).catch(()=>{ gm.style.display=""; drawTile(gm,p,seed+active); });
       };
       gc.appendChild(im);
+    } else if(isqc && QCIMG.arr===null){
+      // QC photos still loading: keep the frame empty rather than flashing a placeholder
+      gm.style.display="";
     } else { drawTile(gm,p,seed+active); }
     const th=$("#thumbs"); th.innerHTML="";
     const qcArr=isqc?QCIMG.arr:null;
@@ -1699,21 +1713,22 @@ function openDetail(p,fromHash){
         const u=qcArr[i]; if(!u)continue;
         const im=document.createElement("img"); im.className="pthumb qcthumb"; im.loading="lazy"; im.src=u; im.alt="";
         im.style.cssText="width:100%;height:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;display:block";
-        im.addEventListener("click",()=>gal(i));
-        im.onerror=()=>{im.remove(); if(!th.children.length)th.style.display="none";};
+        im.addEventListener("click",()=>gal(Math.max(0,(QCIMG.arr||[]).indexOf(u))));
+        im.onerror=()=>{ im.remove(); qcDrop(u); if(!th.children.length){ th.style.display="none"; if(!(QCIMG.arr&&QCIMG.arr.length)) noQC(); } };
         th.appendChild(im);
       }
     }
     th.style.display=th.children.length?"":"none";
-    if(isqc && !QCIMG.arr && !QCIMG.loading){
+    if(isqc && QCIMG.arr===null && !QCIMG.loading){
       QCIMG.loading=true;
-      qcFetch(p).then(d=>{ QCIMG.loading=false;
-        const arr=(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails
-                 :((d&&Array.isArray(d.qc_preview)&&d.qc_preview.length)?d.qc_preview:null);
-        if(arr){ QCIMG.arr=arr; if(mode.m==="qc") gal(0); }
-      });
+      qcFetch(p).then(d=>{ QCIMG.loading=false; const arr=qcArrOf(d);
+        if(arr&&arr.length){ QCIMG.arr=arr.slice(); if(mode.m==="qc") gal(0); } else noQC();
+      }).catch(()=>{ QCIMG.loading=false; noQC(); });
     }
   };
+  // Check for QC photos up front so the QC tab only shows when there is something to show.
+  if(!(p.qc>0)) { requestAnimationFrame(()=>{ const qt=drawer.querySelector('.gtab[data-mode="qc"]'); if(qt) qt.style.display="none"; const gt=drawer.querySelector(".gtabs"); if(gt&&p.img) gt.style.display="none"; }); }
+  else qcFetch(p).then(d=>{ const arr=qcArrOf(d); if(!(arr&&arr.length)) noQC(); else if(QCIMG.arr===null) QCIMG.arr=arr.slice(); }).catch(()=>{});
   requestAnimationFrame(()=>gal(0));
   $$(".gtab",drawer).forEach(tb=>tb.addEventListener("click",()=>{mode.m=tb.dataset.mode;$$(".gtab",drawer).forEach(x=>x.setAttribute("aria-pressed",String(x===tb)));gal(0);}));
   $("#close",drawer).addEventListener("click",()=>closeDetail());
@@ -1922,7 +1937,7 @@ if(!_PR){ render(); (window.requestIdleCallback||((f)=>setTimeout(f,300)))(()=>{
 initAuth();
 loadStars();
 /* real popularity: aggregated product views + favourites (data/stats.json, refreshed every 6h by the Stats workflow) */
-function popScore(p){ return (p.views||0) + (p.views7||0) + 3*(p.favs||0) + (p.best?4:0); }
+function popScore(p){ return (p.views||0) + (p.views7||0); }   /* views in the last 30 days, last 7 days count double */
 let STATS = null;
 fetch("/data/stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(s=>{
   if(!s||!s.p) return; STATS=s;

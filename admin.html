@@ -58,6 +58,11 @@
   $("#cards").innerHTML=card(T.views_7d,"Views · 7 days")+card(T.views_30d,"Views · 30 days")+card(T.views_all,"Views · all time")+card(T.favourites,"Favourites")+card(T.signed_in_viewers_30d,"Signed-in viewers · 30d");
   const max=Math.max(1,...stats.daily.map(d=>d[1]));
   $("#chart").innerHTML=stats.daily.map(([d,n])=>`<div title="${d}: ${n} views" style="height:${Math.round(n/max*100)}%"></div>`).join("");
+  fetch("/api/qc?usage=1").then(r=>r.ok?r.json():null).then(u=>{ if(!u) return;
+    const flat=[]; (function walk(o,pre){ for(const [k,v] of Object.entries(o||{})){ if(v&&typeof v==="object") walk(v,pre+k+" "); else if(typeof v==="number"||typeof v==="string") flat.push([pre+k,v]); } })(u,"");
+    const el=document.createElement("div"); el.className="card"; el.style.gridColumn="1/-1";
+    el.innerHTML=`<div class="l" style="margin:0 0 6px">qualit.ly API quota (QC photos)</div><div style="display:flex;flex-wrap:wrap;gap:6px 18px">${flat.slice(0,12).map(([k,v])=>`<span><span class="muted">${esc(k.replace(/_/g," "))}:</span> <b>${esc(v)}</b></span>`).join("")}</div>`;
+    $("#cards").appendChild(el); }).catch(()=>{});
   const rows=Object.entries(stats.p).map(([id,v])=>{ const p=prods[id]||{}; const im=/\.supabase\.co\/storage\/v1\/object\/public\//.test(p.img||"")?"/api/img?u="+encodeURIComponent(p.img):(p.img||""); return {id,title:p.title||("#"+id),brand:p.brand||"",img:im,all:v[0],d30:v[1],d7:v[2],fav:v[3]}; });
   let tab="7", q="";
   function draw(){
