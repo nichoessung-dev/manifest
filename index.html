@@ -811,6 +811,7 @@ footer .seo-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(170p
       <div class="selwrap"><select class="mini" id="cur" aria-label="Currency"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
       <div class="selwrap"><select class="mini" id="agent" aria-label="Agent"></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
       <div class="mast-div" aria-hidden="true"></div>
+      <button id="pc-mycnbox-btn" class="pc-mycnbox-btn" type="button">Make an account with MyCNBox</button><script>try{if(localStorage.getItem("pc.mycnbox.cta")){var _mb=document.getElementById("pc-mycnbox-btn");_mb.parentNode.removeChild(_mb);}}catch(e){}</script>
       <button class="auth-btn" id="auth-btn" data-in="0">Sign in</button>
       <a class="icon-btn" href="https://discord.gg/Pf3zpG3E4" target="_blank" rel="noopener" aria-label="Discord" title="Join our Discord"><img src="https://icons.duckduckgo.com/ip3/discord.com.ico" alt="Discord" onerror="this.parentElement.innerHTML='&#128172;'"></a>
       <button class="theme-btn" id="theme" aria-label="Toggle light or dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg></button>
@@ -1902,7 +1903,7 @@ function renderFeatured(){
   const track=document.createElement("div"); track.className="strip-track";
   seq.forEach((p,idx)=>{
     const tl=document.createElement("button"); tl.className="ftile"; tl.type="button"; tl.setAttribute("aria-label",p.title);
-    if(p.img){ tl.innerHTML='<img class="fimg" src="'+esc(p.img)+'" alt="'+esc(altOf(p))+'" loading="lazy" onerror="this.remove()">'; }
+    if(p.img){ tl.innerHTML='<img class="fimg" src="'+esc(p.img)+'" alt="'+esc(altOf(p))+'" loading="'+(idx<8?'eager':'lazy')+'"'+(idx<3?' fetchpriority="high"':'')+' onerror="this.remove()">'; }
     else { tl.innerHTML='<canvas aria-hidden="true"></canvas>'; requestAnimationFrame(()=>drawTile(tl.querySelector("canvas"),p,idx)); }
     tl.addEventListener("click",()=>openDetail(p));
     track.appendChild(tl);
@@ -2412,7 +2413,8 @@ function wirePPFilters(){
   function convert(){ mark(CTA); var b=document.getElementById("pc-mycnbox-btn"); if(b&&b.parentNode) b.parentNode.removeChild(b); }
   function mountBtn(){
     if(has(CTA)) return;
-    if(document.getElementById("pc-mycnbox-btn")) return;
+    var ex=document.getElementById("pc-mycnbox-btn");   /* rendered in the HTML (no layout shift); just wire it up */
+    if(ex){ if(!ex.__pc){ ex.__pc=1; ex.addEventListener("click",function(){ convert(); window.open(URL,"_blank","noopener"); }); } return; }
     var anchor=document.getElementById("auth-btn");
     var host=document.querySelector(".mast-tools");
     if(!anchor && !host) return;
