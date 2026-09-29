@@ -7,6 +7,7 @@ import { renderBrand, renderCategory, renderAgent, renderOldMoney, renderBrands,
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
   "/how-to-order", "/how-to-order.html"]);
+const VERIFY = { "/googleaea131de20fbf72e.html": "google-site-verification: googleaea131de20fbf72e.html" };
 const PASS = /^\/(api|r|product)\/|^\/unsubscribe$/;
 
 function paged(fn, arg, nStr, base) {
@@ -19,6 +20,8 @@ export async function onRequest(ctx) {
   if (request.method !== "GET" && request.method !== "HEAD") return ctx.next();
   const url = new URL(request.url);
   const path = url.pathname;
+  // Search-engine ownership files, answered here so Pages' ".html -> pretty URL" redirect can't get in the way.
+  if (VERIFY[path]) return new Response(VERIFY[path], { headers: { "content-type": "text/html; charset=utf-8" } });
   if (PASS.test(path)) return ctx.next();
   if (path.length > 1 && path.endsWith("/")) return Response.redirect(url.origin + path.replace(/\/+$/, "") + url.search, 301);
 
