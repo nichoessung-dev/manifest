@@ -92,7 +92,7 @@ export function card(p, lazy = true) {
   const src = imgSrc(p);
   return `<a class="c" href="${productUrl(p)}">` +
     `<span class="ci">${src ? `<img src="${esc(src)}" alt="${esc(p.title)}" width="300" height="375"${lazy ? ' loading="lazy"' : ""} decoding="async" onerror="this.remove()">` : ""}` +
-    `${p.qc >= 2 ? `<span class="qb">${p.qc > 99 ? "99+" : p.qc} QC</span>` : ""}</span>` +
+    `${p.qc >= 2 ? `<span class="qb">QC</span>` : ""}</span>` +
     `<span class="cb">${p.brand ? `<span class="cbr">${esc(p.brand)}</span>` : ""}<span class="ct">${esc(p.title)}</span><span class="cp">${money(p.usd)} <small>¥${p.cny}</small></span></span></a>`;
 }
 export const grid = (list, eager = 0) => `<div class="g">${list.map((p, i) => card(p, i >= eager)).join("")}</div>`;

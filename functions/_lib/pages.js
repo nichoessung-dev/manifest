@@ -43,13 +43,13 @@ export async function renderProduct(id, origin) {
     `<a class="${i === 0 ? "first" : ""}" href="${esc(a.build(p))}" target="_blank" rel="sponsored nofollow noopener">Buy via ${a.name}${i === 0 ? "<small>Most popular</small>" : ""}</a>`).join("");
   const plat = { weidian: "Weidian", taobao: "Taobao", "1688": "1688" }[p.platform] || p.platform;
   const desc = `${p.title}${p.brand ? "" : ""} rep for about ${money(p.usd)} (¥${p.cny}) on ${plat}` +
-    (p.qc ? ` with ${p.qc} buyer QC photos` : "") + `. Open it on MyCNBox, KakoBuy, Oopbuy or any shopping agent.`;
+    (p.qc ? " with buyer QC photos" : "") + `. Open it on MyCNBox, KakoBuy, Oopbuy or any shopping agent.`;
   const sameBrand = bUrl ? (byBrand.get(p.brand) || []).filter(x => x.id !== p.id).slice(0, 8) : [];
   const sameCat = (byCat.get(p.cat) || []).filter(x => x.id !== p.id && x.brand !== p.brand).slice(0, 8);
   const about = `<p>The <strong>${esc(p.title)}</strong> is a ${esc((cat.name || "").toLowerCase())} find${p.brand ? ` in the ${esc(p.brand)} style` : ""} listed on ${plat}` +
     (p.seller && !/marketplace/i.test(p.seller) ? ` by ${esc(p.seller)}` : "") + `. The listed price is ¥${p.cny} (about ${money(p.usd)}) before shipping` +
     (variants.length ? `, and it comes in ${variants.length} option${variants.length > 1 ? "s" : ""}: ${esc(variants.slice(0, 8).join(", "))}${variants.length > 8 ? "…" : ""}` : "") + `.</p>` +
-    (p.qc ? `<p>Buyers have shared <strong>${p.qc} QC photo${p.qc > 1 ? "s" : ""}</strong> of this listing, so you can check logos, stitching and colour before you order. When yours reaches the warehouse, your agent takes QC photos of your exact item too.</p>`
+    (p.qc ? `<p>Buyers have shared <strong>real QC photos</strong> of this listing, so you can check logos, stitching and colour before you order. When yours reaches the warehouse, your agent takes QC photos of your exact item too.</p>`
           : `<p>There are no buyer QC photos for this listing yet — once you order, your agent photographs your exact item at the warehouse before it ships, so you can still check it before paying for shipping.</p>`) +
     `<p>International shipping isn't included in the price; you pay it when you ship your parcel, and it depends on weight and your country.</p>`;
   const body = `${bc.html}
@@ -63,7 +63,7 @@ export async function renderProduct(id, origin) {
     <div class="price">${money(p.usd)}<small>¥${p.cny} · before shipping</small></div>
     <div class="buy">${agents}</div>
     <dl class="kv"><dt>Marketplace</dt><dd>${plat}</dd><dt>Category</dt><dd>${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(p.cat)}</dd>
-      ${variants.length ? `<dt>Options</dt><dd>${esc(variants.slice(0, 12).join(" · "))}</dd>` : ""}<dt>QC photos</dt><dd>${p.qc || "None yet"}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd></dl>
+      ${variants.length ? `<dt>Options</dt><dd>${esc(variants.slice(0, 12).join(" · "))}</dd>` : ""}<dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc ? "Yes" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd></dl>
     <p><a href="/#p/${encodeURIComponent(p.id)}" style="color:var(--accent)">Open in the catalogue →</a></p>
   </div>
 </div>
@@ -87,7 +87,7 @@ function hub({ path, n, list, title, desc, h1, intro, trail, chips = "", extra =
   const qcTotal = list.reduce((s, p) => s + (p.qc || 0), 0);
   const body = `${bc.html}<h1>${esc(h1)}${n > 1 ? ` <small style="color:var(--muted);font-size:.5em">page ${n}</small>` : ""}</h1>
 ${n === 1 ? `<div class="prose">${intro}</div>` : ""}
-<div class="facts"><span>${(total || list.length).toLocaleString("en-US")} finds</span>${priceRange(list) ? `<span>${priceRange(list)}</span>` : ""}${qcTotal ? `<span>${qcTotal.toLocaleString("en-US")} buyer QC photos</span>` : ""}<span>Updated ${BUILT}</span></div>
+<div class="facts"><span>${(total || list.length).toLocaleString("en-US")} finds</span>${priceRange(list) ? `<span>${priceRange(list)}</span>` : ""}<span>Updated ${BUILT}</span></div>
 ${chips}
 ${grid(slice, n === 1 ? 4 : 0)}
 ${pager(path, n, pages)}
