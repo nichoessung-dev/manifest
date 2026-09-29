@@ -195,7 +195,7 @@ export function sitemapPages() {
   const { brandSlug } = idx();
   const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`),
     ...Object.values(CATS).map(c => "/category/" + c.slug), ...[...brandSlug.values()].map(s => "/brand/" + s),
-    ...Object.keys(GUIDES).map(s => "/guides/" + s), "/terms.html", "/privacy.html"];
+    ...Object.keys(GUIDES).map(s => "/guides/" + s), "/terms", "/privacy"];
   return xml(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `<url><loc>${SITE}${u}</loc><lastmod>${BUILT}</lastmod></url>`).join("\n")}\n</urlset>`);
 }
 export function sitemapProducts() {

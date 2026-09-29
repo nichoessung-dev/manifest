@@ -158,7 +158,7 @@ ${col("Categories", Object.values(CATS).filter(c => c.slug !== "toys").map(c => 
 ${col("Top brands", topBrands.map(b => [b + " reps", "/brand/" + brandSlug.get(b)]).concat([["All brands →", "/brands"]]))}
 ${col("Spreadsheets", [["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Old money reps", "/old-money"]])}
 ${col("Guides", GUIDE_LINKS.concat([["All guides →", "/guides"]]))}
-${col("Puro Classico", [["Browse all finds", "/"], ["Discord community", "https://discord.gg/Pf3zpG3E4"], ["Terms", "/terms.html"], ["Privacy", "/privacy.html"]])}
+${col("Puro Classico", [["Browse all finds", "/"], ["Discord community", "https://discord.gg/Pf3zpG3E4"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
 </div><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents may be affiliate links. Prices are shown as listed by the seller and can change. © Puro Classico</p></div></footer>`;
 }
 
