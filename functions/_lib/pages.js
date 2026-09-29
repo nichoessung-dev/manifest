@@ -91,7 +91,7 @@ ${sameBrand.length ? `<h2>More ${esc(p.brand)} finds</h2>${grid(sameBrand)}<p><a
 ${sameCat.length ? `<h2>Similar ${esc((cat.name || p.cat).toLowerCase())}</h2>${grid(sameCat)}${cUrl ? `<p><a href="${cUrl}" style="color:var(--accent)">All ${esc((cat.name || p.cat).toLowerCase())} →</a></p>` : ""}` : ""}`;
   const pageLd = { "@context": "https://schema.org", "@type": "ItemPage", name: p.title, url: SITE + productUrl(p), description: desc,
     primaryImageOfPage: src ? { "@type": "ImageObject", contentUrl: src } : undefined, isPartOf: { "@type": "WebSite", name: "Puro Classico", url: SITE + "/" } };
-  return page({ title: `${p.title} Rep — QC Photos & Buy on Any Agent · Puro Classico`, desc, path: productUrl(p), body,
+  return page({ title: `${p.title} Rep — ${p.qc ? "QC Photos & Buy on Any Agent" : "Price & Where to Buy"} · Puro Classico`, desc, path: productUrl(p), body,
     jsonld: [bc.data, pageLd], image: src || undefined, robots: indexable(p) ? "index,follow,max-image-preview:large" : "noindex,follow" });
 }
 
