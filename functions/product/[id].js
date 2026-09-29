@@ -30,7 +30,8 @@ export async function onRequestGet(context){
     " with real QC photos. Quality-checked, sourced from " + (p.seller || "China") +
     ". Open the listing on MyCNBox, KakoBuy, Oopbuy or any shopping agent.";
   const title = esc(rawTitle), desc = esc(rawDesc);
-  const img = esc(p.img || (SITE + "/og.png"));
+  const rawImg = p.img ? (/\.supabase\.co\/storage\/v1\/object\/public\//.test(p.img) ? SITE + "/api/img?u=" + encodeURIComponent(p.img) : p.img) : SITE + "/og.png";
+  const img = esc(rawImg);
 
   html = html.replace(/<title>[\s\S]*?<\/title>/, "<title>" + title + "</title>");
   html = html.replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="' + desc + '">');
@@ -48,7 +49,7 @@ export async function onRequestGet(context){
     "@context":"https://schema.org","@type":"Product",
     "name": p.title, "sku": id, "url": url,
     "description": rawDesc,
-    "image": p.img ? [p.img] : undefined,
+    "image": p.img ? [rawImg] : undefined,
     "brand": p.brand ? {"@type":"Brand","name":p.brand} : undefined,
     "category": p.cat || undefined,
     "offers": {"@type":"Offer","price": usd.toFixed(2), "priceCurrency":"USD","availability":"https://schema.org/InStock","url": url}
