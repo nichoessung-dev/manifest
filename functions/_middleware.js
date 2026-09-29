@@ -1,6 +1,6 @@
 // Routes the server-rendered SEO pages (hubs, guides, sitemaps) and turns the SPA's catch-all
 // "200 + homepage" for unknown paths into a real 404, so Google doesn't see soft-404 duplicates.
-import { notFound } from "./_lib/site.js";
+import { notFound, ensureStats } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderOldMoney, renderBrands, renderGuides, renderGuide,
   sitemapIndex, sitemapPages, sitemapProducts } from "./_lib/pages.js";
 
@@ -26,6 +26,7 @@ export async function onRequest(ctx) {
   if (path.length > 1 && path.endsWith("/")) return Response.redirect(url.origin + path.replace(/\/+$/, "") + url.search, 301);
 
   let m, res = undefined;
+  if (/^\/(brand|category|brands|old-money|guides)|^\/[a-z]+-spreadsheet/.test(path)) await ensureStats(url.origin);
   if (path === "/sitemap.xml") return sitemapIndex();
   if (path === "/sitemap-pages.xml") return sitemapPages();
   if (path === "/sitemap-products.xml") return sitemapProducts();
