@@ -70,6 +70,7 @@ export function rawImg(p) {
 }
 export function imgSrc(p) {
   const r = rawImg(p); if (!r) return "";
+  if (r.charAt(0) === "/") return SITE + r;            // images hosted on the site itself (/img/p/<id>.webp)
   return /\.supabase\.co\/storage\/v1\/object\/public\//.test(r) ? SITE + "/api/img?u=" + encodeURIComponent(r) : r;
 }
 export const productUrl = p => "/product/" + encodeURIComponent(p.id);
