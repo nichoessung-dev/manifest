@@ -6,7 +6,7 @@ import { renderBrand, renderCategory, renderAgent, renderOldMoney, renderBrands,
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
-  "/how-to-order", "/how-to-order.html"]);
+  "/how-to-order", "/how-to-order.html", "/admin", "/admin.html"]);
 const VERIFY = { "/googleaea131de20fbf72e.html": "google-site-verification: googleaea131de20fbf72e.html" };
 const PASS = /^\/(api|r|product)\/|^\/unsubscribe$/;
 
