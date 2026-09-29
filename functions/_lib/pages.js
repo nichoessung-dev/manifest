@@ -102,7 +102,7 @@ export function renderBrand(s, n) {
   const b = slugBrand.get(s); if (!b) return null;
   const list = byBrand.get(b);
   const cats = [...new Set(list.map(p => p.cat))].filter(c => CATS[c]);
-  const intro = BRAND_INTRO[b] || `<p>${list.length} ${esc(b)} finds from Weidian, Taobao and 1688 sellers, sorted with the most QC'd and most popular listings first. Prices run from ${priceRange(list)} before shipping.</p><p>Tap any find to see the listing details, buyer QC photos and buy links for MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo.</p>`;
+  const intro = BRAND_INTRO[b] || `<p>${list.length} ${esc(b)} finds from Weidian, Taobao and 1688 sellers, sorted with the most viewed listings first. Prices run from ${priceRange(list)} before shipping.</p><p>Tap any find to see the listing details, buyer QC photos and buy links for MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo.</p>`;
   const others = [...brandSlug.keys()].filter(x => x !== b).sort((a, c) => byBrand.get(c).length - byBrand.get(a).length).slice(0, 16);
   const extra = `<h2>How to buy ${esc(b)} reps</h2><div class="prose"><p>Open a find, tap <strong>Buy via MyCNBox</strong> (or your agent), pick your size and pay for the item plus delivery to the warehouse. Check the QC photos before shipping — see <a href="/guides/how-to-qc">how to read QC photos</a> — then combine your items into one parcel. New to this? <a href="/how-to-order">Watch the how-to-order video</a>.</p></div>
 <h2>Other brands</h2><div class="chips">${others.map(x => `<a href="/brand/${brandSlug.get(x)}">${esc(x)}</a>`).join("")}<a href="/brands">All brands →</a></div>`;
@@ -122,7 +122,7 @@ export function renderCategory(s, n) {
   const extra = `<h2>Top brands in ${esc(meta.name.toLowerCase())}</h2><div class="chips">${topBrands.map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}</div>
 <h2>Other categories</h2><div class="chips">${Object.values(CATS).filter(x => x.slug !== s && x.slug !== "toys").map(x => `<a href="/category/${x.slug}">${esc(x.name)}</a>`).join("")}</div>`;
   return hub({ path: "/category/" + s, n, list, title: `${meta.h} — ${list.length.toLocaleString("en-US")} Finds (2026) · Puro Classico`,
-    desc: `${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds with prices, buyer QC photos and agent links, sorted by most QC'd and most popular.`,
+    desc: `${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds with prices, buyer QC photos and agent links, sorted by most viewed.`,
     h1: meta.h, intro: CAT_INTRO[c] || "", trail: [["Home", "/"], [meta.name, "/category/" + s]], extra });
 }
 

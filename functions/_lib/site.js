@@ -9,13 +9,23 @@ export { BUILT };
 // ------------------------------------------------------------------ data
 export const P = ROWS.map(r => ({ id: r[0], title: r[1], brand: r[2], cat: r[3], platform: r[4], seller: r[5], usd: r[6], cny: r[7],
   qc: r[8], best: r[9], views: r[10], img: r[11], g: r[12], itemId: r[13], variants: r[14] }));
-export const score = p => p.best * 1e7 + Math.min(p.qc, 9999) * 1e3 + Math.min(p.views, 999);
+// Real view stats (data/stats.json, refreshed every 6h by the Stats workflow): { id: [all, 30d, 7d, favourites] }
+let VIEWS = {}, VIEWS_AT = 0, VIEWS_VER = 0;
+export async function ensureStats(origin) {
+  if (Date.now() - VIEWS_AT < 10 * 60 * 1000) return;
+  VIEWS_AT = Date.now();
+  try { const r = await fetch(origin + "/data/stats.json"); if (r.ok) { const s = await r.json(); if (s && s.p) { VIEWS = s.p; VIEWS_VER++; } } } catch (e) {}
+}
+// Popularity = views (30 days, last 7 days count double), then favourites, all-time views, curated best-of, QC count.
+export const score = p => { const v = VIEWS[p.id] || [0, 0, 0, 0];
+  return Math.min(v[1] + v[2], 99999) * 1e9 + Math.min(v[3], 999) * 1e6 + Math.min(v[0], 999) * 1e3 + p.best * 500 + Math.min(p.qc, 499); };
 // Only products with real QC photos (or hand-curated ones) are indexable; the rest are noindex,follow.
 export const indexable = p => p.qc >= 1 || p.best === 1;
 
-let _idx = null;
+let _idx = null, _idxVer = -1;
 export function idx() {
-  if (_idx) return _idx;
+  if (_idx && _idxVer === VIEWS_VER) return _idx;
+  _idxVer = VIEWS_VER;
   const byId = new Map(), byBrand = new Map(), byCat = new Map();
   for (const p of P) {
     byId.set(p.id, p);
