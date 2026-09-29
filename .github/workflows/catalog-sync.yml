@@ -1,0 +1,40 @@
+name: Catalog sync
+# Whenever index.html (the catalogue) changes, regenerate the files derived from it:
+#   functions/_lib/catalog.js  -> server-rendered product pages, brand/category hubs, sitemaps
+#   products.json               -> newsletter, Discord and Telegram drop scripts
+on:
+  push:
+    branches: [main]
+    paths: ['index.html', 'scripts/gen_catalog.py', 'scripts/sync_catalog.py']
+  workflow_dispatch: {}
+permissions:
+  contents: write            # to commit the regenerated files back
+concurrency:
+  group: catalog-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Regenerate catalogue files
+        run: |
+          python scripts/gen_catalog.py
+          python scripts/sync_catalog.py --no-thumbs
+      - name: Commit if changed
+        run: |
+          git add functions/_lib/catalog.js products.json sitemap.xml
+          if git diff --cached --quiet; then
+            echo "catalogue files already in sync"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            # no [skip ci]: Cloudflare Pages must deploy the regenerated files
+            git commit -m "chore: sync catalogue data from index.html"
+            git pull --rebase
+            git push
+          fi
