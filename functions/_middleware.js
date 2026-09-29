@@ -1,7 +1,7 @@
 // Routes the server-rendered SEO pages (hubs, guides, sitemaps) and turns the SPA's catch-all
 // "200 + homepage" for unknown paths into a real 404, so Google doesn't see soft-404 duplicates.
 import { notFound, ensureStats } from "./_lib/site.js";
-import { renderBrand, renderCategory, renderAgent, renderOldMoney, renderBrands, renderGuides, renderGuide,
+import { renderBrand, renderCategory, renderAgent, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
   sitemapIndex, sitemapPages, sitemapProducts } from "./_lib/pages.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
@@ -26,13 +26,17 @@ export async function onRequest(ctx) {
   if (path.length > 1 && path.endsWith("/")) return Response.redirect(url.origin + path.replace(/\/+$/, "") + url.search, 301);
 
   let m, res = undefined;
-  if (/^\/(brand|category|brands|old-money|guides)|^\/[a-z]+-spreadsheet/.test(path)) await ensureStats(url.origin);
+  if (/^\/(brand|category|brands|old-money|guides|best)|^\/[a-z]+-spreadsheet/.test(path)) await ensureStats(url.origin);
   if (path === "/sitemap.xml") return sitemapIndex();
   if (path === "/sitemap-pages.xml") return sitemapPages();
   if (path === "/sitemap-products.xml") return sitemapProducts();
   if (path === "/brands") res = renderBrands();
   else if (path === "/guides") res = renderGuides();
   else if ((m = path.match(/^\/guides\/([a-z0-9-]+)$/))) res = renderGuide(m[1]);
+  else if (path === "/best") res = renderModels();
+  else if ((m = path.match(/^\/best\/([a-z0-9-]+)(?:\/(\d+))?$/))) res = paged(renderModel, m[1], m[2], url.origin + "/best/" + m[1]);
+  else if (path === "/tools") res = renderTools();
+  else if ((m = path.match(/^\/tools\/([a-z0-9-]+)$/))) res = renderTool(m[1]);
   else if ((m = path.match(/^\/brand\/([a-z0-9-]+)(?:\/(\d+))?$/))) res = paged(renderBrand, m[1], m[2], url.origin + "/brand/" + m[1]);
   else if ((m = path.match(/^\/category\/([a-z0-9-]+)(?:\/(\d+))?$/))) res = paged(renderCategory, m[1], m[2], url.origin + "/category/" + m[1]);
   else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet(?:\/(\d+))?$/))) res = paged(renderAgent, m[1], m[2], url.origin + `/${m[1]}-spreadsheet`);
