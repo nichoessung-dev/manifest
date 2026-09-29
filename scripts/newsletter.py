@@ -122,29 +122,46 @@ def run_welcome(profiles):
         time.sleep(0.3)
     print("welcome sent:", sent)
 
+ORDERING_SUBJECT = "How to order from Puro Classico (1:47 video)"
+VIDEO_PAGE = SITE + "/how-to-order"
+
 def ordering_html(uid):
-    """Build the 'How to order' guide email HTML for the given user id (used by the real send + the test send)."""
+    """Build the 'How to order' email: the video guide (phone thumbnail on phones, 16:9 on desktop) + the 6 steps in short.
+    Used by the real send and the test send."""
     steps = [
-        ("1", "Pick an agent", "An agent is the middleman that buys the item in China and ships it to you. Grab a new-member coupon bundle from the Welcome bonus page, then create a free account.", SITE + "/#welcome-bonus", "See welcome bonuses"),
-        ("2", "Find your item, tap Buy", "Browse Puro Classico, open any find and tap <b>Buy via your agent</b>. The link opens the exact listing inside your agent, pre-filled - nothing to copy or paste.", None, None),
-        ("3", "Agent buys & checks it", "Pay your agent for the item. They order it from the seller, receive it into your personal warehouse and take <b>QC photos</b> so you can inspect it before it ever leaves China.", None, None),
-        ("4", "Approve QC, then ship", "Happy with the QC photos? Choose a courier, and the agent packs and ships your parcel. Order a few things first and <b>consolidate</b> them into one box to save a lot on shipping.", None, None),
+        ("1", "Create your free MyCNBox account", "Sign up through Puro Classico and unlock up to $500 in new-user coupons."),
+        ("2", "Tap <b>Buy via MyCNBox</b>", "Open any find on Puro Classico. The exact listing opens inside MyCNBox, pre-filled."),
+        ("3", "Pick size &amp; colour, check out", "You only pay for the item + delivery to the warehouse in China. International shipping comes later."),
+        ("4", "Check your QC photos", "Real photos appear under Warehouse. Check logos, stitching, colour and the size tag."),
+        ("5", "Submit packing &amp; pay shipping", "Combine your items into one parcel, choose a carrier and apply your coupon."),
+        ("6", "Track it under Parcels", "It leaves the warehouse within 24 hours and usually arrives in 1-3 weeks."),
     ]
     rows = ""
-    for n, h, b, url, cta in steps:
-        btn = ('<div style="margin-top:10px;"><a href="%s" style="display:inline-block;padding:9px 20px;font-size:13px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:8px;">%s</a></div>' % (url, cta)) if url else ""
-        rows += ('<tr><td style="padding:0 0 22px;vertical-align:top;width:44px;">'
-                 '<div style="width:32px;height:32px;border-radius:50%%;background:#111;color:#fff;font-weight:700;font-size:15px;text-align:center;line-height:32px;">%s</div></td>'
-                 '<td style="padding:0 0 22px 6px;vertical-align:top;">'
-                 '<div style="font-size:16px;font-weight:650;color:#111;margin:4px 0 4px;">%s</div>'
-                 '<div style="font-size:14px;line-height:1.55;color:#555;">%s</div>%s</td></tr>') % (n, h, b, btn)
-    inner = ('<h1 style="margin:0 0 10px;font-size:22px;color:#111;font-weight:650;text-align:center;">How to order, in 4 steps</h1>'
-      '<p style="margin:0 auto 24px;font-size:15px;line-height:1.6;color:#444;max-width:440px;text-align:center;">First haul from China? It is easier than it looks. Here is the whole flow, start to finish.</p>'
+    for n, h, b in steps:
+        rows += ('<tr><td style="padding:0 0 16px;vertical-align:top;width:40px;">'
+                 '<div style="width:28px;height:28px;border-radius:50%%;background:#111;color:#fff;font-weight:700;font-size:13px;text-align:center;line-height:28px;">%s</div></td>'
+                 '<td style="padding:0 0 16px 4px;vertical-align:top;">'
+                 '<div style="font-size:15px;font-weight:650;color:#111;margin:3px 0 3px;">%s</div>'
+                 '<div style="font-size:13.5px;line-height:1.5;color:#555;">%s</div></td></tr>') % (n, h, b)
+    video = ('<a class="pcv-d" href="%s?f=landscape" style="display:block;text-decoration:none;">'
+             '<img src="%s/media/how-to-order-email.jpg" width="488" alt="Watch: How to order with MyCNBox (1:47)" style="display:block;width:100%%;max-width:488px;height:auto;border:0;border-radius:12px;margin:0 auto;"></a>'
+             '<!--[if !mso]><!--><a class="pcv-m" href="%s?f=portrait" style="display:none;max-height:0;overflow:hidden;text-decoration:none;">'
+             '<img src="%s/media/how-to-order-email-portrait.jpg" width="280" alt="Watch: How to order with MyCNBox (1:47)" style="display:block;width:280px;max-width:85%%;height:auto;border:0;border-radius:12px;margin:0 auto;"></a><!--<![endif]-->'
+             ) % (VIDEO_PAGE, SITE, VIDEO_PAGE, SITE)
+    inner = ('<h1 style="margin:0 0 10px;font-size:22px;color:#111;font-weight:650;text-align:center;">How to order your first find</h1>'
+      '<p style="margin:0 auto 20px;font-size:15px;line-height:1.6;color:#444;max-width:440px;text-align:center;">First haul from China? Watch the 1:47 video and you\'ll know the whole flow, from tapping Buy to tracking your parcel.</p>'
+      '<div style="text-align:center;">' + video + '</div>'
+      '<div style="text-align:center;margin:18px 0 6px;"><a href="' + VIDEO_PAGE + '" style="display:inline-block;padding:13px 30px;font-size:15px;font-weight:600;color:#fff;background:#E8322B;text-decoration:none;border-radius:10px;">&#9654;&nbsp; Watch the video</a></div>'
+      '<div style="height:1px;background:#ececea;margin:24px 0 20px;"></div>'
+      '<h2 style="margin:0 0 14px;font-size:16px;color:#111;font-weight:650;text-align:center;">The 6 steps in short</h2>'
       '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + rows + '</table>'
-      '<div style="height:1px;background:#ececea;margin:8px 0 22px;"></div>'
-      '<div style="text-align:center;"><a href="' + SITE + '" style="display:inline-block;padding:13px 32px;font-size:15px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Start browsing</a></div>'
+      '<div style="text-align:center;margin-top:6px;"><a href="' + MYCNBOX_URL + '" style="display:inline-block;padding:12px 26px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Claim your MyCNBox coupons</a></div>'
       '<p style="margin:18px auto 0;font-size:13.5px;line-height:1.6;color:#777;max-width:400px;text-align:center;">Stuck on anything? Ask in our <a href="https://discord.gg/Pf3zpG3E4" style="color:#5865F2;">Discord</a> - members share QC tips and haul reviews daily.</p>')
-    return wrap(inner, unsub_url(uid))
+    # Full document so the <style> sits in <head> (Gmail/Apple Mail/Outlook apps honour it): phones get the vertical thumbnail.
+    head = ('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+            '<style>@media only screen and (max-width:600px){.pcv-d{display:none!important;max-height:0!important;overflow:hidden!important}'
+            '.pcv-m{display:block!important;max-height:none!important;overflow:visible!important}}</style></head><body style="margin:0;padding:0;">')
+    return head + wrap(inner, unsub_url(uid)) + "</body></html>"
 
 def run_ordering(profiles):
     """Ordering guide - the 2nd email in the sequence, sent GUIDE_DELAY_MINUTES after the welcome.
@@ -161,7 +178,7 @@ def run_ordering(profiles):
     for pr in profiles:
         email = pr.get("email")
         if not email or not eligible(pr): continue
-        ok, msg = brevo_send(email, "How to order from Puro Classico (4 easy steps)", ordering_html(pr["id"]), unsub_url(pr["id"]))
+        ok, msg = brevo_send(email, ORDERING_SUBJECT, ordering_html(pr["id"]), unsub_url(pr["id"]))
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"ordering_sent": True}, {"Prefer": "return=minimal"})
             sent += 1; print("ordering ->", email)
@@ -175,7 +192,7 @@ def run_ordering_test(_profiles=None):
     """Send the ordering guide to a single TEST_EMAIL, ignoring DB gating and marking nothing. For previews."""
     email = os.environ.get("TEST_EMAIL", "").strip()
     if not email: print("TEST_EMAIL not set"); return
-    ok, msg = brevo_send(email, "How to order from Puro Classico (4 easy steps)", ordering_html("test"), None)
+    ok, msg = brevo_send(email, ORDERING_SUBJECT, ordering_html("test"), None)
     print(("ordering-test -> " + email) if ok else ("FAIL ordering-test " + email + " " + msg))
 
 def mycnbox_html(uid):
