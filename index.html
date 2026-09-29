@@ -623,7 +623,7 @@ footer a:hover{color:var(--ink)}
 .agent .agent-name{flex:0 1 auto}
 .buy-dd-item .agent-name{flex:1}
 .agent-badge{font-family:var(--f-mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
-.agent.primary .agent-badge{background:color-mix(in srgb,#fff 24%,transparent);color:#fff}
+.agent.primary .agent-badge{background:#E8322B;color:#fff}
 #pp-grid{margin-top:4px}
 
 
@@ -1579,6 +1579,8 @@ function __pcQC(p){
       arr.slice(0,8).map(function(u){var s=String(u).replace(/"/g,"&quot;");return '<button type="button" class="pc-qc-t" data-full="'+s+'"><img src="'+s+'" loading="lazy" decoding="async" alt="Buyer QC photo"></button>';}).join('')+
       '</div><p class="pc-qc-note">'+n+' buyer QC photos \u2014 tap to enlarge</p>';
     sec.querySelectorAll(".pc-qc-t").forEach(function(b){ b.addEventListener("click",function(){ __pcLB(b.getAttribute("data-full")); }); });
+    // qualit.ly 404s some of its own thumbnails: drop broken ones, hide the section if none load
+    sec.querySelectorAll(".pc-qc-t img").forEach(function(im){ var drop=function(){ var b=im.parentNode; if(b&&b.parentNode) b.parentNode.removeChild(b); if(!sec.querySelector(".pc-qc-t")) sec.hidden=true; }; if(im.complete&&!im.naturalWidth) drop(); else im.addEventListener("error",drop); });
     sec.hidden=false;
   }).catch(function(){});
 }
@@ -2276,17 +2278,15 @@ async function sendMagicGate(){
   try{ const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin}}); if(error)throw error; if(st)st.textContent=t("check_email"); }
   catch(e){ if(st)st.textContent=t("auth_off"); }
 }
-/* set language + currency from visitor country (first visit only) */
+/* set currency from visitor country (first visit only); language stays English unless the visitor picks one */
 async function geoDetect(){
   try{ if(localStorage.getItem("pc.geo")) return; }catch(e){ return; }
   let country="";
   try{ const r=await fetch("/api/geo",{cache:"no-store"}); if(r.ok){ const d=await r.json(); country=(d&&d.country||"").toUpperCase(); } }catch(e){}
   try{ localStorage.setItem("pc.geo","1"); }catch(e){}
   if(!country) return;
-  const CL={NO:"no",SE:"sv",DK:"da",DE:"de",AT:"de",CH:"de",LI:"de",FR:"fr",BE:"nl",NL:"nl",IT:"it",ES:"es",MX:"es",AR:"es",CN:"zh",HK:"zh",TW:"zh",SG:"zh"};
   const CC={NO:"NOK",SE:"SEK",DK:"DKK",GB:"GBP",US:"USD",CH:"CHF",PL:"PLN",CA:"CAD",AU:"AUD",JP:"JPY",CN:"CNY",DE:"EUR",FR:"EUR",IT:"EUR",ES:"EUR",NL:"EUR",BE:"EUR",AT:"EUR",IE:"EUR",PT:"EUR",FI:"EUR",GR:"EUR"};
   let changed=false;
-  if(CL[country]&&LANGS[CL[country]]){ state.lang=CL[country]; changed=true; }
   if(CC[country]&&CUR[CC[country]]){ state.cur=CC[country]; changed=true; }
   if(changed){ try{save();}catch(e){} try{applyStatic();}catch(e){} try{buildFilters();}catch(e){} try{render();}catch(e){} document.documentElement.lang=state.lang; }
 }
