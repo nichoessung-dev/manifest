@@ -10,6 +10,12 @@
 /*.png
   Cache-Control: public, max-age=604800, stale-while-revalidate=86400
 
+/img/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/media/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
 /products.json
   Cache-Control: public, max-age=600, stale-while-revalidate=3600
 
