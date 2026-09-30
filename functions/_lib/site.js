@@ -189,6 +189,7 @@ ${col("Puro Classico", [["Browse all finds", "/"], ["Discord community", "https:
 
 export function page({ title, desc, path, body, jsonld = [], robots = "index,follow,max-image-preview:large", image, status = 200, extraHead = "" }) {
   const url = SITE + path;
+  if (title.length > 65 && title.endsWith(" · Puro Classico")) title = title.slice(0, -" · Puro Classico".length);   // keep long titles within what Google shows
   const img = image || SITE + "/og.png";
   const html = `<!DOCTYPE html>
 <html lang="en">

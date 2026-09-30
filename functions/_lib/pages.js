@@ -125,7 +125,7 @@ export function renderBrand(s, n) {
   const others = [...brandSlug.keys()].filter(x => x !== b).sort((a, c) => byBrand.get(c).length - byBrand.get(a).length).slice(0, 16);
   const extra = `<h2>How to buy ${esc(b)} reps</h2><div class="prose"><p>Open a find, tap <strong>Buy via MyCNBox</strong> (or your agent), pick your size and pay for the item plus delivery to the warehouse. Check the QC photos before shipping — see <a href="/guides/how-to-qc">how to read QC photos</a> — then combine your items into one parcel. New to this? <a href="/how-to-order">Watch the how-to-order video</a>.</p></div>
 <h2>Other brands</h2><div class="chips">${others.map(x => `<a href="/brand/${brandSlug.get(x)}">${esc(x)}</a>`).join("")}<a href="/brands">All brands →</a></div>`;
-  return hub({ path: "/brand/" + s, n, list, title: `${b} Reps Spreadsheet 2026 — ${list.length.toLocaleString("en-US")} ${b} Finds · Puro Classico`,
+  return hub({ path: "/brand/" + s, n, list, title: `${b} Reps Spreadsheet 2026 — ${list.length.toLocaleString("en-US")} Finds · Puro Classico`,
     desc: `${list.length.toLocaleString("en-US")} ${b} rep finds with prices (${priceRange(list)}) and buyer QC photos. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.`,
     h1: `${b} reps`, intro, trail: [["Home", "/"], ["Brands", "/brands"], [b, "/brand/" + s]],
     chips: (bm.length ? `<div class="chips">${bm.map(m => `<a href="/best/${m.slug}" style="border-color:var(--accent)">Best ${esc(m.name)} reps</a>`).join("")}</div>` : "") + (cats.length > 1 ? `<div class="chips">${cats.map(c => `<a href="${catUrl(c)}">${esc(CATS[c].name)}</a>`).join("")}</div>` : ""), extra,
