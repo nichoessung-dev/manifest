@@ -59,7 +59,9 @@ export async function renderProduct(id, origin) {
   const agents = Object.entries(AGENTS).map(([k, a], i) =>
     `<a class="${i === 0 ? "first" : ""}" href="${esc(a.build(p))}" target="_blank" rel="sponsored nofollow noopener">Buy via ${a.name}${i === 0 ? "<small>Most popular</small>" : ""}</a>`).join("");
   const plat = { weidian: "Weidian", taobao: "Taobao", "1688": "1688" }[p.platform] || p.platform;
-  const desc = `${p.title}${p.brand ? "" : ""} rep for about ${money(p.usd)} (¥${p.cny}) on ${plat}` +
+  const dup = (idx().titleCount.get(((p.brand || "") + "|" + p.title).toLowerCase()) || 1) > 1;
+  const tName = dup ? `${p.title} (${plat}, ${money(p.usd)})` : p.title;
+  const desc = `${p.title} rep for about ${money(p.usd)} (¥${p.cny}) on ${plat}` + (dup && p.seller && !/marketplace/i.test(p.seller) ? ` from seller ${p.seller}` : "") +
     (p.qc ? " with buyer QC photos" : "") + `. Open it on MyCNBox, KakoBuy, Oopbuy or any shopping agent.`;
   const sameBrand = bUrl ? (byBrand.get(p.brand) || []).filter(x => x.id !== p.id).slice(0, 8) : [];
   const sameCat = (byCat.get(p.cat) || []).filter(x => x.id !== p.id && x.brand !== p.brand).slice(0, 8);
@@ -91,7 +93,7 @@ ${sameBrand.length ? `<h2>More ${esc(p.brand)} finds</h2>${grid(sameBrand)}<p><a
 ${sameCat.length ? `<h2>Similar ${esc((cat.name || p.cat).toLowerCase())}</h2>${grid(sameCat)}${cUrl ? `<p><a href="${cUrl}" style="color:var(--accent)">All ${esc((cat.name || p.cat).toLowerCase())} →</a></p>` : ""}` : ""}`;
   const pageLd = { "@context": "https://schema.org", "@type": "ItemPage", name: p.title, url: SITE + productUrl(p), description: desc,
     primaryImageOfPage: src ? { "@type": "ImageObject", contentUrl: src } : undefined, isPartOf: { "@type": "WebSite", name: "Puro Classico", url: SITE + "/" } };
-  return page({ title: `${p.title} Rep — ${p.qc ? "QC Photos & Buy on Any Agent" : "Price & Where to Buy"} · Puro Classico`, desc, path: productUrl(p), body,
+  return page({ title: `${tName} Rep — ${p.qc ? "QC Photos & Buy on Any Agent" : "Price & Where to Buy"} · Puro Classico`, desc, path: productUrl(p), body,
     jsonld: [bc.data, pageLd], image: src || undefined, robots: indexable(p) ? "index,follow,max-image-preview:large" : "noindex,follow" });
 }
 

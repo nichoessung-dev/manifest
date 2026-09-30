@@ -37,7 +37,9 @@ export function idx() {
   const all = P.slice().sort((a, b) => score(b) - score(a));
   const brandSlug = new Map(), slugBrand = new Map();
   for (const [b, l] of byBrand) if (l.length >= BRAND_MIN) { const s = slug(b); brandSlug.set(b, s); slugBrand.set(s, b); }
-  _idx = { byId, byBrand, byCat, all, brandSlug, slugBrand };
+  const titleCount = new Map();   // listings sharing a title get a distinguishing suffix on their product page
+  for (const p of P) { const k = ((p.brand || "") + "|" + p.title).toLowerCase(); titleCount.set(k, (titleCount.get(k) || 0) + 1); }
+  _idx = { byId, byBrand, byCat, all, brandSlug, slugBrand, titleCount };
   return _idx;
 }
 export const BRAND_MIN = 20;   // a brand gets its own hub page from this many finds
