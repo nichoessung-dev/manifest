@@ -16,3 +16,9 @@ export async function onRequestGet(context) {
     },
   });
 }
+
+// Pages doesn't route HEAD to onRequestGet (it would fall through to the SPA's 200 text/html).
+export async function onRequestHead(context) {
+  const r = await onRequestGet(context);
+  return new Response(null, { status: r.status, headers: r.headers });
+}
