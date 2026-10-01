@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="/favicon.png">
+<meta name="theme-color" content="#0C1220">
 <title>Privacy &amp; Cookies – Puro Classico</title>
 <link rel="canonical" href="https://www.puroclassico.com/privacy">
 <meta name="description" content="Privacy & cookies policy for Puro Classico – what we collect, how we use it, and your GDPR rights.">
@@ -10,10 +12,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script>(function(){var t;try{t=localStorage.getItem("manifest.theme");}catch(e){}document.documentElement.setAttribute("data-theme",(t==="light"||t==="dark")?t:"dark");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",document.documentElement.getAttribute("data-theme")==="light"?"#F6F8FB":"#0C1220");})();</script>
 <style>
 :root{
   --ground:#F6F8FB; --surface:#FFFFFF; --surface-2:#EDF1F7;
-  --ink:#16203A; --muted:#5A6478; --faint:#98A2B4;
+  --ink:#16203A; --muted:#5A6478; --faint:#646E81;
   --line:#E2E7F0; --accent:#2E4B86; --radius:9px;
   --f-disp:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -28,6 +31,8 @@
   --ink:#E9EDF5; --muted:#93A0B7; --faint:#5E6B84;
   --line:#22304C; --accent:#7C9BE0;
 }
+:root{color-scheme:light}
+[data-theme="dark"]{color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-disp);line-height:1.62;-webkit-font-smoothing:antialiased}
 .topbar{position:sticky;top:0;z-index:5;backdrop-filter:saturate(1.4) blur(12px);background:color-mix(in srgb,var(--ground) 82%,transparent);border-bottom:1px solid var(--line)}
@@ -61,9 +66,8 @@ footer a{color:var(--muted)}
 <div class="wrap">
 <p class="eyebrow">Legal</p>
 <h1>Privacy &amp; Cookies</h1>
-<div class="updated">Last updated: 12 September 2026</div>
+<div class="updated">Last updated: 1 October 2026</div>
 
-<div class="note">Template for review. This is a generic starting point, not legal advice. Because you are in the EEA, have a qualified professional check it against the GDPR and Norwegian rules before you rely on it.</div>
 
 <div class="card">
 <h2>1. Who we are</h2>
@@ -73,20 +77,24 @@ footer a{color:var(--muted)}
 <ul>
 <li><b>Account:</b> your email address, so you can sign in. If you use Google or Discord sign-in, we receive your email and a basic profile identifier from them.</li>
 <li><b>Your activity:</b> the items you save and the comments you post.</li>
+<li><b>Usage:</b> which product pages are opened (product, brand and category, linked to your account if you are signed in), used to rank popular items. We also count how many people are viewing the site right now, using a random identifier that is not linked to you.</li>
+<li><b>Marketing emails:</b> only if you opt in (the "Email me new drops &amp; deals" box or the "Notify me" prompt), we use your email address to send occasional emails about new drops and deals. Every email has an unsubscribe link, and you can also ask us to stop on Discord.</li>
+<li><b>Referrals:</b> if you arrive through a referral link, we note which referral code brought you when you create an account.</li>
 <li><b>Technical:</b> standard server and security data (such as IP address) processed by our hosting provider.</li>
 </ul>
 <p>We do not collect payment details. Purchases happen entirely on your agent's site.</p>
 
 <h2>3. Cookies and local storage</h2>
-<p>We use only what the site needs to work:</p>
+<p>We use only what the site needs to work, plus a referral cookie when you use a referral link:</p>
 <table>
 <tr><td><b>Sign-in</b></td><td>Set by our authentication provider (Supabase) to keep you logged in.</td></tr>
+<tr><td><b>Referral (pc_ref)</b></td><td>A first-party cookie set only when you open a referral link (/r/&hellip;). It stores the referral code for 30 days so the referrer can be credited.</td></tr>
 <tr><td><b>Preferences</b></td><td>Your language, currency, theme and saved items are stored in your browser (local storage).</td></tr>
 </table>
 <p>We do not currently use advertising or third-party tracking cookies. If that changes, we will ask for your consent first.</p>
 
 <h2>4. Who we share with</h2>
-<p>Service providers that run the site on our behalf: Supabase (accounts, database), Cloudflare (hosting, security), qualit.ly (product and QC data), and Google or Discord if you choose their sign-in. We do not sell your data.</p>
+<p>Service providers that run the site on our behalf: Supabase (accounts, database), Cloudflare (hosting, security), Brevo (sending marketing emails, only if you opted in), qualit.ly (product and QC data), and Google or Discord if you choose their sign-in. We do not sell your data.</p>
 
 <h2>5. Your rights</h2>
 <p>Under the GDPR you can request access to your data, correction, deletion, or a copy to take elsewhere, and you can object to certain processing. To exercise any of these, message us on our Discord. You can also delete your comments and saved items yourself while signed in, and you may complain to the Norwegian Data Protection Authority (Datatilsynet).</p>

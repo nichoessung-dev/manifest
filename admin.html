@@ -27,6 +27,9 @@
   td a{color:var(--text);text-decoration:none}td a:hover{color:var(--accent)}
   .brand{color:var(--muted);font-size:12px}
   .muted{color:var(--muted)}
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px}
+  input{max-width:100%}
+  tr.gone td{opacity:.55}
 </style>
 </head>
 <body>
@@ -52,30 +55,36 @@
   ]);
   if(!stats){ $("#gen").textContent="No stats yet — run the Stats workflow in GitHub Actions."; return; }
   const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  const T=stats.totals||{};
-  $("#gen").innerHTML=`Updated ${new Date(stats.generated).toLocaleString()} · ${T.products_viewed||0} products viewed at least once · <a href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fwww.puroclassico.com%2F" target="_blank" rel="noopener">Search Console →</a>`;
+  /* tolerate a partial/empty stats.json (e.g. {} or a run that failed half-way) */
+  stats.daily=Array.isArray(stats.daily)?stats.daily.filter(d=>Array.isArray(d)):[];
+  stats.p=stats.p&&typeof stats.p==="object"?stats.p:{};
+  const T=stats.totals&&typeof stats.totals==="object"?stats.totals:{};
+  const gd=stats.generated?new Date(stats.generated):null, when=gd&&!isNaN(gd)?gd.toLocaleString():"unknown";
+  $("#gen").innerHTML=`Updated ${when} · ${T.products_viewed||0} products viewed at least once · <a href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fwww.puroclassico.com%2F" target="_blank" rel="noopener">Search Console →</a>`;
   const card=(n,l)=>`<div class="card"><div class="n">${(n||0).toLocaleString()}</div><div class="l">${l}</div></div>`;
   $("#cards").innerHTML=card(T.views_7d,"Views · 7 days")+card(T.views_30d,"Views · 30 days")+card(T.views_all,"Views · all time")+card(T.favourites,"Favourites")+card(T.signed_in_viewers_30d,"Signed-in viewers · 30d");
-  const max=Math.max(1,...stats.daily.map(d=>d[1]));
-  $("#chart").innerHTML=stats.daily.map(([d,n])=>`<div title="${d}: ${n} views" style="height:${Math.round(n/max*100)}%"></div>`).join("");
-  fetch("/api/qc?usage=1").then(r=>r.ok?r.json():null).then(u=>{ if(!u) return;
+  const max=Math.max(1,...stats.daily.map(d=>+d[1]||0));
+  $("#chart").innerHTML=stats.daily.map(([d,n])=>{ n=+n||0; return `<div title="${esc(d)}: ${n} views" style="height:${Math.round(n/max*100)}%"></div>`; }).join("");
+  // QC quota: when ADMIN_TOKEN is set on the server, open /admin#token=... once to store it in this browser.
+  let qcTok=""; try{ const m=location.hash.match(/token=([^&]+)/); if(m){ localStorage.setItem("pc.admintoken",decodeURIComponent(m[1])); history.replaceState(null,"",location.pathname+location.search); } qcTok=localStorage.getItem("pc.admintoken")||""; }catch(e){}
+  fetch("/api/qc?usage=1",qcTok?{headers:{"x-admin-token":qcTok}}:{}).then(r=>r.ok?r.json():null).then(u=>{ if(!u) return;
     const flat=[]; (function walk(o,pre){ for(const [k,v] of Object.entries(o||{})){ if(v&&typeof v==="object") walk(v,pre+k+" "); else if(typeof v==="number"||typeof v==="string") flat.push([pre+k,v]); } })(u,"");
     const el=document.createElement("div"); el.className="card"; el.style.gridColumn="1/-1";
     el.innerHTML=`<div class="l" style="margin:0 0 6px">qualit.ly API quota (QC photos)</div><div style="display:flex;flex-wrap:wrap;gap:6px 18px">${flat.slice(0,12).map(([k,v])=>`<span><span class="muted">${esc(k.replace(/_/g," "))}:</span> <b>${esc(v)}</b></span>`).join("")}</div>`;
     $("#cards").appendChild(el); }).catch(()=>{});
-  const rows=Object.entries(stats.p).map(([id,v])=>{ const p=prods[id]||{}; const im=/\.supabase\.co\/storage\/v1\/object\/public\//.test(p.img||"")?"/api/img?u="+encodeURIComponent(p.img):(p.img||""); return {id,title:p.title||("#"+id),brand:p.brand||"",img:im,all:v[0],d30:v[1],d7:v[2],fav:v[3]}; });
+  const rows=Object.entries(stats.p).map(([id,v])=>{ v=Array.isArray(v)?v:[]; const gone=!prods[id]; const p=prods[id]||{}; const im=/\.supabase\.co\/storage\/v1\/object\/public\//.test(p.img||"")?"/api/img?u="+encodeURIComponent(p.img):(p.img||""); return {id,gone,title:p.title||("#"+id+" (removed)"),brand:p.brand||"",img:im,all:+v[0]||0,d30:+v[1]||0,d7:+v[2]||0,fav:+v[3]||0}; });
   let tab="7", q="";
   function draw(){
     const f=r=>!q||(r.title+" "+r.brand+" "+r.id).toLowerCase().includes(q);
     if(tab==="brand"){
-      const m={}; rows.forEach(r=>{ const b=r.brand||"(none)"; m[b]=m[b]||{b,d7:0,d30:0,all:0,fav:0,n:0}; const x=m[b]; x.d7+=r.d7;x.d30+=r.d30;x.all+=r.all;x.fav+=r.fav;x.n++; });
+      const m={}; rows.forEach(r=>{ if(r.gone) return; const b=r.brand||"(none)"; m[b]=m[b]||{b,d7:0,d30:0,all:0,fav:0,n:0}; const x=m[b]; x.d7+=r.d7;x.d30+=r.d30;x.all+=r.all;x.fav+=r.fav;x.n++; });
       const L=Object.values(m).filter(x=>!q||x.b.toLowerCase().includes(q)).sort((a,b)=>b.d30-a.d30||b.all-a.all).slice(0,200);
-      $("#tbl").innerHTML=`<table><tr><th>Brand</th><th class="n">Products viewed</th><th class="n">7d</th><th class="n">30d</th><th class="n">All</th><th class="n">★</th></tr>${L.map(x=>`<tr><td>${esc(x.b)}</td><td class="n">${x.n}</td><td class="n">${x.d7}</td><td class="n">${x.d30}</td><td class="n">${x.all}</td><td class="n">${x.fav}</td></tr>`).join("")}</table>`;
+      $("#tbl").innerHTML=`<div class="tw"><table><tr><th>Brand</th><th class="n">Products viewed</th><th class="n">7d</th><th class="n">30d</th><th class="n">All</th><th class="n">★</th></tr>${L.map(x=>`<tr><td>${esc(x.b)}</td><td class="n">${x.n}</td><td class="n">${x.d7}</td><td class="n">${x.d30}</td><td class="n">${x.all}</td><td class="n">${x.fav}</td></tr>`).join("")}</table></div>`;
       return;
     }
     const key={"7":"d7","30":"d30","all":"all","fav":"fav"}[tab];
     const L=rows.filter(f).sort((a,b)=>b[key]-a[key]||b.d30-a.d30||b.all-a.all).slice(0,300);
-    $("#tbl").innerHTML=`<table><tr><th>#</th><th></th><th>Product</th><th class="n">7d</th><th class="n">30d</th><th class="n">All</th><th class="n">★</th></tr>${L.map((r,i)=>`<tr><td class="muted">${i+1}</td><td>${r.img?`<img src="${esc(r.img)}" loading="lazy" alt="">`:""}</td><td><a href="/product/${encodeURIComponent(r.id)}" target="_blank">${esc(r.title)}</a><div class="brand">${esc(r.brand)} · ${esc(r.id)}</div></td><td class="n">${r.d7}</td><td class="n">${r.d30}</td><td class="n">${r.all}</td><td class="n">${r.fav}</td></tr>`).join("")}</table>`;
+    $("#tbl").innerHTML=`<div class="tw"><table><tr><th>#</th><th></th><th>Product</th><th class="n">7d</th><th class="n">30d</th><th class="n">All</th><th class="n">★</th></tr>${L.map((r,i)=>`<tr${r.gone?' class="gone"':''}><td class="muted">${i+1}</td><td>${r.img?`<img src="${esc(r.img)}" loading="lazy" alt="">`:""}</td><td>${r.gone?`<span class="muted">${esc(r.title)}</span>`:`<a href="/product/${encodeURIComponent(r.id)}" target="_blank">${esc(r.title)}</a>`}<div class="brand">${esc(r.brand)} · ${esc(r.id)}</div></td><td class="n">${r.d7}</td><td class="n">${r.d30}</td><td class="n">${r.all}</td><td class="n">${r.fav}</td></tr>`).join("")}</table></div>`;
   }
   document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{ document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b)); tab=b.dataset.k; draw(); });
   $("#q").oninput=e=>{ q=e.target.value.trim().toLowerCase(); draw(); };

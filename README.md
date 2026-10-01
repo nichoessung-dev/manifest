@@ -42,3 +42,5 @@ Cloudflare Pages.
 ## Database
 Already created in Supabase: `profiles`, `favorites`, `comments` (with row-level
 security) and a `star_counts()` function that powers the public star counter.
+Not yet created: `link_reports` ("Report broken link" in the product drawer) —
+run `scripts/link_reports.sql` in the Supabase SQL editor.
