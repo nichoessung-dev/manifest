@@ -43,7 +43,6 @@ export const BRAND_INTRO2 = {
   "Fear of God": b("Fear of God mainline finds (separate from Essentials) include hoodies, relaxed trousers and outerwear.", "fabric weight, the relaxed fit and branding details."),
   "Travis Scott": b("Travis Scott finds include Cactus Jack merch and the reverse-swoosh sneaker collaborations.", "the reverse swoosh placement and shape, suede quality and the tongue and heel details."),
   "Lululemon": b("Lululemon finds are athletic pieces like the ABC pants and Define jacket.", "fabric stretch and feel, the reflective logo and the waistband."),
-  "Essential": `<p>More Fear of God Essentials finds. See also the main <a href="/brand/essentials">Essentials reps</a> page.</p><p><strong>What to check in QC:</strong> the rubberised chest logo, fabric weight and the oversized fit.</p>`,
   "Kith": b("Kith finds are box-logo hoodies, tees and caps.", "box-logo embroidery and letter spacing, fabric weight and colour."),
   "Cole Buxton": b("Cole Buxton is the London label for heavyweight, minimal basics: hoodies, tees and sweatpants.", "fabric weight and texture, the small logo detail and the boxy fit."),
   "Calvin Klein": b("Calvin Klein finds are mostly underwear, jeans and basics.", "the waistband logo, fabric feel and the size tag."),

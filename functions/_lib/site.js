@@ -7,7 +7,19 @@ export const MYCNBOX_INVITE = "https://mycnbox.com/login/main-login?inviteCode=A
 export { BUILT };
 
 // ------------------------------------------------------------------ data
-export const P = ROWS.map(r => ({ id: r[0], title: r[1], brand: r[2], cat: r[3], platform: r[4], seller: r[5], usd: r[6], cny: r[7],
+// Brand spelling variants -> one name (same map as scripts/clean_catalog.py and loadProducts() in index.html).
+// The catalogue is cleaned at build time; this is the safety net for rows imported before the next clean run.
+export const BRAND_ALIAS = { "Essential": "Essentials", "Arcteryx": "Arc'teryx", "Cp": "CP Company", "Cdg": "Comme des Garcons",
+  "Comme Des Garcons": "Comme des Garcons", "Comme des Garçons": "Comme des Garcons", "Ami Paris": "Ami", "Alo": "Alo Yoga",
+  "Purple": "Purple Brand", "Carhart": "Carhartt", "Merta": "Mertra", "Aime": "Aime Leon Dore", "PROJECT G/R": "Project GR",
+  "Parajumper": "Parajumpers", "ERD": "Enfants Riches Déprimés", "Polo": "Ralph Lauren" };
+function normBrand(p) {
+  if (p.brand === "Uncategorized") { p.brand = ""; p.title = String(p.title).replace(/^Uncategorized\s+/, ""); }
+  const nb = BRAND_ALIAS[p.brand];
+  if (nb) { if (p.title.startsWith(p.brand + " ") && !p.title.toLowerCase().startsWith(nb.toLowerCase() + " ")) p.title = nb + p.title.slice(p.brand.length); p.brand = nb; }
+  return p;
+}
+export const P = ROWS.map(r => normBrand({ id: r[0], title: r[1], brand: r[2], cat: r[3], platform: r[4], seller: r[5], usd: r[6], cny: r[7],
   qc: r[8], best: r[9], views: r[10], img: r[11], g: r[12], itemId: r[13], variants: r[14] }));
 // Real view stats (data/stats.json, refreshed every 6h by the Stats workflow): { id: [all, 30d, 7d, favourites] }
 let VIEWS = {}, VIEWS_AT = 0, VIEWS_VER = 0;
@@ -75,7 +87,11 @@ export const AGENTS = {
 // ------------------------------------------------------------------ helpers
 export const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 export const slug = s => String(s).toLowerCase().replace(/&/g, " and ").replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-export const money = n => "$" + (Math.round(n) || 0);
+// Prices: one source of truth — the CNY listing price × the same USD rate the SPA uses (CUR.USD.rate).
+// Seller placeholder prices (¥1–4 "ask me", ¥99,999+ "not for sale") are not real prices.
+export const USD_RATE = 0.14;
+export const isPH = cny => !(cny >= 5 && cny < 99999);
+export const money = cny => { const v = Math.round((+cny || 0) * USD_RATE); return isPH(cny) ? "Ask seller" : "$" + Math.max(1, v).toLocaleString("en-US"); };
 export function rawImg(p) {
   const i = p.img || ""; const k = i.charAt(0);
   return PREFIX[k] && i.charAt(1) !== ":" ? PREFIX[k] + i.slice(1) : i;
@@ -95,7 +111,7 @@ export function card(p, lazy = true) {
   return `<a class="c" href="${productUrl(p)}">` +
     `<span class="ci">${src ? `<img src="${esc(src)}" alt="${esc(p.title)}" width="300" height="375"${lazy ? ' loading="lazy"' : ""} decoding="async" onerror="this.remove()">` : ""}` +
     `${p.qc >= 2 ? `<span class="qb">QC</span>` : ""}</span>` +
-    `<span class="cb">${p.brand ? `<span class="cbr">${esc(p.brand)}</span>` : ""}<span class="ct">${esc(p.title)}</span><span class="cp">${money(p.usd)} <small>¥${p.cny}</small></span></span></a>`;
+    `<span class="cb">${p.brand ? `<span class="cbr">${esc(p.brand)}</span>` : ""}<span class="ct">${esc(p.title)}</span><span class="cp">${money(p.cny)}${isPH(p.cny) ? "" : ` <small>¥${p.cny}</small>`}</span></span></a>`;
 }
 export const grid = (list, eager = 0) => `<div class="g">${list.map((p, i) => card(p, i >= eager)).join("")}</div>`;
 
@@ -129,7 +145,7 @@ header.h .w{display:flex;align-items:center;gap:18px;height:64px}header.h img{he
 header.h nav{display:flex;gap:16px;font-size:15px;color:var(--muted);flex:1;overflow-x:auto;white-space:nowrap}header.h nav a{text-decoration:none}header.h nav a:hover{color:var(--text)}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:999px;font-weight:700;font-size:15px;text-decoration:none;border:1px solid var(--line)}
 .btn.red{background:var(--red);border-color:var(--red);color:#fff}.btn.light{background:#EEF2FA;color:#0C1220;border-color:#EEF2FA}
-.hcta{white-space:nowrap}@media(max-width:760px){.hcta{display:none}header.h nav{gap:12px;font-size:14px}}
+.hcta{white-space:nowrap}@media(max-width:760px){.hcta{display:none}header.h nav{gap:12px;font-size:14px}header.h .w{flex-wrap:wrap;height:auto;padding:10px 16px;row-gap:6px}header.h nav{flex-basis:100%;order:3;flex-wrap:wrap;white-space:normal;overflow:visible;gap:6px 14px}}
 main{padding:22px 0 60px}.bc{font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}.bc a{text-decoration:none}.bc a:hover{color:var(--text)}
 h1{font-size:clamp(28px,4.4vw,44px);line-height:1.08;margin:0 0 12px;letter-spacing:-.01em}h2{font-size:24px;margin:34px 0 12px}h3{font-size:18px;margin:22px 0 8px}
 .lead{color:#C9D2E6;font-size:17.5px;max-width:760px}.prose{max-width:780px;color:#D5DCEC}.prose p,.prose li{font-size:16.5px}.prose a{color:var(--accent)}
