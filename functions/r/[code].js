@@ -23,3 +23,8 @@ export async function onRequestGet(context){
   }
   return new Response(null, { status: 302, headers });
 }
+
+// HEAD (link previews, crawlers): same redirect + cookie, but don't count it as a click.
+export async function onRequestHead(context) {
+  return onRequestGet({ ...context, env: {} });
+}
