@@ -1240,7 +1240,9 @@ const BY_ID = Object.fromEntries(ALL.map(p=>[p.id,p]));
 let state = { plat:"all", cat:"all", cats:[], brand:"all", color:"all", price:"all", gender:"all", pmin:null, pmax:null, q:"", sort:"pop", lang:"en", cur:"USD", saved:false, username:"", agent:"mycnbox" };
 try{
   const _sv=localStorage.getItem("manifest.state");
-  if(_sv){ Object.assign(state, JSON.parse(_sv)); state.sort="pop"; }
+  if(_sv){ const _p=JSON.parse(_sv);
+    /* only preferences carry over between visits; every visit starts on the full catalogue, most viewed first */
+    ["lang","cur","agent","username"].forEach(k=>{ if(_p[k]!=null) state[k]=_p[k]; }); }
   else {
     const loc=(navigator.language||"en").toLowerCase(), lc=loc.split("-")[0], rg=(loc.split("-")[1]||"").toUpperCase();
     /* language auto-detect disabled: default to English (users can switch via the language picker) */
