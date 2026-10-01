@@ -50,3 +50,8 @@ export async function onRequestPost(context){
   await unsubscribe(context.env, u.searchParams.get("u"), u.searchParams.get("t"));
   return new Response("OK", { status: 200 });
 }
+
+// HEAD (link scanners/prefetchers): answer without unsubscribing anyone.
+export async function onRequestHead(){
+  return new Response(null, { status: 200, headers:{ "content-type":"text/html; charset=utf-8" }});
+}
