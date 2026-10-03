@@ -33,7 +33,7 @@ UA = {"User-Agent": "Mozilla/5.0 (PuroClassicoShorts/1.0; +https://www.puroclass
 PLAT = {"weidian": "Weidian", "taobao": "Taobao", "1688": "1688"}
 FORMATS = ["story", "relatable", "story", "guess", "story", "top5", "story", "qc", "story", "term", "story", "order"]
 FF = imageio_ffmpeg.get_ffmpeg_exe()
-VOICES = [v for v in (os.environ.get("SHORTS_VOICE", "").strip(), "bIHbv24MWmeRgasZH58o", "TX3LPaxmHKxFdv7VOQHJ", "nPczCjzI2devNBz1zQrb") if v]   # Will, Liam, Brian
+VOICES = [v for v in (os.environ.get("SHORTS_VOICE", "").strip(), "nPczCjzI2devNBz1zQrb", "bIHbv24MWmeRgasZH58o", "TX3LPaxmHKxFdv7VOQHJ") if v]   # Brian (owner's pick), Will, Liam
 VOICE_MODEL = "eleven_multilingual_v2"; _VOICE = {}
 
 TERMS = [  # (term, what it stands for, plain-English meaning, example line)
@@ -200,6 +200,25 @@ def media(q):
         r = stock(q2)
         if r: print("  media:", q2, "->", r[0], r[2]); return r
     print("  media: nothing for", q); return None
+
+BROWSER_UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+def pexels_clip(vid):
+    """A specific, hand-picked Pexels video by id (720p). Returns (kind, path, credit) or None."""
+    os.makedirs(MEDIA_DIR, exist_ok=True); path = os.path.join(MEDIA_DIR, "pexels%d.mp4" % vid)
+    if not os.path.exists(path):
+        for q in ("?h=1280&w=720", "?h=720&w=1280", ""):
+            try:
+                data = fetch("https://www.pexels.com/download/video/%d/%s" % (vid, q), 180, None, BROWSER_UA)
+                if len(data) > 50000: open(path, "wb").write(data); break
+            except Exception as e: err = e
+        else:
+            print("  hand-picked clip %d unavailable:" % vid, err); return None
+    return ("video", path, "Video: Pexels")
+
+def picked(ids):
+    out = [c for c in (pexels_clip(i) for i in ids or []) if c]
+    if ids: print("  hand-picked:", ids, "->", len(out), "ok")
+    return out
 
 def media_many(q, n=3, themes=()):
     """Up to n different real shots for one phrase; falls back to the story's on-topic themes, never to a lone generic word."""
@@ -686,10 +705,12 @@ def fmt_story(D, a):
     pid, p, v = D.top(1, skip_done=False)[0]; hero = load_img(img_url(p))
     beats = st["beats"][:4]; th = st.get("themes") or []
     rot = lambda k: th[k % len(th):] + th[:k % len(th)] if th else ()
-    shots = [media_many(b["show"], 3, rot(k)) for k, b in enumerate(beats)]           # every clip is used once (see _USED)
-    intro = media_many(th[:2] or beats[0]["show"], 2, th); outro = media_many(th[-2:] or beats[-1]["show"], 2, th)
+    hp = st.get("clips") or {}                                                        # hand-picked clips first, search only as a fallback
+    shots = [picked(b.get("clips")) or media_many(b["show"], 3, rot(k)) for k, b in enumerate(beats)]
+    intro = picked(hp.get("intro")) or media_many(th[:2] or beats[0]["show"], 2, th); outro = picked(hp.get("outro")) or media_many(th[-2:] or beats[-1]["show"], 2, th)
     if not any(shots): return None
     spare = [m for ms in shots for m in ms[2:]]
+    use_presenter(n if not a.presenter else a.presenter - 1)
     sc = [dict(dur=3.4, say=st["hook"], label=st.get("label") or st["hook"], bg=intro or spare or shots[0], news=True, presenter=True)]
     for k, b in enumerate(beats):
         if shots[k]: sc.append(dict(dur=3.6, say=b["say"], bg=shots[k][:2] if len(shots[k]) > 2 and spare else shots[k], news=True, gfx=b.get("gfx")))
@@ -729,7 +750,11 @@ def tts(line, path):
     return dur, words or None
 
 
-PRESENTER = os.path.join(ROOT, "scripts", "presenter.png")
+import glob
+PRESENTERS = sorted(glob.glob(os.path.join(ROOT, "scripts", "presenter*.png"))); PRESENTER = PRESENTERS[0] if PRESENTERS else os.path.join(ROOT, "scripts", "presenter.png")
+def use_presenter(n):                                         # rotate presenters between videos
+    global PRESENTER
+    if PRESENTERS: PRESENTER = PRESENTERS[n % len(PRESENTERS)]; print("  presenter:", os.path.basename(PRESENTER))
 HEDRA = "https://api.hedra.com/v3"                           # v3 API: upload files -> submit job -> poll -> outputs[].url
 
 def _multipart(path, mime):
@@ -835,12 +860,49 @@ def voice_samples(out_dir):
     for p in parts + [lst]: os.remove(p)
 
 
+CANDIDATES = [
+    "a woman in her late twenties with dark brown hair in a low bun, wearing a cream blazer over a white top",
+    "a man in his early thirties with short dark curly hair and light stubble, wearing an olive green overshirt over a white t-shirt",
+    "a woman in her mid twenties with shoulder-length auburn hair, wearing a navy knit sweater",
+    "a man in his late twenties with short black hair, wearing a charcoal crewneck sweater",
+]
+def make_presenters(out_dir):
+    """Generate candidate AI presenter portraits (on a green screen) for the owner to choose from."""
+    import time as _t
+    key = os.environ.get("HEDRA_API_KEY", "").strip()
+    if not key: print("no HEDRA_API_KEY"); return
+    H = {"Authorization": "Key " + key, "Content-Type": "application/json"}
+    jobs = []
+    for n, who in enumerate(CANDIDATES, 1):
+        prompt = ("Ultra-realistic professional studio portrait photograph of %s. Head and shoulders, centred, facing the camera, looking straight into the lens, "
+                  "relaxed friendly expression with a slight smile, mouth closed. Soft even studio lighting, sharp focus, natural skin texture, 85mm lens. "
+                  "The background is a perfectly flat, evenly lit, pure chroma-key green screen (#00FF00) with no shadows, no gradient and no other objects. No text, no logos.") % who
+        try:
+            j = json.loads(fetch(HEDRA + "/models/nano-banana-pro", 120, json.dumps({"input": {"prompt": prompt, "aspect_ratio": "9:16", "resolution": "2K"}}).encode(), H))
+            jobs.append((n, j["job_id"]))
+        except Exception as e:
+            d = ""
+            try: d = e.read().decode()[:300]
+            except Exception: pass
+            print("  candidate %d failed to start:" % n, e, d)
+    for n, jid in jobs:
+        for _ in range(60):
+            _t.sleep(5); st = json.loads(fetch(HEDRA + "/jobs/%s/status" % jid, 60, None, H)).get("status")
+            if st == "COMPLETED":
+                outs = json.loads(fetch(HEDRA + "/jobs/%s" % jid, 60, None, H)).get("outputs") or []; url = next((o.get("url") for o in outs if o.get("url")), None)
+                if url:
+                    im = Image.open(io.BytesIO(fetch(url, 180))).convert("RGB"); im.save(os.path.join(out_dir, "candidate-%d.jpg" % n), quality=92); print("  candidate", n, "saved", im.size)
+                break
+            if st == "FAILED": print("  candidate", n, "failed"); break
+
+
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--voice-samples", action="store_true")
+    ap = argparse.ArgumentParser(); ap.add_argument("--voice-samples", action="store_true"); ap.add_argument("--make-presenters", action="store_true"); ap.add_argument("--presenter", type=int, default=0)
     ap.add_argument("--format", default="auto", choices=["auto"] + FORMATS); ap.add_argument("--id"); ap.add_argument("--slot", type=int)
     ap.add_argument("--out", default=os.path.join(ROOT, "out")); ap.add_argument("--commit-state", action="store_true")
     a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
     if a.voice_samples: return voice_samples(a.out)
+    if a.make_presenters: return make_presenters(a.out)
     D = Data(); n = a.slot if a.slot is not None else int(D.state.get("n", 0))
     order = FORMATS[n % len(FORMATS):] + FORMATS[:n % len(FORMATS)] if a.format == "auto" else [a.format]
     built = None
