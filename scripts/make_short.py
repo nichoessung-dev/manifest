@@ -33,7 +33,7 @@ UA = {"User-Agent": "Mozilla/5.0 (PuroClassicoShorts/1.0; +https://www.puroclass
 PLAT = {"weidian": "Weidian", "taobao": "Taobao", "1688": "1688"}
 FORMATS = ["story", "relatable", "story", "guess", "story", "top5", "story", "qc", "story", "term", "story", "order"]
 FF = imageio_ffmpeg.get_ffmpeg_exe()
-VOICES = [v for v in (os.environ.get("SHORTS_VOICE", "").strip(), "TX3LPaxmHKxFdv7VOQHJ", "bIHbv24MWmeRgasZH58o", "nPczCjzI2devNBz1zQrb") if v]   # Liam, Will, Brian
+VOICES = [v for v in (os.environ.get("SHORTS_VOICE", "").strip(), "bIHbv24MWmeRgasZH58o", "TX3LPaxmHKxFdv7VOQHJ", "nPczCjzI2devNBz1zQrb") if v]   # Will, Liam, Brian
 VOICE_MODEL = "eleven_multilingual_v2"; _VOICE = {}
 
 TERMS = [  # (term, what it stands for, plain-English meaning, example line)
@@ -145,7 +145,7 @@ def pexels(q, kind):
 def _on_topic(q, tags):
     words = [w for w in re.findall(r"[a-z]+", q.lower()) if len(w) > 3]; t = (tags or "").lower()
     hits = sum(1 for w in words if w[:5] in t)
-    return hits >= (2 if len(words) >= 3 else 1) if words else True
+    return hits >= min(len(words), 2) if words else True
 
 def pixabay(q, kind):
     key = os.environ.get("PIXABAY_API_KEY", "").strip()
@@ -212,14 +212,18 @@ def media_many(q, n=3, themes=()):
         if len(out) >= n: break
     print("  media:", q, "->", [(m[0], m[2][:40]) for m in out]); return out
 
-class Clip:                                                  # reads a video as 1080x1920 frames, looping
-    def __init__(self, path): self.path = path; self.p = None
+class Clip:                                                  # reads a video as 1080x1920 frames, looping; key=True removes a green screen
+    def __init__(self, path, key=False): self.path = path; self.p = None; self.key = key
     def frame(self):
+        n = 4 if self.key else 3
         if self.p is None:
-            self.p = subprocess.Popen([FF, "-loglevel", "error", "-stream_loop", "-1", "-i", self.path, "-an", "-vf",
-                "scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,fps=%d" % (W, H, W, H, FPS), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
-        b = self.p.stdout.read(W * H * 3)
-        return Image.frombuffer("RGB", (W, H), b).convert("RGBA") if len(b) == W * H * 3 else None
+            vf = "scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,fps=%d" % (W, H, W, H, FPS)
+            if self.key: vf += ",chromakey=0x00FF00:0.20:0.08,despill=type=green,format=rgba"
+            self.p = subprocess.Popen([FF, "-loglevel", "error", "-stream_loop", "-1", "-i", self.path, "-an", "-vf", vf,
+                "-f", "rawvideo", "-pix_fmt", "rgba" if self.key else "rgb24", "-"], stdout=subprocess.PIPE)
+        b = self.p.stdout.read(W * H * n)
+        if len(b) != W * H * n: return None
+        return Image.frombuffer("RGBA", (W, H), b) if self.key else Image.frombuffer("RGB", (W, H), b).convert("RGBA")
     def close(self):
         if self.p: self.p.kill(); self.p = None
 
@@ -445,11 +449,11 @@ def draw_gfx(fr, g, lt, dur):
         label(390)
     paste(fr, L, W / 2, 250 + 310 + int(30 * (1 - a)), 0.94 + 0.06 * pop(lt - 0.25, 0.35), a)
 
-CUT = 1.15                                                   # seconds per shot
+CUT = 2.6                                                    # seconds per shot
 def draw_bg(fr, s, lt, dur):
-    shots = s["bg"]; nseg = 1 if s.get("cut") is False else max(1, int(round(dur / CUT))); seg = dur / nseg
+    shots = s["bg"]; nseg = max(1, min(len(shots), int(round(dur / CUT)))); seg = dur / nseg      # never more cuts than different clips
     k = min(nseg - 1, int(lt / seg)); st = (lt - k * seg) / seg; kind, m, credit = shots[k % len(shots)]
-    zoom = 1.0 if s.get("cut") is False else (1.0 + 0.11 * st if k % 2 == 0 else 1.11 - 0.11 * st)   # punch in, then pull out
+    zoom = 1.0 + 0.07 * st if k % 2 == 0 else 1.07 - 0.07 * st                # slow push in, then out
     if kind == "video":
         clips = s.setdefault("_clips", {})
         if id(m) not in clips: clips[id(m)] = Clip(m)
@@ -467,6 +471,11 @@ def draw_bg(fr, s, lt, dur):
         x = max(0, min(W - cw, x))
         fr.paste(base.crop((x, y, x + cw, y + ch)).resize((W, H), Image.BILINEAR), (0, 0))
     fr.alpha_composite(shade())
+    if s.get("fg"):                                            # the presenter, cut out, in front of the footage
+        if "_fg" not in s: s["_fg"] = Clip(s["fg"], key=True)
+        f = s["_fg"].frame()
+        if f is not None: s["_fgl"] = f
+        if s.get("_fgl") is not None: fr.alpha_composite(s["_fgl"])
     if k > 0 and st < 0.09:                                   # white flash on the cut
         fr.alpha_composite(Image.new("RGBA", (W, H), (255, 255, 255, int(150 * (1 - st / 0.09)))))
     if credit: ImageDraw.Draw(fr).text((W - 30, 1712), credit[:70], font=font(22, 500), fill=(200, 208, 225, 200), anchor="ra")
@@ -477,7 +486,7 @@ def draw_scene(fr, s, lt, dur, FT):
         draw_bg(fr, s, lt, dur)
         d = ImageDraw.Draw(fr); lg = FT["bug"]                 # small brand "bug" top-right, like a news channel
         d.rounded_rectangle([W - lg.size[0] - 74, 126, W - 34, 126 + lg.size[1] + 28], 22, fill=BG + (170,)); fr.alpha_composite(lg, (W - lg.size[0] - 54, 140))
-        if s.get("label") and lt < 3.2: draw_title(fr, s["label"], lt, 1240 if s.get("cut") is False else 1000)
+        if s.get("label") and lt < 3.2: draw_title(fr, s["label"], lt, 1300 if s.get("presenter") else 1000)
         draw_gfx(fr, s.get("gfx"), lt, dur)
         return
     if s.get("kicker"): paste(fr, tag(s["kicker"].upper(), FT["kick"], s.get("kcol", ACCENT), BG), W / 2, 300, pop(lt), a)
@@ -675,14 +684,16 @@ def fmt_story(D, a):
     pool = [x for x in stories if x.get("approved")] or stories      # only stories the owner approved go out
     n = int(D.state.get("story", 0)) % len(pool); st = next((x for x in stories if x["id"] == a.id), pool[n]) if a.id else pool[n]
     pid, p, v = D.top(1, skip_done=False)[0]; hero = load_img(img_url(p))
-    beats = st["beats"]; th = st.get("themes") or []
-    shots = [media_many(b["show"], 3, th[k % len(th):] + th[:k % len(th)] if th else ()) for k, b in enumerate(beats)]; every = [m for ms in shots for m in ms]
-    if not every: return None
-    beats = beats[:4]; shots = shots[:4]
-    sc = [dict(dur=3.4, say=st["hook"], label=st.get("label") or st["hook"], bg=[ms[0] for ms in shots if ms] or every, news=True, presenter=True)]
+    beats = st["beats"][:4]; th = st.get("themes") or []
+    rot = lambda k: th[k % len(th):] + th[:k % len(th)] if th else ()
+    shots = [media_many(b["show"], 3, rot(k)) for k, b in enumerate(beats)]           # every clip is used once (see _USED)
+    intro = media_many(th[:2] or beats[0]["show"], 2, th); outro = media_many(th[-2:] or beats[-1]["show"], 2, th)
+    if not any(shots): return None
+    spare = [m for ms in shots for m in ms[2:]]
+    sc = [dict(dur=3.4, say=st["hook"], label=st.get("label") or st["hook"], bg=intro or spare or shots[0], news=True, presenter=True)]
     for k, b in enumerate(beats):
-        sc.append(dict(dur=3.6, say=b["say"], bg=shots[k] or every, news=True, gfx=b.get("gfx")))
-    sc.append(dict(dur=3.6, say="Want to see what's on the China side? The spreadsheet is in the bio. Join the China side!", bg=every[::-1], news=True, last=True, presenter=True))
+        if shots[k]: sc.append(dict(dur=3.6, say=b["say"], bg=shots[k][:2] if len(shots[k]) > 2 and spare else shots[k], news=True, gfx=b.get("gfx")))
+    sc.append(dict(dur=3.6, say="Want to see what's on the China side? The spreadsheet is in the bio. Join the China side!", bg=outro or spare or shots[-1], news=True, last=True, presenter=True))
     cap = "%s 👀 Follow for more. The spreadsheet is in the bio — join the China side." % st["hook"].strip()
     return sc, [], cap, p, {"story": n + 1}
 
@@ -742,7 +753,7 @@ def hedra_clip(audio_mp3, out_path):
             _HEDRA["bal"] = api("/balance"); print("  hedra API wallet:", _HEDRA["bal"].get("balance"), _HEDRA["bal"].get("currency"))
         img = upload(PRESENTER, "image/png"); aud = upload(audio_mp3, "audio/mpeg")
         job = api("/models/hedra-character-3", json.dumps({"input": {
-            "prompt": "A young man presenting the news to the camera, natural head movement and blinking, friendly and confident",
+            "prompt": "A young man presenting the news to the camera in front of a plain solid green screen, natural head movement and blinking, friendly and confident, the background stays a flat green",
             "aspect_ratio": "9:16", "resolution": "720p",
             "start_image": {"source": "url", "url": img}, "audio": {"source": "url", "url": aud}}}).encode(), dict(H, **{"Content-Type": "application/json"}))
         jid = job["job_id"]
@@ -771,7 +782,7 @@ def build_audio(scenes, tmp):
             voiced = True; s["dur"] = max(d + (1.0 if s.get("last") else 0.4), 2.0); s["words"] = words
             if s.get("presenter"):                            # the AI presenter says this line on camera
                 os.makedirs(MEDIA_DIR, exist_ok=True); clip = hedra_clip(wav + ".mp3", os.path.join(MEDIA_DIR, "presenter%d.mp4" % k))
-                if clip: s["bg"] = [("video", clip, "AI-generated presenter")]; s["cut"] = False
+                if clip: s["fg"] = clip
             with wave.open(wav) as w: out.writeframes(w.readframes(w.getnframes()))
             written = int(d * 44100)
         out.writeframes(b"\0\0\0\0" * max(0, int(round(s["dur"] * FPS)) * 44100 // FPS - written))
@@ -797,17 +808,39 @@ def render(scenes, out_path):
                 d = ImageDraw.Draw(fr); d.rectangle([0, 0, W, 10], fill=(30, 40, 66, 255)); d.rectangle([0, 0, int(W * (done + i + 1) / total), 10], fill=ACCENT + (255,))
                 proc.stdin.write(fr.convert("RGB").tobytes())
             done += nf
-            for c in (s.get("_clips") or {}).values(): c.close()
+            for c in list((s.get("_clips") or {}).values()) + ([s["_fg"]] if s.get("_fg") else []): c.close()
         proc.stdin.close(); proc.wait()
         if proc.returncode: raise SystemExit("ffmpeg failed")
     return total / FPS, bool(audio)
 
 
+SAMPLE_VOICES = [("Will", "bIHbv24MWmeRgasZH58o"), ("Liam", "TX3LPaxmHKxFdv7VOQHJ"), ("Chris", "iP95p4xoKVk53GoZ742B"), ("Charlie", "IKne3meq5aSn9XLyUdCD"),
+                 ("Daniel", "onwK4e9ZLuTAKqWW03F9"), ("George", "JBFqnCBsd6RMkjVDRZzb"), ("Adam", "pNInz6obpgDQGcFmaJgB"), ("Brian", "nPczCjzI2devNBz1zQrb")]
+
+def voice_samples(out_dir):
+    """One mp3 where each candidate voice says its name and the same line, so the owner can pick."""
+    key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
+    if not key: print("no ELEVENLABS_API_KEY"); return
+    parts = []
+    for n, (name, vid) in enumerate(SAMPLE_VOICES, 1):
+        text = "Voice %d. %s. Did you know more than half of the world's shoes come from one country?" % (n, name)
+        try:
+            mp3 = fetch("https://api.elevenlabs.io/v1/text-to-speech/%s?output_format=mp3_44100_128" % vid, 90,
+                        json.dumps({"text": text, "model_id": VOICE_MODEL}).encode(), {"xi-api-key": key, "Content-Type": "application/json", "Accept": "audio/mpeg"})
+            path = os.path.join(out_dir, "v%d.mp3" % n); open(path, "wb").write(mp3); parts.append(path); print("  sample:", n, name)
+        except Exception as e: print("  sample failed:", name, e)
+    if not parts: return
+    lst = os.path.join(out_dir, "v.txt"); open(lst, "w").write("".join("file '%s'\n" % p for p in parts))
+    subprocess.run([FF, "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c:a", "libmp3lame", "-b:a", "128k", os.path.join(out_dir, "voices.mp3")], check=True)
+    for p in parts + [lst]: os.remove(p)
+
+
 def main():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(); ap.add_argument("--voice-samples", action="store_true")
     ap.add_argument("--format", default="auto", choices=["auto"] + FORMATS); ap.add_argument("--id"); ap.add_argument("--slot", type=int)
     ap.add_argument("--out", default=os.path.join(ROOT, "out")); ap.add_argument("--commit-state", action="store_true")
     a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
+    if a.voice_samples: return voice_samples(a.out)
     D = Data(); n = a.slot if a.slot is not None else int(D.state.get("n", 0))
     order = FORMATS[n % len(FORMATS):] + FORMATS[:n % len(FORMATS)] if a.format == "auto" else [a.format]
     built = None
