@@ -13,6 +13,10 @@ on:
         type: choice
         default: auto
         options: [auto, top5, guess, qc, spotlight, term, order]
+      id:
+        description: 'Story id or product id (optional)'
+        type: string
+        default: ''
       post:
         description: 'Post it for real (otherwise: render only)'
         type: boolean
@@ -33,12 +37,22 @@ jobs:
       - name: Render
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
-        run: python scripts/make_short.py --format "${{ inputs.format || 'auto' }}" --commit-state
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+        run: python scripts/make_short.py --format "${{ inputs.format || 'auto' }}" --commit-state ${{ inputs.id && format('--id {0}', inputs.id) || '' }}
       - uses: actions/upload-artifact@v4
         with:
           name: short
           path: out/
           retention-days: 14
+      - name: Publish preview (test runs only, to the "previews" branch)
+        if: github.event_name == 'workflow_dispatch' && !inputs.post
+        run: |
+          mkdir -p /tmp/prev && cp out/*.mp4 /tmp/prev/preview.mp4 && cp out/*.json /tmp/prev/preview.json
+          cd /tmp/prev && git init -q -b previews
+          git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add . && git commit -qm "preview"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" previews
       - name: Post
         if: github.event_name == 'schedule' || inputs.post
         env:
