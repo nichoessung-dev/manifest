@@ -1,0 +1,56 @@
+name: Shorts
+# Renders a short video about the most-viewed finds and posts it to TikTok / YouTube / Instagram / Threads via Postiz.
+# Scheduled runs only post when the repo variable SHORTS_LIVE is "true" (Settings -> Secrets and variables -> Actions -> Variables).
+# Manual runs (Run workflow) default to a test: the video is rendered and attached to the run, nothing is posted.
+on:
+  schedule:
+    - cron: '0 16 * * *'   # 16:00 UTC
+    - cron: '0 20 * * *'   # 20:00 UTC
+  workflow_dispatch:
+    inputs:
+      format:
+        description: 'Video format'
+        type: choice
+        default: auto
+        options: [auto, top5, guess, qc, spotlight, term, order]
+      post:
+        description: 'Post it for real (otherwise: render only)'
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency: shorts
+jobs:
+  short:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || vars.SHORTS_LIVE == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow imageio-ffmpeg
+      - name: Render
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: python scripts/make_short.py --format "${{ inputs.format || 'auto' }}" --commit-state
+      - uses: actions/upload-artifact@v4
+        with:
+          name: short
+          path: out/
+          retention-days: 14
+      - name: Post
+        if: github.event_name == 'schedule' || inputs.post
+        env:
+          POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+          MYCNBOX_WEBHOOK: ${{ secrets.MYCNBOX_WEBHOOK }}
+          PINTEREST_BOARD: ${{ vars.PINTEREST_BOARD }}
+          TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
+        run: python scripts/post_short.py out/*.json
+      - name: Save state
+        if: github.event_name == 'schedule' || inputs.post
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shorts_posted.json shorts_log.json
+          git diff --cached --quiet || (git commit -m "chore: shorts log [skip ci]" && git pull --rebase -q && git push)
