@@ -39,6 +39,7 @@ jobs:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
           HEDRA_API_KEY: ${{ secrets.HEDRA_API_KEY }}
+          SHORTS_VOICE: ${{ vars.SHORTS_VOICE }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
         run: python scripts/make_short.py --format "${{ inputs.format || 'auto' }}" --commit-state ${{ inputs.id && format('--id {0}', inputs.id) || '' }}
       - uses: actions/upload-artifact@v4
