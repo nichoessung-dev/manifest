@@ -375,9 +375,9 @@ def shade():                                                 # darken top and bo
 
 CUT = 1.15                                                   # seconds per shot
 def draw_bg(fr, s, lt, dur):
-    shots = s["bg"]; nseg = max(1, int(round(dur / CUT))); seg = dur / nseg
+    shots = s["bg"]; nseg = 1 if s.get("cut") is False else max(1, int(round(dur / CUT))); seg = dur / nseg
     k = min(nseg - 1, int(lt / seg)); st = (lt - k * seg) / seg; kind, m, credit = shots[k % len(shots)]
-    zoom = 1.0 + 0.11 * st if k % 2 == 0 else 1.11 - 0.11 * st                # punch in, then pull out
+    zoom = 1.0 if s.get("cut") is False else (1.0 + 0.11 * st if k % 2 == 0 else 1.11 - 0.11 * st)   # punch in, then pull out
     if kind == "video":
         clips = s.setdefault("_clips", {})
         if id(m) not in clips: clips[id(m)] = Clip(m)
@@ -611,10 +611,10 @@ def fmt_story(D, a):
     shots = [media_many(b["show"], 3, th[k % len(th):] + th[:k % len(th)] if th else ()) for k, b in enumerate(beats)]; every = [m for ms in shots for m in ms]
     if not every: return None
     beats = beats[:4]; shots = shots[:4]
-    sc = [dict(dur=3.4, say=st["hook"], label=st.get("label") or st["hook"], bg=[ms[0] for ms in shots if ms] or every, news=True)]
+    sc = [dict(dur=3.4, say=st["hook"], label=st.get("label") or st["hook"], bg=[ms[0] for ms in shots if ms] or every, news=True, presenter=True)]
     for k, b in enumerate(beats):
         sc.append(dict(dur=3.6, say=b["say"], bg=shots[k] or every, news=True))
-    sc.append(dict(dur=3.6, say="Want to see what's on the China side? The spreadsheet is in the bio. Join the China side!", bg=every[::-1], news=True, last=True))
+    sc.append(dict(dur=3.6, say="Want to see what's on the China side? The spreadsheet is in the bio. Join the China side!", bg=every[::-1], news=True, last=True, presenter=True))
     cap = "%s 👀 Follow for more. The spreadsheet is in the bio — join the China side." % st["hook"].strip()
     return sc, [], cap, p, {"story": n + 1}
 
@@ -645,12 +645,55 @@ def tts(line, path):
     return dur, words or None
 
 
+PRESENTER = os.path.join(ROOT, "scripts", "presenter.png")
+HEDRA = "https://api.hedra.com/web-app/public"; HEDRA_MODEL = "d1dd37a3-e39a-4854-a298-6510289f9cf2"   # Character-3
+
+def _multipart(path, mime):
+    b = "----pc" + os.urandom(8).hex()
+    body = ("--%s\r\nContent-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\nContent-Type: %s\r\n\r\n" % (b, os.path.basename(path), mime)).encode() + open(path, "rb").read() + ("\r\n--%s--\r\n" % b).encode()
+    return body, "multipart/form-data; boundary=" + b
+
+_HEDRA_IMG = {}
+def hedra_clip(audio_mp3, out_path):
+    """Talking-presenter video for one line of audio (9:16, 720p). Returns the mp4 path, or None (falls back to footage)."""
+    key = os.environ.get("HEDRA_API_KEY", "").strip()
+    if not key or not os.path.exists(PRESENTER) or not os.path.exists(audio_mp3): return None
+    H = {"x-api-key": key}; J = dict(H, **{"Content-Type": "application/json"})
+    def api(path, body=None, headers=None, timeout=120):
+        return json.loads(fetch(HEDRA + path, timeout, body, headers or H) or b"{}")
+    try:
+        if "id" not in _HEDRA_IMG:                           # upload the portrait once per run
+            iid = api("/assets", json.dumps({"name": "presenter.png", "type": "image"}).encode(), J)["id"]
+            body, ct = _multipart(PRESENTER, "image/png"); fetch(HEDRA + "/assets/%s/upload" % iid, 180, body, dict(H, **{"Content-Type": ct})); _HEDRA_IMG["id"] = iid
+        aid = api("/assets", json.dumps({"name": os.path.basename(audio_mp3), "type": "audio"}).encode(), J)["id"]
+        body, ct = _multipart(audio_mp3, "audio/mpeg"); fetch(HEDRA + "/assets/%s/upload" % aid, 180, body, dict(H, **{"Content-Type": ct}))
+        gen = api("/generations", json.dumps({"type": "video", "ai_model_id": HEDRA_MODEL, "start_keyframe_id": _HEDRA_IMG["id"], "audio_id": aid,
+              "generated_video_inputs": {"text_prompt": "A news presenter talking to the camera, natural head movement, friendly and confident, studio lighting",
+                                         "resolution": "720p", "aspect_ratio": "9:16"}}).encode(), J)
+        for _ in range(120):
+            import time as _t; _t.sleep(5)
+            st = api("/generations/%s/status" % gen["id"])
+            if st.get("status") == "complete":
+                open(out_path, "wb").write(fetch(st.get("download_url") or st["url"], 300)); print("  presenter clip ready:", os.path.getsize(out_path) // 1024, "KB"); return out_path
+            if st.get("status") == "error": print("  hedra error:", st.get("error_message")); return None
+        print("  hedra timed out")
+    except Exception as e:
+        detail = ""
+        try: detail = e.read().decode()[:300]
+        except Exception: pass
+        print("  hedra failed (using footage instead):", e, detail)
+    return None
+
+
 def build_audio(scenes, tmp):
     track = os.path.join(tmp, "voice.wav"); out = wave.open(track, "wb"); out.setnchannels(2); out.setsampwidth(2); out.setframerate(44100); voiced = False
     for k, s in enumerate(scenes):
         wav = os.path.join(tmp, "s%d.wav" % k); d, words = tts(s.get("say"), wav); written = 0
         if d:
             voiced = True; s["dur"] = max(d + (1.0 if s.get("last") else 0.4), 2.0); s["words"] = words
+            if s.get("presenter"):                            # the AI presenter says this line on camera
+                os.makedirs(MEDIA_DIR, exist_ok=True); clip = hedra_clip(wav + ".mp3", os.path.join(MEDIA_DIR, "presenter%d.mp4" % k))
+                if clip: s["bg"] = [("video", clip, "AI-generated presenter")]; s["cut"] = False
             with wave.open(wav) as w: out.writeframes(w.readframes(w.getnframes()))
             written = int(d * 44100)
         out.writeframes(b"\0\0\0\0" * max(0, int(round(s["dur"] * FPS)) * 44100 // FPS - written))
