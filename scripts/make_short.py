@@ -8,6 +8,8 @@ Formats (--format):
   qc         "how to QC it": three things to check on that model, over real QC photos
   term       rep term of the day (GL/RL, W2C, batch ...)
   order      how to order in 4 steps, using a top item as the example
+  story      "did you know" story over real footage/photos, narrated by the mascot (scripts/stories.json)
+  relatable  the mascot says a relatable line, punchline lands on a top find
   auto       (default) rotates through the list above, by --slot
 
   python scripts/make_short.py                       # auto format, next unposted item -> out/short-*.mp4 + .json
@@ -29,7 +31,7 @@ BG, CARD, INK, MUTED, ACCENT, RED, GREEN = (12, 18, 32), (244, 242, 238), (242, 
 FONT = os.path.join(ROOT, "scripts", "fonts", "HankenGrotesk.ttf")
 UA = {"User-Agent": "Mozilla/5.0 (PuroClassicoShorts/1.0; +https://www.puroclassico.com)"}
 PLAT = {"weidian": "Weidian", "taobao": "Taobao", "1688": "1688"}
-FORMATS = ["relatable", "top5", "relatable", "guess", "relatable", "qc", "relatable", "term", "relatable", "order", "relatable", "spotlight"]
+FORMATS = ["story", "relatable", "story", "guess", "story", "top5", "story", "qc", "story", "term", "story", "order"]
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 VOICE, VOICE_MODEL = "nPczCjzI2devNBz1zQrb", "eleven_multilingual_v2"      # "Brian", same voice as the how-to-order video
 
@@ -109,6 +111,111 @@ def qc_photos(pid, p, limit=4):
         ranked = sorted(keep, key=lambda k: (interest(out[k]) < 0.6 * max(interest(o) for o in out), k))   # weakest ones last
         out = [out[k] for k in ranked]
     return out[:limit]
+
+
+MEDIA_DIR = os.path.join(tempfile.gettempdir(), "pc_media"); _USED = set()
+
+def _clean(html):
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", html or "")).strip()
+
+def pexels(q, kind):
+    key = os.environ.get("PEXELS_API_KEY", "").strip()
+    if not key: return None
+    try:
+        if kind == "video":
+            d = json.loads(fetch("https://api.pexels.com/videos/search?" + urllib.parse.urlencode({"query": q, "orientation": "portrait", "per_page": 8}), 30, None, {"Authorization": key}))
+            for v in d.get("videos", []):
+                if v["id"] in _USED or v.get("duration", 0) < 4: continue
+                files = sorted([f for f in v.get("video_files", []) if f.get("file_type") == "video/mp4" and 700 <= (f.get("width") or 0) <= 1440], key=lambda f: abs((f.get("height") or 0) - 1920))
+                if not files: continue
+                os.makedirs(MEDIA_DIR, exist_ok=True); path = os.path.join(MEDIA_DIR, "px%d.mp4" % v["id"])
+                if not os.path.exists(path): open(path, "wb").write(fetch(files[0]["link"], 120))
+                _USED.add(v["id"]); return ("video", path, "Video: %s / Pexels" % (v.get("user") or {}).get("name", ""))
+        else:
+            d = json.loads(fetch("https://api.pexels.com/v1/search?" + urllib.parse.urlencode({"query": q, "orientation": "portrait", "per_page": 8}), 30, None, {"Authorization": key}))
+            for ph in d.get("photos", []):
+                if ph["id"] in _USED: continue
+                im = load_img(ph["src"]["large2x"])
+                if im: _USED.add(ph["id"]); return ("image", im, "Photo: %s / Pexels" % ph.get("photographer", ""))
+    except Exception as e:
+        print("  pexels failed:", q, e)
+    return None
+
+def pixabay(q, kind):
+    key = os.environ.get("PIXABAY_API_KEY", "").strip()
+    if not key: return None
+    try:
+        if kind == "video":
+            d = json.loads(fetch("https://pixabay.com/api/videos/?" + urllib.parse.urlencode({"key": key, "q": q, "per_page": 10, "safesearch": "true"})))
+            for v in d.get("hits", []):
+                if ("pb", v["id"]) in _USED or v.get("duration", 0) < 4: continue
+                f = next((v["videos"][k] for k in ("medium", "large", "small") if (v["videos"].get(k) or {}).get("url") and (v["videos"][k].get("height") or 0) >= 700), None)
+                if not f: continue
+                os.makedirs(MEDIA_DIR, exist_ok=True); path = os.path.join(MEDIA_DIR, "pb%d.mp4" % v["id"])
+                if not os.path.exists(path): open(path, "wb").write(fetch(f["url"], 180))
+                _USED.add(("pb", v["id"])); return ("video", path, "Video: %s / Pixabay" % v.get("user", ""))
+        else:
+            d = json.loads(fetch("https://pixabay.com/api/?" + urllib.parse.urlencode({"key": key, "q": q, "per_page": 10, "image_type": "photo", "orientation": "vertical", "safesearch": "true"})))
+            for ph in d.get("hits", []):
+                if ("pbi", ph["id"]) in _USED: continue
+                im = load_img(ph.get("largeImageURL") or ph.get("webformatURL"))
+                if im: _USED.add(("pbi", ph["id"])); return ("image", im, "Photo: %s / Pixabay" % ph.get("user", ""))
+    except Exception as e:
+        print("  pixabay failed:", q, e)
+    return None
+
+def stock(q):                                                # real video first, then photos, then Wikimedia Commons
+    return pexels(q, "video") or pixabay(q, "video") or pexels(q, "photo") or pixabay(q, "photo") or commons(q)
+
+def commons(q):
+    try:
+        u = "https://commons.wikimedia.org/w/api.php?" + urllib.parse.urlencode({"action": "query", "format": "json", "generator": "search", "gsrnamespace": 6, "gsrlimit": 12,
+            "gsrsearch": q + " filetype:bitmap", "prop": "imageinfo", "iiprop": "url|extmetadata|size|mime", "iiurlwidth": 1600})
+        pages = sorted((json.loads(fetch(u)).get("query", {}).get("pages", {}) or {}).values(), key=lambda x: x.get("index", 0))
+    except Exception as e:
+        print("  commons failed:", q, e); return None
+    words = [w for w in re.findall(r"[a-z]+", q.lower()) if len(w) > 3]
+    for strict in (True, False):
+        for p in pages:
+            ii = p["imageinfo"][0]; m = ii.get("extmetadata", {}); title = p["title"].lower()
+            if p["title"] in _USED or ii.get("mime") not in ("image/jpeg", "image/png") or ii.get("width", 0) < 1000: continue
+            if strict and not any(w in title for w in words): continue
+            lic = (m.get("LicenseShortName", {}) or {}).get("value", "")
+            if not re.match(r"(CC0|CC BY|Public domain|PD)", lic or "", re.I): continue
+            im = load_img(ii.get("thumburl") or ii["url"])
+            if im is None: continue
+            _USED.add(p["title"]); artist = _clean((m.get("Artist", {}) or {}).get("value", ""))[:40]
+            return ("image", im, "Photo: %s, %s, Wikimedia Commons" % (artist or "unknown", lic))
+    return None
+
+def media(q):
+    """Real footage for a search phrase: (kind, video-path-or-image, credit) or None."""
+    for q2 in (q, " ".join(q.split()[:2])):
+        r = stock(q2)
+        if r: print("  media:", q2, "->", r[0], r[2]); return r
+    print("  media: nothing for", q); return None
+
+def media_many(q, n=3):
+    """Up to n different real shots for one phrase (fast cuts need more than one)."""
+    out = []; alts = [q, " ".join(q.split()[:2]), " ".join(q.split()[-2:]), q.split()[0]]
+    for q2 in alts:
+        while len(out) < n:
+            r = stock(q2)
+            if not r: break
+            out.append(r)
+        if len(out) >= n: break
+    print("  media:", q, "->", [(m[0], m[2][:40]) for m in out]); return out
+
+class Clip:                                                  # reads a video as 1080x1920 frames, looping
+    def __init__(self, path): self.path = path; self.p = None
+    def frame(self):
+        if self.p is None:
+            self.p = subprocess.Popen([FF, "-loglevel", "error", "-stream_loop", "-1", "-i", self.path, "-an", "-vf",
+                "scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,fps=%d" % (W, H, W, H, FPS), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
+        b = self.p.stdout.read(W * H * 3)
+        return Image.frombuffer("RGB", (W, H), b).convert("RGBA") if len(b) == W * H * 3 else None
+    def close(self):
+        if self.p: self.p.kill(); self.p = None
 
 
 def models():
@@ -252,8 +359,55 @@ def boxy(mouth=0, blink=False, look=0, mood="talk"):
 
 # ---------------------------------------------------------------- one generic, animated scene
 # fields: dur, say, kicker, head, img, fill, grid=[imgs], big, para, sticker=(text, colour), number, count, sub, fx, mood, look, small_card
+_SHADE = None
+def shade():                                                 # darken top and bottom so text and the mascot stay readable
+    global _SHADE
+    if _SHADE is None:
+        g = Image.new("L", (1, H)); px = g.load()
+        for y in range(H): px[0, y] = int(205 * max(0, 1 - y / 620) ** 1.4) if y < 620 else (int(225 * ((y - 1180) / 520) ** 1.2) if 1180 < y < 1700 else (225 if y >= 1700 else 0))
+        _SHADE = Image.new("RGBA", (W, H), BG + (255,)); _SHADE.putalpha(g.resize((W, H)))
+    return _SHADE
+
+CUT = 1.15                                                   # seconds per shot
+def draw_bg(fr, s, lt, dur):
+    shots = s["bg"]; nseg = max(1, int(round(dur / CUT))); seg = dur / nseg
+    k = min(nseg - 1, int(lt / seg)); st = (lt - k * seg) / seg; kind, m, credit = shots[k % len(shots)]
+    zoom = 1.0 + 0.11 * st if k % 2 == 0 else 1.11 - 0.11 * st                # punch in, then pull out
+    if kind == "video":
+        clips = s.setdefault("_clips", {})
+        if id(m) not in clips: clips[id(m)] = Clip(m)
+        f = clips[id(m)].frame()
+        if f is not None: s["_last"] = f
+        base = s.get("_last")
+    else:
+        key = ("bg", id(m))
+        if key not in _SPR: _SPR[key] = cover(m, W, H).convert("RGBA")
+        base = _SPR[key]
+    if base is not None:
+        cw, ch = int(W / zoom), int(H / zoom); ox = [0.5, 0.2, 0.8, 0.5][k % 4]; oy = [0.35, 0.5, 0.45, 0.6][k % 4]
+        x, y = int((W - cw) * ox), int((H - ch) * oy)
+        if k > 0 and st < 0.12: x += int(18 * math.sin(lt * 140) * (1 - st / 0.12))    # tiny shake on the cut
+        x = max(0, min(W - cw, x))
+        fr.paste(base.crop((x, y, x + cw, y + ch)).resize((W, H), Image.BILINEAR), (0, 0))
+    fr.alpha_composite(shade())
+    if k > 0 and st < 0.09:                                   # white flash on the cut
+        fr.alpha_composite(Image.new("RGBA", (W, H), (255, 255, 255, int(150 * (1 - st / 0.09)))))
+    if credit: ImageDraw.Draw(fr).text((W - 30, 1712), credit[:70], font=font(22, 500), fill=(200, 208, 225, 200), anchor="ra")
+
 def draw_scene(fr, s, lt, dur, FT):
     a = ease(lt / 0.35)
+    if s.get("bg"):
+        draw_bg(fr, s, lt, dur); fr.alpha_composite(FT["logo"], ((W - FT["logo"].size[0]) // 2, 150))
+        if s.get("kicker"): paste(fr, tag(s["kicker"].upper(), FT["kick"], s.get("kcol", ACCENT), BG), W / 2, 300, pop(lt), a)
+        if s.get("head"):
+            f = fit(s["head"], W - 150, 3, 96, 900, 56); lines = wrap(_M, s["head"], f, W - 150); lh = int(f.size * 1.12)
+            d = ImageDraw.Draw(fr); y0 = 372
+            for k, ln in enumerate(lines):                    # each line on its own dark plate, like a subtitle card
+                ak = ease((lt - 0.08 * k) / 0.3); tw = d.textlength(ln, font=f)
+                if ak <= 0: continue
+                d.rounded_rectangle([W / 2 - tw / 2 - 26, y0 + k * (lh + 10) - 4, W / 2 + tw / 2 + 26, y0 + k * (lh + 10) + lh + 2], 18, fill=BG + (int(225 * ak),))
+                d.text((W / 2, y0 + k * (lh + 10)), ln, font=f, fill=s.get("hcol", INK) + (int(255 * ak),), anchor="ma")
+        return
     if s.get("kicker"): paste(fr, tag(s["kicker"].upper(), FT["kick"], s.get("kcol", ACCENT), BG), W / 2, 300, pop(lt), a)
     hy = 350
     if s.get("head"):
@@ -336,7 +490,9 @@ def draw_host(fr, s, lt, t_abs, FT):
         y += lh
 
 
-def fonts(): return dict(kick=font(40, 800))
+def fonts():
+    logo = Image.open(os.path.join(ROOT, "logo-wordmark.png")).convert("RGBA")
+    return dict(kick=font(40, 800), logo=logo.resize((240, int(240 * logo.size[1] / logo.size[0])), Image.LANCZOS))
 def usd(p): return "$%d" % round(float(p.get("usd") or 0))
 def dollars(p): return "%d dollars" % round(float(p.get("usd") or 0))
 def plat(p): return PLAT.get(p.get("platform"), "")
@@ -426,7 +582,25 @@ def fmt_relatable(D, a):
           cta(hero)]
     return sc, [pid], "%s 😅 %s — %s on puroclassico.com. Join the China side (link in bio)" % (f(t1).strip('"'), p.get("title"), usd(p)), p, {"rel": n + 1}
 
-BUILD = dict(relatable=fmt_relatable, spotlight=fmt_spotlight, top5=fmt_top5, guess=fmt_guess, qc=fmt_qc, term=fmt_term, order=fmt_order)
+def fmt_story(D, a):
+    try: stories = json.load(open(os.path.join(ROOT, "scripts", "stories.json"), encoding="utf-8"))
+    except Exception as e: print("no stories.json:", e); return None
+    pool = [x for x in stories if x.get("approved")] or stories      # only stories the owner approved go out
+    n = int(D.state.get("story", 0)) % len(pool); st = next((x for x in stories if x["id"] == a.id), pool[n]) if a.id else pool[n]
+    pid, p, v = D.top(1, skip_done=False)[0]; hero = load_img(img_url(p))
+    beats = st["beats"]; shots = [media_many(b["show"], 3) for b in beats]; every = [m for ms in shots for m in ms]
+    if not every: return None
+    sc = [dict(dur=3.4, say=st["hook"], kicker="Did you know?", head=st["hook"], bg=[ms[0] for ms in shots if ms] or every, mood="wow")]
+    for k, b in enumerate(beats):
+        sc.append(dict(dur=3.6, say=b["say"], head=b.get("text") or "", bg=shots[k] or every, look=1, mood="point" if k % 3 == 2 else "talk"))
+    if st.get("takeaway"): sc.append(dict(dur=3.2, say=st["takeaway"], head=st["takeaway"], hcol=GREEN, bg=every[::-1], mood="talk"))
+    sc = [x for x in sc if x.get("bg")] or None
+    if not sc: return None
+    sc.append(cta(hero, say="Want to see what's on the China side? The spreadsheet is in the bio."))
+    cap = "%s 👀 Follow for more. The spreadsheet is in the bio — join the China side." % st["hook"].rstrip("?.!") + ("?" if st["hook"].strip().endswith("?") else ".")
+    return sc, [], cap, p, {"story": n + 1}
+
+BUILD = dict(story=fmt_story, relatable=fmt_relatable, spotlight=fmt_spotlight, top5=fmt_top5, guess=fmt_guess, qc=fmt_qc, term=fmt_term, order=fmt_order)
 
 
 # ---------------------------------------------------------------- voiceover (optional): ElevenLabs with word timings
@@ -467,14 +641,13 @@ def build_audio(scenes, tmp):
 
 # ---------------------------------------------------------------- render
 def render(scenes, out_path):
-    FT = fonts(); bg = background()
-    logo = Image.open(os.path.join(ROOT, "logo-wordmark.png")).convert("RGBA"); logo = logo.resize((240, int(240 * logo.size[1] / logo.size[0])), Image.LANCZOS)
+    FT = fonts(); bg = background(); logo = FT["logo"]
     with tempfile.TemporaryDirectory() as tmp:
         audio = build_audio(scenes, tmp)
         frames = [int(round(s["dur"] * FPS)) for s in scenes]; total = sum(frames)
         cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
         cmd += ["-i", audio] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
-        cmd += ["-shortest", "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", out_path]
+        cmd += ["-shortest", "-c:v", "libx264", "-preset", "medium", "-crf", "23", "-maxrate", "6M", "-bufsize", "12M", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", out_path]
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE); done = 0
         for s, nf in zip(scenes, frames):
             dur = nf / FPS
@@ -485,6 +658,7 @@ def render(scenes, out_path):
                 d = ImageDraw.Draw(fr); d.rectangle([0, 0, W, 10], fill=(30, 40, 66, 255)); d.rectangle([0, 0, int(W * (done + i + 1) / total), 10], fill=ACCENT + (255,))
                 proc.stdin.write(fr.convert("RGB").tobytes())
             done += nf
+            for c in (s.get("_clips") or {}).values(): c.close()
         proc.stdin.close(); proc.wait()
         if proc.returncode: raise SystemExit("ffmpeg failed")
     return total / FPS, bool(audio)
