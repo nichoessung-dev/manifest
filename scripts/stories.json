@@ -5,23 +5,71 @@
   "beats": [
    {
     "say": "In June 2024 a Milan court put a Dior manufacturing unit under court administration for a year.",
-    "show": "Milan courthouse exterior",
-    "text": "Milan court, June 2024"
+    "show": [
+     "courtroom",
+     "gavel",
+     "court building"
+    ],
+    "text": "Milan court, June 2024",
+    "gfx": {
+     "t": "stat",
+     "v": "June 2024",
+     "l": "Milan court ruling"
+    }
    },
    {
     "say": "Court papers cited by Reuters said a subcontractor charged 53 euros to assemble a bag sold for 2,600 euros.",
-    "show": "leather handbag workshop",
-    "text": "Assembly charge: 53 euros"
+    "show": [
+     "handbag",
+     "leather bag",
+     "sewing leather"
+    ],
+    "text": "Assembly charge: 53 euros",
+    "gfx": {
+     "t": "compare",
+     "a": [
+      "€53",
+      "to assemble",
+      53
+     ],
+     "b": [
+      "€2,600",
+      "in the shop",
+      2600
+     ]
+    }
    },
    {
     "say": "In a similar Armani case, a bag went from 93 euros, to 250, to 1,800 in shops.",
-    "show": "luxury store window",
-    "text": "93 to 250 to 1,800"
+    "show": [
+     "fashion store",
+     "shopping bags",
+     "boutique"
+    ],
+    "text": "93 to 250 to 1,800",
+    "gfx": {
+     "t": "chain",
+     "items": [
+      "€93",
+      "€250",
+      "€1,800"
+     ],
+     "l": "one bag, three prices"
+    }
    },
    {
     "say": "These workshops were in Italy, not China. The brands themselves were not charged.",
-    "show": "small workshop Italy street",
-    "text": "Workshops were in Italy"
+    "show": [
+     "italy street",
+     "milan",
+     "leather workshop"
+    ],
+    "text": "Workshops were in Italy",
+    "gfx": {
+     "t": "stat",
+     "v": "Made in Italy",
+     "l": "the workshops were in Italy, not China"
+    }
    }
   ],
   "takeaway": "Retail price and making cost can be far apart, wherever the workshop actually sits.",
@@ -40,7 +88,8 @@
    "fashion boutique",
    "luxury store",
    "handbag"
-  ]
+  ],
+  "label": "A court revealed what a *luxury bag* costs to *assemble*"
  },
  {
   "id": "china-makes-half-the-worlds-shoes",
@@ -48,23 +97,63 @@
   "beats": [
    {
     "say": "In 2024 the world made about 23.9 billion pairs of shoes.",
-    "show": "shoes conveyor belt factory",
-    "text": "23.9 billion pairs"
+    "show": [
+     "sneakers",
+     "shoes",
+     "shoe store"
+    ],
+    "text": "23.9 billion pairs",
+    "gfx": {
+     "t": "stat",
+     "v": "23.9 billion",
+     "l": "pairs of shoes made in 2024"
+    }
    },
    {
     "say": "China made roughly 13 billion of them. That's just over 54 percent.",
-    "show": "China shoe factory",
-    "text": "China: 54 percent"
+    "show": [
+     "shoe factory",
+     "factory workers",
+     "china city"
+    ],
+    "text": "China: 54 percent",
+    "gfx": {
+     "t": "ring",
+     "pct": 54,
+     "l": "made in China"
+    }
    },
    {
     "say": "Asia as a whole made 88 percent. Nearly nine in every ten pairs.",
-    "show": "world map Asia",
-    "text": "Asia: 9 in 10 pairs"
+    "show": [
+     "container ship",
+     "asia city",
+     "factory"
+    ],
+    "text": "Asia: 9 in 10 pairs",
+    "gfx": {
+     "t": "ring",
+     "pct": 88,
+     "l": "made in Asia"
+    }
    },
    {
     "say": "India is second with about 12.5 percent. Vietnam is third.",
-    "show": "footwear workers sewing",
-    "text": "India second, Vietnam third"
+    "show": [
+     "india street",
+     "vietnam",
+     "running shoes"
+    ],
+    "text": "India second, Vietnam third",
+    "gfx": {
+     "t": "chain",
+     "items": [
+      "1. China",
+      "2. India",
+      "3. Vietnam"
+     ],
+     "l": "biggest shoe makers"
+    }
    },
    {
     "say": "So big sports brands moved to Vietnam, but China still makes most everyday shoes.",
@@ -87,7 +176,8 @@
    "running shoes",
    "footwear",
    "shoemaker"
-  ]
+  ],
+  "label": "*Half* of all shoes on Earth come from *one country*"
  },
  {
   "id": "made-in-label-rule",
@@ -95,23 +185,66 @@
   "beats": [
    {
     "say": "Under EU customs rules, a product made across several countries gets one origin.",
-    "show": "clothing label close up",
-    "text": "One product, one origin"
+    "show": [
+     "clothing label",
+     "container port",
+     "customs"
+    ],
+    "text": "One product, one origin",
+    "gfx": {
+     "t": "stat",
+     "v": "1 product = 1 origin",
+     "l": "EU customs rule"
+    }
    },
    {
     "say": "It's the country of the last substantial, economically justified processing. Not where every part came from.",
-    "show": "leather workshop Italy",
-    "text": "\"Last substantial transformation\""
+    "show": [
+     "sewing machine",
+     "tailor",
+     "sewing"
+    ],
+    "text": "\"Last substantial transformation\"",
+    "gfx": {
+     "t": "chain",
+     "items": [
+      "Parts",
+      "Assembly",
+      "Last big step"
+     ],
+     "l": "the label follows the last step"
+    }
    },
    {
     "say": "In 2017 The Guardian reported some Louis Vuitton shoes were largely made in Romania, then finished in Italy.",
-    "show": "shoe factory workers stitching",
-    "text": "Guardian report, 2017"
+    "show": [
+     "shoemaker",
+     "leather shoes",
+     "shoe repair"
+    ],
+    "text": "Guardian report, 2017",
+    "gfx": {
+     "t": "chain",
+     "items": [
+      "Romania",
+      "Italy"
+     ],
+     "l": "made, then finished (The Guardian, 2017)"
+    }
    },
    {
     "say": "That was reported as legal under the EU rule. The soles were added after export.",
-    "show": "shoemaker attaching sole",
-    "text": "Legal under EU rules"
+    "show": [
+     "italy",
+     "leather craft",
+     "shoe shop"
+    ],
+    "text": "Legal under EU rules",
+    "gfx": {
+     "t": "stat",
+     "v": "Legal",
+     "l": "under the EU rule"
+    }
    },
    {
     "say": "Italy has a stricter label too. \"100 percent Made in Italy\" needs design, processing and packaging all done in Italy.",
@@ -136,7 +269,8 @@
    "shoemaker",
    "clothing store",
    "fabric"
-  ]
+  ],
+  "label": "*Made in Italy* doesn't mean what you think"
  },
  {
   "id": "china-parcel-numbers",
@@ -144,23 +278,59 @@
   "beats": [
    {
     "say": "China's State Post Bureau counted 174.5 billion express parcels in 2024.",
-    "show": "parcel sorting center China",
-    "text": "174.5 billion parcels"
+    "show": [
+     "parcel",
+     "cardboard boxes",
+     "warehouse"
+    ],
+    "text": "174.5 billion parcels",
+    "gfx": {
+     "t": "stat",
+     "v": "174.5 billion",
+     "l": "parcels in 2024"
+    }
    },
    {
     "say": "That was up 21 percent in one year.",
-    "show": "conveyor belt packages",
-    "text": "Up 21 percent"
+    "show": [
+     "conveyor",
+     "courier",
+     "delivery"
+    ],
+    "text": "Up 21 percent",
+    "gfx": {
+     "t": "stat",
+     "v": "+21%",
+     "l": "in one year"
+    }
    },
    {
     "say": "It works out to roughly 478 million parcels every single day.",
-    "show": "courier tricycle parcels street",
-    "text": "478 million a day"
+    "show": [
+     "logistics",
+     "delivery truck",
+     "packages"
+    ],
+    "text": "478 million a day",
+    "gfx": {
+     "t": "stat",
+     "v": "478 million",
+     "l": "parcels every single day"
+    }
    },
    {
     "say": "China has been the world's largest parcel market for 11 years running.",
-    "show": "delivery trucks logistics hub",
-    "text": "Number one for 11 years"
+    "show": [
+     "shanghai",
+     "china city",
+     "delivery scooter"
+    ],
+    "text": "Number one for 11 years",
+    "gfx": {
+     "t": "stat",
+     "v": "#1",
+     "l": "in the world, 11 years running"
+    }
    },
    {
     "say": "That scale is one reason sending a parcel across China costs so little.",
@@ -183,7 +353,8 @@
    "cardboard boxes",
    "delivery truck",
    "logistics warehouse"
-  ]
+  ],
+  "label": "China ships *170 billion* parcels a year"
  },
  {
   "id": "yiwu-market-size",
@@ -191,23 +362,63 @@
   "beats": [
    {
     "say": "It's called Yiwu International Trade City, in Zhejiang province.",
-    "show": "Yiwu market",
-    "text": "Yiwu, Zhejiang"
+    "show": [
+     "china market",
+     "market stall",
+     "china city"
+    ],
+    "text": "Yiwu, Zhejiang",
+    "gfx": {
+     "t": "stat",
+     "v": "Yiwu",
+     "l": "Zhejiang province, China"
+    }
    },
    {
     "say": "It covers more than 5 million square metres of floor space.",
-    "show": "huge mall interior corridor",
-    "text": "5 million+ square metres"
+    "show": [
+     "shopping mall",
+     "market hall",
+     "wholesale"
+    ],
+    "text": "5 million+ square metres",
+    "gfx": {
+     "t": "stat",
+     "v": "5 million",
+     "l": "square metres of floor space"
+    }
    },
    {
     "say": "Do the maths. One minute per booth, eight hours a day, would take about five months.",
-    "show": "market stalls accessories wall",
-    "text": "Five months to see it"
+    "show": [
+     "market stalls",
+     "souvenir shop",
+     "toy shop"
+    ],
+    "text": "Five months to see it",
+    "gfx": {
+     "t": "chain",
+     "items": [
+      "1 min per booth",
+      "8 hours a day",
+      "5 months"
+     ],
+     "l": "to see every booth"
+    }
    },
    {
     "say": "It started in 1982 as a small street market for local traders.",
-    "show": "old street market China",
-    "text": "Started in 1982"
+    "show": [
+     "street market",
+     "old market",
+     "china street"
+    ],
+    "text": "Started in 1982",
+    "gfx": {
+     "t": "stat",
+     "v": "1982",
+     "l": "started as a small street market"
+    }
    },
    {
     "say": "It sells small goods. Think socks, jewellery, toys, bags and decorations, mostly in bulk.",
@@ -229,7 +440,8 @@
    "jewelry display",
    "shopping mall",
    "street market china"
-  ]
+  ],
+  "label": "A market with *75,000* booths"
  },
  {
   "id": "shein-temu-fill-the-planes",
@@ -237,23 +449,67 @@
   "beats": [
    {
     "say": "In early 2024, Reuters cited data from Cargo Facts Consulting on Shein and Temu.",
-    "show": "cargo plane taking off",
-    "text": "Reuters, February 2024"
+    "show": [
+     "cargo plane",
+     "airport cargo",
+     "airport"
+    ],
+    "text": "Reuters, February 2024",
+    "gfx": {
+     "t": "stat",
+     "v": "Feb 2024",
+     "l": "Reuters, citing Cargo Facts Consulting"
+    }
    },
    {
     "say": "Shein was moving about 5,000 tonnes a day by air. Temu about 4,000.",
-    "show": "air cargo pallets loading",
-    "text": "9,000 tonnes a day"
+    "show": [
+     "air freight",
+     "airplane",
+     "airport"
+    ],
+    "text": "9,000 tonnes a day",
+    "gfx": {
+     "t": "compare",
+     "a": [
+      "4,000 t",
+      "Temu, per day",
+      4000
+     ],
+     "b": [
+      "5,000 t",
+      "Shein, per day",
+      5000
+     ]
+    }
    },
    {
     "say": "Together that's roughly 88 Boeing 777 freighters, full, every day.",
-    "show": "Boeing 777 freighter",
-    "text": "88 full freighters"
+    "show": [
+     "boeing",
+     "airplane takeoff",
+     "jet"
+    ],
+    "text": "88 full freighters",
+    "gfx": {
+     "t": "stat",
+     "v": "88",
+     "l": "Boeing 777 freighters, every day"
+    }
    },
    {
     "say": "A 2023 US congressional report estimated the two sent over 30 percent of America's daily duty-free small parcels.",
-    "show": "parcels warehouse sorting",
-    "text": "30 percent of small parcels"
+    "show": [
+     "parcels",
+     "online shopping",
+     "delivery"
+    ],
+    "text": "30 percent of small parcels",
+    "gfx": {
+     "t": "ring",
+     "pct": 30,
+     "l": "of US duty-free small parcels (2023 estimate)"
+    }
    },
    {
     "say": "Both the US and EU have changed their small-parcel rules since then.",
@@ -276,7 +532,8 @@
    "container port",
    "warehouse boxes",
    "airport"
-  ]
+  ],
+  "label": "Two apps filled *88 cargo planes* a day"
  },
  {
   "id": "shopping-agent-and-qc-photos",
@@ -284,23 +541,71 @@
   "beats": [
    {
     "say": "Taobao, Weidian and 1688 are built mainly for shoppers inside China. Chinese language, local payment, local delivery.",
-    "show": "phone Chinese shopping app",
-    "text": "Built for China"
+    "show": [
+     "online shopping",
+     "smartphone shopping",
+     "china city"
+    ],
+    "text": "Built for China",
+    "gfx": {
+     "t": "chain",
+     "items": [
+      "Taobao",
+      "Weidian",
+      "1688"
+     ],
+     "l": "built for shoppers inside China"
+    }
    },
    {
     "say": "A shopping agent is a company that buys the item for you and has it sent to their warehouse.",
-    "show": "warehouse worker receiving parcel",
-    "text": "Agent buys, warehouse receives"
+    "show": [
+     "warehouse",
+     "warehouse worker",
+     "forklift"
+    ],
+    "text": "Agent buys, warehouse receives",
+    "gfx": {
+     "t": "chain",
+     "items": [
+      "You",
+      "Agent",
+      "Warehouse"
+     ],
+     "l": "the agent buys it for you"
+    }
    },
    {
     "say": "Staff there open it and photograph it. Those are QC photos, short for quality check.",
-    "show": "photographing product on table",
-    "text": "QC = quality check photos"
+    "show": [
+     "photographer",
+     "camera",
+     "photo studio"
+    ],
+    "text": "QC = quality check photos",
+    "gfx": {
+     "t": "stat",
+     "v": "QC",
+     "l": "quality check photos of your item"
+    }
    },
    {
     "say": "You see the real item, colour and size before it leaves China, when a return is still easy.",
-    "show": "person checking photos phone",
-    "text": "See it before it ships"
+    "show": [
+     "packing box",
+     "packing tape",
+     "parcel"
+    ],
+    "text": "See it before it ships",
+    "gfx": {
+     "t": "chain",
+     "items": [
+      "Check photos",
+      "Approve",
+      "Ship"
+     ],
+     "l": "you see it before it leaves China"
+    }
    },
    {
     "say": "Then several orders get packed into one parcel for the international trip.",
@@ -323,7 +628,8 @@
    "product photography",
    "parcel delivery",
    "cardboard boxes"
-  ]
+  ],
+  "label": "What a *shopping agent* actually does"
  },
  {
   "id": "where-nikes-are-made",

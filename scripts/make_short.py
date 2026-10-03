@@ -33,7 +33,8 @@ UA = {"User-Agent": "Mozilla/5.0 (PuroClassicoShorts/1.0; +https://www.puroclass
 PLAT = {"weidian": "Weidian", "taobao": "Taobao", "1688": "1688"}
 FORMATS = ["story", "relatable", "story", "guess", "story", "top5", "story", "qc", "story", "term", "story", "order"]
 FF = imageio_ffmpeg.get_ffmpeg_exe()
-VOICE, VOICE_MODEL = "nPczCjzI2devNBz1zQrb", "eleven_multilingual_v2"      # "Brian", same voice as the how-to-order video
+VOICES = [v for v in (os.environ.get("SHORTS_VOICE", "").strip(), "TX3LPaxmHKxFdv7VOQHJ", "bIHbv24MWmeRgasZH58o", "nPczCjzI2devNBz1zQrb") if v]   # Liam, Will, Brian
+VOICE_MODEL = "eleven_multilingual_v2"; _VOICE = {}
 
 TERMS = [  # (term, what it stands for, plain-English meaning, example line)
     ("GL / RL", "Green light / Red light", "GL means the item looks right, ship it. RL means there's a flaw, so exchange it before it ships.", "You decide from the QC photos."),
@@ -203,7 +204,7 @@ def media(q):
 def media_many(q, n=3, themes=()):
     """Up to n different real shots for one phrase; falls back to the story's on-topic themes, never to a lone generic word."""
     out = []
-    for q2 in [q] + list(themes):
+    for q2 in (list(q) if isinstance(q, (list, tuple)) else [q]) + list(themes):
         while len(out) < n:
             r = stock(q2)
             if not r: break
@@ -373,6 +374,77 @@ def shade():                                                 # darken top and bo
         _SHADE = Image.new("RGBA", (W, H), BG + (255,)); _SHADE.putalpha(g.resize((W, H)))
     return _SHADE
 
+YEL = (255, 214, 64)
+def outlined(d, xy, txt, f, fill=INK, alpha=1.0, anchor="la", stroke=None):
+    sw = stroke if stroke is not None else max(4, f.size // 11)
+    d.text(xy, txt, font=f, fill=fill + (int(255 * alpha),), anchor=anchor, stroke_width=sw, stroke_fill=(8, 10, 18, int(255 * alpha)))
+
+def rich_lines(txt, f, maxw):
+    """Wrap 'plain *highlighted* plain' into lines of (word, highlighted) pairs."""
+    words = []; hl = False
+    for part in re.split(r"(\*)", txt):
+        if part == "*": hl = not hl; continue
+        words += [(w, hl) for w in part.split()]
+    lines, cur = [], []
+    for w in words:
+        if cur and _M.textlength(" ".join(x for x, _ in cur + [w]), font=f) > maxw: lines.append(cur); cur = []
+        cur.append(w)
+    if cur: lines.append(cur)
+    return lines
+
+def draw_title(fr, txt, lt, cy):
+    """Hook title: heavy white type with a dark outline, key words in yellow, lines pop in one after another."""
+    size = 104
+    while size > 60 and len(rich_lines(txt, font(size, 900), W - 150)) > 3: size -= 6
+    f = font(size, 900); lines = rich_lines(txt, f, W - 150); lh = int(size * 1.16); y0 = cy - lh * len(lines) // 2
+    out = 1 - ease((lt - 2.8) / 0.4)
+    for k, ln in enumerate(lines):
+        a = ease((lt - 0.12 * k) / 0.28) * out
+        if a <= 0: continue
+        layer = Image.new("RGBA", (W, lh + 40), (0, 0, 0, 0)); d = ImageDraw.Draw(layer)
+        tw = _M.textlength(" ".join(w for w, _ in ln), font=f); x = W / 2 - tw / 2
+        for w, hl in ln:
+            outlined(d, (x, 14), w, f, YEL if hl else INK); x += _M.textlength(w + " ", font=f)
+        paste(fr, layer, W / 2, y0 + k * lh + lh / 2 + int(26 * (1 - a)), 0.92 + 0.08 * pop(lt - 0.12 * k, 0.35), a)
+
+def draw_gfx(fr, g, lt, dur):
+    """Simple animated explainer graphic in the top half: stat / compare / chain / ring."""
+    if not g: return
+    a = ease((lt - 0.25) / 0.3) * (1 - ease((lt - (dur - 0.25)) / 0.25))
+    if a <= 0: return
+    L = Image.new("RGBA", (W, 620), (0, 0, 0, 0)); d = ImageDraw.Draw(L)
+    d.rounded_rectangle([70, 20, W - 70, 600], 44, fill=BG + (215,), outline=ACCENT + (120,), width=3)
+    t = g.get("t"); lab = font(46, 600)
+    def label(y=500):
+        if g.get("l"):
+            f = fit(g["l"], W - 240, 2, 46, 600, 32); ls = wrap(d, g["l"], f, W - 240)
+            for i, ln in enumerate(ls): d.text((W / 2, y + i * int(f.size * 1.15)), ln, font=f, fill=INK + (235,), anchor="ma")
+    if t == "stat":
+        f = fit(g["v"], W - 260, 1, 200, 900, 80); d.text((W / 2, 250), g["v"], font=f, fill=YEL + (255,), anchor="mm"); label(410)
+    elif t == "ring":
+        p = g["pct"] * ease((lt - 0.4) / 0.9); box = [W / 2 - 170, 60, W / 2 + 170, 400]
+        d.arc(box, 0, 360, fill=(60, 74, 110, 255), width=46); d.arc(box, -90, -90 + 3.6 * p, fill=YEL + (255,), width=46)
+        d.text((W / 2, 230), "%d%%" % round(p), font=font(110, 900), fill=INK + (255,), anchor="mm"); label(440)
+    elif t == "compare":
+        (va, la, na), (vb, lb, nb) = g["a"], g["b"]; mx = max(na, nb); grow = ease((lt - 0.4) / 0.8)
+        for i, (v, l, n, col) in enumerate(((va, la, na, ACCENT), (vb, lb, nb, YEL))):
+            cx = W / 2 + (-210 if i == 0 else 210); h = max(14, int(300 * n / mx * grow)); base = 440
+            d.rounded_rectangle([cx - 110, base - h, cx + 110, base], 18, fill=col + (255,))
+            d.text((cx, base - h - 16), v, font=font(76, 900), fill=INK + (255,), anchor="mb", stroke_width=6, stroke_fill=BG + (255,))
+            d.text((cx, base + 22), l, font=font(42, 600), fill=INK + (235,), anchor="ma")
+    elif t == "chain":
+        items = g["items"]; n = len(items); f = fit(max(items, key=len), (W - 220) // n - 70, 1, 72, 800, 34)
+        cell = (W - 220) / n
+        for i, it in enumerate(items):
+            ai = ease((lt - 0.4 - 0.35 * i) / 0.3)
+            if ai <= 0: continue
+            cx = 110 + cell * (i + 0.5); col = YEL if i == n - 1 else INK
+            d.rounded_rectangle([cx - cell / 2 + 34, 170, cx + cell / 2 - 34, 330], 28, fill=(34, 46, 78, int(255 * ai)), outline=col + (int(255 * ai),), width=4)
+            d.text((cx, 250), it, font=f, fill=col + (int(255 * ai),), anchor="mm")
+            if i: d.text((cx - cell / 2, 250), "›", font=font(90, 900), fill=ACCENT + (int(255 * ai),), anchor="mm")
+        label(390)
+    paste(fr, L, W / 2, 250 + 310 + int(30 * (1 - a)), 0.94 + 0.06 * pop(lt - 0.25, 0.35), a)
+
 CUT = 1.15                                                   # seconds per shot
 def draw_bg(fr, s, lt, dur):
     shots = s["bg"]; nseg = 1 if s.get("cut") is False else max(1, int(round(dur / CUT))); seg = dur / nseg
@@ -405,13 +477,8 @@ def draw_scene(fr, s, lt, dur, FT):
         draw_bg(fr, s, lt, dur)
         d = ImageDraw.Draw(fr); lg = FT["bug"]                 # small brand "bug" top-right, like a news channel
         d.rounded_rectangle([W - lg.size[0] - 74, 126, W - 34, 126 + lg.size[1] + 28], 22, fill=BG + (170,)); fr.alpha_composite(lg, (W - lg.size[0] - 54, 140))
-        if s.get("label") and lt < 3.2:                        # short hook label for the first seconds (the cover frame)
-            f = fit(s["label"], 900, 3, 84, 800, 50); lines = wrap(_M, s["label"], f, 900); lh = int(f.size * 1.2); y0 = 1010 - lh * len(lines) // 2
-            al = ease(lt / 0.25) * (1 - ease((lt - 2.8) / 0.4))
-            for k, ln in enumerate(lines):
-                tw = d.textlength(ln, font=f); yy = y0 + k * (lh + 8)
-                d.rounded_rectangle([W / 2 - tw / 2 - 22, yy - 4, W / 2 + tw / 2 + 22, yy + lh], 10, fill=ACCENT + (int(245 * al),))
-                d.text((W / 2, yy + 2), ln, font=f, fill=BG + (int(255 * al),), anchor="ma")
+        if s.get("label") and lt < 3.2: draw_title(fr, s["label"], lt, 1240 if s.get("cut") is False else 1000)
+        draw_gfx(fr, s.get("gfx"), lt, dur)
         return
     if s.get("kicker"): paste(fr, tag(s["kicker"].upper(), FT["kick"], s.get("kcol", ACCENT), BG), W / 2, 300, pop(lt), a)
     hy = 350
@@ -467,13 +534,14 @@ def draw_news_caption(fr, s, lt):
     ws = captions(s); cur = next((k for k, (w, a, b) in enumerate(ws) if a <= lt < b), None)
     if not ws or lt < ws[0][1] - 0.05 or (s.get("label") and lt < 3.2): return
     k0 = cur if cur is not None else max((k for k, (w, a, b) in enumerate(ws) if b <= lt), default=0); g0 = (k0 // 3) * 3; grp = ws[g0:g0 + 3]
-    d = ImageDraw.Draw(fr); f = font(78, 800); line = " ".join(w for w, _, _ in grp)
-    if d.textlength(line, font=f) > W - 140: f = font(60, 800)
-    tw = d.textlength(line, font=f); lh = int(f.size * 1.2); y = 1300
-    d.rounded_rectangle([W / 2 - tw / 2 - 24, y - 6, W / 2 + tw / 2 + 24, y + lh + 2], 12, fill=BG + (235,))
-    x = W / 2 - tw / 2; idx = g0
+    line = " ".join(w for w, _, _ in grp); size = 100
+    while size > 60 and _M.textlength(line, font=font(size, 900)) > W - 120: size -= 6
+    f = font(size, 900); tw = _M.textlength(line, font=f); y = 1060                    # just below the centre, clear of a presenter's face
+    t0 = grp[0][1]; sc = 0.9 + 0.1 * pop(lt - t0, 0.22)                                  # each new group pops in
+    layer = Image.new("RGBA", (W, int(size * 1.6)), (0, 0, 0, 0)); d = ImageDraw.Draw(layer); x = W / 2 - tw / 2; idx = g0
     for w in line.split():
-        d.text((x, y), w, font=f, fill=((255, 214, 80) if idx == cur else INK) + (255,)); x += d.textlength(w + " ", font=f); idx += 1
+        outlined(d, (x, int(size * 0.2)), w, f, YEL if idx == cur else INK); x += _M.textlength(w + " ", font=f); idx += 1
+    paste(fr, layer, W / 2, y, sc, 1.0)
 
 def draw_host(fr, s, lt, t_abs, FT):
     if s.get("news"): return draw_news_caption(fr, s, lt)
@@ -613,7 +681,7 @@ def fmt_story(D, a):
     beats = beats[:4]; shots = shots[:4]
     sc = [dict(dur=3.4, say=st["hook"], label=st.get("label") or st["hook"], bg=[ms[0] for ms in shots if ms] or every, news=True, presenter=True)]
     for k, b in enumerate(beats):
-        sc.append(dict(dur=3.6, say=b["say"], bg=shots[k] or every, news=True))
+        sc.append(dict(dur=3.6, say=b["say"], bg=shots[k] or every, news=True, gfx=b.get("gfx")))
     sc.append(dict(dur=3.6, say="Want to see what's on the China side? The spreadsheet is in the bio. Join the China side!", bg=every[::-1], news=True, last=True, presenter=True))
     cap = "%s 👀 Follow for more. The spreadsheet is in the bio — join the China side." % st["hook"].strip()
     return sc, [], cap, p, {"story": n + 1}
@@ -626,10 +694,15 @@ def tts(line, path):
     key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
     if not key or not line: return 0.0, None
     body = json.dumps({"text": line, "model_id": VOICE_MODEL, "voice_settings": {"stability": 0.4, "similarity_boost": 0.8, "style": 0.35}}).encode()
-    try:
-        r = json.loads(fetch("https://api.elevenlabs.io/v1/text-to-speech/%s/with-timestamps?output_format=mp3_44100_128" % VOICE, 90, body, {"xi-api-key": key, "Content-Type": "application/json"}))
-    except Exception as e:
-        print("  voiceover failed (continuing silent):", e); return 0.0, None
+    r = None
+    for v in ([_VOICE["id"]] if _VOICE.get("id") else VOICES):               # first voice that works is kept for the whole video
+        try:
+            r = json.loads(fetch("https://api.elevenlabs.io/v1/text-to-speech/%s/with-timestamps?output_format=mp3_44100_128" % v, 90, body, {"xi-api-key": key, "Content-Type": "application/json"}))
+            if not _VOICE.get("id"): print("  voice:", v)
+            _VOICE["id"] = v; break
+        except Exception as e:
+            print("  voice %s failed:" % v, e)
+    if r is None: return 0.0, None
     open(path + ".mp3", "wb").write(base64.b64decode(r["audio_base64"]))
     subprocess.run([FF, "-y", "-loglevel", "error", "-i", path + ".mp3", "-ar", "44100", "-ac", "2", "-c:a", "pcm_s16le", path], check=True)
     with wave.open(path) as w: dur = w.getnframes() / w.getframerate()
