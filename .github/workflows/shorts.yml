@@ -49,8 +49,11 @@ jobs:
           retention-days: 14
       - name: Publish preview (test runs only, to the "previews" branch)
         if: github.event_name == 'workflow_dispatch' && !inputs.post
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: |
           mkdir -p /tmp/prev && cp out/*.mp4 /tmp/prev/preview.mp4 && cp out/*.json /tmp/prev/preview.json
+          python scripts/make_short.py --voice-samples --out /tmp/prev || true
           cd /tmp/prev && git init -q -b previews
           git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add . && git commit -qm "preview"
