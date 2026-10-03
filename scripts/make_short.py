@@ -152,7 +152,7 @@ def pixabay(q, kind):
     if not key: return None
     try:
         if kind == "video":
-            d = json.loads(fetch("https://pixabay.com/api/videos/?" + urllib.parse.urlencode({"key": key, "q": q, "per_page": 10, "safesearch": "true"})))
+            d = json.loads(fetch("https://pixabay.com/api/videos/?" + urllib.parse.urlencode({"key": key, "q": q, "per_page": 15, "safesearch": "true", "video_type": "film"})))
             for v in d.get("hits", []):
                 if ("pb", v["id"]) in _USED or v.get("duration", 0) < 4 or not _on_topic(q, v.get("tags")): continue
                 f = next((v["videos"][k] for k in ("medium", "large", "small") if (v["videos"].get(k) or {}).get("url") and (v["videos"][k].get("height") or 0) >= 700), None)
