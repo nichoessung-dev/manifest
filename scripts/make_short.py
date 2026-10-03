@@ -402,16 +402,16 @@ def draw_bg(fr, s, lt, dur):
 def draw_scene(fr, s, lt, dur, FT):
     a = ease(lt / 0.35)
     if s.get("bg"):
-        draw_bg(fr, s, lt, dur); fr.alpha_composite(FT["logo"], ((W - FT["logo"].size[0]) // 2, 150))
-        if s.get("kicker"): paste(fr, tag(s["kicker"].upper(), FT["kick"], s.get("kcol", ACCENT), BG), W / 2, 300, pop(lt), a)
-        if s.get("head"):
-            f = fit(s["head"], W - 150, 3, 96, 900, 56); lines = wrap(_M, s["head"], f, W - 150); lh = int(f.size * 1.12)
-            d = ImageDraw.Draw(fr); y0 = 372
-            for k, ln in enumerate(lines):                    # each line on its own dark plate, like a subtitle card
-                ak = ease((lt - 0.08 * k) / 0.3); tw = d.textlength(ln, font=f)
-                if ak <= 0: continue
-                d.rounded_rectangle([W / 2 - tw / 2 - 26, y0 + k * (lh + 10) - 4, W / 2 + tw / 2 + 26, y0 + k * (lh + 10) + lh + 2], 18, fill=BG + (int(225 * ak),))
-                d.text((W / 2, y0 + k * (lh + 10)), ln, font=f, fill=s.get("hcol", INK) + (int(255 * ak),), anchor="ma")
+        draw_bg(fr, s, lt, dur)
+        d = ImageDraw.Draw(fr); lg = FT["bug"]                 # small brand "bug" top-right, like a news channel
+        d.rounded_rectangle([W - lg.size[0] - 74, 126, W - 34, 126 + lg.size[1] + 28], 22, fill=BG + (170,)); fr.alpha_composite(lg, (W - lg.size[0] - 54, 140))
+        if s.get("label") and lt < 3.2:                        # short hook label for the first seconds (the cover frame)
+            f = fit(s["label"], 900, 3, 84, 800, 50); lines = wrap(_M, s["label"], f, 900); lh = int(f.size * 1.2); y0 = 1010 - lh * len(lines) // 2
+            al = ease(lt / 0.25) * (1 - ease((lt - 2.8) / 0.4))
+            for k, ln in enumerate(lines):
+                tw = d.textlength(ln, font=f); yy = y0 + k * (lh + 8)
+                d.rounded_rectangle([W / 2 - tw / 2 - 22, yy - 4, W / 2 + tw / 2 + 22, yy + lh], 10, fill=ACCENT + (int(245 * al),))
+                d.text((W / 2, yy + 2), ln, font=f, fill=BG + (int(255 * al),), anchor="ma")
         return
     if s.get("kicker"): paste(fr, tag(s["kicker"].upper(), FT["kick"], s.get("kcol", ACCENT), BG), W / 2, 300, pop(lt), a)
     hy = 350
@@ -463,7 +463,20 @@ def captions(s):                                             # [(word, start, en
     return out
 
 
+def draw_news_caption(fr, s, lt):
+    ws = captions(s); cur = next((k for k, (w, a, b) in enumerate(ws) if a <= lt < b), None)
+    if not ws or lt < ws[0][1] - 0.05 or (s.get("label") and lt < 3.2): return
+    k0 = cur if cur is not None else max((k for k, (w, a, b) in enumerate(ws) if b <= lt), default=0); g0 = (k0 // 3) * 3; grp = ws[g0:g0 + 3]
+    d = ImageDraw.Draw(fr); f = font(78, 800); line = " ".join(w for w, _, _ in grp)
+    if d.textlength(line, font=f) > W - 140: f = font(60, 800)
+    tw = d.textlength(line, font=f); lh = int(f.size * 1.2); y = 1300
+    d.rounded_rectangle([W / 2 - tw / 2 - 24, y - 6, W / 2 + tw / 2 + 24, y + lh + 2], 12, fill=BG + (235,))
+    x = W / 2 - tw / 2; idx = g0
+    for w in line.split():
+        d.text((x, y), w, font=f, fill=((255, 214, 80) if idx == cur else INK) + (255,)); x += d.textlength(w + " ", font=f); idx += 1
+
 def draw_host(fr, s, lt, t_abs, FT):
+    if s.get("news"): return draw_news_caption(fr, s, lt)
     ws = captions(s); cur = next((k for k, (w, a, b) in enumerate(ws) if a <= lt < b), None)
     speaking = cur is not None
     mouth = (1 + int(2 * abs(math.sin(lt * 17)))) if speaking else 0
@@ -497,7 +510,8 @@ def draw_host(fr, s, lt, t_abs, FT):
 
 def fonts():
     logo = Image.open(os.path.join(ROOT, "logo-wordmark.png")).convert("RGBA")
-    return dict(kick=font(40, 800), logo=logo.resize((240, int(240 * logo.size[1] / logo.size[0])), Image.LANCZOS))
+    return dict(kick=font(40, 800), logo=logo.resize((240, int(240 * logo.size[1] / logo.size[0])), Image.LANCZOS),
+                bug=logo.resize((170, int(170 * logo.size[1] / logo.size[0])), Image.LANCZOS))
 def usd(p): return "$%d" % round(float(p.get("usd") or 0))
 def dollars(p): return "%d dollars" % round(float(p.get("usd") or 0))
 def plat(p): return PLAT.get(p.get("platform"), "")
@@ -596,13 +610,11 @@ def fmt_story(D, a):
     beats = st["beats"]; th = st.get("themes") or []
     shots = [media_many(b["show"], 3, th[k % len(th):] + th[:k % len(th)] if th else ()) for k, b in enumerate(beats)]; every = [m for ms in shots for m in ms]
     if not every: return None
-    sc = [dict(dur=3.4, say=st["hook"], kicker="Did you know?", head=st["hook"], bg=[ms[0] for ms in shots if ms] or every, mood="wow")]
+    beats = beats[:4]; shots = shots[:4]
+    sc = [dict(dur=3.4, say=st["hook"], label=st.get("label") or st["hook"], bg=[ms[0] for ms in shots if ms] or every, news=True)]
     for k, b in enumerate(beats):
-        sc.append(dict(dur=3.6, say=b["say"], head=b.get("text") or "", bg=shots[k] or every, look=1, mood="point" if k % 3 == 2 else "talk"))
-    if st.get("takeaway"): sc.append(dict(dur=3.2, say=st["takeaway"], head=st["takeaway"], hcol=GREEN, bg=every[::-1], mood="talk"))
-    sc = [x for x in sc if x.get("bg")] or None
-    if not sc: return None
-    sc.append(cta(hero, say="Want to see what's on the China side? The spreadsheet is in the bio."))
+        sc.append(dict(dur=3.6, say=b["say"], bg=shots[k] or every, news=True))
+    sc.append(dict(dur=3.6, say="Want to see what's on the China side? The spreadsheet is in the bio. Join the China side!", bg=every[::-1], news=True, last=True))
     cap = "%s 👀 Follow for more. The spreadsheet is in the bio — join the China side." % st["hook"].strip()
     return sc, [], cap, p, {"story": n + 1}
 
