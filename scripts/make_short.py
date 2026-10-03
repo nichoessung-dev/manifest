@@ -646,42 +646,47 @@ def tts(line, path):
 
 
 PRESENTER = os.path.join(ROOT, "scripts", "presenter.png")
-HEDRA = "https://api.hedra.com/web-app/public"; HEDRA_MODEL = "d1dd37a3-e39a-4854-a298-6510289f9cf2"   # Character-3
+HEDRA = "https://api.hedra.com/v3"                           # v3 API: upload files -> submit job -> poll -> outputs[].url
 
 def _multipart(path, mime):
     b = "----pc" + os.urandom(8).hex()
     body = ("--%s\r\nContent-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\nContent-Type: %s\r\n\r\n" % (b, os.path.basename(path), mime)).encode() + open(path, "rb").read() + ("\r\n--%s--\r\n" % b).encode()
     return body, "multipart/form-data; boundary=" + b
 
-_HEDRA_IMG = {}
+_HEDRA = {}
 def hedra_clip(audio_mp3, out_path):
     """Talking-presenter video for one line of audio (9:16, 720p). Returns the mp4 path, or None (falls back to footage)."""
+    import time as _t
     key = os.environ.get("HEDRA_API_KEY", "").strip()
-    if not key or not os.path.exists(PRESENTER) or not os.path.exists(audio_mp3): return None
-    H = {"x-api-key": key}; J = dict(H, **{"Content-Type": "application/json"})
+    if not key or not os.path.exists(PRESENTER) or not os.path.exists(audio_mp3) or _HEDRA.get("off"): return None
+    H = {"Authorization": "Key " + key}
     def api(path, body=None, headers=None, timeout=120):
         return json.loads(fetch(HEDRA + path, timeout, body, headers or H) or b"{}")
+    def upload(path, mime):
+        body, ct = _multipart(path, mime); return api("/files", body, dict(H, **{"Content-Type": ct}), 180)["url"]
     try:
-        if "id" not in _HEDRA_IMG:                           # upload the portrait once per run
-            iid = api("/assets", json.dumps({"name": "presenter.png", "type": "image"}).encode(), J)["id"]
-            body, ct = _multipart(PRESENTER, "image/png"); fetch(HEDRA + "/assets/%s/upload" % iid, 180, body, dict(H, **{"Content-Type": ct})); _HEDRA_IMG["id"] = iid
-        aid = api("/assets", json.dumps({"name": os.path.basename(audio_mp3), "type": "audio"}).encode(), J)["id"]
-        body, ct = _multipart(audio_mp3, "audio/mpeg"); fetch(HEDRA + "/assets/%s/upload" % aid, 180, body, dict(H, **{"Content-Type": ct}))
-        gen = api("/generations", json.dumps({"type": "video", "ai_model_id": HEDRA_MODEL, "start_keyframe_id": _HEDRA_IMG["id"], "audio_id": aid,
-              "generated_video_inputs": {"text_prompt": "A news presenter talking to the camera, natural head movement, friendly and confident, studio lighting",
-                                         "resolution": "720p", "aspect_ratio": "9:16"}}).encode(), J)
-        for _ in range(120):
-            import time as _t; _t.sleep(5)
-            st = api("/generations/%s/status" % gen["id"])
-            if st.get("status") == "complete":
-                open(out_path, "wb").write(fetch(st.get("download_url") or st["url"], 300)); print("  presenter clip ready:", os.path.getsize(out_path) // 1024, "KB"); return out_path
-            if st.get("status") == "error": print("  hedra error:", st.get("error_message")); return None
+        if "bal" not in _HEDRA:
+            _HEDRA["bal"] = api("/balance"); print("  hedra API wallet:", _HEDRA["bal"].get("balance"), _HEDRA["bal"].get("currency"))
+        img = upload(PRESENTER, "image/png"); aud = upload(audio_mp3, "audio/mpeg")
+        job = api("/models/hedra-character-3", json.dumps({"input": {
+            "prompt": "A young man presenting the news to the camera, natural head movement and blinking, friendly and confident",
+            "aspect_ratio": "9:16", "resolution": "720p",
+            "start_image": {"source": "url", "url": img}, "audio": {"source": "url", "url": aud}}}).encode(), dict(H, **{"Content-Type": "application/json"}))
+        jid = job["job_id"]
+        for _ in range(150):
+            _t.sleep(6); st = api("/jobs/%s/status" % jid).get("status")
+            if st == "COMPLETED":
+                outs = api("/jobs/%s" % jid).get("outputs") or []; url = next((o.get("url") for o in outs if o.get("url")), None)
+                if not url: print("  hedra: no output url", outs); return None
+                open(out_path, "wb").write(fetch(url, 300)); print("  presenter clip ready:", os.path.getsize(out_path) // 1024, "KB"); return out_path
+            if st == "FAILED": print("  hedra job failed:", json.dumps(api("/jobs/%s" % jid))[:400]); return None
         print("  hedra timed out")
     except Exception as e:
         detail = ""
-        try: detail = e.read().decode()[:300]
+        try: detail = e.read().decode()[:400]
         except Exception: pass
         print("  hedra failed (using footage instead):", e, detail)
+        if "402" in str(e) or "INSUFFICIENT" in detail: _HEDRA["off"] = True       # empty wallet: don't keep trying
     return None
 
 
