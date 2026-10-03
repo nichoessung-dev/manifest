@@ -1,0 +1,120 @@
+# -*- coding: utf-8 -*-
+"""Publish a rendered short (from make_short.py) to the channels connected in Postiz, then collect the public links.
+
+  python scripts/post_short.py out/short-top5-n0.json
+
+Env: POSTIZ_API_KEY (required)
+     SHORTS_CHANNELS   comma list of Postiz provider ids to post to (default: tiktok,youtube,instagram-standalone,threads)
+     PINTEREST_BOARD   Pinterest board id; Pinterest is skipped unless this is set
+     TIKTOK_BRANDED    "true" if the video is a paid partnership (turns on TikTok's branded-content label)
+     MYCNBOX_WEBHOOK   Discord webhook that receives the TikTok link (optional)
+Writes the links to <meta>.links.json and appends a line to shorts_log.json.
+"""
+import json, os, sys, time, uuid, urllib.request, urllib.error
+from datetime import datetime, timedelta, timezone
+
+API = "https://api.postiz.com/public/v1"
+KEY = os.environ.get("POSTIZ_API_KEY", "").strip()
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+WANT = [c.strip() for c in os.environ.get("SHORTS_CHANNELS", "tiktok,youtube,instagram-standalone,threads").split(",") if c.strip()]
+UA = "PuroClassicoShorts/1.0 (+https://www.puroclassico.com)"
+
+
+def call(method, path, body=None, headers=None, timeout=120):
+    h = {"Authorization": KEY, "User-Agent": UA, "Accept": "application/json"}; h.update(headers or {})
+    data = body if isinstance(body, (bytes, type(None))) else json.dumps(body).encode()
+    if body is not None and not isinstance(body, bytes): h["Content-Type"] = "application/json"
+    req = urllib.request.Request(API + path, data=data, headers=h, method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            raw = r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        raise SystemExit("Postiz %s %s -> HTTP %s: %s" % (method, path, e.code, e.read().decode("utf-8", "replace")[:500]))
+    return json.loads(raw) if raw.strip() else {}
+
+
+def upload(path):
+    boundary = "----pc" + uuid.uuid4().hex
+    head = ("--%s\r\nContent-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\nContent-Type: video/mp4\r\n\r\n" % (boundary, os.path.basename(path))).encode()
+    body = head + open(path, "rb").read() + ("\r\n--%s--\r\n" % boundary).encode()
+    r = call("POST", "/upload", body, {"Content-Type": "multipart/form-data; boundary=" + boundary}, 600)
+    if not r.get("path"): raise SystemExit("upload failed: %s" % r)
+    return {"id": r["id"], "path": r["path"]}
+
+
+def settings(provider, meta):
+    title = meta["caption"].split("\n")[0]
+    if provider == "tiktok":
+        return {"__type": "tiktok", "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "duet": True, "stitch": True, "comment": True,
+                "autoAddMusic": "no", "brand_content_toggle": os.environ.get("TIKTOK_BRANDED", "").lower() == "true",
+                "brand_organic_toggle": True,                      # "Your brand": the video promotes our own site
+                "video_made_with_ai": bool(meta.get("voiceover")),  # the narration is an AI voice
+                "content_posting_method": "DIRECT_POST"}
+    if provider == "youtube":
+        return {"__type": "youtube", "title": (title[:92] + " #shorts")[:100], "type": "public", "selfDeclaredMadeForKids": "no", "thumbnail": None, "tags": []}
+    if provider in ("instagram", "instagram-standalone"):
+        return {"__type": provider, "post_type": "post", "is_trial_reel": False, "collaborators": []}
+    if provider == "pinterest":
+        return {"__type": "pinterest", "board": os.environ["PINTEREST_BOARD"], "title": title[:100], "link": meta.get("product_url") or "https://www.puroclassico.com/", "dominant_color": ""}
+    return {"__type": provider}
+
+
+def main():
+    if not KEY: raise SystemExit("POSTIZ_API_KEY is not set")
+    meta_path = sys.argv[1]; meta = json.load(open(meta_path, encoding="utf-8"))
+    video = meta["file"] if os.path.exists(meta["file"]) else meta_path[:-5] + ".mp4"
+    ints = call("GET", "/integrations"); ints = ints if isinstance(ints, list) else ints.get("integrations", [])
+    chans = []
+    for it in ints:
+        prov = it.get("identifier") or it.get("providerIdentifier") or ""
+        if it.get("disabled"): continue
+        if prov == "pinterest" and not os.environ.get("PINTEREST_BOARD"): continue
+        if prov in WANT or (prov == "pinterest" and "pinterest" not in WANT and os.environ.get("PINTEREST_BOARD")): chans.append((prov, it["id"], it.get("name", "")))
+    print("channels:", [(p, n) for p, _, n in chans])
+    if not chans: raise SystemExit("no matching channels connected in Postiz (wanted %s; found %s)" % (WANT, [i.get("identifier") or i.get("providerIdentifier") for i in ints]))
+    media = upload(video); print("uploaded:", media["path"])
+    # YouTube descriptions can carry a clickable link; other platforms only get the caption
+    def content(prov): return meta["caption"] + ("\n\n" + (meta.get("product_url") or "") if prov in ("youtube", "threads") else "")
+    start = datetime.now(timezone.utc)
+    body = {"type": "now", "date": start.strftime("%Y-%m-%dT%H:%M:%S.000Z"), "shortLink": False, "tags": [],
+            "posts": [{"integration": {"id": iid}, "value": [{"content": content(prov), "image": [media]}], "settings": settings(prov, meta)} for prov, iid, _ in chans]}
+    res = call("POST", "/posts", body); print("created:", json.dumps(res)[:400])
+    ids = {c[1]: c[0] for c in chans}; links, errors = {}, {}
+    q = "?startDate=%s&endDate=%s" % ((start - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S.000Z"), (start + timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%S.000Z"))
+    for attempt in range(40):                                   # TikTok only gives a public link after its own review
+        time.sleep(45)
+        posts = call("GET", "/posts" + q).get("posts", [])
+        for p in posts:
+            iid = (p.get("integration") or {}).get("id"); prov = ids.get(iid)
+            pub = p.get("publishDate") or ""
+            if not prov or pub[:16] < (start - timedelta(minutes=3)).strftime("%Y-%m-%dT%H:%M"): continue
+            if p.get("state") == "PUBLISHED" and p.get("releaseURL"): links[prov] = p["releaseURL"]
+            elif p.get("state") == "ERROR": errors[prov] = True
+        print("  %2d: published %s%s" % (attempt + 1, sorted(links), (" errors " + str(sorted(errors))) if errors else ""))
+        if len(links) + len([e for e in errors if e not in links]) >= len(chans): break
+    out = {"when": start.strftime("%Y-%m-%d %H:%M UTC"), "format": meta["format"], "ids": meta["ids"], "links": links, "failed": sorted(e for e in errors if e not in links),
+           "pending": sorted(p for p, _, _ in chans if p not in links and p not in errors)}
+    json.dump(out, open(meta_path[:-5] + ".links.json", "w"), indent=1)
+    log_path = os.path.join(ROOT, "shorts_log.json")
+    try: log = json.load(open(log_path))
+    except Exception: log = []
+    log.append(out); json.dump(log[-400:], open(log_path, "w"), indent=0)
+    print(json.dumps(out, indent=1))
+    hook = os.environ.get("MYCNBOX_WEBHOOK", "").strip()
+    if hook and links.get("tiktok"):
+        msg = {"content": links["tiktok"], "username": "Puro Classico", "allowed_mentions": {"parse": []},
+               "embeds": [{"title": "New TikTok posted", "url": links["tiktok"], "description": meta["caption"].split("\n")[0][:300],
+                           "fields": [{"name": k.capitalize(), "value": v} for k, v in links.items() if k != "tiktok"][:6]}]}
+        req = urllib.request.Request(hook + "?wait=true", data=json.dumps(msg).encode(), headers={"Content-Type": "application/json", "User-Agent": UA}, method="POST")
+        try: urllib.request.urlopen(req, timeout=30); print("sent TikTok link to the Discord webhook")
+        except Exception as e: print("Discord webhook failed:", e)
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary:
+        with open(summary, "a") as f:
+            f.write("### Short posted (%s)\n\n" % meta["format"] + "".join("- **%s**: %s\n" % (k, v) for k, v in links.items()) +
+                    ("".join("- %s: still processing\n" % p for p in out["pending"])) + ("".join("- %s: FAILED\n" % p for p in out["failed"])))
+    if not links: raise SystemExit("nothing was published (see Postiz for the reason)")
+
+
+if __name__ == "__main__":
+    main()
