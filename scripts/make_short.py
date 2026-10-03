@@ -141,6 +141,11 @@ def pexels(q, kind):
         print("  pexels failed:", q, e)
     return None
 
+def _on_topic(q, tags):
+    words = [w for w in re.findall(r"[a-z]+", q.lower()) if len(w) > 3]; t = (tags or "").lower()
+    hits = sum(1 for w in words if w[:5] in t)
+    return hits >= (2 if len(words) >= 3 else 1) if words else True
+
 def pixabay(q, kind):
     key = os.environ.get("PIXABAY_API_KEY", "").strip()
     if not key: return None
@@ -148,7 +153,7 @@ def pixabay(q, kind):
         if kind == "video":
             d = json.loads(fetch("https://pixabay.com/api/videos/?" + urllib.parse.urlencode({"key": key, "q": q, "per_page": 10, "safesearch": "true"})))
             for v in d.get("hits", []):
-                if ("pb", v["id"]) in _USED or v.get("duration", 0) < 4: continue
+                if ("pb", v["id"]) in _USED or v.get("duration", 0) < 4 or not _on_topic(q, v.get("tags")): continue
                 f = next((v["videos"][k] for k in ("medium", "large", "small") if (v["videos"].get(k) or {}).get("url") and (v["videos"][k].get("height") or 0) >= 700), None)
                 if not f: continue
                 os.makedirs(MEDIA_DIR, exist_ok=True); path = os.path.join(MEDIA_DIR, "pb%d.mp4" % v["id"])
@@ -157,7 +162,7 @@ def pixabay(q, kind):
         else:
             d = json.loads(fetch("https://pixabay.com/api/?" + urllib.parse.urlencode({"key": key, "q": q, "per_page": 10, "image_type": "photo", "orientation": "vertical", "safesearch": "true"})))
             for ph in d.get("hits", []):
-                if ("pbi", ph["id"]) in _USED: continue
+                if ("pbi", ph["id"]) in _USED or not _on_topic(q, ph.get("tags")): continue
                 im = load_img(ph.get("largeImageURL") or ph.get("webformatURL"))
                 if im: _USED.add(("pbi", ph["id"])); return ("image", im, "Photo: %s / Pixabay" % ph.get("user", ""))
     except Exception as e:
@@ -195,10 +200,10 @@ def media(q):
         if r: print("  media:", q2, "->", r[0], r[2]); return r
     print("  media: nothing for", q); return None
 
-def media_many(q, n=3):
-    """Up to n different real shots for one phrase (fast cuts need more than one)."""
-    out = []; alts = [q, " ".join(q.split()[:2]), " ".join(q.split()[-2:]), q.split()[0]]
-    for q2 in alts:
+def media_many(q, n=3, themes=()):
+    """Up to n different real shots for one phrase; falls back to the story's on-topic themes, never to a lone generic word."""
+    out = []
+    for q2 in [q] + list(themes):
         while len(out) < n:
             r = stock(q2)
             if not r: break
@@ -588,7 +593,8 @@ def fmt_story(D, a):
     pool = [x for x in stories if x.get("approved")] or stories      # only stories the owner approved go out
     n = int(D.state.get("story", 0)) % len(pool); st = next((x for x in stories if x["id"] == a.id), pool[n]) if a.id else pool[n]
     pid, p, v = D.top(1, skip_done=False)[0]; hero = load_img(img_url(p))
-    beats = st["beats"]; shots = [media_many(b["show"], 3) for b in beats]; every = [m for ms in shots for m in ms]
+    beats = st["beats"]; th = st.get("themes") or []
+    shots = [media_many(b["show"], 3, th[k % len(th):] + th[:k % len(th)] if th else ()) for k, b in enumerate(beats)]; every = [m for ms in shots for m in ms]
     if not every: return None
     sc = [dict(dur=3.4, say=st["hook"], kicker="Did you know?", head=st["hook"], bg=[ms[0] for ms in shots if ms] or every, mood="wow")]
     for k, b in enumerate(beats):
@@ -597,7 +603,7 @@ def fmt_story(D, a):
     sc = [x for x in sc if x.get("bg")] or None
     if not sc: return None
     sc.append(cta(hero, say="Want to see what's on the China side? The spreadsheet is in the bio."))
-    cap = "%s 👀 Follow for more. The spreadsheet is in the bio — join the China side." % st["hook"].rstrip("?.!") + ("?" if st["hook"].strip().endswith("?") else ".")
+    cap = "%s 👀 Follow for more. The spreadsheet is in the bio — join the China side." % st["hook"].strip()
     return sc, [], cap, p, {"story": n + 1}
 
 BUILD = dict(story=fmt_story, relatable=fmt_relatable, spotlight=fmt_spotlight, top5=fmt_top5, guess=fmt_guess, qc=fmt_qc, term=fmt_term, order=fmt_order)
