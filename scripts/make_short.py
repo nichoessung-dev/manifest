@@ -1167,11 +1167,12 @@ SFX = {}
 def classic_ding():
     """The classic 'ding': one bright bell strike with a clean ring-out (stereo, 44.1 kHz)."""
     import array
-    n = int(1.3 * 44100); a = array.array("h", [0]) * (n * 2)
-    parts = ((2093.0, 1.0, 0.36), (4186.0, 0.34, 0.20), (5650.0, 0.22, 0.12), (8372.0, 0.10, 0.07))     # C7 with bell-like overtones
+    n = int(1.8 * 44100); a = array.array("h", [0]) * (n * 2)
+    # a struck desk bell: E6 with a slightly detuned twin (the shimmer) and the bell's own overtones, which die away first
+    parts = ((1318.5, 1.0, 0.55), (1323.0, 0.55, 0.50), (2637.0, 0.42, 0.30), (3639.0, 0.30, 0.20), (7120.0, 0.14, 0.07))
     for i in range(n):
-        t = i / 44100.0; att = min(1.0, i / 60.0)
-        v = int(9000 * att * sum(g * math.sin(2 * math.pi * f * t) * math.exp(-t / tau) for f, g, tau in parts))
+        t = i / 44100.0; att = min(1.0, i / 40.0)
+        v = int(6500 * att * sum(g * math.sin(2 * math.pi * f * t) * math.exp(-t / tau) for f, g, tau in parts))
         a[2 * i] = v; a[2 * i + 1] = v
     return a
 
@@ -1222,7 +1223,7 @@ def sfx_track(scenes, path):
                         if a: any_hit = True; mix(a, int((t0 + k * seg) * 44100), 0.16 if seg < 0.45 else 0.2)
                     continue
                 any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
-                if meta.get("bell") and SFX.get("bell"): mix(SFX["bell"], int((t0 + k * seg + 0.02) * 44100), 0.8); continue      # the answer: a clear ding
+                if meta.get("bell") and SFX.get("bell"): mix(SFX["bell"], int((t0 + k * seg + 0.02) * 44100), 0.55); continue      # the answer: a clear ding
                 if meta.get("site") and SFX.get("reveal"): mix(SFX["reveal"], int((t0 + k * seg) * 44100), 0.2); continue    # the end screen has its own sound
                 if meta.get("fx") == "orbit" and SFX.get("swish"): mix(SFX["swish"], i0, 0.4)
                 if SFX.get("ding"): mix(SFX["ding"], i0, 0.5); continue
