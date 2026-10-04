@@ -31,7 +31,7 @@ BG, CARD, INK, MUTED, ACCENT, RED, GREEN = (12, 18, 32), (244, 242, 238), (242, 
 FONT = os.path.join(ROOT, "scripts", "fonts", "HankenGrotesk.ttf")
 UA = {"User-Agent": "Mozilla/5.0 (PuroClassicoShorts/1.0; +https://www.puroclassico.com)"}
 PLAT = {"weidian": "Weidian", "taobao": "Taobao", "1688": "1688"}
-FORMATS = ["story", "relatable", "story", "guess", "story", "top5", "story", "qc", "story", "term", "story", "order"]
+FORMATS = ["style", "story", "relatable", "story", "guess", "story", "top5", "story", "qc", "story", "term", "story", "order"]
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 VOICES = [v for v in (os.environ.get("SHORTS_VOICE", "").strip(), "nPczCjzI2devNBz1zQrb", "bIHbv24MWmeRgasZH58o", "TX3LPaxmHKxFdv7VOQHJ") if v]   # Brian (owner's pick), Will, Liam
 VOICE_MODEL = "eleven_multilingual_v2"; _VOICE = {}
@@ -518,7 +518,8 @@ def floor_shade():                                            # darken the botto
 
 CUT = 2.6                                                    # seconds per shot
 def draw_bg(fr, s, lt, dur):
-    shots = s["bg"]; nseg = max(1, min(len(shots), int(round(dur / CUT)))); seg = dur / nseg      # never more cuts than different clips
+    shots = s["bg"]; nseg = max(1, min(len(shots), int(round(dur / s.get("cut", CUT))))); seg = dur / nseg      # never more cuts than different clips
+    hard = s.get("word")                                      # "style" videos: plain hard cuts, clean footage
     k = min(nseg - 1, int(lt / seg)); st = (lt - k * seg) / seg; kind, m, credit = shots[k % len(shots)]
     zoom = 1.0 + 0.07 * st if k % 2 == 0 else 1.07 - 0.07 * st                # slow push in, then out
     if kind == "video":
@@ -534,19 +535,19 @@ def draw_bg(fr, s, lt, dur):
     if base is not None:
         cw, ch = int(W / zoom), int(H / zoom); ox = [0.5, 0.2, 0.8, 0.5][k % 4]; oy = [0.35, 0.5, 0.45, 0.6][k % 4]
         x, y = int((W - cw) * ox), int((H - ch) * oy)
-        if k > 0 and st < 0.12: x += int(18 * math.sin(lt * 140) * (1 - st / 0.12))    # tiny shake on the cut
+        if k > 0 and st < 0.12 and not hard: x += int(18 * math.sin(lt * 140) * (1 - st / 0.12))    # tiny shake on the cut
         x = max(0, min(W - cw, x))
         fr.paste(base.crop((x, y, x + cw, y + ch)).resize((W, H), Image.BILINEAR), (0, 0))
-    fr.alpha_composite(shade())
+    if not hard: fr.alpha_composite(shade())
     if s.get("fg"):                                            # the presenter, cut out, in front of the footage
         if "_fg" not in s: s["_fg"] = Clip(s["fg"], key=True)
         f = s["_fg"].frame()
         if f is not None: s["_fgl"] = f
         if s.get("_fgl") is not None:
             im, pos = place_presenter(s["_fgl"]); fr.alpha_composite(im, pos); fr.alpha_composite(floor_shade())
-    if k > 0 and st < 0.09:                                   # white flash on the cut
+    if k > 0 and st < 0.09 and not hard:                      # white flash on the cut
         fr.alpha_composite(Image.new("RGBA", (W, H), (255, 255, 255, int(150 * (1 - st / 0.09)))))
-    if credit: ImageDraw.Draw(fr).text((W - 30, 1712), credit[:70], font=font(22, 500), fill=(200, 208, 225, 200), anchor="ra")
+    if credit and not hard: ImageDraw.Draw(fr).text((W - 30, 1712), credit[:70], font=font(22, 500), fill=(200, 208, 225, 200), anchor="ra")
 
 def draw_scene(fr, s, lt, dur, FT):
     a = ease(lt / 0.35)
@@ -618,7 +619,30 @@ def draw_news_caption(fr, s, lt):
         outlined(d, (x, int(size * 0.2)), w, f, YEL if idx == cur else INK); x += _M.textlength(w + " ", font=f); idx += 1
     paste(fr, layer, W / 2, y, sc, 1.0)
 
+def word_groups(ws):                                          # one word at a time; tiny words ride along with the next one
+    out, k = [], 0
+    while k < len(ws):
+        w, a, b = ws[k]
+        if k + 1 < len(ws) and len(w.strip(".,!?")) <= 3 and not w.rstrip().endswith((".", ",", "!", "?")) and len(w) + len(ws[k + 1][0]) <= 14:
+            out.append((w + " " + ws[k + 1][0], a, ws[k + 1][2])); k += 2
+        else: out.append((w, a, b)); k += 1
+    return out
+
+def draw_word_caption(fr, s, lt):
+    if "_wg" not in s: s["_wg"] = word_groups(captions(s))
+    g = next(((w, a, b) for w, a, b in s["_wg"] if a <= lt < b), None)
+    if not g: return
+    txt = g[0].upper().strip(",")
+    size = 84
+    while size > 50 and _M.textlength(txt, font=font(size, 900)) > W - 200: size -= 4
+    f = font(size, 900); tw = _M.textlength(txt, font=f)
+    layer = Image.new("RGBA", (int(tw) + 80, int(size * 1.7)), (0, 0, 0, 0)); d = ImageDraw.Draw(layer)
+    d.text((40 + 3, int(size * 0.25) + 5), txt, font=f, fill=(0, 0, 0, 150), stroke_width=5, stroke_fill=(0, 0, 0, 150))      # soft shadow
+    d.text((40, int(size * 0.25)), txt, font=f, fill=(248, 212, 40, 255), stroke_width=4, stroke_fill=(20, 16, 4, 255))
+    paste(fr, layer, W / 2, 965, 0.9 + 0.1 * pop(lt - g[1], 0.14), 1.0)
+
 def draw_host(fr, s, lt, t_abs, FT):
+    if s.get("word"): return draw_word_caption(fr, s, lt)
     if s.get("news"): return draw_news_caption(fr, s, lt)
     ws = captions(s); cur = next((k for k, (w, a, b) in enumerate(ws) if a <= lt < b), None)
     speaking = cur is not None
@@ -765,14 +789,41 @@ def fmt_story(D, a):
     cap = "%s 👀 Follow for more. The spreadsheet is in the bio — join the China side." % st["hook"].strip()
     return sc, [], cap, p, {"story": n + 1}
 
-BUILD = dict(story=fmt_story, relatable=fmt_relatable, spotlight=fmt_spotlight, top5=fmt_top5, guess=fmt_guess, qc=fmt_qc, term=fmt_term, order=fmt_order)
+def product_shot(p):
+    """A spreadsheet product photo as a full-screen shot: the photo on a backdrop of its own background colour."""
+    im = load_img(img_url(p))
+    if im is None: return None
+    im = im.convert("RGB"); c = im.resize((40, 40)).getpixel((1, 1)); bgc = c if min(c) > 200 else (240, 238, 234)
+    can = Image.new("RGB", (W, H), bgc); side = W - 60; im = ImageOps.contain(im, (side, side)); can.paste(im, ((W - im.width) // 2, (H - im.height) // 2 - 40))
+    return ("photo", can, "")
+
+def fmt_style(D, a):
+    """Fast outfit-advice video: no presenter, footage with a cut on every beat, one-word captions, voice + music."""
+    try: vids = json.load(open(os.path.join(ROOT, "scripts", "styles.json"), encoding="utf-8"))
+    except Exception as e: print("no styles.json:", e); return None
+    n = int(D.state.get("style", 0)) % len(vids); st = next((x for x in vids if x["id"] == a.id), vids[n]) if a.id else vids[n]
+    sc, ids, hero = [], [], None
+    for k, ln in enumerate(st["lines"]):
+        shots = picked(ln.get("clips"))
+        for pid in ln.get("products") or []:
+            p = D.products.get(str(pid))
+            ps = product_shot(p) if p else None
+            if ps: shots.append(ps); ids.append(str(pid)); hero = hero or p
+        if not shots: continue
+        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, word=True, cut=ln.get("cut", 0.9), pad=0.06, boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
+    if len(sc) < 3: return None
+    if not hero: hero = D.top(1, skip_done=False)[0][1]
+    cap = "%s 👕 Everything is on the spreadsheet in the bio." % st["title"]
+    return sc, ids[:1] and [], cap, hero, {"style": n + 1}
+
+BUILD = dict(style=fmt_style, story=fmt_story, relatable=fmt_relatable, spotlight=fmt_spotlight, top5=fmt_top5, guess=fmt_guess, qc=fmt_qc, term=fmt_term, order=fmt_order)
 
 
 # ---------------------------------------------------------------- voiceover (optional): ElevenLabs with word timings
 def tts(line, path):
     key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
     if not key or not line: return 0.0, None
-    body = json.dumps({"text": line, "model_id": VOICE_MODEL, "voice_settings": {"stability": 0.4, "similarity_boost": 0.8, "style": 0.35}}).encode()
+    body = json.dumps({"text": line, "model_id": VOICE_MODEL, "voice_settings": {"stability": 0.4, "similarity_boost": 0.8, "style": 0.35, "speed": _VOICE.get("speed", 1.0)}}).encode()
     r = None
     for v in ([_VOICE["id"]] if _VOICE.get("id") else VOICES):               # first voice that works is kept for the whole video
         try:
@@ -850,11 +901,13 @@ def hedra_clip(audio_mp3, out_path):
 
 
 def build_audio(scenes, tmp):
+    if any(s.get("word") for s in scenes): _VOICE["speed"] = 1.1                          # style videos are spoken fast
     track = os.path.join(tmp, "voice.wav"); out = wave.open(track, "wb"); out.setnchannels(2); out.setsampwidth(2); out.setframerate(44100); voiced = False
     for k, s in enumerate(scenes):
         wav = os.path.join(tmp, "s%d.wav" % k); d, words = tts(s.get("say"), wav); written = 0
         if d:
-            voiced = True; s["dur"] = max(d + (1.0 if s.get("last") else 0.4), 2.0); s["words"] = words
+            voiced = True; s["words"] = words
+            s["dur"] = d + (0.5 if s.get("last") else s["pad"]) if s.get("word") else max(d + (1.0 if s.get("last") else 0.4), 2.0)
             if s.get("presenter"):                            # the AI presenter says this line on camera
                 os.makedirs(MEDIA_DIR, exist_ok=True); clip = hedra_clip(wav + ".mp3", os.path.join(MEDIA_DIR, "presenter%d.mp4" % k))
                 if clip: s["fg"] = clip
@@ -866,13 +919,30 @@ def build_audio(scenes, tmp):
 
 # ---------------------------------------------------------------- background music
 MUSIC_PROMPT = "Upbeat modern instrumental beat for a fast, punchy explainer video: tight drums, driving bass, bright synth plucks, confident and energetic, 118 bpm, no vocals"
-def music_track(out_dir):
+STYLE_MUSIC = "Minimal stylish instrumental beat for a fast fashion video, exactly 128 bpm, starts immediately on the first kick, punchy kick and clap, deep bass, sparse plucks, confident, no vocals"
+def sfx_track(scenes, path):
+    """Bass hits ('boom') at the start of the lines that ask for one, as a stereo wav the length of the video."""
+    import array
+    total = sum(int(round(s["dur"] * FPS)) for s in scenes) / FPS; n = int(total * 44100); buf = array.array("h", [0]) * (n * 2); t0 = 0.0; any_hit = False
+    for s in scenes:
+        if s.get("boom"):
+            any_hit = True; i0 = int(t0 * 44100); ph = 0.0
+            for i in range(int(0.7 * 44100)):
+                if i0 + i >= n: break
+                t = i / 44100; f = 38 + 70 * math.exp(-t * 9); ph += 2 * math.pi * f / 44100
+                v = int(15000 * math.sin(ph) * math.exp(-t * 5.5) * min(1.0, i / 120)); buf[2 * (i0 + i)] = v; buf[2 * (i0 + i) + 1] = v
+        t0 += int(round(s["dur"] * FPS)) / FPS
+    if not any_hit: return None
+    with wave.open(path, "wb") as w: w.setnchannels(2); w.setsampwidth(2); w.setframerate(44100); w.writeframes(buf.tobytes())
+    return path
+
+def music_track(out_dir, prompt=None):
     """A track from scripts/music/ if there is one, else a new one from ElevenLabs (saved next to the video so it can be kept)."""
     lib = sorted(glob.glob(os.path.join(ROOT, "scripts", "music", "*.mp3")))
     if lib: m = random.choice(lib); print("  music:", os.path.basename(m)); return m
     key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
     if not key: return None
-    H = {"xi-api-key": key, "Content-Type": "application/json"}; path = os.path.join(out_dir, "music.mp3")
+    H = {"xi-api-key": key, "Content-Type": "application/json"}; path = os.path.join(out_dir, "music.mp3"); MUSIC_PROMPT = prompt or globals()["MUSIC_PROMPT"]
     tries = [("music", "https://api.elevenlabs.io/v1/music?output_format=mp3_44100_128", {"prompt": MUSIC_PROMPT, "music_length_ms": 40000, "force_instrumental": True}),
              ("music", "https://api.elevenlabs.io/v1/music?output_format=mp3_44100_128", {"prompt": MUSIC_PROMPT, "music_length_ms": 40000}),
              ("sound loop", "https://api.elevenlabs.io/v1/sound-generation", {"text": MUSIC_PROMPT + ", seamless loop", "duration_seconds": 22, "prompt_influence": 0.5})]
@@ -898,13 +968,19 @@ def render(scenes, out_path):
         if fake:
             for s in scenes:
                 if s.get("presenter") and not s.get("fg"): s["fg"] = fake
-        music = music_track(os.path.dirname(out_path)) if any(s.get("news") for s in scenes) else None
+        style = any(s.get("word") for s in scenes)
+        music = music_track(os.path.dirname(out_path), STYLE_MUSIC if style else None) if (style or any(s.get("news") for s in scenes)) else None
+        sfx = sfx_track(scenes, os.path.join(tmp, "sfx.wav")) if style else None
         cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
         cmd += ["-i", audio] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
-        if music:
-            cmd += ["-stream_loop", "-1", "-i", music, "-filter_complex",
-                    "[2:a]volume=0.16,afade=t=in:d=0.3,afade=t=out:st=%.2f:d=1.2[m];[1:a][m]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]" % max(0, total / FPS - 1.3),
-                    "-map", "0:v", "-map", "[a]", "-t", "%.3f" % (total / FPS)]
+        if music or sfx:
+            fc, mix, k = [], "[1:a]", 2
+            if music:
+                cmd += ["-stream_loop", "-1", "-i", music]
+                fc.append("[%d:a]volume=%s,afade=t=out:st=%.2f:d=1.0[m]" % (k, "0.22" if style else "0.16,afade=t=in:d=0.3", max(0, total / FPS - 1.1))); mix += "[m]"; k += 1
+            if sfx: cmd += ["-i", sfx]; fc.append("[%d:a]volume=0.9[x]" % k); mix += "[x]"; k += 1
+            fc.append("%samix=inputs=%d:duration=first:dropout_transition=0:normalize=0[a]" % (mix, k - 1))
+            cmd += ["-filter_complex", ";".join(fc), "-map", "0:v", "-map", "[a]", "-t", "%.3f" % (total / FPS)]
         cmd += ["-shortest", "-c:v", "libx264", "-preset", "medium", "-crf", "23", "-maxrate", "6M", "-bufsize", "12M", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", out_path]
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE); done = 0
         for s, nf in zip(scenes, frames):
