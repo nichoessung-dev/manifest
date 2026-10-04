@@ -21,7 +21,7 @@ QC photos come from the site's own /api/qc (edge-cached for 7 days).
 """
 import argparse, io, json, os, re, subprocess, sys, tempfile, urllib.parse, urllib.request, wave
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageOps
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 import imageio_ffmpeg
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -832,12 +832,24 @@ def backdrop(kind):
             g = g.resize((W, H)); _BACK[kind] = Image.merge("RGB", (g, g, g))
     return _BACK[kind]
 
+def clip_frame(shot, t=1.0):
+    """One still from a shot (video or photo), cover-fitted to the frame."""
+    kind, m = shot[0], shot[1]
+    if kind != "video": return cover(m.convert("RGB"), W, H)
+    try:
+        raw = subprocess.run([FF, "-loglevel", "error", "-ss", str(t), "-i", m, "-frames:v", "1", "-vf", "scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d" % (W, H, W, H), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE).stdout
+        return Image.frombuffer("RGB", (W, H), raw[:W * H * 3]) if len(raw) >= W * H * 3 else None
+    except Exception: return None
+
 _PSHOT = [0]
-def product_shot(p):
+def product_shot(p, over=None):
     """A spreadsheet product photo as a studio shot: the item cut out, with a soft shadow, on a paper or soft-grey backdrop."""
     im = load_img(img_url(p))
     if im is None: return None
     kind = ("soft", "paper")[_PSHOT[0] % 2]; _PSHOT[0] += 1; can = backdrop(kind).copy().convert("RGBA"); co = cutout(im)
+    base = clip_frame(over) if over else None
+    if base is not None and co is not None:                   # the item floating over the blurred outfit clip
+        can = ImageEnhance.Brightness(base.resize((W // 6, H // 6)).filter(ImageFilter.GaussianBlur(5)).resize((W, H), Image.BICUBIC)).enhance(0.92).convert("RGBA")
     if co is None:                                            # busy photo: show it as a rounded card instead
         card = rounded(cover(im.convert("RGB"), 900, 900), 46); can.alpha_composite(card, ((W - 900) // 2, (H - 900) // 2 - 40)); return ("photo", can.convert("RGB"), "")
     co = ImageOps.contain(co, (W - 150, 1000), Image.LANCZOS); x, y = (W - co.width) // 2, (H - co.height) // 2 - 30
@@ -851,10 +863,11 @@ def fmt_style(D, a):
     n = int(D.state.get("style", 0)) % len(vids); st = next((x for x in vids if x["id"] == a.id), vids[n]) if a.id else vids[n]
     sc, ids, hero = [], [], None
     for k, ln in enumerate(st["lines"]):
-        shots = picked(ln.get("clips"))
+        shots = picked(ln.get("clips")); first = shots[0] if shots else None
+        if ln.get("paper"): shots.insert(0, ("photo", backdrop("paper"), ""))      # a text-only beat on paper, like a title card
         for pid in ln.get("products") or []:
             p = D.products.get(str(pid))
-            ps = product_shot(p) if p else None
+            ps = product_shot(p, first if ln.get("blur") else None) if p else None
             if ps: shots.append(ps); ids.append(str(pid)); hero = hero or p
         if not shots: continue
         sc.append(dict(dur=2.0, say=ln["say"], bg=shots, word=True, cut=ln.get("cut", 0.9), pad=0.06, boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
