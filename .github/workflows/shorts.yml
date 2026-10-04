@@ -57,6 +57,7 @@ jobs:
           HEDRA_API_KEY: ${{ secrets.HEDRA_API_KEY }}
         run: |
           mkdir -p /tmp/prev && cp out/*.mp4 /tmp/prev/preview.mp4 && cp out/*.json /tmp/prev/preview.json
+          cp out/*.mp3 /tmp/prev/ 2>/dev/null || true
           if [ "${{ inputs.candidates }}" = "true" ]; then python scripts/make_short.py --make-presenters --out /tmp/prev || true; fi
           cd /tmp/prev && git init -q -b previews
           git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
