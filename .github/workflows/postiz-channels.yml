@@ -1,0 +1,17 @@
+name: Postiz channels
+# Lists the channels Postiz reports for this account. Posts nothing.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  list:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - env:
+          POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+        run: python scripts/post_short.py --list

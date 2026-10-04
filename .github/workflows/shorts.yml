@@ -21,6 +21,10 @@ on:
         description: 'Also generate new presenter candidates'
         type: boolean
         default: false
+      channels:
+        description: 'Only these channels, comma separated (blank = all four)'
+        type: string
+        default: ''
       post_preview:
         description: 'Post the LAST test video exactly as it is (no new render)'
         type: boolean
@@ -81,6 +85,7 @@ jobs:
         if: github.event_name == 'schedule' || inputs.post || inputs.post_preview
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+          SHORTS_CHANNELS: ${{ inputs.channels }}
           MYCNBOX_WEBHOOK: ${{ secrets.MYCNBOX_WEBHOOK }}
           PINTEREST_BOARD: ${{ vars.PINTEREST_BOARD }}
           TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
