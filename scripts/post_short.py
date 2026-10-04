@@ -89,7 +89,9 @@ def main():
     if photos: print("uploaded", len(photos), "slides")
     def files(prov): return photos if photos and prov != "youtube" else [media]                 # YouTube has no carousels: it gets the video
     # YouTube descriptions can carry a clickable link; other platforms only get the caption
-    def content(prov): return meta["caption"] + ("\n\n" + (meta.get("product_url") or "") if prov in ("youtube", "threads") else "")
+    def content(prov):
+        if photos and prov.startswith("tiktok"): return meta["caption"].split("\n", 1)[-1].strip()      # TikTok shows the title line itself: do not repeat it
+        return meta["caption"] + ("\n\n" + (meta.get("product_url") or "") if prov in ("youtube", "threads") else "")
     start = datetime.now(timezone.utc)
     body = {"type": "now", "date": start.strftime("%Y-%m-%dT%H:%M:%S.000Z"), "shortLink": False, "tags": [],
             "posts": [{"integration": {"id": iid}, "value": [{"content": content(prov), "image": files(prov)}], "settings": settings(prov, meta)} for prov, iid, _ in chans]}
