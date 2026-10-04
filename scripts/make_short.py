@@ -1161,7 +1161,7 @@ STYLE_MUSIC = "Minimal stylish instrumental beat for a fast fashion video, exact
 SFX_PROMPTS = {"ding": ("One soft, satisfying interface tap: a gentle rounded click with a warm low pop, like a premium phone keyboard tap. Subtle, dry, clean, no bell, no reverb", 0.5),
                "boom": ("One soft low whoosh into a gentle muffled thump, like a smooth film transition. Warm, subtle, clean, no distortion", 0.9),
                "swish": ("One very soft airy swoosh, a light quick swipe of air. Subtle, smooth, clean", 0.5),
-               "tick": ("One very soft, short click, like a quiet camera shutter heard from a distance. Subtle, dry, tiny", 0.5),
+               "tick": ("One quick, soft flick, like a single playing card being flipped onto a table. Light, papery, short, dry", 0.5),
                "reveal": ("A very soft, airy whoosh, like a gentle breath of air, fading out smoothly. Quiet, warm, no chime, no bell, no high notes", 1.2)}
 SFX = {}
 def classic_ding():
