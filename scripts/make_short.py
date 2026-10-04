@@ -1176,8 +1176,15 @@ def classic_ding():
         a[2 * i] = v; a[2 * i + 1] = v
     return a
 
+OWN_SFX = {"bell": "1LF83zDRLBfanryhwTRRxHhB0bpnrWJTe"}        # the owner's own sounds (Drive ids): "Ding - Sound Effect.mp3"
 def load_sfx(out_dir):
+    import array
     SFX["bell"] = classic_ding()
+    for name, fid in OWN_SFX.items():
+        src = drive_file(fid, "mp3")
+        if not src: print("  own sfx %s unavailable, using the built-in one" % name); continue
+        raw = subprocess.run([FF, "-loglevel", "error", "-i", src, "-ac", "2", "-ar", "44100", "-af", "silenceremove=start_periods=1:start_threshold=-45dB,loudnorm=I=-16:TP=-2", "-t", "2.5", "-f", "s16le", "-"], stdout=subprocess.PIPE).stdout
+        if len(raw) > 4000: a = array.array("h"); a.frombytes(raw[:len(raw) // 4 * 4]); SFX[name] = a; print("  sfx: using the owner's %s (%.1fs)" % (name, len(a) / 2 / 44100))
     """Sound effects from scripts/sfx/<name>.mp3 if present, else generated (saved next to the video so they can be kept)."""
     import array
     key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
