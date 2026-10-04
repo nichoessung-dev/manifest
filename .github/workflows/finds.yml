@@ -7,6 +7,10 @@ on:
     - cron: '0 19 * * *'   # 19:00 UTC
   workflow_dispatch:
     inputs:
+      channels:
+        description: 'Only these channels, comma separated (blank = all)'
+        type: string
+        default: ''
       post:
         description: 'Post it for real (otherwise: preview only)'
         type: boolean
@@ -39,7 +43,7 @@ jobs:
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
           MYCNBOX_WEBHOOK: ${{ secrets.MYCNBOX_WEBHOOK }}
-          SHORTS_CHANNELS: ${{ vars.FINDS_CHANNELS || 'tiktok,instagram-standalone,threads' }}
+          SHORTS_CHANNELS: ${{ inputs.channels || vars.FINDS_CHANNELS || 'tiktok,instagram-standalone,threads' }}
           TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
         run: python scripts/post_short.py out/finds-*.json
       - name: Save state
