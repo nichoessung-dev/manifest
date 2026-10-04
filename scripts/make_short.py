@@ -534,6 +534,17 @@ def draw_gfx(fr, g, lt, dur):
 
 def draw_sticker(fr, meta, tl):
     """Stickers on a shot: a red arrow that slides in pointing at the item, or a tick that draws itself on."""
+    if meta["fx"] == "mark": return
+    if meta["fx"] == "cross":                                 # a red X drawn over the item, one stroke after the other
+        x0, y0, x1, y1 = meta["box"]; cx, cy = (x0 + x1) / 2, (y0 + y1) / 2; r = min(max(x1 - x0, y1 - y0) / 2, 330) * 0.8; S = 2
+        L = Image.new("RGBA", (int(2 * r + 120) * S, int(2 * r + 120) * S), (0, 0, 0, 0)); d = ImageDraw.Draw(L); o = (r + 60) * S
+        for k, (sx, sy) in enumerate(((-1, -1), (1, -1))):
+            pr = ease((tl - 0.1 - 0.14 * k) / 0.16)
+            if pr <= 0: continue
+            a = (o + sx * r * S, o + sy * r * S); b = (a[0] - sx * 2 * r * S * pr, a[1] - sy * 2 * r * S * pr)
+            d.line([a, b], fill=(214, 30, 40, 255), width=54 * S)
+            for q in (a, b): d.ellipse([q[0] - 27 * S, q[1] - 27 * S, q[0] + 27 * S, q[1] + 27 * S], fill=(214, 30, 40, 255))
+        paste(fr, L.resize((L.width // S, L.height // S), Image.LANCZOS), cx, cy, 1.0, 0.94)
     if meta["fx"] == "orbit":                                 # the red arrow travels round the item, always pointing at it
         a = ease((tl - 0.06) / 0.18)
         if a <= 0: return
@@ -741,7 +752,16 @@ def draw_word_caption(fr, s, lt):
         _SPR[key] = sh
     paste(fr, _SPR[key], W / 2, 975, 1.0, 1.0)
 
+def draw_addr(fr, lt):
+    """A small address line near the bottom (instead of a full end card)."""
+    if "addr" not in _SPR:
+        txt = "puroclassico.com"; f = mfont(72, 800); tw = int(_M.textlength(txt, font=f)); L = Image.new("RGBA", (tw + 120, 136), (0, 0, 0, 0)); d = ImageDraw.Draw(L)
+        d.rounded_rectangle([0, 0, tw + 119, 135], 68, fill=(12, 14, 22, 225)); d.text(((tw + 120) / 2, 66), txt, font=f, fill=(255, 255, 255, 255), anchor="mm"); _SPR["addr"] = L
+    a = ease((lt - 0.2) / 0.3)
+    if a > 0: paste(fr, _SPR["addr"], W / 2, 1500 + int(20 * (1 - a)), 1.0, a)
+
 def draw_host(fr, s, lt, t_abs, FT):
+    if s.get("addr"): draw_addr(fr, lt)
     if s.get("nocap") or s.get("_quiet"): return
     if s.get("word"): return draw_word_caption(fr, s, lt)
     if s.get("news"): return draw_news_caption(fr, s, lt)
@@ -943,7 +963,7 @@ def clip_frame(shot, t=1.0):
     except Exception: return None
 
 _PSHOT = [0]
-def product_shot(p, over=None, brand=False, arrow=False):
+def product_shot(p, over=None, brand=False, arrow=False, tag=None, cross=False):
     """A spreadsheet product photo as a studio shot: the item cut out, with a soft shadow, held still on moving paper
     (or over a blurred outfit clip), the brand name above it and a red arrow that travels round it."""
     im = load_img(img_url(p))
@@ -966,8 +986,15 @@ def product_shot(p, over=None, brand=False, arrow=False):
             t2 = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(t2).text((W / 2 + 2, by + 4), txt, font=f, fill=(0, 0, 0, 170), anchor="ms"); lay.alpha_composite(t2.filter(ImageFilter.GaussianBlur(6)))
             ImageDraw.Draw(lay).text((W / 2, by), txt, font=f, fill=(255, 255, 255, 255), anchor="ms")
         else: ImageDraw.Draw(lay).text((W / 2, by), txt, font=f, fill=(18, 20, 28, 255), anchor="ms")
+    if tag:                                                   # a price tag under the item: big number, small line
+        big, small, bad = tag[0], (tag[1] if len(tag) > 1 else ""), (len(tag) > 2 and tag[2] == "bad")
+        f = mfont(190, 900); tw = int(_M.textlength(big, font=f)); ty = y + co.height + 70; d = ImageDraw.Draw(lay)
+        d.text((W / 2, ty), big, font=f, fill=((214, 30, 40) if bad else (18, 20, 28)) + (255,), anchor="ma")
+        if bad: d.line([(W / 2 - tw / 2 - 16, ty + 128), (W / 2 + tw / 2 + 16, ty + 98)], fill=(214, 30, 40, 255), width=14)      # struck through
+        if small: d.text((W / 2, ty + 235), small.upper(), font=mfont(50, 800), fill=(70, 76, 92, 255), anchor="ma")
     meta = {"ding": True, "overlay": True, "blur": base is not None}
-    if arrow: meta.update(fx="orbit", box=(x, y, x + co.width, y + co.height))
+    if cross: meta.update(fx="cross", box=(x, y, x + co.width, y + co.height))
+    elif arrow and not tag: meta.update(fx="orbit", box=(x, y, x + co.width, y + co.height))
     return ("photo", lay, "", meta)
 
 def best_item(D, brand, cat=None, look=8):
@@ -1028,18 +1055,22 @@ def fmt_style(D, a):
         if ln.get("paper"): shots.insert(0, ("photo", backdrop("paper"), "", dict({"paper": True}, **({"fx": "tick", "ding": True} if ln.get("tick") else {}))))      # a text-only beat on paper
         for pid in ln.get("products") or []:
             p = D.products.get(str(pid))
-            ps = product_shot(p, first if ln.get("blur") else None, bool(ln.get("brand", True)), bool(ln.get("arrow", True))) if p else None
+            tg = (ln.get("tags") or {}).get(str(pid))
+            ps = product_shot(p, first if ln.get("blur") else None, bool(ln.get("brand", True)), bool(ln.get("arrow", True)), tg, bool(ln.get("cross"))) if p else None
             if ps: shots.append(ps); ids.append(str(pid)); hero = hero or p
         nb = 0
         for b in ln.get("boards") or []:                         # brand boards, one per brand, swapping in place
             bs, bids = board_shot(D, b["brand"], b.get("cat"))
             if bs: shots.insert(nb, bs); nb += 1; ids += bids; hero = hero or D.products[bids[0]]      # the board leads its line
+        if ln.get("qc"):                                         # proof: the warehouse photos of this exact item
+            qp = D.products.get(str(ln["qc"]))
+            for im in (qc_photos(str(ln["qc"]), qp, 3) if qp else []): shots.append(("photo", im.convert("RGB"), ""))
         if ln.get("site"):
             ss = site_shot()
             if ss: shots.append(ss)
         if ln.get("loop") and sc: shots += sc[0]["bg"][:3]        # end on the opening shots so the video loops
         if not shots: continue
-        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, music=st.get("music"), nocap=bool(ln.get("site") or ln.get("nocap")), word=True, cut=ln.get("cut", 0.9), pad=ln.get("pad", 0.14), boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
+        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, music=st.get("music"), addr=bool(ln.get("addr")), nocap=bool(ln.get("site") or ln.get("nocap")), word=True, cut=ln.get("cut", 0.9), pad=ln.get("pad", 0.14), boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
     if len(sc) < 3: return None
     if not hero: hero = D.top(1, skip_done=False)[0][1]
     cap = "%s 👕 Everything is on the spreadsheet in the bio." % st["title"] + (("\n\n" + st["credits"]) if st.get("credits") else "")
@@ -1232,6 +1263,7 @@ def sfx_track(scenes, path):
                 any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
                 if meta.get("bell") and SFX.get("bell"): mix(SFX["bell"], int((t0 + k * seg + 0.02) * 44100), 0.55); continue      # the answer: a clear ding
                 if meta.get("site") and SFX.get("reveal"): mix(SFX["reveal"], int((t0 + k * seg) * 44100), 0.2); continue    # the end screen has its own sound
+                if meta.get("fx") == "cross" and SFX.get("boom"): mix(SFX["boom"], i0, 0.55); continue
                 if meta.get("fx") == "orbit" and SFX.get("swish"): mix(SFX["swish"], i0, 0.4)
                 if SFX.get("ding"): mix(SFX["ding"], i0, 0.5); continue
                 for i in range(int(0.6 * 44100)):
