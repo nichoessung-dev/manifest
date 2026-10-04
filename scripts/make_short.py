@@ -989,6 +989,7 @@ def draw_site(fr, tl):
     for k, (txt, size, col, y, wt) in enumerate((("EVERY FIND IN ONE PLACE", 44, (170, 184, 222), 250, 700), ("PUROCLASSICO.COM", 98, CAP_YEL, 372, 900))):
         b = ease((tl - 0.15 - 0.12 * k) / 0.3)
         if b <= 0: continue
+        while size > 40 and _M.textlength(txt, font=mfont(size, wt)) > W - 150: size -= 2
         f = mfont(size, wt); L = Image.new("RGBA", (W, int(size * 1.6)), (0, 0, 0, 0)); ImageDraw.Draw(L).text((W / 2, int(size * 0.8)), txt, font=f, fill=col + (255,), anchor="mm")
         paste(fr, L, W / 2, y + int(24 * (1 - b)), 1.0, b)
 
@@ -1005,9 +1006,10 @@ def fmt_style(D, a):
             p = D.products.get(str(pid))
             ps = product_shot(p, first if ln.get("blur") else None, bool(ln.get("brand", True)), bool(ln.get("arrow", True))) if p else None
             if ps: shots.append(ps); ids.append(str(pid)); hero = hero or p
+        nb = 0
         for b in ln.get("boards") or []:                         # brand boards, one per brand, swapping in place
             bs, bids = board_shot(D, b["brand"], b.get("cat"))
-            if bs: shots.append(bs); ids += bids; hero = hero or D.products[bids[0]]
+            if bs: shots.insert(nb, bs); nb += 1; ids += bids; hero = hero or D.products[bids[0]]      # the board leads its line
         if ln.get("site"):
             ss = site_shot()
             if ss: shots.append(ss)
