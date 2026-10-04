@@ -45,7 +45,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install pillow imageio-ffmpeg
+      - run: pip install pillow imageio-ffmpeg yt-dlp
       - name: Fetch the approved preview
         if: inputs.post_preview
         run: |
