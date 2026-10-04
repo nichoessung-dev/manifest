@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 API = "https://api.postiz.com/public/v1"
 KEY = os.environ.get("POSTIZ_API_KEY", "").strip()
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-WANT = [c.strip() for c in os.environ.get("SHORTS_CHANNELS", "tiktok,youtube,instagram-standalone,threads").split(",") if c.strip()]
+WANT = [c.strip() for c in (os.environ.get("SHORTS_CHANNELS", "").strip() or "tiktok,youtube,instagram-standalone,threads").split(",") if c.strip()]
 UA = "PuroClassicoShorts/1.0 (+https://www.puroclassico.com)"
 
 
@@ -44,8 +44,8 @@ def upload(path):
 
 def settings(provider, meta):
     title = meta["caption"].split("\n")[0]
-    if provider == "tiktok":
-        return {"__type": "tiktok", "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "duet": True, "stitch": True, "comment": True,
+    if provider.startswith("tiktok"):
+        return {"__type": provider, "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "duet": True, "stitch": True, "comment": True,
                 "autoAddMusic": "no", "brand_content_toggle": os.environ.get("TIKTOK_BRANDED", "").lower() == "true",
                 "brand_organic_toggle": True,                      # "Your brand": the video promotes our own site
                 "video_made_with_ai": bool(meta.get("voiceover")),  # the narration is an AI voice
@@ -59,8 +59,17 @@ def settings(provider, meta):
     return {"__type": provider}
 
 
+def list_channels():
+    """Print what Postiz reports for each connected channel (no ids, nothing is posted)."""
+    ints = call("GET", "/integrations"); ints = ints if isinstance(ints, list) else ints.get("integrations", [])
+    rows = ["%s | name=%s | disabled=%s | keys=%s" % (i.get("identifier") or i.get("providerIdentifier"), i.get("name"), i.get("disabled"), sorted(k for k in i if k not in ("id", "picture", "token", "refreshToken"))) for i in ints]
+    print("\n".join(rows)); summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary: open(summary, "a").write("### Postiz channels\n\n" + "".join("- CHANNEL %s\n" % r for r in rows))
+
+
 def main():
     if not KEY: raise SystemExit("POSTIZ_API_KEY is not set")
+    if len(sys.argv) > 1 and sys.argv[1] == "--list": return list_channels()
     meta_path = sys.argv[1]; meta = json.load(open(meta_path, encoding="utf-8"))
     video = meta["file"] if os.path.exists(meta["file"]) else meta_path[:-5] + ".mp4"
     ints = call("GET", "/integrations"); ints = ints if isinstance(ints, list) else ints.get("integrations", [])
@@ -69,7 +78,7 @@ def main():
         prov = it.get("identifier") or it.get("providerIdentifier") or ""
         if it.get("disabled"): continue
         if prov == "pinterest" and not os.environ.get("PINTEREST_BOARD"): continue
-        if prov in WANT or (prov == "pinterest" and "pinterest" not in WANT and os.environ.get("PINTEREST_BOARD")): chans.append((prov, it["id"], it.get("name", "")))
+        if prov in WANT or (prov.startswith("tiktok") and "tiktok" in WANT) or (prov == "pinterest" and "pinterest" not in WANT and os.environ.get("PINTEREST_BOARD")): chans.append((prov, it["id"], it.get("name", "")))
     print("channels:", [(p, n) for p, _, n in chans])
     if not chans: raise SystemExit("no matching channels connected in Postiz (wanted %s; found %s)" % (WANT, [i.get("identifier") or i.get("providerIdentifier") for i in ints]))
     media = upload(video); print("uploaded:", media["path"])
