@@ -893,6 +893,29 @@ def product_shot(p, over=None, brand=False, arrow=False):
     if arrow: meta.update(fx="arrow", target=(x + co.width * 0.74, y + co.height * 0.22))
     return ("photo", can.convert("RGB"), "", meta)
 
+def board_shot(D, brand, cat=None, n=4):
+    """A brand board: the brand name on top and up to four of its most-viewed spreadsheet items, cut out, on paper."""
+    items = []
+    for i, v in D.ranked:
+        p = D.products[i]
+        if (p.get("brand") or "").lower() != brand.lower() or (cat and (p.get("cat") or "").lower() != cat.lower()): continue
+        im = load_img(img_url(p)); co = cutout(im) if im is not None else None
+        if co is not None: items.append((i, co))
+        if len(items) == n: break
+    if len(items) < 2: return None, []
+    can = backdrop("paper").copy().convert("RGBA"); wide = sum(c.width / c.height for _, c in items) / len(items) > 1.5
+    cells = [(W // 2, 560 + k * 330, 560, 290) for k in range(len(items))] if wide else [(W // 2 + (-250 if k % 2 == 0 else 250), 760 + (k // 2) * 520, 450, 470) for k in range(len(items))]
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); placed = []
+    for (i, co), (cx, cy, mw, mh) in zip(items, cells):
+        co = ImageOps.contain(co, (mw, mh), Image.LANCZOS); x, y = cx - co.width // 2, cy - co.height // 2
+        sh.paste((20, 22, 30, 110), (x + 4, y + 18), co.getchannel("A")); placed.append((co, x, y))
+    can.alpha_composite(sh.filter(ImageFilter.GaussianBlur(16)))
+    for co, x, y in placed: can.alpha_composite(co, (x, y))
+    txt = brand.upper(); size = 92
+    while size > 48 and _M.textlength(txt, font=mfont(size, 900)) > W - 220: size -= 4
+    ImageDraw.Draw(can).text((W / 2, 330), txt, font=mfont(size, 900), fill=(18, 20, 28, 255), anchor="ms")
+    return ("photo", can.convert("RGB"), "", {"ding": True}), [i for i, _ in items]
+
 def fmt_style(D, a):
     """Fast outfit-advice video: no presenter, footage with a cut on every beat, one-word captions, voice + music."""
     try: vids = json.load(open(os.path.join(ROOT, "scripts", "styles.json"), encoding="utf-8"))
@@ -906,6 +929,10 @@ def fmt_style(D, a):
             p = D.products.get(str(pid))
             ps = product_shot(p, first if ln.get("blur") else None, bool(ln.get("brand")), bool(ln.get("arrow"))) if p else None
             if ps: shots.append(ps); ids.append(str(pid)); hero = hero or p
+        for b in ln.get("boards") or []:                         # brand boards, one per brand, swapping in place
+            bs, bids = board_shot(D, b["brand"], b.get("cat"))
+            if bs: shots.append(bs); ids += bids; hero = hero or D.products[bids[0]]
+        if ln.get("loop") and sc: shots += sc[0]["bg"][:3]        # end on the opening shots so the video loops
         if not shots: continue
         sc.append(dict(dur=2.0, say=ln["say"], bg=shots, word=True, cut=ln.get("cut", 0.9), pad=0.06, boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
     if len(sc) < 3: return None
