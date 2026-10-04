@@ -1145,7 +1145,7 @@ def build_audio(scenes, tmp):
         wav = os.path.join(tmp, "s%d.wav" % k); d, words = tts(s.get("say"), wav); written = 0
         if d:
             voiced = True; s["words"] = words
-            s["dur"] = d + (1.5 if s.get("last") else s["pad"]) if s.get("word") else max(d + (1.0 if s.get("last") else 0.4), 2.0)
+            s["dur"] = d + (0.9 if s.get("last") else s["pad"]) if s.get("word") else max(d + (1.0 if s.get("last") else 0.4), 2.0)
             if s.get("presenter"):                            # the AI presenter says this line on camera
                 os.makedirs(MEDIA_DIR, exist_ok=True); clip = hedra_clip(wav + ".mp3", os.path.join(MEDIA_DIR, "presenter%d.mp4" % k))
                 if clip: s["fg"] = clip
@@ -1161,12 +1161,22 @@ STYLE_MUSIC = "Minimal stylish instrumental beat for a fast fashion video, exact
 SFX_PROMPTS = {"ding": ("One soft, satisfying interface tap: a gentle rounded click with a warm low pop, like a premium phone keyboard tap. Subtle, dry, clean, no bell, no reverb", 0.5),
                "boom": ("One soft low whoosh into a gentle muffled thump, like a smooth film transition. Warm, subtle, clean, no distortion", 0.9),
                "swish": ("One very soft airy swoosh, a light quick swipe of air. Subtle, smooth, clean", 0.5),
-               "bell": ("A warm, positive two-note chime, like the sound a quiz app plays for a correct answer. Soft mallet tone, pleasant, short, clean", 0.9),
-               "bell-b": ("One single ring of a small hotel reception desk bell. Clear, bright, natural, short", 0.9),
-               "bell-c": ("A soft, modern notification sound: one rounded marimba note with a gentle shimmer. Pleasant, clean, short", 0.8),
+               "tick": ("One very soft, short click, like a quiet camera shutter heard from a distance. Subtle, dry, tiny", 0.5),
                "reveal": ("A very soft, airy whoosh, like a gentle breath of air, fading out smoothly. Quiet, warm, no chime, no bell, no high notes", 1.2)}
 SFX = {}
+def classic_ding():
+    """The classic 'ding': one bright bell strike with a clean ring-out (stereo, 44.1 kHz)."""
+    import array
+    n = int(1.3 * 44100); a = array.array("h", [0]) * (n * 2)
+    parts = ((2093.0, 1.0, 0.36), (4186.0, 0.34, 0.20), (5650.0, 0.22, 0.12), (8372.0, 0.10, 0.07))     # C7 with bell-like overtones
+    for i in range(n):
+        t = i / 44100.0; att = min(1.0, i / 60.0)
+        v = int(9000 * att * sum(g * math.sin(2 * math.pi * f * t) * math.exp(-t / tau) for f, g, tau in parts))
+        a[2 * i] = v; a[2 * i + 1] = v
+    return a
+
 def load_sfx(out_dir):
+    SFX["bell"] = classic_ding()
     """Sound effects from scripts/sfx/<name>.mp3 if present, else generated (saved next to the video so they can be kept)."""
     import array
     key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
@@ -1206,9 +1216,13 @@ def sfx_track(scenes, path):
             nseg = max(1, min(len(shots), int(round(dur / s.get("cut", CUT))))); seg = dur / nseg
             for k in range(nseg):
                 meta = shots[k % len(shots)][3] if len(shots[k % len(shots)]) > 3 else {}
-                if not meta.get("ding"): continue
+                if not meta.get("ding"):                      # an ordinary cut: a barely-there tick (fast cuts) or swoosh (slower ones)
+                    if (t0 > 0 or k > 0) and not meta.get("paper"):
+                        a = SFX.get("tick") if seg < 0.45 else SFX.get("swish")
+                        if a: any_hit = True; mix(a, int((t0 + k * seg) * 44100), 0.16 if seg < 0.45 else 0.2)
+                    continue
                 any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
-                if meta.get("bell") and SFX.get("bell"): mix(SFX["bell"], int((t0 + k * seg + 0.02) * 44100), 0.6); continue      # the answer: a clear ding
+                if meta.get("bell") and SFX.get("bell"): mix(SFX["bell"], int((t0 + k * seg + 0.02) * 44100), 0.8); continue      # the answer: a clear ding
                 if meta.get("site") and SFX.get("reveal"): mix(SFX["reveal"], int((t0 + k * seg) * 44100), 0.2); continue    # the end screen has its own sound
                 if meta.get("fx") == "orbit" and SFX.get("swish"): mix(SFX["swish"], i0, 0.4)
                 if SFX.get("ding"): mix(SFX["ding"], i0, 0.5); continue
@@ -1282,7 +1296,7 @@ def render(scenes, out_path):
             fc, mix, k = ["[1:a]acompressor=threshold=0.09:ratio=4:attack=5:release=90:makeup=3.2,alimiter=limit=0.97[v]"], "[v]", 2
             if music:
                 cmd += ["-stream_loop", "-1", "-i", music]
-                fc.append("[%d:a]volume=%s,afade=t=out:st=%.2f:d=1.5[m]" % (k, "1,loudnorm=I=-16:TP=-1.5,volume=0.30" if style else "0.16,afade=t=in:d=0.3", max(0, total / FPS - 1.6))); mix += "[m]"; k += 1
+                fc.append("[%d:a]volume=%s,afade=t=out:st=%.2f:d=1.0[m]" % (k, "1,loudnorm=I=-16:TP=-1.5,volume=0.30" if style else "0.16,afade=t=in:d=0.3", max(0, total / FPS - 1.1))); mix += "[m]"; k += 1
             if sfx: cmd += ["-i", sfx]; fc.append("[%d:a]volume=0.9[x]" % k); mix += "[x]"; k += 1
             fc.append("%samix=inputs=%d:duration=first:dropout_transition=0:normalize=0[a]" % (mix, k - 1))
             cmd += ["-filter_complex", ";".join(fc), "-map", "0:v", "-map", "[a]", "-t", "%.3f" % (total / FPS)]
