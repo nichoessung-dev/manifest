@@ -128,9 +128,7 @@ def main():
     tk = next((v for k, v in links.items() if k.startswith("tiktok")), None)
     if tk: links["tiktok"] = tk
     if hook and links.get("tiktok"):
-        msg = {"content": links["tiktok"], "username": "Puro Classico", "allowed_mentions": {"parse": []},
-               "embeds": [{"title": "New TikTok posted", "url": links["tiktok"], "description": meta["caption"].split("\n")[0][:300],
-                           "fields": [{"name": k.capitalize(), "value": v} for k, v in links.items() if k != "tiktok"][:6]}]}
+        msg = {"content": links["tiktok"], "username": "Puro Classico", "allowed_mentions": {"parse": []}}       # only the TikTok link
         req = urllib.request.Request(hook + "?wait=true", data=json.dumps(msg).encode(), headers={"Content-Type": "application/json", "User-Agent": UA}, method="POST")
         try: urllib.request.urlopen(req, timeout=30); print("sent TikTok link to the Discord webhook")
         except Exception as e: print("Discord webhook failed:", e)
