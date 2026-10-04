@@ -29,6 +29,7 @@ SITE = "https://www.puroclassico.com"
 W, H, FPS = 1080, 1920, 30
 BG, CARD, INK, MUTED, ACCENT, RED, GREEN = (12, 18, 32), (244, 242, 238), (242, 245, 251), (148, 160, 189), (123, 154, 224), (225, 48, 31), (74, 190, 130)
 FONT = os.path.join(ROOT, "scripts", "fonts", "HankenGrotesk.ttf")
+FONT2 = os.path.join(ROOT, "scripts", "fonts", "Montserrat.ttf")   # caption face of the "style" videos
 UA = {"User-Agent": "Mozilla/5.0 (PuroClassicoShorts/1.0; +https://www.puroclassico.com)"}
 PLAT = {"weidian": "Weidian", "taobao": "Taobao", "1688": "1688"}
 FORMATS = ["style", "story", "relatable", "story", "guess", "story", "top5", "story", "qc", "story", "term", "story", "order"]
@@ -72,6 +73,12 @@ def font(size, weight=700):
     try: f.set_variation_by_axes([weight])
     except Exception: pass
     return f
+
+
+@functools.lru_cache(maxsize=64)
+def mfont(size, weight=800):
+    try: f = ImageFont.truetype(FONT2, size); f.set_variation_by_axes([weight]); return f
+    except Exception: return font(size, 900)
 
 
 def fetch(url, timeout=30, data=None, headers=None):
@@ -628,18 +635,23 @@ def word_groups(ws):                                          # one word at a ti
         else: out.append((w, a, b)); k += 1
     return out
 
+CAP_YEL = (243, 199, 18)
 def draw_word_caption(fr, s, lt):
+    """One or two words, caps, yellow Montserrat with a soft shadow, dead centre."""
     if "_wg" not in s: s["_wg"] = word_groups(captions(s))
     g = next(((w, a, b) for w, a, b in s["_wg"] if a <= lt < b), None)
     if not g: return
     txt = g[0].upper().strip(",")
-    size = 84
-    while size > 50 and _M.textlength(txt, font=font(size, 900)) > W - 200: size -= 4
-    f = font(size, 900); tw = _M.textlength(txt, font=f)
-    layer = Image.new("RGBA", (int(tw) + 80, int(size * 1.7)), (0, 0, 0, 0)); d = ImageDraw.Draw(layer)
-    d.text((40 + 3, int(size * 0.25) + 5), txt, font=f, fill=(0, 0, 0, 150), stroke_width=5, stroke_fill=(0, 0, 0, 150))      # soft shadow
-    d.text((40, int(size * 0.25)), txt, font=f, fill=(248, 212, 40, 255), stroke_width=4, stroke_fill=(20, 16, 4, 255))
-    paste(fr, layer, W / 2, 965, 0.9 + 0.1 * pop(lt - g[1], 0.14), 1.0)
+    key = ("wc", txt)
+    if key not in _SPR:
+        size = 88
+        while size > 52 and _M.textlength(txt, font=mfont(size)) > W - 180: size -= 4
+        f = mfont(size); tw = int(_M.textlength(txt, font=f)); pad = 50
+        sh = Image.new("RGBA", (tw + 2 * pad, int(size * 1.5) + 2 * pad), (0, 0, 0, 0)); ImageDraw.Draw(sh).text((pad + 2, pad + 5), txt, font=f, fill=(0, 0, 0, 215))
+        sh = sh.filter(ImageFilter.GaussianBlur(7)); sh.alpha_composite(sh)                                  # denser soft shadow
+        ImageDraw.Draw(sh).text((pad, pad), txt, font=f, fill=CAP_YEL + (255,))
+        _SPR[key] = sh
+    paste(fr, _SPR[key], W / 2, 975, 1.0, 1.0)
 
 def draw_host(fr, s, lt, t_abs, FT):
     if s.get("word"): return draw_word_caption(fr, s, lt)
@@ -789,13 +801,48 @@ def fmt_story(D, a):
     cap = "%s 👀 Follow for more. The spreadsheet is in the bio — join the China side." % st["hook"].strip()
     return sc, [], cap, p, {"story": n + 1}
 
+def cutout(im):
+    """Remove a plain light background (flood fill from the edges). Returns RGBA, or None if the photo has no plain background."""
+    im = im.convert("RGB"); w, h = im.size
+    pts = [(1, 1), (w - 2, 1), (1, h - 2), (w - 2, h - 2), (w // 2, 1), (w // 2, h - 2), (1, h // 2), (w - 2, h // 2)]
+    if sum(1 for x, y in pts[:4] if min(im.getpixel((x, y))) > 205) < 3: return None
+    work = im.copy(); key = (255, 0, 254)
+    for x, y in pts:
+        if min(work.getpixel((x, y))) > 205 and work.getpixel((x, y)) != key: ImageDraw.floodfill(work, (x, y), key, thresh=26)
+    r, g, b = work.split()
+    bgm = ImageChops.multiply(ImageChops.multiply(r.point(lambda v: 255 if v == 255 else 0), g.point(lambda v: 255 if v == 0 else 0)), b.point(lambda v: 255 if v == 254 else 0))
+    a = ImageOps.invert(bgm).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(1.2))
+    if a.histogram()[255] < w * h * 0.04: return None
+    out = im.convert("RGBA"); out.putalpha(a); return out.crop(a.getbbox())
+
+_BACK = {}
+def backdrop(kind):
+    """Studio backdrops for product shots: 'paper' (crumpled white paper) or 'soft' (light grey gradient)."""
+    if kind not in _BACK:
+        if kind == "paper":
+            rnd = random.Random(7); acc = Image.new("L", (W, H), 128)
+            for sc, amt in ((14, 0.55), (36, 0.3), (90, 0.15)):
+                small = Image.new("L", (W // sc + 2, H // sc + 2)); small.putdata([rnd.randint(0, 255) for _ in range(small.size[0] * small.size[1])])
+                acc = Image.blend(acc, small.resize((W, H), Image.BICUBIC), amt)
+            relief = acc.filter(ImageFilter.EMBOSS).filter(ImageFilter.GaussianBlur(1.5)).point(lambda v: int(232 + (v - 128) * 0.55))
+            _BACK[kind] = Image.merge("RGB", (relief, relief, relief.point(lambda v: min(255, v + 3))))
+        else:
+            g = Image.new("L", (1, H)); px = g.load()
+            for y in range(H): px[0, y] = int(246 - 22 * abs(y / H - 0.42) ** 1.3 * 2)
+            g = g.resize((W, H)); _BACK[kind] = Image.merge("RGB", (g, g, g))
+    return _BACK[kind]
+
+_PSHOT = [0]
 def product_shot(p):
-    """A spreadsheet product photo as a full-screen shot: the photo on a backdrop of its own background colour."""
+    """A spreadsheet product photo as a studio shot: the item cut out, with a soft shadow, on a paper or soft-grey backdrop."""
     im = load_img(img_url(p))
     if im is None: return None
-    im = im.convert("RGB"); c = im.resize((40, 40)).getpixel((1, 1)); bgc = c if min(c) > 200 else (240, 238, 234)
-    can = Image.new("RGB", (W, H), bgc); side = W - 60; im = ImageOps.contain(im, (side, side)); can.paste(im, ((W - im.width) // 2, (H - im.height) // 2 - 40))
-    return ("photo", can, "")
+    kind = ("soft", "paper")[_PSHOT[0] % 2]; _PSHOT[0] += 1; can = backdrop(kind).copy().convert("RGBA"); co = cutout(im)
+    if co is None:                                            # busy photo: show it as a rounded card instead
+        card = rounded(cover(im.convert("RGB"), 900, 900), 46); can.alpha_composite(card, ((W - 900) // 2, (H - 900) // 2 - 40)); return ("photo", can.convert("RGB"), "")
+    co = ImageOps.contain(co, (W - 150, 1000), Image.LANCZOS); x, y = (W - co.width) // 2, (H - co.height) // 2 - 30
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); sh.paste((20, 22, 30, 120), (x + 6, y + 26), co.getchannel("A")); can.alpha_composite(sh.filter(ImageFilter.GaussianBlur(24)))
+    can.alpha_composite(co, (x, y)); return ("photo", can.convert("RGB"), "")
 
 def fmt_style(D, a):
     """Fast outfit-advice video: no presenter, footage with a cut on every beat, one-word captions, voice + music."""
@@ -927,10 +974,10 @@ def sfx_track(scenes, path):
     for s in scenes:
         if s.get("boom"):
             any_hit = True; i0 = int(t0 * 44100); ph = 0.0
-            for i in range(int(0.7 * 44100)):
+            for i in range(int(0.35 * 44100)):
                 if i0 + i >= n: break
-                t = i / 44100; f = 38 + 70 * math.exp(-t * 9); ph += 2 * math.pi * f / 44100
-                v = int(15000 * math.sin(ph) * math.exp(-t * 5.5) * min(1.0, i / 120)); buf[2 * (i0 + i)] = v; buf[2 * (i0 + i) + 1] = v
+                t = i / 44100; f = 36 + 50 * math.exp(-t * 30); ph += 2 * math.pi * f / 44100
+                v = int(17000 * math.sin(ph) * math.exp(-t * 13) * min(1.0, i / 90)); buf[2 * (i0 + i)] = v; buf[2 * (i0 + i) + 1] = v
         t0 += int(round(s["dur"] * FPS)) / FPS
     if not any_hit: return None
     with wave.open(path, "wb") as w: w.setnchannels(2); w.setsampwidth(2); w.setframerate(44100); w.writeframes(buf.tobytes())
