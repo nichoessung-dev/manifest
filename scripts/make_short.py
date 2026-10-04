@@ -224,6 +224,17 @@ def pexels_clip(vid):
             print("  hand-picked clip %d unavailable:" % vid, err); return None
     return ("video", path, "Video: Pexels")
 
+def drive_clip(fid, start=0.0):
+    """One of the owner's own clips from Google Drive (the folder must be shared by link). Returns a shot or None."""
+    os.makedirs(MEDIA_DIR, exist_ok=True); path = os.path.join(MEDIA_DIR, "drive_%s.mp4" % fid)
+    if not os.path.exists(path):
+        try:
+            data = fetch("https://drive.google.com/uc?export=download&id=%s" % fid, 180, None, BROWSER_UA)
+            if len(data) < 50000 or data[:15].lstrip().lower().startswith(b"<!doctype"): print("  drive clip %s is not shared by link yet" % fid); return None
+            open(path, "wb").write(data)
+        except Exception as e: print("  drive clip %s unavailable:" % fid, e); return None
+    return ("video", path, "", {"ss": float(start)})
+
 def picked(ids):
     out = [c for c in (pexels_clip(i) for i in ids or []) if c]
     if ids: print("  hand-picked:", ids, "->", len(out), "ok")
@@ -241,13 +252,13 @@ def media_many(q, n=3, themes=()):
     print("  media:", q, "->", [(m[0], m[2][:40]) for m in out]); return out
 
 class Clip:                                                  # reads a video as 1080x1920 frames, looping; key=True removes a green screen
-    def __init__(self, path, key=False): self.path = path; self.p = None; self.key = key
+    def __init__(self, path, key=False, ss=0.0): self.path = path; self.p = None; self.key = key; self.ss = ss
     def frame(self):
         n = 4 if self.key else 3
         if self.p is None:
             vf = "scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,fps=%d" % (W, H, W, H, FPS)
             if self.key: vf += ",chromakey=0x00FF00:0.20:0.08,despill=type=green,format=rgba"
-            self.p = subprocess.Popen([FF, "-loglevel", "error", "-stream_loop", "-1", "-i", self.path, "-an", "-vf", vf,
+            self.p = subprocess.Popen([FF, "-loglevel", "error"] + (["-ss", "%.2f" % self.ss] if self.ss else ["-stream_loop", "-1"]) + ["-i", self.path, "-an", "-vf", vf,
                 "-f", "rawvideo", "-pix_fmt", "rgba" if self.key else "rgb24", "-"], stdout=subprocess.PIPE)
         b = self.p.stdout.read(W * H * n)
         if len(b) != W * H * n: return None
@@ -565,8 +576,8 @@ def draw_bg(fr, s, lt, dur):
     zoom = 1.0 + 0.07 * st if k % 2 == 0 else 1.07 - 0.07 * st                # slow push in, then out
     if kind == "video":
         clips = s.setdefault("_clips", {})
-        if id(m) not in clips: clips[id(m)] = Clip(m)
-        f = clips[id(m)].frame()
+        if (id(m), k) not in clips: clips[(id(m), k)] = Clip(m, ss=meta.get("ss", 0.0))
+        f = clips[(id(m), k)].frame()
         if f is not None: s["_last"] = f
         base = s.get("_last")
     else:
@@ -929,7 +940,7 @@ def fmt_style(D, a):
     n = int(D.state.get("style", 0)) % len(vids); st = next((x for x in vids if x["id"] == a.id), vids[n]) if a.id else vids[n]
     sc, ids, hero = [], [], None
     for k, ln in enumerate(st["lines"]):
-        shots = picked(ln.get("clips")); first = shots[0] if shots else None
+        shots = [c for c in (drive_clip(*(d if isinstance(d, list) else [d])) for d in ln.get("drive") or []) if c] + picked(ln.get("clips")); first = shots[0] if shots else None
         if ln.get("paper"): shots.insert(0, ("photo", backdrop("paper"), "", {"fx": "tick", "ding": True} if ln.get("tick") else {}))      # a text-only beat on paper
         for pid in ln.get("products") or []:
             p = D.products.get(str(pid))
@@ -955,6 +966,14 @@ def tts(line, path):
     if not key or not line: return 0.0, None
     body = json.dumps({"text": line, "model_id": VOICE_MODEL, "voice_settings": {"stability": 0.4, "similarity_boost": 0.8, "style": 0.35, "speed": _VOICE.get("speed", 1.0)}}).encode()
     r = None
+    if "named" not in _VOICE and not os.environ.get("SHORTS_VOICE", "").strip():       # the owner's own voice, looked up by its name
+        _VOICE["named"] = True; want = (os.environ.get("SHORTS_VOICE_NAME") or "puroclassico voice").strip().lower()
+        try:
+            vs = json.loads(fetch("https://api.elevenlabs.io/v1/voices", 60, None, {"xi-api-key": key})).get("voices", [])
+            hit = next((v for v in vs if (v.get("name") or "").strip().lower() == want), None) or next((v for v in vs if want in (v.get("name") or "").lower()), None)
+            if hit: VOICES.insert(0, hit["voice_id"]); print("  voice: using '%s'" % hit.get("name"))
+            else: print("  voice '%s' not found among" % want, [v.get("name") for v in vs][:12])
+        except Exception as e: print("  voice lookup failed:", e)
     for v in ([_VOICE["id"]] if _VOICE.get("id") else VOICES):               # first voice that works is kept for the whole video
         try:
             r = json.loads(fetch("https://api.elevenlabs.io/v1/text-to-speech/%s/with-timestamps?output_format=mp3_44100_128" % v, 90, body, {"xi-api-key": key, "Content-Type": "application/json"}))
