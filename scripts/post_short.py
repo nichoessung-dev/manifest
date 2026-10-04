@@ -45,7 +45,7 @@ def upload(path):
 def settings(provider, meta):
     title = meta["caption"].split("\n")[0]
     if provider.startswith("tiktok") and meta.get("images"):      # a photo carousel: TikTok adds a sound itself (our own audio cannot be attached)
-        return {"__type": provider, "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "comment": True, "autoAddMusic": os.environ.get("TIKTOK_AUTO_MUSIC", "yes"),
+        return {"__type": provider, "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "comment": True, "duet": False, "stitch": False, "autoAddMusic": os.environ.get("TIKTOK_AUTO_MUSIC", "yes"),
                 "brand_content_toggle": os.environ.get("TIKTOK_BRANDED", "").lower() == "true", "brand_organic_toggle": True, "content_posting_method": "DIRECT_POST"}
     if provider.startswith("tiktok"):
         return {"__type": provider, "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "duet": True, "stitch": True, "comment": True,
