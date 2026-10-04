@@ -39,7 +39,7 @@ jobs:
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
           MYCNBOX_WEBHOOK: ${{ secrets.MYCNBOX_WEBHOOK }}
-          SHORTS_CHANNELS: ${{ vars.FINDS_CHANNELS || 'tiktok' }}
+          SHORTS_CHANNELS: ${{ vars.FINDS_CHANNELS || 'tiktok,instagram-standalone,threads' }}
           TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
         run: python scripts/post_short.py out/finds-*.json
       - name: Save state
