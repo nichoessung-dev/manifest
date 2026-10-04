@@ -34,7 +34,7 @@ UA = {"User-Agent": "Mozilla/5.0 (PuroClassicoShorts/1.0; +https://www.puroclass
 PLAT = {"weidian": "Weidian", "taobao": "Taobao", "1688": "1688"}
 FORMATS = ["style", "story", "relatable", "story", "guess", "story", "top5", "story", "qc", "story", "term", "story", "order"]
 FF = imageio_ffmpeg.get_ffmpeg_exe()
-VOICES = [v for v in (os.environ.get("SHORTS_VOICE", "").strip(), "nPczCjzI2devNBz1zQrb", "bIHbv24MWmeRgasZH58o", "TX3LPaxmHKxFdv7VOQHJ") if v]   # Brian (owner's pick), Will, Liam
+VOICES = [v for v in (os.environ.get("SHORTS_VOICE", "").strip(), "pNInz6obpgDQGcFmaJgB", "nPczCjzI2devNBz1zQrb", "bIHbv24MWmeRgasZH58o", "TX3LPaxmHKxFdv7VOQHJ") if v]   # Adam first, then   # Brian (owner's pick), Will, Liam
 VOICE_MODEL = "eleven_multilingual_v2"; _VOICE = {}
 
 TERMS = [  # (term, what it stands for, plain-English meaning, example line)
@@ -224,7 +224,7 @@ def pexels_clip(vid):
             print("  hand-picked clip %d unavailable:" % vid, err); return None
     return ("video", path, "Video: Pexels")
 
-def drive_clip(fid, start=0.0):
+def drive_clip(fid, start=0.0, opts=None):
     """One of the owner's own clips or photos from Google Drive (the folder is shared by link). Returns a shot or None."""
     os.makedirs(MEDIA_DIR, exist_ok=True); path = os.path.join(MEDIA_DIR, "drive_%s.bin" % fid)
     if not os.path.exists(path):
@@ -240,7 +240,10 @@ def drive_clip(fid, start=0.0):
     if head[:8] == b"\x89PNG\r\n\x1a\n" or head[:3] == b"\xff\xd8\xff":
         try: return ("photo", Image.open(path).convert("RGB"), "")
         except Exception: return None
-    return ("video", path, "", {"ss": float(start)})
+    meta = {"ss": float(start)}
+    if opts and opts.get("arrow"):
+        x0, y0, x1, y1 = opts["arrow"]; meta.update(fx="orbit", ding=True, box=(x0 * W, y0 * H, x1 * W, y1 * H))
+    return ("video", path, "", meta)
 
 def picked(ids):
     out = [c for c in (pexels_clip(i) for i in ids or []) if c]
@@ -586,7 +589,8 @@ def draw_bg(fr, s, lt, dur):
     shots = s["bg"]; nseg = max(1, min(len(shots), int(round(dur / s.get("cut", CUT))))); seg = dur / nseg      # never more cuts than different clips
     hard = s.get("word")                                      # "style" videos: plain hard cuts, clean footage
     k = min(nseg - 1, int(lt / seg)); st = (lt - k * seg) / seg; sh = shots[k % len(shots)]; kind, m, credit = sh[:3]; meta = sh[3] if len(sh) > 3 else {}
-    zoom = 1.0 + 0.07 * st if k % 2 == 0 else 1.07 - 0.07 * st                # slow push in, then out
+    s["_quiet"] = bool(meta.get("overlay") and not meta.get("blur"))          # product on paper: no caption over it
+    zoom = 1.0 if hard else (1.0 + 0.07 * st if k % 2 == 0 else 1.07 - 0.07 * st)   # style videos: footage plays as shot, no zooming
     if kind == "video":
         clips = s.setdefault("_clips", {})
         if (id(m), k) not in clips: clips[(id(m), k)] = Clip(m, ss=meta.get("ss", 0.0))
@@ -718,7 +722,7 @@ def draw_word_caption(fr, s, lt):
     paste(fr, _SPR[key], W / 2, 975, 1.0, 1.0)
 
 def draw_host(fr, s, lt, t_abs, FT):
-    if s.get("nocap"): return
+    if s.get("nocap") or s.get("_quiet"): return
     if s.get("word"): return draw_word_caption(fr, s, lt)
     if s.get("news"): return draw_news_caption(fr, s, lt)
     ws = captions(s); cur = next((k for k, (w, a, b) in enumerate(ws) if a <= lt < b), None)
@@ -986,7 +990,7 @@ def draw_site(fr, tl):
         _SITE.update(bg=bg, phone=sh)
     fr.paste(_SITE["bg"], (0, 0)); a = ease(tl / 0.5)
     paste(fr, _SITE["phone"], W / 2, 1210 + int(220 * (1 - a)), 0.96 + 0.04 * a, a, -2.5 * (1 - a))
-    for k, (txt, size, col, y, wt) in enumerate((("EVERY FIND IN ONE PLACE", 44, (170, 184, 222), 250, 700), ("PUROCLASSICO.COM", 98, CAP_YEL, 372, 900))):
+    for k, (txt, size, col, y, wt) in enumerate((("EVERY FIND IN ONE PLACE", 44, (255, 255, 255), 250, 700), ("PUROCLASSICO.COM", 98, (255, 255, 255), 372, 900))):
         b = ease((tl - 0.15 - 0.12 * k) / 0.3)
         if b <= 0: continue
         while size > 40 and _M.textlength(txt, font=mfont(size, wt)) > W - 150: size -= 2
@@ -1015,7 +1019,7 @@ def fmt_style(D, a):
             if ss: shots.append(ss)
         if ln.get("loop") and sc: shots += sc[0]["bg"][:3]        # end on the opening shots so the video loops
         if not shots: continue
-        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, nocap=bool(ln.get("site") or ln.get("nocap")), word=True, cut=ln.get("cut", 0.9), pad=0.06, boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
+        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, nocap=bool(ln.get("site") or ln.get("nocap")), word=True, cut=ln.get("cut", 0.9), pad=ln.get("pad", 0.06), boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
     if len(sc) < 3: return None
     if not hero: hero = D.top(1, skip_done=False)[0][1]
     cap = "%s 👕 Everything is on the spreadsheet in the bio." % st["title"] + (("\n\n" + st["credits"]) if st.get("credits") else "")
@@ -1030,8 +1034,8 @@ def tts(line, path):
     if not key or not line: return 0.0, None
     body = json.dumps({"text": line, "model_id": VOICE_MODEL, "voice_settings": {"stability": 0.5, "similarity_boost": 0.85, "style": 0.6, "use_speaker_boost": True, "speed": _VOICE.get("speed", 1.0)}}).encode()
     r = None
-    if "named" not in _VOICE and not os.environ.get("SHORTS_VOICE", "").strip():       # the owner's own voice, looked up by its name
-        _VOICE["named"] = True; want = (os.environ.get("SHORTS_VOICE_NAME") or "puroclassico voice").strip().lower()
+    if "named" not in _VOICE and not os.environ.get("SHORTS_VOICE", "").strip() and os.environ.get("SHORTS_VOICE_NAME", "").strip():   # a voice looked up by name, only when asked for
+        _VOICE["named"] = True; want = os.environ["SHORTS_VOICE_NAME"].strip().lower()
         try:
             vs = json.loads(fetch("https://api.elevenlabs.io/v1/voices", 60, None, {"xi-api-key": key})).get("voices", [])
             hit = next((v for v in vs if (v.get("name") or "").strip().lower() == want), None) or next((v for v in vs if want in (v.get("name") or "").lower()), None)
@@ -1135,7 +1139,8 @@ MUSIC_PROMPT = "Upbeat modern instrumental beat for a fast, punchy explainer vid
 STYLE_MUSIC = "Minimal stylish instrumental beat for a fast fashion video, exactly 128 bpm, starts immediately on the first kick, punchy kick and clap, deep bass, sparse plucks, confident, no vocals"
 SFX_PROMPTS = {"ding": ("One soft, satisfying interface tap: a gentle rounded click with a warm low pop, like a premium phone keyboard tap. Subtle, dry, clean, no bell, no reverb", 0.5),
                "boom": ("One soft low whoosh into a gentle muffled thump, like a smooth film transition. Warm, subtle, clean, no distortion", 0.9),
-               "swish": ("One very soft airy swoosh, a light quick swipe of air. Subtle, smooth, clean", 0.5)}
+               "swish": ("One very soft airy swoosh, a light quick swipe of air. Subtle, smooth, clean", 0.5),
+               "reveal": ("A soft, elegant rising shimmer that resolves into one gentle warm chime, like a premium app opening. Smooth, clean, quiet, no harshness", 1.3)}
 SFX = {}
 def load_sfx(out_dir):
     """Sound effects from scripts/sfx/<name>.mp3 if present, else generated (saved next to the video so they can be kept)."""
@@ -1179,6 +1184,7 @@ def sfx_track(scenes, path):
                 meta = shots[k % len(shots)][3] if len(shots[k % len(shots)]) > 3 else {}
                 if not meta.get("ding"): continue
                 any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
+                if meta.get("site") and SFX.get("reveal"): mix(SFX["reveal"], int((t0 + k * seg) * 44100), 0.5); continue    # the end screen has its own sound
                 if meta.get("fx") == "orbit" and SFX.get("swish"): mix(SFX["swish"], i0, 0.4)
                 if SFX.get("ding"): mix(SFX["ding"], i0, 0.5); continue
                 for i in range(int(0.6 * 44100)):
