@@ -596,6 +596,8 @@ def floor_shade():                                            # darken the botto
     return _FLOOR
 
 CUT = 2.6                                                    # seconds per shot
+LASTF = {}                                                    # last frame of the previous line, for dissolves
+XF = 0.28
 def draw_bg(fr, s, lt, dur):
     shots = s["bg"]; nseg = max(1, min(len(shots), int(round(dur / s.get("cut", CUT))))); seg = dur / nseg      # never more cuts than different clips
     hard = s.get("word")                                      # "style" videos: plain hard cuts, clean footage
@@ -613,7 +615,10 @@ def draw_bg(fr, s, lt, dur):
     elif meta.get("site"): draw_site(fr, lt - k * seg); base = None
     elif meta.get("overlay"):                                 # a held product shot: the paper moves, the item does not
         if not meta.get("blur"): fr.paste(paper(int(lt * 7)), (0, 0))
-        fr.alpha_composite(m); base = None
+        a = ease((lt - k * seg) / 0.34)                      # the item glides up into place
+        if a >= 1: fr.alpha_composite(m)
+        else: paste(fr, m, W / 2, H / 2 + int(46 * (1 - a)), 1.0, a)
+        base = None
     elif meta.get("paper"): fr.paste(paper(int(lt * 7)), (0, 0)); base = None
     else:
         key = ("bg", id(m))
@@ -626,6 +631,8 @@ def draw_bg(fr, s, lt, dur):
         x = max(0, min(W - cw, x))
         fr.paste(base.crop((x, y, x + cw, y + ch)).resize((W, H), Image.BILINEAR), (0, 0))
     if not hard: fr.alpha_composite(shade())
+    if hard and k == 0 and lt < XF and LASTF.get("im") is not None and (meta.get("overlay") or meta.get("site") or LASTF.get("soft")):
+        fr.paste(Image.blend(LASTF["im"], fr, ease(lt / XF)), (0, 0))                     # dissolve instead of a hard cut
     if meta.get("fx"): draw_sticker(fr, meta, lt - k * seg)
     if s.get("fg"):                                            # the presenter, cut out, in front of the footage
         if "_fg" not in s: s["_fg"] = Clip(s["fg"], key=True)
@@ -1032,7 +1039,7 @@ def fmt_style(D, a):
             if ss: shots.append(ss)
         if ln.get("loop") and sc: shots += sc[0]["bg"][:3]        # end on the opening shots so the video loops
         if not shots: continue
-        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, music=st.get("music"), nocap=bool(ln.get("site") or ln.get("nocap")), word=True, cut=ln.get("cut", 0.9), pad=ln.get("pad", 0.06), boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
+        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, music=st.get("music"), nocap=bool(ln.get("site") or ln.get("nocap")), word=True, cut=ln.get("cut", 0.9), pad=ln.get("pad", 0.14), boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
     if len(sc) < 3: return None
     if not hero: hero = D.top(1, skip_done=False)[0][1]
     cap = "%s 👕 Everything is on the spreadsheet in the bio." % st["title"] + (("\n\n" + st["credits"]) if st.get("credits") else "")
@@ -1045,7 +1052,7 @@ BUILD = dict(style=fmt_style, story=fmt_story, relatable=fmt_relatable, spotligh
 def tts(line, path):
     key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
     if not key or not line: return 0.0, None
-    body = json.dumps({"text": line, "model_id": VOICE_MODEL, "voice_settings": {"stability": 0.5, "similarity_boost": 0.85, "style": 0.6, "use_speaker_boost": True, "speed": _VOICE.get("speed", 1.0)}}).encode()
+    body = json.dumps({"text": line, "model_id": VOICE_MODEL, "voice_settings": {"stability": 0.42, "similarity_boost": 0.8, "style": 0.18, "use_speaker_boost": True, "speed": _VOICE.get("speed", 1.0)}}).encode()
     r = None
     if "named" not in _VOICE and not os.environ.get("SHORTS_VOICE", "").strip() and os.environ.get("SHORTS_VOICE_NAME", "").strip():   # a voice looked up by name, only when asked for
         _VOICE["named"] = True; want = os.environ["SHORTS_VOICE_NAME"].strip().lower()
@@ -1064,7 +1071,7 @@ def tts(line, path):
             print("  voice %s failed:" % v, e)
     if r is None: return 0.0, None
     open(path + ".mp3", "wb").write(base64.b64decode(r["audio_base64"]))
-    subprocess.run([FF, "-y", "-loglevel", "error", "-i", path + ".mp3", "-af", "areverse,silenceremove=start_periods=1:start_threshold=-40dB:start_silence=0.06,areverse",
+    subprocess.run([FF, "-y", "-loglevel", "error", "-i", path + ".mp3", "-af", "areverse,silenceremove=start_periods=1:start_threshold=-55dB:start_silence=0.22,areverse",
                     "-ar", "44100", "-ac", "2", "-c:a", "pcm_s16le", path], check=True)
     with wave.open(path) as w: dur = w.getnframes() / w.getframerate()
     al = r.get("alignment") or {}; ch, st, en = al.get("characters") or [], al.get("character_start_times_seconds") or [], al.get("character_end_times_seconds") or []
@@ -1132,13 +1139,13 @@ def hedra_clip(audio_mp3, out_path):
 
 
 def build_audio(scenes, tmp):
-    if any(s.get("word") for s in scenes): _VOICE["speed"] = 1.1                          # style videos are spoken fast
+    if any(s.get("word") for s in scenes): _VOICE["speed"] = 1.03                         # an easy, conversational pace
     track = os.path.join(tmp, "voice.wav"); out = wave.open(track, "wb"); out.setnchannels(2); out.setsampwidth(2); out.setframerate(44100); voiced = False
     for k, s in enumerate(scenes):
         wav = os.path.join(tmp, "s%d.wav" % k); d, words = tts(s.get("say"), wav); written = 0
         if d:
             voiced = True; s["words"] = words
-            s["dur"] = d + (0.5 if s.get("last") else s["pad"]) if s.get("word") else max(d + (1.0 if s.get("last") else 0.4), 2.0)
+            s["dur"] = d + (1.5 if s.get("last") else s["pad"]) if s.get("word") else max(d + (1.0 if s.get("last") else 0.4), 2.0)
             if s.get("presenter"):                            # the AI presenter says this line on camera
                 os.makedirs(MEDIA_DIR, exist_ok=True); clip = hedra_clip(wav + ".mp3", os.path.join(MEDIA_DIR, "presenter%d.mp4" % k))
                 if clip: s["fg"] = clip
@@ -1154,8 +1161,10 @@ STYLE_MUSIC = "Minimal stylish instrumental beat for a fast fashion video, exact
 SFX_PROMPTS = {"ding": ("One soft, satisfying interface tap: a gentle rounded click with a warm low pop, like a premium phone keyboard tap. Subtle, dry, clean, no bell, no reverb", 0.5),
                "boom": ("One soft low whoosh into a gentle muffled thump, like a smooth film transition. Warm, subtle, clean, no distortion", 0.9),
                "swish": ("One very soft airy swoosh, a light quick swipe of air. Subtle, smooth, clean", 0.5),
-               "bell": ("One short, high glass ting, like a spoon tapping a crystal glass once. Bright, delicate, quick decay, dry", 0.7),
-               "reveal": ("A soft, elegant rising shimmer that resolves into one gentle warm chime, like a premium app opening. Smooth, clean, quiet, no harshness", 1.3)}
+               "bell": ("A warm, positive two-note chime, like the sound a quiz app plays for a correct answer. Soft mallet tone, pleasant, short, clean", 0.9),
+               "bell-b": ("One single ring of a small hotel reception desk bell. Clear, bright, natural, short", 0.9),
+               "bell-c": ("A soft, modern notification sound: one rounded marimba note with a gentle shimmer. Pleasant, clean, short", 0.8),
+               "reveal": ("A very soft, airy whoosh, like a gentle breath of air, fading out smoothly. Quiet, warm, no chime, no bell, no high notes", 1.2)}
 SFX = {}
 def load_sfx(out_dir):
     """Sound effects from scripts/sfx/<name>.mp3 if present, else generated (saved next to the video so they can be kept)."""
@@ -1200,7 +1209,7 @@ def sfx_track(scenes, path):
                 if not meta.get("ding"): continue
                 any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
                 if meta.get("bell") and SFX.get("bell"): mix(SFX["bell"], int((t0 + k * seg + 0.02) * 44100), 0.6); continue      # the answer: a clear ding
-                if meta.get("site") and SFX.get("reveal"): mix(SFX["reveal"], int((t0 + k * seg) * 44100), 0.5); continue    # the end screen has its own sound
+                if meta.get("site") and SFX.get("reveal"): mix(SFX["reveal"], int((t0 + k * seg) * 44100), 0.2); continue    # the end screen has its own sound
                 if meta.get("fx") == "orbit" and SFX.get("swish"): mix(SFX["swish"], i0, 0.4)
                 if SFX.get("ding"): mix(SFX["ding"], i0, 0.5); continue
                 for i in range(int(0.6 * 44100)):
@@ -1273,7 +1282,7 @@ def render(scenes, out_path):
             fc, mix, k = ["[1:a]acompressor=threshold=0.09:ratio=4:attack=5:release=90:makeup=3.2,alimiter=limit=0.97[v]"], "[v]", 2
             if music:
                 cmd += ["-stream_loop", "-1", "-i", music]
-                fc.append("[%d:a]volume=%s,afade=t=out:st=%.2f:d=1.0[m]" % (k, "1,loudnorm=I=-16:TP=-1.5,volume=0.30" if style else "0.16,afade=t=in:d=0.3", max(0, total / FPS - 1.1))); mix += "[m]"; k += 1
+                fc.append("[%d:a]volume=%s,afade=t=out:st=%.2f:d=1.5[m]" % (k, "1,loudnorm=I=-16:TP=-1.5,volume=0.30" if style else "0.16,afade=t=in:d=0.3", max(0, total / FPS - 1.6))); mix += "[m]"; k += 1
             if sfx: cmd += ["-i", sfx]; fc.append("[%d:a]volume=0.9[x]" % k); mix += "[x]"; k += 1
             fc.append("%samix=inputs=%d:duration=first:dropout_transition=0:normalize=0[a]" % (mix, k - 1))
             cmd += ["-filter_complex", ";".join(fc), "-map", "0:v", "-map", "[a]", "-t", "%.3f" % (total / FPS)]
@@ -1285,6 +1294,7 @@ def render(scenes, out_path):
                 lt = i / FPS; t_abs = (done + i) / FPS; fr = bg.copy(); fr.alpha_composite(logo, ((W - logo.size[0]) // 2, 150))
                 draw_scene(fr, s, lt, dur, FT)
                 draw_host(fr, s, lt, t_abs, FT)
+                if i == nf - 1: LASTF.update(im=fr.copy(), soft=bool(s.get("_quiet")))
                 proc.stdin.write(fr.convert("RGB").tobytes())
             done += nf
             for c in list((s.get("_clips") or {}).values()) + ([s["_fg"]] if s.get("_fg") else []): c.close()
