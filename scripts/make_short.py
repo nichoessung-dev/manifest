@@ -710,7 +710,7 @@ def fmt_story(D, a):
     intro = picked(hp.get("intro")) or media_many(th[:2] or beats[0]["show"], 2, th); outro = picked(hp.get("outro")) or media_many(th[-2:] or beats[-1]["show"], 2, th)
     if not any(shots): return None
     spare = [m for ms in shots for m in ms[2:]]
-    use_presenter(n if not a.presenter else a.presenter - 1)
+    use_presenter(a.presenter - 1 if a.presenter else (pool.index(st) if st in pool else n))
     sc = [dict(dur=3.4, say=st["hook"], label=st.get("label") or st["hook"], bg=intro or spare or shots[0], news=True, presenter=True)]
     for k, b in enumerate(beats):
         if shots[k]: sc.append(dict(dur=3.6, say=b["say"], bg=shots[k][:2] if len(shots[k]) > 2 and spare else shots[k], news=True, gfx=b.get("gfx")))
@@ -755,6 +755,9 @@ PRESENTERS = sorted(glob.glob(os.path.join(ROOT, "scripts", "presenter*.png")));
 def use_presenter(n):                                         # rotate presenters between videos
     global PRESENTER
     if PRESENTERS: PRESENTER = PRESENTERS[n % len(PRESENTERS)]; print("  presenter:", os.path.basename(PRESENTER))
+    v = PRESENTER_VOICE.get(os.path.basename(PRESENTER))          # each presenter keeps their own voice
+    if v and not os.environ.get("SHORTS_VOICE", "").strip(): VOICES[:] = [v] + [x for x in VOICES if x != v]
+PRESENTER_VOICE = {"presenter.png": "nPczCjzI2devNBz1zQrb", "presenter2.png": "iP95p4xoKVk53GoZ742B"}   # Brian, Chris
 HEDRA = "https://api.hedra.com/v3"                           # v3 API: upload files -> submit job -> poll -> outputs[].url
 
 def _multipart(path, mime):
