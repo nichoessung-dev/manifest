@@ -500,6 +500,31 @@ def draw_gfx(fr, g, lt, dur):
     L = L.resize((CW, CH), Image.LANCZOS)
     paste(fr, L, W / 2, 160 + CH / 2 + int(30 * (1 - a)), 0.94 + 0.06 * pop(lt - 0.2, 0.35), a)
 
+def draw_sticker(fr, meta, tl):
+    """Stickers on a shot: a red arrow that slides in pointing at the item, or a tick that draws itself on."""
+    if meta["fx"] == "arrow":
+        if "arrow" not in _SPR:
+            S = 2; L = Image.new("RGBA", (340 * S, 340 * S), (0, 0, 0, 0)); d = ImageDraw.Draw(L)   # points down-left, tip at (30, 310)
+            d.line([(310 * S, 30 * S), (110 * S, 230 * S)], fill=(226, 28, 36, 255), width=40 * S)
+            d.polygon([(30 * S, 310 * S), (190 * S, 262 * S), (78 * S, 150 * S)], fill=(226, 28, 36, 255))
+            sh = Image.new("RGBA", L.size, (0, 0, 0, 0)); sh.paste((0, 0, 0, 110), (5 * S, 9 * S), L.getchannel("A")); sh = sh.filter(ImageFilter.GaussianBlur(7 * S)); sh.alpha_composite(L)
+            _SPR["arrow"] = sh.resize((340, 340), Image.LANCZOS)
+        a = ease((tl - 0.08) / 0.16)
+        if a <= 0: return
+        tx, ty = meta.get("target", (W * 0.62, H * 0.42)); off = 70 * (1 - a)
+        paste(fr, _SPR["arrow"], tx + 140 + off, ty - 140 - off, 1.0, a)
+    elif meta["fx"] == "tick":
+        S = 2; cx, cy = 230, 240; L = Image.new("RGBA", (460 * S, 460 * S), (0, 0, 0, 0)); d = ImageDraw.Draw(L)
+        r = max(2.0, 150 * pop(max(tl, 0.0), 0.22)); d.ellipse([(cx - r) * S, (cy - r) * S, (cx + r) * S, (cy + r) * S], fill=(150, 197, 224, 255))
+        pts = [(cx - 95, cy - 5), (cx - 30, cy + 70), (cx + 135, cy - 175)]; pr = ease((tl - 0.12) / 0.3)
+        if pr > 0:
+            l1 = math.dist(pts[0], pts[1]); l2 = math.dist(pts[1], pts[2]); go = pr * (l1 + l2); line = [pts[0]]
+            if go <= l1: t = go / l1; line.append((pts[0][0] + (pts[1][0] - pts[0][0]) * t, pts[0][1] + (pts[1][1] - pts[0][1]) * t))
+            else: t = (go - l1) / l2; line += [pts[1], (pts[1][0] + (pts[2][0] - pts[1][0]) * t, pts[1][1] + (pts[2][1] - pts[1][1]) * t)]
+            d.line([(x * S, y * S) for x, y in line], fill=(36, 48, 78, 255), width=46 * S, joint="curve")
+            for x, y in (line[0], line[-1]): d.ellipse([(x - 23) * S, (y - 23) * S, (x + 23) * S, (y + 23) * S], fill=(36, 48, 78, 255))
+        paste(fr, L.resize((460, 460), Image.LANCZOS), W / 2, 975, 1.0, 1.0)
+
 PRESENTER_FIT = {"presenter.png": (0.84, "left"), "presenter2.png": (0.78, "center")}   # scale, anchor
 _PM = {}
 def place_presenter(f):
@@ -527,7 +552,7 @@ CUT = 2.6                                                    # seconds per shot
 def draw_bg(fr, s, lt, dur):
     shots = s["bg"]; nseg = max(1, min(len(shots), int(round(dur / s.get("cut", CUT))))); seg = dur / nseg      # never more cuts than different clips
     hard = s.get("word")                                      # "style" videos: plain hard cuts, clean footage
-    k = min(nseg - 1, int(lt / seg)); st = (lt - k * seg) / seg; kind, m, credit = shots[k % len(shots)]
+    k = min(nseg - 1, int(lt / seg)); st = (lt - k * seg) / seg; sh = shots[k % len(shots)]; kind, m, credit = sh[:3]; meta = sh[3] if len(sh) > 3 else {}
     zoom = 1.0 + 0.07 * st if k % 2 == 0 else 1.07 - 0.07 * st                # slow push in, then out
     if kind == "video":
         clips = s.setdefault("_clips", {})
@@ -546,6 +571,7 @@ def draw_bg(fr, s, lt, dur):
         x = max(0, min(W - cw, x))
         fr.paste(base.crop((x, y, x + cw, y + ch)).resize((W, H), Image.BILINEAR), (0, 0))
     if not hard: fr.alpha_composite(shade())
+    if meta.get("fx"): draw_sticker(fr, meta, lt - k * seg)
     if s.get("fg"):                                            # the presenter, cut out, in front of the footage
         if "_fg" not in s: s["_fg"] = Clip(s["fg"], key=True)
         f = s["_fg"].frame()
@@ -842,7 +868,7 @@ def clip_frame(shot, t=1.0):
     except Exception: return None
 
 _PSHOT = [0]
-def product_shot(p, over=None):
+def product_shot(p, over=None, brand=False, arrow=False):
     """A spreadsheet product photo as a studio shot: the item cut out, with a soft shadow, on a paper or soft-grey backdrop."""
     im = load_img(img_url(p))
     if im is None: return None
@@ -851,10 +877,21 @@ def product_shot(p, over=None):
     if base is not None and co is not None:                   # the item floating over the blurred outfit clip
         can = ImageEnhance.Brightness(base.resize((W // 6, H // 6)).filter(ImageFilter.GaussianBlur(5)).resize((W, H), Image.BICUBIC)).enhance(0.92).convert("RGBA")
     if co is None:                                            # busy photo: show it as a rounded card instead
-        card = rounded(cover(im.convert("RGB"), 900, 900), 46); can.alpha_composite(card, ((W - 900) // 2, (H - 900) // 2 - 40)); return ("photo", can.convert("RGB"), "")
+        card = rounded(cover(im.convert("RGB"), 900, 900), 46); can.alpha_composite(card, ((W - 900) // 2, (H - 900) // 2 - 40)); return ("photo", can.convert("RGB"), "", {"ding": True})
     co = ImageOps.contain(co, (W - 150, 1000), Image.LANCZOS); x, y = (W - co.width) // 2, (H - co.height) // 2 - 30
     sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); sh.paste((20, 22, 30, 120), (x + 6, y + 26), co.getchannel("A")); can.alpha_composite(sh.filter(ImageFilter.GaussianBlur(24)))
-    can.alpha_composite(co, (x, y)); return ("photo", can.convert("RGB"), "")
+    can.alpha_composite(co, (x, y))
+    if (brand or base is not None) and p.get("brand"):         # the brand name in plain type above the item
+        txt = p["brand"].upper(); size = 82
+        while size > 44 and _M.textlength(txt, font=mfont(size, 900)) > W - 200: size -= 4
+        f = mfont(size, 900); d = ImageDraw.Draw(can); by = max(170, y - 60)
+        if base is not None:
+            sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).text((W / 2 + 2, by + 4), txt, font=f, fill=(0, 0, 0, 170), anchor="ms"); can.alpha_composite(sh.filter(ImageFilter.GaussianBlur(6)))
+            d = ImageDraw.Draw(can); d.text((W / 2, by), txt, font=f, fill=(255, 255, 255, 255), anchor="ms")
+        else: d.text((W / 2, by), txt, font=f, fill=(18, 20, 28, 255), anchor="ms")
+    meta = {"ding": True}
+    if arrow: meta.update(fx="arrow", target=(x + co.width * 0.74, y + co.height * 0.22))
+    return ("photo", can.convert("RGB"), "", meta)
 
 def fmt_style(D, a):
     """Fast outfit-advice video: no presenter, footage with a cut on every beat, one-word captions, voice + music."""
@@ -864,10 +901,10 @@ def fmt_style(D, a):
     sc, ids, hero = [], [], None
     for k, ln in enumerate(st["lines"]):
         shots = picked(ln.get("clips")); first = shots[0] if shots else None
-        if ln.get("paper"): shots.insert(0, ("photo", backdrop("paper"), ""))      # a text-only beat on paper, like a title card
+        if ln.get("paper"): shots.insert(0, ("photo", backdrop("paper"), "", {"fx": "tick", "ding": True} if ln.get("tick") else {}))      # a text-only beat on paper
         for pid in ln.get("products") or []:
             p = D.products.get(str(pid))
-            ps = product_shot(p, first if ln.get("blur") else None) if p else None
+            ps = product_shot(p, first if ln.get("blur") else None, bool(ln.get("brand")), bool(ln.get("arrow"))) if p else None
             if ps: shots.append(ps); ids.append(str(pid)); hero = hero or p
         if not shots: continue
         sc.append(dict(dur=2.0, say=ln["say"], bg=shots, word=True, cut=ln.get("cut", 0.9), pad=0.06, boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
@@ -991,7 +1028,19 @@ def sfx_track(scenes, path):
                 if i0 + i >= n: break
                 t = i / 44100; f = 36 + 50 * math.exp(-t * 30); ph += 2 * math.pi * f / 44100
                 v = int(17000 * math.sin(ph) * math.exp(-t * 13) * min(1.0, i / 90)); buf[2 * (i0 + i)] = v; buf[2 * (i0 + i) + 1] = v
-        t0 += int(round(s["dur"] * FPS)) / FPS
+        dur = int(round(s["dur"] * FPS)) / FPS; shots = s.get("bg") or []
+        if shots and s.get("word"):
+            nseg = max(1, min(len(shots), int(round(dur / s.get("cut", CUT))))); seg = dur / nseg
+            for k in range(nseg):
+                meta = shots[k % len(shots)][3] if len(shots[k % len(shots)]) > 3 else {}
+                if not meta.get("ding"): continue
+                any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
+                for i in range(int(0.6 * 44100)):
+                    if i0 + i >= n: break
+                    t = i / 44100; env = math.exp(-t / 0.17) * min(1.0, i / 130)
+                    v = int(5200 * env * (math.sin(2 * math.pi * 2350 * t) + 0.38 * math.sin(2 * math.pi * 5170 * t) * math.exp(-t / 0.08) + 0.16 * math.sin(2 * math.pi * 7990 * t) * math.exp(-t / 0.05)))
+                    for c in (0, 1): buf[2 * (i0 + i) + c] = max(-32000, min(32000, buf[2 * (i0 + i) + c] + v))
+        t0 += dur
     if not any_hit: return None
     with wave.open(path, "wb") as w: w.setnchannels(2); w.setsampwidth(2); w.setframerate(44100); w.writeframes(buf.tobytes())
     return path
