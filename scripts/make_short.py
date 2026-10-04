@@ -502,7 +502,16 @@ def draw_gfx(fr, g, lt, dur):
 
 def draw_sticker(fr, meta, tl):
     """Stickers on a shot: a red arrow that slides in pointing at the item, or a tick that draws itself on."""
-    if meta["fx"] == "arrow":
+    if meta["fx"] == "mark":                                  # a red marker ring draws itself round the item, then the arrow lands
+        x0, y0, x1, y1 = meta["box"]; pad = 46; bw, bh = int(x1 - x0 + 2 * pad), int(y1 - y0 + 2 * pad); S = 2
+        pr = ease((tl - 0.05) / 0.38)
+        if pr > 0:
+            L = Image.new("RGBA", (bw * S + 80, bh * S + 80), (0, 0, 0, 0)); d = ImageDraw.Draw(L)
+            for k, (off, wd) in enumerate(((0, 13), (7, 9))):                                   # two passes, slightly apart, like a marker
+                d.arc([40 + off, 40 - off, bw * S + 40 - off, bh * S + 40 + off], -110 + 9 * k, -110 + 9 * k + (372 - 6 * k) * pr, fill=(226, 28, 36, 255), width=wd * S)
+            paste(fr, L.resize((bw + 40, bh + 40), Image.LANCZOS), (x0 + x1) / 2, (y0 + y1) / 2, 1.0, 1.0, -3)
+        draw_sticker(fr, dict(meta, fx="arrow"), tl - 0.3)
+    elif meta["fx"] == "arrow":
         if "arrow" not in _SPR:
             S = 2; L = Image.new("RGBA", (340 * S, 340 * S), (0, 0, 0, 0)); d = ImageDraw.Draw(L)   # points down-left, tip at (30, 310)
             d.line([(310 * S, 30 * S), (110 * S, 230 * S)], fill=(226, 28, 36, 255), width=40 * S)
@@ -884,37 +893,34 @@ def product_shot(p, over=None, brand=False, arrow=False):
     if (brand or base is not None) and p.get("brand"):         # the brand name in plain type above the item
         txt = p["brand"].upper(); size = 82
         while size > 44 and _M.textlength(txt, font=mfont(size, 900)) > W - 200: size -= 4
-        f = mfont(size, 900); d = ImageDraw.Draw(can); by = max(170, y - 60)
+        f = mfont(size, 900); d = ImageDraw.Draw(can); by = max(170, y - 190)          # clear of the ring and the arrow
         if base is not None:
             sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).text((W / 2 + 2, by + 4), txt, font=f, fill=(0, 0, 0, 170), anchor="ms"); can.alpha_composite(sh.filter(ImageFilter.GaussianBlur(6)))
             d = ImageDraw.Draw(can); d.text((W / 2, by), txt, font=f, fill=(255, 255, 255, 255), anchor="ms")
         else: d.text((W / 2, by), txt, font=f, fill=(18, 20, 28, 255), anchor="ms")
     meta = {"ding": True}
-    if arrow: meta.update(fx="arrow", target=(x + co.width * 0.74, y + co.height * 0.22))
+    if arrow: meta.update(fx="mark", target=(x + co.width * 0.80, y + co.height * 0.10), box=(x, y, x + co.width, y + co.height))
     return ("photo", can.convert("RGB"), "", meta)
 
-def board_shot(D, brand, cat=None, n=4):
-    """A brand board: the brand name on top and up to four of its most-viewed spreadsheet items, cut out, on paper."""
-    items = []
+def best_item(D, brand, cat=None, look=8):
+    """The best single photo of a brand's items: among its most-viewed, the cleanest, largest cut-out (side-on for shoes)."""
+    best = None; seen = 0
     for i, v in D.ranked:
         p = D.products[i]
         if (p.get("brand") or "").lower() != brand.lower() or (cat and (p.get("cat") or "").lower() != cat.lower()): continue
-        im = load_img(img_url(p)); co = cutout(im) if im is not None else None
-        if co is not None: items.append((i, co))
-        if len(items) == n: break
-    if len(items) < 2: return None, []
-    can = backdrop("paper").copy().convert("RGBA"); wide = sum(c.width / c.height for _, c in items) / len(items) > 1.5
-    cells = [(W // 2, 560 + k * 330, 560, 290) for k in range(len(items))] if wide else [(W // 2 + (-250 if k % 2 == 0 else 250), 760 + (k // 2) * 520, 450, 470) for k in range(len(items))]
-    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); placed = []
-    for (i, co), (cx, cy, mw, mh) in zip(items, cells):
-        co = ImageOps.contain(co, (mw, mh), Image.LANCZOS); x, y = cx - co.width // 2, cy - co.height // 2
-        sh.paste((20, 22, 30, 110), (x + 4, y + 18), co.getchannel("A")); placed.append((co, x, y))
-    can.alpha_composite(sh.filter(ImageFilter.GaussianBlur(16)))
-    for co, x, y in placed: can.alpha_composite(co, (x, y))
-    txt = brand.upper(); size = 92
-    while size > 48 and _M.textlength(txt, font=mfont(size, 900)) > W - 220: size -= 4
-    ImageDraw.Draw(can).text((W / 2, 330), txt, font=mfont(size, 900), fill=(18, 20, 28, 255), anchor="ms")
-    return ("photo", can.convert("RGB"), "", {"ding": True}), [i for i, _ in items]
+        seen += 1; im = load_img(img_url(p)); co = cutout(im) if im is not None else None
+        if co is not None:
+            ar = co.width / co.height; fill = co.getchannel("A").histogram()[255] / float(co.width * co.height)
+            score = min(co.width, 900) / 900.0 + 0.6 * fill + (0.5 if (cat or "").lower() == "shoes" and 1.5 < ar < 3.2 else 0) - 0.04 * seen
+            if best is None or score > best[0]: best = (score, i, p)
+        if seen >= look: break
+    return best
+
+def board_shot(D, brand, cat=None):
+    """A brand board: the brand name on top and one good photo of its item, big, with the red ring and arrow."""
+    b = best_item(D, brand, cat)
+    if not b: return None, []
+    return product_shot(b[2], None, True, True), [b[1]]
 
 def fmt_style(D, a):
     """Fast outfit-advice video: no presenter, footage with a cut on every beat, one-word captions, voice + music."""
@@ -927,7 +933,7 @@ def fmt_style(D, a):
         if ln.get("paper"): shots.insert(0, ("photo", backdrop("paper"), "", {"fx": "tick", "ding": True} if ln.get("tick") else {}))      # a text-only beat on paper
         for pid in ln.get("products") or []:
             p = D.products.get(str(pid))
-            ps = product_shot(p, first if ln.get("blur") else None, bool(ln.get("brand")), bool(ln.get("arrow"))) if p else None
+            ps = product_shot(p, first if ln.get("blur") else None, bool(ln.get("brand", True)), bool(ln.get("arrow", True))) if p else None
             if ps: shots.append(ps); ids.append(str(pid)); hero = hero or p
         for b in ln.get("boards") or []:                         # brand boards, one per brand, swapping in place
             bs, bids = board_shot(D, b["brand"], b.get("cat"))
@@ -1044,12 +1050,40 @@ def build_audio(scenes, tmp):
 # ---------------------------------------------------------------- background music
 MUSIC_PROMPT = "Upbeat modern instrumental beat for a fast, punchy explainer video: tight drums, driving bass, bright synth plucks, confident and energetic, 118 bpm, no vocals"
 STYLE_MUSIC = "Minimal stylish instrumental beat for a fast fashion video, exactly 128 bpm, starts immediately on the first kick, punchy kick and clap, deep bass, sparse plucks, confident, no vocals"
+SFX_PROMPTS = {"ding": ("Single short bright pop, a soft clean bubble pop with a tiny bell tone, very short, dry, no reverb", 0.5),
+               "boom": ("Single deep punchy sub bass impact, tight cinematic thud, short tail, no rumble", 0.7),
+               "swish": ("Single quick marker pen swish, a fast soft whoosh, dry, very short", 0.5)}
+SFX = {}
+def load_sfx(out_dir):
+    """Sound effects from scripts/sfx/<name>.mp3 if present, else generated (saved next to the video so they can be kept)."""
+    import array
+    key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
+    for name, (prompt, dur) in SFX_PROMPTS.items():
+        src = os.path.join(ROOT, "scripts", "sfx", name + ".mp3")
+        if not os.path.exists(src) and key:
+            try:
+                b = fetch("https://api.elevenlabs.io/v1/sound-generation", 120, json.dumps({"text": prompt, "duration_seconds": dur, "prompt_influence": 0.7}).encode(), {"xi-api-key": key, "Content-Type": "application/json"})
+                if len(b) > 2000: src = os.path.join(out_dir, "sfx-%s.mp3" % name); open(src, "wb").write(b); print("  sfx: generated", name, len(b) // 1024, "KB")
+            except Exception as e:
+                d = ""
+                try: d = e.read().decode()[:160]
+                except Exception: pass
+                print("  sfx %s failed:" % name, e, d)
+        if os.path.exists(src):
+            raw = subprocess.run([FF, "-loglevel", "error", "-i", src, "-ac", "2", "-ar", "44100", "-af", "silenceremove=start_periods=1:start_threshold=-45dB,loudnorm=I=-14:TP=-2", "-f", "s16le", "-"], stdout=subprocess.PIPE).stdout
+            if len(raw) > 4000: a = array.array("h"); a.frombytes(raw[:len(raw) // 4 * 4]); SFX[name] = a
+
 def sfx_track(scenes, path):
-    """Bass hits ('boom') at the start of the lines that ask for one, as a stereo wav the length of the video."""
+    """Sound effects for a style video (thump on emphasis, pop on reveals, swish on the marker ring) as a stereo wav."""
     import array
     total = sum(int(round(s["dur"] * FPS)) for s in scenes) / FPS; n = int(total * 44100); buf = array.array("h", [0]) * (n * 2); t0 = 0.0; any_hit = False
+    def mix(a, i0, gain=1.0):
+        m = min(len(a), (n - i0) * 2)
+        for j in range(max(0, m)):
+            v = buf[2 * i0 + j] + int(a[j] * gain); buf[2 * i0 + j] = 32000 if v > 32000 else -32000 if v < -32000 else v
     for s in scenes:
-        if s.get("boom"):
+        if s.get("boom") and SFX.get("boom"): any_hit = True; mix(SFX["boom"], int(t0 * 44100), 0.9)
+        elif s.get("boom"):
             any_hit = True; i0 = int(t0 * 44100); ph = 0.0
             for i in range(int(0.35 * 44100)):
                 if i0 + i >= n: break
@@ -1061,7 +1095,9 @@ def sfx_track(scenes, path):
             for k in range(nseg):
                 meta = shots[k % len(shots)][3] if len(shots[k % len(shots)]) > 3 else {}
                 if not meta.get("ding"): continue
-                any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
+                any_hit = True; i0 = int((t0 + k * seg + (0.36 if meta.get("fx") == "mark" else 0.1 if meta.get("fx") else 0.02)) * 44100)
+                if SFX.get("ding"): mix(SFX["ding"], i0, 0.8); continue
+                if meta.get("fx") == "mark" and SFX.get("swish"): mix(SFX["swish"], int((t0 + k * seg + 0.03) * 44100), 0.55)
                 for i in range(int(0.6 * 44100)):
                     if i0 + i >= n: break
                     t = i / 44100; env = math.exp(-t / 0.17) * min(1.0, i / 130)
@@ -1071,6 +1107,21 @@ def sfx_track(scenes, path):
     if not any_hit: return None
     with wave.open(path, "wb") as w: w.setnchannels(2); w.setsampwidth(2); w.setframerate(44100); w.writeframes(buf.tobytes())
     return path
+
+MUSIC_OPTIONS = ["Laid-back melodic house instrumental, 122 bpm, warm piano chords, soft four-on-the-floor kick, tasteful and stylish, starts immediately, no vocals",
+                 "Smooth classy lounge hip-hop instrumental, 90 bpm, jazzy electric piano, soft boom-bap drums, relaxed and confident, starts immediately, no vocals",
+                 "Bright Scandinavian pop-house instrumental, 126 bpm, plucked synth melody, clean and uplifting, starts immediately, no vocals"]
+def music_options(out_dir):
+    """Generate the candidate tracks (music-1.mp3 ...) and return the first that worked."""
+    key = os.environ.get("ELEVENLABS_API_KEY", "").strip(); first = None
+    if not key: return None
+    for k, prompt in enumerate(MUSIC_OPTIONS, 1):
+        for body in ({"prompt": prompt, "music_length_ms": 40000, "force_instrumental": True}, {"prompt": prompt, "music_length_ms": 40000}):
+            try:
+                b = fetch("https://api.elevenlabs.io/v1/music?output_format=mp3_44100_128", 240, json.dumps(body).encode(), {"xi-api-key": key, "Content-Type": "application/json"})
+                if len(b) > 20000: path = os.path.join(out_dir, "music-%d.mp3" % k); open(path, "wb").write(b); print("  music option", k, len(b) // 1024, "KB"); first = first or path; break
+            except Exception as e: print("  music option", k, "failed:", e)
+    return first
 
 def music_track(out_dir, prompt=None):
     """A track from scripts/music/ if there is one, else a new one from ElevenLabs (saved next to the video so it can be kept)."""
@@ -1105,7 +1156,9 @@ def render(scenes, out_path):
             for s in scenes:
                 if s.get("presenter") and not s.get("fg"): s["fg"] = fake
         style = any(s.get("word") for s in scenes)
-        music = music_track(os.path.dirname(out_path), STYLE_MUSIC if style else None) if (style or any(s.get("news") for s in scenes)) else None
+        lib = glob.glob(os.path.join(ROOT, "scripts", "music", "*.mp3"))
+        music = (music_options(os.path.dirname(out_path)) if style and not lib else None) or (music_track(os.path.dirname(out_path), STYLE_MUSIC if style else None) if (style or any(s.get("news") for s in scenes)) else None)
+        if style: load_sfx(os.path.dirname(out_path))
         sfx = sfx_track(scenes, os.path.join(tmp, "sfx.wav")) if style else None
         cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
         cmd += ["-i", audio] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
