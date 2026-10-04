@@ -225,14 +225,21 @@ def pexels_clip(vid):
     return ("video", path, "Video: Pexels")
 
 def drive_clip(fid, start=0.0):
-    """One of the owner's own clips from Google Drive (the folder must be shared by link). Returns a shot or None."""
-    os.makedirs(MEDIA_DIR, exist_ok=True); path = os.path.join(MEDIA_DIR, "drive_%s.mp4" % fid)
+    """One of the owner's own clips or photos from Google Drive (the folder is shared by link). Returns a shot or None."""
+    os.makedirs(MEDIA_DIR, exist_ok=True); path = os.path.join(MEDIA_DIR, "drive_%s.bin" % fid)
     if not os.path.exists(path):
-        try:
-            data = fetch("https://drive.google.com/uc?export=download&id=%s" % fid, 180, None, BROWSER_UA)
-            if len(data) < 50000 or data[:15].lstrip().lower().startswith(b"<!doctype"): print("  drive clip %s is not shared by link yet" % fid); return None
-            open(path, "wb").write(data)
-        except Exception as e: print("  drive clip %s unavailable:" % fid, e); return None
+        data = None
+        for u in ("https://drive.google.com/uc?export=download&id=%s" % fid, "https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % fid):
+            try:
+                d = fetch(u, 180, None, BROWSER_UA)
+                if len(d) > 20000 and not d[:15].lstrip().lower().startswith(b"<!doctype"): data = d; break
+            except Exception as e: err = e
+        if data is None: print("  drive file %s unavailable" % fid); return None
+        open(path, "wb").write(data)
+    head = open(path, "rb").read(12)
+    if head[:8] == b"\x89PNG\r\n\x1a\n" or head[:3] == b"\xff\xd8\xff":
+        try: return ("photo", Image.open(path).convert("RGB"), "")
+        except Exception: return None
     return ("video", path, "", {"ss": float(start)})
 
 def picked(ids):
@@ -586,6 +593,7 @@ def draw_bg(fr, s, lt, dur):
         f = clips[(id(m), k)].frame()
         if f is not None: s["_last"] = f
         base = s.get("_last")
+    elif meta.get("site"): draw_site(fr, lt - k * seg); base = None
     elif meta.get("overlay"):                                 # a held product shot: the paper moves, the item does not
         if not meta.get("blur"): fr.paste(paper(int(lt * 7)), (0, 0))
         fr.alpha_composite(m); base = None
@@ -710,6 +718,7 @@ def draw_word_caption(fr, s, lt):
     paste(fr, _SPR[key], W / 2, 975, 1.0, 1.0)
 
 def draw_host(fr, s, lt, t_abs, FT):
+    if s.get("nocap"): return
     if s.get("word"): return draw_word_caption(fr, s, lt)
     if s.get("news"): return draw_news_caption(fr, s, lt)
     ws = captions(s); cur = next((k for k, (w, a, b) in enumerate(ws) if a <= lt < b), None)
@@ -922,13 +931,13 @@ def product_shot(p, over=None, brand=False, arrow=False):
     if co is None:                                            # busy photo: show it as a rounded card instead
         card = rounded(cover(im.convert("RGB"), 900, 900), 46); lay.alpha_composite(card, ((W - 900) // 2, (H - 900) // 2 - 40))
         return ("photo", lay, "", {"ding": True, "overlay": True})
-    co = ImageOps.contain(co, (W - 170, 980), Image.LANCZOS); x, y = (W - co.width) // 2, (H - co.height) // 2 - 30
+    co = ImageOps.contain(co, (W - 400, 640), Image.LANCZOS); x, y = (W - co.width) // 2, (H - co.height) // 2 - 30
     sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); sh.paste((20, 22, 30, 120), (x + 6, y + 26), co.getchannel("A")); lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(24)))
     lay.alpha_composite(co, (x, y))
     if (brand or base is not None) and p.get("brand"):         # the brand name in plain type above the item
         txt = p["brand"].upper(); size = 82
         while size > 44 and _M.textlength(txt, font=mfont(size, 900)) > W - 200: size -= 4
-        f = mfont(size, 900); by = max(190, y - 230)             # clear of the arrow's path
+        f = mfont(size, 900); by = max(190, y - 250)             # clear of the arrow's path
         if base is not None:
             t2 = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(t2).text((W / 2 + 2, by + 4), txt, font=f, fill=(0, 0, 0, 170), anchor="ms"); lay.alpha_composite(t2.filter(ImageFilter.GaussianBlur(6)))
             ImageDraw.Draw(lay).text((W / 2, by), txt, font=f, fill=(255, 255, 255, 255), anchor="ms")
@@ -957,15 +966,31 @@ def board_shot(D, brand, cat=None):
     if not b: return None, []
     return product_shot(b[2], None, True, True), [b[1]]
 
+_SITE = {}
 def site_shot():
-    """The spreadsheet itself: a phone screenshot of the site on paper with the address above it."""
     path = os.path.join(ROOT, "scripts", "site.png")
-    if not os.path.exists(path): return None
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); shot = Image.open(path).convert("RGB"); w = 700; shot = shot.resize((w, int(shot.height * w / shot.width)), Image.LANCZOS).crop((0, 0, w, 1180))
-    x, y = (W - w) // 2, 470; sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle([x + 6, y + 22, x + w + 6, y + 1180 + 22], 54, fill=(20, 22, 30, 130)); lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(26)))
-    lay.alpha_composite(rounded(shot, 54), (x, y)); ImageDraw.Draw(lay).rounded_rectangle([x, y, x + w, y + 1180], 54, outline=(18, 20, 28, 255), width=6)
-    ImageDraw.Draw(lay).text((W / 2, 370), "PUROCLASSICO.COM", font=mfont(86, 900), fill=(18, 20, 28, 255), anchor="ms")
-    return ("photo", lay, "", {"overlay": True, "ding": True})
+    return ("photo", Image.new("RGB", (8, 8)), "", {"site": True, "ding": True}) if os.path.exists(path) else None
+
+def draw_site(fr, tl):
+    """End screen: deep navy with a soft glow, the spreadsheet on a phone sliding up, and the address above it."""
+    if "bg" not in _SITE:
+        g = Image.new("L", (1, H)); px = g.load()
+        for y in range(H): px[0, y] = int(255 * (y / H) ** 1.2)
+        bg = Image.composite(Image.new("RGB", (W, H), (6, 9, 20)), Image.new("RGB", (W, H), (20, 30, 62)), g.resize((W, H))).convert("RGBA")
+        glow = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(glow).ellipse([W // 2 - 520, 620, W // 2 + 520, 1660], fill=(92, 124, 220, 90)); bg.alpha_composite(glow.filter(ImageFilter.GaussianBlur(170)))
+        shot = Image.open(os.path.join(ROOT, "scripts", "site.png")).convert("RGB"); w = 610; shot = shot.resize((w, int(shot.height * w / shot.width)), Image.LANCZOS).crop((0, 0, w, 1240))
+        ph = Image.new("RGBA", (w + 36, 1240 + 36), (0, 0, 0, 0)); d = ImageDraw.Draw(ph)
+        d.rounded_rectangle([0, 0, w + 35, 1240 + 35], 76, fill=(10, 12, 20, 255), outline=(70, 80, 110, 255), width=3); ph.alpha_composite(rounded(shot, 60), (18, 18))
+        d.rounded_rectangle([(w + 36) // 2 - 70, 30, (w + 36) // 2 + 70, 64], 17, fill=(10, 12, 20, 255))                                 # the phone's pill
+        sh = Image.new("RGBA", (ph.width + 240, ph.height + 240), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle([120, 150, 120 + ph.width, 150 + ph.height], 80, fill=(0, 0, 0, 150)); sh = sh.filter(ImageFilter.GaussianBlur(46)); sh.alpha_composite(ph, (120, 120))
+        _SITE.update(bg=bg, phone=sh)
+    fr.paste(_SITE["bg"], (0, 0)); a = ease(tl / 0.5)
+    paste(fr, _SITE["phone"], W / 2, 1210 + int(220 * (1 - a)), 0.96 + 0.04 * a, a, -2.5 * (1 - a))
+    for k, (txt, size, col, y, wt) in enumerate((("EVERY FIND IN ONE PLACE", 44, (170, 184, 222), 250, 700), ("PUROCLASSICO.COM", 98, CAP_YEL, 372, 900))):
+        b = ease((tl - 0.15 - 0.12 * k) / 0.3)
+        if b <= 0: continue
+        f = mfont(size, wt); L = Image.new("RGBA", (W, int(size * 1.6)), (0, 0, 0, 0)); ImageDraw.Draw(L).text((W / 2, int(size * 0.8)), txt, font=f, fill=col + (255,), anchor="mm")
+        paste(fr, L, W / 2, y + int(24 * (1 - b)), 1.0, b)
 
 def fmt_style(D, a):
     """Fast outfit-advice video: no presenter, footage with a cut on every beat, one-word captions, voice + music."""
@@ -988,10 +1013,10 @@ def fmt_style(D, a):
             if ss: shots.append(ss)
         if ln.get("loop") and sc: shots += sc[0]["bg"][:3]        # end on the opening shots so the video loops
         if not shots: continue
-        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, word=True, cut=ln.get("cut", 0.9), pad=0.06, boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
+        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, nocap=bool(ln.get("site") or ln.get("nocap")), word=True, cut=ln.get("cut", 0.9), pad=0.06, boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
     if len(sc) < 3: return None
     if not hero: hero = D.top(1, skip_done=False)[0][1]
-    cap = "%s 👕 Everything is on the spreadsheet in the bio." % st["title"]
+    cap = "%s 👕 Everything is on the spreadsheet in the bio." % st["title"] + (("\n\n" + st["credits"]) if st.get("credits") else "")
     return sc, ids[:1] and [], cap, hero, {"style": n + 1}
 
 BUILD = dict(style=fmt_style, story=fmt_story, relatable=fmt_relatable, spotlight=fmt_spotlight, top5=fmt_top5, guess=fmt_guess, qc=fmt_qc, term=fmt_term, order=fmt_order)
@@ -1106,9 +1131,9 @@ def build_audio(scenes, tmp):
 # ---------------------------------------------------------------- background music
 MUSIC_PROMPT = "Upbeat modern instrumental beat for a fast, punchy explainer video: tight drums, driving bass, bright synth plucks, confident and energetic, 118 bpm, no vocals"
 STYLE_MUSIC = "Minimal stylish instrumental beat for a fast fashion video, exactly 128 bpm, starts immediately on the first kick, punchy kick and clap, deep bass, sparse plucks, confident, no vocals"
-SFX_PROMPTS = {"ding": ("Single short bright pop, a soft clean bubble pop with a tiny bell tone, very short, dry, no reverb", 0.5),
-               "boom": ("Single deep punchy sub bass impact, tight cinematic thud, short tail, no rumble", 0.7),
-               "swish": ("Single quick marker pen swish, a fast soft whoosh, dry, very short", 0.5)}
+SFX_PROMPTS = {"ding": ("One soft, satisfying interface tap: a gentle rounded click with a warm low pop, like a premium phone keyboard tap. Subtle, dry, clean, no bell, no reverb", 0.5),
+               "boom": ("One soft low whoosh into a gentle muffled thump, like a smooth film transition. Warm, subtle, clean, no distortion", 0.9),
+               "swish": ("One very soft airy swoosh, a light quick swipe of air. Subtle, smooth, clean", 0.5)}
 SFX = {}
 def load_sfx(out_dir):
     """Sound effects from scripts/sfx/<name>.mp3 if present, else generated (saved next to the video so they can be kept)."""
@@ -1138,7 +1163,7 @@ def sfx_track(scenes, path):
         for j in range(max(0, m)):
             v = buf[2 * i0 + j] + int(a[j] * gain); buf[2 * i0 + j] = 32000 if v > 32000 else -32000 if v < -32000 else v
     for s in scenes:
-        if s.get("boom") and SFX.get("boom"): any_hit = True; mix(SFX["boom"], int(t0 * 44100), 0.9)
+        if s.get("boom") and SFX.get("boom"): any_hit = True; mix(SFX["boom"], int(t0 * 44100), 0.6)
         elif s.get("boom"):
             any_hit = True; i0 = int(t0 * 44100); ph = 0.0
             for i in range(int(0.35 * 44100)):
@@ -1152,7 +1177,8 @@ def sfx_track(scenes, path):
                 meta = shots[k % len(shots)][3] if len(shots[k % len(shots)]) > 3 else {}
                 if not meta.get("ding"): continue
                 any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
-                if SFX.get("ding"): mix(SFX["ding"], i0, 0.8); continue
+                if meta.get("fx") == "orbit" and SFX.get("swish"): mix(SFX["swish"], i0, 0.4)
+                if SFX.get("ding"): mix(SFX["ding"], i0, 0.5); continue
                 for i in range(int(0.6 * 44100)):
                     if i0 + i >= n: break
                     t = i / 44100; env = math.exp(-t / 0.17) * min(1.0, i / 130)
