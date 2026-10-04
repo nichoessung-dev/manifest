@@ -224,6 +224,17 @@ def pexels_clip(vid):
             print("  hand-picked clip %d unavailable:" % vid, err); return None
     return ("video", path, "Video: Pexels")
 
+def drive_file(fid, ext="bin"):
+    """Any file from the owner's link-shared Drive folder, cached locally. Returns its path or None."""
+    os.makedirs(MEDIA_DIR, exist_ok=True); path = os.path.join(MEDIA_DIR, "drive_%s.%s" % (fid, ext))
+    if not os.path.exists(path):
+        for u in ("https://drive.google.com/uc?export=download&id=%s" % fid, "https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % fid):
+            try:
+                d = fetch(u, 180, None, BROWSER_UA)
+                if len(d) > 20000 and not d[:15].lstrip().lower().startswith(b"<!doctype"): open(path, "wb").write(d); break
+            except Exception as e: err = e
+    return path if os.path.exists(path) else None
+
 def drive_clip(fid, start=0.0, opts=None):
     """One of the owner's own clips or photos from Google Drive (the folder is shared by link). Returns a shot or None."""
     os.makedirs(MEDIA_DIR, exist_ok=True); path = os.path.join(MEDIA_DIR, "drive_%s.bin" % fid)
@@ -242,7 +253,7 @@ def drive_clip(fid, start=0.0, opts=None):
         except Exception: return None
     meta = {"ss": float(start)}
     if opts and opts.get("arrow"):
-        x0, y0, x1, y1 = opts["arrow"]; meta.update(fx="orbit", ding=True, box=(x0 * W, y0 * H, x1 * W, y1 * H))
+        x0, y0, x1, y1 = opts["arrow"]; meta.update(fx="orbit", ding=True, bell=bool(opts.get("bell")), box=(x0 * W, y0 * H, x1 * W, y1 * H))
     return ("video", path, "", meta)
 
 def picked(ids):
@@ -1019,7 +1030,7 @@ def fmt_style(D, a):
             if ss: shots.append(ss)
         if ln.get("loop") and sc: shots += sc[0]["bg"][:3]        # end on the opening shots so the video loops
         if not shots: continue
-        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, nocap=bool(ln.get("site") or ln.get("nocap")), word=True, cut=ln.get("cut", 0.9), pad=ln.get("pad", 0.06), boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
+        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, music=st.get("music"), nocap=bool(ln.get("site") or ln.get("nocap")), word=True, cut=ln.get("cut", 0.9), pad=ln.get("pad", 0.06), boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
     if len(sc) < 3: return None
     if not hero: hero = D.top(1, skip_done=False)[0][1]
     cap = "%s 👕 Everything is on the spreadsheet in the bio." % st["title"] + (("\n\n" + st["credits"]) if st.get("credits") else "")
@@ -1140,6 +1151,7 @@ STYLE_MUSIC = "Minimal stylish instrumental beat for a fast fashion video, exact
 SFX_PROMPTS = {"ding": ("One soft, satisfying interface tap: a gentle rounded click with a warm low pop, like a premium phone keyboard tap. Subtle, dry, clean, no bell, no reverb", 0.5),
                "boom": ("One soft low whoosh into a gentle muffled thump, like a smooth film transition. Warm, subtle, clean, no distortion", 0.9),
                "swish": ("One very soft airy swoosh, a light quick swipe of air. Subtle, smooth, clean", 0.5),
+               "bell": ("One clean, bright bell ding, like a correct-answer chime. Short, pleasant, clear, no reverb tail", 0.8),
                "reveal": ("A soft, elegant rising shimmer that resolves into one gentle warm chime, like a premium app opening. Smooth, clean, quiet, no harshness", 1.3)}
 SFX = {}
 def load_sfx(out_dir):
@@ -1184,6 +1196,7 @@ def sfx_track(scenes, path):
                 meta = shots[k % len(shots)][3] if len(shots[k % len(shots)]) > 3 else {}
                 if not meta.get("ding"): continue
                 any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
+                if meta.get("bell") and SFX.get("bell"): mix(SFX["bell"], int((t0 + k * seg + 0.02) * 44100), 0.6); continue      # the answer: a clear ding
                 if meta.get("site") and SFX.get("reveal"): mix(SFX["reveal"], int((t0 + k * seg) * 44100), 0.5); continue    # the end screen has its own sound
                 if meta.get("fx") == "orbit" and SFX.get("swish"): mix(SFX["swish"], i0, 0.4)
                 if SFX.get("ding"): mix(SFX["ding"], i0, 0.5); continue
@@ -1246,7 +1259,8 @@ def render(scenes, out_path):
                 if s.get("presenter") and not s.get("fg"): s["fg"] = fake
         style = any(s.get("word") for s in scenes)
         lib = glob.glob(os.path.join(ROOT, "scripts", "music", "*.mp3"))
-        music = (random.choice(lib) if lib else None) if style else (music_track(os.path.dirname(out_path), None) if any(s.get("news") for s in scenes) else None)
+        own = next((s.get("music") for s in scenes if s.get("music")), None); own = drive_file(own, "mp3") if own else None
+        music = (own or (random.choice(lib) if lib else None)) if style else (music_track(os.path.dirname(out_path), None) if any(s.get("news") for s in scenes) else None)
         if style: print("  music:", os.path.basename(music) if music else "none yet (waiting for the owner's tracks in scripts/music/)")
         if style: load_sfx(os.path.dirname(out_path))
         sfx = sfx_track(scenes, os.path.join(tmp, "sfx.wav")) if style else None
