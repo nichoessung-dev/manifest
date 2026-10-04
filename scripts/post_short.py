@@ -92,23 +92,30 @@ def main():
     def content(prov):
         if photos and prov.startswith("tiktok"): return meta["caption"].split("\n", 1)[-1].strip()      # TikTok shows the title line itself: do not repeat it
         return meta["caption"] + ("\n\n" + (meta.get("product_url") or "") if prov in ("youtube", "threads") else "")
-    start = datetime.now(timezone.utc)
-    body = {"type": "now", "date": start.strftime("%Y-%m-%dT%H:%M:%S.000Z"), "shortLink": False, "tags": [],
-            "posts": [{"integration": {"id": iid}, "value": [{"content": content(prov), "image": files(prov)}], "settings": settings(prov, meta)} for prov, iid, _ in chans]}
-    res = call("POST", "/posts", body); print("created:", json.dumps(res)[:400])
-    ids = {c[1]: c[0] for c in chans}; links, errors = {}, {}
-    q = "?startDate=%s&endDate=%s" % ((start - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S.000Z"), (start + timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%S.000Z"))
-    for attempt in range(40):                                   # TikTok only gives a public link after its own review
-        time.sleep(45)
-        posts = call("GET", "/posts" + q).get("posts", [])
-        for p in posts:
-            iid = (p.get("integration") or {}).get("id"); prov = ids.get(iid)
-            pub = p.get("publishDate") or ""
-            if not prov or pub[:16] < (start - timedelta(minutes=3)).strftime("%Y-%m-%dT%H:%M"): continue
-            if p.get("state") == "PUBLISHED" and p.get("releaseURL"): links[prov] = p["releaseURL"]
-            elif p.get("state") == "ERROR": errors[prov] = True
-        print("  %2d: published %s%s" % (attempt + 1, sorted(links), (" errors " + str(sorted(errors))) if errors else ""))
-        if len(links) + len([e for e in errors if e not in links]) >= len(chans): break
+    first = start = datetime.now(timezone.utc); links, errors, todo = {}, {}, list(chans)
+    for round_ in range(4):                                      # a channel that errors is tried again after five minutes (up to three retries)
+        if round_:
+            print("retrying %s in five minutes (attempt %d of 4)" % ([c[0] for c in todo], round_ + 1)); time.sleep(300)
+        start = datetime.now(timezone.utc); errors = {}
+        body = {"type": "now", "date": start.strftime("%Y-%m-%dT%H:%M:%S.000Z"), "shortLink": False, "tags": [],
+                "posts": [{"integration": {"id": iid}, "value": [{"content": content(prov), "image": files(prov)}], "settings": settings(prov, meta)} for prov, iid, _ in todo]}
+        res = call("POST", "/posts", body); print("created:", json.dumps(res)[:400])
+        ids = {c[1]: c[0] for c in todo}
+        q = "?startDate=%s&endDate=%s" % ((start - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S.000Z"), (start + timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%S.000Z"))
+        for attempt in range(40):                               # TikTok only gives a public link after its own review
+            time.sleep(45)
+            posts = call("GET", "/posts" + q).get("posts", [])
+            for p in posts:
+                iid = (p.get("integration") or {}).get("id"); prov = ids.get(iid)
+                pub = p.get("publishDate") or ""
+                if not prov or pub[:16] < (start - timedelta(minutes=3)).strftime("%Y-%m-%dT%H:%M"): continue
+                if p.get("state") == "PUBLISHED" and p.get("releaseURL"): links[prov] = p["releaseURL"]
+                elif p.get("state") == "ERROR": errors[prov] = True
+            print("  %2d: published %s%s" % (attempt + 1, sorted(links), (" errors " + str(sorted(errors))) if errors else ""))
+            if all(c[0] in links or c[0] in errors for c in todo): break
+        todo = [c for c in todo if c[0] in errors and c[0] not in links]
+        if not todo: break
+    start = first
     try: seen = {u for e in json.load(open(os.path.join(ROOT, "shorts_log.json"))) for u in (e.get("links") or {}).values()}
     except Exception: seen = set()
     for k, v in list(links.items()):                              # TikTok Business only reports the profile: look up the newest post there
