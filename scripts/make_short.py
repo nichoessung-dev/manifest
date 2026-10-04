@@ -34,7 +34,7 @@ UA = {"User-Agent": "Mozilla/5.0 (PuroClassicoShorts/1.0; +https://www.puroclass
 PLAT = {"weidian": "Weidian", "taobao": "Taobao", "1688": "1688"}
 FORMATS = ["style", "story", "relatable", "story", "guess", "story", "top5", "story", "qc", "story", "term", "story", "order"]
 FF = imageio_ffmpeg.get_ffmpeg_exe()
-VOICES = [v for v in (os.environ.get("SHORTS_VOICE", "").strip(), "pNInz6obpgDQGcFmaJgB", "nPczCjzI2devNBz1zQrb", "bIHbv24MWmeRgasZH58o", "TX3LPaxmHKxFdv7VOQHJ") if v]   # Adam first, then   # Brian (owner's pick), Will, Liam
+VOICES = [v for v in (os.environ.get("SHORTS_VOICE", "").strip(), "fYdm7SWZ5yjWg5gCjVsS", "pNInz6obpgDQGcFmaJgB", "nPczCjzI2devNBz1zQrb", "bIHbv24MWmeRgasZH58o", "TX3LPaxmHKxFdv7VOQHJ") if v]   # Adam first, then   # Brian (owner's pick), Will, Liam
 VOICE_MODEL = "eleven_multilingual_v2"; _VOICE = {}
 
 TERMS = [  # (term, what it stands for, plain-English meaning, example line)
@@ -253,7 +253,7 @@ def drive_clip(fid, start=0.0, opts=None):
         except Exception: return None
     meta = {"ss": float(start)}
     if opts and opts.get("arrow"):
-        x0, y0, x1, y1 = opts["arrow"]; meta.update(fx="orbit", ding=True, bell=bool(opts.get("bell")), box=(x0 * W, y0 * H, x1 * W, y1 * H))
+        x0, y0, x1, y1 = opts["arrow"]; meta.update(fx="orbit", ding=True, bell=bool(opts.get("bell")), freeze=bool(opts.get("freeze", opts.get("bell"))), box=(x0 * W, y0 * H, x1 * W, y1 * H))
     return ("video", path, "", meta)
 
 def picked(ids):
@@ -605,8 +605,10 @@ def draw_bg(fr, s, lt, dur):
     if kind == "video":
         clips = s.setdefault("_clips", {})
         if (id(m), k) not in clips: clips[(id(m), k)] = Clip(m, ss=meta.get("ss", 0.0))
-        f = clips[(id(m), k)].frame()
-        if f is not None: s["_last"] = f
+        f = None if (meta.get("freeze") and s.get("_frozen") == k) else clips[(id(m), k)].frame()      # a frozen shot holds its first frame
+        if f is not None:
+            s["_last"] = f
+            if meta.get("freeze"): s["_frozen"] = k
         base = s.get("_last")
     elif meta.get("site"): draw_site(fr, lt - k * seg); base = None
     elif meta.get("overlay"):                                 # a held product shot: the paper moves, the item does not
@@ -1152,7 +1154,7 @@ STYLE_MUSIC = "Minimal stylish instrumental beat for a fast fashion video, exact
 SFX_PROMPTS = {"ding": ("One soft, satisfying interface tap: a gentle rounded click with a warm low pop, like a premium phone keyboard tap. Subtle, dry, clean, no bell, no reverb", 0.5),
                "boom": ("One soft low whoosh into a gentle muffled thump, like a smooth film transition. Warm, subtle, clean, no distortion", 0.9),
                "swish": ("One very soft airy swoosh, a light quick swipe of air. Subtle, smooth, clean", 0.5),
-               "bell": ("One clean, bright bell ding, like a correct-answer chime. Short, pleasant, clear, no reverb tail", 0.8),
+               "bell": ("One short, high glass ting, like a spoon tapping a crystal glass once. Bright, delicate, quick decay, dry", 0.7),
                "reveal": ("A soft, elegant rising shimmer that resolves into one gentle warm chime, like a premium app opening. Smooth, clean, quiet, no harshness", 1.3)}
 SFX = {}
 def load_sfx(out_dir):
