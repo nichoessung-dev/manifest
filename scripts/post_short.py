@@ -34,8 +34,8 @@ def call(method, path, body=None, headers=None, timeout=120):
 
 
 def upload(path):
-    boundary = "----pc" + uuid.uuid4().hex
-    head = ("--%s\r\nContent-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\nContent-Type: video/mp4\r\n\r\n" % (boundary, os.path.basename(path))).encode()
+    boundary = "----pc" + uuid.uuid4().hex; ctype = "image/jpeg" if path.lower().endswith((".jpg", ".jpeg")) else "video/mp4"
+    head = ("--%s\r\nContent-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\nContent-Type: %s\r\n\r\n" % (boundary, os.path.basename(path), ctype)).encode()
     body = head + open(path, "rb").read() + ("\r\n--%s--\r\n" % boundary).encode()
     r = call("POST", "/upload", body, {"Content-Type": "multipart/form-data; boundary=" + boundary}, 600)
     if not r.get("path"): raise SystemExit("upload failed: %s" % r)
@@ -44,6 +44,9 @@ def upload(path):
 
 def settings(provider, meta):
     title = meta["caption"].split("\n")[0]
+    if provider.startswith("tiktok") and meta.get("images"):      # a photo carousel: TikTok adds a sound itself (our own audio cannot be attached)
+        return {"__type": provider, "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "comment": True, "autoAddMusic": os.environ.get("TIKTOK_AUTO_MUSIC", "yes"),
+                "brand_content_toggle": os.environ.get("TIKTOK_BRANDED", "").lower() == "true", "brand_organic_toggle": True, "content_posting_method": "DIRECT_POST"}
     if provider.startswith("tiktok"):
         return {"__type": provider, "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "duet": True, "stitch": True, "comment": True,
                 "autoAddMusic": "no", "brand_content_toggle": os.environ.get("TIKTOK_BRANDED", "").lower() == "true",
@@ -82,11 +85,14 @@ def main():
     print("channels:", [(p, n) for p, _, n in chans])
     if not chans: raise SystemExit("no matching channels connected in Postiz (wanted %s; found %s)" % (WANT, [i.get("identifier") or i.get("providerIdentifier") for i in ints]))
     media = upload(video); print("uploaded:", media["path"])
+    photos = [upload(os.path.join(os.path.dirname(meta_path), os.path.basename(i))) for i in meta.get("images") or []]   # carousel slides
+    if photos: print("uploaded", len(photos), "slides")
+    def files(prov): return photos if photos and prov != "youtube" else [media]                 # YouTube has no carousels: it gets the video
     # YouTube descriptions can carry a clickable link; other platforms only get the caption
     def content(prov): return meta["caption"] + ("\n\n" + (meta.get("product_url") or "") if prov in ("youtube", "threads") else "")
     start = datetime.now(timezone.utc)
     body = {"type": "now", "date": start.strftime("%Y-%m-%dT%H:%M:%S.000Z"), "shortLink": False, "tags": [],
-            "posts": [{"integration": {"id": iid}, "value": [{"content": content(prov), "image": [media]}], "settings": settings(prov, meta)} for prov, iid, _ in chans]}
+            "posts": [{"integration": {"id": iid}, "value": [{"content": content(prov), "image": files(prov)}], "settings": settings(prov, meta)} for prov, iid, _ in chans]}
     res = call("POST", "/posts", body); print("created:", json.dumps(res)[:400])
     ids = {c[1]: c[0] for c in chans}; links, errors = {}, {}
     q = "?startDate=%s&endDate=%s" % ((start - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S.000Z"), (start + timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%S.000Z"))
@@ -102,11 +108,11 @@ def main():
         print("  %2d: published %s%s" % (attempt + 1, sorted(links), (" errors " + str(sorted(errors))) if errors else ""))
         if len(links) + len([e for e in errors if e not in links]) >= len(chans): break
     for k, v in list(links.items()):                              # TikTok Business only reports the profile: look up the newest video there
-        if k.startswith("tiktok") and "/video/" not in v:
+        if k.startswith("tiktok") and "/video/" not in v and "/photo/" not in v:
             try:
                 import subprocess
                 r = subprocess.run([sys.executable, "-m", "yt_dlp", "--flat-playlist", "--playlist-items", "1", "--print", "%(webpage_url)s", v.split("?")[0]], capture_output=True, text=True, timeout=120)
-                u = next((l.strip() for l in r.stdout.splitlines() if "/video/" in l), None)
+                u = next((l.strip() for l in r.stdout.splitlines() if "/video/" in l or "/photo/" in l), None)
                 if u: links[k] = u; print("TikTok video link:", u)
                 else: print("could not find the video link on the profile yet:", (r.stderr or "")[-200:])
             except Exception as e: print("TikTok link lookup failed:", e)
