@@ -1062,7 +1062,8 @@ def tts(line, path):
             print("  voice %s failed:" % v, e)
     if r is None: return 0.0, None
     open(path + ".mp3", "wb").write(base64.b64decode(r["audio_base64"]))
-    subprocess.run([FF, "-y", "-loglevel", "error", "-i", path + ".mp3", "-ar", "44100", "-ac", "2", "-c:a", "pcm_s16le", path], check=True)
+    subprocess.run([FF, "-y", "-loglevel", "error", "-i", path + ".mp3", "-af", "areverse,silenceremove=start_periods=1:start_threshold=-40dB:start_silence=0.06,areverse",
+                    "-ar", "44100", "-ac", "2", "-c:a", "pcm_s16le", path], check=True)
     with wave.open(path) as w: dur = w.getnframes() / w.getframerate()
     al = r.get("alignment") or {}; ch, st, en = al.get("characters") or [], al.get("character_start_times_seconds") or [], al.get("character_end_times_seconds") or []
     words, cur, t0 = [], "", None
@@ -1270,7 +1271,7 @@ def render(scenes, out_path):
             fc, mix, k = ["[1:a]acompressor=threshold=0.09:ratio=4:attack=5:release=90:makeup=3.2,alimiter=limit=0.97[v]"], "[v]", 2
             if music:
                 cmd += ["-stream_loop", "-1", "-i", music]
-                fc.append("[%d:a]volume=%s,afade=t=out:st=%.2f:d=1.0[m]" % (k, "0.22" if style else "0.16,afade=t=in:d=0.3", max(0, total / FPS - 1.1))); mix += "[m]"; k += 1
+                fc.append("[%d:a]volume=%s,afade=t=out:st=%.2f:d=1.0[m]" % (k, "1,loudnorm=I=-16:TP=-1.5,volume=0.30" if style else "0.16,afade=t=in:d=0.3", max(0, total / FPS - 1.1))); mix += "[m]"; k += 1
             if sfx: cmd += ["-i", sfx]; fc.append("[%d:a]volume=0.9[x]" % k); mix += "[x]"; k += 1
             fc.append("%samix=inputs=%d:duration=first:dropout_transition=0:normalize=0[a]" % (mix, k - 1))
             cmd += ["-filter_complex", ";".join(fc), "-map", "0:v", "-map", "[a]", "-t", "%.3f" % (total / FPS)]
