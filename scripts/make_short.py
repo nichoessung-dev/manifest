@@ -21,7 +21,7 @@ QC photos come from the site's own /api/qc (edge-cached for 7 days).
 """
 import argparse, io, json, os, re, subprocess, sys, tempfile, urllib.parse, urllib.request, wave
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageOps
 import imageio_ffmpeg
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -65,6 +65,8 @@ STEPS = [("Find it", "Search the spreadsheet and open the find."), ("Open it in 
          ("Check the QC photos", "Your agent photographs your item at the warehouse."), ("Ship it home", "Pick a shipping line and track it to your door.")]
 
 
+import functools
+@functools.lru_cache(maxsize=256)
 def font(size, weight=700):
     f = ImageFont.truetype(FONT, size)
     try: f.set_variation_by_axes([weight])
@@ -415,58 +417,104 @@ def rich_lines(txt, f, maxw):
     if cur: lines.append(cur)
     return lines
 
+HOT = (225, 29, 72)
 def draw_title(fr, txt, lt, cy):
-    """Hook title: heavy white type with a dark outline, key words in yellow, lines pop in one after another."""
-    size = 104
-    while size > 60 and len(rich_lines(txt, font(size, 900), W - 150)) > 3: size -= 6
-    f = font(size, 900); lines = rich_lines(txt, f, W - 150); lh = int(size * 1.16); y0 = cy - lh * len(lines) // 2
-    out = 1 - ease((lt - 2.8) / 0.4)
+    """Hook headline: black type on white rounded boxes (one per line), key words in red. Visible from the very first frame."""
+    size = 92
+    while size > 58 and len(rich_lines(txt, font(size, 900), W - 220)) > 3: size -= 4
+    f = font(size, 900); lines = rich_lines(txt, f, W - 220); lh = int(size * 1.42); y0 = cy - lh * len(lines) // 2; S = 2; f2 = font(size * S, 900)
     for k, ln in enumerate(lines):
-        a = ease((lt - 0.12 * k) / 0.28) * out
+        t = lt - 0.07 * k; a = 1.0                              # all there on frame one (it is the cover frame)
         if a <= 0: continue
-        layer = Image.new("RGBA", (W, lh + 40), (0, 0, 0, 0)); d = ImageDraw.Draw(layer)
-        tw = _M.textlength(" ".join(w for w, _ in ln), font=f); x = W / 2 - tw / 2
-        for w, hl in ln:
-            outlined(d, (x, 14), w, f, YEL if hl else INK); x += _M.textlength(w + " ", font=f)
-        paste(fr, layer, W / 2, y0 + k * lh + lh / 2 + int(26 * (1 - a)), 0.92 + 0.08 * pop(lt - 0.12 * k, 0.35), a)
+        key = ("ttl", txt, k, size)
+        if key not in _SPR:
+            tw = _M.textlength(" ".join(w for w, _ in ln), font=f); bw, bh = int(tw + 76), int(size * 1.36)
+            layer = Image.new("RGBA", (bw * S, bh * S), (0, 0, 0, 0)); d = ImageDraw.Draw(layer)
+            d.rounded_rectangle([0, 0, bw * S - 1, bh * S - 1], 26 * S, fill=(255, 255, 255, 255)); x = 38 * S
+            for w, hl in ln:
+                d.text((x, bh * S / 2), w, font=f2, fill=(HOT if hl else (12, 14, 22)) + (255,), anchor="lm"); x += _M.textlength(w + " ", font=f2)
+            _SPR[key] = layer.resize((bw, bh), Image.LANCZOS)
+        paste(fr, _SPR[key], W / 2, y0 + k * lh + lh / 2, 0.94 + 0.06 * pop(max(t, 0) + 0.12, 0.3), a, -1.5)
 
 def draw_gfx(fr, g, lt, dur):
-    """Simple animated explainer graphic in the top half: stat / compare / chain / ring."""
+    """Animated explainer card in the top half: stat / ring / compare / chain (a list of rows)."""
     if not g: return
-    a = ease((lt - 0.25) / 0.3) * (1 - ease((lt - (dur - 0.25)) / 0.25))
+    a = ease((lt - 0.2) / 0.3) * (1 - ease((lt - (dur - 0.25)) / 0.25))
     if a <= 0: return
-    L = Image.new("RGBA", (W, 620), (0, 0, 0, 0)); d = ImageDraw.Draw(L)
-    d.rounded_rectangle([70, 20, W - 70, 600], 44, fill=BG + (215,), outline=ACCENT + (120,), width=3)
-    t = g.get("t"); lab = font(46, 600)
-    def label(y=500):
-        if g.get("l"):
-            f = fit(g["l"], W - 240, 2, 46, 600, 32); ls = wrap(d, g["l"], f, W - 240)
-            for i, ln in enumerate(ls): d.text((W / 2, y + i * int(f.size * 1.15)), ln, font=f, fill=INK + (235,), anchor="ma")
+    S = 2; CW, CH = W - 120, 650
+    L = Image.new("RGBA", (CW * S, CH * S), (0, 0, 0, 0)); d = ImageDraw.Draw(L)
+    def R(x0, y0, x1, y1): return [x0 * S, y0 * S, x1 * S, y1 * S]
+    def F(size, wt=800): return font(int(size) * S, wt)
+    def T(x, y, txt, f, fill, anchor="mm", al=1.0): d.text((x * S, y * S), txt, font=f, fill=fill + (int(255 * al),), anchor=anchor)
+    def fitw(txt, maxw, size, wt=900, lo=30):
+        while size > lo and _M.textlength(txt, font=font(int(size), wt)) > maxw: size -= 4
+        return size
+    d.rounded_rectangle(R(0, 0, CW, CH), 60 * S, fill=(10, 13, 26, 238), outline=(255, 255, 255, 46), width=2 * S)
+    t = g.get("t"); cx = CW / 2; SOFT = (198, 206, 226)
+    def label(y, al=1.0):
+        if not g.get("l"): return
+        sz = fitw(g["l"], CW - 110, 50, 650, 30); T(cx, y, g["l"], F(sz, 650), SOFT, "mm", al)
     if t == "stat":
-        f = fit(g["v"], W - 260, 1, 200, 900, 80); d.text((W / 2, 250), g["v"], font=f, fill=YEL + (255,), anchor="mm"); label(410)
+        sz = fitw(g["v"], CW - 130, 230, 900, 90); T(cx, 268, g["v"], F(sz, 900), YEL)
+        w = (CW - 360) * ease((lt - 0.45) / 0.5) / 2
+        if w > 4: d.rounded_rectangle(R(cx - w, 420, cx + w, 432), 6 * S, fill=YEL + (255,))
+        label(505)
     elif t == "ring":
-        p = g["pct"] * ease((lt - 0.4) / 0.9); box = [W / 2 - 170, 60, W / 2 + 170, 400]
-        d.arc(box, 0, 360, fill=(60, 74, 110, 255), width=46); d.arc(box, -90, -90 + 3.6 * p, fill=YEL + (255,), width=46)
-        d.text((W / 2, 230), "%d%%" % round(p), font=font(110, 900), fill=INK + (255,), anchor="mm"); label(440)
+        p = g["pct"] * ease((lt - 0.35) / 0.9); r = 205; cy = 275; wd = 58
+        box = R(cx - r, cy - r, cx + r, cy + r)
+        d.arc(box, 0, 360, fill=(255, 255, 255, 34), width=wd * S)
+        if p > 0.5:
+            d.arc(box, -90, -90 + 3.6 * p, fill=YEL + (255,), width=wd * S)
+            for ang in (-90, -90 + 3.6 * p):                   # round ends
+                ex = cx + (r - wd / 2) * math.cos(math.radians(ang)); ey = cy + (r - wd / 2) * math.sin(math.radians(ang))
+                d.ellipse(R(ex - wd / 2, ey - wd / 2, ex + wd / 2, ey + wd / 2), fill=YEL + (255,))
+        T(cx, cy, "%d%%" % round(p), F(128, 900), INK); label(565)
     elif t == "compare":
-        (va, la, na), (vb, lb, nb) = g["a"], g["b"]; mx = max(na, nb); grow = ease((lt - 0.4) / 0.8)
-        for i, (v, l, n, col) in enumerate(((va, la, na, ACCENT), (vb, lb, nb, YEL))):
-            cx = W / 2 + (-210 if i == 0 else 210); h = max(14, int(300 * n / mx * grow)); base = 440
-            d.rounded_rectangle([cx - 110, base - h, cx + 110, base], 18, fill=col + (255,))
-            d.text((cx, base - h - 16), v, font=font(76, 900), fill=INK + (255,), anchor="mb", stroke_width=6, stroke_fill=BG + (255,))
-            d.text((cx, base + 22), l, font=font(42, 600), fill=INK + (235,), anchor="ma")
+        rows = (g["a"], g["b"]); mx = max(r[2] for r in rows); grow = ease((lt - 0.35) / 0.9)
+        for i, (v, l, n) in enumerate(rows):
+            y = 70 + i * 290; col = YEL if n == mx else (150, 170, 255)
+            T(70, y + 28, l.upper(), F(38, 750), SOFT, "lm"); T(70, y + 118, v, F(128, 900), col, "lm")
+            d.rounded_rectangle(R(70, y + 196, CW - 70, y + 236), 20 * S, fill=(255, 255, 255, 30))
+            bw = max(40, (CW - 140) * n / mx * grow)
+            d.rounded_rectangle(R(70, y + 196, 70 + bw, y + 236), 20 * S, fill=col + (255,))
     elif t == "chain":
-        items = g["items"]; n = len(items); f = fit(max(items, key=len), (W - 220) // n - 70, 1, 72, 800, 34)
-        cell = (W - 220) / n
+        items = g["items"]; n = len(items); hi = g.get("hi", n - 1); top = 56; lab = 96 if g.get("l") else 0
+        rh = (CH - top - 46 - lab) / n; sz = min(fitw(max(items, key=len), CW - 330, 96, 900, 40), int(rh * 0.56))
         for i, it in enumerate(items):
-            ai = ease((lt - 0.4 - 0.35 * i) / 0.3)
+            ai = ease((lt - 0.3 - 0.4 * i) / 0.28)
             if ai <= 0: continue
-            cx = 110 + cell * (i + 0.5); col = YEL if i == n - 1 else INK
-            d.rounded_rectangle([cx - cell / 2 + 34, 170, cx + cell / 2 - 34, 330], 28, fill=(34, 46, 78, int(255 * ai)), outline=col + (int(255 * ai),), width=4)
-            d.text((cx, 250), it, font=f, fill=col + (int(255 * ai),), anchor="mm")
-            if i: d.text((cx - cell / 2, 250), "›", font=font(90, 900), fill=ACCENT + (int(255 * ai),), anchor="mm")
-        label(390)
-    paste(fr, L, W / 2, 250 + 310 + int(30 * (1 - a)), 0.94 + 0.06 * pop(lt - 0.25, 0.35), a)
+            y0 = top + i * rh; on = i == hi; dx = 40 * (1 - ai)
+            d.rounded_rectangle(R(56 + dx, y0, CW - 56 + dx, y0 + rh - 20), 32 * S, fill=(YEL + (int(255 * ai),)) if on else (255, 255, 255, int(30 * ai)))
+            ink = (12, 14, 22) if on else INK; my = y0 + (rh - 20) / 2
+            d.ellipse(R(84 + dx, my - 38, 160 + dx, my + 38), fill=((12, 14, 22) if on else (255, 255, 255)) + (int((255 if on else 40) * ai),))
+            T(122 + dx, my, str(i + 1), F(46, 900), YEL if on else INK, "mm", ai)
+            T(196 + dx, my, re.sub(r"^\d+\.\s*", "", it), F(sz, 900), ink, "lm", ai)
+        label(CH - 74)
+    L = L.resize((CW, CH), Image.LANCZOS)
+    paste(fr, L, W / 2, 160 + CH / 2 + int(30 * (1 - a)), 0.94 + 0.06 * pop(lt - 0.2, 0.35), a)
+
+PRESENTER_FIT = {"presenter.png": (0.84, "left"), "presenter2.png": (0.78, "center")}   # scale, anchor
+_PM = {}
+def place_presenter(f):
+    sc, anc = PRESENTER_FIT.get(os.path.basename(PRESENTER), (0.8, "center")); w, h = int(W * sc), int(H * sc)
+    im = f.resize((w, h), Image.BILINEAR)
+    if (w, h, anc) not in _PM:                                # fade the sides that no longer touch the edge of the frame
+        m = Image.new("L", (w, 1), 255); px = m.load(); r = 90
+        for x in range(r):
+            v = int(255 * ease(x / r))
+            if anc != "left": px[x, 0] = v
+            px[w - 1 - x, 0] = v
+        _PM[(w, h, anc)] = m.resize((w, h))
+    im.putalpha(ImageChops.multiply(im.getchannel("A"), _PM[(w, h, anc)]))
+    return im, (0 if anc == "left" else (W - w) // 2, H - h)
+_FLOOR = None
+def floor_shade():                                            # darken the bottom so captions read over the presenter's chest
+    global _FLOOR
+    if _FLOOR is None:
+        g = Image.new("L", (1, H)); px = g.load()
+        for y in range(H): px[0, y] = int(215 * ease((y - 1240) / 560)) if y > 1240 else 0
+        _FLOOR = Image.new("RGBA", (W, H), (6, 8, 16, 255)); _FLOOR.putalpha(g.resize((W, H)))
+    return _FLOOR
 
 CUT = 2.6                                                    # seconds per shot
 def draw_bg(fr, s, lt, dur):
@@ -494,7 +542,8 @@ def draw_bg(fr, s, lt, dur):
         if "_fg" not in s: s["_fg"] = Clip(s["fg"], key=True)
         f = s["_fg"].frame()
         if f is not None: s["_fgl"] = f
-        if s.get("_fgl") is not None: fr.alpha_composite(s["_fgl"])
+        if s.get("_fgl") is not None:
+            im, pos = place_presenter(s["_fgl"]); fr.alpha_composite(im, pos); fr.alpha_composite(floor_shade())
     if k > 0 and st < 0.09:                                   # white flash on the cut
         fr.alpha_composite(Image.new("RGBA", (W, H), (255, 255, 255, int(150 * (1 - st / 0.09)))))
     if credit: ImageDraw.Draw(fr).text((W - 30, 1712), credit[:70], font=font(22, 500), fill=(200, 208, 225, 200), anchor="ra")
@@ -503,9 +552,7 @@ def draw_scene(fr, s, lt, dur, FT):
     a = ease(lt / 0.35)
     if s.get("bg"):
         draw_bg(fr, s, lt, dur)
-        d = ImageDraw.Draw(fr); lg = FT["bug"]                 # small brand "bug" top-right, like a news channel
-        d.rounded_rectangle([W - lg.size[0] - 74, 126, W - 34, 126 + lg.size[1] + 28], 22, fill=BG + (170,)); fr.alpha_composite(lg, (W - lg.size[0] - 54, 140))
-        if s.get("label") and lt < 3.2: draw_title(fr, s["label"], lt, 1300 if s.get("presenter") else 1000)
+        if s.get("label"): draw_title(fr, s["label"], lt, 330)
         draw_gfx(fr, s.get("gfx"), lt, dur)
         return
     if s.get("kicker"): paste(fr, tag(s["kicker"].upper(), FT["kick"], s.get("kcol", ACCENT), BG), W / 2, 300, pop(lt), a)
@@ -560,11 +607,11 @@ def captions(s):                                             # [(word, start, en
 
 def draw_news_caption(fr, s, lt):
     ws = captions(s); cur = next((k for k, (w, a, b) in enumerate(ws) if a <= lt < b), None)
-    if not ws or lt < ws[0][1] - 0.05 or (s.get("label") and lt < 3.2): return
+    if not ws or lt < ws[0][1] - 0.05: return
     k0 = cur if cur is not None else max((k for k, (w, a, b) in enumerate(ws) if b <= lt), default=0); g0 = (k0 // 3) * 3; grp = ws[g0:g0 + 3]
     line = " ".join(w for w, _, _ in grp); size = 100
     while size > 60 and _M.textlength(line, font=font(size, 900)) > W - 120: size -= 6
-    f = font(size, 900); tw = _M.textlength(line, font=f); y = 1060                    # just below the centre, clear of a presenter's face
+    f = font(size, 900); tw = _M.textlength(line, font=f); y = 1420 if s.get("fg") else 1060   # over the presenter's chest, or just below the centre
     t0 = grp[0][1]; sc = 0.9 + 0.1 * pop(lt - t0, 0.22)                                  # each new group pops in
     layer = Image.new("RGBA", (W, int(size * 1.6)), (0, 0, 0, 0)); d = ImageDraw.Draw(layer); x = W / 2 - tw / 2; idx = g0
     for w in line.split():
@@ -817,14 +864,47 @@ def build_audio(scenes, tmp):
     out.close(); return track if voiced else None
 
 
+# ---------------------------------------------------------------- background music
+MUSIC_PROMPT = "Upbeat modern instrumental beat for a fast, punchy explainer video: tight drums, driving bass, bright synth plucks, confident and energetic, 118 bpm, no vocals"
+def music_track(out_dir):
+    """A track from scripts/music/ if there is one, else a new one from ElevenLabs (saved next to the video so it can be kept)."""
+    lib = sorted(glob.glob(os.path.join(ROOT, "scripts", "music", "*.mp3")))
+    if lib: m = random.choice(lib); print("  music:", os.path.basename(m)); return m
+    key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
+    if not key: return None
+    H = {"xi-api-key": key, "Content-Type": "application/json"}; path = os.path.join(out_dir, "music.mp3")
+    tries = [("music", "https://api.elevenlabs.io/v1/music?output_format=mp3_44100_128", {"prompt": MUSIC_PROMPT, "music_length_ms": 40000, "force_instrumental": True}),
+             ("music", "https://api.elevenlabs.io/v1/music?output_format=mp3_44100_128", {"prompt": MUSIC_PROMPT, "music_length_ms": 40000}),
+             ("sound loop", "https://api.elevenlabs.io/v1/sound-generation", {"text": MUSIC_PROMPT + ", seamless loop", "duration_seconds": 22, "prompt_influence": 0.5})]
+    for name, url, body in tries:
+        try:
+            b = fetch(url, 240, json.dumps(body).encode(), H)
+            if len(b) > 20000: open(path, "wb").write(b); print("  music: generated (%s), %d KB" % (name, len(b) // 1024)); return path
+        except Exception as e:
+            d = ""
+            try: d = e.read().decode()[:200]
+            except Exception: pass
+            print("  music (%s) failed:" % name, e, d)
+    return None
+
+
 # ---------------------------------------------------------------- render
 def render(scenes, out_path):
     FT = fonts(); bg = background(); logo = FT["logo"]
     with tempfile.TemporaryDirectory() as tmp:
         audio = build_audio(scenes, tmp)
         frames = [int(round(s["dur"] * FPS)) for s in scenes]; total = sum(frames)
+        fake = os.environ.get("SHORTS_FAKE_FG")                 # layout testing without the presenter API
+        if fake:
+            for s in scenes:
+                if s.get("presenter") and not s.get("fg"): s["fg"] = fake
+        music = music_track(os.path.dirname(out_path)) if any(s.get("news") for s in scenes) else None
         cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
         cmd += ["-i", audio] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
+        if music:
+            cmd += ["-stream_loop", "-1", "-i", music, "-filter_complex",
+                    "[2:a]volume=0.16,afade=t=in:d=0.3,afade=t=out:st=%.2f:d=1.2[m];[1:a][m]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]" % max(0, total / FPS - 1.3),
+                    "-map", "0:v", "-map", "[a]", "-t", "%.3f" % (total / FPS)]
         cmd += ["-shortest", "-c:v", "libx264", "-preset", "medium", "-crf", "23", "-maxrate", "6M", "-bufsize", "12M", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", out_path]
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE); done = 0
         for s, nf in zip(scenes, frames):
@@ -833,7 +913,6 @@ def render(scenes, out_path):
                 lt = i / FPS; t_abs = (done + i) / FPS; fr = bg.copy(); fr.alpha_composite(logo, ((W - logo.size[0]) // 2, 150))
                 draw_scene(fr, s, lt, dur, FT)
                 draw_host(fr, s, lt, t_abs, FT)
-                d = ImageDraw.Draw(fr); d.rectangle([0, 0, W, 10], fill=(30, 40, 66, 255)); d.rectangle([0, 0, int(W * (done + i + 1) / total), 10], fill=ACCENT + (255,))
                 proc.stdin.write(fr.convert("RGB").tobytes())
             done += nf
             for c in list((s.get("_clips") or {}).values()) + ([s["_fg"]] if s.get("_fg") else []): c.close()
