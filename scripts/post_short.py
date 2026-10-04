@@ -109,15 +109,19 @@ def main():
             elif p.get("state") == "ERROR": errors[prov] = True
         print("  %2d: published %s%s" % (attempt + 1, sorted(links), (" errors " + str(sorted(errors))) if errors else ""))
         if len(links) + len([e for e in errors if e not in links]) >= len(chans): break
-    for k, v in list(links.items()):                              # TikTok Business only reports the profile: look up the newest video there
+    try: seen = {u for e in json.load(open(os.path.join(ROOT, "shorts_log.json"))) for u in (e.get("links") or {}).values()}
+    except Exception: seen = set()
+    for k, v in list(links.items()):                              # TikTok Business only reports the profile: look up the newest post there
         if k.startswith("tiktok") and "/video/" not in v and "/photo/" not in v:
-            try:
-                import subprocess
-                r = subprocess.run([sys.executable, "-m", "yt_dlp", "--flat-playlist", "--playlist-items", "1", "--print", "%(webpage_url)s", v.split("?")[0]], capture_output=True, text=True, timeout=120)
-                u = next((l.strip() for l in r.stdout.splitlines() if "/video/" in l or "/photo/" in l), None)
-                if u: links[k] = u; print("TikTok video link:", u)
-                else: print("could not find the video link on the profile yet:", (r.stderr or "")[-200:])
-            except Exception as e: print("TikTok link lookup failed:", e)
+            import subprocess
+            for attempt in range(9):                              # the new post can take a few minutes to show on the profile
+                try:
+                    r = subprocess.run([sys.executable, "-m", "yt_dlp", "--flat-playlist", "--playlist-items", "1", "--print", "%(webpage_url)s", v.split("?")[0]], capture_output=True, text=True, timeout=120)
+                    u = next((l.strip() for l in r.stdout.splitlines() if "/video/" in l or "/photo/" in l), None)
+                except Exception as e: u = None; print("TikTok link lookup failed:", e)
+                if u and u not in seen: links[k] = u; print("TikTok post link:", u); break
+                print("  the new post is not on the profile yet, waiting"); time.sleep(30)
+            else: print("could not find the new post's link; leaving the profile link")
     out = {"when": start.strftime("%Y-%m-%d %H:%M UTC"), "format": meta["format"], "ids": meta["ids"], "links": links, "failed": sorted(e for e in errors if e not in links),
            "pending": sorted(p for p, _, _ in chans if p not in links and p not in errors)}
     json.dump(out, open(meta_path[:-5] + ".links.json", "w"), indent=1)
