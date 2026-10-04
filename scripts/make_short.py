@@ -513,15 +513,21 @@ def draw_gfx(fr, g, lt, dur):
 
 def draw_sticker(fr, meta, tl):
     """Stickers on a shot: a red arrow that slides in pointing at the item, or a tick that draws itself on."""
-    if meta["fx"] == "mark":                                  # a red marker ring draws itself round the item, then the arrow lands
-        x0, y0, x1, y1 = meta["box"]; pad = 46; bw, bh = int(x1 - x0 + 2 * pad), int(y1 - y0 + 2 * pad); S = 2
-        pr = ease((tl - 0.05) / 0.38)
-        if pr > 0:
-            L = Image.new("RGBA", (bw * S + 80, bh * S + 80), (0, 0, 0, 0)); d = ImageDraw.Draw(L)
-            for k, (off, wd) in enumerate(((0, 13), (7, 9))):                                   # two passes, slightly apart, like a marker
-                d.arc([40 + off, 40 - off, bw * S + 40 - off, bh * S + 40 + off], -110 + 9 * k, -110 + 9 * k + (372 - 6 * k) * pr, fill=(226, 28, 36, 255), width=wd * S)
-            paste(fr, L.resize((bw + 40, bh + 40), Image.LANCZOS), (x0 + x1) / 2, (y0 + y1) / 2, 1.0, 1.0, -3)
-        draw_sticker(fr, dict(meta, fx="arrow"), tl - 0.3)
+    if meta["fx"] == "orbit":                                 # the red arrow travels round the item, always pointing at it
+        a = ease((tl - 0.06) / 0.18)
+        if a <= 0: return
+        x0, y0, x1, y1 = meta["box"]; cx, cy = (x0 + x1) / 2, (y0 + y1) / 2; rx, ry = (x1 - x0) / 2 + 30, (y1 - y0) / 2 + 30
+        ang = math.radians(-50 + 95 * (tl - 0.06))                          # starts top-right, moves clockwise
+        tx, ty = cx + rx * math.cos(ang), cy + ry * math.sin(ang)            # tip, just outside the item
+        dx, dy = cx - tx, (cy - ty) * 0.6; n = math.hypot(dx, dy) or 1.0; dx, dy = dx / n, dy / n   # points inward
+        Ln = 230 + 60 * (1 - a); S = 2; pad = 320; L = Image.new("RGBA", (pad * 2 * S, pad * 2 * S), (0, 0, 0, 0)); d = ImageDraw.Draw(L)
+        o = lambda px, py: ((px - tx + pad) * S, (py - ty + pad) * S)
+        bx, by = tx - dx * Ln, ty - dy * Ln; hx, hy = tx - dx * 92, ty - dy * 92; nx, ny = -dy, dx
+        for off, col in (((5, 9), (0, 0, 0, 70)), ((0, 0), (226, 28, 36, 255))):
+            q = lambda px, py: (o(px, py)[0] + off[0] * S, o(px, py)[1] + off[1] * S)
+            d.line([q(bx, by), q(hx, hy)], fill=col, width=38 * S)
+            d.polygon([q(tx, ty), q(hx + nx * 62, hy + ny * 62), q(hx - nx * 62, hy - ny * 62)], fill=col)
+        paste(fr, L.resize((pad * 2, pad * 2), Image.LANCZOS), tx, ty, 1.0, a)
     elif meta["fx"] == "arrow":
         if "arrow" not in _SPR:
             S = 2; L = Image.new("RGBA", (340 * S, 340 * S), (0, 0, 0, 0)); d = ImageDraw.Draw(L)   # points down-left, tip at (30, 310)
@@ -580,6 +586,10 @@ def draw_bg(fr, s, lt, dur):
         f = clips[(id(m), k)].frame()
         if f is not None: s["_last"] = f
         base = s.get("_last")
+    elif meta.get("overlay"):                                 # a held product shot: the paper moves, the item does not
+        if not meta.get("blur"): fr.paste(paper(int(lt * 7)), (0, 0))
+        fr.alpha_composite(m); base = None
+    elif meta.get("paper"): fr.paste(paper(int(lt * 7)), (0, 0)); base = None
     else:
         key = ("bg", id(m))
         if key not in _SPR: _SPR[key] = cover(m, W, H).convert("RGBA")
@@ -862,6 +872,18 @@ def cutout(im):
     out = im.convert("RGBA"); out.putalpha(a); return out.crop(a.getbbox())
 
 _BACK = {}
+def paper(v):
+    """Crumpled-paper backdrop, variant v (0-2); cycling the variants gives a stop-motion paper feel."""
+    key = ("paper", v % 3)
+    if key not in _BACK:
+        rnd = random.Random(7 + 11 * (v % 3)); acc = Image.new("L", (W, H), 128)
+        for sc, amt in ((14, 0.55), (36, 0.3), (90, 0.15)):
+            small = Image.new("L", (W // sc + 2, H // sc + 2)); small.putdata([rnd.randint(0, 255) for _ in range(small.size[0] * small.size[1])])
+            acc = Image.blend(acc, small.resize((W, H), Image.BICUBIC), amt)
+        relief = acc.filter(ImageFilter.EMBOSS).filter(ImageFilter.GaussianBlur(1.5)).point(lambda x: int(232 + (x - 128) * 0.7))
+        _BACK[key] = Image.merge("RGB", (relief, relief, relief.point(lambda x: min(255, x + 3)))).convert("RGBA")
+    return _BACK[key]
+
 def backdrop(kind):
     """Studio backdrops for product shots: 'paper' (crumpled white paper) or 'soft' (light grey gradient)."""
     if kind not in _BACK:
@@ -889,29 +911,31 @@ def clip_frame(shot, t=1.0):
 
 _PSHOT = [0]
 def product_shot(p, over=None, brand=False, arrow=False):
-    """A spreadsheet product photo as a studio shot: the item cut out, with a soft shadow, on a paper or soft-grey backdrop."""
+    """A spreadsheet product photo as a studio shot: the item cut out, with a soft shadow, held still on moving paper
+    (or over a blurred outfit clip), the brand name above it and a red arrow that travels round it."""
     im = load_img(img_url(p))
     if im is None: return None
-    kind = ("soft", "paper")[_PSHOT[0] % 2]; _PSHOT[0] += 1; can = backdrop(kind).copy().convert("RGBA"); co = cutout(im)
-    base = clip_frame(over) if over else None
-    if base is not None and co is not None:                   # the item floating over the blurred outfit clip
-        can = ImageEnhance.Brightness(base.resize((W // 6, H // 6)).filter(ImageFilter.GaussianBlur(5)).resize((W, H), Image.BICUBIC)).enhance(0.92).convert("RGBA")
+    co = cutout(im); base = clip_frame(over) if over else None
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    if base is not None and co is not None:
+        lay = ImageEnhance.Brightness(base.resize((W // 6, H // 6)).filter(ImageFilter.GaussianBlur(5)).resize((W, H), Image.BICUBIC)).enhance(0.92).convert("RGBA")
     if co is None:                                            # busy photo: show it as a rounded card instead
-        card = rounded(cover(im.convert("RGB"), 900, 900), 46); can.alpha_composite(card, ((W - 900) // 2, (H - 900) // 2 - 40)); return ("photo", can.convert("RGB"), "", {"ding": True})
-    co = ImageOps.contain(co, (W - 150, 1000), Image.LANCZOS); x, y = (W - co.width) // 2, (H - co.height) // 2 - 30
-    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); sh.paste((20, 22, 30, 120), (x + 6, y + 26), co.getchannel("A")); can.alpha_composite(sh.filter(ImageFilter.GaussianBlur(24)))
-    can.alpha_composite(co, (x, y))
+        card = rounded(cover(im.convert("RGB"), 900, 900), 46); lay.alpha_composite(card, ((W - 900) // 2, (H - 900) // 2 - 40))
+        return ("photo", lay, "", {"ding": True, "overlay": True})
+    co = ImageOps.contain(co, (W - 170, 980), Image.LANCZOS); x, y = (W - co.width) // 2, (H - co.height) // 2 - 30
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); sh.paste((20, 22, 30, 120), (x + 6, y + 26), co.getchannel("A")); lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(24)))
+    lay.alpha_composite(co, (x, y))
     if (brand or base is not None) and p.get("brand"):         # the brand name in plain type above the item
         txt = p["brand"].upper(); size = 82
         while size > 44 and _M.textlength(txt, font=mfont(size, 900)) > W - 200: size -= 4
-        f = mfont(size, 900); d = ImageDraw.Draw(can); by = max(170, y - 190)          # clear of the ring and the arrow
+        f = mfont(size, 900); by = max(190, y - 230)             # clear of the arrow's path
         if base is not None:
-            sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).text((W / 2 + 2, by + 4), txt, font=f, fill=(0, 0, 0, 170), anchor="ms"); can.alpha_composite(sh.filter(ImageFilter.GaussianBlur(6)))
-            d = ImageDraw.Draw(can); d.text((W / 2, by), txt, font=f, fill=(255, 255, 255, 255), anchor="ms")
-        else: d.text((W / 2, by), txt, font=f, fill=(18, 20, 28, 255), anchor="ms")
-    meta = {"ding": True}
-    if arrow: meta.update(fx="mark", target=(x + co.width * 0.80, y + co.height * 0.10), box=(x, y, x + co.width, y + co.height))
-    return ("photo", can.convert("RGB"), "", meta)
+            t2 = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(t2).text((W / 2 + 2, by + 4), txt, font=f, fill=(0, 0, 0, 170), anchor="ms"); lay.alpha_composite(t2.filter(ImageFilter.GaussianBlur(6)))
+            ImageDraw.Draw(lay).text((W / 2, by), txt, font=f, fill=(255, 255, 255, 255), anchor="ms")
+        else: ImageDraw.Draw(lay).text((W / 2, by), txt, font=f, fill=(18, 20, 28, 255), anchor="ms")
+    meta = {"ding": True, "overlay": True, "blur": base is not None}
+    if arrow: meta.update(fx="orbit", box=(x, y, x + co.width, y + co.height))
+    return ("photo", lay, "", meta)
 
 def best_item(D, brand, cat=None, look=8):
     """The best single photo of a brand's items: among its most-viewed, the cleanest, largest cut-out (side-on for shoes)."""
@@ -933,6 +957,16 @@ def board_shot(D, brand, cat=None):
     if not b: return None, []
     return product_shot(b[2], None, True, True), [b[1]]
 
+def site_shot():
+    """The spreadsheet itself: a phone screenshot of the site on paper with the address above it."""
+    path = os.path.join(ROOT, "scripts", "site.png")
+    if not os.path.exists(path): return None
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); shot = Image.open(path).convert("RGB"); w = 700; shot = shot.resize((w, int(shot.height * w / shot.width)), Image.LANCZOS).crop((0, 0, w, 1180))
+    x, y = (W - w) // 2, 470; sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle([x + 6, y + 22, x + w + 6, y + 1180 + 22], 54, fill=(20, 22, 30, 130)); lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(26)))
+    lay.alpha_composite(rounded(shot, 54), (x, y)); ImageDraw.Draw(lay).rounded_rectangle([x, y, x + w, y + 1180], 54, outline=(18, 20, 28, 255), width=6)
+    ImageDraw.Draw(lay).text((W / 2, 370), "PUROCLASSICO.COM", font=mfont(86, 900), fill=(18, 20, 28, 255), anchor="ms")
+    return ("photo", lay, "", {"overlay": True, "ding": True})
+
 def fmt_style(D, a):
     """Fast outfit-advice video: no presenter, footage with a cut on every beat, one-word captions, voice + music."""
     try: vids = json.load(open(os.path.join(ROOT, "scripts", "styles.json"), encoding="utf-8"))
@@ -941,7 +975,7 @@ def fmt_style(D, a):
     sc, ids, hero = [], [], None
     for k, ln in enumerate(st["lines"]):
         shots = [c for c in (drive_clip(*(d if isinstance(d, list) else [d])) for d in ln.get("drive") or []) if c] + picked(ln.get("clips")); first = shots[0] if shots else None
-        if ln.get("paper"): shots.insert(0, ("photo", backdrop("paper"), "", {"fx": "tick", "ding": True} if ln.get("tick") else {}))      # a text-only beat on paper
+        if ln.get("paper"): shots.insert(0, ("photo", backdrop("paper"), "", dict({"paper": True}, **({"fx": "tick", "ding": True} if ln.get("tick") else {}))))      # a text-only beat on paper
         for pid in ln.get("products") or []:
             p = D.products.get(str(pid))
             ps = product_shot(p, first if ln.get("blur") else None, bool(ln.get("brand", True)), bool(ln.get("arrow", True))) if p else None
@@ -949,6 +983,9 @@ def fmt_style(D, a):
         for b in ln.get("boards") or []:                         # brand boards, one per brand, swapping in place
             bs, bids = board_shot(D, b["brand"], b.get("cat"))
             if bs: shots.append(bs); ids += bids; hero = hero or D.products[bids[0]]
+        if ln.get("site"):
+            ss = site_shot()
+            if ss: shots.append(ss)
         if ln.get("loop") and sc: shots += sc[0]["bg"][:3]        # end on the opening shots so the video loops
         if not shots: continue
         sc.append(dict(dur=2.0, say=ln["say"], bg=shots, word=True, cut=ln.get("cut", 0.9), pad=0.06, boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
@@ -964,7 +1001,7 @@ BUILD = dict(style=fmt_style, story=fmt_story, relatable=fmt_relatable, spotligh
 def tts(line, path):
     key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
     if not key or not line: return 0.0, None
-    body = json.dumps({"text": line, "model_id": VOICE_MODEL, "voice_settings": {"stability": 0.4, "similarity_boost": 0.8, "style": 0.35, "speed": _VOICE.get("speed", 1.0)}}).encode()
+    body = json.dumps({"text": line, "model_id": VOICE_MODEL, "voice_settings": {"stability": 0.5, "similarity_boost": 0.85, "style": 0.6, "use_speaker_boost": True, "speed": _VOICE.get("speed", 1.0)}}).encode()
     r = None
     if "named" not in _VOICE and not os.environ.get("SHORTS_VOICE", "").strip():       # the owner's own voice, looked up by its name
         _VOICE["named"] = True; want = (os.environ.get("SHORTS_VOICE_NAME") or "puroclassico voice").strip().lower()
@@ -1114,9 +1151,8 @@ def sfx_track(scenes, path):
             for k in range(nseg):
                 meta = shots[k % len(shots)][3] if len(shots[k % len(shots)]) > 3 else {}
                 if not meta.get("ding"): continue
-                any_hit = True; i0 = int((t0 + k * seg + (0.36 if meta.get("fx") == "mark" else 0.1 if meta.get("fx") else 0.02)) * 44100)
+                any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
                 if SFX.get("ding"): mix(SFX["ding"], i0, 0.8); continue
-                if meta.get("fx") == "mark" and SFX.get("swish"): mix(SFX["swish"], int((t0 + k * seg + 0.03) * 44100), 0.55)
                 for i in range(int(0.6 * 44100)):
                     if i0 + i >= n: break
                     t = i / 44100; env = math.exp(-t / 0.17) * min(1.0, i / 130)
@@ -1176,13 +1212,14 @@ def render(scenes, out_path):
                 if s.get("presenter") and not s.get("fg"): s["fg"] = fake
         style = any(s.get("word") for s in scenes)
         lib = glob.glob(os.path.join(ROOT, "scripts", "music", "*.mp3"))
-        music = (music_options(os.path.dirname(out_path)) if style and not lib else None) or (music_track(os.path.dirname(out_path), STYLE_MUSIC if style else None) if (style or any(s.get("news") for s in scenes)) else None)
+        music = (random.choice(lib) if lib else None) if style else (music_track(os.path.dirname(out_path), None) if any(s.get("news") for s in scenes) else None)
+        if style: print("  music:", os.path.basename(music) if music else "none yet (waiting for the owner's tracks in scripts/music/)")
         if style: load_sfx(os.path.dirname(out_path))
         sfx = sfx_track(scenes, os.path.join(tmp, "sfx.wav")) if style else None
         cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
         cmd += ["-i", audio] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
-        if music or sfx:
-            fc, mix, k = [], "[1:a]", 2
+        if music or sfx or style:
+            fc, mix, k = ["[1:a]acompressor=threshold=0.09:ratio=4:attack=5:release=90:makeup=3.2,alimiter=limit=0.97[v]"], "[v]", 2
             if music:
                 cmd += ["-stream_loop", "-1", "-i", music]
                 fc.append("[%d:a]volume=%s,afade=t=out:st=%.2f:d=1.0[m]" % (k, "0.22" if style else "0.16,afade=t=in:d=0.3", max(0, total / FPS - 1.1))); mix += "[m]"; k += 1

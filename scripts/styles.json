@@ -5,22 +5,31 @@
   "lines": [
    {
     "say": "These are the sneakers to wear this autumn.",
-    "cut": 0.2,
-    "clips": [
-     17764733,
-     36062232,
-     8992077,
-     5321685,
-     7935551,
-     14881913,
-     8346827,
-     24801122
+    "cut": 0.35,
+    "paper": true,
+    "boards": [
+     {
+      "brand": "Golden Goose",
+      "cat": "Shoes"
+     },
+     {
+      "brand": "Maison Margiela",
+      "cat": "Shoes"
+     },
+     {
+      "brand": "Golden Goose",
+      "cat": "Shoes"
+     },
+     {
+      "brand": "Maison Margiela",
+      "cat": "Shoes"
+     }
     ]
    },
    {
     "say": "Number one, Golden Goose.",
     "boom": true,
-    "cut": 1.0,
+    "cut": 3.0,
     "boards": [
      {
       "brand": "Golden Goose",
@@ -30,15 +39,15 @@
    },
    {
     "say": "Already worn in, so they go with everything.",
-    "cut": 0.8,
-    "clips": [
-     8992070,
-     7539227
+    "cut": 3.0,
+    "products": [
+     "6646357483"
     ]
    },
    {
     "say": "Number two, Maison Margiela.",
-    "cut": 1.0,
+    "boom": true,
+    "cut": 3.0,
     "boards": [
      {
       "brand": "Maison Margiela",
@@ -48,58 +57,24 @@
    },
    {
     "say": "Clean, simple, never loud.",
-    "cut": 0.8,
-    "clips": [
-     8992077,
-     8346827
+    "cut": 3.0,
+    "products": [
+     "7563973209"
     ]
    },
    {
-    "say": "And if you want something different, Lanvin.",
-    "cut": 1.0,
-    "clips": [
-     7935551
-    ],
-    "boards": [
-     {
-      "brand": "Lanvin",
-      "cat": "Shoes"
-     }
+    "say": "Skip the chunky runners, please. Go for one of these instead.",
+    "cut": 1.2,
+    "paper": true,
+    "products": [
+     "6716583439",
+     "918932928316"
     ]
    },
    {
-    "say": "Skip the chunky runners, please.",
-    "boom": true,
-    "cut": 0.8,
-    "clips": [
-     29892299
-    ]
-   },
-   {
-    "say": "Go for any of these instead.",
-    "cut": 0.45,
-    "boards": [
-     {
-      "brand": "Golden Goose",
-      "cat": "Shoes"
-     },
-     {
-      "brand": "Maison Margiela",
-      "cat": "Shoes"
-     },
-     {
-      "brand": "Lanvin",
-      "cat": "Shoes"
-     }
-    ]
-   },
-   {
-    "say": "Every pair is on the spreadsheet in my bio.",
-    "cut": 0.6,
-    "loop": true,
-    "clips": [
-     6316143
-    ]
+    "say": "Both are on the spreadsheet. Puro classico dot com.",
+    "cut": 4.0,
+    "site": true
    }
   ]
  },
