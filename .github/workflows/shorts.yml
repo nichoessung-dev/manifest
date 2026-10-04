@@ -21,6 +21,10 @@ on:
         description: 'Also generate new presenter candidates'
         type: boolean
         default: false
+      post_preview:
+        description: 'Post the LAST test video exactly as it is (no new render)'
+        type: boolean
+        default: false
       post:
         description: 'Post it for real (otherwise: render only)'
         type: boolean
@@ -38,7 +42,17 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install pillow imageio-ffmpeg
+      - name: Fetch the approved preview
+        if: inputs.post_preview
+        run: |
+          mkdir -p out
+          curl -fsSL -o out/preview.mp4 "https://raw.githubusercontent.com/${{ github.repository }}/previews/preview.mp4"
+          curl -fsSL -o out/preview.json "https://raw.githubusercontent.com/${{ github.repository }}/previews/preview.json"
+          python - <<'PY'
+          import json; m = json.load(open("out/preview.json")); m["file"] = "out/preview.mp4"; json.dump(m, open("out/preview.json", "w"))
+          PY
       - name: Render
+        if: ${{ !inputs.post_preview }}
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
@@ -52,7 +66,7 @@ jobs:
           path: out/
           retention-days: 14
       - name: Publish preview (test runs only, to the "previews" branch)
-        if: github.event_name == 'workflow_dispatch' && !inputs.post
+        if: github.event_name == 'workflow_dispatch' && !inputs.post && !inputs.post_preview
         env:
           HEDRA_API_KEY: ${{ secrets.HEDRA_API_KEY }}
         run: |
@@ -64,7 +78,7 @@ jobs:
           git add . && git commit -qm "preview"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" previews
       - name: Post
-        if: github.event_name == 'schedule' || inputs.post
+        if: github.event_name == 'schedule' || inputs.post || inputs.post_preview
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
           MYCNBOX_WEBHOOK: ${{ secrets.MYCNBOX_WEBHOOK }}
@@ -72,9 +86,9 @@ jobs:
           TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
         run: python scripts/post_short.py out/*.json
       - name: Save state
-        if: github.event_name == 'schedule' || inputs.post
+        if: github.event_name == 'schedule' || inputs.post || inputs.post_preview
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add shorts_posted.json shorts_log.json
+          git add shorts_posted.json shorts_log.json 2>/dev/null || git add shorts_log.json
           git diff --cached --quiet || (git commit -m "chore: shorts log [skip ci]" && git pull --rebase -q && git push)
