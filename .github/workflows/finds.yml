@@ -1,10 +1,10 @@
 name: Finds carousel
 # Builds a photo carousel from the QC photo folder on Drive (two different items per slide) and posts it via Postiz.
-# Scheduled runs only post when the repo variable FINDS_LIVE is "true". Manual runs render a preview unless "post" is ticked.
+# Scheduled runs post unless the repo variable FINDS_LIVE is set to "false". Manual runs render a preview unless "post" is ticked.
 on:
   schedule:
-    - cron: '0 15 * * *'   # 15:00 UTC
-    - cron: '0 19 * * *'   # 19:00 UTC
+    - cron: '23 14 * * *'   # 14:23 UTC (off the hour: GitHub delays or drops jobs scheduled on the hour)
+    - cron: '23 18 * * *'   # 18:23 UTC
   workflow_dispatch:
     inputs:
       channels:
@@ -21,7 +21,7 @@ concurrency: shorts
 jobs:
   finds:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || vars.FINDS_LIVE == 'true'
+    if: github.event_name == 'workflow_dispatch' || vars.FINDS_LIVE != 'false'   # on by default; set the variable FINDS_LIVE to false to pause
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
