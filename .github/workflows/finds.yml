@@ -3,8 +3,9 @@ name: Finds carousel
 # Scheduled runs post unless the repo variable FINDS_LIVE is set to "false". Manual runs render a preview unless "post" is ticked.
 on:
   schedule:
-    - cron: '23 14 * * *'   # 14:23 UTC (off the hour: GitHub delays or drops jobs scheduled on the hour)
-    - cron: '23 18 * * *'   # 18:23 UTC
+    # GitHub's scheduler starts jobs hours late or not at all, so this wakes up every ten minutes and the "Due?" step
+    # decides whether a post is owed. Posting times (Europe/Oslo) are set in that step.
+    - cron: '*/10 * * * *'
   workflow_dispatch:
     inputs:
       channels:
@@ -24,11 +25,37 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || vars.FINDS_LIVE != 'false'   # on by default; set the variable FINDS_LIVE to false to pause
     steps:
       - uses: actions/checkout@v4
+      - name: Due?
+        id: due
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          from datetime import datetime, timezone
+          from zoneinfo import ZoneInfo
+          SLOTS = ["16:23", "20:23"]                      # posting times, Norwegian time
+          LATE = 180                                      # a slot missed by more than this many minutes is dropped, not posted in the night
+          tz = ZoneInfo("Europe/Oslo"); now = datetime.now(tz); mins = now.hour * 60 + now.minute
+          slot = [int(x[:2]) * 60 + int(x[3:]) for x in SLOTS]
+          try: log = json.load(open("shorts_log.json"))
+          except Exception: log = []
+          posted = []                                     # minutes-of-day of today's carousel posts
+          for e in log:
+              if e.get("format") != "finds": continue
+              w = datetime.strptime(e["when"], "%Y-%m-%d %H:%M UTC").replace(tzinfo=timezone.utc).astimezone(tz)
+              if w.date() == now.date(): posted.append(w.hour * 60 + w.minute)
+          ends = slot[1:] + [24 * 60]                     # each slot owns the time until the next one starts
+          due = any(t <= mins <= t + LATE and not any(t - 5 <= p < e for p in posted) for t, e in zip(slot, ends))
+          print("due=%s" % ("true" if due else "false"))
+          PY
+          tail -1 "$GITHUB_OUTPUT"
       - uses: actions/setup-python@v5
+        if: steps.due.outputs.due == 'true' || github.event_name == 'workflow_dispatch'
         with:
           python-version: '3.12'
       - run: pip install pillow imageio-ffmpeg yt-dlp
+        if: steps.due.outputs.due == 'true' || github.event_name == 'workflow_dispatch'
       - name: Build
+        if: steps.due.outputs.due == 'true' || github.event_name == 'workflow_dispatch'
         run: python scripts/make_finds.py --folder 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L --slides 7 --commit-state --out out
       - name: Publish preview (test runs only, to the "previews-finds" branch)
         if: github.event_name == 'workflow_dispatch' && !inputs.post
@@ -39,7 +66,7 @@ jobs:
           git add . && git commit -qm "preview"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" previews-finds
       - name: Post
-        if: github.event_name == 'schedule' || inputs.post
+        if: (github.event_name == 'schedule' && steps.due.outputs.due == 'true') || inputs.post
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
           MYCNBOX_WEBHOOK: ${{ secrets.MYCNBOX_WEBHOOK }}
@@ -47,7 +74,7 @@ jobs:
           TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
         run: python scripts/post_short.py out/finds-*.json
       - name: Save state
-        if: github.event_name == 'schedule' || inputs.post
+        if: (github.event_name == 'schedule' && steps.due.outputs.due == 'true') || inputs.post
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
