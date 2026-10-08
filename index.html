@@ -1720,7 +1720,7 @@ function card(p,i){
         ${sub?`<span class="subprice">${sub}</span>`:""}
         ${p.rating?`<span class="prating" title="${p.rating} / 5">${"★".repeat(p.rating)}</span>`:`<span class="starcount" data-sc="${p.id}">${fmtStar(p.id)}</span>`}
         <span class="cat">${esc(catName(p.cat))}</span>
-        ${SHOW_VIEWS?`<span class="cviews" title="Views: last 7 days / 30 days / all time · favourites">👁 ${p.views7||0} / ${p.views||0} / ${p.viewsAll||0} · ★ ${p.favs||0}</span>`:((p.viewsAll||0)>0?`<span class="cviews" title="Views">👁 ${(p.viewsAll||0).toLocaleString()}</span>`:"")}
+        ${SHOW_VIEWS?`<span class="cviews" title="Views: last 7 days / 30 days / all time · favourites">👁 ${p.views7||0} / ${p.views||0} / ${p.viewsAll||0} · ★ ${p.favs||0}</span>`:""}
       </span>
     </div>`;
   const open=()=>openDetail(p);
