@@ -92,6 +92,11 @@ def main():
     def content(prov):
         if photos and prov.startswith("tiktok"): return meta["caption"].split("\n", 1)[-1].strip()      # TikTok shows the title line itself: do not repeat it
         return meta["caption"] + ("\n\n" + (meta.get("product_url") or "") if prov in ("youtube", "threads") else "")
+    at = os.environ.get("SCHEDULE_AT", "").strip()               # hand the post to Postiz to publish at this time (UTC, ISO)
+    if at:
+        body = {"type": "schedule", "date": at, "shortLink": False, "tags": [],
+                "posts": [{"integration": {"id": iid}, "value": [{"content": content(prov), "image": files(prov)}], "settings": settings(prov, meta)} for prov, iid, _ in chans]}
+        res = call("POST", "/posts", body); print("scheduled for %s:" % at, json.dumps(res)[:300]); return
     first = start = datetime.now(timezone.utc); links, errors, todo = {}, {}, list(chans)
     for round_ in range(4):                                      # a channel that errors is tried again after five minutes (up to three retries)
         if round_:

@@ -46,7 +46,7 @@ def drive_get(fid, ext):
     return path if os.path.exists(path) else None
 
 
-def cover_card(title, part):
+def cover_card(title, part, SW=SW, SH=SH):
     """A plain start image: the title in heavy type on off-white."""
     im = Image.new("RGB", (SW, SH), (244, 242, 238)); d = ImageDraw.Draw(im); size = 150
     while size > 70 and max(d.textlength(w, font=font(size)) for w in title.upper().split()) > SW - 160: size -= 6
@@ -61,7 +61,7 @@ def whole(im, w, h):
     fg = ImageOps.contain(im, (w, h), Image.LANCZOS); bg.paste(fg, ((w - fg.width) // 2, (h - fg.height) // 2)); return bg
 
 
-def slide(a, b):
+def slide(a, b, SW=SW, SH=SH):
     """Two photos stacked, each shown whole: one in the top half, one in the bottom half."""
     im = Image.new("RGB", (SW, SH), (255, 255, 255)); hh = (SH - 10) // 2
     im.paste(whole(a, SW, hh), (0, 0)); im.paste(whole(b, SW, hh), (0, hh + 10)); return im
@@ -76,6 +76,7 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--folder"); ap.add_argument("--local"); ap.add_argument("--audio"); ap.add_argument("--cover")
     ap.add_argument("--slides", type=int, default=7); ap.add_argument("--title", default="Grisch / old money finds"); ap.add_argument("--part", type=int, default=0)
     ap.add_argument("--hold", type=float, default=2.2); ap.add_argument("--out", default=os.path.join(ROOT, "out")); ap.add_argument("--seed", type=int)
+    ap.add_argument("--video", action="store_true", help="a full-screen 9:16 video of the slides instead of a photo carousel")
     ap.add_argument("--commit-state", action="store_true"); a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
     rnd = random.Random(a.seed)
     if a.local: pool = [(hashlib.md5(open(f, "rb").read()).hexdigest(), f) for f in sorted(glob.glob(os.path.join(a.local, "*"))) if f.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
@@ -101,20 +102,21 @@ def main():
         except Exception as e: print("  skipping a photo:", e)
     ims = ims[:need - (len(ims[:need]) % 2)]; rnd.shuffle(ims)
     part = a.part or int(used.get("part", 0)) + 1
-    frames = [(Image.open(drive_get(a.cover, "img")).convert("RGB") if a.cover and drive_get(a.cover, "img") else cover_card(a.title, part), 1.4)]
-    if frames[0][0].size != (SW, SH): frames[0] = (ImageOps.fit(frames[0][0], (SW, SH), Image.LANCZOS), 1.4)
-    for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1]), a.hold))
+    FW, FH = (W, H) if a.video else (SW, SH)                     # video slides fill the 9:16 screen; carousel slides are 3:4
+    frames = [(Image.open(drive_get(a.cover, "img")).convert("RGB") if a.cover and drive_get(a.cover, "img") else cover_card(a.title, part, FW, FH), 1.4)]
+    if frames[0][0].size != (FW, FH): frames[0] = (ImageOps.fit(frames[0][0], (FW, FH), Image.LANCZOS), 1.4)
+    for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH), a.hold))
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
     cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
     cmd += ["-stream_loop", "-1", "-i", audio, "-af", "afade=t=out:st=%.2f:d=0.6" % (total - 0.7)] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
     cmd += ["-t", "%.3f" % total, "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", out]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for im, d in frames:
-        raw = tall(im).tobytes()
+        raw = (im if a.video else tall(im)).tobytes()
         for _ in range(int(round(d * FPS))): p.stdin.write(raw)
     p.stdin.close(); p.wait()
     imgs = []                                                    # the same slides as JPEGs, for a swipeable photo carousel
-    for k, (im, _) in enumerate(frames):
+    for k, (im, _) in enumerate([] if a.video else frames):
         ip = os.path.join(a.out, "finds-%d-%02d.jpg" % (part, k)); im.save(ip, quality=92); imgs.append(ip)
     meta = {"format": "finds", "images": imgs, "ids": [], "caption": "%s\n\n#grisch #oldmoney #finds #haul #fashion" % a.title,
             "seconds": round(total, 1), "voiceover": False, "file": out, "product_url": "https://www.puroclassico.com/"}
