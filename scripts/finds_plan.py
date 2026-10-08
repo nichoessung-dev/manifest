@@ -15,7 +15,7 @@ import post_short as P
 
 ROOT = P.ROOT
 SLOTS = ["08:23", "12:23", "16:23", "20:23"]                                   # posting times, Norwegian time
-DAYS = 3                                                     # how far ahead the queue is kept full
+DAYS = 5                                                     # how far ahead the queue is kept full
 TZ = ZoneInfo("Europe/Oslo")
 PROFILE = "https://www.tiktok.com/@puroclassico.com"
 MODE = os.environ.get("FINDS_MODE", "video")                 # "video" (full-screen slideshow with sound) or "carousel" (swipeable photos)
@@ -37,6 +37,7 @@ def queued(now):
     q = "?startDate=%s&endDate=%s" % ((now - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S.000Z"), (now + timedelta(days=DAYS + 1)).strftime("%Y-%m-%dT%H:%M:%S.000Z"))
     out = []
     for p in P.call("GET", "/posts" + q).get("posts", []):
+        if any(isinstance(v, str) and v.lower() == "draft" for v in p.values()): continue      # a draft will not publish, so its slot is free
         try: out.append(datetime.strptime((p.get("publishDate") or "")[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc))
         except Exception: pass
     return out

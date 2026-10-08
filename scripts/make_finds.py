@@ -46,6 +46,11 @@ def drive_get(fid, ext):
     return path if os.path.exists(path) else None
 
 
+TITLES = ["Grisch / old money finds", "Old money finds", "Grisch finds", "Old money haul", "Quiet luxury finds", "Old money wardrobe", "Grisch / old money haul", "Autumn old money finds"]
+HOOKS = ["%s", "%s, which one would you wear?", "%s you will want to save", "New %s", "%s, pick your favourite", "This week's %s", "%s worth a look", "%s, save for later"]
+TAGS = ["#grisch", "#finds", "#haul", "#fashion", "#quietluxury", "#oldmoneystyle", "#oldmoneyaesthetic", "#mensfashion", "#outfitinspo", "#stockholmstyle", "#fashionfinds", "#autumnfashion"]
+
+
 def cover_card(title, part, SW=SW, SH=SH):
     """A plain start image: the title in heavy type on off-white."""
     im = Image.new("RGB", (SW, SH), (244, 242, 238)); d = ImageDraw.Draw(im); size = 150
@@ -74,7 +79,7 @@ def tall(im):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--folder"); ap.add_argument("--local"); ap.add_argument("--audio"); ap.add_argument("--cover")
-    ap.add_argument("--slides", type=int, default=7); ap.add_argument("--title", default="Grisch / old money finds"); ap.add_argument("--part", type=int, default=0)
+    ap.add_argument("--slides", type=int, default=7); ap.add_argument("--title", default=""); ap.add_argument("--part", type=int, default=0)
     ap.add_argument("--hold", type=float, default=2.2); ap.add_argument("--out", default=os.path.join(ROOT, "out")); ap.add_argument("--seed", type=int)
     ap.add_argument("--video", action="store_true", help="a full-screen 9:16 video of the slides instead of a photo carousel")
     ap.add_argument("--commit-state", action="store_true"); a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
@@ -107,8 +112,11 @@ def main():
         raise SystemExit("only %d usable photos, need %d" % (len(ims), need))
     rnd.shuffle(ims)
     part = a.part or int(used.get("part", 0)) + 1
+    title = a.title or rnd.choice(TITLES)                       # a different cover line, hook and tag set each time
+    hook = rnd.choice(HOOKS) % title.replace(" / ", " and ").lower()
+    caption = "%s\n\n%s" % (hook[0].upper() + hook[1:], " ".join(["#oldmoney"] + rnd.sample(TAGS, 4)))
     FW, FH = (W, H) if a.video else (SW, SH)                     # video slides fill the 9:16 screen; carousel slides are 3:4
-    frames = [(Image.open(drive_get(a.cover, "img")).convert("RGB") if a.cover and drive_get(a.cover, "img") else cover_card(a.title, part, FW, FH), 1.4)]
+    frames = [(Image.open(drive_get(a.cover, "img")).convert("RGB") if a.cover and drive_get(a.cover, "img") else cover_card(title, part, FW, FH), 1.4)]
     if frames[0][0].size != (FW, FH): frames[0] = (ImageOps.fit(frames[0][0], (FW, FH), Image.LANCZOS), 1.4)
     for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH), a.hold))
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
@@ -123,7 +131,7 @@ def main():
     imgs = []                                                    # the same slides as JPEGs, for a swipeable photo carousel
     for k, (im, _) in enumerate([] if a.video else frames):
         ip = os.path.join(a.out, "finds-%d-%02d.jpg" % (part, k)); im.save(ip, quality=92); imgs.append(ip)
-    meta = {"format": "finds", "images": imgs, "ids": [], "caption": "%s\n\n#grisch #oldmoney #finds #haul #fashion" % a.title,
+    meta = {"format": "finds", "images": imgs, "ids": [], "caption": caption,
             "seconds": round(total, 1), "voiceover": False, "file": out, "product_url": "https://www.puroclassico.com/"}
     json.dump(meta, open(out[:-4] + ".json", "w"), indent=1, ensure_ascii=False)
     print("wrote", out, "%.1fs" % total, len(frames) - 1, "slides", "with sound" if audio else "silent")

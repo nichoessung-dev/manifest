@@ -2,7 +2,9 @@
 """
 Puro Classico automated email job. Run modes:
   python newsletter.py welcome     -> one-time welcome (+Discord) to new signups not yet welcomed
-  python newsletter.py newsletter  -> 2x/week: personalized for active viewers, generic for dormant / no-history
+  python newsletter.py newsletter  -> 2x/week: the most viewed and saved finds, weighted by each member's taste
+  python newsletter.py saved       -> weekly: "you saved this" for members who starred something in the last week
+  python newsletter.py sync        -> mirror members into Brevo contacts
 
 Env (from GitHub Actions secrets):
   BREVO_API_KEY, SUPABASE_SERVICE_KEY, UNSUB_SECRET
@@ -329,6 +331,50 @@ def run_newsletter(profiles):
         time.sleep(0.35)
     print("newsletter sent:", sent)
 
+def run_saved(profiles):
+    """Weekly nudge: 'you saved this' for members who starred something in the last SAVED_DAYS days (each save is mentioned once)."""
+    days = int(os.environ.get("SAVED_DAYS", "7"))
+    prod, _ = load_products()
+    try: favs = sb("favorites?select=user_id,product_id,created_at&order=created_at.desc")
+    except Exception as e: print("favorites have no created_at to go by - nothing sent:", e); return
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    recent = {}
+    for f in favs:
+        try: fresh = datetime.fromisoformat((f.get("created_at") or "").replace("Z", "+00:00")) >= cutoff
+        except Exception: fresh = False
+        if fresh and f["product_id"] in prod: recent.setdefault(f["user_id"], []).append(f["product_id"])
+    sent = 0
+    for pr in profiles:
+        email = pr.get("email"); uid = pr["id"]; ids = recent.get(uid)
+        if not email or not ids: continue
+        recs = [(i, prod[i]) for i in ids[:4]]
+        first = recs[0][1]
+        subject = "Still thinking about the %s?" % (first.get("title") or "find you saved")[:60]
+        body = ('<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#333;">You saved %s this week. %s still in the catalogue, one tap from your agent:</p>' %
+                ("this" if len(recs) == 1 else "these", "It is" if len(recs) == 1 else "They are")) + grid(recs)
+        body += ('<div style="text-align:center;margin-top:22px;"><a href="%s" style="display:inline-block;padding:12px 30px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">See your saved finds</a></div>' % SITE)
+        if os.environ.get("DRY_RUN"): print("DRY saved | %s | %d items" % (subject, len(recs))); continue
+        ok, msg = brevo_send(email, subject, wrap(body, unsub_url(uid)), unsub_url(uid))
+        print(("saved -> " + email) if ok else ("FAIL saved %s %s" % (email, msg)))
+        if ok: sent += 1
+        if sent >= MAX_SEND: break
+        time.sleep(0.35)
+    print("saved-finds emails sent:", sent)
+
+def run_sync(profiles):
+    """Mirror members into Brevo contacts so opens and clicks show per person there. Nothing is blocked here: who gets marketing email is still decided by marketing_opt_in."""
+    done = 0
+    for pr in profiles:
+        email = pr.get("email")
+        if not email: continue
+        body = {"email": email, "updateEnabled": True}
+        req = urllib.request.Request("https://api.brevo.com/v3/contacts", data=json.dumps(body).encode(),
+            headers={"api-key": BREVO, "accept": "application/json", "content-type": "application/json"}, method="POST")
+        try: urllib.request.urlopen(req, timeout=30); done += 1
+        except urllib.error.HTTPError as e: print("FAIL sync", email, e.code, e.read().decode()[:120])
+        time.sleep(0.12)
+    print("contacts synced to Brevo:", done)
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "newsletter"
     if mode == "ordering-test":
@@ -341,10 +387,12 @@ def main():
         profiles = sb("profiles?welcomed=eq.true&select=id,email,welcomed,welcomed_at,ordering_sent")  # ordering guide = 2nd in sequence, transactional
     elif mode == "mycnbox":
         profiles = sb("profiles?welcomed=eq.true&select=id,email,welcomed,welcomed_at,agent_sent")  # 3rd in sequence: create-a-MyCNBox-account nudge
+    elif mode == "sync":
+        profiles = sb("profiles?select=id,email")
     else:
         profiles = sb("profiles?marketing_opt_in=eq.true&select=id,email,welcomed")
     print("mode=%s profiles=%d" % (mode, len(profiles)))
-    {"welcome": run_welcome, "ordering": run_ordering, "mycnbox": run_mycnbox}.get(mode, run_newsletter)(profiles)
+    {"welcome": run_welcome, "ordering": run_ordering, "mycnbox": run_mycnbox, "saved": run_saved, "sync": run_sync}.get(mode, run_newsletter)(profiles)
 
 if __name__ == "__main__":
     main()

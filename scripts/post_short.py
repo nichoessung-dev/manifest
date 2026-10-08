@@ -58,8 +58,17 @@ def settings(provider, meta):
     if provider in ("instagram", "instagram-standalone"):
         return {"__type": provider, "post_type": "post", "is_trial_reel": False, "collaborators": []}
     if provider == "pinterest":
-        return {"__type": "pinterest", "board": os.environ["PINTEREST_BOARD"], "title": title[:100], "link": meta.get("product_url") or "https://www.puroclassico.com/", "dominant_color": ""}
+        return {"__type": "pinterest", "board": os.environ["PINTEREST_BOARD"], "title": title[:100], "link": ref_link(meta.get("product_url") or "https://www.puroclassico.com/", "pinterest"), "dominant_color": ""}
     return {"__type": provider}
+
+
+REFS = {"youtube": "yt", "threads": "threads", "pinterest": "pin", "instagram": "ig", "instagram-standalone": "ig"}
+
+
+def ref_link(url, prov):
+    """The site link tagged with the channel it is posted on (?ref=yt and so on); the site stores it on sign-up."""
+    if not url: return url
+    return url + ("&" if "?" in url else "?") + "ref=" + ("tt" if prov.startswith("tiktok") else REFS.get(prov, prov[:12]))
 
 
 def list_channels():
@@ -91,7 +100,7 @@ def main():
     # YouTube descriptions can carry a clickable link; other platforms only get the caption
     def content(prov):
         if photos and prov.startswith("tiktok"): return meta["caption"].split("\n", 1)[-1].strip()      # TikTok shows the title line itself: do not repeat it
-        return meta["caption"] + ("\n\n" + (meta.get("product_url") or "") if prov in ("youtube", "threads") else "")
+        return meta["caption"] + ("\n\n" + ref_link(meta.get("product_url") or "", prov) if prov in ("youtube", "threads") else "")
     at = os.environ.get("SCHEDULE_AT", "").strip()               # hand the post to Postiz to publish at this time (UTC, ISO)
     if at:
         body = {"type": "schedule", "date": at, "shortLink": False, "tags": [],
