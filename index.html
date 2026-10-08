@@ -2064,18 +2064,19 @@ async function syncProfile(){
   const prov=(ME.app_metadata&&ME.app_metadata.provider)||"email";
   const row={id:ME.id, email:ME.email||null, auth_provider:prov, updated_at:new Date().toISOString()};
   /* marketing consent is opt-in only: true only after an explicit yes; no recorded choice leaves the stored value alone (the opt-in prompt asks) */
-  try{ const v=localStorage.getItem("pc.optin"); if(v!==null) row.marketing_opt_in = (v==="1"); }catch(e){}
+  try{ const v=localStorage.getItem("pc.optin"); if(v==="1"||(v==="0"&&localStorage.getItem("pc.optin.asked")==="1")) row.marketing_opt_in = (v==="1"); }catch(e){}
   try{ await sb.from("profiles").upsert(row,{onConflict:"id"}); }catch(e){}
+  try{ setTimeout(showOptinPrompt, 2500); }catch(e){}   /* ask once, after sign-in, if they have not answered yet */
   /* one-time referral attribution: set referred_by only if not already set */
   try{ const ref=getRef(); if(ref){ await sb.from("profiles").update({referred_by:ref, referred_at:new Date().toISOString()}).eq("id",ME.id).is("referred_by",null); } }catch(e){}
 }
 /* one-time marketing opt-in prompt (OAuth users never see the gate checkbox, so ask them here) */
 function showOptinPrompt(){
-  try{ if(!sb||!ME) return; if(localStorage.getItem("pc.optin")!==null) return; if(document.getElementById("optin-toast")) return; }catch(e){ return; }
+  try{ if(!sb||!ME) return; if(localStorage.getItem("pc.optin")==="1"||localStorage.getItem("pc.optin.asked")==="1") return; if(document.getElementById("optin-toast")) return; }catch(e){ return; }
   const el=document.createElement("div"); el.id="optin-toast"; el.className="optin-toast";
   el.innerHTML='<span class="ot-msg">🔔 Want first access to new drops &amp; restocks?</span><span class="ot-btns"><button type="button" id="ot-yes">Notify me</button><button type="button" id="ot-no">No thanks</button></span>';
   document.body.appendChild(el); requestAnimationFrame(()=>el.classList.add("show"));
-  const choose=(v)=>{ try{ localStorage.setItem("pc.optin", v?"1":"0"); }catch(e){}
+  const choose=(v)=>{ try{ localStorage.setItem("pc.optin", v?"1":"0"); localStorage.setItem("pc.optin.asked","1"); }catch(e){}
     try{ if(sb&&ME) sb.from("profiles").update({marketing_opt_in:v, updated_at:new Date().toISOString()}).eq("id",ME.id).then(()=>{},()=>{}); }catch(e){}
     el.classList.remove("show"); setTimeout(()=>el.remove(),250); };
   el.querySelector("#ot-yes").addEventListener("click",()=>choose(true));
@@ -2193,7 +2194,7 @@ async function oauth(provider){
   const show=(msg)=>{ ["#auth-status","#gate-email-status"].forEach(id=>{ const a=$(id); if(a){ a.textContent=msg; a.classList.add("err"); } }); };
   if(!sb){ show(t("auth_off")); return; }
   /* capture the marketing-consent checkbox (if the gate is showing one) so OAuth sign-ups keep their choice */
-  try{ const c=document.getElementById("gate-optin"); if(c) localStorage.setItem("pc.optin", c.checked?"1":"0"); }catch(e){}
+  try{ const c=document.getElementById("gate-optin"); if(c&&c.checked){ localStorage.setItem("pc.optin","1"); localStorage.setItem("pc.optin.asked","1"); } else if(c&&localStorage.getItem("pc.optin.asked")!=="1") localStorage.removeItem("pc.optin"); }catch(e){}
   saveReturnHash();
   try{
     const {error}=await sb.auth.signInWithOAuth({provider,options:{redirectTo:location.origin}});
@@ -2322,7 +2323,7 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
   const g=$("#gate"); if(!g) return;
   const done=(guest)=>{ hideGate(); if(guest){ try{localStorage.setItem("pc.gate","1");}catch(e){} } };
   const gg=$("#gate-google"),gd=$("#gate-discord"),gef=$("#gate-email-form"),gu=$("#gate-guest");
-  const saveOptin=()=>{ try{ const c=$("#gate-optin"); localStorage.setItem("pc.optin",(c&&c.checked)?"1":"0"); }catch(e){} };
+  const saveOptin=()=>{ try{ const c=$("#gate-optin"); if(c&&c.checked){ localStorage.setItem("pc.optin","1"); localStorage.setItem("pc.optin.asked","1"); } else if(localStorage.getItem("pc.optin.asked")!=="1") localStorage.removeItem("pc.optin"); }catch(e){} };
   /* keep the gate up: success navigates away, failure shows its message in the gate */
   if(gg)gg.addEventListener("click",()=>{ saveOptin(); try{oauth("google");}catch(e){} });
   if(gd)gd.addEventListener("click",()=>{ saveOptin(); try{oauth("discord");}catch(e){} });
