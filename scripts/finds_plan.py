@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import post_short as P
 
 ROOT = P.ROOT
-SLOTS = ["16:23", "20:23"]                                   # posting times, Norwegian time
+SLOTS = ["08:23", "12:23", "16:23", "20:23"]                                   # posting times, Norwegian time
 DAYS = 3                                                     # how far ahead the queue is kept full
 TZ = ZoneInfo("Europe/Oslo")
 PROFILE = "https://www.tiktok.com/@puroclassico.com"
