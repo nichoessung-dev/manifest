@@ -31,6 +31,8 @@ export async function onRequest(ctx) {
   if (request.method !== "GET" && request.method !== "HEAD") return ctx.next();
   const url = new URL(request.url);
   const path = url.pathname;
+  // The old *.pages.dev address still resolves: send everything to the real domain so traffic and ranking are not split.
+  if (url.hostname.endsWith(".pages.dev")) return Response.redirect("https://www.puroclassico.com" + path + url.search, 301);
   // Search-engine ownership files, answered here so Pages' ".html -> pretty URL" redirect can't get in the way.
   if (VERIFY[path]) return new Response(VERIFY[path], { headers: { "content-type": "text/html; charset=utf-8" } });
   if (PRIVATE.test(path)) return notFound(path);
