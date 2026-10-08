@@ -236,33 +236,58 @@ def run_mycnbox_test(_profiles=None):
     ok, msg = brevo_send(email, "Set up MyCNBox — your finds are waiting", mycnbox_html("test"), None)
     print(("mycnbox-test -> " + email) if ok else ("FAIL mycnbox-test " + email + " " + msg))
 
+def load_stats():
+    """Site-wide popularity per product from data/stats.json: [views all time, views 30 days, views 7 days, favourites]."""
+    try:
+        req = urllib.request.Request(SITE + "/data/stats.json", headers={"User-Agent": "Mozilla/5.0"})
+        return json.loads(urllib.request.urlopen(req, timeout=40).read().decode()).get("p") or {}
+    except Exception as e:
+        print("could not load stats:", e); return {}
+
+def pop_score(v):
+    """Favourites weigh the most, then this week's views, then the month's."""
+    v = list(v) + [0, 0, 0, 0]
+    return 10 * v[3] + 2 * v[2] + v[1] + 0.05 * v[0]
+
 def run_newsletter(profiles):
+    import random
     prod, ids = load_products()
-    newest = [i for i in reversed(ids)]                      # most-recent first
-    def pick_new(n, exclude=()):
-        out = []
-        for i in newest:
+    stats = load_stats()
+    score = {i: pop_score(stats[i]) for i in ids if i in stats}
+    ranked = sorted((i for i in score if score[i] > 0), key=lambda i: -score[i])
+    POOL = ranked[:max(60, len(ranked) // 8)]                # only the most viewed and favourited products can go in an email
+    print("popular pool: %d of %d products" % (len(POOL), len(ids)))
+    if len(POOL) < 6: print("not enough popularity data - nothing sent"); return
+    top_score = score[POOL[0]] or 1.0
+    def pick(n, weight, exclude=(), per_brand=2, rnd=None):
+        """Best n from the popular pool by weight; at most per_brand per brand so one label does not fill the email."""
+        order = sorted(POOL, key=lambda i: -(weight(i) * ((0.75 + 0.5 * rnd.random()) if rnd else 1)))
+        out, seen_b = [], {}
+        for i in order:
             if i in exclude: continue
-            if i in prod: out.append((i, prod[i]))
+            b = prod[i].get("brand") or ""
+            if seen_b.get(b, 0) >= per_brand: continue
+            seen_b[b] = seen_b.get(b, 0) + 1; out.append((i, prod[i]))
             if len(out) >= n: break
         return out
-    # aggregate views + favorites per user
+    # each member's taste: brands and categories they viewed, favourites count triple
     views = sb("product_views?select=user_id,product_id,brand,cat,viewed_at")
     favs  = sb("favorites?select=user_id,product_id")
     by_user = {}
+    def U(u): return by_user.setdefault(u, {"brands": {}, "cats": {}, "seen": set(), "last": None})
     for v in views:
-        u = v["user_id"]; by_user.setdefault(u, {"brands": {}, "seen": set(), "last": None})
-        b = v.get("brand");
-        if b: by_user[u]["brands"][b] = by_user[u]["brands"].get(b, 0) + 1
-        by_user[u]["seen"].add(v["product_id"])
+        u = U(v["user_id"]); b = v.get("brand"); c = v.get("cat")
+        if b: u["brands"][b] = u["brands"].get(b, 0) + 1
+        if c: u["cats"][c] = u["cats"].get(c, 0) + 1
+        u["seen"].add(v["product_id"])
         t = v.get("viewed_at")
-        if t and (by_user[u]["last"] is None or t > by_user[u]["last"]): by_user[u]["last"] = t
+        if t and (u["last"] is None or t > u["last"]): u["last"] = t
     for f in favs:
-        u = f["user_id"]; by_user.setdefault(u, {"brands": {}, "seen": set(), "last": None})
-        pid = f["product_id"]; by_user[u]["seen"].add(pid)
-        b = (prod.get(pid) or {}).get("brand")
-        if b: by_user[u]["brands"][b] = by_user[u]["brands"].get(b, 0) + 2   # a fave weighs more
+        u = U(f["user_id"]); pid = f["product_id"]; u["seen"].add(pid); p = prod.get(pid) or {}
+        if p.get("brand"): u["brands"][p["brand"]] = u["brands"].get(p["brand"], 0) + 3
+        if p.get("cat"): u["cats"][p["cat"]] = u["cats"].get(p["cat"], 0) + 3
     cutoff = datetime.now(timezone.utc) - timedelta(days=ACTIVE_DAYS)
+    day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     sent = 0
     for pr in profiles:
         email = pr.get("email"); uid = pr["id"]
@@ -272,26 +297,33 @@ def run_newsletter(profiles):
         if u and u["last"]:
             try: active = datetime.fromisoformat(u["last"].replace("Z", "+00:00")) >= cutoff
             except: active = True
-        if active and u and u["brands"]:
-            top = sorted(u["brands"].items(), key=lambda kv: -kv[1])
-            tset = [b for b, _ in top[:3]]
-            recs = [(i, p) for i, p in ((i, prod[i]) for i in newest if i in prod)
-                    if (p.get("brand") in tset) and i not in u["seen"]][:6]
-            if len(recs) < 6:
-                recs += pick_new(6 - len(recs), exclude=set(u["seen"]) | {i for i, _ in recs})
-            intro = ('<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#333;">Picked for you, based on what you\'ve been eyeing%s:</p>' %
-                     (" (" + esc(", ".join(tset[:2])) + ")" if tset else ""))
-            subject = "New %s finds picked for you" % (tset[0] if tset else "arrivals")
+        perso = bool(active and u and u["brands"])
+        rnd = random.Random(uid + day)                       # a different mix each send, stable within one send
+        if perso:
+            bt = float(max(u["brands"].values())); ct = float(max(u["cats"].values())) if u["cats"] else 1.0
+            tset = [b for b, _ in sorted(u["brands"].items(), key=lambda kv: -kv[1])[:3]]
+            def w(i):
+                p = prod[i]
+                taste = 3.0 * u["brands"].get(p.get("brand"), 0) / bt + 1.0 * u["cats"].get(p.get("cat"), 0) / ct
+                return (score[i] / top_score) * (1.0 + taste)      # popularity first, their taste multiplies it up to 5x
+            recs = pick(6, w, exclude=u["seen"], rnd=rnd)
+            if len(recs) < 6: recs += pick(6 - len(recs), w, exclude={i for i, _ in recs}, rnd=rnd)
+            shown = [b for b in tset if any(p.get("brand") == b for _, p in recs)]
+            intro = ('<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#333;">The most viewed and saved finds right now, picked to match what you\'ve been eyeing%s:</p>' %
+                     (" (" + esc(", ".join(shown[:2])) + ")" if shown else ""))
+            subject = ("Popular %s finds picked for you" % shown[0]) if shown else "Popular finds picked for you"
             body = intro + grid(recs)
         else:
-            recs = pick_new(6)
-            intro = '<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#333;">Fresh in the catalog this week - here\'s what just dropped:</p>'
-            subject = "New arrivals at Puro Classico"
+            recs = pick(6, lambda i: score[i] / top_score, rnd=rnd)
+            intro = '<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#333;">What everyone is viewing and saving on Puro Classico right now:</p>'
+            subject = "The most popular finds at Puro Classico right now"
             body = intro + grid(recs)
             body += ('<div style="text-align:center;margin-top:22px;"><a href="%s" style="display:inline-block;padding:12px 30px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Browse all finds</a></div>' % SITE)
+        if os.environ.get("DRY_RUN"):
+            print("DRY %s | %s | %s" % ("perso" if perso else "generic", subject, "; ".join("%s (%d)" % (p.get("title", "")[:28], score[i]) for i, p in recs))); continue
         html = wrap(body, unsub_url(uid))
         ok, msg = brevo_send(email, subject, html, unsub_url(uid))
-        print(("news %s -> %s" % ("perso" if (active and u and u['brands']) else "generic", email)) if ok else ("FAIL news %s %s" % (email, msg)))
+        print(("news %s -> %s" % ("perso" if perso else "generic", email)) if ok else ("FAIL news %s %s" % (email, msg)))
         if ok: sent += 1
         if sent >= MAX_SEND: break
         time.sleep(0.35)
