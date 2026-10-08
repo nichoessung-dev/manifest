@@ -1,18 +1,27 @@
 name: Newsletter
 on:
   schedule:
-    - cron: '0 15 * * 2,5'   # Tue & Fri 15:00 UTC
-  workflow_dispatch: {}
+    - cron: '0 15 * * 2,5'   # Tue & Fri 15:00 UTC: popular finds
+    - cron: '0 16 * * 0'     # Sun 16:00 UTC: "you saved this"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'newsletter, saved or sync'
+        default: 'newsletter'
 jobs:
   send:
     runs-on: ubuntu-latest
+    env:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python scripts/newsletter.py newsletter
-        env:
-          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
+      - name: Sync contacts to Brevo
+        run: python scripts/newsletter.py sync
+        continue-on-error: true
+      - name: Send
+        run: python scripts/newsletter.py ${{ github.event.inputs.mode || (github.event.schedule == '0 16 * * 0' && 'saved') || 'newsletter' }}
