@@ -87,20 +87,25 @@ def main():
     need = a.slides * 2
     if len(pool) < need: raise SystemExit("only %d photos in the pool, need %d" % (len(pool), need))
     rnd.shuffle(pool); pool.sort(key=lambda p: used["count"].get(p[0], 0))          # least-used photos first, random among equals
-    pick = pool[:need + 6]; ims = []                            # a few spares in case some are skipped
-    for pid, path in pick:
+    bad = set(used.get("skip", [])); ims = []                   # photos that could not be used are remembered, not retried
+    for pid, path in [p for p in pool if p[0] not in bad]:
+        if len(ims) >= need: break
         path = path or drive_get(pid, "img")
         try:
             im = Image.open(path).convert("RGB")
             if im.height > im.width * 1.5:                       # a source that is already two stacked shots: keep the main (top) one
                 g = im.convert("L").resize((48, 240)); px = g.load(); rows = [sum(px[x, y] for x in range(48)) / 48.0 for y in range(240)]
                 seam = max(range(48, 192), key=lambda y: abs(rows[y] - rows[y - 1]) + abs(rows[y + 1] - rows[y]))
-                if not 108 <= seam <= 132: print("  skipping an oddly laid out photo"); continue      # the join is not in the middle
+                if not 108 <= seam <= 132: print("  skipping an oddly laid out photo"); bad.add(pid); continue      # the join is not in the middle
                 im = im.crop((0, 0, im.width, im.height // 2))
             mx = int(im.width * 0.012); im = im.crop((mx, mx, im.width - mx, im.height - mx))        # only a hair off the edges
             ims.append((pid, im))
         except Exception as e: print("  skipping a photo:", e)
-    ims = ims[:need - (len(ims[:need]) % 2)]; rnd.shuffle(ims)
+    used["skip"] = sorted(bad)
+    if len(ims) < need:                                         # never publish a post with missing slides
+        if a.commit_state: json.dump(used, open(state_path, "w"), indent=0)
+        raise SystemExit("only %d usable photos, need %d" % (len(ims), need))
+    rnd.shuffle(ims)
     part = a.part or int(used.get("part", 0)) + 1
     FW, FH = (W, H) if a.video else (SW, SH)                     # video slides fill the 9:16 screen; carousel slides are 3:4
     frames = [(Image.open(drive_get(a.cover, "img")).convert("RGB") if a.cover and drive_get(a.cover, "img") else cover_card(a.title, part, FW, FH), 1.4)]
