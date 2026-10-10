@@ -4,7 +4,7 @@
   python scripts/make_finds.py --folder <Drive folder id of photos> [--audio <Drive file id>] [--cover <Drive file id>] [--slides 7] [--title "Old money finds"]
   python scripts/make_finds.py --local <directory of photos> ...        (for testing)
 
-The Drive folder must be shared by link. Photos already used are remembered in finds_used.json so posts do not repeat pairs.
+The Drive folder must be shared by link. Photos are picked completely at random for every post (finds_used.json only keeps counts and the photos that cannot be used).
 """
 import argparse, glob, hashlib, html, json, os, random, re, subprocess, sys, tempfile, urllib.request
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
@@ -139,7 +139,7 @@ def main():
     except Exception: used = {"count": {}, "part": 0}
     need = a.slides * 2
     if len(pool) < need: raise SystemExit("only %d photos in the pool, need %d" % (len(pool), need))
-    rnd.shuffle(pool); pool.sort(key=lambda p: used["count"].get(p[0], 0))          # least-used photos first, random among equals
+    rnd.shuffle(pool)                                           # completely random: old and new photos alike, repeats across posts are fine
     bad = set(used.get("skip", [])); ims = []                   # photos that could not be used are remembered, not retried
     for pid, path in [p for p in pool if p[0] not in bad]:
         if len(ims) >= need: break
