@@ -1255,9 +1255,9 @@ def sfx_track(scenes, path):
             nseg = max(1, min(len(shots), int(round(dur / s.get("cut", CUT))))); seg = dur / nseg
             for k in range(nseg):
                 meta = shots[k % len(shots)][3] if len(shots[k % len(shots)]) > 3 else {}
-                if not meta.get("ding"):                      # an ordinary cut: a barely-there tick (fast cuts) or swoosh (slower ones)
+                if not meta.get("ding"):                      # an ordinary cut: a barely-there tick on fast cuts, silence on slower ones (no swoosh between scenes)
                     if (t0 > 0 or k > 0) and not meta.get("paper"):
-                        a = SFX.get("tick") if seg < 0.45 else SFX.get("swish")
+                        a = SFX.get("tick") if seg < 0.45 else None
                         if a: any_hit = True; mix(a, int((t0 + k * seg) * 44100), 0.16 if seg < 0.45 else 0.2)
                     continue
                 any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
