@@ -1,0 +1,66 @@
+name: Post videos
+# Hands finished videos to Postiz, which publishes them on time by itself.
+#   items: style ids from the "previews-batch" branch (the files made by the Style previews workflow), and/or "tutorial"
+#   start: "now" (one video, posted straight away) or the first posting time in Norwegian time, YYYY-MM-DD HH:MM
+#   every: days between two videos
+# Running it twice does not queue a video twice: a time that already has a post is left alone.
+on:
+  workflow_dispatch:
+    inputs:
+      items:
+        description: 'Style ids and/or "tutorial", comma separated, in posting order'
+        required: true
+        type: string
+      start:
+        description: '"now" or the first time, Norwegian time: YYYY-MM-DD HH:MM'
+        required: true
+        type: string
+        default: 'now'
+      every:
+        description: 'Days between two videos'
+        type: string
+        default: '2'
+      ref:
+        description: 'Branch or commit with the finished style videos'
+        type: string
+        default: 'previews-batch'
+      channels:
+        description: 'Only these channels, comma separated (blank = all four)'
+        type: string
+        default: ''
+      dry_run:
+        description: 'Only show the plan, send nothing'
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency: post-videos
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install yt-dlp
+      - name: Queue or post
+        env:
+          POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+          MYCNBOX_WEBHOOK: ${{ secrets.MYCNBOX_WEBHOOK }}
+          SHORTS_CHANNELS: ${{ inputs.channels }}
+          TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+          ITEMS: ${{ inputs.items }}
+          START: ${{ inputs.start }}
+          EVERY: ${{ inputs.every }}
+          REF: ${{ inputs.ref }}
+        run: python -u scripts/schedule_videos.py --items "$ITEMS" --start "$START" --every "$EVERY" --ref "$REF"
+      - name: Save the log of a video posted straight away
+        if: ${{ !inputs.dry_run && inputs.start == 'now' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shorts_log.json 2>/dev/null || exit 0
+          git diff --cached --quiet || (git commit -m "chore: shorts log [skip ci]" && git pull --rebase -q origin "$GITHUB_REF_NAME" && git push)
