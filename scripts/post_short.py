@@ -18,6 +18,11 @@ KEY = os.environ.get("POSTIZ_API_KEY", "").strip()
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WANT = [c.strip() for c in (os.environ.get("SHORTS_CHANNELS", "").strip() or "tiktok,youtube,instagram-standalone,threads").split(",") if c.strip()]
 UA = "PuroClassicoShorts/1.0 (+https://www.puroclassico.com)"
+# Two TikTok accounts are connected in Postiz. Everything goes to the first one (puroclassico.com) unless a job names another
+# account in TIKTOK_ACCOUNT (its Postiz name or id): the second account gets slideshows only, never a copy of the same video.
+TIKTOK_MAIN = "cmusuixns03aolh0yu5it0vim"
+TIKTOK_MAIN_NAME = "puroclassico.com"
+TIKTOK_ACCOUNT = os.environ.get("TIKTOK_ACCOUNT", "").strip().lower()
 
 
 def call(method, path, body=None, headers=None, timeout=120):
@@ -71,6 +76,15 @@ def ref_link(url, prov):
     return url + ("&" if "?" in url else "?") + "ref=" + ("tt" if prov.startswith("tiktok") else REFS.get(prov, prov[:12]))
 
 
+def tiktok_wanted(it, ints):
+    """Which TikTok account a post goes to: the one named in TIKTOK_ACCOUNT, else the first account only."""
+    name = (it.get("name") or "").strip().lower()
+    if TIKTOK_ACCOUNT: return TIKTOK_ACCOUNT in (name, str(it.get("id", "")).lower())
+    prov = lambda i: i.get("identifier") or i.get("providerIdentifier") or ""
+    if any(i.get("id") == TIKTOK_MAIN and prov(i).startswith("tiktok") for i in ints): return it.get("id") == TIKTOK_MAIN
+    return name == TIKTOK_MAIN_NAME                          # the first account was connected again and has a new id
+
+
 def list_channels():
     """Print what Postiz reports for each connected channel (no ids, nothing is posted)."""
     ints = call("GET", "/integrations"); ints = ints if isinstance(ints, list) else ints.get("integrations", [])
@@ -90,8 +104,10 @@ def main():
         prov = it.get("identifier") or it.get("providerIdentifier") or ""
         if it.get("disabled"): continue
         if prov == "pinterest" and not os.environ.get("PINTEREST_BOARD"): continue
+        if prov.startswith("tiktok") and not tiktok_wanted(it, ints): continue
         if prov in WANT or (prov.startswith("tiktok") and "tiktok" in WANT) or (prov == "pinterest" and "pinterest" not in WANT and os.environ.get("PINTEREST_BOARD")): chans.append((prov, it["id"], it.get("name", "")))
     print("channels:", [(p, n) for p, _, n in chans])
+    if "tiktok" in WANT and not any(p.startswith("tiktok") for p, _, _ in chans): print("::warning::no TikTok account matched (wanted %s): this post goes out without TikTok" % (TIKTOK_ACCOUNT or TIKTOK_MAIN_NAME))
     if not chans: raise SystemExit("no matching channels connected in Postiz (wanted %s; found %s)" % (WANT, [i.get("identifier") or i.get("providerIdentifier") for i in ints]))
     media = upload(video); print("uploaded:", media["path"])
     photos = [upload(os.path.join(os.path.dirname(meta_path), os.path.basename(i))) for i in meta.get("images") or []]   # carousel slides
