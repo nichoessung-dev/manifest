@@ -46,18 +46,38 @@ def drive_get(fid, ext):
     return path if os.path.exists(path) else None
 
 
-TITLES = ["Grisch / old money finds", "Old money finds", "Grisch finds", "Old money haul", "Quiet luxury finds", "Old money wardrobe", "Grisch / old money haul", "Autumn old money finds"]
+COVER_TEXT = "Grisch finds"                                  # the only words on the first image
 HOOKS = ["%s", "%s, which one would you wear?", "%s you will want to save", "New %s", "%s, pick your favourite", "This week's %s", "%s worth a look", "%s, save for later"]
-TAGS = ["#grisch", "#finds", "#haul", "#fashion", "#quietluxury", "#oldmoneystyle", "#oldmoneyaesthetic", "#mensfashion", "#outfitinspo", "#stockholmstyle", "#fashionfinds", "#autumnfashion"]
+TAGS = ["#finds", "#haul", "#fashion", "#quietluxury", "#oldmoneystyle", "#oldmoneyaesthetic", "#mensfashion", "#outfitinspo", "#stockholmstyle", "#fashionfinds", "#autumnfashion"]
 
 
-def cover_card(title, part, SW=SW, SH=SH):
-    """A plain start image: the title in heavy type on off-white."""
-    im = Image.new("RGB", (SW, SH), (244, 242, 238)); d = ImageDraw.Draw(im); size = 150
-    while size > 70 and max(d.textlength(w, font=font(size)) for w in title.upper().split()) > SW - 160: size -= 6
-    f = font(size); lines = [w for w in title.upper().split() if w != "/"]; y = SH // 2 - int(size * 1.08 * len(lines)) // 2 - 60
-    for ln in lines: d.text((SW / 2, y), ln, font=f, fill=(16, 18, 26), anchor="ma"); y += int(size * 1.08)
+def cover_card(title, SW=SW, SH=SH, bg=None):
+    """The start image: the title in heavy type with an arrow under it, on off-white or over a picture."""
+    ink = (255, 255, 255) if bg is not None else (16, 18, 26)
+    if bg is None: im = Image.new("RGB", (SW, SH), (244, 242, 238))
+    else:
+        im = ImageOps.fit(bg.convert("RGB"), (SW, SH), Image.LANCZOS)
+        im = Image.blend(im, Image.new("RGB", (SW, SH), (0, 0, 0)), 0.22)          # a touch darker so white type reads on any picture
+    d = ImageDraw.Draw(im); size = 170; lines = title.upper().split()
+    while size > 70 and max(d.textlength(w, font=font(size)) for w in lines) > SW - 160: size -= 6
+    f = font(size); lh = int(size * 1.06); aw, at = int(SW * 0.30), max(14, size // 8)
+    y = SH // 2 - (lh * len(lines) + at * 6) // 2 - 40
+    if bg is not None:                                           # a soft shadow under the type and the arrow
+        sh = Image.new("L", (SW, SH), 0); sd = ImageDraw.Draw(sh); yy = y
+        for ln in lines: sd.text((SW / 2, yy + 6), ln, font=f, fill=200, anchor="ma"); yy += lh
+        draw_arrow(sd, SW // 2, yy + at * 4 + 6, aw, 200, at)
+        im.paste((0, 0, 0), (0, 0), sh.filter(ImageFilter.GaussianBlur(14))); d = ImageDraw.Draw(im)
+    for ln in lines: d.text((SW / 2, y), ln, font=f, fill=ink, anchor="ma"); y += lh
+    draw_arrow(d, SW // 2, y + at * 4, aw, ink, at)
     return im
+
+
+def draw_arrow(d, cx, y, w, col, t):
+    """A bold arrow pointing right, centred on cx."""
+    x0, x1, h = cx - w // 2, cx + w // 2, int(t * 2.3)
+    d.line([(x0, y), (x1 - h, y)], fill=col, width=t)
+    d.ellipse([x0 - t // 2, y - t // 2, x0 + t // 2, y + t // 2], fill=col)
+    d.polygon([(x1, y), (x1 - int(h * 1.5), y - h), (x1 - int(h * 1.5), y + h)], fill=col)
 
 
 def whole(im, w, h):
@@ -78,7 +98,7 @@ def tall(im):
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--folder"); ap.add_argument("--local"); ap.add_argument("--audio"); ap.add_argument("--cover")
+    ap = argparse.ArgumentParser(); ap.add_argument("--folder"); ap.add_argument("--local"); ap.add_argument("--audio"); ap.add_argument("--cover"); ap.add_argument("--covers", help="Drive folder of start pictures (one is picked per post, least used first)")
     ap.add_argument("--slides", type=int, default=7); ap.add_argument("--title", default=""); ap.add_argument("--part", type=int, default=0)
     ap.add_argument("--hold", type=float, default=2.2); ap.add_argument("--out", default=os.path.join(ROOT, "out")); ap.add_argument("--seed", type=int)
     ap.add_argument("--video", action="store_true", help="a full-screen 9:16 video of the slides instead of a photo carousel")
@@ -112,12 +132,19 @@ def main():
         raise SystemExit("only %d usable photos, need %d" % (len(ims), need))
     rnd.shuffle(ims)
     part = a.part or int(used.get("part", 0)) + 1
-    title = a.title or rnd.choice(TITLES)                       # a different cover line, hook and tag set each time
-    hook = rnd.choice(HOOKS) % title.replace(" / ", " and ").lower()
-    caption = "%s\n\n%s" % (hook[0].upper() + hook[1:], " ".join(["#oldmoney"] + rnd.sample(TAGS, 4)))
+    title = a.title or COVER_TEXT                               # the cover always says the same; the caption hook and tags vary
+    hook = rnd.choice(HOOKS) % title.lower()
+    caption = "%s\n\n%s" % (hook[0].upper() + hook[1:], " ".join(["#grisch", "#oldmoney"] + rnd.sample(TAGS, 3)))
     FW, FH = (W, H) if a.video else (SW, SH)                     # video slides fill the 9:16 screen; carousel slides are 3:4
-    frames = [(Image.open(drive_get(a.cover, "img")).convert("RGB") if a.cover and drive_get(a.cover, "img") else cover_card(title, part, FW, FH), 1.4)]
-    if frames[0][0].size != (FW, FH): frames[0] = (ImageOps.fit(frames[0][0], (FW, FH), Image.LANCZOS), 1.4)
+    bg, cover_id = None, None
+    if a.cover and drive_get(a.cover, "img"): bg = Image.open(drive_get(a.cover, "img"))
+    elif a.covers:                                               # a start picture from the folder, least used first
+        cu = used.setdefault("covers", {}); cl = [i for i, t in drive_list(a.covers) if t.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
+        rnd.shuffle(cl); cl.sort(key=lambda i: cu.get(i, 0))
+        for cid in cl[:6]:
+            try: bg = Image.open(drive_get(cid, "img")); bg.load(); cover_id = cid; break
+            except Exception as e: bg = None; print("  skipping a start picture:", e)
+    frames = [(cover_card(title, FW, FH, bg), 1.4)]
     for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH), a.hold))
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
     cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
@@ -137,6 +164,7 @@ def main():
     print("wrote", out, "%.1fs" % total, len(frames) - 1, "slides", "with sound" if audio else "silent")
     if a.commit_state:
         for pid, _ in ims: used["count"][pid] = used["count"].get(pid, 0) + 1
+        if cover_id: used["covers"][cover_id] = used["covers"].get(cover_id, 0) + 1
         used["part"] = part; json.dump(used, open(state_path, "w"), indent=0)
 
 
