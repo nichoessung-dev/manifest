@@ -90,6 +90,7 @@ def cover_card(title, SW=SW, SH=SH, bg=None):
     while size > 70 and max(d.textlength(w, font=font(size)) for w in lines) > SW - 160: size -= 6
     f = font(size); lh = int(size * 1.06); aw, at = int(SW * 0.30), max(14, size // 8)
     y = SH // 2 - (lh * len(lines) + at * 6) // 2 - 40
+    if bg is not None: y += int(SH * 0.13)                      # over a picture the words sit lower, clear of a face in the upper half
     if bg is not None:                                           # a soft shadow under the type and the arrow
         sh = Image.new("L", (SW, SH), 0); sd = ImageDraw.Draw(sh); yy = y
         for ln in lines: sd.text((SW / 2, yy + 6), ln, font=f, fill=200, anchor="ma"); yy += lh
@@ -169,6 +170,9 @@ def main():
     elif a.cover and drive_get(a.cover, "img"): bg = Image.open(drive_get(a.cover, "img"))
     elif a.covers:                                               # a start picture from the folder, least used first
         cu = used.setdefault("covers", {}); cl = [i for i, t in drive_list(a.covers) if t.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
+        try: no = set(json.load(open(os.path.join(ROOT, "scripts", "finds_covers_skip.json"))))      # pictures screened out as start pictures (watermarks, words on them, too small...)
+        except Exception: no = set()
+        cl = [i for i in cl if i not in no]
         rnd.shuffle(cl); cl.sort(key=lambda i: cu.get(i, 0))
         for cid in cl[:6]:
             try: bg = Image.open(drive_get(cid, "img")); bg.load(); cover_id = cid; break
