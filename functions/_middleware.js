@@ -9,7 +9,7 @@ const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/
   "/how-to-order", "/how-to-order.html", "/admin", "/admin.html"]);
 const VERIFY = { "/googleaea131de20fbf72e.html": "google-site-verification: googleaea131de20fbf72e.html" };
 // Paths answered by real Functions (exact shapes only, so /api/nope, /product/ or /product/<id>/x still 404).
-const PASS = /^\/api\/(qc|img|geo)$|^\/r\/[^/]+$|^\/product\/[^/]+$|^\/unsubscribe$/;
+const PASS = /^\/api\/(qc|img|geo)$|^\/r\/[^/]+$|^\/product\/[^/]+$|^\/unsubscribe$|^\/go\/[^/]+$/;
 // Repo-internal files that Pages would otherwise serve from the repo root (scripts, workflows, the bots' state files).
 // Tested on the path as sent and on its percent-decoded form: Pages decodes the path to find the file, so
 // /%73cripts/x.py used to slip past a rule that only saw the encoded spelling.
