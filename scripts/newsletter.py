@@ -10,7 +10,7 @@ Env (from GitHub Actions secrets):
   BREVO_API_KEY, SUPABASE_SERVICE_KEY, UNSUB_SECRET
 Optional: SITE_URL (default https://puroclassico.com), ACTIVE_DAYS (default 21), MAX_SEND (safety cap)
 """
-import os, sys, json, time, hmac, hashlib, urllib.request, urllib.error
+import os, sys, json, re, time, hmac, hashlib, urllib.request, urllib.error
 from datetime import datetime, timezone, timedelta
 
 SUPA_URL = "https://uptpghuduqjqmrxwatbm.supabase.co"
@@ -24,6 +24,9 @@ LOGO = SUPA_URL + "/storage/v1/object/public/products/email/logo.png"
 DISC = SUPA_URL + "/storage/v1/object/public/products/email/discord.png"
 MYCNBOX_LOGO = SUPA_URL + "/storage/v1/object/public/products/email/mycnbox.png"
 MYCNBOX_URL  = "https://mycnbox.com/login/main-login?inviteCode=AACPYA"
+# Our own address for the Discord invite: it redirects to the current invite (DISCORD_INVITE in functions/_lib/site.js),
+# so emails already sent keep working when the invite is replaced. Never put a discord.gg link in an email.
+DISCORD_URL  = "https://www.puroclassico.com/discord"
 
 def sb(path, method="GET", body=None, extra=None):
     url = SUPA_URL + "/rest/v1/" + path
@@ -34,6 +37,10 @@ def sb(path, method="GET", body=None, extra=None):
     r = urllib.request.urlopen(req, timeout=40)
     t = r.read().decode()
     return json.loads(t) if t else []
+
+def hide(msg):
+    """The job log of this repository is public: an error text is printed without any email address in it."""
+    return re.sub(r"[\w.+%-]+@[\w-]+(?:\.[\w-]+)+", "<address>", str(msg))[:200]
 
 def brevo_send(to_email, subject, html, unsub=None):
     body = {"sender": {"name": "Puro Classico", "email": "news@puroclassico.com"},
@@ -112,14 +119,14 @@ def run_welcome(profiles):
           '<div style="height:1px;background:#ececea;margin:26px 0 22px;"></div>'
           '<h2 style="margin:0 0 8px;font-size:16px;color:#111;font-weight:650;text-align:center;">Join the community</h2>'
           '<p style="margin:0 auto 18px;font-size:14px;line-height:1.6;color:#555;max-width:380px;text-align:center;">Early drops, QC talk and haul reviews from other members over on Discord.</p>'
-          '<div style="text-align:center;"><a href="https://discord.gg/Pf3zpG3E4" style="display:inline-block;padding:12px 26px;font-size:14px;font-weight:600;color:#fff;background:#5865F2;text-decoration:none;border-radius:10px;"><img src="%s" alt="" width="20" height="20" style="width:20px;height:20px;vertical-align:middle;margin-right:9px;border-radius:4px;"><span style="vertical-align:middle;">Join our Discord</span></a></div>') % (SITE, DISC)
+          '<div style="text-align:center;"><a href="' + DISCORD_URL + '" style="display:inline-block;padding:12px 26px;font-size:14px;font-weight:600;color:#fff;background:#5865F2;text-decoration:none;border-radius:10px;"><img src="%s" alt="" width="20" height="20" style="width:20px;height:20px;vertical-align:middle;margin-right:9px;border-radius:4px;"><span style="vertical-align:middle;">Join our Discord</span></a></div>') % (SITE, DISC)
         html = wrap(inner, unsub_url(pr["id"]))
         ok, msg = brevo_send(email, "Welcome to Puro Classico - you're in", html, unsub_url(pr["id"]))
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"welcomed": True, "welcomed_at": datetime.now(timezone.utc).isoformat()}, {"Prefer": "return=minimal"})
-            sent += 1; print("welcome ->", email)
+            sent += 1
         else:
-            print("FAIL welcome", email, msg)
+            print("FAIL welcome:", hide(msg))
         if sent >= MAX_SEND: break
         time.sleep(0.3)
     print("welcome sent:", sent)
@@ -158,7 +165,7 @@ def ordering_html(uid):
       '<h2 style="margin:0 0 14px;font-size:16px;color:#111;font-weight:650;text-align:center;">The 6 steps in short</h2>'
       '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + rows + '</table>'
       '<div style="text-align:center;margin-top:6px;"><a href="' + MYCNBOX_URL + '" style="display:inline-block;padding:12px 26px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Claim your MyCNBox coupons</a></div>'
-      '<p style="margin:18px auto 0;font-size:13.5px;line-height:1.6;color:#777;max-width:400px;text-align:center;">Stuck on anything? Ask in our <a href="https://discord.gg/Pf3zpG3E4" style="color:#5865F2;">Discord</a> - members share QC tips and haul reviews daily.</p>')
+      '<p style="margin:18px auto 0;font-size:13.5px;line-height:1.6;color:#777;max-width:400px;text-align:center;">Stuck on anything? Ask in our <a href="' + DISCORD_URL + '" style="color:#5865F2;">Discord</a> - members share QC tips and haul reviews daily.</p>')
     # Full document so the <style> sits in <head> (Gmail/Apple Mail/Outlook apps honour it): phones get the vertical thumbnail.
     head = ('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
             '<style>@media only screen and (max-width:600px){.pcv-d{display:none!important;max-height:0!important;overflow:hidden!important}'
@@ -183,9 +190,9 @@ def run_ordering(profiles):
         ok, msg = brevo_send(email, ORDERING_SUBJECT, ordering_html(pr["id"]), unsub_url(pr["id"]))
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"ordering_sent": True}, {"Prefer": "return=minimal"})
-            sent += 1; print("ordering ->", email)
+            sent += 1
         else:
-            print("FAIL ordering", email, msg)
+            print("FAIL ordering:", hide(msg))
         if sent >= MAX_SEND: break
         time.sleep(0.3)
     print("ordering sent:", sent)
@@ -195,7 +202,7 @@ def run_ordering_test(_profiles=None):
     email = os.environ.get("TEST_EMAIL", "").strip()
     if not email: print("TEST_EMAIL not set"); return
     ok, msg = brevo_send(email, ORDERING_SUBJECT, ordering_html("test"), None)
-    print(("ordering-test -> " + email) if ok else ("FAIL ordering-test " + email + " " + msg))
+    print("ordering-test sent" if ok else ("FAIL ordering-test: " + hide(msg)))
 
 def mycnbox_html(uid):
     """3rd email in the sequence: nudge to create a MyCNBox account (our featured agent)."""
@@ -205,7 +212,7 @@ def mycnbox_html(uid):
       '<div style="text-align:center;"><a href="' + MYCNBOX_URL + '" style="display:inline-block;padding:14px 34px;font-size:15px;font-weight:650;color:#fff;background:#E1301F;text-decoration:none;border-radius:10px;">Create your free MyCNBox account</a></div>'
       '<p style="margin:14px auto 0;font-size:13px;line-height:1.6;color:#999;max-width:400px;text-align:center;">Signing up is free and takes about a minute. Your new-member coupons are waiting - grab them before your first haul.</p>'
       '<div style="height:1px;background:#ececea;margin:26px 0 20px;"></div>'
-      '<p style="margin:0 auto;font-size:13.5px;line-height:1.6;color:#777;max-width:420px;text-align:center;">New to all this? Read our quick <a href="' + SITE + '/#tutorial" style="color:#111;">How to order</a> guide first, or ask in the <a href="https://discord.gg/Pf3zpG3E4" style="color:#5865F2;">Discord</a>.</p>')
+      '<p style="margin:0 auto;font-size:13.5px;line-height:1.6;color:#777;max-width:420px;text-align:center;">New to all this? Read our quick <a href="' + SITE + '/#tutorial" style="color:#111;">How to order</a> guide first, or ask in the <a href="' + DISCORD_URL + '" style="color:#5865F2;">Discord</a>.</p>')
     return wrap(inner, unsub_url(uid))
 
 def run_mycnbox(profiles):
@@ -225,9 +232,9 @@ def run_mycnbox(profiles):
         ok, msg = brevo_send(email, "Set up MyCNBox — your finds are waiting", mycnbox_html(pr["id"]), unsub_url(pr["id"]))
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"agent_sent": True}, {"Prefer": "return=minimal"})
-            sent += 1; print("mycnbox ->", email)
+            sent += 1
         else:
-            print("FAIL mycnbox", email, msg)
+            print("FAIL mycnbox:", hide(msg))
         if sent >= MAX_SEND: break
         time.sleep(0.3)
     print("mycnbox sent:", sent)
@@ -236,7 +243,7 @@ def run_mycnbox_test(_profiles=None):
     email = os.environ.get("TEST_EMAIL", "").strip()
     if not email: print("TEST_EMAIL not set"); return
     ok, msg = brevo_send(email, "Set up MyCNBox — your finds are waiting", mycnbox_html("test"), None)
-    print(("mycnbox-test -> " + email) if ok else ("FAIL mycnbox-test " + email + " " + msg))
+    print("mycnbox-test sent" if ok else ("FAIL mycnbox-test: " + hide(msg)))
 
 def load_stats():
     """Site-wide popularity per product from data/stats.json: [views all time, views 30 days, views 7 days, favourites]."""
@@ -325,7 +332,7 @@ def run_newsletter(profiles):
             print("DRY %s | %s | %s" % ("perso" if perso else "generic", subject, "; ".join("%s (%d)" % (p.get("title", "")[:28], score[i]) for i, p in recs))); continue
         html = wrap(body, unsub_url(uid))
         ok, msg = brevo_send(email, subject, html, unsub_url(uid))
-        print(("news %s -> %s" % ("perso" if perso else "generic", email)) if ok else ("FAIL news %s %s" % (email, msg)))
+        if not ok: print("FAIL news:", hide(msg))
         if ok: sent += 1
         if sent >= MAX_SEND: break
         time.sleep(0.35)
@@ -355,7 +362,7 @@ def run_saved(profiles):
         body += ('<div style="text-align:center;margin-top:22px;"><a href="%s" style="display:inline-block;padding:12px 30px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">See your saved finds</a></div>' % SITE)
         if os.environ.get("DRY_RUN"): print("DRY saved | %s | %d items" % (subject, len(recs))); continue
         ok, msg = brevo_send(email, subject, wrap(body, unsub_url(uid)), unsub_url(uid))
-        print(("saved -> " + email) if ok else ("FAIL saved %s %s" % (email, msg)))
+        if not ok: print("FAIL saved:", hide(msg))
         if ok: sent += 1
         if sent >= MAX_SEND: break
         time.sleep(0.35)
@@ -371,7 +378,7 @@ def run_sync(profiles):
         req = urllib.request.Request("https://api.brevo.com/v3/contacts", data=json.dumps(body).encode(),
             headers={"api-key": BREVO, "accept": "application/json", "content-type": "application/json"}, method="POST")
         try: urllib.request.urlopen(req, timeout=30); done += 1
-        except urllib.error.HTTPError as e: print("FAIL sync", email, e.code, e.read().decode()[:120])
+        except urllib.error.HTTPError as e: print("FAIL sync:", e.code, hide(e.read().decode()))
         time.sleep(0.12)
     print("contacts synced to Brevo:", done)
 
