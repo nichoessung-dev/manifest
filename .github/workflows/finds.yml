@@ -33,4 +33,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add finds_used.json discord_sent.json 2>/dev/null || true
-          git diff --cached --quiet || (git commit -m "chore: finds state [skip ci]" && git pull --rebase -q && git push)
+          git diff --cached --quiet && exit 0
+          git commit -q -m "chore: finds state [skip ci]"
+          # someone else may push at the same moment (a site upload, the stats job): try again a few times before giving up
+          for n in 1 2 3 4 5; do
+            if git pull --rebase -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((n * 6))
+          done
+          echo "::error::the finds state could not be saved: the next run may reuse photos"; exit 1
