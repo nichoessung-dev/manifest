@@ -17,9 +17,11 @@ Formats (--format):
   python scripts/make_short.py --format qc --id 6716583439
 
 Needs: pillow, imageio-ffmpeg. Voiceover is added when ELEVENLABS_API_KEY is set (otherwise the video is silent).
+Style videos also read: STYLES_FILE (another styles.json, for tests), ASSET_LIB (the folder of the asset library), ASSET_STRICT=1 (posting
+runs: a missing library file stops the run before anything is rendered) and ASSET_PLACEHOLDER=1 (local tests: a labelled card in its place).
 QC photos come from the site's own /api/qc (edge-cached for 7 days).
 """
-import argparse, io, json, os, re, subprocess, sys, tempfile, urllib.parse, urllib.request, wave
+import argparse, hashlib, io, json, os, re, subprocess, sys, tempfile, urllib.parse, urllib.request, wave
 
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 import imageio_ffmpeg
@@ -247,14 +249,85 @@ def drive_clip(fid, start=0.0, opts=None):
             except Exception as e: err = e
         if data is None: print("  drive file %s unavailable" % fid); return None
         open(path, "wb").write(data)
-    head = open(path, "rb").read(12)
+    return clip_shot(path, start, opts)
+
+def clip_shot(path, start=0.0, opts=None):
+    """The shot for a clip (or photo) file: start time, and the options arrow (+ bell, freeze) and labels (call-outs on the frozen frame)."""
+    head = open(path, "rb").read(12); labs = clip_labels(opts)
     if head[:8] == b"\x89PNG\r\n\x1a\n" or head[:3] == b"\xff\xd8\xff":
-        try: return ("photo", Image.open(path).convert("RGB"), "")
+        try: im = Image.open(path).convert("RGB"); return ("photo", im, "", {"labels": labs}) if labs else ("photo", im, "")
         except Exception: return None
     meta = {"ss": float(start)}
     if opts and opts.get("arrow"):
         x0, y0, x1, y1 = opts["arrow"]; meta.update(fx="orbit", ding=True, bell=bool(opts.get("bell")), freeze=bool(opts.get("freeze", opts.get("bell"))), box=(x0 * W, y0 * H, x1 * W, y1 * H))
+    if labs: meta.update(labels=labs, freeze=bool(opts.get("freeze", True)))
     return ("video", path, "", meta)
+
+def clip_labels(opts):
+    """The call-outs of a clip entry, {"labels": [{"at": [x, y], "text": "KNIT", "sub": "Ralph Lauren - $16"}]} (fractions of the frame), in pixels. None when there are none."""
+    out = []
+    for l in (opts or {}).get("labels") or []:
+        try: lb = {"p": (float(l["at"][0]) * W, float(l["at"][1]) * H), "text": str(l.get("text") or "").strip(), "sub": str(l.get("sub") or "").strip(), "t": l.get("t")}
+        except Exception: lb = None
+        if lb and (lb["text"] or lb["sub"]) and 0 <= lb["p"][0] <= W and 0 <= lb["p"][1] <= H: out.append(lb)      # a point in pixels (or off the frame) is a mistake, not a place
+        else: print("  bad label skipped (\"at\" is [x, y] as fractions of the frame, 0 to 1, with a \"text\" or a \"sub\"):", l)
+    return out or None
+
+# the asset library: generated pictures (gen/<slug>.png) and stock clips (stock/<slug>.mp4), made once by make_assets.py and kept on the git branch "assets"
+ASSET_RAW = "https://raw.githubusercontent.com/nichoessung-dev/manifest/assets/"
+_ASSET = {}; MISSING = []                                    # MISSING: every library file a script asked for that was not there (gen/x.png, stock/y.mp4)
+def asset_sums():
+    """The sha256 of every library file, from library.json on the assets branch (one small download per run; empty when it cannot be read)."""
+    if "sums" not in _ASSET:
+        try: _ASSET["sums"] = {v.get("file"): v.get("sha256") for v in json.loads(fetch(ASSET_RAW + "library.json", 30).decode("utf-8")).values() if isinstance(v, dict)}
+        except Exception: _ASSET["sums"] = {}
+    return _ASSET["sums"]
+
+def asset_file(slug, kind):
+    """A library file by slug ("image" or "stock"): from the folder in ASSET_LIB, else a cached download from the assets branch (fetched again
+    when the file was remade on the branch since). Returns its path or None."""
+    if not (isinstance(slug, str) and re.fullmatch(r"[a-z0-9][a-z0-9-]{1,48}", slug)): print("  bad asset slug %r" % (slug,)); return None      # the same test as make_assets.py, before any path is built
+    rel = ("stock/%s.mp4" if kind == "stock" else "gen/%s.png") % slug
+    if rel in _ASSET: return _ASSET[rel]
+    lib = os.environ.get("ASSET_LIB", "").strip()
+    path = next((p for p in (os.path.join(b, rel) for b in ((lib, os.path.join(ROOT, lib)) if lib else ())) if os.path.isfile(p)), None)
+    if not path:
+        os.makedirs(MEDIA_DIR, exist_ok=True); p = os.path.join(MEDIA_DIR, "asset_" + rel.replace("/", "_")); want = asset_sums().get(rel) if os.path.exists(p) else None
+        if not os.path.exists(p) or (want and hashlib.sha256(open(p, "rb").read()).hexdigest() != want):      # not here yet, or an older copy of a file that was made again
+            try:
+                d = fetch(ASSET_RAW + rel, 180)
+                if (len(d) > 20000 and d[4:8] == b"ftyp") if kind == "stock" else d[:8] == b"\x89PNG\r\n\x1a\n": open(p + ".part", "wb").write(d); os.replace(p + ".part", p)
+            except Exception as e: err = e
+        if os.path.exists(p): path = p
+    _ASSET[rel] = path; return path
+
+def placeholder(slug, kind):
+    """Local tests only (ASSET_PLACEHOLDER=1): a clearly labelled stand-in for a library file that does not exist yet. Never in a real video."""
+    w, h = (W, H) if kind == "stock" else (650, 650); im = Image.new("RGB", (w, h), (226, 228, 234)); d = ImageDraw.Draw(im)
+    for x in range(-h, w, 90): d.line([(x, h), (x + h, 0)], fill=(208, 211, 220), width=26)
+    d.rectangle([0, 0, w - 1, h - 1], outline=(214, 30, 40), width=12)
+    name = ("stock/%s.mp4" if kind == "stock" else "gen/%s.png") % (slug,); size = 40
+    while size > 20 and _M.textlength(name, font=mfont(size, 700)) > 560: size -= 2
+    cy = h / 2 if kind != "stock" else 620                    # on a full frame: above the word captions
+    d.text((w / 2, cy - 56), "PLACEHOLDER", font=mfont(66, 900), fill=(214, 30, 40), anchor="mm")
+    d.text((w / 2, cy + 18), name, font=mfont(size, 700), fill=(18, 20, 28), anchor="mm")
+    d.text((w / 2, cy + 72), "not in the asset library yet", font=mfont(30, 600), fill=(70, 76, 92), anchor="mm")
+    return im
+
+def asset_missing(slug, kind):
+    """A library file is not there: a labelled card in local tests (ASSET_PLACEHOLDER=1), otherwise None (the shot is skipped, with a warning).
+    Either way it is noted in MISSING: the output JSON lists it, and with ASSET_STRICT=1 (posting runs) fmt_style stops before anything is rendered."""
+    name = ("stock/%s.mp4" if kind == "stock" else "gen/%s.png") % (slug,)
+    if name not in MISSING: MISSING.append(name)
+    if os.environ.get("ASSET_PLACEHOLDER", "").strip() == "1": print("  asset %s (%s) missing: placeholder card" % (slug, kind)); return placeholder(slug, kind)
+    print("  WARNING: asset %s (%s) is not in the library, its shot is skipped" % (slug, kind)); return None
+
+def stock_clip(slug, start=0.0, opts=None):
+    """A stock clip from the asset library, used like one of the owner's own clips. Returns a shot or None."""
+    path = asset_file(slug, "stock")
+    if path: return clip_shot(path, start, opts)
+    im = asset_missing(slug, "stock")
+    return ("photo", im, "") if im else None
 
 def picked(ids):
     out = [c for c in (pexels_clip(i) for i in ids or []) if c]
@@ -475,6 +548,71 @@ def draw_title(fr, txt, lt, cy):
             _SPR[key] = layer.resize((bw, bh), Image.LANCZOS)
         paste(fr, _SPR[key], W / 2, y0 + k * lh + lh / 2, 0.94 + 0.06 * pop(max(t, 0) + 0.12, 0.3), a, -1.5)
 
+SAFE = (40, 232, W - 150, H - 430)                             # TikTok's buttons and caption cover the right 150 px, the bottom 430 px and the top 230 px
+ADDR_BOX = (W / 2 - 420, 1420, W / 2 + 420, 1580)             # where the address pill sits. SAFE's foot (1490) is stricter than the older layout: the pill (1432-1568) and the price tag of a tall product still reach below it
+def hook_sprite(txt, cap=108):
+    """The hook of a style video as one picture: heavy white Montserrat with a dark outline and a soft shadow, *marked* words in the caption
+    yellow, two or three centred lines. The type shrinks from `cap` until the text fits: down to 56 px for three lines, then on to 40 px
+    before a fifth line is added. Returns (picture, margin round the type); hook_size gives the lines and the type size it came to."""
+    key = ("hook", txt, cap)
+    if key in _SPR: return _SPR[key]
+    words, hl = [], False                                     # [[(piece, highlighted), ...] per word]: punctuation stays on its word
+    for tok in txt.split():
+        runs = []
+        for part in re.split(r"(\*)", tok):
+            if part == "*": hl = not hl
+            elif part: runs.append((part, hl))
+        if runs: words.append(runs)
+    plain = ["".join(p for p, _ in w) for w in words] or [""]; maxw = 2 * (SAFE[2] - W // 2) - 30; size = cap      # centred on the frame, outline included
+    def lines(f, mw):
+        out, cur = [], []
+        for k in range(len(plain)):
+            if cur and _M.textlength(" ".join(plain[j] for j in cur + [k]), font=f) > mw: out.append(cur); cur = []
+            cur.append(k)
+        return out + [cur]
+    while (size > 56 and len(lines(mfont(size, 900), maxw)) > 3) or (size > 40 and len(lines(mfont(size, 900), maxw)) > 4) or (size > 28 and max(_M.textlength(w, font=mfont(size, 900)) for w in plain) > maxw): size -= 4
+    f = mfont(size, 900); n = len(lines(f, maxw)); mw = maxw
+    while mw > 200 and len(lines(f, mw - 20)) == n: mw -= 20   # the same number of lines, as even as they go
+    ls = lines(f, mw); lh = int(size * 1.15); sw = max(6, size // 9); pad = sw + 30; wd = [_M.textlength(" ".join(plain[j] for j in l), font=f) for l in ls]
+    bw, bh = int(max(wd)) + 2 * pad, lh * len(ls) + 2 * pad
+    ink = Image.new("RGBA", (bw, bh), (0, 0, 0, 0)); top = Image.new("RGBA", (bw, bh), (0, 0, 0, 0)); d0, d1 = ImageDraw.Draw(ink), ImageDraw.Draw(top)
+    for r, l in enumerate(ls):
+        x = (bw - wd[r]) / 2; y = pad + r * lh + lh / 2
+        for j in l:
+            for piece, hot in (words[j] if words else []):
+                d0.text((x, y), piece, font=f, fill=(8, 10, 18, 255), anchor="lm", stroke_width=sw, stroke_fill=(8, 10, 18, 255))
+                d1.text((x, y), piece, font=f, fill=(CAP_YEL if hot else (255, 255, 255)) + (255,), anchor="lm"); x += _M.textlength(piece, font=f)
+            x += _M.textlength(" ", font=f)
+    sh = Image.new("RGBA", (bw, bh), (0, 0, 0, 0)); sh.paste((0, 0, 0, 170), (0, 9), ink.getchannel("A")); sh = sh.filter(ImageFilter.GaussianBlur(11))
+    sh.alpha_composite(ink); sh.alpha_composite(top); _SPR[key] = (sh, pad - sw); _SPR[("hooksize", txt, cap)] = (len(ls), size); return _SPR[key]
+
+def hook_size(txt, cap=108): hook_sprite(txt, cap); return _SPR[("hooksize", txt, cap)]      # (lines, type size) of a hook
+
+def hook_box(txt, at=None):                                   # the hook's place: upper-middle of the frame, inside the safe area; at = (type cap, top or None) puts it elsewhere (hook_fit)
+    cap, y0 = at or (108, None); spr, m = hook_sprite(txt, cap)
+    if y0 is None: y0 = max(440 - spr.height / 2 + m, SAFE[1])
+    return (W / 2 - spr.width / 2 + m, y0, W / 2 + spr.width / 2 - m, y0 + spr.height - 2 * m)
+
+def hook_fit(txt, labs, addr=False):
+    """The hook's place on a shot with call-outs, so that it never lies over a marked point: its usual place if that is free, else low in the
+    frame (its foot at y 1400, above the address pill), else those two places in a smaller type, else any band in between; of the places that
+    cover no point and no leader line, the earliest that leaves tidy call-outs. Returns (at for hook_box / draw_hook, the call-outs left
+    under the text when no place is free: those are not drawn, and fmt_style warns about them)."""
+    key = ("hookfit", txt, tuple((l["p"], l["text"], l["sub"]) for l in labs), bool(addr))
+    if key in _SPR: return _SPR[key]
+    nat = hook_size(txt)[1]; caps = [108] + [c for c in (96, 84, 72, 64, 56) if c < nat]; fixed = [ADDR_BOX] if addr else []; cands = []; base = label_layout(labs, fixed, True)[1]
+    def tried(cap, y0):                                       # one place: (points under it, call-outs it gets in the way of, untidiness + a little for every place passed over); True when the call-outs are as tidy as without a hook
+        b = hook_box(txt, (cap, y0)); hid = [l for l in labs if b[0] - 24 <= l["p"][0] <= b[2] + 24 and b[1] - 24 <= l["p"][1] <= b[3] + 24]
+        _, bad, box = label_layout([l for l in labs if l not in hid], [b] + fixed, True); cands.append(((len(hid), box, bad + 0.3 * len(cands)), (cap, y0), hid)); return not hid and bad <= base
+    def foot(cap): b = hook_box(txt, (cap, None)); return 1400 - (b[3] - b[1])
+    if not any(tried(cap, None) or tried(cap, foot(cap)) for cap in caps) and min(c[0] for c in cands)[:2] != (0, 0):      # every one of them over a point or a leader line: any band in between
+        any(tried(cap, y0) for cap in caps for y0 in range(SAFE[1] + 40, int(foot(cap)), 40))
+    best = min(cands, key=lambda c: c[0]); _SPR[key] = (best[1], best[2]); return _SPR[key]
+
+def draw_hook(fr, txt, at=None):
+    """The hook text: there in full from the first frame of its line to the last (no fade: frame one is the cover)."""
+    b = hook_box(txt, at); paste(fr, hook_sprite(txt, at[0] if at else 108)[0], W / 2, (b[1] + b[3]) / 2)
+
 def draw_gfx(fr, g, lt, dur):
     """Animated explainer card in the top half: stat / ring / compare / chain (a list of rows)."""
     if not g: return
@@ -583,6 +721,107 @@ def draw_sticker(fr, meta, tl):
             for x, y in (line[0], line[-1]): d.ellipse([(x - 23) * S, (y - 23) * S, (x + 23) * S, (y + 23) * S], fill=(36, 48, 78, 255))
         paste(fr, L.resize((460, 460), Image.LANCZOS), W / 2, 975, 1.0, 1.0)
 
+def label_pill(txt, sub):
+    """A call-out pill as its own picture: the name in heavy type, a second line under it in regular weight. Returns (sprite, margin, w, h)."""
+    key = ("pill", txt, sub)
+    if key not in _SPR:
+        S = 2; size, s2, maxw, m = 46, 31, 430, 34
+        while size > 30 and _M.textlength(txt, font=mfont(size, 900)) > maxw: size -= 2
+        while s2 > 22 and _M.textlength(sub, font=mfont(s2, 500)) > maxw: s2 -= 1
+        def trim(t, f): return t if _M.textlength(t, font=f) <= maxw else next(t[:j].rstrip() + "\u2026" for j in range(len(t), 0, -1) if _M.textlength(t[:j].rstrip() + "\u2026", font=f) <= maxw or j == 1)
+        txt, sub = trim(txt, mfont(size, 900)), trim(sub, mfont(s2, 500))
+        w = int(max(_M.textlength(txt, font=mfont(size, 900)) if txt else 0, _M.textlength(sub, font=mfont(s2, 500)) if sub else 0)) + 64
+        h1 = int(size * 1.08) if txt else 0; h2 = int(s2 * 1.3) if sub else 0; h = 34 + h1 + h2
+        L = Image.new("RGBA", ((w + 2 * m) * S, (h + 2 * m) * S), (0, 0, 0, 0)); r = min(30, h // 2) * S
+        ImageDraw.Draw(L).rounded_rectangle([m * S, (m + 9) * S, (m + w) * S, (m + h + 9) * S], r, fill=(0, 0, 0, 120)); L = L.filter(ImageFilter.GaussianBlur(10 * S)); d = ImageDraw.Draw(L)
+        d.rounded_rectangle([m * S, m * S, (m + w) * S - 1, (m + h) * S - 1], r, fill=(255, 255, 255, 252))
+        if txt: d.text(((m + 32) * S, (m + 17 + h1 / 2) * S), txt, font=mfont(size * S, 900), fill=(12, 14, 22, 255), anchor="lm")
+        if sub: d.text(((m + 32) * S, (m + 17 + h1 + h2 / 2 - 1) * S), sub, font=mfont(s2 * S, 500), fill=(64, 70, 86, 255), anchor="lm")
+        _SPR[key] = (L.resize((w + 2 * m, h + 2 * m), Image.LANCZOS), m, w, h)
+    return _SPR[key]
+
+def label_layout(labs, avoid=(), score=False):
+    """Where each call-out pill goes: beside its point, on the outward side (away from the middle of the marked points) when it fits there,
+    else on the other side; inside the safe area, clear of the other pills, of every marked point and of the `avoid` boxes (hook text, address
+    pill), with leader lines that do not cross each other or run behind a pill, a point or an `avoid` box. The points are taken from the top
+    of the frame down, and from the foot up if that comes out tidier. Returns [(pill box, end of the leader line, side)] in the order of
+    labs (score=True: that, the clashes left, and how many of those are with the `avoid` boxes)."""
+    X0, Y0, X1, Y1 = SAFE; xs = [l["p"][0] for l in labs]; cx = sum(xs) / len(xs) if xs and max(xs) - min(xs) > 80 else None
+    def hit(a, b, g): return a[0] < b[2] + g and b[0] < a[2] + g and a[1] < b[3] + g and b[1] < a[3] + g
+    def turn(a, b, c): return (c[1] - a[1]) * (b[0] - a[0]) - (b[1] - a[1]) * (c[0] - a[0])
+    def cross(a, b, c, d): return (turn(a, c, d) > 0) != (turn(b, c, d) > 0) and (turn(a, b, c) > 0) != (turn(a, b, d) > 0)      # two lines cross
+    def cuts(a, b, r, g=0):                                   # a line runs through a box
+        x0, y0, x1, y1 = r[0] - g, r[1] - g, r[2] + g, r[3] + g
+        return any(x0 < q[0] < x1 and y0 < q[1] < y1 for q in (a, b)) or cross(a, b, (x0, y0), (x1, y1)) or cross(a, b, (x0, y1), (x1, y0))
+    def near(a, b, q, g):                                     # a line passes a point closely
+        vx, vy = b[0] - a[0], b[1] - a[1]; t = max(0.0, min(1.0, ((q[0] - a[0]) * vx + (q[1] - a[1]) * vy) / ((vx * vx + vy * vy) or 1.0)))
+        return math.hypot(a[0] + t * vx - q[0], a[1] + t * vy - q[1]) < g
+    def judge(i, r, q, done):                                 # what is wrong with pill r and leader end q for call-out i, next to the others in place: (pill over something, leader line snagged, clashes with `avoid`)
+        p = labs[i]["p"]; on = sum(1 for b in avoid if hit(r, b, 12)); thru = sum(1 for b in avoid if cuts(p, q, b))
+        return (on + sum(1 for _, o in done if hit(r, o[0], 14)) + sum(1 for b in labs if hit(r, b["p"] * 2, 30)),
+                thru + sum(cross(p, q, po, o[1]) + cuts(p, q, o[0], 4) + cuts(po, o[1], r, 6) for po, o in done) + sum(1 for b in labs if b["p"] != p and near(p, q, b["p"], 22)), on + thru)
+    def place(order):
+        out = [None] * len(labs); rest = lambda i: [(labs[j]["p"], out[j]) for j in range(len(labs)) if j != i and out[j]]
+        for again in range(3):                                # each in its turn, then twice more with all the others in place
+            for i in order:
+                px, py = labs[i]["p"]; _, _, w, h = label_pill(labs[i]["text"], labs[i]["sub"]); best = None; done = rest(i)
+                for rank, sd in enumerate(((-1, 1) if px <= cx else (1, -1)) if cx is not None else ((-1, 1) if px - X0 >= X1 - px else (1, -1))):      # one point, or all in a column: the side with more room
+                    room = (px - X0) if sd < 0 else (X1 - px); gap = max(44, min(290, room - w))     # out towards the edge, as far as a short leader reaches
+                    x0 = max(X0, min(X1 - w, px - gap - w if sd < 0 else px + gap))
+                    for dy in [0] + [q * j for j in range(1, 13) for q in (-64, 64)]:
+                        y0 = max(Y0, min(Y1 - h, py - h / 2 + dy)); r = (x0, y0, x0 + w, y0 + h)
+                        qx = r[2] if r[2] <= px else r[0] if r[0] >= px else max(r[0] + 30, min(r[2] - 30, px))
+                        q = (qx, max(r[1] + 22, min(r[3] - 22, py)) if (r[2] <= px or r[0] >= px) else (r[3] if r[3] <= py else r[1]))
+                        sc = judge(i, r, q, done)[:2] + (rank * 190 + (0 if room - w >= 44 else 380) + abs(y0 + h / 2 - py),)      # first no pill over a pill, a box or a point, then a clean leader line; a pill with no room beside its point (it would sit over or under it) is the last resort
+                        if best is None or sc < best[0]: best = (sc, r, q, sd)
+                out[i] = best[1:]
+            js = [judge(i, out[i][0], out[i][1], rest(i)) for i in order]
+            if not any(j[0] or j[1] for j in js): break
+        return out, sum(3 * j[0] + j[1] for j in js), sum(j[2] for j in js)
+    down = sorted(range(len(labs)), key=lambda i: (labs[i]["p"][1], labs[i]["p"][0])); res = place(down)
+    if res[1]: res = min(res, place(down[::-1]), key=lambda v: v[1])
+    return res if score else res[0]
+
+def pill_clash(labs):                                         # a call-out point where the address pill goes, or under it (its leader line would run behind the pill): on that shot the pill is left out
+    return any(ADDR_BOX[0] - 6 <= l["p"][0] <= ADDR_BOX[2] + 6 and ADDR_BOX[1] - 6 <= l["p"][1] for l in labs)
+
+def label_notes(k, shots, hook, addr):
+    """What the script's author should know about the call-outs of line k: a point the hook cannot be kept off (that call-out is left out),
+    a point outside the safe area, a point where the address pill goes or below it (the pill is left out on that shot)."""
+    for c in shots:
+        labs = (c[3] if len(c) > 3 else {}).get("labels") or []; clash = pill_clash(labs); at, hid = hook_fit(hook, labs, addr and not clash) if hook and labs else ((108, None), [])
+        if at != (108, None): print("  line %d: the hook is set %s to keep it off the call-out points" % (k, " and ".join(([] if at[1] is None else ["lower"]) + ([] if at[0] == 108 else ["smaller"]))))
+        for l in labs:
+            if l in hid: print("  WARNING: line %d: the hook cannot be kept off the call-out %r wherever it goes, so that call-out is left out: move the point or shorten the hook" % (k, l["text"] or l["sub"]))
+            elif not (SAFE[0] <= l["p"][0] <= SAFE[2] and SAFE[1] <= l["p"][1] <= SAFE[3]): print("  WARNING: line %d: the call-out %r points outside the safe area (TikTok's buttons and caption cover that part of the frame)" % (k, l["text"] or l["sub"]))
+        if addr and clash: print("  WARNING: line %d: a call-out points where the address pill goes (or below it), so the pill is left out on that shot: keep the points above y 0.73, or show the address on another line" % k)
+
+def draw_labels(fr, meta, tl, seg, avoid=(), hide=()):
+    """Call-outs on a held frame: a small dot on each point, a thin leader line and a pill with the name; they appear one after another.
+    `hide`: call-outs that are left out (the hook could not be kept off their point)."""
+    labs = [l for l in meta["labels"] if l not in hide]; key = (tuple(avoid), len(labs))
+    if not labs: return
+    if meta.get("_lay", (None,))[0] != key: meta["_lay"] = (key, label_layout(labs, avoid))
+    lay = meta["_lay"][1]; step = min(1.5, max(0.12, 0.75 * seg / len(labs))); S = 2; live = []
+    for i, (l, (r, q, sd)) in enumerate(zip(labs, lay)):
+        t = tl - (float(l["t"]) if isinstance(l.get("t"), (int, float)) else 0.1 + i * step)
+        if t > 0: live.append((t, l["p"], r, q, sd, label_pill(l["text"], l["sub"])))
+    for t, p, r, q, sd, pill in live:                         # lines and dots first, the pills over them
+        pr = ease(t / 0.16); key = ("lead", p, q)
+        if pr < 1 or key not in _SPR:
+            g = 26; x0, y0 = min(p[0], q[0]) - g, min(p[1], q[1]) - g; w, h = int(abs(p[0] - q[0])) + 2 * g, int(abs(p[1] - q[1])) + 2 * g
+            L = Image.new("RGBA", (w * S, h * S), (0, 0, 0, 0)); d = ImageDraw.Draw(L); o = lambda x, y: ((x - x0) * S, (y - y0) * S)
+            a, b = o(*p), o(p[0] + (q[0] - p[0]) * pr, p[1] + (q[1] - p[1]) * pr); rr = 13 * min(1.0, pop(t, 0.2))
+            for wd, e, col in ((10, 4.5, (8, 10, 18, 115)), (4, 0, (255, 255, 255, 255))):
+                d.line([a, b], fill=col, width=wd * S); d.ellipse([a[0] - (rr + e) * S, a[1] - (rr + e) * S, a[0] + (rr + e) * S, a[1] + (rr + e) * S], fill=col)
+            spr = (L.resize((w, h), Image.LANCZOS), x0 + w / 2, y0 + h / 2)
+            if pr >= 1 and t >= 0.2: _SPR[key] = spr
+        else: spr = _SPR[key]
+        paste(fr, *spr)
+    for t, p, r, q, sd, pill in live:
+        a = ease((t - 0.08) / 0.14)
+        if a > 0: paste(fr, pill[0], (r[0] + r[2]) / 2 + sd * 14 * (1 - a), (r[1] + r[3]) / 2, 1.0, a)
+
 PRESENTER_FIT = {"presenter.png": (0.84, "left"), "presenter2.png": (0.78, "center")}   # scale, anchor
 _PM = {}
 def place_presenter(f):
@@ -613,7 +852,8 @@ def draw_bg(fr, s, lt, dur):
     shots = s["bg"]; nseg = max(1, min(len(shots), int(round(dur / s.get("cut", CUT))))); seg = dur / nseg      # never more cuts than different clips
     hard = s.get("word")                                      # "style" videos: plain hard cuts, clean footage
     k = min(nseg - 1, int(lt / seg)); st = (lt - k * seg) / seg; sh = shots[k % len(shots)]; kind, m, credit = sh[:3]; meta = sh[3] if len(sh) > 3 else {}
-    s["_quiet"] = bool(meta.get("overlay") and not meta.get("blur"))          # product on paper: no caption over it
+    s["_soft"] = bool(meta.get("overlay") and not meta.get("blur") and not meta.get("insert")); s["_quiet"] = bool((meta.get("overlay") and not meta.get("blur")) or meta.get("labels"))   # product on paper, picture on paper, call-outs: no caption over it
+    now = 0.5 if (s.get("instant") and k == 0) else 0.0       # a video that opens with a hook: its first shot is complete on the very first frame
     zoom = 1.0 if hard else (1.0 + 0.07 * st if k % 2 == 0 else 1.07 - 0.07 * st)   # style videos: footage plays as shot, no zooming
     if kind == "video":
         clips = s.setdefault("_clips", {})
@@ -626,8 +866,9 @@ def draw_bg(fr, s, lt, dur):
     elif meta.get("site"): draw_site(fr, lt - k * seg); base = None
     elif meta.get("overlay"):                                 # a held product shot: the paper moves, the item does not
         if not meta.get("blur"): fr.paste(paper(int(lt * 7)), (0, 0))
-        a = ease((lt - k * seg) / 0.34)                      # the item glides up into place
-        if a >= 1: fr.alpha_composite(m)
+        tl = lt - k * seg + now; a = ease(tl / 0.34)         # the item glides up into place
+        if meta.get("insert") and tl < 0.2: paste(fr, m, W / 2, H / 2, 0.8 + 0.2 * pop(tl + 0.02, 0.2), ease((tl + 0.04) / 0.1))      # a generated picture pops in over a few frames, then holds still
+        elif a >= 1 or meta.get("insert"): fr.alpha_composite(m)
         else: paste(fr, m, W / 2, H / 2 + int(46 * (1 - a)), 1.0, a)
         base = None
     elif meta.get("paper"): fr.paste(paper(int(lt * 7)), (0, 0)); base = None
@@ -642,9 +883,13 @@ def draw_bg(fr, s, lt, dur):
         x = max(0, min(W - cw, x))
         fr.paste(base.crop((x, y, x + cw, y + ch)).resize((W, H), Image.BILINEAR), (0, 0))
     if not hard: fr.alpha_composite(shade())
-    if hard and k == 0 and lt < XF and LASTF.get("im") is not None and (meta.get("overlay") or meta.get("site") or LASTF.get("soft")):
+    if hard and k == 0 and lt < XF and LASTF.get("im") is not None and (meta.get("overlay") or meta.get("site") or LASTF.get("soft")) and not meta.get("insert"):
         fr.paste(Image.blend(LASTF["im"], fr, ease(lt / XF)), (0, 0))                     # dissolve instead of a hard cut
-    if meta.get("fx"): draw_sticker(fr, meta, lt - k * seg)
+    if meta.get("fx"): draw_sticker(fr, meta, lt - k * seg + now)
+    s["_hook"] = None; s["_noaddr"] = False
+    if meta.get("labels"):                                    # call-outs: the hook moves off their points, the address pill gives way to a point in its place
+        s["_noaddr"] = pill_clash(meta["labels"]); pill = bool(s.get("addr")) and not s["_noaddr"]; at, hid = hook_fit(s["hook"], meta["labels"], pill) if s.get("hook") else (None, ())
+        s["_hook"] = at; draw_labels(fr, meta, lt - k * seg + now, seg, ([hook_box(s["hook"], at)] if s.get("hook") else []) + ([ADDR_BOX] if pill else []), hid)
     if s.get("fg"):                                            # the presenter, cut out, in front of the footage
         if "_fg" not in s: s["_fg"] = Clip(s["fg"], key=True)
         f = s["_fg"].frame()
@@ -659,6 +904,7 @@ def draw_scene(fr, s, lt, dur, FT):
     a = ease(lt / 0.35)
     if s.get("bg"):
         draw_bg(fr, s, lt, dur)
+        if s.get("hook"): draw_hook(fr, s["hook"], s.get("_hook"))
         if s.get("label"): draw_title(fr, s["label"], lt, 330)
         draw_gfx(fr, s.get("gfx"), lt, dur)
         return
@@ -761,7 +1007,7 @@ def draw_addr(fr, lt):
     if a > 0: paste(fr, _SPR["addr"], W / 2, 1500 + int(20 * (1 - a)), 1.0, a)
 
 def draw_host(fr, s, lt, t_abs, FT):
-    if s.get("addr"): draw_addr(fr, lt)
+    if s.get("addr") and not s.get("_noaddr"): draw_addr(fr, lt)
     if s.get("nocap") or s.get("_quiet"): return
     if s.get("word"): return draw_word_caption(fr, s, lt)
     if s.get("news"): return draw_news_caption(fr, s, lt)
@@ -963,9 +1209,11 @@ def clip_frame(shot, t=1.0):
     except Exception: return None
 
 _PSHOT = [0]
-def product_shot(p, over=None, brand=False, arrow=False, tag=None, cross=False):
+def product_shot(p, over=None, brand=False, arrow=False, tag=None, cross=False, top=None):
     """A spreadsheet product photo as a studio shot: the item cut out, with a soft shadow, held still on moving paper
-    (or over a blurred outfit clip), the brand name above it and a red arrow that travels round it."""
+    (or over a blurred outfit clip), the brand name above it and a red arrow that travels round it.
+    top: the shot sits under a hook that ends there. The brand name goes under the hook, the item under both (smaller if it must), and the
+    price tag stays above the part of the frame TikTok's caption covers."""
     im = load_img(img_url(p))
     if im is None: return None
     co = cutout(im); base = clip_frame(over) if over else None
@@ -973,15 +1221,21 @@ def product_shot(p, over=None, brand=False, arrow=False, tag=None, cross=False):
     if base is not None and co is not None:
         lay = ImageEnhance.Brightness(base.resize((W // 6, H // 6)).filter(ImageFilter.GaussianBlur(5)).resize((W, H), Image.BICUBIC)).enhance(0.92).convert("RGBA")
     if co is None:                                            # busy photo: show it as a rounded card instead
-        card = rounded(cover(im.convert("RGB"), 900, 900), 46); lay.alpha_composite(card, ((W - 900) // 2, (H - 900) // 2 - 40))
+        cs = 900 if top is None else int(max(420, min(900, 1400 - top)))
+        card = rounded(cover(im.convert("RGB"), cs, cs), 46); lay.alpha_composite(card, ((W - cs) // 2, (H - 900) // 2 - 40 if top is None else int(top)))
         return ("photo", lay, "", {"ding": True, "overlay": True})
-    co = ImageOps.contain(co, (W - 400, 640), Image.LANCZOS); x, y = (W - co.width) // 2, (H - co.height) // 2 - 30
+    named = bool((brand or base is not None) and p.get("brand")); size = 82; mh = 640
+    while named and size > 44 and _M.textlength(p["brand"].upper(), font=mfont(size, 900)) > W - 200: size -= 4
+    if top is not None:
+        if named: top += int(size * 0.74) + 36               # the brand's line, then a little air
+        foot = SAFE[3] - (70 + (290 if len(tag) > 1 and tag[1] else 212)) if tag else 1300; mh = int(max(300, min(640, foot - top)))
+    co = ImageOps.contain(co, (W - 400, mh), Image.LANCZOS); x, y = (W - co.width) // 2, (H - co.height) // 2 - 30
+    if top is not None: y = int(max(top, min(y, foot - co.height)))
     sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); sh.paste((20, 22, 30, 120), (x + 6, y + 26), co.getchannel("A")); lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(24)))
     lay.alpha_composite(co, (x, y))
-    if (brand or base is not None) and p.get("brand"):         # the brand name in plain type above the item
-        txt = p["brand"].upper(); size = 82
-        while size > 44 and _M.textlength(txt, font=mfont(size, 900)) > W - 200: size -= 4
-        f = mfont(size, 900); by = max(190, y - 250)             # clear of the arrow's path
+    if named:                                                 # the brand name in plain type above the item
+        txt = p["brand"].upper()
+        f = mfont(size, 900); by = max(190, y - 250) if top is None else int(top) - 36      # clear of the arrow's path; under a hook: right below the hook
         if base is not None:
             t2 = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(t2).text((W / 2 + 2, by + 4), txt, font=f, fill=(0, 0, 0, 170), anchor="ms"); lay.alpha_composite(t2.filter(ImageFilter.GaussianBlur(6)))
             ImageDraw.Draw(lay).text((W / 2, by), txt, font=f, fill=(255, 255, 255, 255), anchor="ms")
@@ -997,6 +1251,38 @@ def product_shot(p, over=None, brand=False, arrow=False, tag=None, cross=False):
     elif arrow and not tag: meta.update(fx="orbit", box=(x, y, x + co.width, y + co.height))
     return ("photo", lay, "", meta)
 
+def insert_shot(slug, txt=None, top=None):
+    """A generated picture from the asset library (a transparent PNG), centred on the moving paper at about 60% of the width, with an optional
+    small line under it in dark ink (two lines at most: a longer one ends in an ellipsis). top: the foot of a hook above it, which the
+    picture keeps clear of. Returns a shot, or None when the picture is missing."""
+    path = asset_file(slug, "image"); im = None
+    if path:
+        try: im = Image.open(path).convert("RGBA")
+        except Exception as e: print("  asset %s unreadable:" % slug, e)
+    if im is None:
+        im = asset_missing(slug, "image")
+        if im is None: return None
+        im = rounded(im, 44)
+    else:
+        a = im.getchannel("A")
+        if a.getextrema()[0] > 250:                           # no transparency after all: cut a plain background away, else show it as a rounded card
+            co = cutout(im); im = co if co is not None else rounded(im.convert("RGB"), max(8, min(im.size) // 16))
+        elif a.point(lambda v: 255 if v > 20 else 0).getbbox(): im = im.crop(a.point(lambda v: 255 if v > 20 else 0).getbbox())
+    txt = str(txt or "").strip().upper(); size = 54; mw = 2 * (SAFE[2] - W // 2)          # the line under it: like the small line of a price tag
+    while size > 34 and len(wrap(_M, txt, mfont(size, 800), mw)) > 2: size -= 4
+    f = mfont(size, 800); cl = wrap(_M, txt, f, mw); lh = int(size * 1.16)
+    if len(cl) > 2:                                           # too long for two lines: cut at a word, with an ellipsis, and say so
+        cl = [cl[0], next(c + "\u2026" for c in (" ".join(cl[1].split()[:j]).rstrip(" ,;:.-") for j in range(len(cl[1].split()), -1, -1)) if _M.textlength(c + "\u2026", font=f) <= mw)]
+        print("  WARNING: the line under the picture %s is too long for two lines and is cut: \"%s %s\"" % (slug, cl[0], cl[1]))
+    ch = (50 + lh * len(cl)) if cl else 0; low = top is not None
+    top, bot = (max(650, int(top)) if low else 300), 1410     # under a hook, above the address pill
+    im = ImageOps.contain(im, (650, max(160, min(820, bot - top - ch))), Image.LANCZOS); x = (W - im.width) // 2; y = max(top, min(bot - ch - im.height, (1010 if low else 940) - (im.height + ch) // 2))
+    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); sh.paste((20, 22, 30, 120), (x + 6, y + 26), im.getchannel("A")); lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(24)))
+    lay.alpha_composite(im, (x, y)); d = ImageDraw.Draw(lay)
+    for k, l in enumerate(cl): d.text((W / 2, y + im.height + 50 + k * lh), l, font=f, fill=(18, 20, 28, 255), anchor="ma")
+    return ("photo", lay, "", {"overlay": True, "insert": True})
+
 def best_item(D, brand, cat=None, look=8):
     """The best single photo of a brand's items: among its most-viewed, the cleanest, largest cut-out (side-on for shoes)."""
     best = None; seen = 0
@@ -1011,11 +1297,11 @@ def best_item(D, brand, cat=None, look=8):
         if seen >= look: break
     return best
 
-def board_shot(D, brand, cat=None):
-    """A brand board: the brand name on top and one good photo of its item, big, with the red ring and arrow."""
+def board_shot(D, brand, cat=None, top=None):
+    """A brand board: the brand name on top and one good photo of its item, big, with the red ring and arrow (top: under a hook, see product_shot)."""
     b = best_item(D, brand, cat)
     if not b: return None, []
-    return product_shot(b[2], None, True, True), [b[1]]
+    return product_shot(b[2], None, True, True, None, False, top), [b[1]]
 
 _SITE = {}
 def site_shot():
@@ -1045,32 +1331,58 @@ def draw_site(fr, tl):
         paste(fr, L, W / 2, y + int(24 * (1 - b)), 1.0, b)
 
 def fmt_style(D, a):
-    """Fast outfit-advice video: no presenter, footage with a cut on every beat, one-word captions, voice + music."""
-    try: vids = json.load(open(os.path.join(ROOT, "scripts", "styles.json"), encoding="utf-8"))
+    """Fast outfit-advice video: no presenter, footage with a cut on every beat, one-word captions, voice + music.
+    Per line, besides say / drive / products / ...: "hook" (on-screen text from the first frame, instead of the captions; a product or picture on
+    that line is set under it), "insert" (a generated picture on paper: slug or {"slug", "text"}), "stock" ([[slug, start], ...] from the asset
+    library, like drive), "sfx" ("bell" or [{"name", "at"}]: only the owner's own sound files, named in scripts/sounds.json, play; any other name
+    is left out with one log line), and on a drive / stock entry {"labels": [{"at": [x, y], "text", "sub"}]} (call-outs on the frozen frame; x and
+    y are fractions of the frame, best inside the safe area and, on an "addr" line, above y 0.73).
+    Sound: a video carries only the owner's sounds (the bell on a "bell" answer, and what "sfx" asks for). The six videos in LEGACY_SFX, or a
+    video with "legacy_sfx": true, keep the older generated / synthesized hits on products, red crosses, "boom" lines and the end screen;
+    "legacy_sfx": false takes them away from one of the six.
+    A library file that is missing: its shot is skipped with a warning and listed in the output JSON ("missing_assets"); with ASSET_STRICT=1
+    (posting runs) nothing is rendered and the exit code is not 0."""
+    try: vids = json.load(open(os.environ.get("STYLES_FILE", "").strip() or os.path.join(ROOT, "scripts", "styles.json"), encoding="utf-8"))
     except Exception as e: print("no styles.json:", e); return None
-    n = int(D.state.get("style", 0)) % len(vids); st = next((x for x in vids if x["id"] == a.id), vids[n]) if a.id else vids[n]
+    want = (a.id or "").strip(); n = int(D.state.get("style", 0)) % len(vids); st = next((x for x in vids if x["id"] == want), None) if want else vids[n]
+    if st is None and getattr(a, "format", None) == "style": raise SystemExit("no style video with the id %r in styles.json (there are: %s)" % (want, ", ".join(str(x["id"]) for x in vids)))      # asked for by name: never another video in its place
+    if st is None: st = vids[n]; print("  style: no video with the id %r, taking the next one in the rotation (%s)" % (want, st["id"]))
     sc, ids, hero = [], [], None
     for k, ln in enumerate(st["lines"]):
-        shots = [c for c in (drive_clip(*(d if isinstance(d, list) else [d])) for d in ln.get("drive") or []) if c] + picked(ln.get("clips")); first = shots[0] if shots else None
-        if ln.get("paper"): shots.insert(0, ("photo", backdrop("paper"), "", dict({"paper": True}, **({"fx": "tick", "ding": True} if ln.get("tick") else {}))))      # a text-only beat on paper
+        hook = str(ln["hook"]).strip() if ln.get("hook") else ""; top = hook_box(hook)[3] + 20 if hook else None; ins = ln.get("insert") or []; stk = ln.get("stock") or []
+        if hook and (hook_size(hook)[0] > 4 or hook_size(hook)[1] < 56): print("  WARNING: line %d: the hook is too long to read at a glance (%d lines of %d px type): shorten it, three large lines hold about twelve words" % ((k + 1,) + hook_size(hook)))
+        g = {"drive": [c for c in (drive_clip(*(d if isinstance(d, list) else [d])) for d in ln.get("drive") or []) if c] + picked(ln.get("clips")), "paper": [], "products": [], "boards": [], "qc": [], "site": [],
+             "stock": [stock_clip(*(d if isinstance(d, list) else [d])) for d in (stk if isinstance(stk, list) else [stk])],      # clips and generated pictures from the asset library (one entry or a list, as make_assets.py reads them)
+             "insert": [insert_shot(i.get("slug"), i.get("text"), top) if isinstance(i, dict) else insert_shot(i, None, top) for i in (ins if isinstance(ins, list) else [ins])]}
+        miss = sum(1 for key in ("stock", "insert") for c in g[key] if not c); g["stock"] = [c for c in g["stock"] if c]; g["insert"] = [c for c in g["insert"] if c]
+        first = g["drive"][0] if g["drive"] else next((c for c in g["stock"] if c[0] == "video"), None)
+        if ln.get("paper"): g["paper"].append(("photo", backdrop("paper"), "", dict({"paper": True}, **({"fx": "tick", "ding": True} if ln.get("tick") else {}))))      # a text-only beat on paper
         for pid in ln.get("products") or []:
             p = D.products.get(str(pid))
             tg = (ln.get("tags") or {}).get(str(pid))
-            ps = product_shot(p, first if ln.get("blur") else None, bool(ln.get("brand", True)), bool(ln.get("arrow", True)), tg, bool(ln.get("cross"))) if p else None
-            if ps: shots.append(ps); ids.append(str(pid)); hero = hero or p
-        nb = 0
+            ps = product_shot(p, first if ln.get("blur") else None, bool(ln.get("brand", not hook)), bool(ln.get("arrow", True)), tg, bool(ln.get("cross")), top) if p else None      # under a hook the brand name is left out unless asked for
+            if ps: g["products"].append(ps); ids.append(str(pid)); hero = hero or p
         for b in ln.get("boards") or []:                         # brand boards, one per brand, swapping in place
-            bs, bids = board_shot(D, b["brand"], b.get("cat"))
-            if bs: shots.insert(nb, bs); nb += 1; ids += bids; hero = hero or D.products[bids[0]]      # the board leads its line
+            bs, bids = board_shot(D, b["brand"], b.get("cat"), top)
+            if bs: g["boards"].append(bs); ids += bids; hero = hero or D.products[bids[0]]      # the board leads its line
         if ln.get("qc"):                                         # proof: the warehouse photos of this exact item
             qp = D.products.get(str(ln["qc"]))
-            for im in (qc_photos(str(ln["qc"]), qp, 3) if qp else []): shots.append(("photo", im.convert("RGB"), ""))
+            for im in (qc_photos(str(ln["qc"]), qp, 3) if qp else []): g["qc"].append(("photo", im.convert("RGB"), ""))
         if ln.get("site"):
             ss = site_shot()
-            if ss: shots.append(ss)
+            if ss: g["site"].append(ss)
+        keys = list(ln); at = lambda key: min([keys.index(x) for x in (("drive", "clips") if key == "drive" else (key,)) if x in keys] or [-1])
+        order = ["boards", "paper", "drive", "products", "qc", "site"]                   # the old kinds keep this order; stock and insert go where the script writes them
+        for key in sorted((x for x in ("stock", "insert") if g[x]), key=at): order.insert(next((j for j, o in enumerate(order) if at(o) > at(key)), len(order)), key)
+        shots = [c for key in order for c in g[key]]
         if ln.get("loop") and sc: shots += sc[0]["bg"][:3]        # end on the opening shots so the video loops
+        if not shots and miss: shots = [("photo", backdrop("paper"), "", {"paper": True})]; print("  WARNING: line %d has no picture left (missing assets): it plays on plain paper" % (k + 1))
         if not shots: continue
-        sc.append(dict(dur=2.0, say=ln["say"], bg=shots, music=st.get("music"), addr=bool(ln.get("addr")), nocap=bool(ln.get("site") or ln.get("nocap")), word=True, cut=ln.get("cut", 0.9), pad=ln.get("pad", 0.14), boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1)))
+        label_notes(k + 1, shots, hook, bool(ln.get("addr")))
+        sc.append(dict(dur=2.0, say=ln.get("say") or "", bg=shots, music=st.get("music"), addr=bool(ln.get("addr")), nocap=bool(ln.get("site") or ln.get("nocap") or hook), word=True, cut=ln.get("cut", 0.9), pad=ln.get("pad", 0.14), boom=bool(ln.get("boom")), last=(k == len(st["lines"]) - 1),
+                       hook=hook or None, instant=bool(hook) and not sc, sfx=sfx_hits(ln.get("sfx")), legacy=bool(st.get("legacy_sfx", st.get("id") in LEGACY_SFX))))
+    if MISSING and os.environ.get("ASSET_STRICT", "").strip() == "1":      # a posting run: never a video without its pictures
+        raise SystemExit("ASSET_STRICT: not in the asset library: %s. Nothing is rendered, so nothing is posted without them (make_assets.py makes them)" % ", ".join(MISSING))
     if len(sc) < 3: return None
     if not hero: hero = D.top(1, skip_done=False)[0][1]
     cap = "%s 👕 Everything is on the spreadsheet in the bio." % st["title"] + (("\n\n" + st["credits"]) if st.get("credits") else "")
@@ -1208,18 +1520,45 @@ def classic_ding():
     return a
 
 OWN_SFX = {"bell": "1LF83zDRLBfanryhwTRRxHhB0bpnrWJTe"}        # the owner's own sounds (Drive ids): "Ding - Sound Effect.mp3"
-def load_sfx(out_dir):
+OWNED = set()                                                 # the sounds that really are the owner's files: the only ones a video carries, the legacy ones apart
+LEGACY_SFX = {"price-sneakers", "autumn-sneakers", "dress-well-autumn", "three-piece-autumn", "the-belt", "white-sneakers-ranked"}      # the six videos from before the owner's-sounds-only rule keep the sound they were made with; "legacy_sfx": true / false on a video overrides this
+def own_sounds():
+    """The owner's sounds, name -> Drive file id: scripts/sounds.json on top of the built-in bell."""
+    own = dict(OWN_SFX)
+    try: own.update({str(k).strip().lower(): v.strip() for k, v in json.load(open(os.path.join(ROOT, "scripts", "sounds.json"), encoding="utf-8")).items() if isinstance(v, str) and v.strip()})
+    except Exception as e: print("  sounds.json not read:", e)
+    return own
+
+def sfx_hits(v):
+    """The "sfx" key of a line, a name or a list of names / {"name", "at"}: [(name, seconds after the line starts, gain)]."""
+    out = []
+    for h in (v if isinstance(v, list) else [v] if v else []):
+        if isinstance(h, str): h = {"name": h}
+        if not (isinstance(h, dict) and h.get("name")): continue
+        at, gain = 0.0, 0.5                                   # each read on its own: a bad "gain" does not move the sound to the start of the line
+        try: x = float(h.get("at") or 0); at = min(600.0, x) if x > 0 else 0.0
+        except Exception: pass
+        try: x = float(h.get("gain", 0.5)); gain = max(0.0, min(1.0, x)) if x == x else 0.5
+        except Exception: pass
+        out.append((str(h["name"]).strip().lower(), at, gain))
+    return out
+
+def load_sfx(out_dir, legacy=False):
+    """The owner's own sounds into SFX (and their names into OWNED): Drive files named in scripts/sounds.json, on top of the built-in bell id.
+    Nothing is generated and nothing is synthesized. legacy=True (the videos in LEGACY_SFX, or "legacy_sfx": true) adds what older videos had:
+    a built-in bell if the owner's cannot be fetched, and the five old sounds from scripts/sfx/<name>.mp3 or generated (never for a name in sounds.json)."""
     import array
-    SFX["bell"] = classic_ding()
-    for name, fid in OWN_SFX.items():
+    own = own_sounds()
+    if legacy: SFX["bell"] = classic_ding()
+    for name, fid in own.items():
         src = drive_file(fid, "mp3")
-        if not src: print("  own sfx %s unavailable, using the built-in one" % name); continue
-        raw = subprocess.run([FF, "-loglevel", "error", "-i", src, "-ac", "2", "-ar", "44100", "-af", "silenceremove=start_periods=1:start_threshold=-45dB,loudnorm=I=-16:TP=-2", "-t", "2.5", "-f", "s16le", "-"], stdout=subprocess.PIPE).stdout
-        if len(raw) > 4000: a = array.array("h"); a.frombytes(raw[:len(raw) // 4 * 4]); SFX[name] = a; print("  sfx: using the owner's %s (%.1fs)" % (name, len(a) / 2 / 44100))
-    """Sound effects from scripts/sfx/<name>.mp3 if present, else generated (saved next to the video so they can be kept)."""
-    import array
+        if not src: print("  own sfx %s unavailable%s" % (name, ", using the built-in one" if name in SFX else "")); continue
+        raw = subprocess.run([FF, "-loglevel", "error", "-i", src, "-ac", "2", "-ar", "44100", "-af", "silenceremove=start_periods=1:start_threshold=-45dB,loudnorm=I=-16:TP=-2", "-t", "2.5" if name == "bell" else "6", "-f", "s16le", "-"], stdout=subprocess.PIPE).stdout
+        if len(raw) > 4000: a = array.array("h"); a.frombytes(raw[:len(raw) // 4 * 4]); SFX[name] = a; OWNED.add(name); print("  sfx: using the owner's %s (%.1fs)" % (name, len(a) / 2 / 44100))
+    if not legacy: return
     key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
     for name, (prompt, dur) in SFX_PROMPTS.items():
+        if name in own: continue                              # a name in sounds.json is the owner's, loaded or not: nothing is generated for it
         src = os.path.join(ROOT, "scripts", "sfx", name + ".mp3")
         if not os.path.exists(src) and key:
             try:
@@ -1235,16 +1574,21 @@ def load_sfx(out_dir):
             if len(raw) > 4000: a = array.array("h"); a.frombytes(raw[:len(raw) // 4 * 4]); SFX[name] = a
 
 def sfx_track(scenes, path):
-    """Sound effects for a style video (thump on emphasis, pop on reveals, swish on the marker ring) as a stereo wav."""
+    """Sound effects for a style video as a stereo wav, the owner's own sounds only: the bell on a "bell" answer, what a line's "sfx" asks
+    for, and on the usual spots (a "boom" line, a red cross, a product reveal, the end screen, fast cuts) the owner's sound of that name
+    (boom, ding, swish, tick, reveal) once there is one in sounds.json; until then those spots are silent.
+    A legacy video (LEGACY_SFX, or "legacy_sfx": true) keeps the older generated sounds and the synthesized thump and ping there."""
     import array
-    total = sum(int(round(s["dur"] * FPS)) for s in scenes) / FPS; n = int(total * 44100); buf = array.array("h", [0]) * (n * 2); t0 = 0.0; any_hit = False
+    total = sum(int(round(s["dur"] * FPS)) for s in scenes) / FPS; n = int(total * 44100); buf = array.array("h", [0]) * (n * 2); t0 = 0.0; any_hit = False; skipped = set()
+    legacy = any(s.get("legacy") for s in scenes)
+    def snd(name): return SFX.get(name) if (legacy or name in OWNED) else None
     def mix(a, i0, gain=1.0):
         m = min(len(a), (n - i0) * 2)
         for j in range(max(0, m)):
             v = buf[2 * i0 + j] + int(a[j] * gain); buf[2 * i0 + j] = 32000 if v > 32000 else -32000 if v < -32000 else v
     for s in scenes:
-        if s.get("boom") and SFX.get("boom"): any_hit = True; mix(SFX["boom"], int(t0 * 44100), 0.6)
-        elif s.get("boom"):
+        if s.get("boom") and snd("boom"): any_hit = True; mix(snd("boom"), int(t0 * 44100), 0.6)
+        elif s.get("boom") and legacy:
             any_hit = True; i0 = int(t0 * 44100); ph = 0.0
             for i in range(int(0.35 * 44100)):
                 if i0 + i >= n: break
@@ -1256,21 +1600,28 @@ def sfx_track(scenes, path):
             for k in range(nseg):
                 meta = shots[k % len(shots)][3] if len(shots[k % len(shots)]) > 3 else {}
                 if not meta.get("ding"):                      # an ordinary cut: a barely-there tick on fast cuts, silence on slower ones (no swoosh between scenes)
-                    if (t0 > 0 or k > 0) and not meta.get("paper"):
-                        a = SFX.get("tick") if seg < 0.45 else None
+                    if (t0 > 0 or k > 0) and not meta.get("paper") and not meta.get("insert"):
+                        a = snd("tick") if seg < 0.45 else None
                         if a: any_hit = True; mix(a, int((t0 + k * seg) * 44100), 0.16 if seg < 0.45 else 0.2)
                     continue
-                any_hit = True; i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100)
-                if meta.get("bell") and SFX.get("bell"): mix(SFX["bell"], int((t0 + k * seg + 0.02) * 44100), 0.55); continue      # the answer: a clear ding
-                if meta.get("site") and SFX.get("reveal"): mix(SFX["reveal"], int((t0 + k * seg) * 44100), 0.2); continue    # the end screen has its own sound
-                if meta.get("fx") == "cross" and SFX.get("boom"): mix(SFX["boom"], i0, 0.55); continue
-                if meta.get("fx") == "orbit" and SFX.get("swish"): mix(SFX["swish"], i0, 0.4)
-                if SFX.get("ding"): mix(SFX["ding"], i0, 0.5); continue
-                for i in range(int(0.6 * 44100)):
-                    if i0 + i >= n: break
-                    t = i / 44100; env = math.exp(-t / 0.17) * min(1.0, i / 130)
-                    v = int(5200 * env * (math.sin(2 * math.pi * 2350 * t) + 0.38 * math.sin(2 * math.pi * 5170 * t) * math.exp(-t / 0.08) + 0.16 * math.sin(2 * math.pi * 7990 * t) * math.exp(-t / 0.05)))
-                    for c in (0, 1): buf[2 * (i0 + i) + c] = max(-32000, min(32000, buf[2 * (i0 + i) + c] + v))
+                i0 = int((t0 + k * seg + (0.1 if meta.get("fx") else 0.02)) * 44100); hit = True
+                if meta.get("bell") and snd("bell"): mix(snd("bell"), int((t0 + k * seg + 0.02) * 44100), 0.55)      # the answer: a clear ding
+                elif meta.get("site") and snd("reveal"): mix(snd("reveal"), int((t0 + k * seg) * 44100), 0.2)    # the end screen has its own sound
+                elif meta.get("fx") == "cross" and snd("boom"): mix(snd("boom"), i0, 0.55)
+                else:
+                    hit = bool(snd("ding") or legacy or (meta.get("fx") == "orbit" and snd("swish")))
+                    if meta.get("fx") == "orbit" and snd("swish"): mix(snd("swish"), i0, 0.4)
+                    if snd("ding"): mix(snd("ding"), i0, 0.5)
+                    elif legacy:
+                        for i in range(int(0.6 * 44100)):
+                            if i0 + i >= n: break
+                            t = i / 44100; env = math.exp(-t / 0.17) * min(1.0, i / 130)
+                            v = int(5200 * env * (math.sin(2 * math.pi * 2350 * t) + 0.38 * math.sin(2 * math.pi * 5170 * t) * math.exp(-t / 0.08) + 0.16 * math.sin(2 * math.pi * 7990 * t) * math.exp(-t / 0.05)))
+                            for c in (0, 1): buf[2 * (i0 + i) + c] = max(-32000, min(32000, buf[2 * (i0 + i) + c] + v))
+                any_hit = any_hit or hit
+        for name, at, gain in s.get("sfx") or []:                # sounds the script asks for by name: the owner's own files only, anything else is left out
+            if name in OWNED and SFX.get(name): any_hit = True; mix(SFX[name], int((t0 + at) * 44100), gain)
+            elif name not in skipped: skipped.add(name); print("  sfx: '%s' is not one of the owner's sounds (yet), left out" % name)
         t0 += dur
     if not any_hit: return None
     with wave.open(path, "wb") as w: w.setnchannels(2); w.setsampwidth(2); w.setframerate(44100); w.writeframes(buf.tobytes())
@@ -1328,7 +1679,7 @@ def render(scenes, out_path):
         own = next((s.get("music") for s in scenes if s.get("music")), None); own = drive_file(own, "mp3") if own else None
         music = (own or (random.choice(lib) if lib else None)) if style else (music_track(os.path.dirname(out_path), None) if any(s.get("news") for s in scenes) else None)
         if style: print("  music:", os.path.basename(music) if music else "none yet (waiting for the owner's tracks in scripts/music/)")
-        if style: load_sfx(os.path.dirname(out_path))
+        if style: load_sfx(os.path.dirname(out_path), any(s.get("legacy") for s in scenes))
         sfx = sfx_track(scenes, os.path.join(tmp, "sfx.wav")) if style else None
         cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
         cmd += ["-i", audio] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
@@ -1348,7 +1699,7 @@ def render(scenes, out_path):
                 lt = i / FPS; t_abs = (done + i) / FPS; fr = bg.copy(); fr.alpha_composite(logo, ((W - logo.size[0]) // 2, 150))
                 draw_scene(fr, s, lt, dur, FT)
                 draw_host(fr, s, lt, t_abs, FT)
-                if i == nf - 1: LASTF.update(im=fr.copy(), soft=bool(s.get("_quiet")))
+                if i == nf - 1: LASTF.update(im=fr.copy(), soft=bool(s.get("_soft")))
                 proc.stdin.write(fr.convert("RGB").tobytes())
             done += nf
             for c in list((s.get("_clips") or {}).values()) + ([s["_fg"]] if s.get("_fg") else []): c.close()
@@ -1418,7 +1769,7 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--voice-samples", action="store_true"); ap.add_argument("--make-presenters", action="store_true"); ap.add_argument("--presenter", type=int, default=0)
     ap.add_argument("--format", default="auto", choices=["auto"] + FORMATS); ap.add_argument("--id"); ap.add_argument("--slot", type=int)
     ap.add_argument("--out", default=os.path.join(ROOT, "out")); ap.add_argument("--commit-state", action="store_true")
-    a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
+    a = ap.parse_args(); a.id = (a.id or "").strip() or None; os.makedirs(a.out, exist_ok=True)
     if a.voice_samples: return voice_samples(a.out)
     if a.make_presenters: return make_presenters(a.out)
     D = Data(); n = a.slot if a.slot is not None else int(D.state.get("n", 0))
@@ -1436,6 +1787,7 @@ def main():
     secs, voiced = render(scenes, out)
     meta = {"format": fmt, "ids": ids, "caption": caption, "seconds": round(secs, 1), "voiceover": voiced, "file": out,
             "product_url": ("%s/product/%s" % (SITE, ids[0])) if ids else SITE + "/"}
+    if MISSING: meta["missing_assets"] = list(MISSING); print("  WARNING: this video is missing %d library file(s) and is not fit to post: %s" % (len(MISSING), ", ".join(MISSING)))
     json.dump(meta, open(out[:-4] + ".json", "w"), indent=1, ensure_ascii=False)
     print("wrote", out, "%.1fs" % secs, "%.1f MB" % (os.path.getsize(out) / 1e6), "voiceover" if voiced else "silent")
     if a.commit_state:
