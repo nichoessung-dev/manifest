@@ -1,8 +1,8 @@
 // Routes the server-rendered SEO pages (hubs, guides, sitemaps) and turns the SPA's catch-all
 // "200 + homepage" for unknown paths into a real 404, so Google doesn't see soft-404 duplicates.
-import { notFound, ensureStats, BRAND_ALIAS, slug } from "./_lib/site.js";
+import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
-  sitemapIndex, sitemapPages, sitemapProducts } from "./_lib/pages.js";
+  sitemapIndex, sitemapPages, sitemapProducts, mergedBest } from "./_lib/pages.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
@@ -10,8 +10,13 @@ const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/
 const VERIFY = { "/googleaea131de20fbf72e.html": "google-site-verification: googleaea131de20fbf72e.html" };
 // Paths answered by real Functions (exact shapes only, so /api/nope, /product/ or /product/<id>/x still 404).
 const PASS = /^\/api\/(qc|img|geo)$|^\/r\/[^/]+$|^\/product\/[^/]+$|^\/unsubscribe$/;
-// Repo-internal files that Pages would otherwise serve from the repo root.
-const PRIVATE = /^\/(scripts|\.github|functions)(\/|$)|^\/(readme\.md|discord_posted\.json|nonsb\.txt)$/i;
+// Repo-internal files that Pages would otherwise serve from the repo root (scripts, workflows, the bots' state files).
+// Tested on the path as sent and on its percent-decoded form: Pages decodes the path to find the file, so
+// /%73cripts/x.py used to slip past a rule that only saw the encoded spelling.
+const PRIVATE = /^\/+(scripts|\.github|functions)(\/|$)|^\/+(readme\.md|discord_posted\.json|discord_sent\.json|finds_used\.json|shorts_log\.json|nonsb\.txt)$/i;
+const decoded = p => { try { return decodeURIComponent(p); } catch (e) { return p; } };
+// The project's own *.pages.dev address. Its subdomains are preview deployments (<commit>.… and <branch>.…).
+const PAGES_DEV = "manifest-bq9.pages.dev";
 const json404 = () => new Response(JSON.stringify({ error: "not found" }), { status: 404, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 
 // Old hub URLs of merged brand spellings (/brand/essential -> /brand/essentials)
@@ -26,16 +31,29 @@ function paged(fn, arg, nStr, base) {
   return fn(arg, n);
 }
 
+// Preview deployments are served as they are, so a change can be tried on Cloudflare before it goes live, but never
+// indexed: every answer from one carries "x-robots-tag: noindex" (canonical tags point at www.puroclassico.com anyway).
 export async function onRequest(ctx) {
+  const res = await route(ctx);
+  if (!new URL(ctx.request.url).hostname.endsWith("." + PAGES_DEV)) return res;
+  const out = new Response(res.body, res);   // a copy, because the headers of a redirect or a static asset cannot be changed
+  out.headers.set("x-robots-tag", "noindex");
+  return out;
+}
+
+async function route(ctx) {
   const { request } = ctx;
   if (request.method !== "GET" && request.method !== "HEAD") return ctx.next();
   const url = new URL(request.url);
   const path = url.pathname;
-  // The old *.pages.dev address still resolves: send everything to the real domain so traffic and ranking are not split.
-  if (url.hostname.endsWith(".pages.dev")) return Response.redirect("https://www.puroclassico.com" + path + url.search, 301);
+  // The old pages.dev address still resolves: send everything to the real domain so traffic and ranking are not split.
+  if (url.hostname === PAGES_DEV) return Response.redirect("https://www.puroclassico.com" + path + url.search, 301);
   // Search-engine ownership files, answered here so Pages' ".html -> pretty URL" redirect can't get in the way.
   if (VERIFY[path]) return new Response(VERIFY[path], { headers: { "content-type": "text/html; charset=utf-8" } });
-  if (PRIVATE.test(path)) return notFound(path);
+  // /discord (any case, with or without a trailing slash) is the one address the site, static pages and emails link to.
+  // 302 + no-store, so a new invite in DISCORD_INVITE takes effect at once and is never cached as permanent.
+  if (/^\/discord\/?$/i.test(path)) return new Response(null, { status: 302, headers: { location: DISCORD_INVITE, "cache-control": "no-store" } });
+  if (PRIVATE.test(path) || PRIVATE.test(decoded(path))) return notFound(path);
   if (PASS.test(path)) {
     if (path.startsWith("/api/")) {
       if (request.method === "HEAD" && path === "/api/qc") return new Response(null, { status: 405, headers: { allow: "GET" } }); // don't spend QC quota
@@ -50,7 +68,8 @@ export async function onRequest(ctx) {
   if (/^\/(brand|category|brands|old-money|guides|best|tools)\b|^\/[a-z]+-spreadsheet/i.test(to)) to = to.toLowerCase();
   if (to !== path) return Response.redirect(url.origin + to + url.search, 301);
   let m, res = undefined;
-  if (/^\/(brand|category|brands|old-money|guides|best)|^\/[a-z]+-spreadsheet/.test(path)) await ensureStats(url.origin);
+  const usesStats = /^\/(brand|category|brands|old-money|guides|best)|^\/[a-z]+-spreadsheet/.test(path);
+  if (usesStats) await ensureStats(url.origin);
   if (path === "/sitemap.xml") return sitemapIndex();
   if (path === "/sitemap-pages.xml") return sitemapPages();
   if (path === "/sitemap-products.xml") return sitemapProducts();
@@ -58,15 +77,27 @@ export async function onRequest(ctx) {
   else if (path === "/guides") res = renderGuides();
   else if ((m = path.match(/^\/guides\/([a-z0-9-]+)$/))) res = renderGuide(m[1]);
   else if (path === "/best") res = renderModels();
-  else if ((m = path.match(/^\/best\/([a-z0-9-]+)(?:\/(\d+))?$/))) res = paged(renderModel, m[1], m[2], url.origin + "/best/" + m[1]);
+  else if ((m = path.match(/^\/best\/([a-z0-9-]+)(?:\/(\d+))?$/))) {
+    // A "best" page that was merged into its brand hub (BEST_MERGED in pages.js): one 301 to the hub, page number dropped.
+    const hubUrl = mergedBest(m[1]);
+    if (hubUrl) return Response.redirect(url.origin + hubUrl, 301);
+    res = paged(renderModel, m[1], m[2], url.origin + "/best/" + m[1]);
+  }
   else if (path === "/tools") res = renderTools();
   else if ((m = path.match(/^\/tools\/([a-z0-9-]+)$/))) res = renderTool(m[1]);
-  else if ((m = path.match(/^\/brand\/([a-z0-9-]+)(?:\/(\d+))?$/)) && BRAND_MOVED[m[1]]) return Response.redirect(url.origin + "/brand/" + BRAND_MOVED[m[1]], 301);
+  // An old spelling redirects only when the brand it was merged into has a hub; otherwise it is a plain 404, not a 301 to a 404.
+  else if ((m = path.match(/^\/brand\/([a-z0-9-]+)(?:\/(\d+))?$/)) && BRAND_MOVED[m[1]] && idx().slugBrand.has(BRAND_MOVED[m[1]])) return Response.redirect(url.origin + "/brand/" + BRAND_MOVED[m[1]], 301);
   else if (m) res = paged(renderBrand, m[1], m[2], url.origin + "/brand/" + m[1]);
   else if ((m = path.match(/^\/category\/([a-z0-9-]+)(?:\/(\d+))?$/))) res = paged(renderCategory, m[1], m[2], url.origin + "/category/" + m[1]);
   else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet(?:\/(\d+))?$/))) res = paged(renderAgent, m[1], m[2], url.origin + `/${m[1]}-spreadsheet`);
   else if ((m = path.match(/^\/old-money(?:\/(\d+))?$/))) res = paged((_, n) => renderOldMoney(n), null, m[1], url.origin + "/old-money");
-  if (res !== undefined) return res || notFound(path);
+  if (res !== undefined) {
+    if (!res) return notFound(path);
+    // Rendered before any view stats could be read (a failed read on a fresh server instance): the finds are in a
+    // different order and the view-based picks are missing. Correct, but not a copy to keep for an hour.
+    if (usesStats && !statsLoaded() && res.status === 200) res.headers.set("cache-control", "public, max-age=60");
+    return res;
+  }
 
   const out = await ctx.next();
   const ct = out.headers.get("content-type") || "";
