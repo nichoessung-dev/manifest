@@ -130,6 +130,7 @@ def main():
     ap.add_argument("--slides", type=int, default=7); ap.add_argument("--title", default=""); ap.add_argument("--part", type=int, default=0)
     ap.add_argument("--hold", type=float, default=2.2); ap.add_argument("--out", default=os.path.join(ROOT, "out")); ap.add_argument("--seed", type=int)
     ap.add_argument("--video", action="store_true", help="a full-screen 9:16 video of the slides instead of a photo carousel")
+    ap.add_argument("--qc-cover", action="store_true", help="the start picture is one of the QC photos, so the post shows QC photos only")
     ap.add_argument("--commit-state", action="store_true"); a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
     rnd = random.Random(a.seed)
     if a.local: pool = [(hashlib.md5(open(f, "rb").read()).hexdigest(), f) for f in sorted(glob.glob(os.path.join(a.local, "*"))) if f.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
@@ -137,7 +138,7 @@ def main():
     pool = list(dict(pool).items()); state_path = os.path.join(ROOT, "finds_used.json")
     try: used = json.load(open(state_path))
     except Exception: used = {"count": {}, "part": 0}
-    need = a.slides * 2
+    need = a.slides * 2 + (1 if a.qc_cover else 0)             # one more photo when the start picture is a QC photo too
     if len(pool) < need: raise SystemExit("only %d photos in the pool, need %d" % (len(pool), need))
     rnd.shuffle(pool); pool.sort(key=lambda p: used["count"].get(p[0], 0))          # least-used photos first, in random order among equally used ones
     bad = set(used.get("skip", [])); ims = []                   # photos that could not be used are remembered, not retried
@@ -154,7 +155,8 @@ def main():
     if len(ims) < need:                                         # never publish a post with missing slides
         if a.commit_state: json.dump(used, open(state_path, "w"), indent=0)
         raise SystemExit("only %d usable photos, need %d" % (len(ims), need))
-    ims = ims[:need]; rnd.shuffle(ims)
+    ims = ims[:need]; rnd.shuffle(ims); picked = sorted({pid for pid, _ in ims})
+    qc_bg = ims.pop()[1] if a.qc_cover else None
     for k in range(0, len(ims) - 1, 2):                         # two shots from the same file do not share a slide
         if ims[k][0] == ims[k + 1][0] and k + 2 < len(ims): ims[k + 1], ims[k + 2] = ims[k + 2], ims[k + 1]
     part = a.part or int(used.get("part", 0)) + 1
@@ -163,14 +165,15 @@ def main():
     caption = "%s\n\n%s" % (hook[0].upper() + hook[1:], " ".join(["#grisch", "#oldmoney"] + rnd.sample(TAGS, 3)))
     FW, FH = (W, H) if a.video else (SW, SH)                     # video slides fill the 9:16 screen; carousel slides are 3:4
     bg, cover_id = None, None
-    if a.cover and drive_get(a.cover, "img"): bg = Image.open(drive_get(a.cover, "img"))
+    if qc_bg is not None: bg = qc_bg
+    elif a.cover and drive_get(a.cover, "img"): bg = Image.open(drive_get(a.cover, "img"))
     elif a.covers:                                               # a start picture from the folder, least used first
         cu = used.setdefault("covers", {}); cl = [i for i, t in drive_list(a.covers) if t.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
         rnd.shuffle(cl); cl.sort(key=lambda i: cu.get(i, 0))
         for cid in cl[:6]:
             try: bg = Image.open(drive_get(cid, "img")); bg.load(); cover_id = cid; break
             except Exception as e: bg = None; print("  skipping a start picture:", e)
-    frames = [(cover_card(title, FW, FH, bg), 1.4)]
+    frames = [(cover_card(title, FW, FH, bg), min(1.4, max(0.9, a.hold * 1.4)))]      # the start picture stays a little longer than a slide
     for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH), a.hold))
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
     cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
@@ -189,7 +192,7 @@ def main():
     json.dump(meta, open(out[:-4] + ".json", "w"), indent=1, ensure_ascii=False)
     print("wrote", out, "%.1fs" % total, len(frames) - 1, "slides", "with sound" if audio else "silent")
     if a.commit_state:
-        for pid in sorted({pid for pid, _ in ims}): used["count"][pid] = used["count"].get(pid, 0) + 1
+        for pid in picked: used["count"][pid] = used["count"].get(pid, 0) + 1
         if cover_id: used["covers"][cover_id] = used["covers"].get(cover_id, 0) + 1
         used["part"] = part; json.dump(used, open(state_path, "w"), indent=0)
 

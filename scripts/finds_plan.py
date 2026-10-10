@@ -20,7 +20,9 @@ TZ = ZoneInfo("Europe/Oslo")
 PROFILE = "https://www.tiktok.com/@puroclassico.com"
 MODE = os.environ.get("FINDS_MODE", "video")                 # "video" (full-screen slideshow with sound) or "carousel" (swipeable photos)
 AUDIO = os.environ.get("FINDS_AUDIO", "1Jl7ptfgdvN4FlMiEW0Y3NZpzKhIGDlrx")   # the owner's sound, a Drive file id
-COVERS = os.environ.get("FINDS_COVERS", "1JhKCH6D4h9sadBvDN86Rayp0stzUoD9d")  # Drive folder of start pictures: the owner's cleared outfit photos
+COVERS = os.environ.get("FINDS_COVERS", "")                  # Drive folder of start pictures; empty = the start picture is a QC photo too (QC photos only)
+SLIDES = os.environ.get("FINDS_SLIDES", "12")                # slides per post, two QC photos on each
+HOLD = os.environ.get("FINDS_HOLD", "0.8")                   # seconds each slide stays up: the pictures swap fast
 
 
 def wanted_slots(now):
@@ -50,7 +52,7 @@ def top_up():
     for t in wanted_slots(now):
         if any(abs((t - h).total_seconds()) < 1800 for h in have): continue
         out = os.path.join(ROOT, "out", t.strftime("%m%d-%H%M")); os.makedirs(out, exist_ok=True)
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "make_finds.py"), "--folder", os.environ["FINDS_FOLDER"], "--slides", "7", "--commit-state", "--out", out] + (["--video"] if MODE == "video" else []) + (["--audio", AUDIO] if AUDIO else []) + (["--covers", COVERS] if COVERS else []))
+        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "make_finds.py"), "--folder", os.environ["FINDS_FOLDER"], "--slides", SLIDES, "--hold", HOLD, "--commit-state", "--out", out] + (["--video"] if MODE == "video" else []) + (["--audio", AUDIO] if AUDIO else []) + (["--covers", COVERS] if COVERS else ["--qc-cover"]))
         metas = [f for f in os.listdir(out) if f.endswith(".json")]
         if r.returncode or not metas: print("could not build the carousel for", t); continue
         env = dict(os.environ, SCHEDULE_AT=t.strftime("%Y-%m-%dT%H:%M:%S.000Z"))
