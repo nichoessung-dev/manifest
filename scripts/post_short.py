@@ -132,6 +132,8 @@ def main():
     start = first
     try: seen = {u for e in json.load(open(os.path.join(ROOT, "shorts_log.json"))) for u in (e.get("links") or {}).values()}
     except Exception: seen = set()
+    try: seen |= set(json.load(open(os.path.join(ROOT, "discord_sent.json"))))      # posts the Finds job already knows are not the new one either
+    except Exception: pass
     for k, v in list(links.items()):                              # TikTok Business only reports the profile: look up the newest post there
         if k.startswith("tiktok") and "/video/" not in v and "/photo/" not in v:
             import subprocess
@@ -154,7 +156,7 @@ def main():
     hook = os.environ.get("MYCNBOX_WEBHOOK", "").strip()
     tk = next((v for k, v in links.items() if k.startswith("tiktok")), None)
     if tk: links["tiktok"] = tk
-    if hook and links.get("tiktok"):
+    if hook and links.get("tiktok") and not os.path.exists(os.path.join(ROOT, "discord_sent.json")):      # the Finds job sends every new post on the profile: sending here too would send it twice
         msg = {"content": links["tiktok"], "username": "Puro Classico", "allowed_mentions": {"parse": []}}       # only the TikTok link
         req = urllib.request.Request(hook + "?wait=true", data=json.dumps(msg).encode(), headers={"Content-Type": "application/json", "User-Agent": UA}, method="POST")
         try: urllib.request.urlopen(req, timeout=30); print("sent TikTok link to the Discord webhook")
