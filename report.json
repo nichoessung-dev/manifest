@@ -1,0 +1,259 @@
+{
+ "openai_key_present": true,
+ "pixabay_key_present": true,
+ "models_status": 200,
+ "models_error": null,
+ "n_models": 133,
+ "image_models": [
+  "chatgpt-image-latest",
+  "gpt-image-1",
+  "gpt-image-1-mini",
+  "gpt-image-1.5",
+  "gpt-image-2",
+  "gpt-image-2-2026-04-21",
+  "gpt-image-2.5-flare",
+  "gpt-image-2.5-flare-2026-09-08",
+  "gpt-image-2.5-sunburst",
+  "gpt-image-2.5-sunburst-2026-09-08"
+ ],
+ "audio_models": [
+  "gpt-4o-mini-transcribe",
+  "gpt-4o-mini-transcribe-2025-03-20",
+  "gpt-4o-mini-transcribe-2025-12-15",
+  "gpt-4o-mini-tts",
+  "gpt-4o-mini-tts-2025-03-20",
+  "gpt-4o-mini-tts-2025-12-15",
+  "gpt-4o-transcribe",
+  "gpt-4o-transcribe-diarize",
+  "gpt-live-transcribe",
+  "gpt-realtime-whisper",
+  "gpt-transcribe",
+  "tts-1",
+  "tts-1-1106",
+  "tts-1-hd",
+  "tts-1-hd-1106",
+  "whisper-1"
+ ],
+ "video_models": [
+  "sora-2",
+  "sora-2-pro"
+ ],
+ "generation": {
+  "gpt-image-2.5-flare|transparent": {
+   "ok": true,
+   "file": "gpt-image-2_5-flare_transparent.png",
+   "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+     "image_tokens": 0,
+     "text_tokens": 41
+    },
+    "output_tokens": 196,
+    "output_tokens_details": {
+     "image_tokens": 196,
+     "text_tokens": 0
+    },
+    "total_tokens": 237
+   }
+  },
+  "gpt-image-2.5-sunburst|transparent": {
+   "ok": true,
+   "file": "gpt-image-2_5-sunburst_transparent.png",
+   "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+     "image_tokens": 0,
+     "text_tokens": 41
+    },
+    "output_tokens": 196,
+    "output_tokens_details": {
+     "image_tokens": 196,
+     "text_tokens": 0
+    },
+    "total_tokens": 237
+   }
+  },
+  "gpt-image-2-2026-04-21|transparent": {
+   "ok": false,
+   "status": 400,
+   "error": "Transparent background is not supported for this model."
+  },
+  "gpt-image-1.5|transparent": {
+   "ok": true,
+   "file": "gpt-image-1_5_transparent.png",
+   "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+     "image_tokens": 0,
+     "text_tokens": 41
+    },
+    "output_tokens": 429,
+    "output_tokens_details": {
+     "image_tokens": 272,
+     "text_tokens": 157
+    },
+    "total_tokens": 470
+   }
+  },
+  "gpt-image-1|transparent": {
+   "ok": true,
+   "file": "gpt-image-1_transparent.png",
+   "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+     "image_tokens": 0,
+     "text_tokens": 41
+    },
+    "output_tokens": 272,
+    "output_tokens_details": {
+     "image_tokens": 272,
+     "text_tokens": 0
+    },
+    "total_tokens": 313
+   }
+  },
+  "gpt-image-2|green-medium": {
+   "ok": true,
+   "file": "gpt-image-2_green.png",
+   "usage": {
+    "input_tokens": 72,
+    "input_tokens_details": {
+     "image_tokens": 0,
+     "text_tokens": 72
+    },
+    "output_tokens": 1756,
+    "output_tokens_details": {
+     "image_tokens": 1756,
+     "text_tokens": 0
+    },
+    "total_tokens": 1828
+   }
+  }
+ },
+ "pixabay_videos": {
+  "status": 200,
+  "total": 500,
+  "sample": [
+   {
+    "id": 50622,
+    "duration": 20,
+    "tags": "money, income, salary, dollars, counting cash, payment, counting, finance, pay, currency, loan, amount, prices, wallet, investments",
+    "user": "Hassas_Arts",
+    "sizes": {
+     "large": [
+      1920,
+      1080
+     ],
+     "medium": [
+      1280,
+      720
+     ],
+     "small": [
+      960,
+      540
+     ],
+     "tiny": [
+      640,
+      360
+     ]
+    }
+   },
+   {
+    "id": 59139,
+    "duration": 20,
+    "tags": "money, budget, count, cash, counting, calculator, finance, mortgage, economy, payment, business",
+    "user": "Hassas_Arts",
+    "sizes": {
+     "large": [
+      1920,
+      1080
+     ],
+     "medium": [
+      1280,
+      720
+     ],
+     "small": [
+      960,
+      540
+     ],
+     "tiny": [
+      640,
+      360
+     ]
+    }
+   },
+   {
+    "id": 50628,
+    "duration": 8,
+    "tags": "money, income, salary, dollars, counting cash, payment, counting, finance, pay, currency, loan, amount, prices, wallet, investments",
+    "user": "Hassas_Arts",
+    "sizes": {
+     "large": [
+      1920,
+      1080
+     ],
+     "medium": [
+      1280,
+      720
+     ],
+     "small": [
+      960,
+      540
+     ],
+     "tiny": [
+      640,
+      360
+     ]
+    }
+   },
+   {
+    "id": 153460,
+    "duration": 9,
+    "tags": "cash, bills, banknotes, income, business, currency, dollar, finance, money, counting, economy, financial, usd, wealth, 100, american, exchange, savings, budget, usa",
+    "user": "34168960",
+    "sizes": {
+     "large": [
+      1920,
+      1080
+     ],
+     "medium": [
+      1280,
+      720
+     ],
+     "small": [
+      960,
+      540
+     ],
+     "tiny": [
+      640,
+      360
+     ]
+    }
+   },
+   {
+    "id": 20857,
+    "duration": 23,
+    "tags": "pay, money, dollar, hands, currency, bank note, finance, business, paper money, cash and cash equivalents, bank, seem, award, pension, loose change, flowers, counterfeit money",
+    "user": "RoyBuri",
+    "sizes": {
+     "large": [
+      3840,
+      2160
+     ],
+     "medium": [
+      2560,
+      1440
+     ],
+     "small": [
+      1920,
+      1080
+     ],
+     "tiny": [
+      1280,
+      720
+     ]
+    }
+   }
+  ]
+ }
+}
