@@ -35,6 +35,34 @@ def drive_list(folder):
     return [(i, html.unescape(t)) for i, t in re.findall(r'id="entry-([A-Za-z0-9_-]{20,})".*?class="flip-entry-title">(.*?)</div>', h, re.S)]
 
 
+IMG_EXT = (".png", ".jpg", ".jpeg", ".webp")
+
+
+def drive_images(folder, depth=0):
+    """Every picture in a Drive folder, including pictures in its subfolders (the owner uploads batches as folders)."""
+    out = []
+    for i, t in drive_list(folder):
+        if t.lower().endswith(IMG_EXT): out.append((i, None))
+        elif "." not in t and depth < 2:
+            try: out += drive_images(i, depth + 1)
+            except Exception as e: print("  could not read the subfolder %s: %s" % (t, e))
+    return out
+
+
+def split_stacked(im):
+    """A source that is already two shots stacked. Tall ones (the first uploads) give their main, top shot; the slide exports give both shots.
+    Returns the usable shots, or None when a tall picture has no join near the middle."""
+    r = im.height / float(im.width)
+    if r <= 1.22: return [im]
+    g = im.convert("L").resize((240, max(4, int(240 * r)))); w, h = g.size; px = g.load(); cov, row = 0.0, h // 2
+    for y in range(int(h * 0.40), int(h * 0.60)):               # the join: a row where nearly every column changes at once
+        c = sum(1 for x in range(w) if abs(px[x, y] - px[x, y + 1]) > 18) / float(w)
+        if c > cov: cov, row = c, y + 1
+    cut = int(round(row * im.height / float(h)))
+    if r > 1.5: return [im.crop((0, 0, im.width, cut))] if cov >= 0.5 else None
+    return [im.crop((0, 0, im.width, cut)), im.crop((0, cut, im.width, im.height))] if cov >= 0.5 else [im]
+
+
 def drive_get(fid, ext):
     path = os.path.join(CACHE, "%s.%s" % (fid, ext))
     if not os.path.exists(path):
@@ -105,7 +133,7 @@ def main():
     ap.add_argument("--commit-state", action="store_true"); a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
     rnd = random.Random(a.seed)
     if a.local: pool = [(hashlib.md5(open(f, "rb").read()).hexdigest(), f) for f in sorted(glob.glob(os.path.join(a.local, "*"))) if f.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
-    else: pool = [(i, None) for i, t in drive_list(a.folder) if t.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
+    else: pool = drive_images(a.folder)
     pool = list(dict(pool).items()); state_path = os.path.join(ROOT, "finds_used.json")
     try: used = json.load(open(state_path))
     except Exception: used = {"count": {}, "part": 0}
@@ -117,20 +145,18 @@ def main():
         if len(ims) >= need: break
         path = path or drive_get(pid, "img")
         try:
-            im = Image.open(path).convert("RGB")
-            if im.height > im.width * 1.5:                       # a source that is already two stacked shots: keep the main (top) one
-                g = im.convert("L").resize((48, 240)); px = g.load(); rows = [sum(px[x, y] for x in range(48)) / 48.0 for y in range(240)]
-                seam = max(range(48, 192), key=lambda y: abs(rows[y] - rows[y - 1]) + abs(rows[y + 1] - rows[y]))
-                if not 108 <= seam <= 132: print("  skipping an oddly laid out photo"); bad.add(pid); continue      # the join is not in the middle
-                im = im.crop((0, 0, im.width, im.height // 2))
-            mx = int(im.width * 0.012); im = im.crop((mx, mx, im.width - mx, im.height - mx))        # only a hair off the edges
-            ims.append((pid, im))
+            parts = split_stacked(Image.open(path).convert("RGB"))
+            if parts is None: print("  skipping an oddly laid out photo"); bad.add(pid); continue      # the join is not in the middle
+            for im in parts:
+                mx = int(im.width * 0.012); ims.append((pid, im.crop((mx, mx, im.width - mx, im.height - mx))))        # only a hair off the edges
         except Exception as e: print("  skipping a photo:", e)
     used["skip"] = sorted(bad)
     if len(ims) < need:                                         # never publish a post with missing slides
         if a.commit_state: json.dump(used, open(state_path, "w"), indent=0)
         raise SystemExit("only %d usable photos, need %d" % (len(ims), need))
-    rnd.shuffle(ims)
+    ims = ims[:need]; rnd.shuffle(ims)
+    for k in range(0, len(ims) - 1, 2):                         # two shots from the same file do not share a slide
+        if ims[k][0] == ims[k + 1][0] and k + 2 < len(ims): ims[k + 1], ims[k + 2] = ims[k + 2], ims[k + 1]
     part = a.part or int(used.get("part", 0)) + 1
     title = a.title or COVER_TEXT                               # the cover always says the same; the caption hook and tags vary
     hook = rnd.choice(HOOKS) % title.lower()
@@ -163,7 +189,7 @@ def main():
     json.dump(meta, open(out[:-4] + ".json", "w"), indent=1, ensure_ascii=False)
     print("wrote", out, "%.1fs" % total, len(frames) - 1, "slides", "with sound" if audio else "silent")
     if a.commit_state:
-        for pid, _ in ims: used["count"][pid] = used["count"].get(pid, 0) + 1
+        for pid in sorted({pid for pid, _ in ims}): used["count"][pid] = used["count"].get(pid, 0) + 1
         if cover_id: used["covers"][cover_id] = used["covers"].get(cover_id, 0) + 1
         used["part"] = part; json.dump(used, open(state_path, "w"), indent=0)
 
