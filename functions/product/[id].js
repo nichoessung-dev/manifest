@@ -1,7 +1,7 @@
 // /product/<id> — a fully server-rendered product page (H1, price, QC photos, agent links, related finds),
 // so every find is a real, fast, indexable page. Finds without QC photos are noindex,follow.
 // Unknown/removed ids get a real 404.
-import { renderProduct } from "../_lib/pages.js";
+import { renderProduct, PRODUCT_TPL } from "../_lib/pages.js";
 import { notFound, ensureStats, BUILT } from "../_lib/site.js";
 
 const PAGE_TTL = 60 * 60 * 24;     // 1 day
@@ -14,9 +14,10 @@ export async function onRequestGet(context) {
   let id;
   try { id = decodeURIComponent(params.id || ""); } catch (e) { return notFound(url.pathname); }  // malformed %-escape
   if (!/^[0-9A-Za-z_-]{1,40}$/.test(id)) return notFound(url.pathname);
-  // Edge-cache the rendered page (per catalogue build) so crawls don't trigger a live /api/qc lookup on every render.
+  // Edge-cache the rendered page (per catalogue build and per page-template version) so crawls don't trigger a live
+  // /api/qc lookup on every render. BUILT stays the same until the catalogue data changes; PRODUCT_TPL covers the rest.
   const cache = caches.default;
-  const key = new Request(`https://ssr-cache.internal/product/${BUILT}/${encodeURIComponent(id)}`, { method: "GET" });
+  const key = new Request(`https://ssr-cache.internal/product/${BUILT}-${PRODUCT_TPL}/${encodeURIComponent(id)}`, { method: "GET" });
   const hit = await cache.match(key);
   if (hit) { const r = new Response(hit.body, hit); r.headers.set("cache-control", BROWSER_CC); r.headers.set("x-ssr-cache", "HIT"); return r; }
   await ensureStats(url.origin);
