@@ -2,6 +2,7 @@ name: Shorts
 # Renders a short video about the most-viewed finds and posts it to TikTok / YouTube / Instagram / Threads via Postiz.
 # Scheduled runs only post when the repo variable SHORTS_LIVE is "true" (Settings -> Secrets and variables -> Actions -> Variables).
 # Manual runs (Run workflow) default to a test: the video is rendered and attached to the run, nothing is posted.
+# A style video (scripts/styles.json) is rendered by typing its id; with a style id, "auto" and "style" both render that video.
 on:
   schedule:
     - cron: '0 16 * * *'   # 16:00 UTC
@@ -9,12 +10,12 @@ on:
   workflow_dispatch:
     inputs:
       format:
-        description: 'Video format'
+        description: 'Video format (auto or style for a style id)'
         type: choice
         default: auto
-        options: [auto, top5, guess, qc, spotlight, term, order]
+        options: [auto, style, top5, guess, qc, term, order]
       id:
-        description: 'Story id or product id (optional)'
+        description: 'Style id, story id or product id (optional)'
         type: string
         default: ''
       candidates:
@@ -35,7 +36,8 @@ on:
         default: false
 permissions:
   contents: write
-concurrency: shorts
+# Its own queue: sharing one with the Finds job (which runs every few minutes) let a waiting video run be cancelled by the next Finds tick.
+concurrency: shorts-video
 jobs:
   short:
     runs-on: ubuntu-latest
@@ -55,6 +57,101 @@ jobs:
           python - <<'PY'
           import json; m = json.load(open("out/preview.json")); m["file"] = "out/preview.mp4"; json.dump(m, open("out/preview.json", "w"))
           PY
+      # The asset library (generated pictures, stock clips) lives on the "assets" branch. None of the asset steps can stop a test video.
+      # A run that posts straight away stops at Render when a picture or clip its video needs is missing (ASSET_STRICT), and a library
+      # that could not be read or saved turns the run red in the very last step, after the video. Only style videos use the library.
+      - name: Asset library (branch "assets" into assets-lib/)
+        id: lib
+        if: ${{ !inputs.post_preview && (inputs.format == 'style' || (inputs.format || 'auto') == 'auto') }}
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          rc=0; git ls-remote --exit-code origin refs/heads/assets >/dev/null || rc=$?
+          if [ "$rc" -eq 0 ]; then
+            git fetch --quiet --no-tags origin "+refs/heads/assets:refs/remotes/origin/assets"
+            git worktree add --quiet -B assets assets-lib origin/assets
+          elif [ "$rc" -eq 2 ]; then
+            # the branch does not exist yet: an empty folder on a new branch with no history
+            git worktree add --quiet --detach assets-lib
+            git -C assets-lib checkout --quiet --orphan assets
+            git -C assets-lib rm -rfq .
+          else
+            echo "::error::could not look for the assets branch (git ls-remote exit $rc)"; exit 1
+          fi
+      - name: Make missing assets (OpenAI images, Pixabay stock)
+        id: make
+        if: ${{ !inputs.post_preview && steps.lib.outcome == 'success' }}
+        continue-on-error: true
+        timeout-minutes: 15
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          ASSETS_BUDGET: '600'
+          STYLE_ID: ${{ inputs.id }}
+        # at most 4 new assets in one Shorts run (the Assets workflow makes up to 12): a video that needs more gets the rest in the next run
+        run: python scripts/make_assets.py --style="$STYLE_ID" --lib assets-lib --max 4
+      - name: Save new assets (branch "assets", never forced)
+        id: save
+        if: ${{ !cancelled() && !inputs.post_preview && steps.lib.outcome == 'success' }}
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          cd assets-lib
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --ignore-removal -- . ':(exclude)*.tmp'
+          if git diff --cached --quiet; then echo "no new assets"; exit 0; fi
+          git diff --cached --name-status
+          # a copy of this run's new files: the next step keeps it as an artifact when the push does not work, so that nothing is paid for twice
+          git diff --cached --name-only -z | while IFS= read -r -d '' f; do mkdir -p "$RUNNER_TEMP/unsaved-assets/$(dirname "$f")"; cp "$f" "$RUNNER_TEMP/unsaved-assets/$f"; done
+          git commit --quiet -m "[skip ci] assets: new library files"
+          git checkout --quiet -- .
+          # library.json and failed.json are the files two runs can both change: on a clash they are merged slug by slug, never overwritten
+          cat > "$RUNNER_TEMP/merge_library.py" <<'PY'
+          import json, subprocess, sys
+          name = sys.argv[1]
+          def side(n):      # the file as 1 = the common start, 2 = on the branch now, 3 = from this run
+              try: raw = subprocess.check_output(["git", "show", ":%d:%s" % (n, name)], stderr=subprocess.DEVNULL)
+              except subprocess.CalledProcessError: return {}      # that side has no such file
+              try: j = json.loads(raw.decode("utf-8-sig"))
+              except ValueError: j = None
+              if n == 2 and not isinstance(j, dict): sys.exit("::error::%s on the assets branch cannot be read: nothing is written over it" % name)
+              return j if isinstance(j, dict) else {}
+          old, lib, new = side(1), side(2), side(3)
+          lib.update({k: v for k, v in new.items() if old.get(k) != v})
+          open(name, "w", encoding="utf-8").write(json.dumps(lib, indent=1, sort_keys=True, ensure_ascii=False) + "\n")
+          PY
+          for n in 1 2 3 4 5; do
+            # the push only goes through while the branch is still where this run's one commit starts from (base; empty = no branch yet),
+            # so it always adds exactly that commit on top and never brings back anything that was taken off the branch meanwhile
+            base="$(git rev-parse -q --verify HEAD~1 || true)"
+            if git push --quiet --force-with-lease="refs/heads/assets:$base" origin HEAD:refs/heads/assets; then echo "saved on the assets branch"; exit 0; fi
+            echo "the push was refused (try $n of 5): putting this run's files on top of what is on the branch now"
+            sleep $((n * 2))
+            rc=0; git ls-remote --exit-code origin refs/heads/assets >/dev/null || rc=$?
+            if [ "$rc" -eq 2 ] && [ -n "$base" ]; then echo "::error::the assets branch was removed while this run was working: its new files are not pushed"; exit 1; fi
+            git fetch --quiet --no-tags origin "+refs/heads/assets:refs/remotes/origin/assets" || continue
+            # only this run's commit is replayed: a branch that was made anew meanwhile (to take a file down for good) does not get its old history back
+            if [ -n "$base" ]; then r=(--onto origin/assets HEAD~1); else r=(origin/assets); fi
+            if git rebase --quiet "${r[@]}"; then continue; fi
+            git diff --name-only --diff-filter=U -z | while IFS= read -r -d '' f; do
+              if [ "$f" = library.json ] || [ "$f" = failed.json ]; then python "$RUNNER_TEMP/merge_library.py" "$f"; else git checkout --theirs -- "$f"; fi
+              git add -- "$f"
+            done
+            GIT_EDITOR=true git rebase --continue || git rebase --abort || true
+          done
+          echo "::error::the new assets could not be saved on the assets branch"; exit 1
+      - name: Keep this run's new assets as an artifact (only when they could not be saved)
+        if: ${{ !cancelled() && steps.save.outcome == 'failure' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsaved-assets
+          path: ${{ runner.temp }}/unsaved-assets/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Render
         if: ${{ !inputs.post_preview }}
         env:
@@ -63,7 +160,30 @@ jobs:
           HEDRA_API_KEY: ${{ secrets.HEDRA_API_KEY }}
           SHORTS_VOICE: ${{ vars.SHORTS_VOICE }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-        run: python scripts/make_short.py --format "${{ inputs.format || 'auto' }}" --commit-state ${{ inputs.id && format('--id {0}', inputs.id) || '' }}
+          ASSET_LIB: assets-lib
+          # a run that posts straight away (the schedule, or "post") must not go out with a picture or clip missing: it stops here instead
+          ASSET_STRICT: ${{ (github.event_name == 'schedule' || inputs.post) && '1' || '' }}
+          RENDER_FORMAT: ${{ inputs.format || 'auto' }}
+          RENDER_ID: ${{ inputs.id }}
+        run: |
+          set -o pipefail
+          RENDER_ID="$(printf '%s' "$RENDER_ID" | tr -d '[:space:]')"      # an id never has white space in it (make_assets.py drops it the same way)
+          if [ -n "$RENDER_ID" ] && { [ "$RENDER_FORMAT" = auto ] || [ "$RENDER_FORMAT" = style ]; }; then
+            # a style id always gives that style video: "auto" alone renders it on one rotation slot in 13 only, and another video otherwise
+            if python -c 'import json, sys; sys.exit(0 if any(isinstance(v, dict) and v.get("id") == sys.argv[1] for v in json.load(open("scripts/styles.json", encoding="utf-8"))) else 1)' "$RENDER_ID" 2>/dev/null; then
+              RENDER_FORMAT=style
+            elif [ "$RENDER_FORMAT" = style ]; then
+              echo "::error::there is no style video with the id '$RENDER_ID' in scripts/styles.json: nothing is rendered"; exit 1
+            fi
+          fi
+          args=(--format "$RENDER_FORMAT" --commit-state)
+          if [ -n "$RENDER_ID" ]; then args+=(--id "$RENDER_ID"); fi
+          python -u scripts/make_short.py "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/render.log"
+          # second guard behind ASSET_STRICT: the renderer's own warnings about a missing picture or clip stop a run that posts
+          if grep -qE 'WARNING: (asset |line [0-9]+ has no picture left|this video is missing)' "$RUNNER_TEMP/render.log"; then
+            if [ -n "$ASSET_STRICT" ]; then echo "::error::a picture or clip this video needs is not in the asset library: nothing is posted (see the WARNING lines above and the asset steps)"; exit 1; fi
+            echo "::warning::a picture or clip this video needs is not in the asset library yet: this test video has a shot missing (a run that posts stops here instead)"
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: short
@@ -96,4 +216,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add shorts_posted.json shorts_log.json 2>/dev/null || git add shorts_log.json
-          git diff --cached --quiet || (git commit -m "chore: shorts log [skip ci]" && git pull --rebase -q && git push)
+          git diff --cached --quiet || (git commit -m "chore: shorts log [skip ci]" && git pull --rebase -q origin "$GITHUB_REF_NAME" && git push)      # this branch only: a bare pull would download the whole assets branch
+      # Last on purpose: the video above is never held up by the asset library, but a library that could not be read or saved must not go unseen.
+      - name: Asset library check (red when the library could not be read or saved)
+        if: ${{ always() && (steps.lib.outcome == 'failure' || steps.make.outcome == 'failure' || steps.save.outcome == 'failure') }}
+        env:
+          LIB: ${{ steps.lib.outcome }}
+          MAKE: ${{ steps.make.outcome }}
+          SAVE: ${{ steps.save.outcome }}
+        run: |
+          if [ "$LIB" = failure ]; then echo "::error::the asset library (branch assets) could not be read: no picture or clip was made in this run"; fi
+          if [ "$MAKE" = failure ]; then echo "::error::make_assets.py stopped early (assets.json or styles.json is not valid, or it ran out of time): see that step"; fi
+          if [ "$SAVE" = failure ]; then echo "::error::this run's new assets could not be saved on the assets branch: download the artifact unsaved-assets and put its files on the branch by hand, or they are paid for again"; fi
+          exit 1

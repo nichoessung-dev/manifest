@@ -1,26 +1,121 @@
 name: Assets
-# Generated images and stock clips for the videos. This first version only checks the keys.
+# Makes the pictures (OpenAI Images) and stock clips (Pixabay) listed in scripts/assets.json and keeps them on the "assets" branch:
+# gen/<slug>.png, stock/<slug>.mp4 and library.json. An asset that is already there is never made again, unless "force" is ticked.
+# A picture that was paid for but could not be used in two runs is noted in failed.json and left alone until its prompt changes (or "force").
+# Manual only (Run workflow). The Shorts workflow runs the same script for the video it is about to render.
+# If the new files cannot be pushed, the run fails and keeps them as the artifact "unsaved-assets": put them on the branch by hand.
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      slugs:
+        description: 'Asset slugs, comma separated (blank = everything that is missing)'
+        type: string
+        default: ''
+      force:
+        description: 'Make the listed slugs again even though they exist (costs money, needs slugs)'
+        type: boolean
+        default: false
 permissions:
   contents: write
+concurrency: assets
 jobs:
-  probe:
+  assets:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Check the keys
+      - run: pip install pillow
+      - name: Asset library (branch "assets" into assets-lib/)
+        id: lib
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          rc=0; git ls-remote --exit-code origin refs/heads/assets >/dev/null || rc=$?
+          if [ "$rc" -eq 0 ]; then
+            git fetch --quiet --no-tags origin "+refs/heads/assets:refs/remotes/origin/assets"
+            git worktree add --quiet -B assets assets-lib origin/assets
+          elif [ "$rc" -eq 2 ]; then
+            # the branch does not exist yet: an empty folder on a new branch with no history
+            git worktree add --quiet --detach assets-lib
+            git -C assets-lib checkout --quiet --orphan assets
+            git -C assets-lib rm -rfq .
+          else
+            echo "::error::could not look for the assets branch (git ls-remote exit $rc)"; exit 1
+          fi
+      - name: Make the assets (OpenAI images, Pixabay stock)
+        timeout-minutes: 45
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
-        run: python scripts/assets_probe.py
-      - name: Publish the report (to the "assets-probe" branch)
+          SLUGS: ${{ inputs.slugs }}
+          FORCE: ${{ inputs.force }}
         run: |
-          rm -rf /tmp/probe && mkdir -p /tmp/probe && cp -r out/probe/. /tmp/probe/
-          cd /tmp/probe && git init -q -b assets-probe
-          git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A && git commit -qm "probe [skip ci]"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" assets-probe
+          args=(--lib assets-lib)
+          if [ -n "$SLUGS" ]; then args+=(--slugs "$SLUGS"); else args+=(--all); fi
+          if [ "$FORCE" = "true" ]; then
+            if [ -z "$SLUGS" ]; then echo "::error::force needs a list of slugs (it never remakes the whole library)"; exit 1; fi
+            args+=(--force)
+          fi
+          python scripts/make_assets.py "${args[@]}"
+      - name: Save new assets (branch "assets", never forced)
+        id: save
+        if: ${{ !cancelled() && steps.lib.outcome == 'success' }}
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          cd assets-lib
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --ignore-removal -- . ':(exclude)*.tmp'
+          if git diff --cached --quiet; then echo "no new assets"; exit 0; fi
+          git diff --cached --name-status
+          # a copy of this run's new files: the next step keeps it as an artifact when the push does not work, so that nothing is paid for twice
+          git diff --cached --name-only -z | while IFS= read -r -d '' f; do mkdir -p "$RUNNER_TEMP/unsaved-assets/$(dirname "$f")"; cp "$f" "$RUNNER_TEMP/unsaved-assets/$f"; done
+          git commit --quiet -m "[skip ci] assets: new library files"
+          git checkout --quiet -- .
+          # library.json and failed.json are the files two runs can both change: on a clash they are merged slug by slug, never overwritten
+          cat > "$RUNNER_TEMP/merge_library.py" <<'PY'
+          import json, subprocess, sys
+          name = sys.argv[1]
+          def side(n):      # the file as 1 = the common start, 2 = on the branch now, 3 = from this run
+              try: raw = subprocess.check_output(["git", "show", ":%d:%s" % (n, name)], stderr=subprocess.DEVNULL)
+              except subprocess.CalledProcessError: return {}      # that side has no such file
+              try: j = json.loads(raw.decode("utf-8-sig"))
+              except ValueError: j = None
+              if n == 2 and not isinstance(j, dict): sys.exit("::error::%s on the assets branch cannot be read: nothing is written over it" % name)
+              return j if isinstance(j, dict) else {}
+          old, lib, new = side(1), side(2), side(3)
+          lib.update({k: v for k, v in new.items() if old.get(k) != v})
+          open(name, "w", encoding="utf-8").write(json.dumps(lib, indent=1, sort_keys=True, ensure_ascii=False) + "\n")
+          PY
+          for n in 1 2 3 4 5; do
+            # the push only goes through while the branch is still where this run's one commit starts from (base; empty = no branch yet),
+            # so it always adds exactly that commit on top and never brings back anything that was taken off the branch meanwhile
+            base="$(git rev-parse -q --verify HEAD~1 || true)"
+            if git push --quiet --force-with-lease="refs/heads/assets:$base" origin HEAD:refs/heads/assets; then echo "saved on the assets branch"; exit 0; fi
+            echo "the push was refused (try $n of 5): putting this run's files on top of what is on the branch now"
+            sleep $((n * 2))
+            rc=0; git ls-remote --exit-code origin refs/heads/assets >/dev/null || rc=$?
+            if [ "$rc" -eq 2 ] && [ -n "$base" ]; then echo "::error::the assets branch was removed while this run was working: its new files are not pushed"; exit 1; fi
+            git fetch --quiet --no-tags origin "+refs/heads/assets:refs/remotes/origin/assets" || continue
+            # only this run's commit is replayed: a branch that was made anew meanwhile (to take a file down for good) does not get its old history back
+            if [ -n "$base" ]; then r=(--onto origin/assets HEAD~1); else r=(origin/assets); fi
+            if git rebase --quiet "${r[@]}"; then continue; fi
+            git diff --name-only --diff-filter=U -z | while IFS= read -r -d '' f; do
+              if [ "$f" = library.json ] || [ "$f" = failed.json ]; then python "$RUNNER_TEMP/merge_library.py" "$f"; else git checkout --theirs -- "$f"; fi
+              git add -- "$f"
+            done
+            GIT_EDITOR=true git rebase --continue || git rebase --abort || true
+          done
+          echo "::error::the new assets could not be saved on the assets branch"; exit 1
+      - name: Keep this run's new assets as an artifact (only when they could not be saved)
+        if: ${{ !cancelled() && steps.save.outcome == 'failure' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsaved-assets
+          path: ${{ runner.temp }}/unsaved-assets/
+          if-no-files-found: ignore
+          retention-days: 14
