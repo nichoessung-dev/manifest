@@ -55,17 +55,20 @@ export const GUIDES3 = {
     faq: [["Is a rep spreadsheet free?", "Yes. Puro Classico is free to browse; you only pay the seller, the agent's fees and shipping when you order."], ["Which agent should I use with a spreadsheet?", "Any agent that accepts Weidian, Taobao and 1688 links works. See our best shopping agent guide for a comparison."], ["How often is the spreadsheet updated?", "New finds are added regularly and the most-viewed items rise to the top automatically."]],
   },
   "pandabuy-alternatives": {
-    title: "Best Pandabuy Alternatives in 2026 (Agents That Still Work)",
-    desc: "Pandabuy stopped operating in 2024. These shopping agents work the same way — paste a Weidian, Taobao or 1688 link, get QC photos and ship.",
-    h1: "Pandabuy alternatives",
-    body: `<p class="lead">Pandabuy was one of the most-used shopping agents until it stopped operating in 2024. Old Pandabuy spreadsheet links no longer work, but every item on them was a normal Weidian, Taobao or 1688 listing — so you can buy the same things through another agent.</p>
-<h2>Agents that work the same way</h2><ul>
-<li><strong>MyCNBox</strong> — new-user coupons, QC photos included, simple checkout. <a href="/guides/mycnbox-review">Review</a> · <a href="/mycnbox-spreadsheet">spreadsheet</a>.</li>
+    title: "Pandabuy Alternatives in 2026: Agents That Still Work",
+    desc: "Pandabuy has been out of business since 2024. Five agents that still worked on 10 October 2026, and how to convert an old Pandabuy link for them.",
+    h1: "Pandabuy alternatives in 2026: agents that still work",
+    updated: "2026-10-10",   // the day the agents' status below was checked; change it only when they are re-checked
+    body: `<p class="lead">Pandabuy has been out of business since 2024: its warehouses in China were reported raided in April of that year, and pandabuy.com did not load when we checked on 10 October 2026. Old Pandabuy links no longer open, but every item behind them was an ordinary Weidian, Taobao or 1688 listing, so you can buy the same things through an agent that still works. The five agents our links support (MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo) were all operating on 10 October 2026.</p>
+<p><a class="btn light" href="/tools/link-converter">Convert an old Pandabuy link →</a></p>
+<h2>Agents that still work</h2><p>All five had a working site, a sign-up page and Trustpilot reviews dated within the previous four weeks when we checked on 10 October 2026. Recent reviews show that people are still ordering, not that an agent is good: Trustpilot shows no score for Oopbuy and says it removed fake reviews from that page. They work the way Pandabuy did: paste a link, pay for the item, check the QC photos, then ship.</p><ul>
+<li><strong>MyCNBox</strong> — no service fee on purchases and 4 QC photos as standard, according to its help centre; new-user coupons. <a href="/guides/mycnbox-review">Review</a> · <a href="/mycnbox-spreadsheet">spreadsheet</a>.</li>
 <li><strong>KakoBuy</strong> — popular with the rep community. <a href="/guides/kakobuy-vs-mycnbox">KakoBuy vs MyCNBox</a> · <a href="/kakobuy-spreadsheet">spreadsheet</a>.</li>
 <li><strong>Oopbuy</strong>, <strong>LoveGoBuy</strong> and <strong>Sugargoo</strong> — all accept the same marketplace links. <a href="/guides/best-shopping-agent">Compare agents</a>.</li></ul>
-<h2>How to move an old Pandabuy link to a new agent</h2><ol class="steps"><li>Copy the old Pandabuy link (it contains the original item link or ID).</li><li>Paste it into the <a href="/tools/link-converter">link converter</a>; it extracts the Weidian, Taobao or 1688 item ID.</li><li>Open the item in the agent of your choice.</li></ol>
-<p>Or skip the old sheets: <a href="/">browse 9,000+ working finds</a>, sorted by what people view most.</p>`,
-    faq: [["Is Pandabuy still working?", "No. Pandabuy stopped operating in 2024, so its links and spreadsheets no longer work."], ["Can I still buy items from old Pandabuy spreadsheets?", "Usually yes. The items were ordinary Weidian, Taobao or 1688 listings; convert the link and open it in another agent. Some listings will have been removed by the seller."], ["What is the closest Pandabuy alternative?", "MyCNBox and KakoBuy work the same way: paste a link, pay, get QC photos, then ship."]],
+<h2>Agents that have closed or paused since</h2><p>Three other agents that old spreadsheets link to are closed or paused. CNFans' site has shown a maintenance notice since 8 October 2026. ACBuy suspended purchasing on 12 June 2026 and had not announced a restart by 10 October 2026. Mulebuy went offline after a reported raid on 3 August 2026. Their links can be converted in the same way as Pandabuy's.</p>
+<h2>How to move an old Pandabuy link to a new agent</h2><ol class="steps"><li>Copy the old Pandabuy link. It has to be the long link that contains the original item link or ID; a short share link (pandabuy.page.link/…) does not contain the item ID, so the converter cannot read it.</li><li>Paste it into the <a href="/tools/link-converter">link converter</a>; it extracts the Weidian, Taobao or 1688 item ID.</li><li>Open the item in the agent of your choice.</li></ol>
+<p>Or skip the old sheets: <a href="/">browse 9,000+ finds</a>, sorted by what people view most.</p>`,
+    faq: [["Is Pandabuy still working?", "No. Pandabuy has been out of business since 2024, after its warehouses were reported raided in April of that year, and its website did not load on 10 October 2026. Its links and spreadsheets no longer work."], ["Can I still buy items from old Pandabuy spreadsheets?", "Usually yes. The items were ordinary Weidian, Taobao or 1688 listings; convert the link and open it in another agent. Some listings will have been removed by the seller."], ["What is the closest Pandabuy alternative?", "MyCNBox and KakoBuy work the same way: paste a link, pay, get QC photos, then ship."]],
   },
   "rep-glossary": {
     title: "Rep Terms Explained: QC, GL/RL, W2C, Batch, Haul & More",
@@ -95,7 +98,7 @@ export const GUIDES3 = {
     desc: "Four reliable ways to find a specific rep: spreadsheets, reverse image search, searching inside your agent and following good seller stores.",
     h1: "How to find reps",
     body: `<p class="lead">Looking for a specific item? These are the four methods experienced buyers use, from quickest to most thorough.</p>
-<h2>1. Search a spreadsheet</h2><p>Search <a href="/">Puro Classico</a> by brand or item name. Results show photos, prices and whether real QC photos exist. Start with <a href="/best">best reps by model</a> for the most-wanted items.</p>
+<h2>1. Search a spreadsheet</h2><p>Search <a href="/">Puro Classico</a> by brand or item name. Results show photos, prices and whether real QC photos exist. Start with <a href="/best">best reps by model</a> for the most-wanted items, or go straight to a brand's own page from the <a href="/brands">brand list</a>, for example <a href="/brand/ralph-lauren">Ralph Lauren</a>, <a href="/brand/arcteryx">Arc'teryx</a> or <a href="/brand/golden-goose">Golden Goose</a>.</p>
 <h2>2. Reverse image search</h2><p>Many agents have an image-search box: upload a photo of the item and it finds matching Taobao and 1688 listings. Pick listings with many sales and good ratings.</p>
 <h2>3. Search inside your agent</h2><p>Agents translate searches into Chinese. Search the brand and item name, then sort by sales. Check the <a href="/tools/qc-checker">QC checker</a> for photos of any listing you find.</p>
 <h2>4. Follow good seller stores</h2><p>When you find a seller whose QC photos look right, look at their other listings — good sellers are usually good across their range.</p>

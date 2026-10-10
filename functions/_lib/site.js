@@ -4,6 +4,9 @@ import { ROWS, PREFIX, BUILT } from "./catalog.js";
 
 export const SITE = "https://www.puroclassico.com";
 export const MYCNBOX_INVITE = "https://mycnbox.com/login/main-login?inviteCode=AACPYA";
+// The Discord invite lives here and nowhere else. Every page, static file and email links to /discord on our own
+// domain, and functions/_middleware.js redirects that address to this URL: a new invite is a change to this one line.
+export const DISCORD_INVITE = "https://discord.gg/Pf3zpG3E4";
 export { BUILT };
 
 // ------------------------------------------------------------------ data
@@ -22,15 +25,34 @@ function normBrand(p) {
 export const P = ROWS.map(r => normBrand({ id: r[0], title: r[1], brand: r[2], cat: r[3], platform: r[4], seller: r[5], usd: r[6], cny: r[7],
   qc: r[8], best: r[9], views: r[10], img: r[11], g: r[12], itemId: r[13], variants: r[14] }));
 // Real view stats (data/stats.json, refreshed every 6h by the Stats workflow): { id: [all, 30d, 7d, favourites] }
-let VIEWS = {}, VIEWS_AT = 0, VIEWS_VER = 0;
+// VIEWS_VER counts the different stats files this server instance has loaded (0 = none yet); every cache derived from
+// the numbers (idx(), and the model, brand-facts and related-brands caches in pages.js) is rebuilt when it moves.
+let VIEWS = {}, VIEWS_AT = 0, VIEWS_VER = 0, VIEWS_GEN = null;
+const STATS_TTL = 10 * 60 * 1000, STATS_RETRY = 30 * 1000;
 export async function ensureStats(origin) {
-  if (Date.now() - VIEWS_AT < 10 * 60 * 1000) return;
-  VIEWS_AT = Date.now();
-  try { const r = await fetch(origin + "/data/stats.json"); if (r.ok) { const s = await r.json(); if (s && s.p) { VIEWS = s.p; VIEWS_VER++; } } } catch (e) {}
+  const loaded = VIEWS_VER > 0;
+  if (loaded && Date.now() - VIEWS_AT < STATS_TTL) return;
+  // Loaded before: one request refreshes and the others keep the numbers they have. Never loaded: every request waits
+  // for its own read, so no page is rendered without view numbers just because another request got here first.
+  // (The read is not shared between requests on purpose: Workers ties a fetch to the request that started it.)
+  if (loaded) VIEWS_AT = Date.now();
+  let ok = false;
+  try {
+    const r = await fetch(origin + "/data/stats.json");
+    if (r.ok) { const s = await r.json(); if (s && s.p) { ok = true; VIEWS_AT = Date.now();
+      // The file changes every 6 hours. Re-reading the same file (same `generated` stamp) keeps every derived cache.
+      if (VIEWS_VER === 0 || !s.generated || s.generated !== VIEWS_GEN) { VIEWS = s.p; VIEWS_GEN = s.generated; VIEWS_VER++; } } }
+  } catch (e) {}
+  if (!ok && loaded) VIEWS_AT = Date.now() - STATS_TTL + STATS_RETRY;   // a failed refresh is retried after 30 s, not after 10 min
 }
+// False until a stats file has been read. functions/_middleware.js gives a page rendered in that state a short cache time.
+export const statsLoaded = () => VIEWS_VER > 0;
 // Popularity = views (30 days, last 7 days count double), then favourites, all-time views, curated best-of, QC count.
 export const score = p => { const v = VIEWS[p.id] || [0, 0, 0, 0];
   return Math.min(v[1] + v[2], 99999) * 1e9 + Math.min(v[3], 999) * 1e6 + Math.min(v[0], 999) * 1e3 + p.best * 500 + Math.min(p.qc, 499); };
+// The same numbers for pages that print them (the "top picks" on brand hubs): [views all time, last 30 days, last 7 days, favourites].
+const NO_VIEWS = [0, 0, 0, 0];
+export const views = p => VIEWS[p.id] || NO_VIEWS;
 // Only products with real QC photos (or hand-curated ones) are indexable; the rest are noindex,follow.
 export const indexable = p => p.qc >= 1 || p.best === 1;
 
@@ -48,13 +70,38 @@ export function idx() {
   sortAll(byBrand); sortAll(byCat);
   const all = P.slice().sort((a, b) => score(b) - score(a));
   const brandSlug = new Map(), slugBrand = new Map();
-  for (const [b, l] of byBrand) if (l.length >= BRAND_MIN) { const s = slug(b); brandSlug.set(b, s); slugBrand.set(s, b); }
+  for (const [b, l] of byBrand) if (l.length >= BRAND_MIN || l.length >= (BRAND_ALLOW.get(b) || Infinity)) { const s = slug(b); brandSlug.set(b, s); slugBrand.set(s, b); }
   const titleCount = new Map();   // listings sharing a title get a distinguishing suffix on their product page
   for (const p of P) { const k = ((p.brand || "") + "|" + p.title).toLowerCase(); titleCount.set(k, (titleCount.get(k) || 0) + 1); }
   _idx = { byId, byBrand, byCat, all, brandSlug, slugBrand, titleCount };
   return _idx;
 }
 export const BRAND_MIN = 20;   // a brand gets its own hub page from this many finds
+// Brands under BRAND_MIN that get a hub anyway. This is a hand-kept list, not a lower limit: a brand goes on it only when
+//   1. people search for it: it is in a Search Console query we already show for, or Google's autocomplete offers a
+//      "<brand> ... spreadsheet" search (checked 10 Oct 2026); and
+//   2. there is a real page to show: 10+ finds (5+ when the evidence is Search Console itself); and
+//   3. visitors here look at it: 30+ views in the last 30 days, a little more than the median hub of a 20+ brand gets
+//      (27.5 on 10 Oct 2026).
+// As counted on 10 Oct 2026 (finds / marked as having QC photos / views in 30 days / search evidence):
+//   Jacob Cohen 7 / 5 / 238 / Search Console: "jacob cohen spreadsheet", "jacob cohen reps", "jacob cohen kakobuy"
+//   Tom Ford 16 / 5 / 60 / autocomplete "tom ford cnfans spreadsheet"      Comme des Garcons 16 / 4 / 34 / "comme des garcons spreadsheet"
+//   Rimowa 11 / 2 / 41 / "rimowa spreadsheet"
+//   Brunello Cucinelli 19 / 6 / 53 / none found: the one exception to rule 1, kept because it is one find short of
+//   BRAND_MIN, has more views than most hubs, and /old-money names it in its text.
+// Looked at and left off: Nocta (11 / 9 / 13, autocomplete "nocta spreadsheet") and Aime Leon Dore (18 / 14 / 14,
+// autocomplete only for a spreadsheet of an agent that has closed). Both fail rule 3: no find of theirs has 5 views, so
+// the hub would be the generated sentences and a short grid, with no picks. Add the name back when the views are there.
+// Do not add the other small brands in bulk: a hub with a handful of finds and no demand is a thin page.
+// The number is that brand's own floor (rule 2): under it the hub is gone again (404) instead of going thin.
+// 5 where the evidence is Search Console itself, 10 everywhere else.
+export const BRAND_ALLOW = new Map([["Jacob Cohen", 5], ["Brunello Cucinelli", 10], ["Tom Ford", 10], ["Comme des Garcons", 10], ["Rimowa", 10]]);
+// Hubs the footer of every page links to: first the brands named in Search Console queries we already show for
+// (28 Sep - 6 Oct 2026, most impressions first), then the largest hubs. Brands without a hub are skipped.
+// Refresh the first list from Search Console (Performance > Queries) every month or two.
+export const FOOTER_BRANDS = ["Ralph Lauren", "Golden Goose", "Arc'teryx", "Jacob Cohen", "Mertra", "Derschutze", "Goyard", "Chrome Hearts", "Maison Margiela",
+  "Essentials", "Celine", "Burberry", "Corteiz", "Moncler", "Salomon", "Hoka", "Dior", "Acne Studios", "Stussy", "Givenchy"];
+export const FOOTER_LARGEST = 14;   // ...plus the hubs with the most finds (the footer's whole list before the Search Console names were added)
 
 export const CATS = {
   Tops:        { slug: "tops",        name: "Tops",               h: "Rep Tops: Hoodies, T-Shirts, Sweaters & Knitwear" },
@@ -193,15 +240,19 @@ export const TOOL_LINKS = [["Link converter", "/tools/link-converter"], ["QC che
 
 function footer() {
   const { byBrand, brandSlug } = idx();
-  const topBrands = [...brandSlug.keys()].sort((a, b) => byBrand.get(b).length - byBrand.get(a).length).slice(0, 14);
+  const largest = [...brandSlug.keys()].sort((a, b) => byBrand.get(b).length - byBrand.get(a).length).slice(0, FOOTER_LARGEST);
+  const searched = FOOTER_BRANDS.filter(b => brandSlug.has(b));
+  const topBrands = searched.concat(largest.filter(b => !searched.includes(b))).map(b => [b + " reps", "/brand/" + brandSlug.get(b)]);
+  const half = Math.ceil(topBrands.length / 2);
   const col = (t, links) => `<div><h4>${t}</h4>${links.map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}</div>`;
   return `<footer class="f"><div class="w"><div class="cols">
 ${col("Categories", Object.values(CATS).filter(c => c.slug !== "toys").map(c => [c.name, "/category/" + c.slug]))}
-${col("Top brands", topBrands.map(b => [b + " reps", "/brand/" + brandSlug.get(b)]).concat([["All brands →", "/brands"]]))}
+${col("Brands", topBrands.slice(0, half))}
+${col("More brands", topBrands.slice(half).concat([["All brands →", "/brands"]]))}
 ${col("Spreadsheets", [["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Old money reps", "/old-money"]])}
 ${col("Guides", GUIDE_LINKS.slice(0, 7).concat([["All guides →", "/guides"]]))}
 ${col("Tools & best reps", TOOL_LINKS.concat([["Best reps by model →", "/best"]]))}
-${col("Puro Classico", [["Browse all finds", "/"], ["Discord community", "https://discord.gg/Pf3zpG3E4"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
+${col("Puro Classico", [["Browse all finds", "/"], ["Discord community", "/discord"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
 </div><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents may be affiliate links. Prices are shown as listed by the seller and can change. © Puro Classico</p></div></footer>`;
 }
 

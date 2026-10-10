@@ -24,6 +24,9 @@ export const OLD_MONEY = {
   brands: ["Ralph Lauren", "Loro Piana", "Lacoste", "Burberry", "Moncler", "Hermes", "Maison Margiela", "Celine", "Loewe", "Brunello Cucinelli",
     "Golden Goose", "Zegna", "Max Mara", "Tom Ford", "Barbour", "Bottega Veneta", "Saint Laurent", "Ami", "Acne Studios", "Prada", "Miu Miu",
     "The Row", "Kiton", "Cartier", "Rolex", "Polo Ralph Lauren", "Sandro", "Arc'teryx Veilance"],
+  // Brands /old-money links to (a chip) without their finds joining its list, so the page's count, title and first
+  // page stay as they are. Move a name up into `brands` only as a deliberate decision that it belongs to the style.
+  linked: ["Jacob Cohen"],
   intro: `<p>Old money, quiet luxury, "grisch" — the understated look built on cashmere knits, cable sweaters, polos, loafers, quilted jackets and clean leather sneakers rather than big logos. It's where Puro Classico started, and it's the style most spreadsheets ignore.</p><p>This page collects finds from the brands that define the look (Ralph Lauren, Loro Piana, Brunello Cucinelli, Lacoste, Burberry, Moncler, Maison Margiela, Golden Goose and more), sorted with the most viewed first.</p><p>What to check in QC for this style: knit texture and ribbing on sweaters, the embroidery on small chest logos (it should be dense and clean), collar shape on polos, and the leather grain and stitching on shoes and belts. Colour matters more than usual here — compare the QC photo colour with the listing under neutral light.</p>`,
 };
 
@@ -89,10 +92,10 @@ export const GUIDES = {
 <li><strong>Colour.</strong> Compare with the listing. Warehouse lighting can shift colours slightly, so compare against the other items in the same photo if unsure.</li>
 <li><strong>Size tag and measurements.</strong> Make sure the size label matches what you ordered. Many agents photograph the item on a measuring mat — compare against the size chart.</li>
 <li><strong>Defects.</strong> Stains, holes, scratches on hardware, uneven dye, wrong accessories.</li></ol>
-<h2>GL or RL?</h2><p>On forums you'll see <strong>GL</strong> (green light — ship it) and <strong>RL</strong> (red light — return or exchange). Post your QC photos in our <a href="https://discord.gg/Pf3zpG3E4">Discord</a> if you want a second opinion.</p>
+<h2>GL or RL?</h2><p>On forums you'll see <strong>GL</strong> (green light — ship it) and <strong>RL</strong> (red light — return or exchange). Post your QC photos in our <a href="/discord">Discord</a> if you want a second opinion.</p>
 <h2>Category tips</h2><ul><li><a href="/category/sneakers">Sneakers</a>: shape from the side, toe box, heel, logo depth, size tag inside the tongue.</li><li><a href="/category/jackets">Jackets</a>: zips, snaps and pulls, fill on puffers, patches and badges.</li><li><a href="/category/tops">Knitwear and tees</a>: knit texture, neck labels, embroidery density.</li><li><a href="/category/bags">Bags</a>: hardware engraving, edge stitching, lining.</li></ul>
 <h2>Need more photos?</h2><p>Most agents offer extra or detailed photos for a small fee. It's worth it for expensive items like bags, shoes and outerwear.</p>
-<p>Every find on Puro Classico shows how many buyer QC photos exist for it — start with the listings that have the most.</p>`,
+<p>On Puro Classico a QC badge on a find's card means our catalogue has a stored count of buyer QC photos for that listing. Most finds have no count yet, so the badged ones are a good place to start.</p>`,
     faq: [["What does QC stand for?", "Quality check: real photos of your exact item taken by the agent's warehouse before it ships internationally."],
           ["Can I return an item after QC?", "Usually yes, before it ships from the warehouse — the agent contacts the seller. Terms depend on the seller and agent, and domestic return shipping may apply."]],
   },

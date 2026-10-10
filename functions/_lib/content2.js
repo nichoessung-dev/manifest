@@ -85,7 +85,7 @@ export const MODELS = [
   { slug: "yeezy-350", name: "Yeezy 350 V2", rx: "yeezy.*350|350 v2", intro: "The Yeezy Boost 350 V2 in its many colourways.", qc: ["primeknit pattern and stripe", "midsole shape and texture", "heel tab"] },
   { slug: "burberry-scarf", name: "Burberry scarves", rx: "burberry.*scarf", intro: "Burberry check cashmere-style scarves, a classic gift find.", qc: ["check pattern alignment", "fringe and edges", "the label"] },
   { slug: "louis-vuitton-trainer", name: "Louis Vuitton Trainer", rx: "louis vuitton.*trainer", intro: "The LV Trainer basketball-style sneaker.", qc: ["sole shape and monogram details", "panel stitching", "tongue and heel branding"] },
-  { slug: "dior-b23", name: "Dior B23 & B-series sneakers", rx: "b23|b22|b30", intro: "Dior's B23 high-tops in oblique canvas and the chunkier B22 and B30.", qc: ["oblique pattern clarity (B23)", "sole shape", "logo details"] },
+  { slug: "dior-b23", name: "Dior B23 & B-series sneakers", rx: "dior.*\\b(b23|b22|b30)\\b", intro: "Dior's B23 high-tops in oblique canvas and the chunkier B22 and B30.", qc: ["oblique pattern clarity (B23)", "sole shape", "logo details"] },
 ];
 
 export const GUIDES2 = {
@@ -115,15 +115,31 @@ export const GUIDES2 = {
     faq: [["Can I buy a single item on 1688?", "Often yes for clothing and accessories, but some listings have a minimum order quantity. Your agent shows it before you pay."]],
   },
   "mycnbox-review": {
-    title: "MyCNBox Review 2026: How It Works, Coupons, QC & Shipping",
-    desc: "An honest look at MyCNBox: how ordering works, new-user coupons, QC photos, packing and shipping, and who it suits.",
-    h1: "MyCNBox review",
-    body: `<p class="lead">MyCNBox is a shopping agent for Taobao, Weidian and 1688. It's the agent we use most on Puro Classico, so here's how it works in practice. (Disclosure: our MyCNBox links are affiliate links.)</p>
-<h2>How ordering works</h2><ol class="steps"><li>Open a listing (every Puro Classico find opens pre-filled in MyCNBox).</li><li>Pay for the item plus domestic delivery to the warehouse. International shipping is paid later.</li><li>MyCNBox buys from the seller; when the item arrives you get QC photos under <em>Warehouse</em>.</li><li>Select items and submit packing, choose a carrier, apply coupons and pay the estimated shipping. MyCNBox's guide says any difference is refunded to your balance if the final cost is lower.</li><li>Track the parcel under <em>Parcels</em>.</li></ol>
-<h2>What stands out</h2><ul><li><strong>New-user coupons:</strong> MyCNBox advertises a new-user coupon bundle (shown as up to $500 on its site at the time of writing) — <a href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" rel="sponsored noopener" target="_blank">claim it here</a>.</li><li><strong>Two-step payment:</strong> you only commit to shipping once you've seen the QC photos.</li><li><strong>Apps:</strong> iOS and Android apps as well as the website.</li><li><strong>Ratings:</strong> MyCNBox's own site shows a high Trustpilot score — check the latest reviews on Trustpilot yourself.</li></ul>
-<h2>Who it suits</h2><p>First-time buyers who want a simple flow, and anyone ordering from Puro Classico, since every find opens directly in MyCNBox. If you already use another agent, every find also has KakoBuy, Oopbuy, LoveGoBuy and Sugargoo links — compare with <a href="/guides/kakobuy-vs-mycnbox">KakoBuy vs MyCNBox</a>.</p>
+    title: "Is MyCNBox Legit? MyCNBox Review 2026: Fees, QC & Shipping",
+    desc: "Is MyCNBox legit? What its Trustpilot page showed on 10 October 2026, what it charges, how QC photos and shipping work, and the drawbacks to weigh.",
+    h1: "Is MyCNBox legit? MyCNBox review from the public evidence",
+    updated: "2026-10-10",   // the day the Trustpilot figures and the help-centre facts below were read; change it only when they are re-read
+    body: `<p class="lead"><strong>Is MyCNBox legit? On the public evidence, yes.</strong> MyCNBox is an operating shopping agent for Weidian, Taobao and 1688 with iOS and Android apps, and its Trustpilot page showed a TrustScore of 4.8 out of 5 from 422 reviews when we checked on 10 October 2026. The drawbacks: that is a short track record (the Trustpilot profile was claimed in March 2025), the few one-star reviews are mostly about shipping prices and delayed or lost parcels, and the "$500" welcome offer is a package of coupons, not cash.</p>
+<p>Everything below comes from two sources you can check yourself, both read on 10 October 2026: <a href="https://www.trustpilot.com/review/mycnbox.com" rel="noopener" target="_blank">MyCNBox's Trustpilot page</a> and MyCNBox's own help centre. Disclosure: our MyCNBox links are affiliate links.</p>
+<h2>Fees: what MyCNBox charges</h2><ul>
+<li><strong>Service fee:</strong> none on purchases, according to its help centre. You pay the item price; your bank or payment channel may charge for currency conversion.</li>
+<li><strong>Storage:</strong> 90 days free at the warehouse. After that you pay to extend it, or the items are discarded.</li>
+<li><strong>Paid extras:</strong> its help centre names reinforced packaging, video QC and multi-angle QC photos as add-ons that cost extra.</li>
+<li><strong>Returns:</strong> not free. A return to the seller costs the domestic shipping, ¥12 return shipping and a ¥10 warehouse fee. It has to be requested within 5 days of the item reaching the warehouse, and some sellers refuse returns.</li>
+<li><strong>Withdrawals:</strong> taking money out of your MyCNBox balance carries a $1 fee.</li>
+<li><strong>Payment:</strong> Visa, Mastercard, Apple Pay, Google Pay, Klarna and iDEAL are listed, plus some local wallets.</li></ul>
+<h2>QC photos</h2><p>The standard check is 4 photos, completed within one business day of the item reaching the warehouse, according to MyCNBox's help centre. More detailed photos are an add-on that has to be chosen when you place the order, not after the item has arrived. See <a href="/guides/how-to-qc">how to read QC photos</a>.</p>
+<h2>Shipping</h2><p>International shipping is paid when you send a parcel, not when you buy. The price you pay then is an estimate from the weight and volume of your items. After packing, an overpayment goes back to your balance and a shortfall has to be paid before the parcel leaves. Lines and prices change often, so put the same weight into another agent's calculator before a big haul (<a href="/guides/shipping-lines">shipping lines explained</a>).</p>
+<h2>How ordering works</h2><ol class="steps"><li>Open a listing (every Puro Classico find opens pre-filled in MyCNBox).</li><li>Pay for the item plus domestic delivery to the warehouse. International shipping is paid later.</li><li>MyCNBox buys from the seller; when the item arrives you get QC photos under <em>Warehouse</em>.</li><li>Select items and submit packing, choose a carrier, apply a coupon and pay the estimated shipping.</li><li>Track the parcel under <em>Parcels</em>.</li></ol>
+<h2>The drawbacks</h2><ul>
+<li><strong>A short track record.</strong> A Trustpilot profile claimed in March 2025, with 422 reviews by 10 October 2026, is a short history to judge an agent by.</li>
+<li><strong>What unhappy customers report.</strong> One-star reviews were 2% of the total on 10 October 2026. The low-star reviews listed were mostly about shipping prices, delayed or lost parcels, and how compensation or a return was handled. Trustpilot showed that MyCNBox had replied to 50% of its negative reviews.</li>
+<li><strong>Rewarded posts.</strong> MyCNBox's help centre describes points and discounts for users who post about it on Reddit and TikTok, so weigh enthusiastic posts there accordingly.</li>
+<li><strong>The coupons are not cash.</strong> The "$500" is a package of coupons. Its help centre shows one coupon applied per parcel; its example is 30% off the shipping fee. <a href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" rel="sponsored noopener" target="_blank">Claim the new-user coupons here</a>.</li>
+<li><strong>Refunds come back as balance.</strong> A refund is credited to your MyCNBox balance, not to your card, and withdrawing it carries the $1 fee.</li></ul>
+<h2>Who it suits</h2><p>First-time buyers who want a simple flow, and anyone ordering from Puro Classico: every find has a Buy via MyCNBox button that opens the listing pre-filled (browse the <a href="/mycnbox-spreadsheet">MyCNBox spreadsheet</a>). If you already use another agent, every find also has KakoBuy, Oopbuy, LoveGoBuy and Sugargoo links — compare with <a href="/guides/kakobuy-vs-mycnbox">KakoBuy vs MyCNBox</a>.</p>
 <p>Watch the full flow in our <a href="/how-to-order">1:47 video</a>.</p>`,
-    faq: [["Is MyCNBox legit?", "MyCNBox is an established shopping agent with warehouse QC photos, public help pages and apps. As with any agent, start with a small order and check the latest independent reviews."], ["Does MyCNBox charge shipping upfront?", "No. You pay for the item and domestic delivery first, and international shipping only when you submit your parcel."]],
+    faq: [["Is MyCNBox legit?", "On the public evidence, yes. MyCNBox is an operating shopping agent with iOS and Android apps, and its Trustpilot page showed a TrustScore of 4.8 out of 5 from 422 reviews on 10 October 2026. Its track record is short, so start with a small order and read the newest reviews first."], ["Does MyCNBox charge a service fee?", "MyCNBox's help centre says it charges no service fee on purchases: you pay the item price, then international shipping when you send your parcel. Add-ons such as extra QC photos and reinforced packaging cost extra, and returns carry fees (read on 10 October 2026)."], ["Does MyCNBox charge shipping upfront?", "No. You pay for the item and domestic delivery first, and international shipping only when you submit your parcel."]],
   },
   "kakobuy-vs-mycnbox": {
     title: "KakoBuy vs MyCNBox (2026): Which Shopping Agent Should You Use?",
@@ -161,7 +177,7 @@ export const TOOLS = {
   "link-converter": { name: "Link Converter", title: "Rep Link Converter — Weidian, Taobao & 1688 to Any Agent · Puro Classico",
     desc: "Convert any Weidian, Taobao, 1688 or agent link into a buy link for MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo. Free, instant.",
     lead: "Paste any Weidian, Taobao, 1688 or shopping-agent link and get a buy link for every agent.",
-    about: "<p>The converter reads the marketplace and item ID from the link (it works with agent links too, like MyCNBox, KakoBuy or CNFans product URLs) and rebuilds it for each agent. Nothing is stored.</p>" },
+    about: "<p>The converter reads the marketplace and item ID from the link (it works with agent links too, like MyCNBox or KakoBuy product URLs, and with old links from agents that have closed, such as Pandabuy and CNFans) and rebuilds it for each agent. Nothing is stored.</p>" },
   "qc-checker": { name: "QC Checker", title: "QC Photo Checker — Find Real QC Photos for Any Rep Link · Puro Classico",
     desc: "Paste a Weidian, Taobao or 1688 link or item ID to see real buyer QC photos before you order.",
     lead: "Paste a product link or item ID to see real warehouse QC photos from people who already bought it.",
