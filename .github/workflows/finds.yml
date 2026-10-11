@@ -28,11 +28,34 @@ jobs:
           FINDS_MODE: ${{ vars.FINDS_MODE || 'video' }}
           TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
         run: python scripts/finds_plan.py
+      # The second TikTok account (puroclassico.com/repaddict) gets photo slideshows only, three a day, from its own share of the
+      # photos (never a photo the first account has used). To pause it: set the repo variable SLIDES_LIVE to "false".
+      - name: Slideshows for the second TikTok account
+        if: vars.SLIDES_LIVE != 'false'
+        continue-on-error: true
+        env:
+          POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+          SHORTS_CHANNELS: tiktok
+          TIKTOK_ACCOUNT: puroclassico.com/repaddict
+          FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L
+          FINDS_MODE: carousel
+          FINDS_SLOTS: '11:07,14:37,21:37'
+          FINDS_DAYS: '2'
+          FINDS_SLIDES: '9'
+          FINDS_SINGLE: '1'
+          FINDS_OWN: '2'
+          FINDS_STATE: slides_used.json
+          FINDS_AVOID: finds_used.json,scripts/slides_exclude.json
+          FINDS_TEXT: scripts/slides_text.json
+          FINDS_LINKS: '0'
+          TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
+        run: python scripts/finds_plan.py
       - name: Save state
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add finds_used.json discord_sent.json 2>/dev/null || true
+          git add slides_used.json 2>/dev/null || true
           git diff --cached --quiet && exit 0
           git commit -q -m "chore: finds state [skip ci]"
           # someone else may push at the same moment (a site upload, the stats job): try again a few times before giving up
