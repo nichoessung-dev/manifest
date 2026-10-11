@@ -7,6 +7,7 @@
 The Drive folder must be shared by link. Photos are picked least-used first, in random order among equally used ones (finds_used.json keeps the counts), so they repeat only once the pool is used up.
 """
 import argparse, glob, hashlib, html, json, os, random, re, subprocess, sys, tempfile, urllib.request
+from datetime import datetime
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 import imageio_ffmpeg
 
@@ -126,20 +127,44 @@ def tall(im):
     bg = ImageOps.fit(im, (W, H), Image.BILINEAR).filter(ImageFilter.GaussianBlur(40)); bg.paste(im, (0, (H - SH) // 2)); return bg
 
 
+def owner(pid):
+    """Which TikTok account a photo belongs to (1 or 2). A fixed rule on its id: the two accounts never show the same photo,
+    and photos added later are split the same way with no list to keep. One third goes to the second account."""
+    return 2 if int(hashlib.md5(pid.encode()).hexdigest(), 16) % 3 == 0 else 1
+
+
+def never(paths):
+    """Ids that must not be used, from the given files: a plain list of ids, or the other account's usage record."""
+    out = set()
+    for p in [x.strip() for x in (paths or "").split(",") if x.strip()]:
+        try: j = json.load(open(os.path.join(ROOT, p)))
+        except Exception: continue
+        if isinstance(j, list): out |= set(j)
+        else: out |= {k for k, v in (j.get("count") or {}).items() if v} | set(j.get("covers") or {})
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--folder"); ap.add_argument("--local"); ap.add_argument("--audio"); ap.add_argument("--cover"); ap.add_argument("--covers", help="Drive folder of start pictures (one is picked per post, least used first)")
     ap.add_argument("--slides", type=int, default=7); ap.add_argument("--title", default=""); ap.add_argument("--part", type=int, default=0)
     ap.add_argument("--hold", type=float, default=2.2); ap.add_argument("--out", default=os.path.join(ROOT, "out")); ap.add_argument("--seed", type=int)
     ap.add_argument("--video", action="store_true", help="a full-screen 9:16 video of the slides instead of a photo carousel")
     ap.add_argument("--qc-cover", action="store_true", help="the start picture is one of the QC photos, so the post shows QC photos only")
+    ap.add_argument("--own", type=int, default=0, help="only photos that belong to this TikTok account (1 or 2); 0 = all")
+    ap.add_argument("--state", default="finds_used.json", help="this account's usage record")
+    ap.add_argument("--avoid", default="", help="files with ids never to use (the other account's record, a list)")
+    ap.add_argument("--single", action="store_true", help="one photo on each slide instead of two stacked")
+    ap.add_argument("--text", default="", help="json with the caption lines and hashtag groups for this account")
     ap.add_argument("--commit-state", action="store_true"); a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
     rnd = random.Random(a.seed)
     if a.local: pool = [(hashlib.md5(open(f, "rb").read()).hexdigest(), f) for f in sorted(glob.glob(os.path.join(a.local, "*"))) if f.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
     else: pool = drive_images(a.folder)
-    pool = list(dict(pool).items()); state_path = os.path.join(ROOT, "finds_used.json")
+    pool = list(dict(pool).items()); state_path = os.path.join(ROOT, a.state); no_go = never(a.avoid)
+    if a.own: pool = [p for p in pool if owner(p[0]) == a.own]
+    pool = [p for p in pool if p[0] not in no_go]
     try: used = json.load(open(state_path))
     except Exception: used = {"count": {}, "part": 0}
-    need = a.slides * 2 + (1 if a.qc_cover else 0)             # one more photo when the start picture is a QC photo too
+    need = (a.slides if a.single else a.slides * 2) + (1 if a.qc_cover else 0)             # one more photo when the start picture is a QC photo too
     if len(pool) < need: raise SystemExit("only %d photos in the pool, need %d" % (len(pool), need))
     rnd.shuffle(pool); pool.sort(key=lambda p: used["count"].get(p[0], 0))          # least-used photos first, in random order among equally used ones
     bad = set(used.get("skip", [])); ims = []                   # photos that could not be used are remembered, not retried
@@ -158,12 +183,19 @@ def main():
         raise SystemExit("only %d usable photos, need %d" % (len(ims), need))
     ims = ims[:need]; rnd.shuffle(ims); picked = sorted({pid for pid, _ in ims})
     qc_bg = ims.pop()[1] if a.qc_cover else None
-    for k in range(0, len(ims) - 1, 2):                         # two shots from the same file do not share a slide
+    for k in ([] if a.single else range(0, len(ims) - 1, 2)):   # two shots from the same file do not share a slide
         if ims[k][0] == ims[k + 1][0] and k + 2 < len(ims): ims[k + 1], ims[k + 2] = ims[k + 2], ims[k + 1]
     part = a.part or int(used.get("part", 0)) + 1
     title = a.title or COVER_TEXT                               # the cover always says the same; the caption hook and tags vary
     hook = rnd.choice(HOOKS) % title.lower()
     caption = "%s\n\n%s" % (hook[0].upper() + hook[1:], " ".join(["#grisch", "#oldmoney"] + rnd.sample(TAGS, 3)))
+    if a.text:                                                   # this account's own lines: none repeats within ten posts; five tags (TikTok's limit)
+        T = json.load(open(os.path.join(ROOT, a.text), encoding="utf-8")); recent = used.get("texts", [])[-10:]
+        line = rnd.choice([t for t in T["lines"] if t not in recent] or T["lines"])
+        season = ["winter", "winter", "spring", "spring", "spring", "summer", "summer", "summer", "autumn", "autumn", "autumn", "winter"][datetime.now().month - 1]
+        head = line.replace("{n}", str(len(ims))).replace("{part}", str(part)).replace("{season}", season)
+        caption = "%s\n\n%s" % (head[0].upper() + head[1:], " ".join(T["core"] + [rnd.choice(T["style"]), rnd.choice(T["general"])]))
+        used["texts"] = (used.get("texts", []) + [line])[-20:]
     FW, FH = (W, H) if a.video else (SW, SH)                     # video slides fill the 9:16 screen; carousel slides are 3:4
     bg, cover_id = None, None
     if qc_bg is not None: bg = qc_bg
@@ -172,13 +204,16 @@ def main():
         cu = used.setdefault("covers", {}); cl = [i for i, t in drive_list(a.covers) if t.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
         try: no = set(json.load(open(os.path.join(ROOT, "scripts", "finds_covers_skip.json"))))      # pictures screened out as start pictures (watermarks, words on them, too small...)
         except Exception: no = set()
-        cl = [i for i in cl if i not in no]
+        cl = [i for i in cl if i not in no and i not in no_go and (not a.own or owner(i) == a.own)]
         rnd.shuffle(cl); cl.sort(key=lambda i: cu.get(i, 0))
         for cid in cl[:6]:
             try: bg = Image.open(drive_get(cid, "img")); bg.load(); cover_id = cid; break
             except Exception as e: bg = None; print("  skipping a start picture:", e)
     frames = [(cover_card(title, FW, FH, bg), min(1.4, max(0.9, a.hold * 1.4)))]      # the start picture stays a little longer than a slide
-    for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH), a.hold))
+    if a.single:
+        for _, im in ims: frames.append((whole(im, FW, FH), a.hold))
+    else:
+        for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH), a.hold))
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
     cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
     cmd += ["-stream_loop", "-1", "-i", audio, "-af", "afade=t=out:st=%.2f:d=0.6" % (total - 0.7)] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]

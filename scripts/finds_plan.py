@@ -14,8 +14,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import post_short as P
 
 ROOT = P.ROOT
-SLOTS = ["08:23", "12:23", "16:23", "20:23"]                                   # posting times, Norwegian time
-DAYS = 5                                                     # how far ahead the queue is kept full
+SLOTS = [s.strip() for s in os.environ.get("FINDS_SLOTS", "08:23,12:23,16:23,20:23").split(",") if s.strip()]   # posting times, Norwegian time
+DAYS = int(os.environ.get("FINDS_DAYS", "5"))                # how far ahead the queue is kept full
+# The same script runs once per TikTok account (see finds.yml). Each run has its own photos, usage record and queue.
+OWN = os.environ.get("FINDS_OWN", "1")                       # whose photos: the two accounts never share a photo (make_finds.owner)
+STATE = os.environ.get("FINDS_STATE", "finds_used.json")     # this account's usage record
+AVOID = os.environ.get("FINDS_AVOID", "")                    # files with ids this account must never use
+SINGLE = os.environ.get("FINDS_SINGLE", "")                  # "1" = one photo per slide
+TEXT = os.environ.get("FINDS_TEXT", "")                      # caption lines and tags for this account
+LINKS = os.environ.get("FINDS_LINKS", "1")                   # "0" = do not send new TikTok links to Discord from this run
 TZ = ZoneInfo("Europe/Oslo")
 PROFILE = "https://www.tiktok.com/@puroclassico.com"
 MODE = os.environ.get("FINDS_MODE", "video")                 # "video" (full-screen slideshow with sound) or "carousel" (swipeable photos)
@@ -35,24 +42,29 @@ def wanted_slots(now):
     return out
 
 
-def queued(now):
-    """Times of the posts Postiz already holds for the coming days."""
+def queued(now, mine=None):
+    """Times of the posts Postiz already holds for the coming days, on this run's own channels only."""
     q = "?startDate=%s&endDate=%s" % ((now - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S.000Z"), (now + timedelta(days=DAYS + 1)).strftime("%Y-%m-%dT%H:%M:%S.000Z"))
     out = []
     for p in P.call("GET", "/posts" + q).get("posts", []):
         if any(isinstance(v, str) and v.lower() == "draft" for v in p.values()): continue      # a draft will not publish, so its slot is free
+        iid = (p.get("integration") or {}).get("id")
+        if mine and iid and iid not in mine: continue            # the other account's posts do not fill this account's slots
         try: out.append(datetime.strptime((p.get("publishDate") or "")[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc))
         except Exception: pass
     return out
 
 
 def top_up():
-    now = datetime.now(timezone.utc); have = queued(now); made = 0
+    ints = P.call("GET", "/integrations"); ints = ints if isinstance(ints, list) else ints.get("integrations", [])
+    mine = {iid for _, iid, _ in P.pick_channels(ints)}
+    if not mine: print("no channel connected for this run: nothing queued"); return
+    now = datetime.now(timezone.utc); have = queued(now, mine); made = 0
     print("posts already queued:", sorted(t.strftime("%m-%d %H:%M") for t in have))
     for t in wanted_slots(now):
         if any(abs((t - h).total_seconds()) < 1800 for h in have): continue
         out = os.path.join(ROOT, "out", t.strftime("%m%d-%H%M")); os.makedirs(out, exist_ok=True)
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "make_finds.py"), "--folder", os.environ["FINDS_FOLDER"], "--slides", SLIDES, "--hold", HOLD, "--commit-state", "--out", out] + (["--video"] if MODE == "video" else []) + (["--audio", AUDIO] if AUDIO else []) + (["--covers", COVERS] if COVERS and COVERS != "qc" else ["--qc-cover"]))
+        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "make_finds.py"), "--folder", os.environ["FINDS_FOLDER"], "--slides", SLIDES, "--hold", HOLD, "--own", OWN, "--state", STATE, "--commit-state", "--out", out] + (["--avoid", AVOID] if AVOID else []) + (["--single"] if SINGLE == "1" else []) + (["--text", TEXT] if TEXT else []) + (["--video"] if MODE == "video" else []) + (["--audio", AUDIO] if AUDIO else []) + (["--covers", COVERS] if COVERS and COVERS != "qc" else ["--qc-cover"]))
         metas = [f for f in os.listdir(out) if f.endswith(".json")]
         if r.returncode or not metas: print("could not build the carousel for", t); continue
         env = dict(os.environ, SCHEDULE_AT=t.strftime("%Y-%m-%dT%H:%M:%S.000Z"))
@@ -88,5 +100,5 @@ def send_links():
 
 if __name__ == "__main__":
     if not P.KEY: raise SystemExit("POSTIZ_API_KEY is not set")
-    send_links()
+    if LINKS != "0": send_links()
     top_up()

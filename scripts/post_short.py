@@ -85,6 +85,18 @@ def tiktok_wanted(it, ints):
     return name == TIKTOK_MAIN_NAME                          # the first account was connected again and has a new id
 
 
+def pick_channels(ints):
+    """The channels this run posts to, as (provider, id, name)."""
+    chans = []
+    for it in ints:
+        prov = it.get("identifier") or it.get("providerIdentifier") or ""
+        if it.get("disabled"): continue
+        if prov == "pinterest" and not os.environ.get("PINTEREST_BOARD"): continue
+        if prov.startswith("tiktok") and not tiktok_wanted(it, ints): continue
+        if prov in WANT or (prov.startswith("tiktok") and "tiktok" in WANT) or (prov == "pinterest" and "pinterest" not in WANT and os.environ.get("PINTEREST_BOARD")): chans.append((prov, it["id"], it.get("name", "")))
+    return chans
+
+
 def list_channels():
     """Print what Postiz reports for each connected channel (no ids, nothing is posted)."""
     ints = call("GET", "/integrations"); ints = ints if isinstance(ints, list) else ints.get("integrations", [])
@@ -99,13 +111,7 @@ def main():
     meta_path = sys.argv[1]; meta = json.load(open(meta_path, encoding="utf-8"))
     video = meta["file"] if os.path.exists(meta["file"]) else meta_path[:-5] + ".mp4"
     ints = call("GET", "/integrations"); ints = ints if isinstance(ints, list) else ints.get("integrations", [])
-    chans = []
-    for it in ints:
-        prov = it.get("identifier") or it.get("providerIdentifier") or ""
-        if it.get("disabled"): continue
-        if prov == "pinterest" and not os.environ.get("PINTEREST_BOARD"): continue
-        if prov.startswith("tiktok") and not tiktok_wanted(it, ints): continue
-        if prov in WANT or (prov.startswith("tiktok") and "tiktok" in WANT) or (prov == "pinterest" and "pinterest" not in WANT and os.environ.get("PINTEREST_BOARD")): chans.append((prov, it["id"], it.get("name", "")))
+    chans = pick_channels(ints)
     print("channels:", [(p, n) for p, _, n in chans])
     if "tiktok" in WANT and not any(p.startswith("tiktok") for p, _, _ in chans): print("::warning::no TikTok account matched (wanted %s): this post goes out without TikTok" % (TIKTOK_ACCOUNT or TIKTOK_MAIN_NAME))
     if not chans: raise SystemExit("no matching channels connected in Postiz (wanted %s; found %s)" % (WANT, [i.get("identifier") or i.get("providerIdentifier") for i in ints]))
