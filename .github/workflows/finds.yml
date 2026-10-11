@@ -47,6 +47,8 @@ jobs:
           FINDS_AVOID: finds_used.json,scripts/slides_exclude.json
           FINDS_TEXT: scripts/slides_text.json
           FINDS_LINKS: '0'
+          TIKTOK_METHOD: UPLOAD            # sent to the TikTok app as a draft: the owner picks the sound and posts it
+          TIKTOK_AUTO_MUSIC: 'no'
           TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
         run: python scripts/finds_plan.py
       - name: Save state
