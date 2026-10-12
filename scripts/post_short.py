@@ -51,13 +51,13 @@ def settings(provider, meta):
     title = meta["caption"].split("\n")[0]
     if provider.startswith("tiktok") and meta.get("images"):      # a photo carousel: TikTok adds a sound itself (our own audio cannot be attached)
         return {"__type": provider, "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "comment": True, "duet": False, "stitch": False, "autoAddMusic": os.environ.get("TIKTOK_AUTO_MUSIC", "yes"),
-                "brand_content_toggle": os.environ.get("TIKTOK_BRANDED", "").lower() == "true", "brand_organic_toggle": True,
+                "brand_content_toggle": os.environ.get("TIKTOK_BRANDED", "").lower() == "true", "brand_organic_toggle": False,
                 "content_posting_method": os.environ.get("TIKTOK_METHOD", "DIRECT_POST")}      # "UPLOAD" = it lands in the TikTok app as a draft for the owner to finish and post
     if provider.startswith("tiktok"):
         return {"__type": provider, "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "duet": True, "stitch": True, "comment": True,
                 "autoAddMusic": "no", "brand_content_toggle": os.environ.get("TIKTOK_BRANDED", "").lower() == "true",
-                "brand_organic_toggle": True,                      # "Your brand": the video promotes our own site
-                "video_made_with_ai": bool(meta.get("voiceover")),  # the narration is an AI voice
+                "brand_organic_toggle": False,                      # "Your brand": the video promotes our own site
+                "video_made_with_ai": False,                     # owner's choice (12 Oct 2026): no AI label, no "your brand" label
                 "content_posting_method": "DIRECT_POST"}
     if provider == "youtube":
         return {"__type": "youtube", "title": (title[:92] + " #shorts")[:100], "type": "public", "selfDeclaredMadeForKids": "no", "thumbnail": None, "tags": []}
