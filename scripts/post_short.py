@@ -56,9 +56,8 @@ def settings(provider, meta):
     if provider.startswith("tiktok"):
         return {"__type": provider, "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "duet": True, "stitch": True, "comment": True,
                 "autoAddMusic": "no", "brand_content_toggle": os.environ.get("TIKTOK_BRANDED", "").lower() == "true",
-                "brand_organic_toggle": False,                      # "Your brand": the video promotes our own site
-                "video_made_with_ai": False,                     # owner's choice (12 Oct 2026): no AI label, no "your brand" label
-                "content_posting_method": "DIRECT_POST"}
+                "brand_organic_toggle": False, "video_made_with_ai": False,   # owner's choice (12 Oct 2026): no "your brand" label, no AI label
+                "content_posting_method": os.environ.get("TIKTOK_VIDEO_METHOD", "UPLOAD")}   # owner's choice: a draft in the TikTok app, they pick the sound and post; "DIRECT_POST" publishes by itself
     if provider == "youtube":
         return {"__type": "youtube", "title": (title[:92] + " #shorts")[:100], "type": "public", "selfDeclaredMadeForKids": "no", "thumbnail": None, "tags": []}
     if provider in ("instagram", "instagram-standalone"):
