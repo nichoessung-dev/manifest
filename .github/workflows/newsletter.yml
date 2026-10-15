@@ -20,6 +20,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - run: pip install pillow   # makes the email product pictures (scripts/newsletter.py email_img)
       - name: Sync contacts to Brevo
         run: python scripts/newsletter.py sync
         continue-on-error: true
