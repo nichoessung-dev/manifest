@@ -6,7 +6,6 @@
 Env: POSTIZ_API_KEY (required)
      SHORTS_CHANNELS   comma list of Postiz provider ids to post to (default: tiktok,youtube,instagram-standalone,threads)
      PINTEREST_BOARD   Pinterest board id; Pinterest is skipped unless this is set
-     TIKTOK_BRANDED    "true" if the video is a paid partnership (turns on TikTok's branded-content label)
      MYCNBOX_WEBHOOK   Discord webhook that receives the TikTok link (optional)
 Writes the links to <meta>.links.json and appends a line to shorts_log.json.
 """
@@ -51,11 +50,11 @@ def settings(provider, meta):
     title = meta["caption"].split("\n")[0]
     if provider.startswith("tiktok") and meta.get("images"):      # a photo carousel: TikTok adds a sound itself (our own audio cannot be attached)
         return {"__type": provider, "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "comment": True, "duet": False, "stitch": False, "autoAddMusic": os.environ.get("TIKTOK_AUTO_MUSIC", "yes"),
-                "brand_content_toggle": os.environ.get("TIKTOK_BRANDED", "").lower() == "true", "brand_organic_toggle": False,
+                "brand_content_toggle": False, "brand_organic_toggle": False,
                 "content_posting_method": os.environ.get("TIKTOK_METHOD", "DIRECT_POST")}      # "UPLOAD" = it lands in the TikTok app as a draft for the owner to finish and post
     if provider.startswith("tiktok"):
         return {"__type": provider, "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE", "duet": True, "stitch": True, "comment": True,
-                "autoAddMusic": "no", "brand_content_toggle": os.environ.get("TIKTOK_BRANDED", "").lower() == "true",
+                "autoAddMusic": "no", "brand_content_toggle": False,
                 "brand_organic_toggle": False, "video_made_with_ai": False,   # owner's choice (12 Oct 2026): no "your brand" label, no AI label
                 "content_posting_method": os.environ.get("TIKTOK_VIDEO_METHOD", "DIRECT_POST")}   # "UPLOAD" = a draft in the TikTok app for the owner to finish (used for the second account's slideshows only)
     if provider == "youtube":
