@@ -77,10 +77,44 @@ def usd(p):
     try: return "$" + str(int(round(float(p.get("usd") or 0))))
     except: return ""
 
+_EMAIL_IMG = {}
+def email_img(pid, src):
+    """A square JPEG of the product on a light grey background, for emails.
+    The catalogue pictures are WebP with a transparent background: Brevo turns them into JPEG with a BLACK background and
+    jagged edges, and Gmail ignores object-fit, so they were also squashed. Made once per product and kept in Supabase storage."""
+    if pid in _EMAIL_IMG: return _EMAIL_IMG[pid]
+    path = "email/p/%s.jpg" % re.sub(r"[^A-Za-z0-9_-]", "", str(pid))
+    public = SUPA_URL + "/storage/v1/object/public/products/" + path
+    out = src
+    try:
+        try:
+            urllib.request.urlopen(urllib.request.Request(public, method="HEAD"), timeout=15); out = public
+        except urllib.error.HTTPError:
+            import io
+            from PIL import Image
+            raw = urllib.request.urlopen(urllib.request.Request(src, headers={"User-Agent": "Mozilla/5.0 PuroClassicoMail/1.0"}), timeout=30).read()
+            im = Image.open(io.BytesIO(raw)); im.load()
+            im = im.convert("RGBA")
+            box = im.getbbox()                                   # trim the empty transparent margin, then centre with even padding
+            if box: im = im.crop(box)
+            side = int(max(im.size) * 1.12)
+            canvas = Image.new("RGB", (side, side), (247, 247, 248))
+            canvas.paste(im, ((side - im.width) // 2, (side - im.height) // 2), im)
+            canvas = canvas.resize((480, 480), Image.LANCZOS)       # shown at 228 px: sharp on phones and retina screens
+            buf = io.BytesIO(); canvas.save(buf, "JPEG", quality=88, optimize=True, progressive=True)
+            req = urllib.request.Request(SUPA_URL + "/storage/v1/object/products/" + path, data=buf.getvalue(), method="POST",
+                headers={"apikey": SVC, "Authorization": "Bearer " + SVC, "Content-Type": "image/jpeg",
+                         "x-upsert": "true", "Cache-Control": "max-age=31536000"})
+            urllib.request.urlopen(req, timeout=30); out = public
+    except Exception as e:
+        print("email picture for %s not made: %s" % (pid, hide(e)))
+    _EMAIL_IMG[pid] = out
+    return out
+
 def card(pid, p):
-    img = esc(p.get("img") or "")
+    img = esc(email_img(pid, p.get("img")) if p.get("img") else "")
     url = SITE + "/product/" + urllib.parse.quote(pid)
-    imgtag = ('<img src="%s" width="228" alt="" style="width:228px;max-width:100%%;height:200px;object-fit:contain;background:#f7f7f8;border-radius:12px;display:block;">' % img) if img else ""
+    imgtag = ('<img src="%s" width="228" height="228" alt="%s" style="width:228px;max-width:100%%;height:auto;background:#f7f7f8;border-radius:12px;display:block;border:0;">' % (img, esc(p.get("title") or ""))) if img else ""
     return ('<td width="50%%" style="padding:8px;vertical-align:top;">'
             '<a href="%s" style="text-decoration:none;color:inherit;display:block;">%s'
             '<div style="font-family:monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#999;margin:10px 0 2px;">%s</div>'
