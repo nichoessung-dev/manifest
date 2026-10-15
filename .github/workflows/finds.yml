@@ -23,10 +23,14 @@ jobs:
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
           MYCNBOX_WEBHOOK: ${{ secrets.MYCNBOX_WEBHOOK }}
-          SHORTS_CHANNELS: ${{ vars.FINDS_CHANNELS || 'tiktok,instagram-standalone,threads,youtube' }}
+          # owner's choice (15 Oct 2026): photo carousels only, sent to the TikTok app as drafts; the owner adds the sound and posts them
+          SHORTS_CHANNELS: tiktok
           FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L
-          FINDS_MODE: ${{ vars.FINDS_MODE || 'video' }}
-          TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
+          FINDS_MODE: carousel
+          FINDS_SLIDES: '9'
+          FINDS_LINKS: '0'
+          TIKTOK_METHOD: UPLOAD
+          TIKTOK_AUTO_MUSIC: 'no'
         run: python scripts/finds_plan.py
       # The second TikTok account (puroclassico.com/repaddict) gets photo slideshows only, three a day, from its own share of the
       # photos (never a photo the first account has used). To pause it: set the repo variable SLIDES_LIVE to "false".
@@ -49,7 +53,6 @@ jobs:
           FINDS_LINKS: '0'
           TIKTOK_METHOD: UPLOAD            # sent to the TikTok app as a draft: the owner picks the sound and posts it
           TIKTOK_AUTO_MUSIC: 'no'
-          TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
         run: python scripts/finds_plan.py
       - name: Save state
         run: |
