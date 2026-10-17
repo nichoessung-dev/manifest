@@ -144,6 +144,11 @@
     <div class="bars" id="brands"><div class="skel">Loading…</div></div>
   </section>
 
+  <section class="card" style="margin-top:14px" id="links-card" hidden>
+    <div class="ch-head"><div><div class="ch-title">Broken links</div><div class="ch-sub" id="links-sub">Weekly check of every Weidian find</div></div></div>
+    <div id="links-list" class="muted"></div>
+  </section>
+
   <div class="note">Private page, not indexed. Members, subscribers and live viewers are live from the database. Charts are rebuilt every 6 hours (<span id="gen">–</span>). Guests have no account, so they count in find views but not in active users.</div>
 </div>
 
@@ -249,6 +254,15 @@ async function load(){
   if(errs.length){ $("err").hidden=false; $("err").textContent="Couldn't load: "+errs.join(", "); }
   $("updated").textContent="Updated "+new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
 }
+async function loadLinks(){
+  try{
+    const h=await (await fetch("/data/link_health.json?ts="+Date.now())).json();
+    $("links-card").hidden=false;
+    $("links-sub").textContent=fmt(h.weidian_checked)+" Weidian finds checked "+new Date(h.checked).toLocaleDateString("en-US",{month:"short",day:"numeric"})+": "+fmt(h.dead.length)+" dead (hidden from the site), "+fmt(h.sold_out.length)+" sold out, "+fmt(h.errors)+" could not be checked";
+    $("links-list").innerHTML=h.dead.length? '<div class="bars" style="gap:6px">'+h.dead.slice(0,200).map(id=>'<a href="/product/'+encodeURIComponent(id)+'" target="_blank" rel="noopener" style="color:var(--ink);font-size:13.5px">/product/'+id+'</a>').join("")+'</div>' : "No dead links found.";
+  }catch(e){}
+}
+loadLinks();
 document.querySelectorAll(".seg").forEach(seg=>seg.addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b) return; seg.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
   range[seg.dataset.chart]=+b.dataset.r; drawCharts();

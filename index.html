@@ -2441,6 +2441,13 @@ $("#q").value=state.q||"";
 const _PR=/^\/product\//.test(location.pathname);
 if(!_PR){ render(); (window.requestIdleCallback||((f)=>setTimeout(f,300)))(()=>{try{renderFeatured();window.__featRendered=1;}catch(e){}}); }
 window.__sbReady=initSb; initSb();
+/* dead Weidian listings (data/link_health.json, the weekly Link check workflow): hidden from the catalogue */
+fetch("/data/link_health.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(h=>{
+  if(!h||!Array.isArray(h.dead)||!h.dead.length) return;
+  const dead=new Set(h.dead.map(String)), n=ALL.length;
+  ALL=ALL.filter(p=>!dead.has(String(p.id)));
+  if(ALL.length!==n){ try{ softRender(); }catch(e){} }
+}).catch(()=>{});
 /* real popularity: aggregated product views + favourites (data/stats.json, refreshed every 6h by the Stats workflow) */
 function popScore(p){ return (p.views||0) + (p.views7||0); }   /* views in the last 30 days, last 7 days count double */
 let STATS = null;
