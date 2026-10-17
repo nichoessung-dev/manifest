@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w2";
+export const PRODUCT_TPL = "w3";
 async function qcThumbs(origin, p) {
   if (p.qc < 1) return [];
   try {
@@ -101,6 +101,7 @@ export async function renderProduct(id, origin) {
     <h1>${esc(p.title)}</h1>
     <div class="price">${money(p.cny)}<small>${isPH(p.cny) ? "placeholder price · ask seller" : `¥${p.cny} · before shipping`}</small></div>
     <div class="buy">${agents}</div><script>try{var a=(JSON.parse(localStorage.getItem("manifest.state")||"{}")||{}).agent,b=document.currentScript.previousElementSibling,e=a&&b.querySelector('a[data-agent="'+String(a).replace(/[^a-z0-9]/g,"")+'"]');if(e&&e!==b.firstElementChild){b.firstElementChild.classList.remove("first");e.classList.add("first");b.insertBefore(e,b.firstElementChild);}}catch(_){}</script>
+    <p class="eyebrow" style="margin:6px 0 0">Spreadsheets: ${AGENT_BRAND_AGENTS.map(k => { const bs = p.brand && agentBrands().includes(p.brand) ? idx().brandSlug.get(p.brand) : null; return `<a href="/${k}-spreadsheet${bs ? "/" + bs : ""}" style="color:var(--muted)">${esc(AGENTS[k].name)}</a>`; }).join(" · ")}</p>
     <dl class="kv"><dt>Marketplace</dt><dd>${plat}</dd><dt>Category</dt><dd>${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(p.cat)}</dd>
       ${variants.length ? `<dt>Options</dt><dd>${esc(variants.slice(0, 12).join(" · "))}</dd>` : ""}<dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc ? "On record" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd></dl>
     <p><a href="/#p/${encodeURIComponent(p.id)}" style="color:var(--accent)">Open in the catalogue →</a></p>
@@ -346,7 +347,7 @@ function brandFactsHtml(f) {
 }
 // The QC line of a pick card. A count is printed only when one is stored; the flag alone is "marked as having".
 const qcLine = p => p.qc >= 2 ? `${nf(p.qc)} buyer QC photos on record` : p.qc === 1 ? "Marked as having buyer QC photos" : "No buyer QC photos on record yet";
-const BRAND_CSS = `<style>.pk .c{border-color:#3A4870}.pkw{display:block;font-size:12.5px;line-height:1.35;color:#C9D2E6}.pkw b{color:var(--accent);font-weight:700}.pkq{font-size:12.5px;color:var(--muted)}.pkn{color:var(--muted);font-size:14px;max-width:780px;margin:0 0 4px}</style>`;
+const BRAND_CSS = `<style>.pk .ci{box-shadow:inset 0 0 0 1px var(--accent)}.pkw{display:block;font-size:12.5px;line-height:1.35;color:var(--ink-2)}.pkw b{color:var(--accent);font-weight:700}.pkq{font-size:12.5px;color:var(--muted)}.pkn{color:var(--muted);font-size:14px;max-width:780px;margin:0 0 4px}</style>`;
 function pickCard({ p, why, doubt }, eager) {
   const src = imgSrc(p);
   // A price we do not vouch for (priceDoubt in brandFacts) is shown as the seller lists it, in yuan, without our dollar figure.
@@ -456,16 +457,64 @@ export function renderCategory(s, n) {
     h1: meta.h, intro: CAT_INTRO[c] || "", trail: [["Home", "/"], [meta.name, "/category/" + s]], extra });
 }
 
+// ------------------------------------------------------------------ agent spreadsheets (+ brand pages per agent)
+// Brand x agent pages (/kakobuy-spreadsheet/ralph-lauren): only for the largest brand hubs and the agents people search
+// together with a brand name, so every page has a real list behind it instead of thousands of near-empty variations.
+export const AGENT_BRAND_AGENTS = ["mycnbox", "kakobuy", "oopbuy", "sugargoo"];
+export const AGENT_BRAND_MIN = 40, AGENT_BRAND_MAX = 30;
+let _agentBrands = null;
+export function agentBrands() {
+  if (_agentBrands) return _agentBrands;
+  const { byBrand, brandSlug } = idx();
+  return (_agentBrands = [...brandSlug.keys()].filter(b => byBrand.get(b).length >= AGENT_BRAND_MIN)
+    .sort((a, b) => byBrand.get(b).length - byBrand.get(a).length).slice(0, AGENT_BRAND_MAX));
+}
+const COUPON_GUIDE = { mycnbox: ["MyCNBox coupon code", "/guides/mycnbox-coupon-code"], kakobuy: ["KakoBuy coupon code", "/guides/kakobuy-coupon-code"] };
+function agentHowTo(a) {
+  return `<h2>How to order from the ${a.name} spreadsheet</h2>
+<ol class="steps">
+<li><strong>Make a free ${a.name} account.</strong> Sign-up bonuses differ per agent; see <a href="${(COUPON_GUIDE[a.key] || ["", "/guides/agent-coupons"])[1]}">${esc((COUPON_GUIDE[a.key] || ["all agent sign-up bonuses"])[0])}</a>.</li>
+<li><strong>Find an item here.</strong> Search or filter the spreadsheet by brand, category, colour or price, and open the find you like.</li>
+<li><strong>Tap "Buy via ${a.name}".</strong> The listing opens inside ${a.name}. Pick your size and colour, then pay for the item and the short delivery to the warehouse.</li>
+<li><strong>Check your QC photos.</strong> When the item reaches the warehouse, ${a.name} photographs it. Compare logos, stitching and the size tag; read <a href="/guides/how-to-qc">how to read QC photos</a>.</li>
+<li><strong>Ship your parcel.</strong> Combine your items, pick a shipping line and pay international shipping. <a href="/guides/shipping-lines">Shipping lines explained</a> · <a href="/tools/weight-estimator">weight estimator</a>.</li>
+</ol>`;
+}
 export function renderAgent(key, n) {
   const a = AGENTS[key], meta = AGENT_INTRO[key]; if (!a || !meta) return null;
-  const { all } = idx(); const path = `/${key}-spreadsheet`;
-  const faq = [[`What is the ${a.name} spreadsheet?`, `A list of Weidian, Taobao and 1688 finds that open directly in ${a.name}. Puro Classico's spreadsheet has ${all.length.toLocaleString("en-US")} finds, each with ${a.name} buy links, prices and buyer QC photo counts.`],
-               [`How do I order from the ${a.name} spreadsheet?`, `Open a find, tap Buy via ${a.name}, choose your size and pay for the item plus delivery to the warehouse. After the QC photos arrive, submit your parcel and pay international shipping.`]];
-  return hub({ path, n, list: all, title: `${meta.title} — ${all.length.toLocaleString("en-US")} Finds · Puro Classico`,
-    desc: `The ${a.name} spreadsheet: ${all.length.toLocaleString("en-US")} rep finds with prices, QC photo counts and direct ${a.name} links. Updated ${BUILT}.`,
+  const { all, brandSlug } = idx(); const path = `/${key}-spreadsheet`; const N = all.length.toLocaleString("en-US");
+  const faq = [[`What is the ${a.name} spreadsheet?`, `A list of Weidian, Taobao and 1688 finds that open directly in ${a.name}. Puro Classico's spreadsheet has ${N} finds, each with ${a.name} buy links, prices and buyer QC photo counts where we have them.`],
+               [`How do I order from the ${a.name} spreadsheet?`, `Open a find, tap Buy via ${a.name}, choose your size and pay for the item plus delivery to the warehouse. After the QC photos arrive, submit your parcel and pay international shipping.`],
+               [`Is the ${a.name} spreadsheet free?`, `Yes. Browsing, searching and saving finds on Puro Classico is free. You only pay ${a.name} for the items you order and for shipping. Links to agents may be affiliate links.`],
+               [`Can I use the spreadsheet with another agent?`, `Yes. The catalogue is the same for every agent: each product page has buy links for MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo, and the link converter turns any Weidian, Taobao or 1688 link into a link for your agent.`],
+               [`How often is the ${a.name} spreadsheet updated?`, `New finds are added to the catalogue regularly; the date of the last catalogue update is shown on this page (${BUILT}).`]];
+  const brands = AGENT_BRAND_AGENTS.includes(key) ? agentBrands() : [];
+  const brandBlock = brands.length ? `<h2>Popular brands on the ${a.name} spreadsheet</h2><div class="chips">${brands.map(b => `<a href="${path}/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}<a href="/brands">All brands →</a></div>` : "";
+  const coupon = COUPON_GUIDE[key];
+  return hub({ path, n, list: all, title: `${meta.title} — ${N} Finds · Puro Classico`,
+    desc: `The ${a.name} spreadsheet: ${N} rep finds with prices, QC photo counts and direct ${a.name} links. Updated ${BUILT}.`,
     h1: meta.title, intro: `<p class="lead">${esc(meta.lede)}</p>${meta.body}${key === "mycnbox" ? `<p><a class="btn red" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">Claim your MyCNBox new-user coupons</a></p>` : ""}`,
-    trail: [["Home", "/"], [meta.title, path]], faq,
-    extra: `<p><a class="btn light" href="/">Browse all ${all.length.toLocaleString("en-US")} finds →</a></p><h2>Other agent spreadsheets</h2><div class="chips">${Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => `<a href="/${k}-spreadsheet">${AGENTS[k].name} spreadsheet</a>`).join("")}<a href="/guides/best-shopping-agent">Which agent is best?</a></div>` });
+    trail: [["Home", "/"], [meta.title, path]], faq, chips: brands.length ? `<div class="chips">${brands.slice(0, 12).map(b => `<a href="${path}/${brandSlug.get(b)}">${esc(b)} on ${esc(a.name)}</a>`).join("")}</div>` : "",
+    extra: `<div class="prose">${agentHowTo({ ...a, key })}${coupon ? `<p>Before your first order, check the <a href="${coupon[1]}">${esc(coupon[0])}</a> guide for the current sign-up bonus.</p>` : ""}</div>
+${brandBlock}
+<p><a class="btn light" href="/">Browse all ${N} finds →</a></p><h2>Other agent spreadsheets</h2><div class="chips">${Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => `<a href="/${k}-spreadsheet">${esc(AGENT_INTRO[k].title.replace(/ 2026$/, ""))}</a>`).join("")}<a href="/guides/best-shopping-agent">Which agent is best?</a></div>` });
+}
+export function renderAgentBrand(key, s, n) {
+  const a = AGENTS[key], meta = AGENT_INTRO[key]; if (!a || !meta || !AGENT_BRAND_AGENTS.includes(key)) return null;
+  const { slugBrand, byBrand, brandSlug } = idx(); const b = slugBrand.get(s);
+  if (!b || !agentBrands().includes(b)) return null;
+  const list = byBrand.get(b), N = list.length.toLocaleString("en-US"), path = `/${key}-spreadsheet/${s}`, range = priceRange(list);
+  const others = AGENT_BRAND_AGENTS.filter(k => k !== key);
+  const intro = `<p class="lead">${N} ${esc(b)} finds from Weidian, Taobao and 1688${range ? `, listed at ${esc(range)}` : ""}. Every find has a one-tap <strong>Buy via ${esc(a.name)}</strong> button.</p>
+<p>This is the <a href="/brand/${s}">${esc(b)} reps spreadsheet</a> with ${esc(a.name)} as your agent: open a find, tap <strong>Buy via ${esc(a.name)}</strong>, pick your size and check the QC photos before you ship. The full catalogue for this agent is on the <a href="/${key}-spreadsheet">${esc(meta.title.replace(/ 2026$/, ""))}</a>.</p>`;
+  const faq = [[`How do I buy ${b} reps on ${a.name}?`, `Open one of the ${N} ${b} finds below, tap Buy via ${a.name}, choose your size and pay for the item plus warehouse delivery. ${a.name} sends QC photos when it arrives; check them, then ship.`],
+               [`Are these ${b} finds only for ${a.name}?`, `No. The same finds open on ${others.map(k => AGENTS[k].name).join(", ")} and LoveGoBuy; each product page has a button for every agent.`]];
+  return hub({ path, n, list, title: `${b} ${a.name} Spreadsheet 2026 — ${N} Finds · Puro Classico`,
+    desc: `${N} ${b} rep finds with one-tap ${a.name} buy links${range ? `, ${range}` : ""}. Prices and QC photo counts on every find.`,
+    h1: `${b} on ${a.name}`, intro, trail: [["Home", "/"], [meta.title, `/${key}-spreadsheet`], [b, path]], faq,
+    chips: `<div class="chips">${others.map(k => `<a href="/${k}-spreadsheet/${s}">${esc(b)} on ${esc(AGENTS[k].name)}</a>`).join("")}<a href="/brand/${s}">All ${esc(b)} reps</a></div>`,
+    extra: `<div class="prose">${agentHowTo({ ...a, key })}</div><h2>More brands on ${esc(a.name)}</h2><div class="chips">${agentBrands().filter(x => x !== b).slice(0, 16).map(x => `<a href="/${key}-spreadsheet/${brandSlug.get(x)}">${esc(x)}</a>`).join("")}</div>`,
+    ldCount: list.length });
 }
 
 export function renderOldMoney(n) {
@@ -521,7 +570,7 @@ export function renderModel(s, n) {
 }
 
 // ------------------------------------------------------------------ tools
-const TOOL_CSS = `<style>.tool{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:760px;margin:18px 0}.tool label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}.tool input,.tool select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit}.tool .out{margin-top:14px;font-size:15px;color:#D5DCEC;white-space:pre-line}.tool .out a{color:var(--accent);word-break:break-all}.tool .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.tool .qct{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tool .qct img{width:110px;height:110px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}.tool table{width:100%;border-collapse:collapse}.tool td{padding:6px 4px}</style>`;
+const TOOL_CSS = `<style>.tool{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:760px;margin:18px 0}.tool label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}.tool input,.tool select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit}.tool .out{margin-top:14px;font-size:15px;color:var(--ink-2);white-space:pre-line}.tool .out a{color:var(--accent);word-break:break-all}.tool .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.tool .qct{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tool .qct img{width:110px;height:110px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}.tool table{width:100%;border-collapse:collapse}.tool td{padding:6px 4px}</style>`;
 const EXTRACT = `function pcExtract(u){u=(u||"").trim();if(!u)return{};for(var k=0;k<3;k++){var d;try{d=decodeURIComponent(u);}catch(e){break;}if(d===u)break;u=d;}var pl=null,v,m,i;var st=u.match(/[?&#](?:shop_type|platform|source|channel|mall_?type)=([a-z0-9_]+)/i);if(st){v=st[1].toLowerCase();if(/^(?:wd|weidian)/.test(v))pl="weidian";else if(/^(?:1688|ali)/.test(v))pl="1688";else if(/^(?:tb|tao|tmall)/.test(v))pl="taobao";}if(!pl){m=u.match(/\\/product\\/(weidian|taobao|tmall|1688)\\//i);if(m){v=m[1].toLowerCase();pl=v==="tmall"?"taobao":v;}}if(!pl){var H=[["weidian",/(?:^|[\\/.@])(?:weidian\\.com|youshop10\\.com)/i],["taobao",/(?:^|[\\/.@])(?:taobao\\.com|tmall\\.com|tmall\\.hk|tb\\.cn)/i],["1688",/(?:^|[\\/.@])(?:1688\\.com|alibaba\\.com)/i]],b=-1;for(i=0;i<H.length;i++){m=H[i][1].exec(u);if(m&&(b<0||m.index<b)){b=m.index;pl=H[i][0];}}}if(!pl){if(/weidian/i.test(u))pl="weidian";else if(/taobao|tmall/i.test(u))pl="taobao";else if(/alibaba/i.test(u))pl="1688";}var id=null,ps=[/(?:^|[?&#\\/])item_?id=(\\d{6,})/i,/(?:^|[?&#])offer_?id=(\\d{6,})/i,/[?&#]id=(\\d{6,})/i,/\\/offer\\/(\\d{6,})/i,/\\/i(\\d{6,})\\.htm/i,/\\/product\\/(?:weidian|taobao|tmall|1688)\\/(\\d{6,})/i,/\\/item\\/(\\d{6,})/i,/\\/(\\d{9,})\\.html?\\b/i];for(i=0;i<ps.length;i++){m=u.match(ps[i]);if(m){id=m[1];break;}}if(!id&&/^\\d{6,}$/.test(u))id=u;var sh=!id&&/(?:^|[\\/.])(?:m\\.tb\\.cn|e\\.tb\\.cn|youshop10\\.com|qr\\.1688\\.com)/i.test(u);if(!id&&!sh){m=u.replace(/(?:spm|memberId|referId|affcode|invite_?code|scm|pvid|ut_sk|sku_?id)=[^&#]*/gi,"").match(/(\\d{9,})/);if(m)id=m[1];}return{platform:pl,id:id,short:sh};}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c];});}`;
 const TOOL_UI = {
@@ -601,7 +650,7 @@ export function sitemapIndex() {
 }
 export function sitemapPages() {
   const { brandSlug } = idx();
-  const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`),
+  const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), ...AGENT_BRAND_AGENTS.flatMap(k => agentBrands().map(b => `/${k}-spreadsheet/${brandSlug.get(b)}`)),
     ...Object.values(CATS).map(c => "/category/" + c.slug), ...[...brandSlug.values()].map(s => "/brand/" + s),
     ...Object.keys(GUIDES).map(s => "/guides/" + s), "/best", ...models().map(m => "/best/" + m.slug), "/tools", ...Object.keys(TOOLS).map(s => "/tools/" + s), "/terms", "/privacy"];
   return xml(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `<url><loc>${SITE}${u}</loc></url>`).join("\n")}\n</urlset>`);

@@ -184,38 +184,8 @@ export function pager(base, page, pages) {
 }
 
 // ------------------------------------------------------------------ layout
-const CSS = `:root{--bg:#0C1220;--bg2:#111A2E;--card:#141E34;--line:#26314D;--text:#F2F5FB;--muted:#94A0BD;--accent:#7B9AE0;--red:#E8322B}
-*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 "Hanken Grotesk",system-ui,-apple-system,Segoe UI,sans-serif;-webkit-font-smoothing:antialiased}
-a{color:inherit}img{max-width:100%}.w{max-width:1180px;margin:0 auto;padding:0 16px}
-header.h{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(12,18,32,.92);backdrop-filter:blur(10px);z-index:5}
-header.h .w{display:flex;align-items:center;gap:18px;height:64px}header.h img{height:30px;width:auto;display:block}
-header.h nav{display:flex;gap:16px;font-size:15px;color:var(--muted);flex:1;overflow-x:auto;white-space:nowrap}header.h nav a{text-decoration:none}header.h nav a:hover{color:var(--text)}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:999px;font-weight:700;font-size:15px;text-decoration:none;border:1px solid var(--line)}
-.btn.red{background:var(--red);border-color:var(--red);color:#fff}.btn.light{background:#EEF2FA;color:#0C1220;border-color:#EEF2FA}
-.hcta{white-space:nowrap}@media(max-width:760px){.hcta{display:none}header.h nav{gap:12px;font-size:14px}header.h .w{flex-wrap:wrap;height:auto;padding:10px 16px;row-gap:6px}header.h nav{flex-basis:100%;order:3;flex-wrap:wrap;white-space:normal;overflow:visible;gap:6px 14px}}
-main{padding:22px 0 60px}.bc{font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}.bc a{text-decoration:none}.bc a:hover{color:var(--text)}
-h1{font-size:clamp(28px,4.4vw,44px);line-height:1.08;margin:0 0 12px;letter-spacing:-.01em}h2{font-size:24px;margin:34px 0 12px}h3{font-size:18px;margin:22px 0 8px}
-.lead{color:#C9D2E6;font-size:17.5px;max-width:760px}.prose{max-width:780px;color:#D5DCEC}.prose p,.prose li{font-size:16.5px}.prose a{color:var(--accent)}
-.facts{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}.facts span{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13.5px;color:var(--muted)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.chips a{border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:14px;text-decoration:none;color:#C9D2E6}.chips a:hover{border-color:var(--accent)}
-.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin:16px 0}@media(max-width:560px){.g{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
-.c{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;text-decoration:none}.c:hover{border-color:#3A4870}
-.ci{position:relative;aspect-ratio:4/5;background:#F3F4F7;display:block}.ci img{width:100%;height:100%;object-fit:contain;display:block}
-.qb{position:absolute;left:8px;bottom:8px;background:rgba(12,16,28,.78);color:#fff;font-size:11px;font-weight:700;padding:3px 7px;border-radius:6px}
-.cb{display:flex;flex-direction:column;gap:3px;padding:10px 12px 12px}.cbr{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.ct{font-size:14.5px;line-height:1.3}.cp{font-weight:800;font-size:15px;margin-top:2px}.cp small{color:var(--muted);font-weight:500}
-.pg{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.pg a,.pg span{padding:8px 13px;border:1px solid var(--line);border-radius:10px;text-decoration:none;font-size:14px}.pg span{background:var(--accent);color:#0C1220;font-weight:700;border-color:var(--accent)}.pg i{padding:8px 4px;color:var(--muted)}
-.pd{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px}@media(max-width:820px){.pd{grid-template-columns:1fr}}
-.pimg{background:#F3F4F7;border-radius:20px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;overflow:hidden}.pimg img{width:100%;height:100%;object-fit:contain}
-.qcs{display:flex;gap:8px;overflow-x:auto;margin:12px 0}.qcs a{flex:none}.qcs img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block}
-.price{font-size:30px;font-weight:800;margin:6px 0}.price small{font-size:16px;color:var(--muted);font-weight:500;margin-left:8px}
-.buy{display:flex;flex-direction:column;gap:8px;margin:16px 0}.buy a{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-radius:14px;border:1px solid var(--line);text-decoration:none;font-weight:700;background:var(--card)}
-.buy a.first{background:#EEF2FA;color:#0C1220;border-color:#EEF2FA}.buy a small{font-weight:600;font-size:12px;color:#fff;background:var(--red);padding:3px 8px;border-radius:999px}
-dl.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:15px;margin:14px 0}dl.kv dt{color:var(--muted)}dl.kv dd{margin:0}
-.steps{counter-reset:s;list-style:none;padding:0}.steps li{counter-increment:s;position:relative;padding-left:44px;margin:0 0 14px}.steps li:before{content:counter(s);position:absolute;left:0;top:0;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#0C1220;font-weight:800;display:grid;place-items:center;font-size:14px}
-.faq details{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 10px;background:var(--card)}.faq summary{font-weight:700;cursor:pointer}.faq p{margin:10px 0 0;color:#C9D2E6}
-.note{border:1px solid var(--line);background:var(--bg2);border-radius:14px;padding:14px 16px;color:#C9D2E6;font-size:15px}
-footer.f{border-top:1px solid var(--line);padding:34px 0 40px;color:var(--muted);font-size:14px}footer.f .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:22px}
-footer.f h4{color:var(--text);margin:0 0 8px;font-size:14px}footer.f a{display:block;text-decoration:none;padding:3px 0}footer.f a:hover{color:var(--text)}footer.f .disc{margin-top:26px;font-size:12.5px;line-height:1.6;max-width:900px}`;
+// Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
+export const DS_VER = "1";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -273,16 +243,17 @@ ${status === 200 ? `<link rel="canonical" href="${esc(url)}">` : ""}
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${esc(img)}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${esc(img)}">
-<meta name="theme-color" content="#0C1220"><link rel="icon" type="image/png" href="/favicon.png">
+<meta name="theme-color" content="#0B0B0C"><link rel="icon" type="image/png" href="/favicon.png">
+<script>try{var t=localStorage.getItem("manifest.theme");if(t==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
-<style>${CSS}</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/ds.css?v=${DS_VER}">
 ${jsonld.map(ld).join("\n")}
 ${extraHead}
 </head>
 <body>
-<header class="h"><div class="w"><a href="/" aria-label="Puro Classico home"><img src="/logo-wordmark.png" alt="Puro Classico" width="106" height="30"></a>
-<nav><a href="/">Browse finds</a><a href="/brands">Brands</a><a href="/best">Best reps</a><a href="/old-money">Old money</a><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/how-to-order">How to order</a></nav>
+<header class="h"><div class="w"><a href="/" aria-label="Puro Classico home"><span class="logo" role="img" aria-label="Puro Classico"></span></a>
+<nav>${[["/", "Browse finds"], ["/brands", "Brands"], ["/best", "Best reps"], ["/old-money", "Old money"], ["/guides", "Guides"], ["/tools", "Tools"], ["/how-to-order", "How to order"]].map(([u, t]) => `<a href="${u}"${u !== "/" && (path === u || path.startsWith(u + "/")) ? ' aria-current="page"' : ""}>${t}</a>`).join("")}</nav>
 <a class="btn red hcta" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">Claim $500 MyCNBox coupons</a></div></header>
 <main><div class="w">
 ${body}

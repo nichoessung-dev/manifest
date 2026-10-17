@@ -55,8 +55,8 @@ export const GUIDES3 = {
     faq: [["Is a rep spreadsheet free?", "Yes. Puro Classico is free to browse; you only pay the seller, the agent's fees and shipping when you order."], ["Which agent should I use with a spreadsheet?", "Any agent that accepts Weidian, Taobao and 1688 links works. See our best shopping agent guide for a comparison."], ["How often is the spreadsheet updated?", "New finds are added regularly and the most-viewed items rise to the top automatically."]],
   },
   "pandabuy-alternatives": {
-    title: "Pandabuy Alternatives in 2026: Agents That Still Work",
-    desc: "Pandabuy has been out of business since 2024. Five agents that still worked on 10 October 2026, and how to convert an old Pandabuy link for them.",
+    title: "Pandabuy Alternative 2026: 5 Agents That Still Work (+ Free Link Converter)",
+    desc: "Pandabuy shut down in 2024. These 5 agents still worked on 10 October 2026: convert any old Pandabuy link in one click and browse 9,000+ finds that open in each of them.",
     h1: "Pandabuy alternatives in 2026: agents that still work",
     updated: "2026-10-10",   // the day the agents' status below was checked; change it only when they are re-checked
     body: `<p class="lead">Pandabuy has been out of business since 2024: its warehouses in China were reported raided in April of that year, and pandabuy.com did not load when we checked on 10 October 2026. Old Pandabuy links no longer open, but every item behind them was an ordinary Weidian, Taobao or 1688 listing, so you can buy the same things through an agent that still works. The five agents our links support (MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo) were all operating on 10 October 2026.</p>
