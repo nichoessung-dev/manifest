@@ -22,6 +22,7 @@ STATE = os.environ.get("FINDS_STATE", "finds_used.json")     # this account's us
 AVOID = os.environ.get("FINDS_AVOID", "")                    # files with ids this account must never use
 SINGLE = os.environ.get("FINDS_SINGLE", "")                  # "1" = one photo per slide
 TEXT = os.environ.get("FINDS_TEXT", "")                      # caption lines and tags for this account
+BADGE = os.environ.get("FINDS_BADGE", "")                    # "1" = the "puro classico / HARDEST FINDS" badge in the photo corners
 LINKS = os.environ.get("FINDS_LINKS", "1")                   # "0" = do not send new TikTok links to Discord from this run
 TZ = ZoneInfo("Europe/Oslo")
 PROFILE = "https://www.tiktok.com/@puroclassico.com"
@@ -64,7 +65,7 @@ def top_up():
     for t in wanted_slots(now):
         if any(abs((t - h).total_seconds()) < 1800 for h in have): continue
         out = os.path.join(ROOT, "out", t.strftime("%m%d-%H%M")); os.makedirs(out, exist_ok=True)
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "make_finds.py"), "--folder", os.environ["FINDS_FOLDER"], "--slides", SLIDES, "--hold", HOLD, "--own", OWN, "--state", STATE, "--commit-state", "--out", out] + (["--avoid", AVOID] if AVOID else []) + (["--single"] if SINGLE == "1" else []) + (["--text", TEXT] if TEXT else []) + (["--video"] if MODE == "video" else []) + (["--audio", AUDIO] if AUDIO else []) + (["--covers", COVERS] if COVERS and COVERS != "qc" else ["--qc-cover"]))
+        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "make_finds.py"), "--folder", os.environ["FINDS_FOLDER"], "--slides", SLIDES, "--hold", HOLD, "--own", OWN, "--state", STATE, "--commit-state", "--out", out] + (["--badge"] if BADGE else []) + (["--avoid", AVOID] if AVOID else []) + (["--single"] if SINGLE == "1" else []) + (["--text", TEXT] if TEXT else []) + (["--video"] if MODE == "video" else []) + (["--audio", AUDIO] if AUDIO else []) + (["--covers", COVERS] if COVERS and COVERS != "qc" else ["--qc-cover"]))
         metas = [f for f in os.listdir(out) if f.endswith(".json")]
         if r.returncode or not metas: print("could not build the carousel for", t); continue
         env = dict(os.environ, SCHEDULE_AT=t.strftime("%Y-%m-%dT%H:%M:%S.000Z"))
