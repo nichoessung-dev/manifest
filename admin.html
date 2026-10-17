@@ -44,7 +44,7 @@
     <input id="q" placeholder="Filter by title, brand or ID">
   </div>
   <div id="tbl"></div>
-  <p class="muted" style="margin-top:14px">Stats are aggregated from Supabase every 6 hours by the "Stats" GitHub workflow (Actions → Stats → Run workflow to refresh now). Counts only — no user data.</p>
+  <p class="muted" style="margin-top:14px">Stats are aggregated from Supabase every 6 hours by the "Stats" GitHub workflow (Actions → Stats → Run workflow to refresh now). Counts only, no user data.</p>
 </div>
 <script>
 (async function(){
@@ -53,7 +53,7 @@
     fetch("/data/stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null),
     fetch("/products.json").then(r=>r.json()).catch(()=>({}))
   ]);
-  if(!stats){ $("#gen").textContent="No stats yet — run the Stats workflow in GitHub Actions."; return; }
+  if(!stats){ $("#gen").textContent="No stats yet, run the Stats workflow in GitHub Actions."; return; }
   const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   /* tolerate a partial/empty stats.json (e.g. {} or a run that failed half-way) */
   stats.daily=Array.isArray(stats.daily)?stats.daily.filter(d=>Array.isArray(d)):[];
