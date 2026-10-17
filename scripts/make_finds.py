@@ -8,7 +8,7 @@ The Drive folder must be shared by link. Photos are picked least-used first, in 
 """
 import argparse, glob, hashlib, html, json, os, random, re, subprocess, sys, tempfile, urllib.request
 from datetime import datetime
-from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 import imageio_ffmpeg
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -86,7 +86,7 @@ TAGS = ["#finds", "#haul", "#fashion", "#quietluxury", "#oldmoneystyle", "#oldmo
 def cover_card(title, SW=SW, SH=SH, bg=None):
     """The start image: the title in tall white capitals with a black outline, and three arrow keys under it, over a picture."""
     if bg is None: im = Image.new("RGB", (SW, SH), (24, 26, 32))
-    else: im = ImageOps.fit(bg.convert("RGB"), (SW, SH), Image.LANCZOS)
+    else: im = crisp(ImageOps.fit(bg.convert("RGB"), (SW, SH), Image.LANCZOS))
     d = ImageDraw.Draw(im); words = title.upper().split()
     lines = [" ".join(words)]
     size = 150
@@ -129,12 +129,18 @@ def draw_arrow(d, cx, y, w, col, t):
 def whole(im, w, h):
     """The whole photo, nothing cut off: scaled to fit, with a blurred copy of itself filling what is left at the sides."""
     im = im.convert("RGB"); bg = ImageOps.fit(im, (w, h), Image.BILINEAR).filter(ImageFilter.GaussianBlur(28))
-    fg = ImageOps.contain(im, (w, h), Image.LANCZOS); bg.paste(fg, ((w - fg.width) // 2, (h - fg.height) // 2)); return bg
+    fg = crisp(ImageOps.contain(im, (w, h), Image.LANCZOS)); bg.paste(fg, ((w - fg.width) // 2, (h - fg.height) // 2)); return bg
+
+
+def crisp(im):
+    """Sharpen after resizing: the QC photos are soft video stills, and TikTok compresses them again on top."""
+    im = im.filter(ImageFilter.UnsharpMask(radius=2.2, percent=90, threshold=2)).filter(ImageFilter.UnsharpMask(radius=0.8, percent=60, threshold=1))
+    return ImageEnhance.Color(ImageEnhance.Contrast(im).enhance(1.05)).enhance(1.06)
 
 
 def fill(im, w, h):
     """The photo filling the whole area edge to edge (cropped to fit, centred), no blurred bars."""
-    return ImageOps.fit(im.convert("RGB"), (w, h), Image.LANCZOS, centering=(0.5, 0.5))
+    return crisp(ImageOps.fit(im.convert("RGB"), (w, h), Image.LANCZOS, centering=(0.5, 0.5)))
 
 
 def slide(a, b, SW=SW, SH=SH, badge=None):
@@ -315,7 +321,7 @@ def main():
     p.stdin.close(); p.wait()
     imgs = []                                                    # the same slides as JPEGs, for a swipeable photo carousel
     for k, (im, _) in enumerate([] if a.video else frames):
-        ip = os.path.join(a.out, "finds-%d-%02d.jpg" % (part, k)); im.save(ip, quality=92); imgs.append(ip)
+        ip = os.path.join(a.out, "finds-%d-%02d.jpg" % (part, k)); im.save(ip, quality=96, subsampling=0, optimize=True); imgs.append(ip)
     meta = {"format": "finds", "images": imgs, "ids": [], "caption": caption,
             "seconds": round(total, 1), "voiceover": False, "file": out, "product_url": "https://www.puroclassico.com/"}
     json.dump(meta, open(out[:-4] + ".json", "w"), indent=1, ensure_ascii=False)
