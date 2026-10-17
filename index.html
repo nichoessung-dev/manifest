@@ -33,7 +33,7 @@
 <meta name="twitter:description" content="9,000+ designer rep finds — Corteiz, Nike, Stone Island, Jordan & more. Buy via MyCNBox, KakoBuy, Oopbuy or any agent.">
 <meta name="twitter:image" content="https://www.puroclassico.com/og.png">
 <meta name="twitter:image:alt" content="Puro Classico catalog">
-<meta name="theme-color" content="#0C1220">
+<meta name="theme-color" content="#0B0B0C">
 <script>(function(){var t;try{t=localStorage.getItem("manifest.theme");}catch(e){}if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);window.setThemeColor=function(x){var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",x==="light"?"#F6F8FB":"#0C1220");};setThemeColor(document.documentElement.getAttribute("data-theme"));})();</script>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%231E2B49%27%2F%3E%3Ctext%20x%3D%2716%27%20y%3D%2722%27%20font-family%3D%27Helvetica%2CArial%2Csans-serif%27%20font-size%3D%2714%27%20font-weight%3D%27700%27%20fill%3D%27%23ffffff%27%20text-anchor%3D%27middle%27%3EPC%3C%2Ftext%3E%3C%2Fsvg%3E">
@@ -55,7 +55,7 @@
 <link rel="dns-prefetch" href="https://uptpghuduqjqmrxwatbm.supabase.co">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Parisienne&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Parisienne&display=swap">
 <style>
 :root{
   --ground:#F6F8FB; --surface:#FFFFFF; --surface-2:#EDF1F7;
@@ -870,6 +870,109 @@ footer .seo-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(170p
   .tp-badge{margin-top:6px}
   .strip-head{padding-top:8px}
 }
+
+/* ================= design system, 17 Oct 2026: calm, neutral, editorial ================= */
+:root{
+  --f-disp:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --ground:#FAFAF8; --surface:#FFFFFF; --surface-2:#F1F0EC; --ink:#111110; --muted:#5E5D59; --faint:#8A8984;
+  --line:rgba(17,17,16,.09); --line-2:rgba(17,17,16,.16); --fill:#111110; --fill-ink:#FFFFFF; --accent:#8A6A3D;
+  --studio-a:#F3F2EF; --studio-b:#E9E7E2; --img-edge:oklch(0 0 0 / .06);
+  --sh-1:0 1px 2px rgba(17,17,16,.05),0 4px 14px rgba(17,17,16,.05); --sh-pop:0 24px 60px rgba(17,17,16,.16),0 2px 8px rgba(17,17,16,.08);
+}
+:root[data-theme="dark"]{
+  --ground:#0B0B0C; --surface:#141415; --surface-2:#1D1D1F; --ink:#F4F4F2; --muted:#A3A2A0; --faint:#6F6E6C;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.16); --fill:#F4F4F2; --fill-ink:#0B0B0C; --accent:#CDB287;
+  --studio-a:#EEEDEA; --studio-b:#E2E0DB; --img-edge:oklch(1 0 0 / .06);
+  --sh-1:0 1px 2px rgba(0,0,0,.4); --sh-pop:0 28px 70px rgba(0,0,0,.6),0 2px 8px rgba(0,0,0,.4);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0B0B0C; --surface:#141415; --surface-2:#1D1D1F; --ink:#F4F4F2; --muted:#A3A2A0; --faint:#6F6E6C;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.16); --fill:#F4F4F2; --fill-ink:#0B0B0C; --accent:#CDB287;
+  --studio-a:#EEEDEA; --studio-b:#E2E0DB; --img-edge:oklch(1 0 0 / .06); --sh-1:0 1px 2px rgba(0,0,0,.4); --sh-pop:0 28px 70px rgba(0,0,0,.6),0 2px 8px rgba(0,0,0,.4);
+}}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+body{font-family:var(--f-body);font-feature-settings:"cv11","ss01";letter-spacing:-.006em;background:var(--ground)}
+h1,h2,h3,.hero-h{text-wrap:balance} p{text-wrap:pretty}
+.count,.price,.subprice,.hero-stats{font-variant-numeric:tabular-nums}
+
+/* masthead: quiet glass bar with one hairline */
+.masthead{background:color-mix(in srgb,var(--ground) 80%,transparent)!important;border-bottom:1px solid var(--line)!important;box-shadow:none}
+.mast-tools .tools-btn,.tools-btn{color:var(--ink);font-weight:500}
+@media(min-width:561px){
+  .mast-tools .selwrap{background:transparent!important;border-color:var(--line)!important}
+  .mast-tools .auth-btn{background:var(--fill);color:var(--fill-ink);font-weight:600}
+  .mast-tools .icon-btn,.mast-tools .theme-btn{background:transparent!important;border-color:var(--line)!important}
+}
+/* the old native-select chevron sat on top of the label ("English" with an arrow through it): the custom button draws its own */
+.mast-tools .selwrap>svg{display:none!important}
+.mast-tools .selwrap .cselbtn{gap:8px}
+.pc-mycnbox-btn{background:#D9301E!important;box-shadow:none!important;font-weight:600;letter-spacing:-.005em}
+.pc-mycnbox-btn:hover{background:#C42A1A!important;filter:none}
+
+/* hero: editorial headline, one strong action */
+.hero{background:radial-gradient(900px 420px at 50% -10%,color-mix(in srgb,var(--accent) 10%,transparent),transparent 70%)!important;border-bottom:1px solid var(--line)}
+.hero-h{font-family:var(--f-disp);font-weight:700;font-size:clamp(34px,5.6vw,64px);line-height:1.02;letter-spacing:-.045em;max-width:14ch}
+.hero-sub{color:var(--muted);font-size:clamp(15px,1.6vw,18px);line-height:1.55;max-width:46ch}
+.hero-stats{font-family:var(--f-body);font-size:13px;color:var(--muted);gap:22px}
+.hero-stats .stat b{font-size:15px;font-weight:600;color:var(--ink)}
+.hero-cta{background:var(--fill)!important;color:var(--fill-ink)!important;font-weight:600;font-size:15px;padding:14px 26px;box-shadow:none!important;transition:transform .15s ease,opacity .15s ease}
+.hero-cta:hover{opacity:.88}
+.hero-cta:active{transform:scale(.96)}
+.tp-badge{font-size:13px;color:var(--muted)}
+.agents-strip .lbl,.strip-head{font-family:var(--f-body);font-size:11px;letter-spacing:.14em;font-weight:500;color:var(--faint)}
+.strip-head::before,.strip-head::after{background:var(--line)}
+.ftile{border-radius:14px;box-shadow:inset 0 0 0 1px var(--img-edge)}
+
+/* search + filters */
+.toolbar .deck,.toolbar .subdeck,.deck{background:color-mix(in srgb,var(--ground) 92%,transparent)!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)!important}
+.search{background:var(--surface)!important;border:1px solid var(--line-2)!important;border-radius:14px!important;box-shadow:var(--sh-1)}
+.search input{font-size:16px!important;padding:15px 14px!important;letter-spacing:-.01em}
+.search svg{color:var(--faint)}
+.search:focus-within{border-color:var(--ink)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--ink) 8%,transparent)!important}
+.fselbtn,.saved-chip,.price-btn{height:36px!important;font-family:var(--f-body)!important;font-size:13px!important;font-weight:500!important;letter-spacing:-.005em;color:var(--ink)!important;background:transparent!important;border:1px solid var(--line-2)!important;padding:0 14px!important}
+.fselbtn:hover,.saved-chip:hover,.price-btn:hover{background:var(--surface-2)!important;border-color:var(--line-2)!important}
+.fselbtn[aria-expanded="true"],.price-btn[aria-expanded="true"],.saved-chip[aria-pressed="true"]{background:var(--fill)!important;color:var(--fill-ink)!important;border-color:var(--fill)!important}
+.fselbtn svg,.price-btn svg{color:currentColor;opacity:.6}
+.count{font-family:var(--f-body);font-size:12.5px;color:var(--faint)}
+.cselmenu{background:var(--surface)!important;border:1px solid var(--line)!important;box-shadow:var(--sh-pop)!important;border-radius:14px!important;padding:6px!important}
+.cselitem{font-family:var(--f-body)!important;font-size:13.5px!important;font-weight:450;border-radius:8px!important;padding:9px 10px!important;color:var(--ink)}
+.cselitem:hover{background:var(--surface-2)!important}
+.cselitem.sel{font-weight:600}
+.cselitem .ck{color:var(--accent)}
+.cselsearch input{background:var(--surface-2)!important;border:1px solid transparent!important;border-radius:8px!important;font-size:14px!important}
+.cselsearch input:focus{border-color:var(--line-2)!important;outline:none}
+
+/* product grid: no boxes, the photo is the card (editorial shop layout) */
+.grid{gap:28px 18px!important}
+@media(max-width:560px){.grid{gap:20px 12px!important}}
+.card{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;overflow:visible}
+.card:hover{transform:none!important;box-shadow:none!important}
+.card .thumb{border-radius:14px!important;box-shadow:inset 0 0 0 1px var(--img-edge);background:radial-gradient(120% 90% at 50% 20%,var(--studio-a),var(--studio-b))!important}
+.card .thumb .pimg{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+@media (hover:hover){.card:hover .thumb .pimg{transform:scale(1.04)}}
+.card .body{padding:12px 2px 0!important;gap:4px!important;background:transparent!important}
+.brand-line{font-family:var(--f-body)!important;font-size:11px!important;letter-spacing:.08em!important;font-weight:600!important;color:var(--muted)!important;text-transform:uppercase}
+.card .title{font-size:14px!important;font-weight:500!important;line-height:1.4!important;color:var(--ink)!important;letter-spacing:-.01em;min-height:2.8em}
+.price-row{padding-top:4px!important;border:0!important}
+.card .price{font-size:15px!important;font-weight:600!important;letter-spacing:-.01em}
+.subprice{color:var(--faint)!important;font-size:12px!important}
+.fav{background:color-mix(in srgb,#fff 88%,transparent)!important;border:0!important;box-shadow:0 1px 3px rgba(0,0,0,.12)!important;color:#111!important}
+.fav:active{transform:scale(.96)}
+.qc-badge{background:rgba(17,17,16,.72)!important;font-family:var(--f-body);font-weight:500}
+.card:focus-visible{outline:2px solid var(--ink);outline-offset:4px;border-radius:14px}
+
+/* product page: same studio backdrop as the grid, similar finds as quiet tiles */
+.drawer{background:var(--ground)!important}
+.gmain{background:radial-gradient(120% 90% at 50% 20%,var(--studio-a),var(--studio-b))!important;border-radius:18px!important;border:0!important;box-shadow:inset 0 0 0 1px var(--img-edge)}
+.sim-card{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;text-align:left}
+.sim-thumb{background:radial-gradient(120% 90% at 50% 20%,var(--studio-a),var(--studio-b))!important;border-radius:12px!important;box-shadow:inset 0 0 0 1px var(--img-edge)}
+.sim-t{font-family:var(--f-body)!important;font-size:12.5px!important;font-weight:500!important;color:var(--ink)!important;letter-spacing:-.005em}
+.sim-p{font-family:var(--f-body)!important;font-weight:600!important;font-size:12.5px!important;color:var(--ink)!important}
+.sec-label{font-family:var(--f-body)!important;font-size:11px!important;letter-spacing:.12em!important;font-weight:500!important;color:var(--faint)!important}
+
+/* footer */
+footer{border-top:1px solid var(--line)!important;color:var(--muted)}
+footer .mono{font-family:var(--f-body);letter-spacing:.08em}
 </style>
 
 <div class="masthead">
