@@ -33,7 +33,7 @@
 <meta name="twitter:description" content="9,000+ designer rep finds — Corteiz, Nike, Stone Island, Jordan & more. Buy via MyCNBox, KakoBuy, Oopbuy or any agent.">
 <meta name="twitter:image" content="https://www.puroclassico.com/og.png">
 <meta name="twitter:image:alt" content="Puro Classico catalog">
-<meta name="theme-color" content="#0B0B0C">
+<meta name="theme-color" content="#0B1220">
 <script>(function(){var t;try{t=localStorage.getItem("manifest.theme");}catch(e){}if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);window.setThemeColor=function(x){var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",x==="light"?"#F6F8FB":"#0C1220");};setThemeColor(document.documentElement.getAttribute("data-theme"));})();</script>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%231E2B49%27%2F%3E%3Ctext%20x%3D%2716%27%20y%3D%2722%27%20font-family%3D%27Helvetica%2CArial%2Csans-serif%27%20font-size%3D%2714%27%20font-weight%3D%27700%27%20fill%3D%27%23ffffff%27%20text-anchor%3D%27middle%27%3EPC%3C%2Ftext%3E%3C%2Fsvg%3E">
@@ -875,19 +875,19 @@ footer .seo-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(170p
 :root{
   --f-disp:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --ground:#FAFAF8; --surface:#FFFFFF; --surface-2:#F1F0EC; --ink:#111110; --muted:#5E5D59; --faint:#8A8984;
-  --line:rgba(17,17,16,.09); --line-2:rgba(17,17,16,.16); --fill:#111110; --fill-ink:#FFFFFF; --accent:#8A6A3D;
+  --line:rgba(17,17,16,.09); --line-2:rgba(17,17,16,.16); --fill:#111110; --fill-ink:#FFFFFF; --accent:#2E4B86;
   --studio-a:#F3F2EF; --studio-b:#E9E7E2; --img-edge:oklch(0 0 0 / .06);
   --sh-1:0 1px 2px rgba(17,17,16,.05),0 4px 14px rgba(17,17,16,.05); --sh-pop:0 24px 60px rgba(17,17,16,.16),0 2px 8px rgba(17,17,16,.08);
 }
 :root[data-theme="dark"]{
-  --ground:#0B0B0C; --surface:#141415; --surface-2:#1D1D1F; --ink:#F4F4F2; --muted:#A3A2A0; --faint:#6F6E6C;
-  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.16); --fill:#F4F4F2; --fill-ink:#0B0B0C; --accent:#CDB287;
+  --ground:#0B1220; --surface:#111A2E; --surface-2:#1A2540; --ink:#EEF2F8; --muted:#9AA6BD; --faint:#66728A;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.16); --fill:#EEF2F8; --fill-ink:#0B1220; --accent:#8EA6DC;
   --studio-a:#EEEDEA; --studio-b:#E2E0DB; --img-edge:oklch(1 0 0 / .06);
   --sh-1:0 1px 2px rgba(0,0,0,.4); --sh-pop:0 28px 70px rgba(0,0,0,.6),0 2px 8px rgba(0,0,0,.4);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --ground:#0B0B0C; --surface:#141415; --surface-2:#1D1D1F; --ink:#F4F4F2; --muted:#A3A2A0; --faint:#6F6E6C;
-  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.16); --fill:#F4F4F2; --fill-ink:#0B0B0C; --accent:#CDB287;
+  --ground:#0B1220; --surface:#111A2E; --surface-2:#1A2540; --ink:#EEF2F8; --muted:#9AA6BD; --faint:#66728A;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.16); --fill:#EEF2F8; --fill-ink:#0B1220; --accent:#8EA6DC;
   --studio-a:#EEEDEA; --studio-b:#E2E0DB; --img-edge:oklch(1 0 0 / .06); --sh-1:0 1px 2px rgba(0,0,0,.4); --sh-pop:0 28px 70px rgba(0,0,0,.6),0 2px 8px rgba(0,0,0,.4);
 }}
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
@@ -903,6 +903,8 @@ h1,h2,h3,.hero-h{text-wrap:balance} p{text-wrap:pretty}
   .mast-tools .auth-btn{background:var(--fill);color:var(--fill-ink);font-weight:600}
   .mast-tools .icon-btn,.mast-tools .theme-btn{background:transparent!important;border-color:var(--line)!important}
 }
+/* no coloured strip above the masthead */
+.mast-top{display:none!important}
 /* the old native-select chevron sat on top of the label ("English" with an arrow through it): the custom button draws its own */
 .mast-tools .selwrap>svg{display:none!important}
 .mast-tools .selwrap .cselbtn{gap:8px}
