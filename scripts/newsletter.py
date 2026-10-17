@@ -263,7 +263,7 @@ def run_mycnbox(profiles):
     for pr in profiles:
         email = pr.get("email")
         if not email or not eligible(pr): continue
-        ok, msg = brevo_send(email, "Set up MyCNBox — your finds are waiting", mycnbox_html(pr["id"]), unsub_url(pr["id"]))
+        ok, msg = brevo_send(email, "Set up MyCNBox, your finds are waiting", mycnbox_html(pr["id"]), unsub_url(pr["id"]))
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"agent_sent": True}, {"Prefer": "return=minimal"})
             sent += 1
@@ -276,7 +276,7 @@ def run_mycnbox(profiles):
 def run_mycnbox_test(_profiles=None):
     email = os.environ.get("TEST_EMAIL", "").strip()
     if not email: print("TEST_EMAIL not set"); return
-    ok, msg = brevo_send(email, "Set up MyCNBox — your finds are waiting", mycnbox_html("test"), None)
+    ok, msg = brevo_send(email, "Set up MyCNBox, your finds are waiting", mycnbox_html("test"), None)
     print("mycnbox-test sent" if ok else ("FAIL mycnbox-test: " + hide(msg)))
 
 def load_stats():
