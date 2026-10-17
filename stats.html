@@ -147,7 +147,7 @@
   <div class="note">Private page, not indexed. Members, subscribers and live viewers are live from the database. Charts are rebuilt every 6 hours (<span id="gen">–</span>). Guests have no account, so they count in find views but not in active users.</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
 <script>
 const SB="https://uptpghuduqjqmrxwatbm.supabase.co";
 const KEY="sb_publishable_qFcO570Cpl0_VWS6e_sAUg_noD-2XmY";
@@ -160,7 +160,6 @@ let D=null, LIVE=null; const range={traffic:30,members:0,signups:30};
 (function(){ try{
   const c=window.supabase.createClient(SB,KEY); const ch=c.channel("online-viewers");
   const count=()=>{ let n=0; const st=ch.presenceState()||{}; for(const k in st) n+=(st[k]||[]).length; $("live").textContent=n; };
-  setTimeout(()=>{ if($("live").textContent==="–") $("live").textContent="0"; },4000);
   ch.on("presence",{event:"sync"},count).on("presence",{event:"join"},count).on("presence",{event:"leave"},count).subscribe();
 }catch(e){} })();
 
