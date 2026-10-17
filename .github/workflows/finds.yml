@@ -68,6 +68,7 @@ jobs:
           git add finds_used.json discord_sent.json 2>/dev/null || true
           git add slides_used.json 2>/dev/null || true
           git add scripts/qc_categories.json 2>/dev/null || true
+          git add scripts/qc_labels.json 2>/dev/null || true
           git diff --cached --quiet && exit 0
           git commit -q -m "chore: finds state [skip ci]"
           # someone else may push at the same moment (a site upload, the stats job): try again a few times before giving up
