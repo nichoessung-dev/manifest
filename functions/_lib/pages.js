@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w4";
+export const PRODUCT_TPL = "w5";
 async function qcThumbs(origin, p) {
   if (p.qc < 1) return [];
   try {
@@ -89,7 +89,7 @@ export async function renderProduct(id, origin) {
     (realSeller ? ` by ${esc(realSeller)}` : "") + (isPH(p.cny) ? `. The seller shows a placeholder price (¥${p.cny}), so ask them for the real price before ordering` : `. The listed price is ¥${p.cny} (about ${money(p.cny)}) before shipping`) +
     (variants.length ? `, and it comes in ${variants.length} option${variants.length > 1 ? "s" : ""}: ${esc(variants.slice(0, 8).join(", "))}${variants.length > 8 ? "…" : ""}` : "") + `.</p>` +
     (p.qc ? `<p>Our catalogue data marks this listing as having <strong>buyer QC photos</strong>: warehouse photos taken for earlier orders. When we can load them, they are shown on this page. Either way, once your own order reaches the warehouse your agent photographs your exact item, so you can check logos, stitching and colour before it ships.</p>`
-          : `<p>There are no buyer QC photos for this listing yet — once you order, your agent photographs your exact item at the warehouse before it ships, so you can still check it before paying for shipping.</p>`) +
+          : `<p>There are no buyer QC photos for this listing yet, once you order, your agent photographs your exact item at the warehouse before it ships, so you can still check it before paying for shipping.</p>`) +
     `<p>International shipping isn't included in the price; you pay it when you ship your parcel, and it depends on weight and your country.</p>`;
   const body = `${bc.html}
 <div class="pd">
@@ -108,13 +108,13 @@ export async function renderProduct(id, origin) {
   </div>
 </div>
 <h2>About this find</h2><div class="prose">${about}</div>
-<h2>How to buy it</h2><ol class="steps prose"><li>Tap <strong>Buy via MyCNBox</strong> (or your agent). The listing opens pre-filled.</li><li>Pick your size and colour — check our <a href="/guides/sizing">sizing guide</a> — and pay for the item plus delivery to the warehouse.</li><li>Check the QC photos (<a href="/guides/how-to-qc">what to look for</a>), then combine items into one parcel and ship. <a href="/how-to-order">Watch the 1:47 video</a>.</li></ol>
+<h2>How to buy it</h2><ol class="steps prose"><li>Tap <strong>Buy via MyCNBox</strong> (or your agent). The listing opens pre-filled.</li><li>Pick your size and colour, check our <a href="/guides/sizing">sizing guide</a>, and pay for the item plus delivery to the warehouse.</li><li>Check the QC photos (<a href="/guides/how-to-qc">what to look for</a>), then combine items into one parcel and ship. <a href="/how-to-order">Watch the 1:47 video</a>.</li></ol>
 ${(() => { const m = modelFor(p); return m ? `<div class="note" style="margin-top:22px">Comparing batches? See all <a href="/best/${m.slug}" style="color:var(--accent)">${m.list.length} ${esc(m.name)} rep listings</a> ranked by views.</div>` : ""; })()}
 ${sameBrand.length ? `<h2>More ${esc(p.brand)} finds</h2>${grid(sameBrand)}<p><a href="${bUrl}" style="color:var(--accent)">All ${byBrand.get(p.brand).length.toLocaleString("en-US")} ${esc(p.brand)} reps on the spreadsheet →</a></p>` : ""}
 ${sameCat.length ? `<h2>Similar ${esc((cat.name || p.cat).toLowerCase())}</h2>${grid(sameCat)}${cUrl ? `<p><a href="${cUrl}" style="color:var(--accent)">All ${esc((cat.name || p.cat).toLowerCase())} →</a></p>` : ""}` : ""}`;
   const pageLd = { "@context": "https://schema.org", "@type": "ItemPage", name: p.title, url: SITE + productUrl(p), description: desc,
     primaryImageOfPage: src ? { "@type": "ImageObject", contentUrl: src } : undefined, isPartOf: { "@type": "WebSite", name: "Puro Classico", url: SITE + "/" } };
-  const res = page({ title: `${tName} Rep — ${p.qc ? "Price, QC & Agent Links" : "Price & Where to Buy"} · Puro Classico`, desc, path: productUrl(p), body,
+  const res = page({ title: `${tName} Rep: ${p.qc ? "Price, QC & Agent Links" : "Price & Where to Buy"} · Puro Classico`, desc, path: productUrl(p), body,
     jsonld: [bc.data, pageLd], image: src || undefined, robots: indexable(p) ? "index,follow,max-image-preview:large" : "noindex,follow" });
   if (p.qc >= 1 && !qcs.length) res.headers.set("x-qc-miss", "1");   // QC lookup failed/timed out: product/[id].js caches this render only briefly
   return res;
@@ -136,7 +136,7 @@ ${n === 1 ? top : ""}${grid(slice, n === 1 ? 4 : 0)}
 ${pager(path, n, pages)}
 ${n === 1 ? extra : ""}${n === 1 && faq && faq.length ? faqHtml(faq) : ""}`;
   const ld = [bc.data, listLd(h1, url, slice, ldCount)]; if (n === 1 && faq && faq.length) ld.push(faqLd(faq));
-  return page({ title: n > 1 ? `${title} — Page ${n}` : title, desc, path: url, body, jsonld: ld,
+  return page({ title: n > 1 ? `${title}: Page ${n}` : title, desc, path: url, body, jsonld: ld,
     image: slice[0] ? imgSrc(slice[0]) : undefined });
 }
 
@@ -430,7 +430,7 @@ export function renderBrand(s, n) {
   if (related.length < 4) {   // nothing really similar (a watch or toy brand, say): the largest hubs, under a heading that does not claim more
     related = [...brandSlug.keys()].filter(x => x !== b).sort((x, y) => byBrand.get(y).length - byBrand.get(x).length).slice(0, 10); relTitle = "Other brands"; relNote = "";
   }
-  const extra = `<h2>How to buy ${esc(b)} reps</h2><div class="prose"><p>Open a find, tap <strong>Buy via MyCNBox</strong> (or your agent), pick your size and pay for the item plus delivery to the warehouse. Check the QC photos before shipping — see <a href="/guides/how-to-qc">how to read QC photos</a> — then combine your items into one parcel. New to this? <a href="/how-to-order">Watch the how-to-order video</a>.</p></div>
+  const extra = `<h2>How to buy ${esc(b)} reps</h2><div class="prose"><p>Open a find, tap <strong>Buy via MyCNBox</strong> (or your agent), pick your size and pay for the item plus delivery to the warehouse. Check the QC photos before shipping, see <a href="/guides/how-to-qc">how to read QC photos</a>, then combine your items into one parcel. New to this? <a href="/how-to-order">Watch the how-to-order video</a>.</p></div>
 <h2>${relTitle}</h2>${relNote}<div class="chips">${related.map(x => `<a href="/brand/${brandSlug.get(x)}">${esc(x)} reps</a>`).join("")}${OLD_MONEY_ALL.has(b) ? `<a href="/old-money">Old money reps</a>` : ""}<a href="/brands">All brands →</a></div>`;
   // Title and description: catalogue data only (see the rules above), so they are the same whether or not the stats were read.
   const qcBit = f.q1 ? `, ${nf(f.q1)} marked as having QC photos` : "";
@@ -439,7 +439,7 @@ export function renderBrand(s, n) {
   const desc = n > 1 ? `Page ${n} of the ${N} ${b} rep finds on Puro Classico${range ? `, with prices${rb}` : ""}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.`
     : best ? `Best ${b} reps by the numbers: ${N} finds${rb}, ${nf(f.q2)} with a stored QC photo count. Picks by views and QC photos, with MyCNBox, KakoBuy and Oopbuy links.`
     : `${N} ${b} rep find${f.n === 1 ? "" : "s"}${range ? ` with prices${rb}` : ""}${main}${qcBit}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.`;
-  return hub({ path: "/brand/" + s, n, list, title: `${n === 1 && best ? "Best " : ""}${b} Reps Spreadsheet 2026 — ${N} Finds · Puro Classico`, desc,
+  return hub({ path: "/brand/" + s, n, list, title: `${n === 1 && best ? "Best " : ""}${b} Reps Spreadsheet 2026: ${N} Finds · Puro Classico`, desc,
     h1: `${b} reps spreadsheet`, intro, trail: [["Home", "/"], ["Brands", "/brands"], [b, "/brand/" + s]],
     chips: (bm.length ? `<div class="chips">${bm.map(m => `<a href="/best/${m.slug}" style="border-color:var(--accent)">Best ${esc(MODEL_TERM[m.slug] || m.name)} reps</a>`).join("")}</div>` : "") + (cats.length > 1 ? `<div class="chips">${cats.map(c => `<a href="${catUrl(c)}">${esc(CATS[c].name)}</a>`).join("")}</div>` : ""),
     top: BRAND_CSS + brandPicksHtml(f, best), extra, faq: brandFaq(f, best), ldCount: f.n });
@@ -452,7 +452,7 @@ export function renderCategory(s, n) {
   const meta = CATS[c], q1 = list.filter(p => p.qc >= 1).length;
   const extra = `<h2>Top brands in ${esc(meta.name.toLowerCase())}</h2><div class="chips">${topBrands.map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}</div>
 <h2>Other categories</h2><div class="chips">${Object.values(CATS).filter(x => x.slug !== s && x.slug !== "toys").map(x => `<a href="/category/${x.slug}">${esc(x.name)}</a>`).join("")}</div>`;
-  return hub({ path: "/category/" + s, n, list, title: `${meta.h} — ${list.length.toLocaleString("en-US")} Finds (2026) · Puro Classico`,
+  return hub({ path: "/category/" + s, n, list, title: `${meta.h}: ${list.length.toLocaleString("en-US")} Finds (2026) · Puro Classico`,
     desc: `${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds with prices and agent links${q1 ? `, ${q1.toLocaleString("en-US")} marked as having buyer QC photos` : ""}, sorted by most viewed.`,
     h1: meta.h, intro: CAT_INTRO[c] || "", trail: [["Home", "/"], [meta.name, "/category/" + s]], extra });
 }
@@ -491,7 +491,7 @@ export function renderAgent(key, n) {
   const brands = AGENT_BRAND_AGENTS.includes(key) ? agentBrands() : [];
   const brandBlock = brands.length ? `<h2>Popular brands on the ${a.name} spreadsheet</h2><div class="chips">${brands.map(b => `<a href="${path}/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}<a href="/brands">All brands →</a></div>` : "";
   const coupon = COUPON_GUIDE[key];
-  return hub({ path, n, list: all, title: `${meta.title} — ${N} Finds · Puro Classico`,
+  return hub({ path, n, list: all, title: `${meta.title}: ${N} Finds · Puro Classico`,
     desc: `The ${a.name} spreadsheet: ${N} rep finds with prices, QC photo counts and direct ${a.name} links. Updated ${BUILT}.`,
     h1: meta.title, intro: `<p class="lead">${esc(meta.lede)}</p>${meta.body}${key === "mycnbox" ? `<p><a class="btn red" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">Claim your MyCNBox new-user coupons</a></p>` : ""}`,
     trail: [["Home", "/"], [meta.title, path]], faq, chips: brands.length ? `<div class="chips">${brands.slice(0, 12).map(b => `<a href="${path}/${brandSlug.get(b)}">${esc(b)} on ${esc(a.name)}</a>`).join("")}</div>` : "",
@@ -509,7 +509,7 @@ export function renderAgentBrand(key, s, n) {
 <p>This is the <a href="/brand/${s}">${esc(b)} reps spreadsheet</a> with ${esc(a.name)} as your agent: open a find, tap <strong>Buy via ${esc(a.name)}</strong>, pick your size and check the QC photos before you ship. The full catalogue for this agent is on the <a href="/${key}-spreadsheet">${esc(meta.title.replace(/ 2026$/, ""))}</a>.</p>`;
   const faq = [[`How do I buy ${b} reps on ${a.name}?`, `Open one of the ${N} ${b} finds below, tap Buy via ${a.name}, choose your size and pay for the item plus warehouse delivery. ${a.name} sends QC photos when it arrives; check them, then ship.`],
                [`Are these ${b} finds only for ${a.name}?`, `No. The same finds open on ${others.map(k => AGENTS[k].name).join(", ")} and LoveGoBuy; each product page has a button for every agent.`]];
-  return hub({ path, n, list, title: `${b} ${a.name} Spreadsheet 2026 — ${N} Finds · Puro Classico`,
+  return hub({ path, n, list, title: `${b} ${a.name} Spreadsheet 2026: ${N} Finds · Puro Classico`,
     desc: `${N} ${b} rep finds with one-tap ${a.name} buy links${range ? `, ${range}` : ""}. Prices and QC photo counts on every find.`,
     h1: `${b} on ${a.name}`, intro, trail: [["Home", "/"], [meta.title, `/${key}-spreadsheet`], [b, path]], faq,
     chips: `<div class="chips">${others.map(k => `<a href="/${k}-spreadsheet/${s}">${esc(b)} on ${esc(AGENTS[k].name)}</a>`).join("")}<a href="/brand/${s}">All ${esc(b)} reps</a></div>`,
@@ -521,7 +521,7 @@ export function renderOldMoney(n) {
   const { all, brandSlug } = idx(); const set = new Set(OLD_MONEY.brands);
   const list = all.filter(p => set.has(p.brand));
   const brands = OLD_MONEY.brands.concat(OLD_MONEY.linked).filter(b => brandSlug.has(b));   // `linked` brands get a chip; their finds are not part of this page's list
-  return hub({ path: "/old-money", n, list, title: `Old Money Reps — Quiet Luxury Spreadsheet (${list.length.toLocaleString("en-US")} Finds) · Puro Classico`,
+  return hub({ path: "/old-money", n, list, title: `Old Money Reps: Quiet Luxury Spreadsheet (${list.length.toLocaleString("en-US")} Finds) · Puro Classico`,
     desc: `Old money and quiet luxury reps: ${list.length.toLocaleString("en-US")} finds from Ralph Lauren, Loro Piana, Lacoste, Moncler, Golden Goose and more.`,
     h1: "Old money & quiet luxury reps", intro: OLD_MONEY.intro, trail: [["Home", "/"], ["Old money", "/old-money"]],
     chips: `<div class="chips">${brands.map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}</div>`,
@@ -537,7 +537,7 @@ export function renderBrands() {
   const bc = crumbs([["Home", "/"], ["Brands", "/brands"]]);
   const body = `${bc.html}<h1>Rep brands A–Z</h1><p class="lead">The ${hubs.length} brands with their own page on Puro Classico, with the number of finds for each.</p>
 ${Object.keys(groups).sort().map(L => `<h2>${L}</h2><div class="chips">${groups[L].map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)} <span style="color:var(--muted)">${byBrand.get(b).length}</span></a>`).join("")}</div>`).join("")}`;
-  return page({ title: "Rep Brands A–Z — Every Brand on the Spreadsheet · Puro Classico", desc: `Browse ${hubs.length} brands on the Puro Classico rep spreadsheet, from Corteiz and Nike to Ralph Lauren and Moncler.`,
+  return page({ title: "Rep Brands A–Z: Every Brand on the Spreadsheet · Puro Classico", desc: `Browse ${hubs.length} brands on the Puro Classico rep spreadsheet, from Corteiz and Nike to Ralph Lauren and Moncler.`,
     path: "/brands", body, jsonld: [bc.data] });
 }
 
@@ -547,7 +547,7 @@ export function renderModels() {
   const ms = models().slice().sort((a, b) => b.list.length - a.list.length);
   const body = `${bc.html}<h1>Best reps by model</h1><p class="lead">Every listing of the most popular models side by side, ranked by what buyers actually view. Compare batches, prices and QC before you order.</p>
 <div class="g">${ms.map(m => { const p = m.list[0]; const src = imgSrc(p); return `<a class="c" href="/best/${m.slug}"><span class="ci">${src ? `<img src="${esc(src)}" alt="${esc(m.name)}" loading="lazy" onerror="this.remove()">` : ""}</span><span class="cb"><span class="ct">${esc(m.name)}</span><span class="cbr">${m.list.length} listings</span></span></a>`; }).join("")}</div>`;
-  return page({ title: "Best Reps by Model (2026) — Compare Batches & QC · Puro Classico", desc: "Compare every listing of the most popular rep models — Air Jordan 1, Samba, Golden Goose, Moncler, Nuptse and more — ranked by views.", path: "/best", body, jsonld: [bc.data] });
+  return page({ title: "Best Reps by Model (2026): Compare Batches & QC · Puro Classico", desc: "Compare every listing of the most popular rep models: Air Jordan 1, Samba, Golden Goose, Moncler, Nuptse and more, ranked by views.", path: "/best", body, jsonld: [bc.data] });
 }
 export function renderModel(s, n) {
   const m = models().find(x => x.slug === s); if (!m) return null;
@@ -563,7 +563,7 @@ export function renderModel(s, n) {
   const hubLinks = hubs.length ? `<h2>${hubs.length === 1 ? `More ${esc(hubs[0])}` : "Brands on this page"}</h2><div class="chips">${hubs.map(x => `<a href="/brand/${brandSlug.get(x)}">All ${byBrand.get(x).length.toLocaleString("en-US")} ${esc(x)} reps</a>`).join("")}</div>` : "";
   const faq = [[`Where can I buy ${t} reps?`, `Puro Classico lists ${list.length} ${m.name} listings from Weidian, Taobao and 1688. Each opens directly in MyCNBox, KakoBuy, Oopbuy or another shopping agent.`],
                [`Which ${m.name} listing is best?`, `Start with the most-viewed listings at the top and compare their buyer QC photos. Check ${m.qc.join(", ")}.`]];
-  return hub({ path: "/best/" + s, n, list, title: `Best ${t} Reps (2026) — ${list.length} Listings Compared · Puro Classico`,
+  return hub({ path: "/best/" + s, n, list, title: `Best ${t} Reps (2026): ${list.length} Listings Compared · Puro Classico`,
     desc: `Compare ${list.length} ${m.name} rep listings ranked by views, with prices (${priceRange(list)}) and what to check in QC.`,
     h1: `Best ${t} reps`, intro, trail: [["Home", "/"], ["Best reps", "/best"], [m.name, "/best/" + s]], faq,
     extra: `${hubLinks}<h2>More models</h2><div class="chips">${others.map(x => `<a href="/best/${x.slug}">${esc(x.name)}</a>`).join("")}<a href="/best">All models →</a></div>` });
@@ -604,12 +604,12 @@ export function renderTools() {
   const bc = crumbs([["Home", "/"], ["Tools", "/tools"]]);
   const body = `${bc.html}<h1>Free rep tools</h1><p class="lead">Convert links, check QC photos and estimate weight and shipping before you order.</p>
 <div class="chips" style="flex-direction:column;align-items:flex-start">${TOOL_LINKS.map(([t, u]) => `<a href="${u}" style="font-size:17px">${esc(t)} →</a>`).join("")}</div>`;
-  return page({ title: "Free Rep Tools — Link Converter, QC Checker, Shipping Calculator · Puro Classico", desc: "Free tools for buying reps through agents: link converter, QC photo checker, weight estimator and shipping calculator.", path: "/tools", body, jsonld: [bc.data] });
+  return page({ title: "Free Rep Tools: Link Converter, QC Checker, Shipping Calculator · Puro Classico", desc: "Free tools for buying reps through agents: link converter, QC photo checker, weight estimator and shipping calculator.", path: "/tools", body, jsonld: [bc.data] });
 }
 export function renderTool(s) {
   const t = own(TOOLS, s) && own(TOOL_UI, s) ? TOOLS[s] : null; if (!t) return null;
   const path = "/tools/" + s; const bc = crumbs([["Home", "/"], ["Tools", "/tools"], [t.name, path]]);
-  const app = { "@context": "https://schema.org", "@type": "WebApplication", name: t.name + " — Puro Classico", url: SITE + path, applicationCategory: "UtilitiesApplication", operatingSystem: "Any", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, description: t.desc };
+  const app = { "@context": "https://schema.org", "@type": "WebApplication", name: t.name + ": Puro Classico", url: SITE + path, applicationCategory: "UtilitiesApplication", operatingSystem: "Any", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, description: t.desc };
   const body = `${bc.html}${TOOL_CSS}<h1>${esc(t.name)}</h1><p class="lead">${esc(t.lead)}</p>${TOOL_UI[s]()}<div class="prose">${t.about}</div>
 <h2>More tools</h2><div class="chips">${TOOL_LINKS.filter(([, u]) => u !== path).map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}<a href="/how-to-order">How to order</a></div>`;
   return page({ title: t.title, desc: t.desc, path, body, jsonld: [bc.data, app] });
@@ -620,7 +620,7 @@ export function renderGuides() {
   const bc = crumbs([["Home", "/"], ["Guides", "/guides"]]);
   const body = `${bc.html}<h1>Guides</h1><p class="lead">Everything you need to order your first finds from China: agents, QC photos, sizing and shipping.</p>
 <div class="chips" style="flex-direction:column;align-items:flex-start">${GUIDE_LINKS.map(([t, u]) => `<a href="${u}" style="font-size:17px">${esc(t)} →</a>`).join("")}</div>`;
-  return page({ title: "Rep Buying Guides — Agents, QC, Sizing & Shipping · Puro Classico", desc: "Step-by-step guides for buying from Weidian, Taobao and 1688 through a shopping agent.", path: "/guides", body, jsonld: [bc.data] });
+  return page({ title: "Rep Buying Guides: Agents, QC, Sizing & Shipping · Puro Classico", desc: "Step-by-step guides for buying from Weidian, Taobao and 1688 through a shopping agent.", path: "/guides", body, jsonld: [bc.data] });
 }
 
 export function renderGuide(s) {

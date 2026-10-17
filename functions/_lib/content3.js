@@ -1,7 +1,7 @@
 // Second batch of "best X rep" model pages and guides (2026-09-30). Merged into MODELS / GUIDES in pages.js.
 
 export const MODELS3 = [
-  { slug: "corteiz-tracksuits", name: "Corteiz tracksuits & hoodies", rx: "corteiz.*(tracksuit|track|hoodie|jogger)", intro: "Corteiz tracksuits, hoodies and joggers — the Alcatraz logo pieces are the most-wanted drops from the London label.", qc: ["Alcatraz logo size, print or embroidery quality", "fabric weight (it should feel heavy, not thin)", "cuffs, drawcords and the neck tag"] },
+  { slug: "corteiz-tracksuits", name: "Corteiz tracksuits & hoodies", rx: "corteiz.*(tracksuit|track|hoodie|jogger)", intro: "Corteiz tracksuits, hoodies and joggers, the Alcatraz logo pieces are the most-wanted drops from the London label.", qc: ["Alcatraz logo size, print or embroidery quality", "fabric weight (it should feel heavy, not thin)", "cuffs, drawcords and the neck tag"] },
   { slug: "trapstar-jacket", name: "Trapstar jackets", rx: "trapstar.*(jacket|puffer|irongate|windbreaker|shooters)", intro: "Trapstar Irongate puffers, Shooters windbreakers and jackets, the London streetwear staple.", qc: ["Irongate T logo shape and badge placement", "puffer fill and loft", "zips, poppers and inner tags"] },
   { slug: "trapstar-tracksuit", name: "Trapstar tracksuits & hoodies", rx: "trapstar.*(tracksuit|track|hoodie)", intro: "Trapstar tracksuits and hoodies with chenille, embroidered or printed logos.", qc: ["chenille or embroidery density", "logo spelling and spacing", "fabric weight and the fit of the joggers"] },
   { slug: "stone-island-hoodie", name: "Stone Island hoodies & sweatshirts", rx: "stone island.*(hoodie|sweat|crewneck)", intro: "Stone Island hoodies and crewnecks with the compass badge on the left sleeve.", qc: ["compass badge stitching and the two buttons", "badge colours and the back of the badge", "garment-dye colour evenness"] },
@@ -50,7 +50,7 @@ export const GUIDES3 = {
 <li><strong>Check the QC photos.</strong> Finds marked "QC" have real warehouse photos from earlier buyers (<a href="/guides/how-to-qc">how to read them</a>).</li>
 <li><strong>Open it in your agent.</strong> Tap Buy to open the listing in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo, or convert any link with the <a href="/tools/link-converter">link converter</a>.</li>
 <li><strong>Order, inspect and ship.</strong> The agent buys the item, photographs it at the warehouse and ships your parcel. Watch the <a href="/how-to-order">2-minute video</a>.</li></ol>
-<h2>What makes a good spreadsheet</h2><ul><li><strong>Working links</strong> — dead links are the most common problem with old Google Sheets.</li><li><strong>QC photos</strong> so you can judge quality before buying.</li><li><strong>Search and filters</strong> instead of scrolling thousands of rows.</li><li><strong>Agent-neutral links</strong> so you can use the agent you prefer.</li></ul>
+<h2>What makes a good spreadsheet</h2><ul><li><strong>Working links</strong>, dead links are the most common problem with old Google Sheets.</li><li><strong>QC photos</strong> so you can judge quality before buying.</li><li><strong>Search and filters</strong> instead of scrolling thousands of rows.</li><li><strong>Agent-neutral links</strong> so you can use the agent you prefer.</li></ul>
 <h2>Spreadsheets by agent</h2><p><a href="/mycnbox-spreadsheet">MyCNBox</a> · <a href="/kakobuy-spreadsheet">KakoBuy</a> · <a href="/oopbuy-spreadsheet">Oopbuy</a> · <a href="/lovegobuy-spreadsheet">LoveGoBuy</a> · <a href="/sugargoo-spreadsheet">Sugargoo</a></p>`,
     faq: [["Is a rep spreadsheet free?", "Yes. Puro Classico is free to browse; you only pay the seller, the agent's fees and shipping when you order."], ["Which agent should I use with a spreadsheet?", "Any agent that accepts Weidian, Taobao and 1688 links works. See our best shopping agent guide for a comparison."], ["How often is the spreadsheet updated?", "New finds are added regularly and the most-viewed items rise to the top automatically."]],
   },
@@ -62,9 +62,9 @@ export const GUIDES3 = {
     body: `<p class="lead">Pandabuy has been out of business since 2024: its warehouses in China were reported raided in April of that year, and pandabuy.com did not load when we checked on 10 October 2026. Old Pandabuy links no longer open, but every item behind them was an ordinary Weidian, Taobao or 1688 listing, so you can buy the same things through an agent that still works. The five agents our links support (MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo) were all operating on 10 October 2026.</p>
 <p><a class="btn light" href="/tools/link-converter">Convert an old Pandabuy link →</a></p>
 <h2>Agents that still work</h2><p>All five had a working site, a sign-up page and Trustpilot reviews dated within the previous four weeks when we checked on 10 October 2026. Recent reviews show that people are still ordering, not that an agent is good: Trustpilot shows no score for Oopbuy and says it removed fake reviews from that page. They work the way Pandabuy did: paste a link, pay for the item, check the QC photos, then ship.</p><ul>
-<li><strong>MyCNBox</strong> — no service fee on purchases and 4 QC photos as standard, according to its help centre; new-user coupons. <a href="/guides/mycnbox-review">Review</a> · <a href="/mycnbox-spreadsheet">spreadsheet</a>.</li>
-<li><strong>KakoBuy</strong> — popular with the rep community. <a href="/guides/kakobuy-vs-mycnbox">KakoBuy vs MyCNBox</a> · <a href="/kakobuy-spreadsheet">spreadsheet</a>.</li>
-<li><strong>Oopbuy</strong>, <strong>LoveGoBuy</strong> and <strong>Sugargoo</strong> — all accept the same marketplace links. <a href="/guides/best-shopping-agent">Compare agents</a>.</li></ul>
+<li><strong>MyCNBox</strong>, no service fee on purchases and 4 QC photos as standard, according to its help centre; new-user coupons. <a href="/guides/mycnbox-review">Review</a> · <a href="/mycnbox-spreadsheet">spreadsheet</a>.</li>
+<li><strong>KakoBuy</strong>, popular with the rep community. <a href="/guides/kakobuy-vs-mycnbox">KakoBuy vs MyCNBox</a> · <a href="/kakobuy-spreadsheet">spreadsheet</a>.</li>
+<li><strong>Oopbuy</strong>, <strong>LoveGoBuy</strong> and <strong>Sugargoo</strong>, all accept the same marketplace links. <a href="/guides/best-shopping-agent">Compare agents</a>.</li></ul>
 <h2>Agents that have closed or paused since</h2><p>Three other agents that old spreadsheets link to are closed or paused. CNFans' site has shown a maintenance notice since 8 October 2026. ACBuy suspended purchasing on 12 June 2026 and had not announced a restart by 10 October 2026. Mulebuy went offline after a reported raid on 3 August 2026. Their links can be converted in the same way as Pandabuy's.</p>
 <h2>How to move an old Pandabuy link to a new agent</h2><ol class="steps"><li>Copy the old Pandabuy link. It has to be the long link that contains the original item link or ID; a short share link (pandabuy.page.link/…) does not contain the item ID, so the converter cannot read it.</li><li>Paste it into the <a href="/tools/link-converter">link converter</a>; it extracts the Weidian, Taobao or 1688 item ID.</li><li>Open the item in the agent of your choice.</li></ol>
 <p>Or skip the old sheets: <a href="/">browse 9,000+ finds</a>, sorted by what people view most.</p>`,
@@ -77,8 +77,8 @@ export const GUIDES3 = {
     body: `<p class="lead">New to reps? These are the terms you'll see on spreadsheets, Reddit and Discord.</p>
 <style>.gloss dt{font-weight:700;margin-top:14px}.gloss dd{margin:4px 0 0;color:var(--muted)}</style><dl class="gloss">
 <dt>QC (quality check)</dt><dd>Photos your agent takes of the item at its warehouse before you ship. <a href="/guides/how-to-qc">How to read QC photos</a>.</dd>
-<dt>GL / RL</dt><dd>Green light (happy, ship it) / red light (a flaw — exchange or return it while it's still at the warehouse).</dd>
-<dt>W2C</dt><dd>"Where to cop" — someone asking for the link to an item.</dd>
+<dt>GL / RL</dt><dd>Green light (happy, ship it) / red light (a flaw, exchange or return it while it's still at the warehouse).</dd>
+<dt>W2C</dt><dd>"Where to cop", someone asking for the link to an item.</dd>
 <dt>Batch</dt><dd>A production run from a particular factory. Different batches of the same model can vary a lot in quality.</dd>
 <dt>Haul</dt><dd>A parcel of several items shipped together, or a post showing everything someone bought.</dd>
 <dt>Agent</dt><dd>A service that buys from Chinese marketplaces for you, inspects items and ships internationally. <a href="/guides/best-shopping-agent">Best agents</a>.</dd>
@@ -88,10 +88,10 @@ export const GUIDES3 = {
 <dt>Rehearsal (rehearsal packaging)</dt><dd>Your agent packs the parcel and shows you its final weight and size before you pay for shipping.</dd>
 <dt>Retail</dt><dd>The authentic product from the brand, used as the reference when comparing QC photos.</dd>
 <dt>1:1 / budget</dt><dd>Seller shorthand for how close a copy aims to be; budget versions are cheaper and less accurate. Always judge from QC photos, not the label.</dd>
-<dt>LC</dt><dd>"Legit check" — asking others to compare an item with retail.</dd>
+<dt>LC</dt><dd>"Legit check", asking others to compare an item with retail.</dd>
 <dt>Spreadsheet</dt><dd>A curated list of finds with links. <a href="/guides/what-is-a-rep-spreadsheet">What is a rep spreadsheet?</a></dd>
 </dl>`,
-    faq: [["What does GL and RL mean?", "GL means green light (the item looks right, ship it) and RL means red light (there's a flaw, so exchange or return it before shipping)."], ["What does W2C mean?", "W2C means 'where to cop' — a request for the link to an item."], ["What is a batch?", "A production run from one factory. The same model can come in several batches of different quality."]],
+    faq: [["What does GL and RL mean?", "GL means green light (the item looks right, ship it) and RL means red light (there's a flaw, so exchange or return it before shipping)."], ["What does W2C mean?", "W2C means 'where to cop', a request for the link to an item."], ["What is a batch?", "A production run from one factory. The same model can come in several batches of different quality."]],
   },
   "how-to-find-reps": {
     title: "How to Find Reps: Spreadsheets, Image Search & Seller Stores",
@@ -101,33 +101,33 @@ export const GUIDES3 = {
 <h2>1. Search a spreadsheet</h2><p>Search <a href="/">Puro Classico</a> by brand or item name. Results show photos, prices and whether real QC photos exist. Start with <a href="/best">best reps by model</a> for the most-wanted items, or go straight to a brand's own page from the <a href="/brands">brand list</a>, for example <a href="/brand/ralph-lauren">Ralph Lauren</a>, <a href="/brand/arcteryx">Arc'teryx</a> or <a href="/brand/golden-goose">Golden Goose</a>.</p>
 <h2>2. Reverse image search</h2><p>Many agents have an image-search box: upload a photo of the item and it finds matching Taobao and 1688 listings. Pick listings with many sales and good ratings.</p>
 <h2>3. Search inside your agent</h2><p>Agents translate searches into Chinese. Search the brand and item name, then sort by sales. Check the <a href="/tools/qc-checker">QC checker</a> for photos of any listing you find.</p>
-<h2>4. Follow good seller stores</h2><p>When you find a seller whose QC photos look right, look at their other listings — good sellers are usually good across their range.</p>
+<h2>4. Follow good seller stores</h2><p>When you find a seller whose QC photos look right, look at their other listings, good sellers are usually good across their range.</p>
 <h2>Before you buy</h2><ul><li>Look for real QC photos rather than seller photos (<a href="/guides/how-to-qc">how</a>).</li><li>Check sizing in centimetres (<a href="/guides/sizing">sizing guide</a>).</li><li>Estimate shipping first with the <a href="/tools/shipping-calculator">shipping calculator</a>.</li></ul>`,
     faq: [["What is the fastest way to find a rep?", "Search a spreadsheet like Puro Classico first; if it's not there, use your agent's image search."], ["How do I know if a seller is good?", "Look at real QC photos from other buyers, the listing's sales count and the seller's ratings inside your agent."]],
   },
   "mycnbox-coupon-code": {
-    title: "MyCNBox Coupon Code & Invite Code 2026 — Up to $500 in New-Member Coupons",
+    title: "MyCNBox Coupon Code & Invite Code 2026: Up to $500 in New-Member Coupons",
     desc: "Use MyCNBox invite code AACPYA to get up to $500 in new-member coupons. How to claim them, what they cover and how to use them on your first order.",
     h1: "MyCNBox coupon code (up to $500)",
     body: `<p class="lead">New MyCNBox members get a <strong>coupon bundle worth up to $500</strong>. Sign up with invite code <strong>AACPYA</strong> (or <a href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" rel="sponsored nofollow noopener" target="_blank">this sign-up link</a>, which fills it in for you) and the coupons appear in your account.</p>
 <h2>How to claim it</h2><ol class="steps">
-<li>Open <a href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" rel="sponsored nofollow noopener" target="_blank">MyCNBox sign-up</a> — the invite code <strong>AACPYA</strong> is added automatically.</li>
+<li>Open <a href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" rel="sponsored nofollow noopener" target="_blank">MyCNBox sign-up</a>, the invite code <strong>AACPYA</strong> is added automatically.</li>
 <li>Create your free account.</li>
 <li>Find the coupons under your account's coupon section; they apply at checkout on your first orders.</li></ol>
-<h2>What the coupons cover</h2><p>The bundle is made up of several coupons with different minimum spends, mostly for international shipping. The exact split and expiry dates are shown in your account — check them before you order so you use the biggest ones on your first parcel.</p>
+<h2>What the coupons cover</h2><p>The bundle is made up of several coupons with different minimum spends, mostly for international shipping. The exact split and expiry dates are shown in your account, check them before you order so you use the biggest ones on your first parcel.</p>
 <h2>Using them well</h2><ul><li>Combine several items into one parcel so the shipping coupons cover more.</li><li>Remove shoe boxes to cut volumetric weight (<a href="/tools/weight-estimator">weight estimator</a>).</li><li>Compare lines with the <a href="/tools/shipping-calculator">shipping calculator</a>.</li></ul>
-<p>Ready to shop? Browse the <a href="/mycnbox-spreadsheet">MyCNBox spreadsheet</a> — every find opens straight in MyCNBox. New to agents? Watch the <a href="/how-to-order">how-to-order video</a> or read our <a href="/guides/mycnbox-review">MyCNBox review</a>.</p>
+<p>Ready to shop? Browse the <a href="/mycnbox-spreadsheet">MyCNBox spreadsheet</a>, every find opens straight in MyCNBox. New to agents? Watch the <a href="/how-to-order">how-to-order video</a> or read our <a href="/guides/mycnbox-review">MyCNBox review</a>.</p>
 <p style="font-size:13px">Offer details are set by MyCNBox and can change; this link is an affiliate link.</p>`,
-    faq: [["What is the MyCNBox invite code?", "AACPYA. Signing up with it unlocks MyCNBox's new-member coupon bundle, worth up to $500."], ["Is the $500 a cash discount?", "No — it's a bundle of coupons with minimum spends, mostly for shipping. The exact coupons and expiry dates show in your account after sign-up."], ["Can existing users get the coupons?", "The bundle is for new members; existing accounts may get other promotions inside the app."]],
+    faq: [["What is the MyCNBox invite code?", "AACPYA. Signing up with it unlocks MyCNBox's new-member coupon bundle, worth up to $500."], ["Is the $500 a cash discount?", "No, it's a bundle of coupons with minimum spends, mostly for shipping. The exact coupons and expiry dates show in your account after sign-up."], ["Can existing users get the coupons?", "The bundle is for new members; existing accounts may get other promotions inside the app."]],
   },
   "kakobuy-coupon-code": {
-    title: "KakoBuy Coupon Code 2026 — Up to $410 in Welcome Coupons",
+    title: "KakoBuy Coupon Code 2026: Up to $410 in Welcome Coupons",
     desc: "Get up to $410 in KakoBuy welcome coupons with invite code w5war. How to claim them and how to use them on your first haul.",
     h1: "KakoBuy coupon code (up to $410)",
     body: `<p class="lead">New KakoBuy members get a <strong>welcome coupon bundle worth up to $410</strong>. Sign up through <a href="https://ikako.vip/r/w5war" rel="sponsored nofollow noopener" target="_blank">this invite link</a> (code <strong>w5war</strong>) and the coupons are added to your account.</p>
-<h2>How to claim it</h2><ol class="steps"><li>Open the <a href="https://ikako.vip/r/w5war" rel="sponsored nofollow noopener" target="_blank">KakoBuy invite link</a>.</li><li>Register a free account.</li><li>Use the coupons at checkout — they're split into several coupons with minimum spends, mostly for shipping.</li></ol>
+<h2>How to claim it</h2><ol class="steps"><li>Open the <a href="https://ikako.vip/r/w5war" rel="sponsored nofollow noopener" target="_blank">KakoBuy invite link</a>.</li><li>Register a free account.</li><li>Use the coupons at checkout, they're split into several coupons with minimum spends, mostly for shipping.</li></ol>
 <h2>Tips</h2><ul><li>Plan one bigger parcel rather than several small ones to use the larger shipping coupons.</li><li>Check coupon expiry dates in your account.</li></ul>
-<p>Browse the <a href="/kakobuy-spreadsheet">KakoBuy spreadsheet</a>, or compare agents in <a href="/guides/kakobuy-vs-mycnbox">KakoBuy vs MyCNBox</a> — MyCNBox currently has the bigger bundle (<a href="/guides/mycnbox-coupon-code">up to $500</a>).</p>
+<p>Browse the <a href="/kakobuy-spreadsheet">KakoBuy spreadsheet</a>, or compare agents in <a href="/guides/kakobuy-vs-mycnbox">KakoBuy vs MyCNBox</a>: MyCNBox currently has the bigger bundle (<a href="/guides/mycnbox-coupon-code">up to $500</a>).</p>
 <p style="font-size:13px">Offer details are set by KakoBuy and can change; this link is an affiliate link.</p>`,
     faq: [["What is the KakoBuy invite code?", "w5war. Signing up through the invite link applies it automatically and unlocks the welcome coupons."], ["How much is the KakoBuy welcome bonus?", "Up to $410 in coupons, split across several coupons with minimum spends."]],
   },
@@ -135,14 +135,14 @@ export const GUIDES3 = {
     title: "Shopping Agent Coupons & Sign-Up Bonuses 2026 (MyCNBox, KakoBuy, Oopbuy…)",
     desc: "Every current new-member coupon for rep shopping agents in one place: MyCNBox up to $500, KakoBuy up to $410, plus Oopbuy, LoveGoBuy and Sugargoo.",
     h1: "Shopping agent coupons & sign-up bonuses",
-    body: `<p class="lead">Every major agent gives new members coupons, mostly for international shipping. Here's what each offers — sign up with the one you'll actually use, since coupons can't be moved between agents.</p>
+    body: `<p class="lead">Every major agent gives new members coupons, mostly for international shipping. Here's what each offers, sign up with the one you'll actually use, since coupons can't be moved between agents.</p>
 <table style="width:100%;border-collapse:collapse;margin:10px 0 18px"><tr><th style="text-align:left;padding:8px;border-bottom:1px solid var(--line)">Agent</th><th style="text-align:left;padding:8px;border-bottom:1px solid var(--line)">New-member bonus</th><th style="padding:8px;border-bottom:1px solid var(--line)"></th></tr>
 <tr><td style="padding:8px"><strong>MyCNBox</strong> (our #1 pick)</td><td style="padding:8px">Up to $500 coupon bundle · code AACPYA</td><td style="padding:8px"><a href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" rel="sponsored nofollow noopener" target="_blank">Claim</a> · <a href="/guides/mycnbox-coupon-code">details</a></td></tr>
 <tr><td style="padding:8px"><strong>KakoBuy</strong></td><td style="padding:8px">Up to $410 welcome coupons · code w5war</td><td style="padding:8px"><a href="https://ikako.vip/r/w5war" rel="sponsored nofollow noopener" target="_blank">Claim</a> · <a href="/guides/kakobuy-coupon-code">details</a></td></tr>
 <tr><td style="padding:8px"><strong>Oopbuy</strong></td><td style="padding:8px">New-user coupons on your first orders</td><td style="padding:8px"><a href="https://oopbuy.com/register?inviteCode=LHQC0OS8O" rel="sponsored nofollow noopener" target="_blank">Claim</a></td></tr>
 <tr><td style="padding:8px"><strong>LoveGoBuy</strong></td><td style="padding:8px">Welcome coupons for new members</td><td style="padding:8px"><a href="https://www.lovegobuy.com/?invite_code=9WJ54Y" rel="sponsored nofollow noopener" target="_blank">Claim</a></td></tr>
 <tr><td style="padding:8px"><strong>Sugargoo</strong></td><td style="padding:8px">New-member coupon pack</td><td style="padding:8px"><a href="https://www.sugargoo.com/register?memberId=3751749728009774836" rel="sponsored nofollow noopener" target="_blank">Claim</a></td></tr></table>
-<h2>How agent coupons work</h2><ul><li>They're a <strong>bundle of smaller coupons</strong>, each with a minimum spend — not cash.</li><li>Most apply to <strong>international shipping</strong>, so they're worth most on your first bigger parcel.</li><li>They <strong>expire</strong>; check the dates in your account.</li></ul>
+<h2>How agent coupons work</h2><ul><li>They're a <strong>bundle of smaller coupons</strong>, each with a minimum spend, not cash.</li><li>Most apply to <strong>international shipping</strong>, so they're worth most on your first bigger parcel.</li><li>They <strong>expire</strong>; check the dates in your account.</li></ul>
 <p>Not sure which agent to pick? Read <a href="/guides/best-shopping-agent">best shopping agent</a>, then browse <a href="/">9,000+ finds</a>.</p>
 <p style="font-size:13px">Offers are set by each agent and can change. Links on this page are affiliate links.</p>`,
     faq: [["Which shopping agent has the biggest sign-up bonus?", "MyCNBox currently offers the largest bundle, up to $500 in new-member coupons, followed by KakoBuy at up to $410."], ["Can I use coupons from one agent on another?", "No. Coupons only work on the agent that issued them."]],

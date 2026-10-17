@@ -134,7 +134,7 @@ export const AGENTS = {
 // ------------------------------------------------------------------ helpers
 export const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 export const slug = s => String(s).toLowerCase().replace(/&/g, " and ").replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-// Prices: one source of truth — the CNY listing price × the same USD rate the SPA uses (CUR.USD.rate).
+// Prices: one source of truth, the CNY listing price × the same USD rate the SPA uses (CUR.USD.rate).
 // Seller placeholder prices (¥1–4 "ask me", ¥99,999+ "not for sale") are not real prices.
 export const USD_RATE = 0.14;
 export const isPH = cny => !(cny >= 5 && cny < 99999);
