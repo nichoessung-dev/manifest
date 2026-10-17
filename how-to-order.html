@@ -15,15 +15,15 @@
 <link rel="icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/ds.css?v=1">
 <script>(function(){var t;try{t=localStorage.getItem("manifest.theme");}catch(e){}document.documentElement.setAttribute("data-theme",(t==="light"||t==="dark")?t:"dark");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",document.documentElement.getAttribute("data-theme")==="light"?"#F6F8FB":"#0C1220");})();</script>
 <style>
-  :root{--bg:#0C1220;--card:#141E34;--line:#26314D;--text:#F2F5FB;--muted:#94A0BD;--body:#C9D2E6;--accent:#7B9AE0;--red:#E8322B;color-scheme:dark}
-  :root[data-theme="light"]{--bg:#F6F8FB;--card:#FFFFFF;--line:#E2E7F0;--text:#16203A;--muted:#5A6478;--body:#3A4459;--accent:#2E4B86;color-scheme:light}
-  :root[data-theme="light"] header img{filter:brightness(0) saturate(100%) invert(11%) sepia(20%) saturate(2000%) hue-rotate(195deg)}
+  :root{--body:var(--ink-2)}
+  :root[data-theme="light"] header img{filter:brightness(0)}
   :root[data-theme="light"] .player{box-shadow:0 20px 50px rgba(20,30,60,.18)}
   *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--text);font-family:"Hanken Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased}
   a{color:inherit}
   .wrap{max-width:1120px;margin:0 auto;padding:28px 16px 64px}
   header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}
@@ -37,7 +37,7 @@
   .player.portrait{aspect-ratio:9/16;width:min(100%,420px,calc((100vh - 120px)*9/16));width:min(100%,420px,calc((100svh - 120px)*9/16))}
   video{display:block;width:100%;height:100%;object-fit:cover}
   .switch{display:flex;justify-content:center;gap:8px;margin:14px 0 0}
-  .switch button{font:600 14px/1 "Hanken Grotesk",sans-serif;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:9px 14px;cursor:pointer}
+  .switch button{font:600 14px/1 var(--font);color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:9px 14px;cursor:pointer}
   .switch button[aria-pressed="true"]{color:var(--text);border-color:var(--accent);background:rgba(123,154,224,.12)}
   .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:34px 0 8px}
   .btn{display:inline-flex;align-items:center;gap:10px;padding:16px 26px;border-radius:999px;font-weight:800;font-size:17px;text-decoration:none}

@@ -11,28 +11,12 @@
 <meta name="robots" content="index,follow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/ds.css?v=1">
 <script>(function(){var t;try{t=localStorage.getItem("manifest.theme");}catch(e){}document.documentElement.setAttribute("data-theme",(t==="light"||t==="dark")?t:"dark");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",document.documentElement.getAttribute("data-theme")==="light"?"#F6F8FB":"#0C1220");})();</script>
 <style>
-:root{
-  --ground:#F6F8FB; --surface:#FFFFFF; --surface-2:#EDF1F7;
-  --ink:#16203A; --muted:#5A6478; --faint:#646E81;
-  --line:#E2E7F0; --accent:#2E4B86; --radius:9px;
-  --f-disp:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --ground:#0C1220; --surface:#111A2E; --surface-2:#1A2740;
-  --ink:#E9EDF5; --muted:#93A0B7; --faint:#5E6B84;
-  --line:#22304C; --accent:#7C9BE0;
-}}
-[data-theme="dark"]{
-  --ground:#0C1220; --surface:#111A2E; --surface-2:#1A2740;
-  --ink:#E9EDF5; --muted:#93A0B7; --faint:#5E6B84;
-  --line:#22304C; --accent:#7C9BE0;
-}
-:root{color-scheme:light}
-[data-theme="dark"]{color-scheme:dark}
+:root{--ground:var(--bg);--f-disp:var(--font);--f-mono:var(--font);--radius:var(--r-lg)}
+.brand b{color:var(--ink)}a{color:var(--ink);text-decoration-color:var(--accent)}.eyebrow{color:var(--faint)!important}
 *{box-sizing:border-box}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-disp);line-height:1.62;-webkit-font-smoothing:antialiased}
 .topbar{position:sticky;top:0;z-index:5;backdrop-filter:saturate(1.4) blur(12px);background:color-mix(in srgb,var(--ground) 82%,transparent);border-bottom:1px solid var(--line)}
