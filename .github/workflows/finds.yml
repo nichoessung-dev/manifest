@@ -21,7 +21,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install pillow imageio-ffmpeg yt-dlp
+      - run: pip install pillow imageio-ffmpeg yt-dlp numpy && pip install torch --index-url https://download.pytorch.org/whl/cpu
+      # the photo clean-up model (Real-ESRGAN general x4v3 and its denoise twin, xinntao/Real-ESRGAN, BSD-3), checked against known hashes
+      - run: |
+          mkdir -p scripts/models && cd scripts/models
+          u=https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0
+          curl -sfL -o realesr-general-x4v3.pth $u/realesr-general-x4v3.pth
+          curl -sfL -o realesr-general-wdn-x4v3.pth $u/realesr-general-wdn-x4v3.pth
+          printf '%s  %s\n' 8dc7edb9ac80ccdc30c3a5dca6616509367f05fbc184ad95b731f05bece96292 realesr-general-x4v3.pth 1641f8c4464b9f097c9fdda5589273713f67cf59f3d909e0bd688f0cee269dca realesr-general-wdn-x4v3.pth | sha256sum -c - || rm -f *.pth
       - name: Top up the queue and send new links
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
@@ -69,6 +76,7 @@ jobs:
           git add slides_used.json 2>/dev/null || true
           git add scripts/qc_categories.json 2>/dev/null || true
           git add scripts/qc_labels.json 2>/dev/null || true
+          git add scripts/qc_items.json 2>/dev/null || true
           git diff --cached --quiet && exit 0
           git commit -q -m "chore: finds state [skip ci]"
           # someone else may push at the same moment (a site upload, the stats job): try again a few times before giving up
