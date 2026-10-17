@@ -221,8 +221,15 @@ function drawCharts(){
   chart($("c-signups"), slice(D.days,range.signups), [{name:"sign-ups", data:slice(D.signups,range.signups), color:"--blue", type:"bar"}]);
 }
 
+function renderReports(){
+  const r=(D&&D.reports)||[]; if(!r.length) return;
+  $("links-card").hidden=false;
+  const el=document.getElementById("reports-list")||(()=>{ const d=document.createElement("div"); d.id="reports-list"; d.style.marginTop="16px"; $("links-card").appendChild(d); return d; })();
+  el.innerHTML='<div class="ch-title" style="font-size:14px;margin-bottom:8px">Reported by visitors</div><table><tbody>'+r.slice(0,100).map(([id,n,d])=>'<tr><td><a href="/product/'+encodeURIComponent(id)+'" target="_blank" rel="noopener" style="color:var(--ink)">/product/'+id+'</a></td><td>'+n+' report'+(n===1?'':'s')+'</td><td>'+d+'</td></tr>').join("")+'</tbody></table>';
+}
 function render(){
   if(!D) return;
+  try{ renderReports(); }catch(e){}
   const mau=D.mau, members=LIVE?.total ?? D.members[D.members.length-1];
   $("k-mau").textContent=fmt(mau); $("k-mau2").textContent=fmt(mau); $("k-wau").textContent=fmt(D.wau); $("k-dau").textContent=fmt(D.dau);
   $("k-views").textContent=fmt(D.views_30d);
@@ -259,6 +266,7 @@ async function loadLinks(){
     const h=await (await fetch("/data/link_health.json?ts="+Date.now())).json();
     $("links-card").hidden=false;
     $("links-sub").textContent=fmt(h.weidian_checked)+" Weidian finds checked "+new Date(h.checked).toLocaleDateString("en-US",{month:"short",day:"numeric"})+": "+fmt(h.dead.length)+" dead (hidden from the site), "+fmt(h.sold_out.length)+" sold out, "+fmt(h.errors)+" could not be checked";
+    window.__dead=h.dead;
     $("links-list").innerHTML=h.dead.length? '<div class="bars" style="gap:6px">'+h.dead.slice(0,200).map(id=>'<a href="/product/'+encodeURIComponent(id)+'" target="_blank" rel="noopener" style="color:var(--ink);font-size:13.5px">/product/'+id+'</a>').join("")+'</div>' : "No dead links found.";
   }catch(e){}
 }
