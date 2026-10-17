@@ -1,7 +1,7 @@
 // Routes the server-rendered SEO pages (hubs, guides, sitemaps) and turns the SPA's catch-all
 // "200 + homepage" for unknown paths into a real 404, so Google doesn't see soft-404 duplicates.
 import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE } from "./_lib/site.js";
-import { renderBrand, renderCategory, renderAgent, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
+import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
   sitemapIndex, sitemapPages, sitemapProducts, mergedBest } from "./_lib/pages.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
@@ -90,6 +90,7 @@ async function route(ctx) {
   else if (m) res = paged(renderBrand, m[1], m[2], url.origin + "/brand/" + m[1]);
   else if ((m = path.match(/^\/category\/([a-z0-9-]+)(?:\/(\d+))?$/))) res = paged(renderCategory, m[1], m[2], url.origin + "/category/" + m[1]);
   else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet(?:\/(\d+))?$/))) res = paged(renderAgent, m[1], m[2], url.origin + `/${m[1]}-spreadsheet`);
+  else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet\/([a-z][a-z0-9-]*)(?:\/(\d+))?$/))) { const k = m[1], b = m[2]; res = paged((x, n) => renderAgentBrand(k, x, n), b, m[3], url.origin + `/${k}-spreadsheet/${b}`); }
   else if ((m = path.match(/^\/old-money(?:\/(\d+))?$/))) res = paged((_, n) => renderOldMoney(n), null, m[1], url.origin + "/old-money");
   if (res !== undefined) {
     if (!res) return notFound(path);
