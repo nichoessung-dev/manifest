@@ -2,7 +2,7 @@
 // "200 + homepage" for unknown paths into a real 404, so Google doesn't see soft-404 duplicates.
 import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
-  sitemapIndex, sitemapPages, sitemapProducts, mergedBest } from "./_lib/pages.js";
+  sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts } from "./_lib/pages.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
@@ -73,6 +73,8 @@ async function route(ctx) {
   if (path === "/sitemap.xml") return sitemapIndex();
   if (path === "/sitemap-pages.xml") return sitemapPages();
   if (path === "/sitemap-products.xml") return sitemapProducts();
+  const spec = hubSpec(path);
+  if (spec) return hubApp(ctx, url, spec);
   if (path === "/brands") res = renderBrands();
   else if (path === "/guides") res = renderGuides();
   else if ((m = path.match(/^\/guides\/([a-z0-9-]+)$/))) res = renderGuide(m[1]);
@@ -104,4 +106,29 @@ async function route(ctx) {
   const ct = out.headers.get("content-type") || "";
   if (out.status === 200 && ct.includes("text/html") && !STATIC_HTML.has(path) && !/^\/google[0-9a-f]+\.html$/.test(path)) return notFound(path);
   return out;
+}
+
+// A hub page served as the catalogue app: index.html with this page's title, meta, canonical, heading and filter preset
+// (window.PC_PAGE), the homepage's own structured data swapped for this page's, and a compact FAQ/links block before the footer.
+async function hubApp(ctx, url, spec) {
+  const asset = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "GET", headers: ctx.request.headers }));
+  if (!asset.ok) return asset;
+  const { crumbHtml, seo, head } = hubParts(spec);
+  const canon = "https://www.puroclassico.com" + spec.path;
+  const content = v => ({ element(e) { e.setAttribute("content", v); } });
+  const out = new HTMLRewriter()
+    .on("title", { element(e) { e.setInnerContent(spec.title); } })
+    .on('meta[name="description"]', content(spec.desc))
+    .on('meta[property="og:title"]', content(spec.title)).on('meta[name="twitter:title"]', content(spec.title))
+    .on('meta[property="og:description"]', content(spec.desc)).on('meta[name="twitter:description"]', content(spec.desc))
+    .on('meta[property="og:url"]', content(canon))
+    .on('link[rel="canonical"]', { element(e) { e.setAttribute("href", canon); } })
+    .on('script[type="application/ld+json"]', { element(e) { e.remove(); } })
+    .on("meta[charset]", { element(e) { e.after(head, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
+    .on("h1.hero-h", { element(e) { e.setInnerContent(spec.h); e.before(crumbHtml, { html: true }); } })
+    .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
+    .on("footer", { element(e) { e.before(seo, { html: true }); } })
+    .transform(asset);
+  const res = new Response(out.body, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=3600" } });
+  return res;
 }
