@@ -160,6 +160,7 @@ let D=null, LIVE=null; const range={traffic:30,members:0,signups:30};
 (function(){ try{
   const c=window.supabase.createClient(SB,KEY); const ch=c.channel("online-viewers");
   const count=()=>{ let n=0; const st=ch.presenceState()||{}; for(const k in st) n+=(st[k]||[]).length; $("live").textContent=n; };
+  setTimeout(()=>{ if($("live").textContent==="–") $("live").textContent="0"; },4000);
   ch.on("presence",{event:"sync"},count).on("presence",{event:"join"},count).on("presence",{event:"leave"},count).subscribe();
 }catch(e){} })();
 
@@ -220,7 +221,9 @@ function render(){
   if(!D) return;
   const mau=D.mau, members=LIVE?.total ?? D.members[D.members.length-1];
   $("k-mau").textContent=fmt(mau); $("k-mau2").textContent=fmt(mau); $("k-wau").textContent=fmt(D.wau); $("k-dau").textContent=fmt(D.dau);
-  $("k-views").textContent=fmt(D.views_30d); delta($("k-views-d"), D.views_30d, D.views_prev_30d, "vs previous 30 days");
+  $("k-views").textContent=fmt(D.views_30d);
+  /* the site is young: a comparison with an almost empty earlier month says nothing, so it shows only once there is a real baseline */
+  if(D.views_prev_30d>=500) delta($("k-views-d"), D.views_30d, D.views_prev_30d, "vs previous 30 days"); else { const last7=D.views.slice(-7).reduce((a,b)=>a+b,0); $("k-views-d").className="delta"; $("k-views-d").textContent=fmt(last7)+" in the last 7 days"; }
   const ms=D.months; $("k-mau-d").textContent=fmt(D.wau)+" this week · "+fmt(D.dau)+" today";
   if(LIVE==null) $("k-members").textContent=fmt(members);
   const pct=members? D.mau/members : 0, C=2*Math.PI*44;
