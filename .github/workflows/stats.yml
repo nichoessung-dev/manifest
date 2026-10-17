@@ -24,7 +24,7 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       - name: Commit if changed
         run: |
-          git add data/stats.json
+          git add data/stats.json data/dashboard.json 2>/dev/null || git add data/stats.json
           if git diff --cached --quiet; then
             echo "no change"
           else
