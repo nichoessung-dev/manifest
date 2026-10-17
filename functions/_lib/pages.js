@@ -662,3 +662,70 @@ export function sitemapProducts() {
   });
   return xml(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${rows.join("\n")}\n</urlset>`);
 }
+
+// ------------------------------------------------------------------ hub pages as the catalogue app
+// /mycnbox-spreadsheet, /kakobuy-spreadsheet/ralph-lauren, /brand/x and /category/x (page 1) are served as the homepage app
+// with the filter already applied (functions/_middleware.js rewrites index.html with this spec). Little text on purpose:
+// a short heading, then the spreadsheet itself, then a compact FAQ and links. Pages 2+ stay server-rendered lists.
+export function hubSpec(path) {
+  const { all, slugBrand, byBrand, brandSlug, byCat } = idx();
+  const nf = n => n.toLocaleString("en-US");
+  let m;
+  if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet$/))) {
+    const key = m[1], a = AGENTS[key], meta = AGENT_INTRO[key]; if (!a || !meta) return null;
+    const N = nf(all.length), brands = AGENT_BRAND_AGENTS.includes(key) ? agentBrands() : [];
+    return { path, preset: { agent: key }, h: `${a.name} Spreadsheet`, sub: `${N} finds, each with a one-tap ${a.name} buy button.`,
+      title: `${meta.title}: ${N} Finds | Puro Classico`, desc: `The ${a.name} spreadsheet: ${N} rep finds with prices, QC photos and one-tap ${a.name} links. Search, filter and buy in one place.`,
+      crumbs: [["Home", "/"], [`${a.name} spreadsheet`, path]],
+      chips: [[`Popular brands on ${a.name}`, brands.slice(0, 16).map(b => [b, `${path}/${brandSlug.get(b)}`])],
+              ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])]],
+      faq: [[`What is the ${a.name} spreadsheet?`, `A searchable list of ${N} Weidian, Taobao and 1688 finds. Every find opens directly in ${a.name}, so there is nothing to copy or translate.`],
+            [`How do I order with ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the warehouse. Check the QC photos, then ship your parcel.`],
+            [`Is it free?`, `Yes. You only pay ${a.name} for what you order and for shipping. Links may be affiliate links.`]] };
+  }
+  if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|sugargoo)-spreadsheet\/([a-z][a-z0-9-]*)$/))) {
+    const key = m[1], s = m[2], a = AGENTS[key], b = slugBrand.get(s);
+    if (!a || !b || !agentBrands().includes(b)) return null;
+    const n = nf(byBrand.get(b).length);
+    return { path, preset: { agent: key, brand: s }, h: `${b} on ${a.name}`, sub: `${n} ${b} finds with one-tap ${a.name} links.`,
+      title: `${b} ${a.name} Spreadsheet 2026: ${n} Finds | Puro Classico`, desc: `${n} ${b} rep finds with prices, QC photos and one-tap ${a.name} buy links.`,
+      crumbs: [["Home", "/"], [`${a.name} spreadsheet`, `/${key}-spreadsheet`], [b, path]],
+      chips: [[`${b} on other agents`, AGENT_BRAND_AGENTS.filter(k => k !== key).map(k => [AGENTS[k].name, `/${k}-spreadsheet/${s}`]).concat([[`All ${b} reps`, `/brand/${s}`]])],
+              [`More brands on ${a.name}`, agentBrands().filter(x => x !== b).slice(0, 14).map(x => [x, `/${key}-spreadsheet/${brandSlug.get(x)}`])]],
+      faq: [[`How do I buy ${b} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, choose your size and pay. ${a.name} sends QC photos when it reaches the warehouse; check them, then ship.`]] };
+  }
+  if ((m = path.match(/^\/brand\/([a-z0-9-]+)$/))) {
+    const s = m[1], b = slugBrand.get(s); if (!b) return null;
+    const list = byBrand.get(b), n = nf(list.length);
+    const rel = relatedBrands(b).slice(0, 12);
+    const ag = agentBrands().includes(b) ? AGENT_BRAND_AGENTS.map(k => [`${b} on ${AGENTS[k].name}`, `/${k}-spreadsheet/${s}`]) : [];
+    return { path, preset: { brand: s }, h: `${b} Reps`, sub: `${n} ${b} finds from Weidian, Taobao and 1688.`,
+      title: `${b} Reps Spreadsheet 2026: ${n} Finds | Puro Classico`, desc: `${n} ${b} rep finds with prices, QC photos and links for MyCNBox, KakoBuy, Oopbuy and more.`,
+      crumbs: [["Home", "/"], ["Brands", "/brands"], [b, path]],
+      chips: [...(ag.length ? [[`Buy ${b} with your agent`, ag]] : []), ["Related brands", rel.map(x => [x, `/brand/${brandSlug.get(x)}`]).concat([["All brands", "/brands"]])]],
+      faq: [[`Where can I buy ${b} reps?`, `Every ${b} find here opens in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo. Pick your agent on the find, choose your size and check the QC photos before you ship.`]] };
+  }
+  if ((m = path.match(/^\/category\/([a-z0-9-]+)$/))) {
+    const s = m[1], c = own(CAT_BY_SLUG, s) ? CAT_BY_SLUG[s] : null; if (!c) return null;
+    const list = byCat.get(c) || [], meta = CATS[c], n = nf(list.length);
+    const top = [...new Set(list.map(p => p.brand))].filter(b => brandSlug.has(b)).slice(0, 16);
+    return { path, preset: { cat: c }, h: meta.h, sub: `${n} finds, most viewed first.`,
+      title: `${meta.h}: ${n} Finds (2026) | Puro Classico`, desc: `${n} ${meta.name.toLowerCase()} rep finds with prices, QC photos and one-tap agent links, sorted by most viewed.`,
+      crumbs: [["Home", "/"], [meta.name, path]],
+      chips: [[`Top brands in ${meta.name.toLowerCase()}`, top.map(b => [b, `/brand/${brandSlug.get(b)}`])],
+              ["Other categories", Object.values(CATS).filter(x => x.slug !== s && x.slug !== "toys").map(x => [x.name, `/category/${x.slug}`])]],
+      faq: [] };
+  }
+  return null;
+}
+// The HTML pieces the middleware puts into index.html for a hub spec.
+export function hubParts(spec) {
+  const bc = crumbs(spec.crumbs);
+  const crumbHtml = `<nav class="hub-bc" aria-label="Breadcrumb">${spec.crumbs.map((c, i) => i < spec.crumbs.length - 1 ? `<a href="${c[1]}">${esc(c[0])}</a><span>›</span>` : `<span aria-current="page">${esc(c[0])}</span>`).join("")}</nav>`;
+  const seo = `<section class="hub-seo">${spec.chips.filter(c => c[1].length).map(([t, links]) => `<h2>${esc(t)}</h2><div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `<h2>FAQ</h2>${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
+  const ld = [bc.data]; if (spec.faq.length) ld.push(faqLd(spec.faq));
+  const page = { h: spec.h, sub: spec.sub, agent: spec.preset.agent || null, brand: spec.preset.brand || null, cat: spec.preset.cat || null };
+  const head = `<script>window.PC_PAGE=${JSON.stringify(page).replace(/</g, "\\u003c")};document.documentElement.classList.add("hub"${page.agent ? ',"agent-lock"' : ""});</script>` +
+    ld.map(o => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, "\\u003c") + "</script>").join("");
+  return { crumbHtml, seo, head };
+}
