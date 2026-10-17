@@ -832,6 +832,44 @@ footer .seo-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(170p
 @media(max-width:380px){.mast-row{column-gap:4px}}
 /* keep product-page content clear of the notch / home indicator (viewport-fit=cover) */
 .dbody{padding-left:max(22px,env(safe-area-inset-left));padding-right:max(22px,env(safe-area-inset-right));padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+
+/* ================= polish pass, 17 Oct 2026 ================= */
+/* hero is on screen at once: its entrance animation stalled at opacity 0 while the catalogue was being built, so phones saw an empty hero for seconds */
+.hero-h,.hero-sub,.hero-stats,.hero-cta{animation:none!important;opacity:1;transform:none}
+.hero-h{letter-spacing:-.04em}
+.hero-cta{box-shadow:0 10px 28px color-mix(in srgb,var(--accent) 35%,transparent)}
+/* filter row: one height, one radius, calm borders; the open one is clearly marked */
+.fselbtn,.saved-chip,.price-btn{border-radius:999px!important;border:1px solid var(--line)!important;background:var(--surface)!important;transition:border-color .15s,background .15s}
+.fselbtn:hover,.saved-chip:hover,.price-btn:hover{border-color:color-mix(in srgb,var(--ink) 28%,var(--line))!important}
+.fselbtn[aria-expanded="true"],.price-btn[aria-expanded="true"]{border-color:var(--accent)!important;background:color-mix(in srgb,var(--accent) 12%,var(--surface))!important}
+/* dropdown menus: a proper floating panel */
+.cselmenu{border-radius:14px!important;border:1px solid var(--line)!important;box-shadow:0 18px 48px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.18)!important;overscroll-behavior:contain}
+.cselitem{border-radius:9px}
+.cselsearch input{border-radius:10px}
+/* search field: clear focus */
+.search:focus-within{box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
+/* cards: titles never run past two lines, prices line up */
+.card .title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.76em}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+/* phone masthead: logo, tools, sign in, settings, theme on ONE row; language / currency / agent open from the settings button */
+.set-btn{display:none;width:40px;height:40px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);align-items:center;justify-content:center;padding:0;cursor:pointer;flex:none}
+.set-btn svg{width:18px;height:18px}
+.set-btn[aria-expanded="true"]{color:var(--ink);border-color:var(--accent)}
+@media(max-width:560px){
+  .set-btn{display:inline-flex}
+  .mast-tools .selwrap{display:none!important}
+  .masthead.set-open .mast-tools .selwrap{display:block!important}
+  .mast-tools .theme-btn{display:none}
+  .masthead.set-open .mast-tools .selwrap{order:8;flex:1 1 calc(33% - 22px);min-width:84px}
+  .masthead.set-open .mast-tools .theme-btn{display:inline-flex;order:9}
+  .pc-mycnbox-btn{order:10!important}
+  .mast-row{row-gap:8px;padding-block:8px}
+  .pc-mycnbox-btn{height:40px!important;font-size:13.5px}
+  .hero-in{padding-block:28px 18px;gap:14px}
+  .hero-cta{margin-top:12px}
+  .tp-badge{margin-top:6px}
+  .strip-head{padding-top:8px}
+}
 </style>
 
 <div class="masthead">
@@ -863,6 +901,7 @@ footer .seo-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(170p
       <button id="pc-mycnbox-btn" class="pc-mycnbox-btn" type="button" data-i18n="mycnbox_cta">Make an account with MyCNBox</button><script>try{if(localStorage.getItem("pc.mycnbox.cta")){var _mb=document.getElementById("pc-mycnbox-btn");_mb.parentNode.removeChild(_mb);}}catch(e){}</script>
       <button class="auth-btn" id="auth-btn" data-in="0">Sign in</button>
       <a class="icon-btn" href="/discord" target="_blank" rel="noopener" aria-label="Discord" title="Join our Discord"><img src="https://icons.duckduckgo.com/ip3/discord.com.ico" alt="Discord" onerror="this.parentElement.innerHTML='&#128172;'"></a>
+      <button class="set-btn" id="set-btn" type="button" aria-expanded="false" aria-label="Language, currency and agent" title="Language, currency and agent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></button>
       <button class="theme-btn" id="theme" aria-label="Toggle light or dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg></button>
       <div class="menu" id="acct-menu" hidden></div>
     </div>
@@ -873,6 +912,7 @@ footer .seo-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(170p
   var m=document.querySelector('.masthead');
   if(!m) return;
   var set=function(){document.documentElement.style.setProperty('--mast-h', m.offsetHeight+'px');};
+  var sb=document.getElementById('set-btn'); if(sb) sb.addEventListener('click',function(e){ e.stopPropagation(); var o=m.classList.toggle('set-open'); sb.setAttribute('aria-expanded',o?'true':'false'); set(); });
   set();
   if(window.ResizeObserver){ new ResizeObserver(set).observe(m); }
   window.addEventListener('resize',set);
@@ -1531,6 +1571,7 @@ function buildCsel(sel, kind){
     host.__btn=btn; host.__menu=menu;
     btn.addEventListener("click",e=>{ e.stopPropagation(); const willOpen=menu.hidden; closeAllCsel(); if(willOpen){ menu.hidden=false; btn.setAttribute("aria-expanded","true");
       const si=host.__search; if(si&&si.value){ si.value=""; si.dispatchEvent(new Event("input")); }
+      if(kind==="filter"&&innerWidth>560){ const b0=btn.getBoundingClientRect(); if(innerHeight-b0.bottom<340){ const sd=btn.closest(".subdeck,.deck"); const stick=sd?(parseFloat(getComputedStyle(sd).top)||0):0; window.scrollBy(0,Math.max(0,b0.top-stick-12)); } }
       placeCsel(menu,btn); menu.scrollTop=0;
       if(si&&window.matchMedia&&matchMedia("(hover:hover) and (pointer:fine)").matches) si.focus({preventScroll:true}); } });
     menu.addEventListener("click",e=>e.stopPropagation());
@@ -1542,7 +1583,7 @@ function buildCsel(sel, kind){
   if(sel.options.length>15){
     const sw=document.createElement("div"); sw.className="cselsearch";
     const si=document.createElement("input"); si.type="search"; si.autocomplete="off"; si.spellcheck=false; si.setAttribute("enterkeyhint","search");
-    si.placeholder=t("search_brands"); si.setAttribute("aria-label",t("search_brands"));
+    const sph=/colou?r/i.test(sel.id||"")?(t("search_colours")!=="search_colours"?t("search_colours"):"Search colours"):t("search_brands"); si.placeholder=sph; si.setAttribute("aria-label",sph);
     const none=document.createElement("div"); none.className="cselnone"; none.textContent=t("nothing_t"); none.hidden=true;
     si.addEventListener("input",()=>{ const f=foldQ(si.value), fc=f.replace(/ /g,""); let n=0;
       menu.querySelectorAll(".cselitem").forEach(it=>{ const k=it.__k||""; const on=!f||(it.dataset.v!=="all"&&(k.indexOf(" "+f)>=0||k.replace(/ /g,"").indexOf(fc)>=0)); it.hidden=!on; if(on)n++; });
@@ -1623,7 +1664,7 @@ function clearFilters(){
 const ADMIN_SORTS=()=>ADMIN?[["views7","Admin: most viewed (7 days)"],["views30","Admin: most viewed (30 days)"],["viewsAll","Admin: most viewed (all time)"],["favs","Admin: most favourited"]].map(([v,l])=>`<option value="${v}">${l}</option>`).join(""):"";
 function enhancePPSelects(){ ["pp-type","pp-brand","pp-price","pp-color","pp-source","pp-sort"].forEach(id=>{ const s=document.getElementById(id); if(s)buildCsel(s,"filter"); }); }
 function parseColor(v){ const name=String(v).split("·")[0].trim(); if(!name||/^(one\s?size|os|EU\d+|[SMLX]{1,3}|\d+)$/i.test(name)||/×\s*\d/.test(name)) return null; return name; }
-function productColors(p){ return p.variants.map(v=>parseColor(v[0])).filter(Boolean); }
+function productColors(p){ if(p.__cols)return p.__cols; const out=[]; (p.variants||[]).forEach(v=>{ const c=parseColor(v[0]); if(!c)return; String(c).split(/\s*(?:;|,|\/|&|\+|\band\b)\s*/i).forEach(x=>{ x=x.trim().replace(/\s+/g," ").replace(/\bligth\b/ig,"Light").replace(/\bgr[ae]y\b/ig,"Grey").replace(/\b\w/g,ch=>ch.toUpperCase()).replace(/^Mu[a-z]*ple Colou?rs?$/,"Multicolour").replace(/^Navy Blue$/,"Navy"); if(/^(Standard|Default|As Picture|Same As Picture|One Size)$/.test(x))return; if(x&&out.indexOf(x)<0)out.push(x); }); }); return (p.__cols=out); }
 const COLORMAP={navy:"#1f2f57","navy blue":"#1f2f57",white:"#f2f2ef",black:"#1a1a1a",grey:"#8a8f98",gray:"#8a8f98",beige:"#d8c9a8",cream:"#efe7d2",red:"#c0392b",pink:"#e39ac0",green:"#3a7d5b",yellow:"#e3c04a","light blue":"#a9c9e8",blue:"#2e5aa8",brown:"#7a5230",orange:"#e08a3c",purple:"#7a5aa8"};
 function swatch(name){return COLORMAP[String(name).toLowerCase().trim()]||"#c8ccd4";}
 function allColors(){ const s=new Set(); ALL.forEach(p=>productColors(p).forEach(c=>s.add(c))); return [...s].sort(); }
@@ -1729,7 +1770,7 @@ function card(p,i){
   el.querySelector(".fav").addEventListener("click",e=>{ e.stopPropagation(); toggleFav(p); });
   /* placeholder canvas only when there is no photo or it fails (a canvas per card costs ~0.8 MB on phones) */
   const im=el.querySelector("img.pimg");
-  if(im){ im.removeAttribute("onerror"); im.addEventListener("error",()=>{ im.remove(); drawTile($("canvas",el),p); },{once:true}); }
+  if(im){ im.removeAttribute("onerror"); let tries=0; im.addEventListener("error",()=>{ if(tries<2&&p.img){ tries++; setTimeout(()=>{ im.src=p.img+(p.img.indexOf("?")<0?"?":"&")+"r="+tries; },700*tries); return; } im.remove(); drawTile($("canvas",el),p); }); }
   else requestAnimationFrame(()=>drawTile($("canvas",el),p));
   return el;
 }
