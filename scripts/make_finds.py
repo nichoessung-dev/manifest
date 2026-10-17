@@ -10,6 +10,8 @@ import argparse, glob, hashlib, html, json, os, random, re, subprocess, sys, tem
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 import imageio_ffmpeg
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from restore import restore
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 W, H, FPS = 1080, 1920, 30
@@ -20,7 +22,7 @@ CACHE = os.path.join(tempfile.gettempdir(), "pc_finds"); os.makedirs(CACHE, exis
 FONT = os.path.join(ROOT, "scripts", "fonts", "Montserrat.ttf")
 ANTON = os.path.join(ROOT, "scripts", "fonts", "Anton-Regular.ttf")          # tall condensed type for the start picture
 SCRIPT = os.path.join(ROOT, "scripts", "fonts", "Parisienne-Regular.ttf")    # the "puro classico" script in the corner badge
-CATS_FILE = os.path.join(ROOT, "scripts", "qc_categories.json")              # item type of every QC shot, so a slide pairs two of a kind
+ITEMS_FILE = os.path.join(ROOT, "scripts", "qc_items.json")                 # what each QC shot shows (type, item, brand, colour), so a slide pairs two alike
 LABELS_FILE = os.path.join(ROOT, "scripts", "qc_labels.json")               # the short casual name on each slide ("Stoney Half-Zips"), per pair of shots
 
 
@@ -140,8 +142,13 @@ def crisp(im):
 
 
 def fill(im, w, h):
-    """The photo filling the whole area edge to edge (cropped to fit, centred), no blurred bars."""
-    return crisp(ImageOps.fit(im.convert("RGB"), (w, h), Image.LANCZOS, centering=(0.5, 0.5)))
+    """The photo filling the whole area edge to edge (cropped to fit, centred), no blurred bars. Cleaned up by the
+    restoration model when it is available (a little of the original is kept so knit and fabric texture stays real)."""
+    im = im.convert("RGB"); base = ImageOps.fit(im, (w, h), Image.LANCZOS, centering=(0.5, 0.5)); r = restore(im, w, h)
+    if r is im: return crisp(base)
+    out = Image.blend(ImageOps.fit(r, (w, h), Image.LANCZOS, centering=(0.5, 0.5)), base, 0.15)
+    out = out.filter(ImageFilter.UnsharpMask(radius=1.2, percent=45, threshold=2))
+    return ImageEnhance.Color(ImageEnhance.Contrast(out).enhance(1.04)).enhance(1.05)
 
 
 def slide(a, b, SW=SW, SH=SH, badge=None, label=""):
@@ -187,33 +194,6 @@ def tall(im):
     bg = ImageOps.fit(im, (W, H), Image.BILINEAR).filter(ImageFilter.GaussianBlur(40)); bg.paste(im, (0, (H - SH) // 2)); return bg
 
 
-TYPES = ["shoes", "bag", "wallet", "belt", "watch", "jewellery", "glasses", "hat", "top", "jacket", "pants", "shorts", "scarf", "other"]
-
-
-def classify(shots):
-    """Item type of each shot, from scripts/qc_categories.json; unknown shots are asked once of OpenAI (a small thumbnail,
-    gpt-4o-mini) and the answer is stored. Without OPENAI_API_KEY, or when the call fails, the shot is "other" this time."""
-    try: known = json.load(open(CATS_FILE))
-    except Exception: known = {}
-    key = os.environ.get("OPENAI_API_KEY", "").strip(); out, new = {}, 0
-    for sid, im in shots:
-        if sid in known: out[sid] = known[sid]; continue
-        if not key: out[sid] = "other"; continue
-        try:
-            import base64, io
-            t = im.copy(); t.thumbnail((384, 384)); buf = io.BytesIO(); t.convert("RGB").save(buf, "JPEG", quality=80)
-            body = {"model": "gpt-4o-mini", "max_tokens": 5, "temperature": 0, "messages": [{"role": "user", "content": [
-                {"type": "text", "text": "This is a quality-check photo of one fashion item. Answer with exactly one word from this list: " + ", ".join(TYPES)},
-                {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode(), "detail": "low"}}]}]}
-            req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
-                                         headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"})
-            ans = json.load(urllib.request.urlopen(req, timeout=60))["choices"][0]["message"]["content"].strip().lower().strip(".")
-            out[sid] = known[sid] = ans if ans in TYPES else "other"; new += 1
-        except Exception as e:
-            print("  could not classify a photo:", str(e)[:80]); out[sid] = "other"
-    if new:
-        json.dump(known, open(CATS_FILE, "w"), indent=0, sort_keys=True); print("  classified %d new photos" % new)
-    return out
 
 
 def pair_label(a, b):
@@ -248,22 +228,76 @@ def pair_label(a, b):
     return t
 
 
-def pair_by_type(ims, rnd):
-    """Reorder the shots so each slide (two in a row) shows two items of the same type; leftovers are paired together."""
-    sid = lambda pid, im: im.info.get("sid") or pid
-    labels = classify([(sid(pid, im), im) for pid, im in ims])
-    lab = lambda k: labels.get(sid(*ims[k]), "other")
-    groups = {}
-    for k in range(len(ims)): groups.setdefault(lab(k), []).append(ims[k])
-    pairs, rest = [], []
-    for g in groups.values():
-        rnd.shuffle(g)
-        while len(g) >= 2: pairs.append((g.pop(), g.pop()))
-        rest += g
-    rnd.shuffle(rest)
-    while len(rest) >= 2: pairs.append((rest.pop(), rest.pop()))
+ITEMS = ["puffer jacket", "down vest", "quilted jacket", "field jacket", "bomber jacket", "leather jacket", "track jacket", "overshirt",
+         "coat", "blazer", "half-zip knit", "crewneck knit", "cable knit", "cardigan", "knit polo", "hoodie", "zip hoodie", "sweatshirt",
+         "fleece", "polo shirt", "rugby shirt", "button shirt", "t-shirt", "chinos", "jeans", "sweatpants", "shorts", "swim shorts",
+         "loafers", "sneakers", "boots", "dress shoes", "slides", "cap", "beanie", "scarf", "belt", "wallet", "bag", "watch",
+         "sunglasses", "jewellery", "suitcase", "other"]
+
+
+def describe(shots):
+    """What each shot shows, {"i": item from ITEMS, "b": brand, "c": main colour}, from scripts/qc_items.json; unknown shots are
+    asked once of OpenAI (a small thumbnail, gpt-4o-mini) and the answer is stored. Unknown or failed: item "other"."""
+    try: known = json.load(open(ITEMS_FILE))
+    except Exception: known = {}
+    key = os.environ.get("OPENAI_API_KEY", "").strip(); out, new = {}, 0
+    for sid, im in shots:
+        if sid in known: out[sid] = known[sid]; continue
+        if not key: out[sid] = {"i": "other", "b": "", "c": ""}; continue
+        try:
+            import base64, io
+            t = im.copy(); t.thumbnail((512, 512)); buf = io.BytesIO(); t.convert("RGB").save(buf, "JPEG", quality=85)
+            body = {"model": "gpt-4o-mini", "max_tokens": 40, "temperature": 0, "response_format": {"type": "json_object"}, "messages": [{"role": "user", "content": [
+                {"type": "text", "text": "A quality-check photo of one fashion item. Reply as JSON {\"item\": ..., \"brand\": ..., \"colour\": ...}. "
+                 "item: exactly one of " + ", ".join(ITEMS) + ". brand: the brand only if you can read it on a logo, patch or tag, lowercase, else \"\". "
+                 "colour: the main colour in one word."},
+                {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode(), "detail": "low"}}]}]}
+            req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
+                                         headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"})
+            j = json.loads(json.load(urllib.request.urlopen(req, timeout=60))["choices"][0]["message"]["content"])
+            it = str(j.get("item", "")).strip().lower()
+            out[sid] = known[sid] = {"i": it if it in ITEMS else "other", "b": str(j.get("brand", "")).strip().lower()[:30],
+                                     "c": str(j.get("colour", "")).strip().lower()[:15]}; new += 1
+        except Exception as e:
+            print("  could not describe a photo:", str(e)[:80]); out[sid] = {"i": "other", "b": "", "c": ""}
+    if new:
+        json.dump(known, open(ITEMS_FILE, "w"), indent=0, sort_keys=True, ensure_ascii=False); print("  described %d new photos" % new)
+    return out
+
+
+def kind(item):
+    """The broad kind of an item, for a fallback pair when no two of the same item are at hand."""
+    for k, words in (("outer", ("jacket", "vest", "coat", "blazer", "overshirt", "fleece")), ("knit", ("knit", "cardigan")),
+                     ("top", ("hoodie", "sweatshirt", "shirt", "polo")), ("bottom", ("chinos", "jeans", "pants", "shorts")),
+                     ("shoes", ("loafers", "sneakers", "boots", "shoes", "slides"))):
+        if any(w in item for w in words): return k
+    return item
+
+
+def pick_pairs(ims, n, rnd):
+    """n slides of two alike shots: the same item first (two half-zip knits, two puffers), ideally the same brand in
+    different colours; only when that runs out, the same kind of thing. ims is in least-used order and the least-used
+    shots are placed first. The two halves of one source photo (already a pair) are next best. Returns (pairs, unused shots)."""
+    sid = lambda x: x[1].info.get("sid") or x[0]
+    d = describe([(sid(x), x[1]) for x in ims])
+    def score(x, y):
+        if x[0] == y[0]: return 9                             # the two halves of one photo: already a matching pair, used when no fresh one is left
+        p, q = d.get(sid(x), {}), d.get(sid(y), {}); s = 0
+        if p.get("i") == q.get("i") and p.get("i") not in (None, "other"): s += 10
+        elif kind(p.get("i") or "other") == kind(q.get("i") or "other") and p.get("i") != "other": s += 3
+        if p.get("b") and p.get("b") == q.get("b"): s += 4
+        if p.get("c") and q.get("c") and p.get("c") != q.get("c"): s += 1
+        return s
+    left, pairs = list(ims), []
+    for need in (14, 10, 3, 0):                                 # same item and brand, same item, same kind, anything
+        k = 0
+        while k < len(left) and len(pairs) < n:
+            x = left[k]; best = max(left[k + 1:], key=lambda y: score(x, y), default=None)
+            if best is not None and score(x, best) >= need:
+                pairs.append((x, best)); left.remove(best); left.pop(k)
+            else: k += 1
     rnd.shuffle(pairs)
-    return [x for p in pairs for x in p] + rest
+    return [x for p in pairs for x in p], left
 
 
 def owner(pid):
@@ -309,7 +343,7 @@ def main():
     rnd.shuffle(pool); pool.sort(key=lambda p: used["count"].get(p[0], 0))          # least-used photos first, in random order among equally used ones
     bad = set(used.get("skip", [])); ims = []                   # photos that could not be used are remembered, not retried
     for pid, path in [p for p in pool if p[0] not in bad]:
-        if len(ims) >= need: break
+        if len(ims) >= (need if a.single else need * 4): break       # pairs need a choice: look at four times as many shots
         path = path or drive_get(pid, "img")
         try:
             parts = split_stacked(Image.open(path).convert("RGB"))
@@ -322,11 +356,12 @@ def main():
     if len(ims) < need:                                         # never publish a post with missing slides
         if a.commit_state: json.dump(used, open(state_path, "w"), indent=0)
         raise SystemExit("only %d usable photos, need %d" % (len(ims), need))
-    ims = ims[:need]; rnd.shuffle(ims); picked = sorted({pid for pid, _ in ims})
-    qc_bg = ims.pop()[1] if a.qc_cover else None
-    if not a.single: ims = pair_by_type(ims, rnd)
-    for k in ([] if a.single else range(0, len(ims) - 1, 2)):   # two shots from the same file do not share a slide
-        if ims[k][0] == ims[k + 1][0] and k + 2 < len(ims): ims[k + 1], ims[k + 2] = ims[k + 2], ims[k + 1]
+    if a.single:
+        ims = ims[:need]; rnd.shuffle(ims); cover = [ims.pop()] if a.qc_cover else []
+    else:
+        ims, rest = pick_pairs(ims, a.slides, rnd); cover = rest[:1] if a.qc_cover else []
+        if len(ims) < a.slides * 2: raise SystemExit("could not make %d slides" % a.slides)
+    picked = sorted({pid for pid, _ in ims + cover}); qc_bg = cover[0][1] if cover else None
     part = a.part or int(used.get("part", 0)) + 1
     title = a.title or COVER_TEXT                               # the cover always says the same; the caption hook and tags vary
     hook = (rnd.choice(HOOKS) % title.lower()).replace("{part}", str(part))
