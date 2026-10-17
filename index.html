@@ -913,13 +913,28 @@ html.agent-lock .mast-tools .selwrap:has(#agent){display:none!important}
 .hub-bc{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;font-size:13px;color:var(--faint);margin:0 0 2px}
 .hub-bc a{color:var(--muted);text-decoration:none}.hub-bc a:hover{color:var(--ink)}
 .hub-seo{max-width:var(--maxw,1280px);margin:0 auto;padding:40px 24px 8px;border-top:1px solid var(--line)}
-.hub-seo h2{font-size:18px;font-weight:600;letter-spacing:-.015em;margin:0 0 12px;color:var(--ink)}
+.hub-seo h2{font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin:0 0 14px;color:var(--ink)}
 .hub-seo .hub-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 28px}
 .hub-seo .hub-chips a{border:1px solid var(--line-2);border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:500;color:var(--ink);text-decoration:none}
 .hub-seo .hub-chips a:hover{background:var(--surface-2)}
 .hub-seo details{border-bottom:1px solid var(--line);padding:14px 0;max-width:760px}
-.hub-seo summary{cursor:pointer;font-weight:600;font-size:15px;color:var(--ink)}
+.hub-seo summary{cursor:pointer;font-weight:600;font-size:15px;color:var(--ink);list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}.hub-seo summary::-webkit-details-marker{display:none}.hub-seo summary::after{content:"+";font-weight:400;font-size:20px;line-height:1;color:var(--muted);transition:transform .2s}.hub-seo details[open] summary::after{transform:rotate(45deg)}.hub-seo details:first-of-type{border-top:1px solid var(--line)}.hub-seo h2+details{margin-top:4px}
 .hub-seo details p{margin:10px 0 0;color:var(--muted);font-size:14.5px;line-height:1.6}
+
+/* footer: one top bar, five even columns aligned to the top, a quiet disclaimer */
+footer{padding:0 0 40px!important;margin-top:48px}
+footer>.wrap:first-child{display:flex!important;align-items:center!important;gap:12px 22px;padding-top:28px;padding-bottom:28px;border-bottom:1px solid var(--line)}
+footer>.wrap:first-child span:not(.mono):not(.spacer){color:var(--muted);font-size:13.5px}
+footer .mono{font-size:11px!important;letter-spacing:.1em!important;color:var(--faint)!important}
+footer a.mono:hover{color:var(--ink)!important}
+footer .seo-links{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:36px 28px;align-items:start!important;padding-top:40px!important;padding-bottom:36px!important}
+footer .seo-links>div{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+footer .seo-links b{font-size:11.5px!important;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink)!important;margin:0 0 14px!important}
+footer .seo-links a{display:block;font-size:14px;line-height:1.35;color:var(--muted);padding:5px 0;transition:color .15s}
+footer .seo-links a:hover{color:var(--ink)}
+footer .seo-disc{border-top:1px solid var(--line);padding-top:24px;margin:0 auto;font-size:12.5px;line-height:1.65;color:var(--faint)}
+@media(max-width:980px){footer .seo-links{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){footer .seo-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 18px}footer>.wrap:first-child{flex-wrap:wrap}}
 /* no coloured strip above the masthead */
 .mast-top{display:none!important}
 /* the old native-select chevron sat on top of the label ("English" with an arrow through it): the custom button draws its own */
