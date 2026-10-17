@@ -62,6 +62,20 @@ def main():
     open("data/stats.json", "w").write(new)
     print("stats written:", out["totals"])
 
+def link_reports():
+    """Visitors' "Report broken link" clicks (table link_reports, insert-only for visitors): finds with reports, most first.
+    Empty when the table does not exist yet (scripts/link_reports.sql has not been run)."""
+    try: rows = fetch_all("link_reports?select=product_id,created_at&order=created_at.desc")
+    except Exception as e: print("link reports not read:", str(e)[:80]); return []
+    agg = {}
+    for r in rows:
+        pid = str(r.get("product_id") or "")
+        if not pid: continue
+        n, last = agg.get(pid, (0, r.get("created_at")))
+        agg[pid] = (n + 1, last)
+    return sorted([[pid, n, (last or "")[:10]] for pid, (n, last) in agg.items()], key=lambda x: (-x[1], x[2]))[:200]
+
+
 def dashboard():
     """data/dashboard.json for the private /stats page: daily and monthly aggregates only (no user ids, no addresses).
     Active users = distinct signed-in members who opened a find that day / month; guests carry no id, so they show only in views."""
@@ -102,6 +116,7 @@ def dashboard():
         "months": [{"m": m, "views": vmonth.get(m, 0), "active": len(umonth.get(m, ())), "signups": smonth.get(m, 0)} for m in months],
         "dau": len(u1), "wau": len(u7), "mau": len(u30), "views_30d": v30, "views_prev_30d": vprev30,
         "top_brands_7d": brands7.most_common(8),
+        "reports": link_reports(),
     }
     new = json.dumps(out, separators=(",", ":"))
     old = open("data/dashboard.json").read() if os.path.exists("data/dashboard.json") else ""
