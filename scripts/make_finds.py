@@ -21,6 +21,7 @@ FONT = os.path.join(ROOT, "scripts", "fonts", "Montserrat.ttf")
 ANTON = os.path.join(ROOT, "scripts", "fonts", "Anton-Regular.ttf")          # tall condensed type for the start picture
 SCRIPT = os.path.join(ROOT, "scripts", "fonts", "Parisienne-Regular.ttf")    # the "puro classico" script in the corner badge
 CATS_FILE = os.path.join(ROOT, "scripts", "qc_categories.json")              # item type of every QC shot, so a slide pairs two of a kind
+LABELS_FILE = os.path.join(ROOT, "scripts", "qc_labels.json")               # the short casual name on each slide ("Stoney Half-Zips"), per pair of shots
 
 
 def font(size, weight=900):
@@ -143,14 +144,28 @@ def fill(im, w, h):
     return crisp(ImageOps.fit(im.convert("RGB"), (w, h), Image.LANCZOS, centering=(0.5, 0.5)))
 
 
-def slide(a, b, SW=SW, SH=SH, badge=None):
-    """Two photos stacked, each filling its half: one on top, one below, a thin dark line between them.
-    With a badge, it covers the bottom-right corner of each half (where the old watermark of exported photos sits)."""
-    im = Image.new("RGB", (SW, SH), (12, 12, 14)); gap = 6; hh = (SH - gap) // 2
+def slide(a, b, SW=SW, SH=SH, badge=None, label=""):
+    """Two photos stacked, each filling its half, a thin white line between them and, when given, a short white label
+    ("Stoney Half-Zips") centred on the line. With a badge, it covers the bottom-right corner of each half (where the old
+    watermark of exported photos sits)."""
+    im = Image.new("RGB", (SW, SH), (255, 255, 255)); gap = 4; hh = (SH - gap) // 2
     im.paste(fill(a, SW, hh), (0, 0)); im.paste(fill(b, SW, SH - hh - gap), (0, hh + gap))
     if badge is not None:
         im.paste(badge, (SW - badge.width, hh - badge.height)); im.paste(badge, (SW - badge.width, SH - badge.height))
+    if label: pill(im, label, hh + gap // 2)
     return im
+
+
+def pill(im, text, cy):
+    """A white rounded label with bold black text, centred on the line at height cy."""
+    d = ImageDraw.Draw(im); size = int(im.width * 0.046)
+    while size > 20 and d.textlength(text, font=font(size, 700)) > im.width * 0.62: size -= 2
+    f = font(size, 700); tw = d.textlength(text, font=f); px, ph = int(size * 0.62), int(size * 1.72)
+    box = [int(im.width / 2 - tw / 2 - px), int(cy - ph / 2), int(im.width / 2 + tw / 2 + px), int(cy + ph / 2)]
+    sh = Image.new("RGBA", im.size, (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle([box[0], box[1] + 4, box[2], box[3] + 4], ph // 2, fill=(0, 0, 0, 70))
+    im.paste(sh.filter(ImageFilter.GaussianBlur(6)), (0, 0), sh.filter(ImageFilter.GaussianBlur(6)))
+    d = ImageDraw.Draw(im); d.rounded_rectangle(box, ph // 2, fill=(255, 255, 255))
+    d.text((im.width / 2, cy), text, font=f, fill=(12, 12, 14), anchor="mm")
 
 
 def make_badge(w=200):
@@ -199,6 +214,38 @@ def classify(shots):
     if new:
         json.dump(known, open(CATS_FILE, "w"), indent=0, sort_keys=True); print("  classified %d new photos" % new)
     return out
+
+
+def pair_label(a, b):
+    """A short casual name for the two items on a slide, like "Stoney Half-Zips" or "Moncler Puffers", asked once of OpenAI
+    and stored in scripts/qc_labels.json. It only names a brand it can read on the item; otherwise it names the item.
+    Empty (no label) without OPENAI_API_KEY or when the call fails."""
+    ka, kb = a.info.get("sid", ""), b.info.get("sid", ""); k = "|".join(sorted([ka, kb]))
+    try: known = json.load(open(LABELS_FILE))
+    except Exception: known = {}
+    if ka and kb and k in known: return known[k]
+    key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not key: return ""
+    try:
+        import base64, io
+        def enc(im):
+            t = im.copy(); t.thumbnail((512, 512)); buf = io.BytesIO(); t.convert("RGB").save(buf, "JPEG", quality=85)
+            return {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode(), "detail": "low"}}
+        body = {"model": "gpt-4o-mini", "max_tokens": 12, "temperature": 0.3, "messages": [{"role": "user", "content": [
+            {"type": "text", "text": "Two quality-check photos of fashion items for a TikTok slide. Write a short casual label for both together, 2 to 4 words, "
+             "the way young guys say it, plural when it fits: e.g. 'Stoney Half-Zips', 'Moncler Puffers', 'Ralph Knits', 'Burberry Scarves', 'Rimowa Cases'. "
+             "Use common nicknames (Stone Island = Stoney, Ralph Lauren = Ralph). Only name a brand you can clearly see on a logo, patch or tag; "
+             "if the two items are different brands or you are not sure, name the item instead ('Grey Puffers', 'Zip Knits'). Never invent a collab. "
+             "Answer with the label only, no quotes."}, enc(a), enc(b)]}]}
+        req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
+                                     headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"})
+        t = json.load(urllib.request.urlopen(req, timeout=60))["choices"][0]["message"]["content"].strip().strip("'\".").replace("\u2014", "-")
+        t = t if 2 <= len(t) <= 26 and "\n" not in t else ""
+    except Exception as e:
+        print("  could not label a slide:", str(e)[:80]); return ""
+    if t and ka and kb:
+        known[k] = t; json.dump(known, open(LABELS_FILE, "w"), indent=0, sort_keys=True, ensure_ascii=False)
+    return t
 
 
 def pair_by_type(ims, rnd):
@@ -309,7 +356,7 @@ def main():
         for _, im in ims: frames.append((whole(im, FW, FH), a.hold))
     else:
         badge = make_badge(int(FW * 0.15)) if a.badge else None
-        for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH, badge), a.hold))
+        for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH, badge, pair_label(ims[k][1], ims[k + 1][1])), a.hold))
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
     cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
     cmd += ["-stream_loop", "-1", "-i", audio, "-af", "afade=t=out:st=%.2f:d=0.6" % (total - 0.7)] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
