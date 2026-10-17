@@ -185,7 +185,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "1";
+export const DS_VER = "2";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -243,7 +243,7 @@ ${status === 200 ? `<link rel="canonical" href="${esc(url)}">` : ""}
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${esc(img)}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${esc(img)}">
-<meta name="theme-color" content="#0B0B0C"><link rel="icon" type="image/png" href="/favicon.png">
+<meta name="theme-color" content="#0B1220"><link rel="icon" type="image/png" href="/favicon.png">
 <script>try{var t=localStorage.getItem("manifest.theme");if(t==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
