@@ -6,7 +6,7 @@ import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMo
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
-  "/how-to-order", "/how-to-order.html", "/admin", "/admin.html"]);
+  "/how-to-order", "/how-to-order.html", "/admin", "/admin.html", "/links", "/links.html"]);
 const VERIFY = { "/googleaea131de20fbf72e.html": "google-site-verification: googleaea131de20fbf72e.html" };
 // Paths answered by real Functions (exact shapes only, so /api/nope, /product/ or /product/<id>/x still 404).
 const PASS = /^\/api\/(qc|img|geo)$|^\/r\/[^/]+$|^\/product\/[^/]+$|^\/unsubscribe$|^\/go\/[^/]+$/;
