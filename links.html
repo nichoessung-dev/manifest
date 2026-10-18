@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Puro Classico links</title>
+<meta name="description" content="The Puro Classico spreadsheet, the MyCNBox welcome offer and the finds from our videos.">
+<meta name="robots" content="noindex, follow">
+<meta property="og:title" content="Puro Classico"><meta property="og:image" content="https://www.puroclassico.com/og.png">
+<meta name="theme-color" content="#0B1220">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0B1220;--surface:#111A2E;--surface-2:#1A2540;--ink:#EEF2F8;--muted:#9AA6BD;--line:rgba(255,255,255,.08);--red:#D9301E}
+  *{box-sizing:border-box;margin:0}
+  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,sans-serif;min-height:100vh;
+       background-image:radial-gradient(120% 60% at 50% 0%,#16223d 0%,var(--bg) 60%)}
+  main{max-width:460px;margin:0 auto;padding:40px 16px 48px}
+  .me{display:flex;align-items:center;gap:16px;margin-bottom:28px}
+  .me img{width:76px;height:76px;border-radius:50%;flex:none;box-shadow:0 0 0 1px var(--line),0 8px 24px rgba(0,0,0,.35)}
+  .me h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
+  .me p{font-size:14px;color:var(--muted);margin-top:4px;line-height:1.4;text-wrap:pretty}
+  .links{display:flex;flex-direction:column;gap:14px}
+  .card{display:grid;grid-template-columns:44% 1fr;min-height:150px;border-radius:18px;overflow:hidden;background:var(--surface);
+        color:inherit;text-decoration:none;box-shadow:0 0 0 1px var(--line),0 10px 28px rgba(0,0,0,.28);
+        transition:transform .15s ease,background-color .15s ease}
+  .card:hover{background:var(--surface-2)}
+  .card:active{transform:scale(.98)}
+  .card .pic{position:relative;background:#0e1626}
+  .card .pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .card .pic.logo{display:flex;align-items:center;justify-content:center;background:var(--surface)}
+  .card .pic.logo img{position:static;width:64px;height:64px;border-radius:14px;object-fit:contain}
+  .card .txt{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:16px 14px;gap:6px}
+  .card b{font-size:17px;font-weight:800;line-height:1.15;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
+  .card small{font-size:12.5px;color:var(--muted);line-height:1.35;text-wrap:balance}
+  .card.hot{box-shadow:0 0 0 1.5px rgba(217,48,30,.75),0 10px 28px rgba(0,0,0,.28)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .pill{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;border-radius:16px;background:var(--surface);
+        color:var(--ink);text-decoration:none;font-weight:700;font-size:15px;box-shadow:0 0 0 1px var(--line);transition:background-color .15s ease}
+  .pill:hover{background:var(--surface-2)} .pill:active{transform:scale(.98)}
+  .pill img{width:22px;height:22px;border-radius:5px}
+  footer{text-align:center;color:#66728A;font-size:12px;margin-top:30px}
+  footer a{color:inherit}
+  @media (prefers-reduced-motion:reduce){.card,.pill{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="me">
+    <img src="/media/links-avatar.png" alt="Puro Classico" width="76" height="76">
+    <div><h1>puroclassico</h1><p>Hardest finds from Weidian, Taobao and 1688. Old money and Stockholm style.</p></div>
+  </div>
+
+  <div class="links">
+    <a class="card" href="/?utm_source=links&amp;utm_medium=bio&amp;utm_campaign=spreadsheet">
+      <span class="pic"><img src="/media/links-site.jpg" alt="" loading="eager"></span>
+      <span class="txt"><b>&#128293; Insane spreadsheet &#128293;</b><small>9,000+ finds, search by brand and price</small></span>
+    </a>
+
+    <a class="card hot" href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" target="_blank" rel="sponsored noopener">
+      <span class="pic logo"><img src="/media/links-mycnbox.png" alt="MyCNBox"></span>
+      <span class="txt"><b>&#128181; Claim your welcome offer</b><small>Up to $500 in MyCNBox new-user coupons</small></span>
+    </a>
+
+    <a class="card" href="/old-money?utm_source=links&amp;utm_medium=bio&amp;utm_campaign=videos">
+      <span class="pic"><img src="/media/links-oldmoney.jpg" alt=""></span>
+      <span class="txt"><b>From the videos</b><small>The old money pieces from our TikToks</small></span>
+    </a>
+
+    <div class="row">
+      <a class="pill" href="/how-to-order?utm_source=links&amp;utm_medium=bio">How to order</a>
+      <a class="pill" href="/discord" target="_blank" rel="noopener"><img src="https://icons.duckduckgo.com/ip3/discord.com.ico" alt="">Discord</a>
+    </div>
+  </div>
+
+  <footer><a href="https://www.puroclassico.com/">puroclassico.com</a></footer>
+</main>
+<script src="/track.js" defer></script>
+</body>
+</html>
