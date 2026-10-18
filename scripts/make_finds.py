@@ -20,7 +20,6 @@ FF = imageio_ffmpeg.get_ffmpeg_exe()
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
 CACHE = os.path.join(tempfile.gettempdir(), "pc_finds"); os.makedirs(CACHE, exist_ok=True)
 FONT = os.path.join(ROOT, "scripts", "fonts", "Montserrat.ttf")
-ANTON = os.path.join(ROOT, "scripts", "fonts", "Anton-Regular.ttf")          # tall condensed type for the start picture
 SCRIPT = os.path.join(ROOT, "scripts", "fonts", "Parisienne-Regular.ttf")    # the "puro classico" script in the corner badge
 ITEMS_FILE = os.path.join(ROOT, "scripts", "qc_items.json")                 # what each QC shot shows (type, item, brand, colour), so a slide pairs two alike
 LABELS_FILE = os.path.join(ROOT, "scripts", "qc_labels.json")               # the short casual name on each slide ("Stoney Half-Zips"), per pair of shots
@@ -86,37 +85,81 @@ HOOKS = ["%s", "New %s", "%s, part {part}", "Best %s", "%s this week"]          
 TAGS = ["#finds", "#haul", "#fashion", "#quietluxury", "#oldmoneystyle", "#oldmoneyaesthetic", "#mensfashion", "#outfitinspo", "#stockholmstyle", "#fashionfinds", "#autumnfashion"]
 
 
-def cover_card(title, SW=SW, SH=SH, bg=None):
-    """The start image: the title in tall white capitals with a black outline, and three arrow keys under it, over a picture."""
+COVER_FONTS = [("Anton-Regular.ttf", None), ("BebasNeue-Regular.ttf", None), ("ArchivoBlack-Regular.ttf", None), ("Oswald.ttf", 700),
+               ("BowlbyOneSC-Regular.ttf", None), ("Bangers-Regular.ttf", None), ("RussoOne-Regular.ttf", None),
+               ("PassionOne-Bold.ttf", None), ("Montserrat.ttf", 900)]          # the start picture's type changes every post (owner, 18 Oct 2026)
+ARROWS = ["keys", "keys_white", "keys_yellow", "chevrons", "long", "circles", "triangles"]
+
+
+def cover_font(k, size):
+    name, w = COVER_FONTS[k % len(COVER_FONTS)]; f = ImageFont.truetype(os.path.join(ROOT, "scripts", "fonts", name), size)
+    if w:
+        try: f.set_variation_by_axes([w])
+        except Exception: pass
+    return f
+
+
+def cover_card(title, SW=SW, SH=SH, bg=None, look=(0, 0)):
+    """The start image: the title in tall white capitals with a black outline and arrows under it, over a picture.
+    look = (font, arrow style): both change from post to post."""
     if bg is None: im = Image.new("RGB", (SW, SH), (24, 26, 32))
     else: im = crisp(ImageOps.fit(bg.convert("RGB"), (SW, SH), Image.LANCZOS))
     d = ImageDraw.Draw(im); words = title.upper().split()
     lines = [" ".join(words)]
     size = 150
-    f = lambda z: ImageFont.truetype(ANTON, z)
+    f = lambda z: cover_font(look[0], z)
     while size > 60 and d.textlength(lines[0], font=f(size)) > SW - 90: size -= 4
     if size < 96 and len(words) > 1:                              # too long for one line: two lines, bigger
         k = (len(words) + 1) // 2; lines = [" ".join(words[:k]), " ".join(words[k:])]; size = 170
         while size > 60 and max(d.textlength(l, font=f(size)) for l in lines) > SW - 90: size -= 4
     ft, lh, sw = f(size), int(size * 1.12), max(6, size // 14)
-    key = int(size * 0.92); gap = int(key * 0.14)
+    key = int(SW * 0.12); gap = int(key * 0.16)                    # the arrows keep one size whatever the font
     block = lh * len(lines) + gap * 3 + key
     y = int(SH * 0.56) - block // 2
     for ln in lines:
         d.text((SW / 2, y), ln, font=ft, fill=(255, 255, 255), anchor="ma", stroke_width=sw, stroke_fill=(0, 0, 0)); y += lh
-    y += gap * 2; x0 = SW // 2 - (key * 3 + gap * 2) // 2
-    for k in range(3): arrow_key(im, x0 + k * (key + gap), y, key)
+    arrows(im, SW // 2, y + gap * 2, key, gap, ARROWS[look[1] % len(ARROWS)])
     return im
 
 
-def arrow_key(im, x, y, s):
-    """One arrow key like the emoji: a rounded blue-grey square with a white arrow pointing right."""
+def arrows(im, cx, y, s, gap, style):
+    """Arrows pointing right under the title, in one of several looks."""
+    x0 = cx - (s * 3 + gap * 2) // 2
+    if style.startswith("keys"):
+        face, edge, ink = {"keys": ((150, 172, 200), (92, 112, 138), (255, 255, 255)), "keys_white": ((250, 250, 250), (170, 170, 176), (20, 20, 22)),
+                           "keys_yellow": ((255, 206, 40), (196, 150, 10), (20, 20, 22))}[style]
+        for k in range(3): arrow_key(im, x0 + k * (s + gap), y, s, face, edge, ink)
+        return
+    d = ImageDraw.Draw(im); white, black = (255, 255, 255), (0, 0, 0); o = max(5, s // 14)
+    if style == "chevrons":
+        for k in range(3):
+            x = x0 + k * (s + gap) + s // 4; pts = [(x, y + s * 0.12), (x + s * 0.5, y + s * 0.5), (x, y + s * 0.88)]
+            d.line(pts, fill=black, width=int(s * 0.26) + 2 * o, joint="curve"); d.line(pts, fill=white, width=int(s * 0.26), joint="curve")
+    elif style == "long":
+        w, t, cy = s * 3, int(s * 0.16), y + s // 2
+        for col, e in ((black, o), (white, 0)):
+            d.line([(cx - w // 2 - e, cy), (cx + w // 2 - s * 0.5, cy)], fill=col, width=t + 2 * e)
+            d.polygon([(cx + w // 2 + e * 1.6, cy), (cx + w // 2 - s * 0.6 - e, cy - s * 0.42 - e), (cx + w // 2 - s * 0.6 - e, cy + s * 0.42 + e)], fill=col)
+    elif style == "circles":
+        for k in range(3):
+            x = x0 + k * (s + gap); d.ellipse([x - o, y - o, x + s + o, y + s + o], fill=black); d.ellipse([x, y, x + s, y + s], fill=white)
+            t, cy = int(s * 0.12), y + s // 2
+            d.line([(x + s * 0.25, cy), (x + s * 0.62, cy)], fill=black, width=t)
+            d.polygon([(x + s * 0.78, cy), (x + s * 0.52, cy - s * 0.22), (x + s * 0.52, cy + s * 0.22)], fill=black)
+    else:                                                          # triangles
+        for k in range(3):
+            x = x0 + k * (s + gap) + s * 0.12; tri = [(x, y + s * 0.1), (x + s * 0.8, y + s * 0.5), (x, y + s * 0.9)]
+            d.polygon(tri, fill=black, outline=black, width=2 * o); d.polygon([(x + o, y + s * 0.1 + o * 1.8), (x + s * 0.8 - o * 2, y + s * 0.5), (x + o, y + s * 0.9 - o * 1.8)], fill=white)
+
+
+def arrow_key(im, x, y, s, face=(150, 172, 200), edge=(92, 112, 138), ink=(255, 255, 255)):
+    """One arrow key like the emoji: a rounded square with an arrow pointing right."""
     k = Image.new("RGBA", (s, s), (0, 0, 0, 0)); d = ImageDraw.Draw(k); r = int(s * 0.2)
-    d.rounded_rectangle([0, 0, s - 1, s - 1], r, fill=(92, 112, 138, 255))
-    d.rounded_rectangle([int(s * .04), int(s * .04), s - 1 - int(s * .04), s - 1 - int(s * .06)], r, fill=(150, 172, 200, 255))
+    d.rounded_rectangle([0, 0, s - 1, s - 1], r, fill=edge + (255,))
+    d.rounded_rectangle([int(s * .04), int(s * .04), s - 1 - int(s * .04), s - 1 - int(s * .06)], r, fill=face + (255,))
     t = int(s * 0.13); cy = s // 2; xa, xb = int(s * 0.2), int(s * 0.8)
-    d.rectangle([xa, cy - t // 2, xb - int(s * 0.18), cy + t // 2], fill=(255, 255, 255, 255))
-    d.polygon([(xb, cy), (xb - int(s * 0.26), cy - int(s * 0.24)), (xb - int(s * 0.26), cy + int(s * 0.24))], fill=(255, 255, 255, 255))
+    d.rectangle([xa, cy - t // 2, xb - int(s * 0.18), cy + t // 2], fill=ink + (255,))
+    d.polygon([(xb, cy), (xb - int(s * 0.26), cy - int(s * 0.24)), (xb - int(s * 0.26), cy + int(s * 0.24))], fill=ink + (255,))
     sh = Image.new("RGBA", (s + 20, s + 20), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle([10, 14, s + 9, s + 13], r, fill=(0, 0, 0, 120))
     sh = sh.filter(ImageFilter.GaussianBlur(6)); im.paste(sh, (x - 10, y - 10), sh); im.paste(k, (x, y), k)
 
@@ -196,6 +239,32 @@ def tall(im):
 
 
 
+NICK = {"stone island": "Stoney", "ralph lauren": "Ralph", "polo ralph lauren": "Ralph", "moncler": "Moncler", "louis vuitton": "LV",
+        "golden goose": "GGDB", "canada goose": "Canada Goose", "the north face": "TNF", "loro piana": "Loro"}
+
+
+def brand(x):
+    """The brand of a described shot, ignoring our own "puro classico" stamp that is baked into many exported photos."""
+    b = (x.get("b") or "").strip()
+    return "" if "puro" in b or "classico" in b or b in ("unknown", "none", "n/a") else b
+
+
+def plain_label(a, b):
+    """A label from the stored descriptions when the model's answer is unusable: "Stoney Half-Zip Knits", "Puffer Jackets"."""
+    try: d = json.load(open(ITEMS_FILE))
+    except Exception: return ""
+    p, q = d.get(a.info.get("sid", ""), {}), d.get(b.info.get("sid", ""), {})
+    if not p.get("i") or p.get("i") != q.get("i") or p["i"] == "other": return ""
+    item = p["i"].title().replace("T-Shirt", "Tee"); item = item + ("" if item.endswith("s") else "es" if item.endswith(("sh", "ch")) else "s")
+    br = brand(p) if brand(p) and brand(p) == brand(q) else ""
+    t = ((NICK.get(br) or br.title()) + " " + item).strip() if br else item
+    return t if len(t) <= 26 else item
+
+
+def usable(t):
+    return bool(t) and 2 <= len(t) <= 26 and not any(c in t for c in ",/\n") and not any(w in t.lower() for w in (" and ", " & ", "puro"))
+
+
 def pair_label(a, b):
     """A short casual name for the two items on a slide, like "Stoney Half-Zips" or "Moncler Puffers", asked once of OpenAI
     and stored in scripts/qc_labels.json. It only names a brand it can read on the item; otherwise it names the item.
@@ -203,7 +272,7 @@ def pair_label(a, b):
     ka, kb = a.info.get("sid", ""), b.info.get("sid", ""); k = "|".join(sorted([ka, kb]))
     try: known = json.load(open(LABELS_FILE))
     except Exception: known = {}
-    if ka and kb and k in known: return known[k]
+    if ka and kb and k in known: return known[k] if usable(known[k]) else plain_label(a, b)
     key = os.environ.get("OPENAI_API_KEY", "").strip()
     if not key: return ""
     try:
@@ -214,18 +283,18 @@ def pair_label(a, b):
         body = {"model": "gpt-4o-mini", "max_tokens": 12, "temperature": 0.3, "messages": [{"role": "user", "content": [
             {"type": "text", "text": "Two quality-check photos of fashion items for a TikTok slide. Write a short casual label for both together, 2 to 4 words, "
              "the way young guys say it, plural when it fits: e.g. 'Stoney Half-Zips', 'Moncler Puffers', 'Ralph Knits', 'Burberry Scarves', 'Rimowa Cases'. "
-             "Use common nicknames (Stone Island = Stoney, Ralph Lauren = Ralph). Only name a brand you can clearly see on a logo, patch or tag; "
+             "Use common nicknames (Stone Island = Stoney, Ralph Lauren = Ralph). Ignore the round 'puro classico' stamp in the corner, it is not a brand. Only name a brand you can clearly see on a logo, patch or tag; "
              "if the two items are different brands or you are not sure, name the item instead ('Grey Puffers', 'Zip Knits'). Never invent a collab. "
-             "Answer with the label only, no quotes."}, enc(a), enc(b)]}]}
+             "One label for both, never two names, no commas. Answer with the label only, no quotes."}, enc(a), enc(b)]}]}
         req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
                                      headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"})
         t = json.load(urllib.request.urlopen(req, timeout=60))["choices"][0]["message"]["content"].strip().strip("'\".").replace("\u2014", "-")
-        t = t if 2 <= len(t) <= 26 and "\n" not in t else ""
+        t = t if usable(t) else ""
     except Exception as e:
         print("  could not label a slide:", str(e)[:80]); return ""
     if t and ka and kb:
         known[k] = t; json.dump(known, open(LABELS_FILE, "w"), indent=0, sort_keys=True, ensure_ascii=False)
-    return t
+    return t or plain_label(a, b)
 
 
 ITEMS = ["puffer jacket", "down vest", "quilted jacket", "field jacket", "bomber jacket", "leather jacket", "track jacket", "overshirt",
@@ -249,7 +318,7 @@ def describe(shots):
             t = im.copy(); t.thumbnail((512, 512)); buf = io.BytesIO(); t.convert("RGB").save(buf, "JPEG", quality=85)
             body = {"model": "gpt-4o-mini", "max_tokens": 40, "temperature": 0, "response_format": {"type": "json_object"}, "messages": [{"role": "user", "content": [
                 {"type": "text", "text": "A quality-check photo of one fashion item. Reply as JSON {\"item\": ..., \"brand\": ..., \"colour\": ...}. "
-                 "item: exactly one of " + ", ".join(ITEMS) + ". brand: the brand only if you can read it on a logo, patch or tag, lowercase, else \"\". "
+                 "item: exactly one of " + ", ".join(ITEMS) + ". brand: the brand only if you can read it on a logo, patch or tag of the item, lowercase, else \"\" (the round 'puro classico' stamp in the corner is not a brand). "
                  "colour: the main colour in one word."},
                 {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode(), "detail": "low"}}]}]}
             req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
@@ -285,7 +354,7 @@ def pick_pairs(ims, n, rnd):
         p, q = d.get(sid(x), {}), d.get(sid(y), {}); s = 0
         if p.get("i") == q.get("i") and p.get("i") not in (None, "other"): s += 10
         elif kind(p.get("i") or "other") == kind(q.get("i") or "other") and p.get("i") != "other": s += 3
-        if p.get("b") and p.get("b") == q.get("b"): s += 4
+        if brand(p) and brand(p) == brand(q): s += 4
         if p.get("c") and q.get("c") and p.get("c") != q.get("c"): s += 1
         return s
     left, pairs = list(ims), []
@@ -386,7 +455,10 @@ def main():
         for cid in cl[:6]:
             try: bg = Image.open(drive_get(cid, "img")); bg.load(); cover_id = cid; break
             except Exception as e: bg = None; print("  skipping a start picture:", e)
-    frames = [(cover_card(title, FW, FH, bg), min(1.4, max(0.9, a.hold * 1.4)))]      # the start picture stays a little longer than a slide
+    last = used.get("look") or [-1, -1]                          # a different font and arrow style than the post before
+    look = [rnd.choice([k for k in range(len(COVER_FONTS)) if k != last[0]]), rnd.choice([k for k in range(len(ARROWS)) if k != last[1]])]
+    used["look"] = look
+    frames = [(cover_card(title, FW, FH, bg, look), min(1.4, max(0.9, a.hold * 1.4)))]      # the start picture stays a little longer than a slide
     if a.single:
         for _, im in ims: frames.append((whole(im, FW, FH), a.hold))
     else:
