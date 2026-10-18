@@ -144,6 +144,15 @@
     <div class="bars" id="brands"><div class="skel">Loading…</div></div>
   </section>
 
+  <section class="card" style="margin-top:14px" id="buy-card">
+    <div class="ch-head"><div><div class="ch-title">Buy clicks · 30 days</div><div class="ch-sub" id="buy-sub">Clicks on "Buy via …" buttons, by agent and visitor country</div></div></div>
+    <div class="chart sm" id="c-buy"></div>
+    <section class="grid2" style="margin-top:14px">
+      <div><div class="ch-sub" style="margin-bottom:8px">By agent</div><div class="bars" id="buy-agents"><div class="muted">No clicks yet</div></div></div>
+      <div><div class="ch-sub" style="margin-bottom:8px">By country</div><div class="bars" id="buy-countries"><div class="muted">No clicks yet</div></div></div>
+    </section>
+  </section>
+
   <section class="card" style="margin-top:14px" id="links-card" hidden>
     <div class="ch-head"><div><div class="ch-title">Broken links</div><div class="ch-sub" id="links-sub">Weekly check of every Weidian find</div></div></div>
     <div id="links-list" class="muted"></div>
@@ -227,9 +236,23 @@ function renderReports(){
   const el=document.getElementById("reports-list")||(()=>{ const d=document.createElement("div"); d.id="reports-list"; d.style.marginTop="16px"; $("links-card").appendChild(d); return d; })();
   el.innerHTML='<div class="ch-title" style="font-size:14px;margin-bottom:8px">Reported by visitors</div><table><tbody>'+r.slice(0,100).map(([id,n,d])=>'<tr><td><a href="/product/'+encodeURIComponent(id)+'" target="_blank" rel="noopener" style="color:var(--ink)">/product/'+id+'</a></td><td>'+n+' report'+(n===1?'':'s')+'</td><td>'+d+'</td></tr>').join("")+'</tbody></table>';
 }
+const AGENT_NAMES={mycnbox:"MyCNBox",kakobuy:"KakoBuy",oopbuy:"Oopbuy",lovegobuy:"LoveGoBuy",sugargoo:"Sugargoo"};
+function countryName(c){ try{ return new Intl.DisplayNames(["en"],{type:"region"}).of(c)||c; }catch(e){ return c; } }
+function barList(el, rows, label){
+  const top=rows.length?rows[0][1]:1;
+  el.innerHTML=rows.map(([k,v])=>`<div class="bar"><div class="row"><b>${String(label(k)).replace(/</g,"&lt;")}</b><span>${fmt(v)}</span></div><div class="track"><div class="fill" style="width:${(v/top*100).toFixed(1)}%"></div></div></div>`).join("")||'<div class="muted">No clicks yet</div>';
+}
+function renderBuys(){
+  const b=D&&D.buy_clicks; if(!b||!b.days) return;
+  $("buy-sub").textContent=fmt(b.total)+' clicks on "Buy via …" buttons in the last 30 days, by agent and visitor country';
+  chart($("c-buy"), b.days, [{name:"buy clicks", data:b.per_day, color:"--green", type:"bar"}]);
+  barList($("buy-agents"), b.agents||[], k=>AGENT_NAMES[k]||k);
+  barList($("buy-countries"), (b.countries||[]).slice(0,12), k=>k==="??"?"Unknown":countryName(k));
+}
 function render(){
   if(!D) return;
   try{ renderReports(); }catch(e){}
+  try{ renderBuys(); }catch(e){}
   const mau=D.mau, members=LIVE?.total ?? D.members[D.members.length-1];
   $("k-mau").textContent=fmt(mau); $("k-mau2").textContent=fmt(mau); $("k-wau").textContent=fmt(D.wau); $("k-dau").textContent=fmt(D.dau);
   $("k-views").textContent=fmt(D.views_30d);
