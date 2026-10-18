@@ -39,6 +39,7 @@ jobs:
           FINDS_MODE: carousel
           # six drafts a day (owner, 18 Oct 2026): three at 6 and three at 15, because TikTok holds at most 5 waiting drafts per account
           FINDS_SLOTS: '06:00,06:02,06:04,15:00,15:02,15:04'
+          FINDS_FROM: '2026-10-19'             # 18 Oct already had its six (three at 6, three sent by hand)
           FINDS_DAYS: '2'                      # each carousel takes minutes to build now (photo clean-up), so keep two days queued, not five
           FINDS_SLIDES: '9'
           FINDS_LINKS: '0'
@@ -60,6 +61,7 @@ jobs:
           FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L
           FINDS_MODE: carousel
           FINDS_SLOTS: '06:01,06:03,06:05,15:01,15:03,15:05'     # six a day, like the main account
+          FINDS_FROM: '2026-10-19'
           FINDS_DAYS: '2'
           FINDS_SLIDES: '9'
           FINDS_OWN: '2'
