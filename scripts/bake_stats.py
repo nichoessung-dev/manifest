@@ -76,6 +76,24 @@ def link_reports():
     return sorted([[pid, n, (last or "")[:10]] for pid, (n, last) in agg.items()], key=lambda x: (-x[1], x[2]))[:200]
 
 
+def buy_clicks():
+    """"Buy" clicks on agent links (table buy_clicks, written by functions/api/click.js): last 30 days by agent, country,
+    day and item. Counts only; the table holds no ids or addresses. Empty until scripts/buy_clicks.sql has been run."""
+    now = datetime.datetime.now(datetime.timezone.utc); since = (now - datetime.timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try: rows = fetch_all("buy_clicks?select=created_at,agent,item_id,country,ref&created_at=gte." + since + "&order=created_at.asc")
+    except Exception as e: print("buy clicks not read:", str(e)[:80]); return {}
+    ag, co, dy, it, rf = collections.Counter(), collections.Counter(), collections.Counter(), collections.Counter(), collections.Counter()
+    for r in rows:
+        t = parse_ts(r.get("created_at"))
+        if not t: continue
+        ag[r.get("agent") or "?"] += 1; co[r.get("country") or "??"] += 1; dy[t.date().isoformat()] += 1
+        if r.get("item_id"): it[r["item_id"]] += 1
+        if r.get("ref"): rf[r["ref"]] += 1
+    days = [(now - datetime.timedelta(days=k)).date().isoformat() for k in range(29, -1, -1)]
+    return {"total": len(rows), "agents": ag.most_common(), "countries": co.most_common(25), "days": days,
+            "per_day": [dy.get(d, 0) for d in days], "items": it.most_common(20), "refs": rf.most_common(10)}
+
+
 def dashboard():
     """data/dashboard.json for the private /stats page: daily and monthly aggregates only (no user ids, no addresses).
     Active users = distinct signed-in members who opened a find that day / month; guests carry no id, so they show only in views."""
@@ -117,6 +135,7 @@ def dashboard():
         "dau": len(u1), "wau": len(u7), "mau": len(u30), "views_30d": v30, "views_prev_30d": vprev30,
         "top_brands_7d": brands7.most_common(8),
         "reports": link_reports(),
+        "buy_clicks": buy_clicks(),
     }
     new = json.dumps(out, separators=(",", ":"))
     old = open("data/dashboard.json").read() if os.path.exists("data/dashboard.json") else ""
