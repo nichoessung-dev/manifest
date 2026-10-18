@@ -259,6 +259,7 @@ ${extraHead}
 ${body}
 </div></main>
 ${footer()}
+<script src="/track.js" defer></script>
 </body>
 </html>`;
   return new Response(html, { status, headers: { "content-type": "text/html; charset=utf-8",
