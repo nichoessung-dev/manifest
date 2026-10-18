@@ -2,81 +2,185 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Puro Classico links</title>
 <meta name="description" content="The Puro Classico spreadsheet, the MyCNBox welcome offer and the finds from our videos.">
 <meta name="robots" content="noindex, follow">
-<meta property="og:title" content="Puro Classico"><meta property="og:image" content="https://www.puroclassico.com/og.png">
+<meta property="og:title" content="Puro Classico"><meta property="og:description" content="9,000+ hardest finds. Old money and Stockholm style.">
+<meta property="og:image" content="https://www.puroclassico.com/og.png">
 <meta name="theme-color" content="#0B1220">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0B1220;--surface:#111A2E;--surface-2:#1A2540;--ink:#EEF2F8;--muted:#9AA6BD;--line:rgba(255,255,255,.08);--red:#D9301E}
+  :root{
+    --bg:#0B1220; --surface:#111A2E; --surface-2:#18233D; --ink:#EEF2F8; --muted:#9AA6BD; --faint:#66728A;
+    --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14); --accent:#8EA6DC; --red:#D9301E;
+    --r-lg:20px; --r-xl:26px;
+  }
   *{box-sizing:border-box;margin:0}
-  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,sans-serif;min-height:100vh;
-       background-image:radial-gradient(120% 60% at 50% 0%,#16223d 0%,var(--bg) 60%)}
-  main{max-width:460px;margin:0 auto;padding:40px 16px 48px}
-  .me{display:flex;align-items:center;gap:16px;margin-bottom:28px}
-  .me img{width:76px;height:76px;border-radius:50%;flex:none;box-shadow:0 0 0 1px var(--line),0 8px 24px rgba(0,0,0,.35)}
-  .me h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
-  .me p{font-size:14px;color:var(--muted);margin-top:4px;line-height:1.4;text-wrap:pretty}
-  .links{display:flex;flex-direction:column;gap:14px}
-  .card{display:grid;grid-template-columns:44% 1fr;min-height:150px;border-radius:18px;overflow:hidden;background:var(--surface);
-        color:inherit;text-decoration:none;box-shadow:0 0 0 1px var(--line),0 10px 28px rgba(0,0,0,.28);
-        transition:transform .15s ease,background-color .15s ease}
-  .card:hover{background:var(--surface-2)}
-  .card:active{transform:scale(.98)}
-  .card .pic{position:relative;background:#0e1626}
-  .card .pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-  .card .pic.logo{display:flex;align-items:center;justify-content:center;background:var(--surface)}
-  .card .pic.logo img{position:static;width:64px;height:64px;border-radius:14px;object-fit:contain}
-  .card .txt{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:16px 14px;gap:6px}
-  .card b{font-size:17px;font-weight:800;line-height:1.15;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
-  .card small{font-size:12.5px;color:var(--muted);line-height:1.35;text-wrap:balance}
-  .card.hot{box-shadow:0 0 0 1.5px rgba(217,48,30,.75),0 10px 28px rgba(0,0,0,.28)}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .pill{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;border-radius:16px;background:var(--surface);
-        color:var(--ink);text-decoration:none;font-weight:700;font-size:15px;box-shadow:0 0 0 1px var(--line);transition:background-color .15s ease}
-  .pill:hover{background:var(--surface-2)} .pill:active{transform:scale(.98)}
-  .pill img{width:22px;height:22px;border-radius:5px}
-  footer{text-align:center;color:#66728A;font-size:12px;margin-top:30px}
-  footer a{color:inherit}
-  @media (prefers-reduced-motion:reduce){.card,.pill{transition:none}}
+  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,sans-serif;min-height:100vh;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+
+  /* soft glow behind everything */
+  .glow{position:fixed;inset:-20vh -10vw auto;height:80vh;pointer-events:none;z-index:0;
+        background:radial-gradient(45% 55% at 30% 20%,rgba(142,166,220,.20),transparent 70%),
+                   radial-gradient(35% 45% at 80% 10%,rgba(217,48,30,.10),transparent 70%)}
+  .page{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:max(28px,env(safe-area-inset-top)) 16px 40px}
+
+  /* profile */
+  .profile{text-align:center;padding:12px 0 24px}
+  .avatar{width:104px;height:104px;margin:0 auto 16px;border-radius:50%;
+          box-shadow:0 0 0 4px rgba(255,255,255,.06),0 0 0 1px var(--line-2),0 18px 40px rgba(0,0,0,.45)}
+  .profile h1{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+  .profile .tag{margin-top:8px;color:var(--muted);font-size:15px;line-height:1.45;text-wrap:balance}
+  .stats{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .stat{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px var(--line);
+        font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .stat b{color:var(--ink);font-weight:700}
+
+  /* cards */
+  .stack{display:flex;flex-direction:column;gap:14px}
+  .card{position:relative;display:block;border-radius:var(--r-xl);overflow:hidden;background:var(--surface);
+        box-shadow:0 0 0 1px var(--line),0 14px 36px rgba(0,0,0,.30);
+        transition:transform .15s ease,box-shadow .15s ease}
+  .card:hover{box-shadow:0 0 0 1px var(--line-2),0 18px 44px rgba(0,0,0,.38)}
+  .card:active{transform:scale(.985)}
+  .card img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
+  .card:hover img{transform:scale(1.04)}
+  .arrow{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;flex:none;
+         background:var(--ink);color:var(--bg);font-size:18px;font-weight:700}
+
+  /* main spreadsheet card */
+  .feature .shot{aspect-ratio:16/10;overflow:hidden;background:#0e1626}
+  .feature .body{display:flex;align-items:center;gap:14px;padding:18px 18px 20px}
+  .feature .body div{flex:1}
+  .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  .feature h2{font-size:21px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
+  .feature p{font-size:14px;color:var(--muted);margin-top:4px;line-height:1.4}
+
+  /* MyCNBox offer */
+  .offer{display:flex;align-items:center;gap:16px;padding:20px;
+         background:linear-gradient(135deg,#E5402B 0%,#B8200F 100%);box-shadow:0 14px 36px rgba(217,48,30,.30)}
+  .offer:hover{box-shadow:0 18px 44px rgba(217,48,30,.42)}
+  .offer .logo{width:64px;height:64px;border-radius:16px;flex:none;background:#fff;padding:6px;box-shadow:0 6px 16px rgba(0,0,0,.2)}
+  .offer .logo img{border-radius:10px}
+  .offer div{flex:1;min-width:0}
+  .offer small{display:block;font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+  .offer h2{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-top:3px;color:#fff}
+  .offer p{font-size:13.5px;color:rgba(255,255,255,.85);margin-top:4px}
+  .offer .arrow{background:#fff;color:#B8200F}
+
+  /* finds grid */
+  .section-h{display:flex;align-items:baseline;justify-content:space-between;margin:10px 4px 0}
+  .section-h h3{font-size:15px;font-weight:700;letter-spacing:-.01em}
+  .section-h a{font-size:13px;color:var(--muted)}
+  .section-h a:hover{color:var(--ink)}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .grid a{aspect-ratio:1;border-radius:16px;overflow:hidden;background:#0e1626;box-shadow:0 0 0 1px var(--line);transition:transform .15s ease}
+  .grid a:active{transform:scale(.97)}
+  .grid img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
+  .grid a:hover img{transform:scale(1.06)}
+
+  /* videos card */
+  .video{aspect-ratio:16/9}
+  .video::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,18,32,0) 30%,rgba(11,18,32,.92) 100%)}
+  .video .over{position:absolute;left:18px;right:18px;bottom:16px;z-index:1;display:flex;align-items:flex-end;gap:14px}
+  .video .over div{flex:1}
+  .video h2{font-size:21px;font-weight:800;letter-spacing:-.02em}
+  .video p{font-size:13.5px;color:#C9D2E3;margin-top:3px}
+
+  /* small buttons */
+  .pills{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pill{display:flex;align-items:center;justify-content:center;gap:10px;min-height:54px;border-radius:16px;background:var(--surface);
+        font-weight:700;font-size:15px;box-shadow:0 0 0 1px var(--line);transition:background-color .15s ease,transform .15s ease}
+  .pill:hover{background:var(--surface-2)} .pill:active{transform:scale(.97)}
+  .pill svg,.pill img{width:20px;height:20px}
+
+  footer{text-align:center;color:var(--faint);font-size:12.5px;margin-top:28px}
+  footer a:hover{color:var(--ink)}
+
+  /* PC: profile on the left (stays in view), links on the right */
+  @media (min-width:900px){
+    .page{max-width:1060px;padding:64px 32px;display:grid;grid-template-columns:340px 1fr;gap:56px;align-items:start}
+    .profile{position:sticky;top:64px;text-align:left;padding:0}
+    .avatar{width:120px;height:120px;margin:0 0 20px}
+    .profile h1{font-size:34px}
+    .profile .tag{font-size:16px}
+    .stats{justify-content:flex-start}
+    .side-pills{display:grid!important;margin-top:22px}
+    .main .pills{display:none}
+    .stack{gap:18px}
+    .duo{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+    .duo .offer{flex-direction:column;align-items:flex-start;justify-content:space-between}
+    .duo .offer .arrow{align-self:flex-end}
+    .duo .video{aspect-ratio:auto;min-height:100%}
+    .grid{grid-template-columns:repeat(6,1fr)}
+    footer{grid-column:1/-1;margin-top:8px}
+  }
+  .side-pills{display:none}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<main>
-  <div class="me">
-    <img src="/media/links-avatar.png" alt="Puro Classico" width="76" height="76">
-    <div><h1>puroclassico</h1><p>Hardest finds from Weidian, Taobao and 1688. Old money and Stockholm style.</p></div>
-  </div>
-
-  <div class="links">
-    <a class="card" href="/?utm_source=links&amp;utm_medium=bio&amp;utm_campaign=spreadsheet">
-      <span class="pic"><img src="/media/links-site.jpg" alt="" loading="eager"></span>
-      <span class="txt"><b>&#128293; Insane spreadsheet &#128293;</b><small>9,000+ finds, search by brand and price</small></span>
-    </a>
-
-    <a class="card hot" href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" target="_blank" rel="sponsored noopener">
-      <span class="pic logo"><img src="/media/links-mycnbox.png" alt="MyCNBox"></span>
-      <span class="txt"><b>&#128181; Claim your welcome offer</b><small>Up to $500 in MyCNBox new-user coupons</small></span>
-    </a>
-
-    <a class="card" href="/old-money?utm_source=links&amp;utm_medium=bio&amp;utm_campaign=videos">
-      <span class="pic"><img src="/media/links-oldmoney.jpg" alt=""></span>
-      <span class="txt"><b>From the videos</b><small>The old money pieces from our TikToks</small></span>
-    </a>
-
-    <div class="row">
+<div class="glow" aria-hidden="true"></div>
+<div class="page">
+  <aside class="profile">
+    <img class="avatar" src="/media/links-avatar.png" alt="Puro Classico" width="120" height="120">
+    <h1>puroclassico</h1>
+    <p class="tag">The hardest finds from Weidian, Taobao and 1688. Old money and Stockholm style.</p>
+    <div class="stats">
+      <span class="stat"><b>9,202</b> finds</span>
+      <span class="stat"><b>5</b> agents</span>
+      <span class="stat">Weekly link check</span>
+    </div>
+    <div class="pills side-pills">
       <a class="pill" href="/how-to-order?utm_source=links&amp;utm_medium=bio">How to order</a>
       <a class="pill" href="/discord" target="_blank" rel="noopener"><img src="https://icons.duckduckgo.com/ip3/discord.com.ico" alt="">Discord</a>
     </div>
-  </div>
+  </aside>
+
+  <main class="main stack">
+    <a class="card feature" href="/?utm_source=links&amp;utm_medium=bio&amp;utm_campaign=spreadsheet">
+      <div class="shot"><img src="/media/links-site-wide.jpg" alt="The Puro Classico spreadsheet" fetchpriority="high"></div>
+      <div class="body">
+        <div><span class="eyebrow">&#128293; The spreadsheet</span><h2>9,000+ hardest finds</h2><p>Search by brand, price and agent. Free.</p></div>
+        <span class="arrow" aria-hidden="true">&rarr;</span>
+      </div>
+    </a>
+
+    <div class="duo stack">
+      <a class="card offer" href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" target="_blank" rel="sponsored noopener">
+        <span class="logo"><img src="/media/links-mycnbox.png" alt="MyCNBox"></span>
+        <div><small>Welcome offer</small><h2>Up to $500 in coupons</h2><p>For new MyCNBox users</p></div>
+        <span class="arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <a class="card video" href="/old-money?utm_source=links&amp;utm_medium=bio&amp;utm_campaign=videos">
+        <img src="/media/links-oldmoney.jpg" alt="">
+        <div class="over"><div><span class="eyebrow">From the videos</span><h2>Old money pieces</h2><p>Everything from our TikToks</p></div><span class="arrow" aria-hidden="true">&rarr;</span></div>
+      </a>
+    </div>
+
+    <div class="section-h"><h3>Hardest finds right now</h3><a href="/?utm_source=links&amp;utm_medium=bio&amp;utm_campaign=grid">See all &rarr;</a></div>
+    <div class="grid">
+      <a href="/brand/ralph-lauren?utm_source=links&amp;utm_medium=bio" aria-label="Ralph Lauren finds"><img src="/media/links-find-1.jpg" alt="" loading="lazy"></a>
+      <a href="/brand/stone-island?utm_source=links&amp;utm_medium=bio" aria-label="Stone Island finds"><img src="/media/links-find-2.jpg" alt="" loading="lazy"></a>
+      <a href="/brand/burberry?utm_source=links&amp;utm_medium=bio" aria-label="Burberry finds"><img src="/media/links-find-3.jpg" alt="" loading="lazy"></a>
+      <a href="/brand/ralph-lauren?utm_source=links&amp;utm_medium=bio" aria-label="Ralph Lauren finds"><img src="/media/links-find-4.jpg" alt="" loading="lazy"></a>
+      <a href="/brand/burberry?utm_source=links&amp;utm_medium=bio" aria-label="Burberry finds"><img src="/media/links-find-5.jpg" alt="" loading="lazy"></a>
+      <a href="/brand/golden-goose?utm_source=links&amp;utm_medium=bio" aria-label="Golden Goose finds"><img src="/media/links-find-6.jpg" alt="" loading="lazy"></a>
+    </div>
+
+    <div class="pills">
+      <a class="pill" href="/how-to-order?utm_source=links&amp;utm_medium=bio">How to order</a>
+      <a class="pill" href="/discord" target="_blank" rel="noopener"><img src="https://icons.duckduckgo.com/ip3/discord.com.ico" alt="">Discord</a>
+    </div>
+  </main>
 
   <footer><a href="https://www.puroclassico.com/">puroclassico.com</a></footer>
-</main>
+</div>
 <script src="/track.js" defer></script>
 </body>
 </html>
