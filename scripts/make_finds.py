@@ -22,6 +22,7 @@ CACHE = os.path.join(tempfile.gettempdir(), "pc_finds"); os.makedirs(CACHE, exis
 FONT = os.path.join(ROOT, "scripts", "fonts", "Montserrat.ttf")
 SCRIPT = os.path.join(ROOT, "scripts", "fonts", "Parisienne-Regular.ttf")    # the "puro classico" script in the corner badge
 ITEMS_FILE = os.path.join(ROOT, "scripts", "qc_items.json")                 # what each QC shot shows (type, item, brand, colour), so a slide pairs two alike
+LABELS = os.environ.get("FINDS_LABELS", "") == "1"                           # the name in the middle of each slide: off since 18 Oct 2026 (owner: a boosted post with brand names was rejected)
 LABELS_FILE = os.path.join(ROOT, "scripts", "qc_labels.json")               # the short casual name on each slide ("Stoney Half-Zips"), per pair of shots
 
 
@@ -463,7 +464,7 @@ def main():
         for _, im in ims: frames.append((whole(im, FW, FH), a.hold))
     else:
         badge = make_badge(int(FW * 0.15)) if a.badge else None
-        for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH, badge, pair_label(ims[k][1], ims[k + 1][1])), a.hold))
+        for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH, badge, pair_label(ims[k][1], ims[k + 1][1]) if LABELS else ""), a.hold))
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
     cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
     cmd += ["-stream_loop", "-1", "-i", audio, "-af", "afade=t=out:st=%.2f:d=0.6" % (total - 0.7)] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
