@@ -39,6 +39,7 @@ def wanted_slots(now):
         day = (now.astimezone(TZ) + timedelta(days=d)).date()
         for s in SLOTS:
             t = datetime(day.year, day.month, day.day, int(s[:2]), int(s[3:]), tzinfo=TZ).astimezone(timezone.utc)
+            if day.isoformat() < os.environ.get("FINDS_FROM", ""): continue      # slots start on this date (a new rhythm starting tomorrow)
             if now + timedelta(minutes=20) <= t <= now + timedelta(days=DAYS): out.append(t)
     return out
 
