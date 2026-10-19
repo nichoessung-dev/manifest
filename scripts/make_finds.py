@@ -8,7 +8,7 @@ The Drive folder must be shared by link. Photos are picked least-used first, in 
 """
 import argparse, glob, hashlib, html, json, os, random, re, subprocess, sys, tempfile, urllib.request
 from datetime import datetime
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps, ImageStat
 import imageio_ffmpeg
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from restore import restore
@@ -22,6 +22,7 @@ CACHE = os.path.join(tempfile.gettempdir(), "pc_finds"); os.makedirs(CACHE, exis
 FONT = os.path.join(ROOT, "scripts", "fonts", "Montserrat.ttf")
 SCRIPT = os.path.join(ROOT, "scripts", "fonts", "Parisienne-Regular.ttf")    # the "puro classico" script in the corner badge
 ITEMS_FILE = os.path.join(ROOT, "scripts", "qc_items.json")                 # what each QC shot shows (type, item, brand, colour), so a slide pairs two alike
+BEST = os.environ.get("FINDS_BEST", "") == "1"                               # "very good" mode (main account, 19 Oct 2026): look at 8x the photos, drop the blurriest, strongest pairs only
 LABELS = os.environ.get("FINDS_LABELS", "") == "1"                           # the name in the middle of each slide: off since 18 Oct 2026 (owner: a boosted post with brand names was rejected)
 LABELS_FILE = os.path.join(ROOT, "scripts", "qc_labels.json")               # the short casual name on each slide ("Stoney Half-Zips"), per pair of shots
 
@@ -344,11 +345,23 @@ def kind(item):
     return item
 
 
+def sharpness(im):
+    """How crisp a shot is: the spread of edge strength on a 600 px wide grey copy (higher is sharper)."""
+    g = im.convert("L"); g = g.resize((600, max(8, int(600 * g.height / g.width))))
+    return ImageStat.Stat(g.filter(ImageFilter.FIND_EDGES)).var[0]
+
+
 def pick_pairs(ims, n, rnd):
     """n slides of two alike shots: the same item first (two half-zip knits, two puffers), ideally the same brand in
     different colours; only when that runs out, the same kind of thing. ims is in least-used order and the least-used
     shots are placed first. The two halves of one source photo (already a pair) are next best. Returns (pairs, unused shots)."""
     sid = lambda x: x[1].info.get("sid") or x[0]
+    sharp = {}
+    if BEST and len(ims) > n * 3:                               # keep the crisper 60 %, in the same least-used order
+        sharp = {id(x): sharpness(x[1]) for x in ims}
+        cut = sorted(sharp.values())[int(len(ims) * 0.4)]
+        kept = [x for x in ims if sharp[id(x)] >= cut]
+        if len(kept) >= n * 3: ims = kept
     d = describe([(sid(x), x[1]) for x in ims])
     def score(x, y):
         if x[0] == y[0]: return 9                             # the two halves of one photo: already a matching pair, used when no fresh one is left
@@ -357,6 +370,8 @@ def pick_pairs(ims, n, rnd):
         elif kind(p.get("i") or "other") == kind(q.get("i") or "other") and p.get("i") != "other": s += 3
         if brand(p) and brand(p) == brand(q): s += 4
         if p.get("c") and q.get("c") and p.get("c") != q.get("c"): s += 1
+        if BEST and brand(p) and brand(q): s += 1               # a readable brand on both photos
+        if BEST and sharp: s += min(sharp.get(id(x), 0), sharp.get(id(y), 0)) / 4000.0
         return s
     left, pairs = list(ims), []
     for need in (14, 10, 3, 0):                                 # same item and brand, same item, same kind, anything
@@ -413,7 +428,7 @@ def main():
     rnd.shuffle(pool); pool.sort(key=lambda p: used["count"].get(p[0], 0))          # least-used photos first, in random order among equally used ones
     bad = set(used.get("skip", [])); ims = []                   # photos that could not be used are remembered, not retried
     for pid, path in [p for p in pool if p[0] not in bad]:
-        if len(ims) >= (need if a.single else need * 4): break       # pairs need a choice: look at four times as many shots
+        if len(ims) >= (need if a.single else need * (8 if BEST else 4)): break       # pairs need a choice: look at four (best mode: eight) times as many shots
         path = path or drive_get(pid, "img")
         try:
             parts = split_stacked(Image.open(path).convert("RGB"))
