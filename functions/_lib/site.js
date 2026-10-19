@@ -219,7 +219,7 @@ function footer() {
 ${col("Categories", Object.values(CATS).filter(c => c.slug !== "toys").map(c => [c.name, "/category/" + c.slug]))}
 ${col("Brands", topBrands.slice(0, half))}
 ${col("More brands", topBrands.slice(half).concat([["All brands →", "/brands"]]))}
-${col("Spreadsheets", [["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Old money reps", "/old-money"]])}
+${col("Spreadsheets", [["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Old money spreadsheet", "/old-money"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Grisch spreadsheet", "/grisch-spreadsheet"]])}
 ${col("Guides", GUIDE_LINKS.slice(0, 7).concat([["All guides →", "/guides"]]))}
 ${col("Tools & best reps", TOOL_LINKS.concat([["Best reps by model →", "/best"]]))}
 ${col("Puro Classico", [["Browse all finds", "/"], ["Discord community", "/discord"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}

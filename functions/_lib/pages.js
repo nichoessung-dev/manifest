@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w6";
+export const PRODUCT_TPL = "w7";
 async function qcThumbs(origin, p) {
   if (p.qc < 1) return [];
   try {
@@ -521,10 +521,10 @@ export function renderOldMoney(n) {
   const { all, brandSlug } = idx(); const set = new Set(OLD_MONEY.brands);
   const list = all.filter(p => set.has(p.brand));
   const brands = OLD_MONEY.brands.concat(OLD_MONEY.linked).filter(b => brandSlug.has(b));   // `linked` brands get a chip; their finds are not part of this page's list
-  return hub({ path: "/old-money", n, list, title: `Old Money Reps: Quiet Luxury Spreadsheet (${list.length.toLocaleString("en-US")} Finds) · Puro Classico`,
+  return hub({ path: "/old-money", n, list, title: `Old Money Spreadsheet 2026: ${list.length.toLocaleString("en-US")} Quiet Luxury Rep Finds | Puro Classico`,
     desc: `Old money and quiet luxury reps: ${list.length.toLocaleString("en-US")} finds from Ralph Lauren, Loro Piana, Lacoste, Moncler, Golden Goose and more.`,
     h1: "Old money & quiet luxury reps", intro: OLD_MONEY.intro, trail: [["Home", "/"], ["Old money", "/old-money"]],
-    chips: `<div class="chips">${brands.map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}</div>`,
+    chips: `<div class="chips">${brands.map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}<a href="/stockholm-spreadsheet">Stockholm style spreadsheet</a><a href="/grisch-spreadsheet">Grisch spreadsheet</a></div>`,
     faq: [["What are old money reps?", "Replica finds in the understated 'old money' or quiet-luxury style: knitwear, polos, loafers and clean sneakers from brands like Ralph Lauren, Loro Piana and Brunello Cucinelli, without big logos."],
           ["What should I check in QC for old money pieces?", "Knit texture and ribbing, the density of small chest-logo embroidery, collar shape on polos, and leather grain and stitching on shoes and belts."]] });
 }
@@ -650,7 +650,7 @@ export function sitemapIndex() {
 }
 export function sitemapPages() {
   const { brandSlug } = idx();
-  const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), ...AGENT_BRAND_AGENTS.flatMap(k => agentBrands().map(b => `/${k}-spreadsheet/${brandSlug.get(b)}`)),
+  const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", "/stockholm-spreadsheet", "/grisch-spreadsheet", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), ...AGENT_BRAND_AGENTS.flatMap(k => agentBrands().map(b => `/${k}-spreadsheet/${brandSlug.get(b)}`)),
     ...Object.values(CATS).map(c => "/category/" + c.slug), ...[...brandSlug.values()].map(s => "/brand/" + s),
     ...Object.keys(GUIDES).map(s => "/guides/" + s), "/best", ...models().map(m => "/best/" + m.slug), "/tools", ...Object.keys(TOOLS).map(s => "/tools/" + s), "/terms", "/privacy"];
   return xml(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `<url><loc>${SITE}${u}</loc></url>`).join("\n")}\n</urlset>`);
@@ -667,10 +667,46 @@ export function sitemapProducts() {
 // /mycnbox-spreadsheet, /kakobuy-spreadsheet/ralph-lauren, /brand/x and /category/x (page 1) are served as the homepage app
 // with the filter already applied (functions/_middleware.js rewrites index.html with this spec). Little text on purpose:
 // a short heading, then the spreadsheet itself, then a compact FAQ and links. Pages 2+ stay server-rendered lists.
+// Style spreadsheets (19 Oct 2026): Google shows no real website for "stockholm spreadsheet" or "grisch spreadsheet", only
+// Reddit and TikTok. Each is the spreadsheet app limited to the brands that define that look ("old money spreadsheet" is
+// /old-money, so it gets no page here and the two never compete).
+const STYLE_HUBS = {
+  stockholm: { name: "Stockholm style", h: "Stockholm Style Spreadsheet",
+    brands: ["Ralph Lauren", "Moncler", "Stone Island", "Lacoste", "Acne Studios", "Ami", "Burberry", "Golden Goose", "Loro Piana", "Arc'teryx",
+             "CP Company", "Canada Goose", "Maison Margiela", "Tommy Hilfiger", "Fred Perry"],
+    sub: n => `${n} Stockholm style finds: quarter-zips, cable knits, gilets, clean sneakers.`,
+    title: n => `Stockholm Style Spreadsheet 2026: ${n} Finds | Puro Classico`,
+    desc: n => `The Stockholm style reps spreadsheet: ${n} finds from Ralph Lauren, Moncler, Stone Island, Lacoste, Acne Studios and more, with QC photos and one-tap agent links.`,
+    faq: [["What is Stockholm style?", "The clean Scandinavian take on old money: Ralph Lauren cable knits and quarter-zips, Moncler gilets, Stone Island, Acne Studios basics, straight jeans and white leather sneakers. Neutral colours, small logos, good fit."],
+          ["What should I buy first?", "A cable-knit or half-zip in navy, grey or cream, a quilted gilet and a pair of clean sneakers cover most outfits. Knitwear is light, so it is cheap to ship."],
+          ["Do these finds fit like the real thing?", "Rep knitwear often runs a size small. Compare the listing's measurements with a sweater you own, and check the QC photos before you ship."],
+          ["Is the spreadsheet free?", "Yes. You pay your agent for the item and shipping only. Links may be affiliate links."]] },
+  grisch: { name: "Grisch", h: "Grisch Spreadsheet",
+    brands: ["Ralph Lauren", "Moncler", "Lacoste", "Burberry", "Loro Piana", "Brunello Cucinelli", "Golden Goose", "Stone Island", "Jacob Cohen",
+             "Hermes", "Rolex", "Cartier", "Tom Ford", "Zegna", "Barbour", "Canada Goose"],
+    sub: n => `${n} grisch finds: Ralph, Moncler, Loro Piana, Lacoste and the rest of the look.`,
+    title: n => `Grisch Spreadsheet 2026: ${n} Old Money Finds | Puro Classico`,
+    desc: n => `The grisch spreadsheet: ${n} old money finds from Ralph Lauren, Moncler, Loro Piana, Lacoste, Burberry and more, with QC photos and one-tap agent links.`,
+    faq: [["What does grisch mean?", "Grisch is Scandinavian slang for the preppy old money look: Ralph Lauren polos and knits, Moncler, Loro Piana loafers, Lacoste, a good watch and Golden Goose or clean leather sneakers."],
+          ["What are the hardest grisch pieces?", "Ralph Lauren cable knits and quarter-zips, Moncler gilets and puffers, Loro Piana suede loafers, Burberry check scarves and Golden Goose sneakers are the core of the look."],
+          ["How do I order grisch reps?", "Open a find, tap the buy button for your agent (MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo), pick your size and pay. Check the QC photos at the warehouse before you ship."],
+          ["Is the spreadsheet free?", "Yes. You pay your agent for the item and shipping only. Links may be affiliate links."]] },
+};
+
 export function hubSpec(path) {
   const { all, slugBrand, byBrand, brandSlug, byCat } = idx();
   const nf = n => n.toLocaleString("en-US");
   let m;
+  if ((m = path.match(/^\/(stockholm|grisch)-spreadsheet$/))) {
+    const st = STYLE_HUBS[m[1]], have = st.brands.filter(b => byBrand.has(b));
+    const n = nf(have.reduce((t, b) => t + byBrand.get(b).length, 0));
+    const other = Object.entries(STYLE_HUBS).filter(([k]) => k !== m[1]).map(([k, v]) => [`${v.h}`, `/${k}-spreadsheet`]);
+    return { path, preset: { brands: have.map(b => brandSlug.get(b)) }, h: st.h, sub: st.sub(n), title: st.title(n), desc: st.desc(n),
+      crumbs: [["Home", "/"], ["Old money", "/old-money"], [st.h, path]],
+      chips: [[`Brands in the ${st.name.toLowerCase()} look`, have.map(b => [`${b} reps`, `/brand/${brandSlug.get(b)}`])],
+              ["More old money", other.concat([["Old money spreadsheet", "/old-money"], ["MyCNBox spreadsheet", "/mycnbox-spreadsheet"]])]],
+      faq: st.faq };
+  }
   if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet$/))) {
     const key = m[1], a = AGENTS[key], meta = AGENT_INTRO[key]; if (!a || !meta) return null;
     const N = nf(all.length), brands = AGENT_BRAND_AGENTS.includes(key) ? agentBrands() : [];
@@ -724,7 +760,7 @@ export function hubParts(spec) {
   const crumbHtml = `<nav class="hub-bc" aria-label="Breadcrumb">${spec.crumbs.map((c, i) => i < spec.crumbs.length - 1 ? `<a href="${c[1]}">${esc(c[0])}</a><span>›</span>` : `<span aria-current="page">${esc(c[0])}</span>`).join("")}</nav>`;
   const seo = `<section class="hub-seo">${spec.chips.filter(c => c[1].length).map(([t, links]) => `<h2>${esc(t)}</h2><div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `<h2>FAQ</h2>${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
   const ld = [bc.data]; if (spec.faq.length) ld.push(faqLd(spec.faq));
-  const page = { h: spec.h, sub: spec.sub, agent: spec.preset.agent || null, brand: spec.preset.brand || null, cat: spec.preset.cat || null };
+  const page = { h: spec.h, sub: spec.sub, agent: spec.preset.agent || null, brand: spec.preset.brand || null, cat: spec.preset.cat || null, brands: spec.preset.brands || null };
   const head = `<script>window.PC_PAGE=${JSON.stringify(page).replace(/</g, "\\u003c")};document.documentElement.classList.add("hub"${page.agent ? ',"agent-lock"' : ""});</script>` +
     ld.map(o => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, "\\u003c") + "</script>").join("");
   return { crumbHtml, seo, head };
