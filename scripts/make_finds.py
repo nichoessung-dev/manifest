@@ -15,7 +15,7 @@ from restore import restore
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 W, H, FPS = 1080, 1920, 30
-SW, SH = 1080, 1440                                          # carousel slides are 3:4: the TikTok app shows that shape whole, a 9:16 photo gets cut top and bottom
+SW, SH = 1080, 1920                                          # carousel slides fill the phone screen, 9:16 (owner, 19 Oct 2026: 3:4 left black bars)
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
 CACHE = os.path.join(tempfile.gettempdir(), "pc_finds"); os.makedirs(CACHE, exist_ok=True)
@@ -186,10 +186,26 @@ def crisp(im):
     return ImageEnhance.Color(ImageEnhance.Contrast(im).enhance(1.05)).enhance(1.06)
 
 
+SOFT = {"half-zip knit", "crewneck knit", "cable knit", "cardigan", "knit polo", "hoodie", "zip hoodie", "sweatshirt", "fleece",
+        "scarf", "beanie", "t-shirt", "polo shirt", "rugby shirt", "button shirt", "sweatpants"}
+_ITEMS = None
+
+
+def item_of(sid):
+    """The stored item type of a shot (scripts/qc_items.json), or "" when unknown."""
+    global _ITEMS
+    if _ITEMS is None:
+        try: _ITEMS = json.load(open(os.path.join(ROOT, "scripts", "qc_items.json")))
+        except Exception: _ITEMS = {}
+    return (_ITEMS.get(sid) or {}).get("i", "")
+
+
 def fill(im, w, h):
     """The photo filling the whole area edge to edge (cropped to fit, centred), no blurred bars. Cleaned up by the
     restoration model when it is available (a little of the original is kept so knit and fabric texture stays real)."""
-    im = im.convert("RGB"); base = ImageOps.fit(im, (w, h), Image.LANCZOS, centering=(0.5, 0.5)); r = restore(im, w, h)
+    sid = im.info.get("sid", ""); im = im.convert("RGB"); base = ImageOps.fit(im, (w, h), Image.LANCZOS, centering=(0.5, 0.5))
+    if item_of(sid) in SOFT: return crisp(base)                 # the model draws a fake grid into knit texture: sharpen only
+    r = restore(im, w, h)
     if r is im: return crisp(base)
     out = Image.blend(ImageOps.fit(r, (w, h), Image.LANCZOS, centering=(0.5, 0.5)), base, 0.15)
     out = out.filter(ImageFilter.UnsharpMask(radius=1.2, percent=45, threshold=2))
@@ -450,15 +466,15 @@ def main():
     part = a.part or int(used.get("part", 0)) + 1
     title = a.title or COVER_TEXT                               # the cover always says the same; the caption hook and tags vary
     hook = (rnd.choice(HOOKS) % title.lower()).replace("{part}", str(part))
-    caption = "%s\n\n%s" % (hook[0].upper() + hook[1:], " ".join(["#grisch", "#oldmoney"] + rnd.sample(TAGS, 1)))
+    caption = "%s\n\n%s" % (hook[0].upper() + hook[1:], " ".join(["#grisch", "#oldmoney", "#taobao", "#mycnbox", "#cnfans"]))   # owner, 19 Oct 2026
     if a.text:                                                   # this account's own lines: none repeats within ten posts; five tags (TikTok's limit)
         T = json.load(open(os.path.join(ROOT, a.text), encoding="utf-8")); recent = used.get("texts", [])[-10:]
         line = rnd.choice([t for t in T["lines"] if t not in recent] or T["lines"])
         season = ["winter", "winter", "spring", "spring", "spring", "summer", "summer", "summer", "autumn", "autumn", "autumn", "winter"][datetime.now().month - 1]
         head = line.replace("{n}", str(len(ims))).replace("{part}", str(part)).replace("{season}", season)
-        caption = "%s\n\n%s" % (head[0].upper() + head[1:], " ".join(T["core"]))            # three tags, nothing else
+        caption = "%s\n\n%s" % (head[0].upper() + head[1:], " ".join(T["core"]))            # the five tags in "core", nothing else
         used["texts"] = (used.get("texts", []) + [line])[-20:]
-    FW, FH = (W, H) if a.video else (SW, SH)                     # video slides fill the 9:16 screen; carousel slides are 3:4
+    FW, FH = (W, H) if a.video else (SW, SH)                     # both fill the 9:16 screen
     bg, cover_id = None, None
     if qc_bg is not None: bg = qc_bg
     elif a.cover and drive_get(a.cover, "img"): bg = Image.open(drive_get(a.cover, "img"))
