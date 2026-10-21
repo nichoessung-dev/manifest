@@ -10,7 +10,7 @@ Env (from GitHub Actions secrets):
   BREVO_API_KEY, SUPABASE_SERVICE_KEY, UNSUB_SECRET
 Optional: SITE_URL (default https://www.puroclassico.com), ACTIVE_DAYS (default 21), MAX_SEND (safety cap)
 """
-import os, sys, json, re, time, hmac, hashlib, urllib.request, urllib.error
+import os, sys, json, re, time, math, hmac, hashlib, urllib.request, urllib.error
 from datetime import datetime, timezone, timedelta
 
 SUPA_URL = "https://uptpghuduqjqmrxwatbm.supabase.co"
@@ -21,7 +21,12 @@ SVC      = os.environ["SUPABASE_SERVICE_KEY"]
 BREVO    = os.environ["BREVO_API_KEY"]
 UNSUB_SECRET = os.environ["UNSUB_SECRET"]
 ACTIVE_DAYS  = int(os.environ.get("ACTIVE_DAYS", "21"))
-MAX_SEND     = int(os.environ.get("MAX_SEND", "280"))   # Brevo free tier ~300/day
+MAX_SEND     = int(os.environ.get("MAX_SEND", "280"))   # safety cap for one run of one mode
+# One budget for the whole day (22 Oct 2026): Brevo's free plan sends 300 emails a day across every mode, and with ~250
+# opted-in members a Tuesday or Friday newsletter alone could use it up, so the welcome emails (they carry the MyCNBox
+# coupon link) failed for the rest of the day. Marketing modes now take only what is left after a reserve for new members.
+DAILY_CAP    = int(os.environ.get("DAILY_CAP", "300"))
+MARGIN, RESERVE_MIN = 15, 40
 LOGO = SUPA_URL + "/storage/v1/object/public/products/email/logo.png"
 DISC = SUPA_URL + "/storage/v1/object/public/products/email/discord.png"
 MYCNBOX_LOGO = SUPA_URL + "/storage/v1/object/public/products/email/mycnbox.png"
@@ -73,6 +78,52 @@ def brevo_send(to_email, subject, html, unsub=None, tag=None):
         r = urllib.request.urlopen(req, timeout=30); return True, r.read().decode()
     except urllib.error.HTTPError as e:
         return False, "%d %s" % (e.code, e.read().decode()[:160])
+
+def brevo_get(path):
+    try:
+        req = urllib.request.Request("https://api.brevo.com/v3/" + path, headers={"api-key": BREVO, "accept": "application/json"})
+        return json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
+    except Exception as e:
+        print("budget: Brevo %s not readable (%s)" % (path.split("?")[0], hide(e)[:80])); return None
+
+def sent_today():
+    """Emails Brevo has accepted today (UTC). If its statistics can't be read: an estimate from today's new members."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    r = brevo_get("smtp/statistics/aggregatedReport?startDate=%s&endDate=%s" % (today, today))
+    if isinstance(r, dict) and r.get("requests") is not None: return int(r["requests"])
+    print("budget: Brevo statistics unavailable, estimating from today's welcome emails")
+    try: n = len(sb_all("profiles?select=id&welcomed_at=gte.%sT00:00:00Z&order=id" % today))
+    except Exception: n = 10
+    return 2 * n + 15
+
+def credits_left():
+    """Brevo's own count of send credits left (the free plan's daily limit), when the account answers."""
+    for p in (brevo_get("account") or {}).get("plan") or []:
+        if p.get("creditsType") == "sendLimit":
+            print("budget: Brevo plan %s, %s send credits left" % (p.get("type"), p.get("credits")))
+            try: return int(p.get("credits"))
+            except (TypeError, ValueError): return None
+    return None
+
+def reserve():
+    """Room kept for the rest of today's welcome, ordering and MyCNBox emails: about 2.9 per new member."""
+    try: per_hour = len(sb_all("profiles?select=created_at&created_at=gte.%s&order=created_at" % since(7))) / 168.0
+    except Exception: per_hour = 1.0
+    now = datetime.now(timezone.utc)
+    return max(RESERVE_MIN, int(math.ceil(2.9 * per_hour * (24 - now.hour - now.minute / 60.0))))
+
+def slots(mode):
+    """How many emails this marketing mode may send now without eating into the room new members need."""
+    left = min(x for x in (DAILY_CAP - sent_today(), credits_left()) if x is not None)
+    r = 0 if mode == "mycnbox" else reserve()
+    n = max(0, min(MAX_SEND, left - MARGIN - r))
+    print("budget: %d left today, %d kept for new members, %d for %s" % (left, r, n, mode))
+    return n
+
+def welcomed_lately(pr, hours=48):
+    """New members get the welcome, ordering and MyCNBox emails in their first days: no newsletter on top."""
+    try: return bool(pr.get("welcomed_at")) and datetime.fromisoformat(pr["welcomed_at"].replace("Z", "+00:00")) > datetime.now(timezone.utc) - timedelta(hours=hours)
+    except Exception: return False
 
 def unsub_url(uid):
     tok = hmac.new(UNSUB_SECRET.encode(), uid.encode(), hashlib.sha256).hexdigest()
@@ -294,17 +345,18 @@ def run_mycnbox(profiles):
         if not wa: return True
         try: return datetime.fromisoformat(wa.replace("Z", "+00:00")) <= cutoff
         except: return True
-    sent = 0
-    for pr in profiles:
-        email = pr.get("email")
-        if not email or not eligible(pr): continue
-        ok, msg = brevo_send(email, "Set up MyCNBox, your finds are waiting", mycnbox_html(pr["id"]), unsub_url(pr["id"]), "mycnbox")
+    due = [pr for pr in profiles if pr.get("email") and eligible(pr)]
+    cap = slots("mycnbox") if due else 0
+    sent = fails = 0
+    for pr in due:
+        if sent >= cap: print("::warning::mycnbox: %d members wait for tomorrow to stay under the Brevo daily cap" % (len(due) - sent)); break
+        ok, msg = brevo_send(pr["email"], "Set up MyCNBox, your finds are waiting", mycnbox_html(pr["id"]), unsub_url(pr["id"]), "mycnbox")
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"agent_sent": True}, {"Prefer": "return=minimal"})
-            sent += 1
+            sent += 1; fails = 0
         else:
-            print("FAIL mycnbox:", hide(msg))
-        if sent >= MAX_SEND: break
+            print("FAIL mycnbox:", hide(msg)); fails += 1
+            if fails >= 5: print("stopping: 5 sends in a row failed (daily cap reached?)"); break
         time.sleep(0.3)
     print("mycnbox sent:", sent)
 
@@ -353,7 +405,7 @@ def run_newsletter(profiles):
     favs  = sb_all("favorites?select=user_id,product_id&order=user_id,product_id")
     print("taste data: %d product views (60 days), %d favourites" % (len(views), len(favs)))
     by_user = {}
-    def U(u): return by_user.setdefault(u, {"brands": {}, "cats": {}, "seen": set(), "last": None})
+    def U(u): return by_user.setdefault(u, {"brands": {}, "cats": {}, "seen": set(), "last": None, "favs": 0})
     for v in views:
         u = U(v["user_id"]); b = v.get("brand"); c = v.get("cat")
         if b: u["brands"][b] = u["brands"].get(b, 0) + 1
@@ -362,15 +414,26 @@ def run_newsletter(profiles):
         t = v.get("viewed_at")
         if t and (u["last"] is None or t > u["last"]): u["last"] = t
     for f in favs:
-        u = U(f["user_id"]); pid = f["product_id"]; u["seen"].add(pid); p = prod.get(pid) or {}
+        u = U(f["user_id"]); pid = f["product_id"]; u["seen"].add(pid); u["favs"] += 1; p = prod.get(pid) or {}
         if p.get("brand"): u["brands"][p["brand"]] = u["brands"].get(p["brand"], 0) + 3
         if p.get("cat"): u["cats"][p["cat"]] = u["cats"].get(p["cat"], 0) + 3
     cutoff = datetime.now(timezone.utc) - timedelta(days=ACTIVE_DAYS)
     day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    sent = 0
-    for pr in profiles:
+    def tier(pr):   # who goes first when the day's budget runs short: active savers, active, savers, the rest
+        u = by_user.get(pr["id"]); act = False
+        if u and u["last"]:
+            try: act = datetime.fromisoformat(u["last"].replace("Z", "+00:00")) >= cutoff
+            except Exception: act = True
+        fav = bool(u and u["favs"])
+        return 0 if act and fav else 1 if act else 2 if fav else 3
+    queue = [pr for pr in profiles if pr.get("email") and not welcomed_lately(pr)]
+    queue.sort(key=lambda pr: (tier(pr), hashlib.sha256((pr["id"] + day).encode()).hexdigest()))   # a different order each day within a tier
+    cap = slots("newsletter")
+    print("newsletter queue: %d members (%d welcomed in the last 48 h left out)" % (len(queue), len(profiles) - len(queue)))
+    sent = fails = 0
+    for pr in queue:
+        if sent >= cap: print("::warning::newsletter: %d members not sent today to stay under the Brevo daily cap" % (len(queue) - sent)); break
         email = pr.get("email"); uid = pr["id"]
-        if not email: continue
         u = by_user.get(uid)
         active = False
         if u and u["last"]:
@@ -399,14 +462,16 @@ def run_newsletter(profiles):
             body = intro + grid(recs)
             body += ('<div style="text-align:center;margin-top:22px;"><a href="%s" style="display:inline-block;padding:12px 30px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Browse all finds</a></div>' % SITE)
         if os.environ.get("DRY_RUN"):
-            print("DRY %s | %s | %s" % ("perso" if perso else "generic", subject, "; ".join("%s (%d)" % (p.get("title", "")[:28], score[i]) for i, p in recs))); continue
+            print("DRY tier %d %s | %s | %s" % (tier(pr), "perso" if perso else "generic", subject, "; ".join("%s (%d)" % (p.get("title", "")[:28], score[i]) for i, p in recs)))
+            sent += 1; continue
         html = wrap(body, unsub_url(uid))
         ok, msg = brevo_send(email, subject, html, unsub_url(uid), "newsletter")
-        if not ok: print("FAIL news:", hide(msg))
-        if ok: sent += 1
-        if sent >= MAX_SEND: break
+        if ok: sent += 1; fails = 0
+        else:
+            print("FAIL news:", hide(msg)); fails += 1
+            if fails >= 5: print("stopping: 5 sends in a row failed (daily cap reached?)"); break
         time.sleep(0.35)
-    print("newsletter sent:", sent)
+    print("newsletter %s: %d" % ("would send (dry run)" if os.environ.get("DRY_RUN") else "sent", sent))
 
 def run_saved(profiles):
     """Weekly nudge: 'you saved this' for members who starred something in the last SAVED_DAYS days (each save is mentioned once)."""
@@ -420,21 +485,24 @@ def run_saved(profiles):
         try: fresh = datetime.fromisoformat((f.get("created_at") or "").replace("Z", "+00:00")) >= cutoff
         except Exception: fresh = False
         if fresh and f["product_id"] in prod: recent.setdefault(f["user_id"], []).append(f["product_id"])
-    sent = 0
-    for pr in profiles:
-        email = pr.get("email"); uid = pr["id"]; ids = recent.get(uid)
-        if not email or not ids: continue
+    due = [pr for pr in profiles if pr.get("email") and recent.get(pr["id"]) and not welcomed_lately(pr)]
+    cap = slots("saved") if due else 0
+    sent = fails = 0
+    for pr in due:
+        if sent >= cap: print("::warning::saved: %d members not sent today to stay under the Brevo daily cap" % (len(due) - sent)); break
+        email = pr["email"]; uid = pr["id"]; ids = recent[uid]
         recs = [(i, prod[i]) for i in ids[:4]]
         first = recs[0][1]
         subject = "Still thinking about the %s?" % (first.get("title") or "find you saved")[:60]
         body = ('<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#333;">You saved %s this week. %s still in the catalogue, one tap from your agent:</p>' %
                 ("this" if len(recs) == 1 else "these", "It is" if len(recs) == 1 else "They are")) + grid(recs)
         body += ('<div style="text-align:center;margin-top:22px;"><a href="%s" style="display:inline-block;padding:12px 30px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">See your saved finds</a></div>' % SITE)
-        if os.environ.get("DRY_RUN"): print("DRY saved | %s | %d items" % (subject, len(recs))); continue
+        if os.environ.get("DRY_RUN"): print("DRY saved | %s | %d items" % (subject, len(recs))); sent += 1; continue
         ok, msg = brevo_send(email, subject, wrap(body, unsub_url(uid)), unsub_url(uid), "saved")
-        if not ok: print("FAIL saved:", hide(msg))
-        if ok: sent += 1
-        if sent >= MAX_SEND: break
+        if ok: sent += 1; fails = 0
+        else:
+            print("FAIL saved:", hide(msg)); fails += 1
+            if fails >= 5: print("stopping: 5 sends in a row failed (daily cap reached?)"); break
         time.sleep(0.35)
     print("saved-finds emails sent:", sent)
 
@@ -470,7 +538,7 @@ def main():
     elif mode == "sync":
         profiles = sb_all("profiles?select=id,email&order=id")
     else:
-        profiles = sb_all("profiles?marketing_opt_in=eq.true&select=id,email,welcomed&order=id")
+        profiles = sb_all("profiles?marketing_opt_in=eq.true&select=id,email,welcomed,welcomed_at&order=id")
     print("mode=%s profiles=%d" % (mode, len(profiles)))
     {"welcome": run_welcome, "ordering": run_ordering, "mycnbox": run_mycnbox, "saved": run_saved, "sync": run_sync}.get(mode, run_newsletter)(profiles)
 
