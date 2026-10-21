@@ -1,0 +1,27 @@
+name: IndexNow
+# Tells Bing (whose index also feeds ChatGPT search, Copilot and DuckDuckGo), Yandex, Seznam and Naver which pages
+# changed, so new finds are crawled within days instead of whenever a crawler comes by. See scripts/indexnow.py.
+on:
+  schedule:
+    - cron: '40 5 * * *'   # daily, after the night's catalogue and stats updates
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'changed (pages changed in the last day) or all (every sitemap URL, only after a site-wide change)'
+        default: 'changed'
+permissions:
+  contents: read
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none   # the history without old file contents; git show fetches the one old products.json it needs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Submit changed pages
+        run: python scripts/indexnow.py ${{ github.event.inputs.mode || 'changed' }}
