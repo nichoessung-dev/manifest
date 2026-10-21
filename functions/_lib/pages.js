@@ -45,25 +45,39 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w13";
+export const PRODUCT_TPL = "w14";
+// QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
+// lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
+// by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
+// up for the visitor who asks (QC_LOAD_JS). failed = the cache read itself went wrong, so the page is kept only briefly.
 async function qcThumbs(origin, p) {
-  if (p.qc < 1) return [];
+  if (p.qc < 1) return { list: [], failed: false };
   try {
     const r = await Promise.race([
-      fetch(`${origin}/api/qc?storefront=${p.platform}&id=${encodeURIComponent(p.itemId || p.id)}`),
+      fetch(`${origin}/api/qc?storefront=${p.platform}&id=${encodeURIComponent(p.itemId || p.id)}&cached=1`),
       new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 1500)),
     ]);
-    if (!r.ok) return [];
+    if (r.status === 404) return { list: [], failed: false };          // nobody has looked this find up lately
+    if (!r.ok) return { list: [], failed: true };
     const d = await r.json();
-    return (Array.isArray(d.thumbnails) ? d.thumbnails : []).filter(u => /^https:\/\//.test(u)).slice(0, 8);
-  } catch (e) { return []; }
+    return { list: (Array.isArray(d.thumbnails) ? d.thumbnails : []).filter(u => /^https:\/\//.test(u)).slice(0, 8), failed: false };
+  } catch (e) { return { list: [], failed: true }; }
 }
+const QC_LOAD_JS = '(function(){var w=document.currentScript.previousElementSibling,b=w.querySelector("button");' +
+  'function e(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}' +
+  'b.addEventListener("click",function(){b.disabled=true;b.textContent="Loading QC photos…";' +
+  'fetch("/api/qc?storefront="+encodeURIComponent(b.getAttribute("data-sf"))+"&id="+encodeURIComponent(b.getAttribute("data-id")))' +
+  '.then(function(r){return r.ok?r.json():null}).then(function(d){' +
+  'var u=((d&&d.thumbnails)||[]).filter(function(x){return String(x).indexOf("https://")===0}).slice(0,8);' +
+  'if(!u.length){w.innerHTML="<p class=\\"qc-none\\">QC photos can’t be loaded right now. Your agent photographs your exact item at the warehouse before it ships.</p>";return}' +
+  'w.innerHTML="<h2 class=\\"qc-h\\">Real QC photos</h2><div class=\\"qcs\\">"+u.map(function(x,i){return "<a href=\\""+e(x)+"\\" target=\\"_blank\\" rel=\\"noopener\\"><img src=\\""+e(x)+"\\" alt=\\"QC photo "+(i+1)+"\\" width=\\"96\\" height=\\"96\\" onerror=\\"this.parentNode.remove()\\"></a>"}).join("")+"</div>"})' +
+  '.catch(function(){b.disabled=false;b.textContent="Try again"})})})();';
 
 export async function renderProduct(id, origin) {
   const { byId, byBrand, byCat } = idx();
   const p = byId.get(id);
   if (!p) return null;
-  const qcs = await qcThumbs(origin, p);
+  const qcr = await qcThumbs(origin, p), qcs = qcr.list;
   const bUrl = brandUrl(p.brand), cUrl = catUrl(p.cat), cat = CATS[p.cat] || { name: p.cat };
   const trail = [["Home", "/"]];
   if (cUrl) trail.push([cat.name, cUrl]);
@@ -112,7 +126,8 @@ export async function renderProduct(id, origin) {
   const body = `${bc.html}
 <div class="pd">
   <div><div class="pimg">${src ? `<img src="${esc(src)}" alt="${esc(p.title)}" width="600" height="600" fetchpriority="high">` : ""}</div>
-    ${qcs.length ? `<h2 style="font-size:18px;margin:18px 0 0">Real QC photos</h2><div class="qcs">${qcs.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="${esc(p.title)} QC photo ${i + 1}" width="96" height="96" loading="lazy" onerror="this.parentNode.remove()"></a>`).join("")}</div>` : ""}
+    ${qcs.length ? `<h2 class="qc-h">Real QC photos</h2><div class="qcs">${qcs.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="${esc(p.title)} QC photo ${i + 1}" width="96" height="96" loading="lazy" onerror="this.parentNode.remove()"></a>`).join("")}</div>`
+      : p.qc >= 1 ? `<div class="qc-load"><button class="btn sm" type="button" data-sf="${esc(p.platform)}" data-id="${esc(p.itemId || p.id)}">Show buyer QC photos</button></div><script>${QC_LOAD_JS}</script>` : ""}
   </div>
   <div>
     ${bUrl ? `<a href="${bUrl}" style="color:var(--muted);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;font-size:13px">${esc(p.brand)}</a>` : (p.brand ? `<span style="color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-size:13px">${esc(p.brand)}</span>` : "")}
@@ -138,7 +153,7 @@ ${buyBar}`;
   const title = [`${tName} Rep: ${tMid} | Puro Classico`, `${tName} Rep: ${tMid}`, `${tName} Rep | Puro Classico`].find(x => x.length <= 65) || `${tName} Rep`;
   const res = page({ title, desc, path: productUrl(p), body,
     jsonld: [bc.data, pageLd], image: src || undefined, robots: indexable(p) ? "index,follow,max-image-preview:large" : "noindex,follow" });
-  if (p.qc >= 1 && !qcs.length) res.headers.set("x-qc-miss", "1");   // QC lookup failed/timed out: product/[id].js caches this render only briefly
+  if (qcr.failed) res.headers.set("x-qc-miss", "1");   // the QC cache read failed or timed out: product/[id].js keeps this render only briefly
   return res;
 }
 
