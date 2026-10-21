@@ -1,8 +1,8 @@
 // Routes the server-rendered SEO pages (hubs, guides, sitemaps) and turns the SPA's catch-all
 // "200 + homepage" for unknown paths into a real 404, so Google doesn't see soft-404 duplicates.
-import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE } from "./_lib/site.js";
+import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
-  sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts } from "./_lib/pages.js";
+  sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, PRODUCT_TPL } from "./_lib/pages.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
@@ -68,13 +68,34 @@ async function route(ctx) {
   if (/^\/(brand|category|brands|old-money|guides|best|tools)\b|^\/[a-z]+-spreadsheet/i.test(to)) to = to.toLowerCase();
   if (to !== path) return Response.redirect(url.origin + to + url.search, 301);
   let m, res = undefined;
+  // Edge cache for the hub and list pages (20 Oct 2026): building one takes 0.3-0.6 s (catalogue index + view stats), a
+  // cached copy ~0.05 s. The key holds the catalogue build, the page template version and the homepage's ETag, so a
+  // new deploy or a new catalogue never serves an old copy. The query string (utm tags) doesn't change the page.
+  const pageCache = request.method === "GET" && /^\/(brand|category|brands|old-money|guides|best|tools)(\/|$)|^\/[a-z]+-spreadsheet(\/|$)/.test(path);
+  let ckey = null;
+  if (pageCache) {
+    try {
+      const a = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "HEAD" }));
+      const ver = (a.headers.get("etag") || "x").replace(/[^A-Za-z0-9]/g, "").slice(0, 32);
+      ckey = new Request(`https://ssr-cache.internal/page/${BUILT}/${PRODUCT_TPL}/${ver}${path}`, { method: "GET" });
+      const hit = await caches.default.match(ckey);
+      if (hit) { const r = new Response(hit.body, hit); r.headers.set("x-ssr-cache", "HIT"); return r; }
+    } catch (e) { ckey = null; }
+  }
+  const keep = r => {                      // store a good copy (only when the view stats were read, so the order is right)
+    if (ckey && r && r.status === 200 && statsLoaded()) {
+      const c = new Response(r.clone().body, r); c.headers.set("cache-control", "public, max-age=3600");
+      ctx.waitUntil(caches.default.put(ckey, c).catch(() => {}));
+    }
+    return r;
+  };
   const usesStats = /^\/(brand|category|brands|old-money|guides|best)|^\/[a-z]+-spreadsheet/.test(path);
   if (usesStats) await ensureStats(url.origin);
   if (path === "/sitemap.xml") return sitemapIndex();
   if (path === "/sitemap-pages.xml") return sitemapPages();
   if (path === "/sitemap-products.xml") return sitemapProducts();
   const spec = hubSpec(path);
-  if (spec) return hubApp(ctx, url, spec);
+  if (spec) return keep(await hubApp(ctx, url, spec));
   if (path === "/brands") res = renderBrands();
   else if (path === "/guides") res = renderGuides();
   else if ((m = path.match(/^\/guides\/([a-z0-9-]+)$/))) res = renderGuide(m[1]);
@@ -99,7 +120,7 @@ async function route(ctx) {
     // Rendered before any view stats could be read (a failed read on a fresh server instance): the finds are in a
     // different order and the view-based picks are missing. Correct, but not a copy to keep for an hour.
     if (usesStats && !statsLoaded() && res.status === 200) res.headers.set("cache-control", "public, max-age=60");
-    return res;
+    return keep(res);
   }
 
   const out = await ctx.next();
