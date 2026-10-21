@@ -8,6 +8,10 @@ on:
       mode:
         description: 'newsletter, saved or sync'
         default: 'newsletter'
+      dry_run:
+        description: 'Print who would get it and the day''s email budget, send nothing'
+        type: boolean
+        default: false
 jobs:
   send:
     runs-on: ubuntu-latest
@@ -26,3 +30,5 @@ jobs:
         continue-on-error: true
       - name: Send
         run: python scripts/newsletter.py ${{ github.event.inputs.mode || (github.event.schedule == '0 16 * * 0' && 'saved') || 'newsletter' }}
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '' }}
