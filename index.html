@@ -1422,7 +1422,13 @@ function agentLogo(a){ return `<img class="agent-ic" src="${a.logo||('https://ic
    cleaned at build time; this is the safety net for rows imported before the next clean run (and for a restored brand filter). */
 const BRAND_ALIAS={"Essential":"Essentials","Arcteryx":"Arc'teryx","Cp":"CP Company","Cdg":"Comme des Garcons","Comme Des Garcons":"Comme des Garcons","Comme des Garçons":"Comme des Garcons","Ami Paris":"Ami","Alo":"Alo Yoga","Purple":"Purple Brand","Carhart":"Carhartt","Merta":"Mertra","Aime":"Aime Leon Dore","PROJECT G/R":"Project GR","Parajumper":"Parajumpers","ERD":"Enfants Riches Déprimés","Polo":"Ralph Lauren"};
 function loadProducts(){
-  const a=JSON.parse(document.getElementById("pc-catalog").textContent);
+  /* the server sends the catalogue as /catalog.js parts (window.PC_CATALOG) so every file stays under Google's 2 MB limit;
+     the inline block is the repo copy (local previews); if a part is missing, fetch the whole catalogue once synchronously */
+  let a=window.PC_CATALOG;
+  if(window.PC_CATALOG_WANT&&(window.PC_CATALOG_GOT||0)<window.PC_CATALOG_WANT) a=null;
+  if(!a){ const el=document.getElementById("pc-catalog"); if(el) a=JSON.parse(el.textContent); }
+  if(!a){ try{ const x=new XMLHttpRequest(); x.open("GET","/catalog.js?retry=1",false); x.send(); if(x.status===200){ (0,eval)(x.responseText); a=window.PC_CATALOG; } }catch(e){} }
+  a=Array.isArray(a)?a:[];
   a.forEach(p=>{
     if(p.brand==="Uncategorized"){ p.brand=""; p.title=String(p.title||"").replace(/^Uncategorized\s+/,""); }
     const nb=BRAND_ALIAS[p.brand];
