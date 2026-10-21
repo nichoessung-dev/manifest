@@ -64,7 +64,7 @@ def top_up():
     now = datetime.now(timezone.utc); have = queued(now, mine); made = 0
     print("posts already queued:", sorted(t.strftime("%m-%d %H:%M") for t in have))
     for t in wanted_slots(now):
-        if any(abs((t - h).total_seconds()) < 1800 for h in have): continue
+        if any(abs((t - h).total_seconds()) < 60 for h in have): continue      # slots are only 2 minutes apart: match the exact time
         out = os.path.join(ROOT, "out", t.strftime("%m%d-%H%M")); os.makedirs(out, exist_ok=True)
         r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "make_finds.py"), "--folder", os.environ["FINDS_FOLDER"], "--slides", SLIDES, "--hold", HOLD, "--own", OWN, "--state", STATE, "--commit-state", "--out", out] + (["--badge"] if BADGE else []) + (["--avoid", AVOID] if AVOID else []) + (["--single"] if SINGLE == "1" else []) + (["--text", TEXT] if TEXT else []) + (["--video"] if MODE == "video" else []) + (["--audio", AUDIO] if AUDIO else []) + (["--covers", COVERS] if COVERS and COVERS != "qc" else ["--qc-cover"]))
         metas = [f for f in os.listdir(out) if f.endswith(".json")]
