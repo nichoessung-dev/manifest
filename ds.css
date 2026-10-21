@@ -137,14 +137,6 @@ main{padding:var(--s5) 0 var(--s8)}
 .qcs img{width:92px;height:92px;object-fit:cover;border-radius:var(--r-md);display:block;box-shadow:inset 0 0 0 1px var(--img-edge)}
 .price{font-size:32px;font-weight:700;letter-spacing:-.03em;margin:var(--s2) 0;font-variant-numeric:tabular-nums}
 .price small{font-size:16px;color:var(--faint);font-weight:400;margin-left:8px;letter-spacing:0}
-/* old product buy list (.buy): only for product pages rendered before PRODUCT_TPL w12; remove in the next ds.css change */
-.buy{display:flex;flex-direction:column;gap:var(--s2);margin:var(--s5) 0}
-.buy a{display:flex;justify-content:space-between;align-items:center;min-height:52px;padding:0 var(--s4) 0 var(--s5);border-radius:var(--r-lg);border:1px solid var(--line-2);text-decoration:none;font-weight:600;background:transparent;transition:background-color .15s,transform .15s}
-.buy a:hover{background:var(--surface-2)}
-.buy a:active{transform:scale(.98)}
-.buy a.first{background:var(--fill);color:var(--fill-ink);border-color:var(--fill)}
-.buy a.first:hover{opacity:.9}
-.buy a small{font-weight:600;font-size:11.5px;color:#fff;background:var(--brand-red);padding:3px 9px;border-radius:var(--r-pill)}
 /* buy box: one main button, the coupon line, the other agents as a 2 x 2 grid */
 .buybox{margin:var(--s5) 0}
 .buy-main a,.buy-alt a{display:flex;align-items:center;text-decoration:none;font-weight:600;border-radius:var(--r-lg);transition:background-color .15s,opacity .15s,transform .15s}
@@ -157,6 +149,7 @@ main{padding:var(--s5) 0 var(--s8)}
 .buy-hint:hover{background:color-mix(in srgb,var(--brand-red) 18%,transparent)}
 .buy-hint svg{width:16px;height:16px;flex:none;color:var(--brand-red)}
 .buy-hint[hidden]{display:none}
+.buy-gone{margin:var(--s4) 0 0;padding:var(--s3) var(--s4);border-radius:var(--r-md);background:var(--surface-2);color:var(--ink-2);font-size:14px;line-height:1.45}
 .buy-or{margin:var(--s4) 0 var(--s2);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .buy-alt{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)}
 .buy-alt a{justify-content:center;min-height:48px;padding:0 var(--s3);border:1px solid var(--line-2);font-size:14.5px;text-align:center}
