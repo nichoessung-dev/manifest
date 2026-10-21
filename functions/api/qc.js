@@ -13,14 +13,16 @@
  * Dead thumbnails (qualit.ly CDN 404s) are dropped before caching.
  *
  * Returns: { qc_count, thumbnails: [url,...] }  (also passes through name/price/product_url when present)
- * Responses are edge-cached for 7 days (misses for 1 day) to protect the monthly API quota.
+ * Responses are edge-cached for 30 days (misses for 1 day) to protect the monthly API quota (1,000 lookups).
+ * &cached=1 answers from the edge cache only and never calls qualit.ly (404 when nothing is cached): the server-rendered
+ * product pages use it, so crawlers no longer spend the quota that people need.
  */
 
 import { P } from "../_lib/site.js";
 
 const STOREFRONTS = new Set(["weidian", "taobao", "1688"]);
 const UPSTREAM = "https://backend.qualit.ly/api/v1";
-const CACHE_TTL = 60 * 60 * 24 * 7; // 7 days
+const CACHE_TTL = 60 * 60 * 24 * 30; // 30 days: QC photo sets rarely change, and every lookup counts against the quota
 const MISS_TTL = 60 * 60 * 24;      // 1 day for "no QC" / upstream errors that aren't transient
 const ERR_TTL = 120;                // transient upstream errors (429/5xx/timeouts): short negative cache
 const USAGE_TTL = 300;
@@ -104,6 +106,7 @@ export async function onRequestGet(context) {
   const cacheKey = new Request(`https://qc-cache.internal/v2/${storefront}/${id}`, { method: "GET" });
   const cached = await cache.match(cacheKey);
   if (cached) return cached;
+  if (url.searchParams.get("cached")) return json({ cached: false }, 404, { "cache-control": "no-store" });
   if (!inCatalog(storefront, id) && throttled(request.headers.get("cf-connecting-ip") || "?"))
     return json({ error: "rate limited" }, 429, { "cache-control": "no-store", "retry-after": "600" });
 
