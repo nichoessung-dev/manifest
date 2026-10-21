@@ -651,6 +651,7 @@ footer a:hover{color:var(--ink)}
 .agent-ic{width:22px;height:22px;border-radius:6px;object-fit:contain;background:#fff;padding:2px;flex:none;box-shadow:0 1px 3px rgba(8,14,30,.14)}
 .agent .agent-name{flex:0 1 auto}
 .buy-dd-item .agent-name{flex:1}
+.af-row{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 14px}.af-chip,.af-clear{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:999px;font:inherit;font-size:13px;cursor:pointer;transition:background-color .15s ease,transform .15s ease}.af-chip{border:0;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--ink)}.af-chip:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}.af-chip svg{width:13px;height:13px;color:var(--accent)}.af-clear{border:1px solid var(--line-2);background:transparent;color:var(--muted)}.af-clear:hover{color:var(--ink)}.af-chip:active,.af-clear:active{transform:scale(.96)}
 .buy-hint{display:flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:12px;font-size:12.5px;line-height:1.35;color:var(--ink);text-decoration:none;background:color-mix(in srgb,var(--accent) 10%,transparent);transition:background-color .15s ease}.buy-hint:hover{background:color-mix(in srgb,var(--accent) 18%,transparent)}.buy-hint span{flex:1;min-width:0}.buy-hint svg{width:16px;height:16px;flex:none;color:var(--accent)}
 .agent-badge{font-family:var(--f-mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
 .agent.primary .agent-badge{background:#E8322B;color:#fff}
@@ -1117,6 +1118,7 @@ footer .mono{font-family:var(--f-body);letter-spacing:.08em}
 
 <main>
   <div class="wrap">
+    <div class="af-row" id="af-row" hidden></div>
     <div class="grid" id="grid"></div>
     <div id="grid-sentinel" style="height:1px"></div>
     <div class="empty" id="empty" hidden><b data-i18n="nothing_t">Nothing matches that</b><span data-i18n="nothing_b">Try another search or clear the filters.</span><button type="button" class="saved-chip clear-btn" id="empty-clear" data-i18n="clear_filters" hidden>Clear filters</button></div>
@@ -1797,8 +1799,41 @@ function syncFilterUI(){
   if(fc&&fc.__v!==JSON.stringify(state.cats)) multiCsel(ft);
   const lab=document.getElementById("price-label");
   if(lab) lab.textContent=(state.pmin==null&&state.pmax==null)?t("any_price"):_prange(state.pmin!=null?state.pmin:PMIN,state.pmax!=null?state.pmax:PMAX);
-  const cc=document.getElementById("clear-chip"); if(cc) cc.hidden=!hasFilters();
+  const cc=document.getElementById("clear-chip"); if(cc) cc.hidden=!hasFilters(); try{ renderActiveChips(); }catch(e){}
 }
+/* active filters as removable chips above the grid (21 Oct 2026, Baymard: show applied filters, let people undo one at a time) */
+function renderActiveChips(){
+  const row=document.getElementById("af-row"); if(!row) return;
+  const opt=id=>{ const el=document.getElementById(id); return el&&el.selectedIndex>=0?el.options[el.selectedIndex].text:""; };
+  const chips=[];
+  if(state.q) chips.push(["q","\u201C"+state.q+"\u201D"]);
+  (state.cats||[]).forEach(c=>chips.push(["cat:"+c,catName(c)]));
+  if(state.brand&&state.brand!=="all") chips.push(["brand",state.brand]);
+  if(state.pmin!=null||state.pmax!=null){ const l=document.getElementById("price-label"); chips.push(["price",l?l.textContent:t("any_price")]); }
+  if(state.color&&state.color!=="all") chips.push(["color",opt("f-color")||state.color]);
+  if(state.gender&&state.gender!=="all") chips.push(["gender",opt("f-gender")]);
+  if(state.plat&&state.plat!=="all") chips.push(["plat",opt("f-source")||state.plat]);
+  if(state.saved) chips.push(["saved",t("saved")]);
+  row.hidden=!chips.length;
+  if(!chips.length){ row.innerHTML=""; return; }
+  const esc2=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  row.innerHTML=chips.map(([k,l])=>`<button type="button" class="af-chip" data-k="${esc2(k)}" aria-label="${esc2(l)}: remove"><span>${esc2(l)}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`).join("")
+    +(chips.length>1?`<button type="button" class="af-clear" data-k="all">${esc2(t("clear_filters"))}</button>`:"");
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest&&e.target.closest("#af-row button"); if(!b) return;
+  const k=b.getAttribute("data-k");
+  if(k==="all"){ clearFilters(); return; }
+  if(k==="q"){ state.q=""; const q=document.getElementById("q"); if(q)q.value=""; syncQParam(); }
+  else if(k.indexOf("cat:")===0){ const c=k.slice(4); state.cats=(state.cats||[]).filter(x=>x!==c); state.cat="all"; }
+  else if(k==="brand") state.brand="all";
+  else if(k==="price"){ state.pmin=null; state.pmax=null; state.price="all"; updatePriceUI(); }
+  else if(k==="color") state.color="all";
+  else if(k==="gender") state.gender="all";
+  else if(k==="plat") state.plat="all";
+  else if(k==="saved") state.saved=false;
+  render();
+});
 function hasFilters(){ return !!(state.q||(state.cats&&state.cats.length)||(state.cat&&state.cat!=="all")||state.brand!=="all"||state.color!=="all"||state.plat!=="all"||(state.gender&&state.gender!=="all")||state.pmin!=null||state.pmax!=null); }
 function clearFilters(){
   Object.assign(state,{q:"",cat:"all",cats:[],brand:"all",color:"all",plat:"all",gender:"all",pmin:null,pmax:null,price:"all"});
