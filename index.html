@@ -2002,8 +2002,27 @@ function _ensureSentinelObserver(){
   _sentObs=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)) _pump(); },{rootMargin:"1000px 0px"});
   _sentObs.observe(s);
 }
+/* server cards (21 Oct 2026): the homepage and hub pages arrive with their first finds already in #grid (data-ssr), in the
+   server's popularity order. While the view is still the one the page opened with, those finds stay first and in that
+   order, so the first render (and the re-render when the view stats arrive) doesn't reshuffle what is on screen. A saved
+   sort, search or filter that doesn't match them skips the pin; any later change of filter, sort or search drops it. */
+var SSR_PIN, SSR_SIG;
+function ssrSig(){ return JSON.stringify([state.q,state.cat,state.cats,state.brand,state.color,state.plat,state.gender,state.pmin,state.pmax,state.price,state.sort,state.saved]); }
+function pinSsr(list){
+  if(SSR_PIN===undefined){
+    SSR_PIN=[...document.querySelectorAll("#grid [data-ssr]")].map(e=>e.getAttribute("data-ssr")); SSR_SIG=ssrSig();
+    if(SSR_PIN.length&&(state.sort!=="pop"||state.q||state.saved)) SSR_PIN=[];
+    if(SSR_PIN.length){ const ids=new Set(list.map(p=>p.id)); if(SSR_PIN.filter(id=>ids.has(id)).length<SSR_PIN.length*0.8) SSR_PIN=[]; }
+  }
+  if(!SSR_PIN.length) return list;
+  if(ssrSig()!==SSR_SIG){ SSR_PIN=[]; return list; }
+  const pos=new Map(SSR_PIN.map((id,i)=>[id,i])), head=[], rest=[];
+  for(const p of list)(pos.has(p.id)?head:rest).push(p);
+  head.sort((a,b)=>pos.get(a.id)-pos.get(b.id));
+  return head.concat(rest);
+}
 function render(){
-  const list=filtered(), grid=$("#grid"), empty=$("#empty");
+  const list=pinSsr(filtered()), grid=$("#grid"), empty=$("#empty");
   grid.innerHTML="";
   _rlist=list; _rn=0; _renderChunk(); _ensureSentinelObserver();
   /* scrolled past the top of the (now shorter) grid: jump back to its start instead of clamping onto the footer */
