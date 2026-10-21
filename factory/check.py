@@ -55,10 +55,11 @@ def text_of(o):
     return json.dumps(o, ensure_ascii=False)
 
 
-def word_rules(label, blob, errs):
+def word_rules(label, blob, errs, full=None):
+    """blob: what is said or shown. full: the whole record (citations included), checked for dashes only."""
     for d in DASHES:
-        if d in blob: errs.append("%s: has a dash character %r (use a comma, colon or full stop)" % (label, d))
-    low = blob.lower()
+        if d in (full if full is not None else blob): errs.append("%s: has a dash character %r (use a comma, colon or full stop)" % (label, d))
+    low = re.sub(r"https?://\S+", "", blob.lower())
     for b in BANNED:
         if re.search(b, low): errs.append("%s: banned wording /%s/" % (label, b))
     if "coupon" in low and COUPON.lower() not in low: errs.append("%s: coupon wording must be exactly %r" % (label, COUPON))
@@ -73,7 +74,7 @@ def load_sources_md():
 def check_style(st, finds, clips, allowed_music, src_md):
     errs, warns = [], []; sid = st.get("id", "?")
     if not re.fullmatch(r"vf-[a-z0-9][a-z0-9-]{1,45}", sid): errs.append("id must look like vf-some-words (max 48 chars)")
-    word_rules(sid, text_of(st), errs)
+    word_rules(sid, text_of({k: v for k, v in st.items() if k != "sources"}), errs, text_of(st))      # sources are citations (URLs), never said or shown
     lines = st.get("lines") or []
     if not 6 <= len(lines) <= 10: errs.append("%d lines (want 6 to 10)" % len(lines))
     if not st.get("title"): errs.append("no title")
@@ -147,7 +148,8 @@ def check_style(st, finds, clips, allowed_music, src_md):
 
 def check_story(st, pool):
     errs, warns = [], []; sid = st.get("id", "?")
-    word_rules(sid, text_of({k: v for k, v in st.items() if k not in ("sources", "source_notes")}), errs)
+    shown = {"hook": st.get("hook"), "label": st.get("label"), "beats": [{k: b.get(k) for k in ("say", "text", "gfx")} for b in st.get("beats") or []]}
+    word_rules(sid, text_of(shown), errs, text_of(st))      # banned words: what is said or shown; dashes: the whole record
     if st.get("approved") is not False: errs.append("approved must be false")
     beats = st.get("beats") or []
     if len(beats) != 4: errs.append("%d beats (the renderer speaks exactly the first 4)" % len(beats))
