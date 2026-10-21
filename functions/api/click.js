@@ -1,8 +1,9 @@
 /**
  * Cloudflare Pages Function: one "Buy" click on an agent link (sent by /track.js).
- * Route: POST /api/click  { a: agent, i: item id, pl: platform, pg: page path }  ->  204
- * Stores agent, item, platform, page, the visitor's country (Cloudflare's CF-IPCountry) and the referral code cookie
- * (pc_ref) in Supabase table buy_clicks. No IP address, no user id, nothing else about the visitor.
+ * Route: POST /api/click  { a: agent, i: item id, pl: platform, pg: page path, r: source }  ->  204
+ * Stores agent, item, platform, page, the visitor's country (Cloudflare's CF-IPCountry) and, in the ref column, the
+ * member referral code cookie (pc_ref) or else "~" + the visit's source from track.js ("~google", "~tiktok", "~email.news")
+ * in Supabase table buy_clicks. No IP address, no user id, nothing else about the visitor.
  * Env: SUPABASE_SERVICE_KEY (already set for /r/<code>).
  */
 const SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co";
@@ -19,7 +20,8 @@ export async function onRequestPost(context) {
     const ua = request.headers.get("user-agent") || "";
     if (/bot|crawl|spider|preview|headless/i.test(ua)) return done;
     const cookie = request.headers.get("cookie") || "";
-    const ref = (cookie.match(/(?:^|;\s*)pc_ref=([a-z0-9_-]{3,24})/) || [])[1] || null;
+    const src = String(b.r || "").toLowerCase().replace(/[^a-z0-9_.-]/g, "").slice(0, 23);
+    const ref = (cookie.match(/(?:^|;\s*)pc_ref=([a-z0-9_-]{3,24})/) || [])[1] || (src ? "~" + src : null);
     const row = {
       agent,
       item_id: /^\d{5,20}$/.test(String(b.i || "")) ? String(b.i) : null,
