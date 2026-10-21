@@ -22,6 +22,24 @@ def fixed_caption(cap):
     return cap.replace("—", ",").replace("–", ",")
 
 
+def script_info(i):
+    """Title, hook line, product ids and sources of one id, read from the factory scripts."""
+    for name, kind in (("styles_new.json", "style"), ("stories_new.json", "story")):
+        p = os.path.join(HERE, name)
+        if not os.path.exists(p): continue
+        for st in json.load(open(p, encoding="utf-8")):
+            if st.get("id") != i: continue
+            if kind == "style":
+                prods = []
+                for ln in st["lines"]:
+                    for pid in ln.get("products") or []:
+                        if str(pid) not in prods: prods.append(str(pid))
+                return {"kind": kind, "title": st.get("title", ""), "hook": st["lines"][0].get("say", ""), "products": prods,
+                        "sources": ["$%s: %s" % (x["usd"], x["url"]) for x in st.get("sources") or []]}
+            return {"kind": kind, "title": st.get("label", "").replace("*", ""), "hook": st.get("hook", ""), "products": [], "sources": []}
+    return {}
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--nn", required=True); ap.add_argument("--ids", required=True)
     ap.add_argument("--out-root", default=os.path.join(ROOT, "out")); ap.add_argument("--report"); ap.add_argument("--dry-run", action="store_true")
@@ -40,13 +58,15 @@ def main():
         if meta.get("missing_assets"): raise SystemExit("%s is missing library files" % i)
         meta["caption"] = fixed_caption(meta.get("caption", "")); meta["file"] = i + ".mp4"
         shutil.copy(mp4[0], os.path.join(work, i + ".mp4")); json.dump(meta, open(os.path.join(work, i + ".json"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
-        s = scores.get(i, {}); rows.append((i, s, meta))
+        s = dict(script_info(i), **scores.get(i, {})); rows.append((i, s, meta))
     L = ["# %s" % branch, "", "Finished videos, voice on. Nothing here is posted: the Post videos workflow posts an id only when the owner runs it with ref %s." % branch, "",
-         "| id | title | length | score | hook line | product ids | shop-price sources |", "|---|---|---|---|---|---|---|"]
+         "| id | kind | title | length | score | hook line | product ids | shop-price sources |", "|---|---|---|---|---|---|---|---|"]
     for i, s, meta in rows:
-        L.append("| %s | %s | %.1fs | %s | %s | %s | %s |" % (i, s.get("title", ""), meta.get("seconds", 0), s.get("score", ""), s.get("hook", "").replace("|", "/"),
-                                                         " ".join(s.get("products", [])), " ".join(s.get("sources", [])) or "none"))
-    L += ["", "Scores are 1 to 10 for hook, clarity and look (the mean of the three). Kind: style or story. Stories are \"approved\": false until the owner approves them.", ""]
+        kind = s.get("kind", "") + (" (needs owner approval)" if s.get("kind") == "story" else "")
+        L.append("| %s | %s | %s | %.1fs | %s | %s | %s | %s |" % (i, kind, s.get("title", "").replace("|", "/"), meta.get("seconds", 0), s.get("score", ""), s.get("hook", "").replace("|", "/"),
+                                                              " ".join(s.get("products", [])), " ".join(s.get("sources", [])) or "none"))
+    L += ["", "Scores are 1 to 10 for hook, clarity and look (the mean of the three). Stories are \"approved\": false: the owner approves each one before it is posted.",
+          "Shop-price sources: the page each \"around $X in the shop\" was read on (details in factory/sources.md on the video-factory branch). News sources: factory/stories_new.json.", ""]
     if a.report: L += ["", open(a.report, encoding="utf-8").read()]
     open(os.path.join(work, "INDEX.md"), "w", encoding="utf-8").write("\n".join(L) + "\n")
     if a.dry_run: print("dry run: folder", work); return

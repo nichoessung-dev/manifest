@@ -120,6 +120,10 @@ def check_style(st, finds, clips, allowed_music, src_md):
             if c.get("kind") == "video" and start > max(0.0, c["seconds"] - 0.6): errs.append("line %d: start %.1fs is past the end of %s (%.1fs)" % (k, start, fid, c["seconds"]))
             if c.get("credit") and c["credit"] != "unknown": used_handles.add(c["credit"])
         if ln.get("clips"): errs.append("line %d: 'clips' (Pexels) is not allowed in style videos: only the drive clips" % k)
+        if ln.get("site"): errs.append("line %d: 'site' end screen: scripts/site.png shows the word 'replica' on the phone, which may never be shown" % k)
+        if ln.get("boards"): errs.append("line %d: 'boards' print a brand name over a find: not used in factory videos" % k)
+        for pid in ln.get("products") or []:
+            if ln.get("brand", not ln.get("hook")) is not False: errs.append("line %d: set \"brand\": false (no brand names printed on finds)" % k); break
         if ln.get("stock"): errs.append("line %d: 'stock' clips are not allowed: only the drive clips" % k)
         ins = ln.get("insert") or []
         for i in (ins if isinstance(ins, list) else [ins]):

@@ -3,6 +3,7 @@
 
   python factory/render.py vf-puffer-1200 vf-cable-knit-450          # style ids (factory/styles_new.json) or story ids (factory/stories_new.json)
   python factory/render.py --all-new                                 # every script that has no finished video in out/ yet
+  python factory/render.py --queue                                   # the same, in the order of factory/queue.json (3 style, 1 story)
 
 Needs ELEVENLABS_API_KEY in the environment (or "proxy" when the cloud environment adds it to the request itself).
 For each id: checks the credits left (make_short.py --credits), skips the video if its spoken characters do not fit, renders it to
@@ -47,6 +48,8 @@ def spoken_chars(kind, s):
 def main():
     all_s = scripts(); ids = [a for a in sys.argv[1:] if not a.startswith("--")]
     if "--all-new" in sys.argv: ids = [i for i in all_s if not os.path.exists(os.path.join(ROOT, "out", i))]
+    if "--queue" in sys.argv:                                  # factory/queue.json: 3 style, 1 story, best first
+        ids = [i for i in json.load(open(os.path.join(HERE, "queue.json"), encoding="utf-8"))["order"] if not os.path.exists(os.path.join(ROOT, "out", i))]
     log = open(os.path.join(HERE, "render_log.jsonl"), "a", encoding="utf-8")
     for i in ids:
         if i not in all_s: print("unknown id", i); continue
