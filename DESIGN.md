@@ -39,4 +39,4 @@ One look for every page: calm navy and editorial, like a good fashion shop. The 
 
 ## Components in `ds.css`
 
-`header.h` (sticky glass bar with logo, nav and CTA) · `.btn` (`.light`/`.primary`, `.red`, `.sm`) · `.bc` breadcrumbs · `.lead` · `.prose` · `.facts` · `.chips` · `.note` · `.eyebrow` · `.g` grid + `.c` card (`.ci` photo, `.qb` QC badge, `.cb` text) · `.pg` pager · product page (`.pd`, `.pimg`, `.qcs`, `.price`, `.buybox` with `.buy-main`, `.buy-hint`, `.buy-or`, `.buy-alt`, the phone `.buybar`, `.buy-gone` link-check notice, `dl.kv`) · `.steps` · `.faq` · `.tool` · `footer.f`.
+`header.h` (sticky glass bar with logo, nav and CTA) · `.btn` (`.light`/`.primary`, `.red`, `.sm`) · `.bc` breadcrumbs · `.lead` · `.prose` · `.facts` · `.chips` · `.note` · `.eyebrow` · `.g` grid + `.c` card (`.ci` photo, `.qb` QC badge, `.cb` text) · `.pg` pager · product page (`.pd`, `.pimg`, `.qcs` (with `.qc-h`, and `.qc-load`/`.qc-none` for photos loaded on request), `.price`, `.buybox` with `.buy-main`, `.buy-hint`, `.buy-or`, `.buy-alt`, the phone `.buybar`, `.buy-gone` link-check notice, `dl.kv`) · `.steps` · `.faq` · `.tool` · `footer.f`.
