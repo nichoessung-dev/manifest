@@ -2488,6 +2488,8 @@ $("#auth-discord").addEventListener("click",()=>oauth("discord"));
 loadLocalFaves();
 /* SEO: honour ?q= search param (Google sitelinks searchbox + shareable searches) */
 try{ const _q=new URLSearchParams(location.search).get("q"); if(_q&&_q.trim()){ Object.assign(state,{q:_q.trim(),plat:"all",cat:"all",cats:[],brand:"all",color:"all",gender:"all",price:"all",pmin:null,pmax:null,saved:false}); } }catch(e){}
+/* ?saved=1 opens the saved finds (the "See your saved finds" button in the weekly email) */
+try{ if(new URLSearchParams(location.search).get("saved")==="1") state.saved=true; }catch(e){}
 /* persist referral code across the OAuth round-trip */
 try{ const _rf=new URLSearchParams(location.search).get("ref"); if(_rf){ const c=_rf.toLowerCase().replace(/[^a-z0-9_-]/g,"").slice(0,24); if(c)localStorage.setItem("pc.ref",c); } }catch(e){}
 applyStatic();
