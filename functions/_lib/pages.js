@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w15";
+export const PRODUCT_TPL = "w16";
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -586,7 +586,8 @@ export function renderOldMoney(n) {
   return hub({ path: "/old-money", n, list, title: `Old Money Spreadsheet 2026: ${list.length.toLocaleString("en-US")} Quiet Luxury Rep Finds | Puro Classico`,
     desc: `Old money and quiet luxury reps: ${list.length.toLocaleString("en-US")} finds from Ralph Lauren, Loro Piana, Lacoste, Moncler, Golden Goose and more.`,
     h1: "Old money & quiet luxury reps", intro: OLD_MONEY.intro, trail: [["Home", "/"], ["Old money", "/old-money"]],
-    chips: `<div class="chips">${brands.map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}<a href="/stockholm-spreadsheet">Stockholm style spreadsheet</a><a href="/grisch-spreadsheet">Grisch spreadsheet</a></div>`,
+    chips: `<div class="chips">${brands.map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}<a href="/stockholm-spreadsheet">Stockholm style spreadsheet</a><a href="/grisch-spreadsheet">Grisch spreadsheet</a></div>` +
+      `<div class="chips">${AGENT_BRAND_AGENTS.map(k => `<a href="/${k}-spreadsheet/old-money">Old money on ${esc(AGENTS[k].name)}</a>`).join("")}</div>`,
     faq: [["What are old money reps?", "Replica finds in the understated 'old money' or quiet-luxury style: knitwear, polos, loafers and clean sneakers from brands like Ralph Lauren, Loro Piana and Brunello Cucinelli, without big logos."],
           ["What should I check in QC for old money pieces?", "Knit texture and ribbing, the density of small chest-logo embroidery, collar shape on polos, and leather grain and stitching on shoes and belts."]] });
 }
@@ -715,7 +716,8 @@ export function sitemapPages() {
   // Pages 2+ of the brand and category hubs (21 Oct 2026): real lists that were linked from nowhere. Agent and agent x brand
   // hubs are left out: their pages 2+ repeat the same finds with other buy buttons.
   const more = (base, n) => Array.from({ length: Math.max(0, Math.ceil(n / PER_PAGE) - 1) }, (_, i) => `${base}/${i + 2}`);
-  const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", "/stockholm-spreadsheet", "/grisch-spreadsheet", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), ...AGENT_BRAND_AGENTS.flatMap(k => agentBrands().map(b => `/${k}-spreadsheet/${brandSlug.get(b)}`)),
+  const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", "/stockholm-spreadsheet", "/grisch-spreadsheet", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), "/cnfans-spreadsheet",
+    ...AGENT_BRAND_AGENTS.flatMap(k => agentBrands().map(b => `/${k}-spreadsheet/${brandSlug.get(b)}`)), ...AGENT_BRAND_AGENTS.flatMap(k => Object.keys(AGENT_STYLES).map(x => `/${k}-spreadsheet/${x}`)),
     ...Object.values(CATS).map(c => "/category/" + c.slug), ...[...brandSlug.values()].map(s => "/brand/" + s),
     ...[...brandSlug].flatMap(([b, s]) => more("/brand/" + s, byBrand.get(b).length)),
     ...Object.entries(CATS).flatMap(([c, m]) => more("/category/" + m.slug, (byCat.get(c) || []).length)),
@@ -737,6 +739,10 @@ export function sitemapProducts() {
 // Style spreadsheets (19 Oct 2026): Google shows no real website for "stockholm spreadsheet" or "grisch spreadsheet", only
 // Reddit and TikTok. Each is the spreadsheet app limited to the brands that define that look ("old money spreadsheet" is
 // /old-money, so it gets no page here and the two never compete).
+// CNFans has shown a maintenance page instead of its shop since 8 Oct 2026 (checked by hand on the date below).
+// scripts/health_check.py warns when cnfans.com changes: then update this date and the /cnfans-spreadsheet copy, or remove it.
+export const CNFANS = { checked: "22 Oct 2026" };
+const CNFANS_FAQ = ["Does this spreadsheet work with CNFans?", `CNFans showed a maintenance notice when we checked on ${CNFANS.checked}. Every find here opens in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo, and our link converter turns old CNFans links into links for those agents.`];
 const STYLE_HUBS = {
   stockholm: { name: "Stockholm style", h: "Stockholm Style Spreadsheet",
     brands: ["Ralph Lauren", "Moncler", "Stone Island", "Lacoste", "Acne Studios", "Ami", "Burberry", "Golden Goose", "Loro Piana", "Arc'teryx",
@@ -747,6 +753,7 @@ const STYLE_HUBS = {
     faq: [["What is Stockholm style?", "The clean Scandinavian take on old money: Ralph Lauren cable knits and quarter-zips, Moncler gilets, Stone Island, Acne Studios basics, straight jeans and white leather sneakers. Neutral colours, small logos, good fit."],
           ["What should I buy first?", "A cable-knit or half-zip in navy, grey or cream, a quilted gilet and a pair of clean sneakers cover most outfits. Knitwear is light, so it is cheap to ship."],
           ["Do these finds fit like the real thing?", "Rep knitwear often runs a size small. Compare the listing's measurements with a sweater you own, and check the QC photos before you ship."],
+          CNFANS_FAQ,
           ["Is the spreadsheet free?", "Yes. You pay your agent for the item and shipping only. Links may be affiliate links."]] },
   grisch: { name: "Grisch", h: "Grisch Spreadsheet",
     brands: ["Ralph Lauren", "Moncler", "Lacoste", "Burberry", "Loro Piana", "Brunello Cucinelli", "Golden Goose", "Stone Island", "Jacob Cohen",
@@ -757,7 +764,19 @@ const STYLE_HUBS = {
     faq: [["What does grisch mean?", "Grisch is Scandinavian slang for the preppy old money look: Ralph Lauren polos and knits, Moncler, Loro Piana loafers, Lacoste, a good watch and Golden Goose or clean leather sneakers."],
           ["What are the hardest grisch pieces?", "Ralph Lauren cable knits and quarter-zips, Moncler gilets and puffers, Loro Piana suede loafers, Burberry check scarves and Golden Goose sneakers are the core of the look."],
           ["How do I order grisch reps?", "Open a find, tap the buy button for your agent (MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo), pick your size and pay. Check the QC photos at the warehouse before you ship."],
+          CNFANS_FAQ,
           ["Is the spreadsheet free?", "Yes. You pay your agent for the item and shipping only. Links may be affiliate links."]] },
+};
+// Agent x style pages (22 Oct 2026): Google suggests "kakobuy spreadsheet grisch", "oopbuy spreadsheet grisch", "kakobuy
+// spreadsheet old money", "old money spreadsheet sugargoo", "kakobuy spreadsheet shoes". Each is the style's finds with
+// the buy button locked to that agent. Only the agents with agent x brand pages (AGENT_BRAND_AGENTS).
+const AGENT_STYLES = {
+  grisch: { name: "Grisch", brands: () => STYLE_HUBS.grisch.brands, parent: ["Grisch spreadsheet", "/grisch-spreadsheet"],
+    first: "Ralph Lauren cable knits and quarter-zips, a Moncler gilet, Loro Piana style suede loafers and Golden Goose or clean leather sneakers are the core of the look." },
+  "old-money": { name: "Old Money", brands: () => OLD_MONEY.brands, parent: ["Old money spreadsheet", "/old-money"],
+    first: "A cable knit or quarter-zip in navy, grey or cream, a quilted gilet, straight trousers and clean leather sneakers or loafers cover most old money outfits." },
+  shoes: { name: "Shoes", cat: "Shoes", parent: ["Sneakers and shoes", "/category/sneakers"],
+    first: "Compare the size chart on the listing with a pair you own, in centimetres. Many rep sneakers fit a little small, so ask the seller through your agent if you are between sizes." },
 };
 
 export function hubSpec(path) {
@@ -768,11 +787,43 @@ export function hubSpec(path) {
     const st = STYLE_HUBS[m[1]], have = st.brands.filter(b => byBrand.has(b));
     const n = nf(have.reduce((t, b) => t + byBrand.get(b).length, 0));
     const other = Object.entries(STYLE_HUBS).filter(([k]) => k !== m[1]).map(([k, v]) => [`${v.h}`, `/${k}-spreadsheet`]);
-    return { path, preset: { brands: have.map(b => brandSlug.get(b)) }, h: st.h, sub: st.sub(n), title: st.title(n), desc: st.desc(n),
+    return { path, preset: { brands: have.map(b => slug(b)) }, h: st.h, sub: st.sub(n), title: st.title(n), desc: st.desc(n),
       crumbs: [["Home", "/"], ["Old money", "/old-money"], [st.h, path]],
-      chips: [[`Brands in the ${st.name.toLowerCase()} look`, have.map(b => [`${b} reps`, `/brand/${brandSlug.get(b)}`])],
+      chips: [[`Brands in the ${st.name.toLowerCase()} look`, have.filter(b => brandSlug.has(b)).map(b => [`${b} reps`, `/brand/${brandSlug.get(b)}`])],
+              ...(m[1] === "grisch" ? [["Grisch on your agent", AGENT_BRAND_AGENTS.map(k => [AGENTS[k].name, `/${k}-spreadsheet/grisch`])]] : []),
               ["More old money", other.concat([["Old money spreadsheet", "/old-money"], ["MyCNBox spreadsheet", "/mycnbox-spreadsheet"]])]],
       faq: st.faq };
+  }
+  if (path === "/cnfans-spreadsheet") {
+    const N = nf(all.length);
+    return { path, preset: {}, h: "CNFans Spreadsheet",
+      sub: `CNFans showed a maintenance notice when we checked on ${CNFANS.checked}. All ${N} finds here open in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo.`,
+      title: `CNFans Spreadsheet 2026: ${N} Finds for Working Agents | Puro Classico`,
+      desc: `CNFans showed a maintenance notice on ${CNFANS.checked}. ${N} rep finds with prices, QC photos and one-tap MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo links, plus a converter for old CNFans links.`,
+      crumbs: [["Home", "/"], ["CNFans spreadsheet", path]],
+      chips: [["Use your old CNFans links", [["Link converter", "/tools/link-converter"], ["Agents that closed or paused", "/guides/pandabuy-alternatives"]]],
+              ["Agent spreadsheets that open every find", Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])],
+              ["Spreadsheets by style", [["Grisch spreadsheet", "/grisch-spreadsheet"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Old money spreadsheet", "/old-money"]]]],
+      faq: [["Is CNFans down?", `When we checked cnfans.com on ${CNFANS.checked}, it showed a website maintenance notice instead of the shop. We will update this page when that changes.`],
+            ["Do my old CNFans links still work?", "Paste an old CNFans product link into our link converter. It reads the Weidian, Taobao or 1688 item from the link and opens the same item in another agent."],
+            ["How do I switch from CNFans to another agent?", "Open a find, tap the buy button for the agent you want, create a free account there and pay for the item plus delivery to the warehouse. The seller and the item stay the same; only the agent that buys, checks and ships it changes."],
+            ["Is this the official CNFans spreadsheet?", "No. Puro Classico is an independent spreadsheet and is not affiliated with CNFans. Links to other agents may be affiliate links."]] };
+  }
+  if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|sugargoo)-spreadsheet\/(grisch|old-money|shoes)$/))) {
+    const key = m[1], s = m[2], a = AGENTS[key], st = AGENT_STYLES[s];
+    const have = st.brands ? st.brands().filter(b => byBrand.has(b)) : null;
+    const n = nf(have ? have.reduce((t, b) => t + byBrand.get(b).length, 0) : (byCat.get(st.cat) || []).length);
+    const low = s === "shoes" ? "shoe" : st.name.toLowerCase();
+    return { path, preset: have ? { agent: key, brands: have.map(b => slug(b)) } : { agent: key, cat: st.cat },
+      h: `${st.name} on ${a.name}`, sub: `${n} ${low} finds with one-tap ${a.name} links.`,
+      title: `${st.name} ${a.name} Spreadsheet 2026: ${n} Finds | Puro Classico`,
+      desc: `The ${low} ${a.name} spreadsheet: ${n} rep finds with prices, QC photos and one-tap ${a.name} buy links.`,
+      crumbs: [["Home", "/"], [`${a.name} spreadsheet`, `/${key}-spreadsheet`], [st.name, path]],
+      chips: [[`${st.name} on other agents`, AGENT_BRAND_AGENTS.filter(k => k !== key).map(k => [AGENTS[k].name, `/${k}-spreadsheet/${s}`]).concat([st.parent])],
+              [`More on ${a.name}`, Object.keys(AGENT_STYLES).filter(x => x !== s).map(x => [AGENT_STYLES[x].name, `/${key}-spreadsheet/${x}`]).concat([[`${a.name} spreadsheet`, `/${key}-spreadsheet`]])]],
+      faq: [[`How do I order ${low} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the ${a.name} warehouse. Check the QC photos there, then ship your parcel.`],
+            [s === "shoes" ? `How do I get the right size on ${a.name}?` : "What should I buy first?", st.first],
+            ["Is the spreadsheet free?", `Yes. You only pay ${a.name} for what you order and for shipping. Links may be affiliate links.`]] };
   }
   if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet$/))) {
     const key = m[1], a = AGENTS[key], meta = AGENT_INTRO[key]; if (!a || !meta) return null;
@@ -780,8 +831,9 @@ export function hubSpec(path) {
     return { path, preset: { agent: key }, h: `${a.name} Spreadsheet`, sub: `${N} finds, each with a one-tap ${a.name} buy button.`,
       title: `${meta.title}: ${N} Finds | Puro Classico`, desc: `The ${a.name} spreadsheet: ${N} rep finds with prices, QC photos and one-tap ${a.name} links. Search, filter and buy in one place.`,
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, path]],
-      chips: [[`Popular brands on ${a.name}`, brands.slice(0, 16).map(b => [b, `${path}/${brandSlug.get(b)}`])],
-              ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])]],
+      chips: [...(AGENT_BRAND_AGENTS.includes(key) ? [[`Styles on ${a.name}`, Object.keys(AGENT_STYLES).map(x => [AGENT_STYLES[x].name, `${path}/${x}`])]] : []),
+              [`Popular brands on ${a.name}`, brands.slice(0, 16).map(b => [b, `${path}/${brandSlug.get(b)}`])],
+              ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"]])]],
       faq: [[`What is the ${a.name} spreadsheet?`, `A searchable list of ${N} Weidian, Taobao and 1688 finds. Every find opens directly in ${a.name}, so there is nothing to copy or translate.`],
             [`How do I order with ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the warehouse. Check the QC photos, then ship your parcel.`],
             [`Is it free?`, `Yes. You only pay ${a.name} for what you order and for shipping. Links may be affiliate links.`]] };
@@ -845,9 +897,9 @@ export const APP_CARDS = PER_PAGE;
 export function hubList(spec) {
   const { all, byBrand, byCat, slugBrand } = idx();
   const pr = spec ? spec.preset : {};
-  if (pr.brands) return { list: pr.brands.flatMap(s => byBrand.get(slugBrand.get(s)) || []).sort((a, b) => score(b) - score(a)), base: null };
+  if (pr.brands) { const want = new Set(pr.brands); return { list: [...byBrand].filter(([b]) => want.has(slug(b))).flatMap(([, l]) => l).sort((a, b) => score(b) - score(a)), base: null }; }
   if (pr.brand) return { list: byBrand.get(slugBrand.get(pr.brand)) || [], base: pr.agent ? null : "/brand/" + pr.brand };
-  if (pr.cat) return { list: byCat.get(pr.cat) || [], base: CATS[pr.cat] ? "/category/" + CATS[pr.cat].slug : null };
+  if (pr.cat) return { list: byCat.get(pr.cat) || [], base: !pr.agent && CATS[pr.cat] ? "/category/" + CATS[pr.cat].slug : null };
   return { list: all, base: null };
 }
 // Same markup as card() in index.html (English, USD), plus data-ssr. Image URLs are built the way the app builds them
