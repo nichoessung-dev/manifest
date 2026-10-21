@@ -41,6 +41,34 @@ export async function onRequest(ctx) {
   return out;
 }
 
+// Google reads only the first 2 MB of a page, counted uncompressed (developers.google.com/search/docs/crawling-indexing/googlebot).
+// index.html carries the whole catalogue inline (about 3 MB), so the app code after it was never seen. The repo keeps the
+// inline catalogue (the catalogue scripts read and write it there), but visitors and crawlers get the page without it plus
+// one <script src="/catalog.js?v=..."> in its place (21 Oct 2026). The version is index.html's ETag, so a new catalogue
+// gets a new URL and browsers can cache the old one for a year.
+const CATALOG_TAG = '<script type="application/json" id="pc-catalog">';
+const etagOf = r => (r.headers.get("etag") || "x").replace(/[^A-Za-z0-9]/g, "").slice(0, 32);
+const slimHtml = (res, ver) => new HTMLRewriter()
+  .on("script#pc-catalog", { element(e) { e.replace(`<script src="/catalog.js?v=${ver}"></script>`, { html: true }); } })
+  .transform(res);
+
+async function catalogJs(ctx, url) {
+  const asset = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "GET" }));
+  if (!asset.ok) return new Response("/* catalogue unavailable */", { status: 502, headers: { "content-type": "application/javascript; charset=utf-8", "cache-control": "no-store" } });
+  const ver = etagOf(asset);
+  const cc = url.searchParams.get("v") === ver ? "public, max-age=31536000, immutable" : "public, max-age=300";
+  const key = new Request(`https://ssr-cache.internal/catalog/${ver}`, { method: "GET" });
+  const hit = await caches.default.match(key);
+  if (hit) { const r = new Response(hit.body, hit); r.headers.set("cache-control", cc); return r; }
+  const html = await asset.text();
+  const a = html.indexOf(CATALOG_TAG), b = a < 0 ? -1 : html.indexOf("</script>", a);
+  if (a < 0 || b < 0) return new Response("/* catalogue not found */", { status: 500, headers: { "content-type": "application/javascript; charset=utf-8", "cache-control": "no-store" } });
+  const body = "window.PC_CATALOG=" + html.slice(a + CATALOG_TAG.length, b) + ";";
+  const type = { "content-type": "application/javascript; charset=utf-8" };
+  ctx.waitUntil(caches.default.put(key, new Response(body, { headers: { ...type, "cache-control": "public, max-age=31536000" } })).catch(() => {}));
+  return new Response(body, { headers: { ...type, "cache-control": cc } });
+}
+
 async function route(ctx) {
   const { request } = ctx;
   if (request.method !== "GET" && request.method !== "HEAD") return ctx.next();
@@ -48,6 +76,7 @@ async function route(ctx) {
   const path = url.pathname;
   // The old pages.dev address still resolves: send everything to the real domain so traffic and ranking are not split.
   if (url.hostname === PAGES_DEV) return Response.redirect("https://www.puroclassico.com" + path + url.search, 301);
+  if (path === "/catalog.js") return catalogJs(ctx, url);
   // Search-engine ownership files, answered here so Pages' ".html -> pretty URL" redirect can't get in the way.
   if (VERIFY[path]) return new Response(VERIFY[path], { headers: { "content-type": "text/html; charset=utf-8" } });
   // /discord (any case, with or without a trailing slash) is the one address the site, static pages and emails link to.
@@ -125,6 +154,7 @@ async function route(ctx) {
 
   const out = await ctx.next();
   const ct = out.headers.get("content-type") || "";
+  if ((path === "/" || path === "/index.html") && out.status === 200 && ct.includes("text/html")) return slimHtml(out, etagOf(out));
   if (out.status === 200 && ct.includes("text/html") && !STATIC_HTML.has(path) && !/^\/google[0-9a-f]+\.html$/.test(path)) return notFound(path);
   return out;
 }
@@ -156,6 +186,7 @@ async function hubApp(ctx, url, spec) {
     .on('meta[property="og:url"]', content(canon))
     .on('link[rel="canonical"]', { element(e) { e.setAttribute("href", canon); } })
     .on('script[type="application/ld+json"]', { element(e) { e.remove(); } })
+    .on("script#pc-catalog", { element(e) { e.replace(`<script src="/catalog.js?v=${etagOf(asset)}"></script>`, { html: true }); } })
     .on("meta[charset]", { element(e) { e.after(head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
     .on("h1.hero-h", { element(e) { e.setInnerContent(spec.h); e.before(crumbHtml, { html: true }); } })
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
