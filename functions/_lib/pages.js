@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w8";
+export const PRODUCT_TPL = "w9";
 async function qcThumbs(origin, p) {
   if (p.qc < 1) return [];
   try {
@@ -81,8 +81,11 @@ export async function renderProduct(id, origin) {
   const tName = dup ? `${p.title} (${plat}, ${money(p.cny)})` : p.title;
   // p.qc >= 1 is a flag from import ("QC photos exist for this listing"); the photos themselves come from a live
   // lookup that can fail. So title, description and text may say photos are on record, never that this page shows them.
-  const desc = `${p.title} rep ${isPH(p.cny) ? "(ask the seller for the price)" : `for about ${money(p.cny)} (¥${p.cny})`} on ${plat}` + (dup && realSeller ? ` from seller ${realSeller}` : "") +
-    (p.qc ? ", a listing with buyer QC photos on record" : "") + `. Open it on MyCNBox, KakoBuy, Oopbuy or any shopping agent.`;
+  // Google cuts descriptions at ~160 characters (SEO pass, 21 Oct 2026): use the long ending only when it fits.
+  const dHead = `${p.title} rep ${isPH(p.cny) ? "(ask the seller for the price)" : `for about ${money(p.cny)} (¥${p.cny})`} on ${plat}` + (dup && realSeller ? ` from seller ${realSeller}` : "");
+  const desc = [dHead + (p.qc ? ", a listing with buyer QC photos on record" : "") + `. Open it on MyCNBox, KakoBuy, Oopbuy or any shopping agent.`,
+                dHead + (p.qc ? ", QC photos on record" : "") + `. Buy via MyCNBox or any agent.`,
+                dHead + "."].find(x => x.length <= 160) || dHead + ".";
   const sameBrand = bUrl ? (byBrand.get(p.brand) || []).filter(x => x.id !== p.id).slice(0, 8) : [];
   const sameCat = (byCat.get(p.cat) || []).filter(x => x.id !== p.id && x.brand !== p.brand).slice(0, 8);
   const about = `<p>The <strong>${esc(p.title)}</strong> is ${/^[aeiou]/.test(catLc) ? "an" : "a"} ${esc(catLc)} find${p.brand ? ` in the ${esc(p.brand)} style` : ""} listed on ${plat}` +
@@ -114,7 +117,10 @@ ${sameBrand.length ? `<h2>More ${esc(p.brand)} finds</h2>${grid(sameBrand)}<p><a
 ${sameCat.length ? `<h2>Similar ${esc((cat.name || p.cat).toLowerCase())}</h2>${grid(sameCat)}${cUrl ? `<p><a href="${cUrl}" style="color:var(--accent)">All ${esc((cat.name || p.cat).toLowerCase())} →</a></p>` : ""}` : ""}`;
   const pageLd = { "@context": "https://schema.org", "@type": "ItemPage", name: p.title, url: SITE + productUrl(p), description: desc,
     primaryImageOfPage: src ? { "@type": "ImageObject", contentUrl: src } : undefined, isPartOf: { "@type": "WebSite", name: "Puro Classico", url: SITE + "/" } };
-  const res = page({ title: `${tName} Rep: ${p.qc ? "Price, QC & Agent Links" : "Price & Where to Buy"} · Puro Classico`, desc, path: productUrl(p), body,
+  // Google shows ~60-65 characters of a title (SEO pass, 21 Oct 2026): drop the least useful part first.
+  const tMid = p.qc ? "Price, QC & Agent Links" : "Price & Where to Buy";
+  const title = [`${tName} Rep: ${tMid} | Puro Classico`, `${tName} Rep: ${tMid}`, `${tName} Rep | Puro Classico`].find(x => x.length <= 65) || `${tName} Rep`;
+  const res = page({ title, desc, path: productUrl(p), body,
     jsonld: [bc.data, pageLd], image: src || undefined, robots: indexable(p) ? "index,follow,max-image-preview:large" : "noindex,follow" });
   if (p.qc >= 1 && !qcs.length) res.headers.set("x-qc-miss", "1");   // QC lookup failed/timed out: product/[id].js caches this render only briefly
   return res;
