@@ -185,7 +185,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "2";
+export const DS_VER = "3";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],

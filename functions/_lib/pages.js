@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w9";
+export const PRODUCT_TPL = "w10";
 async function qcThumbs(origin, p) {
   if (p.qc < 1) return [];
   try {
