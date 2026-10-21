@@ -40,7 +40,7 @@ def embed(pid, p):
     desc = (line + "\n" if line else "") + ("**${:.2f}**".format(float(usd)) if usd else "")
     return {
         "title": (p.get("title") or brand or "New find")[:250],
-        "url": "%s/product/%s" % (SITE, pid),
+        "url": "%s/product/%s?utm_source=discord&utm_campaign=drop" % (SITE, pid),
         "description": desc,
         "color": NAVY,
         "image": {"url": p.get("img") or ""},

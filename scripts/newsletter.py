@@ -180,7 +180,7 @@ def email_img(pid, src):
 
 def card(pid, p):
     img = esc(email_img(pid, p.get("img")) if p.get("img") else "")
-    url = SITE + "/product/" + urllib.parse.quote(pid)
+    url = SITE + "/product/" + urllib.parse.quote(pid) + "?utm_source=email"   # track.js counts buy clicks from these visits as ~email
     imgtag = ('<img src="%s" width="228" height="228" alt="%s" style="width:228px;max-width:100%%;height:auto;background:#f7f7f8;border-radius:12px;display:block;border:0;">' % (img, esc(p.get("title") or ""))) if img else ""
     return ('<td width="50%%" style="padding:8px;vertical-align:top;">'
             '<a href="%s" style="text-decoration:none;color:inherit;display:block;">%s'

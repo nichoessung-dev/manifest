@@ -5,7 +5,7 @@ Used by the site's "Most popular" sort (ranks by real recent views) and the /adm
 Runs in GitHub Actions (.github/workflows/stats.yml) with the SUPABASE_SERVICE_KEY secret.
 Only aggregate counts are written -- no user ids or personal data.
 """
-import datetime, json, os, urllib.request, collections
+import datetime, json, os, re, urllib.request, collections
 
 SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co"
 KEY = os.environ["SUPABASE_SERVICE_KEY"]
@@ -76,22 +76,43 @@ def link_reports():
     return sorted([[pid, n, (last or "")[:10]] for pid, (n, last) in agg.items()], key=lambda x: (-x[1], x[2]))[:200]
 
 
+def page_kind(path):
+    """Which kind of page a buy click came from (buy_clicks.page holds the path)."""
+    p = path or ""
+    if p.startswith("/product/"): return "product page"
+    if p in ("", "/"): return "homepage"
+    if re.match(r"^/[a-z]+-spreadsheet(/|$)", p): return "agent and style hubs"
+    if re.match(r"^/(brand|category|best|old-money|brands)(/|$)", p): return "brand and category hubs"
+    if p.startswith("/links"): return "links page"
+    if p.startswith(("/guides", "/tools", "/how-to-order")): return "guides and tools"
+    return "other"
+
 def buy_clicks():
     """"Buy" clicks on agent links (table buy_clicks, written by functions/api/click.js): last 30 days by agent, country,
-    day and item. Counts only; the table holds no ids or addresses. Empty until scripts/buy_clicks.sql has been run."""
+    day, item, page kind and visit source. Counts only; the table holds no ids or addresses. Member referral codes are
+    counted as "member", never published (this file is public). Sign-up links (no item) are kept apart from item clicks."""
     now = datetime.datetime.now(datetime.timezone.utc); since = (now - datetime.timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    try: rows = fetch_all("buy_clicks?select=created_at,agent,item_id,country,ref&created_at=gte." + since + "&order=created_at.asc")
+    try: rows = fetch_all("buy_clicks?select=created_at,agent,item_id,country,ref,page&created_at=gte." + since + "&order=created_at.asc")
     except Exception as e: print("buy clicks not read:", str(e)[:80]); return {}
-    ag, co, dy, it, rf = collections.Counter(), collections.Counter(), collections.Counter(), collections.Counter(), collections.Counter()
+    ag, co, dy, it, pg, src = (collections.Counter() for _ in range(6))
+    kinds = collections.defaultdict(lambda: [0, 0])                  # agent -> [item clicks, sign-up link clicks]
+    dy_item, dy_signup = collections.Counter(), collections.Counter()
     for r in rows:
         t = parse_ts(r.get("created_at"))
         if not t: continue
-        ag[r.get("agent") or "?"] += 1; co[r.get("country") or "??"] += 1; dy[t.date().isoformat()] += 1
-        if r.get("item_id"): it[r["item_id"]] += 1
-        if r.get("ref"): rf[r["ref"]] += 1
+        a = r.get("agent") or "?"; d = t.date().isoformat(); is_item = bool(r.get("item_id"))
+        ag[a] += 1; co[r.get("country") or "??"] += 1; dy[d] += 1
+        kinds[a][0 if is_item else 1] += 1; (dy_item if is_item else dy_signup)[d] += 1
+        if is_item: it[r["item_id"]] += 1
+        pg[page_kind(r.get("page"))] += 1
+        ref = r.get("ref") or ""
+        src[ref[1:].split(".")[0] if ref.startswith("~") else ("member" if ref else "not recorded")] += 1
     days = [(now - datetime.timedelta(days=k)).date().isoformat() for k in range(29, -1, -1)]
     return {"total": len(rows), "agents": ag.most_common(), "countries": co.most_common(25), "days": days,
-            "per_day": [dy.get(d, 0) for d in days], "items": it.most_common(20), "refs": rf.most_common(10)}
+            "per_day": [dy.get(d, 0) for d in days], "items": it.most_common(20),
+            "kinds": {a: {"item": v[0], "signup": v[1]} for a, v in kinds.items()},
+            "per_day_item": [dy_item.get(d, 0) for d in days], "per_day_signup": [dy_signup.get(d, 0) for d in days],
+            "pages": pg.most_common(), "sources": src.most_common(15)}
 
 
 def dashboard():

@@ -41,7 +41,7 @@ def caption(pid, p):
     return "\n".join(parts)
 
 def post(pid, p):
-    url = "%s/product/%s" % (SITE, urllib.parse.quote(pid))
+    url = "%s/product/%s?utm_source=telegram&utm_campaign=drop" % (SITE, urllib.parse.quote(pid))
     payload = {
         "chat_id": CHAT,
         "photo": p.get("img"),

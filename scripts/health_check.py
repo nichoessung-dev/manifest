@@ -102,6 +102,17 @@ def cnfans():
     if "aintenance" in title: return "OK", "CNFans still shows its maintenance page"
     return "WARN", 'CNFans title is now "%s": update CNFANS in functions/_lib/pages.js and the /cnfans-spreadsheet copy' % title[:60]
 
+def buy_clicks():
+    """Buy-click tracking (track.js -> /api/click -> Supabase, counted by the Stats job into dashboard.json)."""
+    b = json.loads(req(SITE + "/data/dashboard.json")[2]).get("buy_clicks") or {}
+    days = b.get("per_day") or []
+    if len(days) < 9 or not b.get("total"): return "WARN", "not enough buy-click days yet"
+    yday, week = days[-2], sorted(x for x in days[-9:-2] if x > 0)   # days before tracking started (18 Oct 2026) don't count
+    med = week[len(week) // 2] if week else 0
+    if yday == 0: return "FAIL", "no buy clicks recorded yesterday: tracking is probably broken (track.js, /api/click or the Stats job)"
+    if med and yday < 0.3 * med: return "WARN", "%d buy clicks yesterday, under 30%% of the usual %d a day" % (yday, med)
+    return "OK", "%d buy clicks yesterday" % yday + (" (usual %d a day)" % med if med else "")
+
 def data_age():
     bad = []
     st = json.loads(req(SITE + "/data/stats.json")[2]); lh = json.loads(req(SITE + "/data/link_health.json")[2])
@@ -129,6 +140,7 @@ check("QC photo quota", qc_quota)
 check("Postiz API", postiz)
 check("CNFans status", cnfans)
 check("Data freshness", data_age)
+check("Buy clicks", buy_clicks)
 check("Welcome emails", welcome)
 
 summary = os.environ.get("GITHUB_STEP_SUMMARY")
