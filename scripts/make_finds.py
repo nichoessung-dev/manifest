@@ -390,7 +390,7 @@ def pick_pairs(ims, n, rnd):
         if BEST and sharp: s += min(sharp.get(id(x), 0), sharp.get(id(y), 0)) / 4000.0
         return s
     left, pairs = list(ims), []
-    for need in (14, 10, 3, 0):                                 # same item and brand, same item, same kind, anything
+    for need in ((14, 10, 9) if BEST else (14, 10, 3, 0)):     # same item and brand, same item, (best mode stops there) same kind, anything
         k = 0
         while k < len(left) and len(pairs) < n:
             x = left[k]; best = max(left[k + 1:], key=lambda y: score(x, y), default=None)
@@ -461,7 +461,7 @@ def main():
         ims = ims[:need]; rnd.shuffle(ims); cover = [ims.pop()] if a.qc_cover else []
     else:
         ims, rest = pick_pairs(ims, a.slides, rnd); cover = rest[:1] if a.qc_cover else []
-        if len(ims) < a.slides * 2: raise SystemExit("could not make %d slides" % a.slides)
+        if len(ims) < (10 if BEST else a.slides * 2): raise SystemExit("could not make %d slides" % a.slides)   # best mode: fewer, only matching slides, at least 5
     picked = sorted({pid for pid, _ in ims + cover}); qc_bg = cover[0][1] if cover else None
     part = a.part or int(used.get("part", 0)) + 1
     title = a.title or COVER_TEXT                               # the cover always says the same; the caption hook and tags vary
