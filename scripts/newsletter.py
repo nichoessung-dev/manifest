@@ -473,10 +473,20 @@ def run_newsletter(profiles):
         time.sleep(0.35)
     print("newsletter %s: %d" % ("would send (dry run)" if os.environ.get("DRY_RUN") else "sent", sent))
 
+def load_gone():
+    """Finds the weekly link check found removed or sold out (data/link_health.json): never sent as "still in the catalogue"."""
+    try:
+        req = urllib.request.Request(SITE + "/data/link_health.json", headers={"User-Agent": "Mozilla/5.0"})
+        h = json.loads(urllib.request.urlopen(req, timeout=40).read().decode())
+        return set(map(str, (h.get("dead") or []) + (h.get("sold_out") or [])))
+    except Exception as e:
+        print("link check not readable:", hide(e)); return set()
+
 def run_saved(profiles):
     """Weekly nudge: 'you saved this' for members who starred something in the last SAVED_DAYS days (each save is mentioned once)."""
     days = int(os.environ.get("SAVED_DAYS", "7"))
     prod, _ = load_products()
+    gone = load_gone()
     try: favs = sb_all("favorites?select=user_id,product_id,created_at&created_at=gte.%s&order=created_at.desc,user_id,product_id" % since(days + 1))
     except Exception as e: print("favorites have no created_at to go by - nothing sent:", e); return
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
@@ -484,7 +494,7 @@ def run_saved(profiles):
     for f in favs:
         try: fresh = datetime.fromisoformat((f.get("created_at") or "").replace("Z", "+00:00")) >= cutoff
         except Exception: fresh = False
-        if fresh and f["product_id"] in prod: recent.setdefault(f["user_id"], []).append(f["product_id"])
+        if fresh and f["product_id"] in prod and f["product_id"] not in gone: recent.setdefault(f["user_id"], []).append(f["product_id"])
     due = [pr for pr in profiles if pr.get("email") and recent.get(pr["id"]) and not welcomed_lately(pr)]
     cap = slots("saved") if due else 0
     sent = fails = 0
@@ -496,7 +506,7 @@ def run_saved(profiles):
         subject = "Still thinking about the %s?" % (first.get("title") or "find you saved")[:60]
         body = ('<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#333;">You saved %s this week. %s still in the catalogue, one tap from your agent:</p>' %
                 ("this" if len(recs) == 1 else "these", "It is" if len(recs) == 1 else "They are")) + grid(recs)
-        body += ('<div style="text-align:center;margin-top:22px;"><a href="%s" style="display:inline-block;padding:12px 30px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">See your saved finds</a></div>' % SITE)
+        body += ('<div style="text-align:center;margin-top:22px;"><a href="%s" style="display:inline-block;padding:12px 30px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">See your saved finds</a></div>' % (SITE + "/?saved=1"))
         if os.environ.get("DRY_RUN"): print("DRY saved | %s | %d items" % (subject, len(recs))); sent += 1; continue
         ok, msg = brevo_send(email, subject, wrap(body, unsub_url(uid)), unsub_url(uid), "saved")
         if ok: sent += 1; fails = 0
@@ -504,7 +514,7 @@ def run_saved(profiles):
             print("FAIL saved:", hide(msg)); fails += 1
             if fails >= 5: print("stopping: 5 sends in a row failed (daily cap reached?)"); break
         time.sleep(0.35)
-    print("saved-finds emails sent:", sent)
+    print("saved-finds emails %s: %d" % ("would send (dry run)" if os.environ.get("DRY_RUN") else "sent", sent))
 
 def run_sync(profiles):
     """Mirror members into Brevo contacts so opens and clicks show per person there. Nothing is blocked here: who gets marketing email is still decided by marketing_opt_in."""
