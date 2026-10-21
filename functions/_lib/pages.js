@@ -1,5 +1,5 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
-import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, rawImg, productUrl, brandUrl, catUrl,
+import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, GUIDE_LINKS, TOOL_LINKS } from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
 import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS } from "./content2.js";
@@ -794,13 +794,13 @@ export function hubList(spec) {
   if (pr.cat) return { list: byCat.get(pr.cat) || [], base: CATS[pr.cat] ? "/category/" + CATS[pr.cat].slug : null };
   return { list: all, base: null };
 }
-// Same markup as card() in index.html (English, USD), plus data-ssr. Image URLs are the catalogue's own (rawImg), so the
-// app's cards reuse the images the browser already has.
+// Same markup as card() in index.html (English, USD), plus data-ssr. Image URLs are built the way the app builds them
+// (imgSrc: Supabase photos through SITE/api/img), so the app's cards reuse the images the browser already has.
 const HEART = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></svg>`;
 const appAlt = p => { const t = p.title || "", b = p.brand || ""; return (b && !t.toLowerCase().startsWith(b.toLowerCase()) ? b + " " : "") + t + " rep"; };
 export function appCards(list) {
   return list.map((p, i) => {
-    const img = rawImg(p), id = esc(p.id);
+    const img = imgSrc(p), id = esc(p.id);
     return `<div class="card" tabindex="0" role="button" data-ssr="${id}"><div class="thumb"><canvas aria-hidden="true"></canvas>` +
       (img ? `<img class="pimg" src="${esc(img)}" alt="${esc(appAlt(p))}" loading="${i < 8 ? "eager" : "lazy"}"${i < 4 ? ' fetchpriority="high"' : ""} decoding="async" onerror="this.remove()">` : "") +
       `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save">${HEART}</button>${p.qc >= 2 ? '<span class="qc-badge">\u{1F4F7} QC</span>' : ""}</div>` +
