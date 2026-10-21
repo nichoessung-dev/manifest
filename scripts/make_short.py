@@ -1138,7 +1138,7 @@ def fmt_relatable(D, a):
     return sc, [pid], "%s 😅 %s — %s on puroclassico.com. Join the China side (link in bio)" % (f(t1).strip('"'), p.get("title"), usd(p)), p, {"rel": n + 1}
 
 def fmt_story(D, a):
-    try: stories = json.load(open(os.path.join(ROOT, "scripts", "stories.json"), encoding="utf-8"))
+    try: stories = json.load(open(os.environ.get("STORIES_FILE", "").strip() or os.path.join(ROOT, "scripts", "stories.json"), encoding="utf-8"))
     except Exception as e: print("no stories.json:", e); return None
     pool = [x for x in stories if x.get("approved")] or stories      # only stories the owner approved go out
     n = int(D.state.get("story", 0)) % len(pool); st = next((x for x in stories if x["id"] == a.id), pool[n]) if a.id else pool[n]
@@ -1155,7 +1155,7 @@ def fmt_story(D, a):
     for k, b in enumerate(beats):
         if shots[k]: sc.append(dict(dur=3.6, say=b["say"], bg=shots[k][:2] if len(shots[k]) > 2 and spare else shots[k], news=True, gfx=b.get("gfx")))
     sc.append(dict(dur=3.6, say="Want to see what's on the China side? The spreadsheet is in the bio. Join the China side!", bg=outro or spare or shots[-1], news=True, last=True, presenter=True))
-    cap = "%s 👀 Follow for more. The spreadsheet is in the bio — join the China side." % st["hook"].strip()
+    cap = "%s 👀 Follow for more. The spreadsheet is in the bio, join the China side." % st["hook"].strip()
     return sc, [], cap, p, {"story": n + 1}
 
 def cutout(im):
@@ -1679,7 +1679,8 @@ def render(scenes, out_path):
         style = any(s.get("word") for s in scenes)
         lib = glob.glob(os.path.join(ROOT, "scripts", "music", "*.mp3"))
         own = next((s.get("music") for s in scenes if s.get("music")), None); own = drive_file(own, "mp3") if own else None
-        music = (own or (random.choice(lib) if lib else None)) if style else (music_track(os.path.dirname(out_path), None) if any(s.get("news") for s in scenes) else None)
+        news_own = os.environ.get("SHORTS_STORY_MUSIC", "").strip()                 # a Drive id: news videos reuse that track (nothing generated)
+        music = (own or (random.choice(lib) if lib else None)) if style else ((drive_file(news_own, "mp3") if news_own else music_track(os.path.dirname(out_path), None)) if any(s.get("news") for s in scenes) else None)
         if style: print("  music:", os.path.basename(music) if music else "none yet (waiting for the owner's tracks in scripts/music/)")
         if style: load_sfx(os.path.dirname(out_path), any(s.get("legacy") for s in scenes))
         sfx = sfx_track(scenes, os.path.join(tmp, "sfx.wav")) if style else None
@@ -1771,7 +1772,14 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--voice-samples", action="store_true"); ap.add_argument("--make-presenters", action="store_true"); ap.add_argument("--presenter", type=int, default=0)
     ap.add_argument("--format", default="auto", choices=["auto"] + FORMATS); ap.add_argument("--id"); ap.add_argument("--slot", type=int)
     ap.add_argument("--out", default=os.path.join(ROOT, "out")); ap.add_argument("--commit-state", action="store_true")
-    a = ap.parse_args(); a.id = (a.id or "").strip() or None; os.makedirs(a.out, exist_ok=True)
+    ap.add_argument("--credits", action="store_true", help="print the ElevenLabs characters used and the limit, then stop")
+    a = ap.parse_args(); a.id = (a.id or "").strip() or None
+    if a.credits:
+        key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
+        if not key: raise SystemExit("no ELEVENLABS_API_KEY")
+        sub = json.loads(fetch("https://api.elevenlabs.io/v1/user/subscription", 30, None, {"xi-api-key": key}))
+        print(json.dumps({k: sub.get(k) for k in ("tier", "character_count", "character_limit", "next_character_count_reset_unix", "status")})); return sub
+    os.makedirs(a.out, exist_ok=True)
     if a.voice_samples: return voice_samples(a.out)
     if a.make_presenters: return make_presenters(a.out)
     D = Data(); n = a.slot if a.slot is not None else int(D.state.get("n", 0))
@@ -1783,7 +1791,8 @@ def main():
         print("format", f, "not possible right now, trying the next one")
     scenes, ids, caption, p = built[:4]; extra = built[4] if len(built) > 4 else {}
     tagb = "".join(ch for ch in (p.get("brand") or "") if ch.isalnum()).lower()
-    caption += "\n\n#fashion #finds #outfitinspo #haul #mycnbox" + ((" #" + tagb) if tagb and fmt in ("spotlight", "guess", "qc") else "")
+    fixed = os.environ.get("SHORTS_HASHTAGS", "").strip()                      # the owner's fixed hashtags replace the default line
+    caption += "\n\n" + fixed if fixed else "\n\n#fashion #finds #outfitinspo #haul #mycnbox" + ((" #" + tagb) if tagb and fmt in ("spotlight", "guess", "qc") else "")
     name = "short-%s-%s" % (fmt, ids[0] if ids else "n%d" % n); out = os.path.join(a.out, name + ".mp4")
     print("rendering", fmt, ids or "", "->", out)
     secs, voiced = render(scenes, out)
