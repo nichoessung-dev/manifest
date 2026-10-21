@@ -13,7 +13,7 @@ One look for every page: calm navy and editorial, like a good fashion shop. The 
 | `--bg` | `#0B1220` navy | `#FAFAF8` | Page background |
 | `--surface` / `--surface-2` | `#111A2E` / `#1A2540` | `#FFF` / `#F1F0EC` | Panels, hover fills |
 | `--ink` / `--ink-2` | `#EEF2F8` / `#CDD5E4` | `#111110` / `#2E2D2A` | Headings / body text |
-| `--muted` / `--faint` | `#9AA6BD` / `#66728A` | `#5E5D59` / `#8A8984` | Secondary text / labels |
+| `--muted` / `--faint` | `#9AA6BD` / `#8490A8` | `#5E5D59` / `#706F6A` | Secondary text / labels (faint was raised on 21 Oct 2026 to pass 4.5:1 contrast) |
 | `--line` / `--line-2` | 8% / 16% white | 9% / 16% black | Dividers / control borders |
 | `--fill` / `--fill-ink` | ink / bg | ink / white | Primary button |
 | `--accent` | `#8EA6DC` soft blue | `#2E4B86` | Small highlights only: link underlines, checkmarks, focus details |
