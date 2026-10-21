@@ -1,6 +1,7 @@
 // Shared server-side rendering for the SEO pages (product pages, hubs, guides, sitemaps, 404).
 // Everything here is plain HTML + a little CSS so Google sees real content without running JS.
 import { ROWS, PREFIX, BUILT } from "./catalog.js";
+import { CHECKED, DEMAND, DEAD, SOLD_OUT } from "./signals.js";
 
 export const SITE = "https://www.puroclassico.com";
 export const MYCNBOX_INVITE = "https://mycnbox.com/login/main-login?inviteCode=AACPYA";
@@ -53,8 +54,12 @@ export const score = p => { const v = VIEWS[p.id] || [0, 0, 0, 0];
 // The same numbers for pages that print them (the "top picks" on brand hubs): [views all time, last 30 days, last 7 days, favourites].
 const NO_VIEWS = [0, 0, 0, 0];
 export const views = p => VIEWS[p.id] || NO_VIEWS;
-// Only products with real QC photos (or hand-curated ones) are indexable; the rest are noindex,follow.
-export const indexable = p => p.qc >= 1 || p.best === 1;
+// Indexable product pages: real QC photos, hand-curated, or finds visitors already look at (DEMAND, see
+// scripts/gen_signals.py), unless the weekly link check found the listing gone. The rest are noindex,follow.
+const DEMAND_SET = new Set(DEMAND), GONE = new Map([...DEAD.map(i => [i, "dead"]), ...SOLD_OUT.map(i => [i, "sold_out"])]);
+export const gone = p => GONE.get(p.id) || null;               // "dead" | "sold_out" | null
+export const LINKS_CHECKED = CHECKED;                          // date of that link check (YYYY-MM-DD)
+export const indexable = p => !GONE.has(p.id) && (p.qc >= 1 || p.best === 1 || DEMAND_SET.has(p.id));
 
 let _idx = null, _idxVer = -1;
 export function idx() {
@@ -185,7 +190,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "4";
+export const DS_VER = "6";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
