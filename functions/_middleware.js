@@ -41,30 +41,42 @@ export async function onRequest(ctx) {
   return out;
 }
 
-// Google reads only the first 2 MB of a page, counted uncompressed (developers.google.com/search/docs/crawling-indexing/googlebot).
+// Googlebot reads only the first 2 MB of each file, counted uncompressed (developers.google.com/search/docs/crawling-indexing/googlebot).
 // index.html carries the whole catalogue inline (about 3 MB), so the app code after it was never seen. The repo keeps the
-// inline catalogue (the catalogue scripts read and write it there), but visitors and crawlers get the page without it plus
-// one <script src="/catalog.js?v=..."> in its place (21 Oct 2026). The version is index.html's ETag, so a new catalogue
-// gets a new URL and browsers can cache the old one for a year.
+// inline catalogue (the catalogue scripts read and write it there), but visitors and crawlers get the page without it and
+// load it as CATALOG_PARTS scripts of about 1 MB each, so no file passes the limit (21 Oct 2026). The version is index.html's ETag, so a new catalogue gets new URLs and browsers can
+// cache the old ones for a year. PC_CATALOG_WANT lets the app notice a part that failed and fetch the whole file instead.
 const CATALOG_TAG = '<script type="application/json" id="pc-catalog">';
+const CATALOG_PARTS = 3;
 const etagOf = r => (r.headers.get("etag") || "x").replace(/[^A-Za-z0-9]/g, "").slice(0, 32);
+const catalogTags = ver => `<script>window.PC_CATALOG_WANT=${CATALOG_PARTS}</script>` +
+  Array.from({ length: CATALOG_PARTS }, (_, i) => `<script src="/catalog.js?v=${ver}&amp;p=${i}"></script>`).join("");
 const slimHtml = (res, ver) => new HTMLRewriter()
-  .on("script#pc-catalog", { element(e) { e.replace(`<script src="/catalog.js?v=${ver}"></script>`, { html: true }); } })
+  .on("script#pc-catalog", { element(e) { e.replace(catalogTags(ver), { html: true }); } })
   .transform(res);
 
 async function catalogJs(ctx, url) {
   const asset = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "GET" }));
   if (!asset.ok) return new Response("/* catalogue unavailable */", { status: 502, headers: { "content-type": "application/javascript; charset=utf-8", "cache-control": "no-store" } });
+  const type = { "content-type": "application/javascript; charset=utf-8" };
+  // ?p=0..CATALOG_PARTS-1 is one part; no p is the whole catalogue (the app's fallback and pages cached before the split).
+  const p = url.searchParams.get("p"), part = p === null ? -1 : Number(p);
+  if (p !== null && !(Number.isInteger(part) && part >= 0 && part < CATALOG_PARTS)) return new Response("/* no such part */", { status: 404, headers: { ...type, "cache-control": "no-store" } });
   const ver = etagOf(asset);
   const cc = url.searchParams.get("v") === ver ? "public, max-age=31536000, immutable" : "public, max-age=300";
-  const key = new Request(`https://ssr-cache.internal/catalog/${ver}`, { method: "GET" });
+  const key = new Request(`https://ssr-cache.internal/catalog/${ver}/${part < 0 ? "all" : part}`, { method: "GET" });
   const hit = await caches.default.match(key);
   if (hit) { const r = new Response(hit.body, hit); r.headers.set("cache-control", cc); return r; }
   const html = await asset.text();
   const a = html.indexOf(CATALOG_TAG), b = a < 0 ? -1 : html.indexOf("</script>", a);
-  if (a < 0 || b < 0) return new Response("/* catalogue not found */", { status: 500, headers: { "content-type": "application/javascript; charset=utf-8", "cache-control": "no-store" } });
-  const body = "window.PC_CATALOG=" + html.slice(a + CATALOG_TAG.length, b) + ";";
-  const type = { "content-type": "application/javascript; charset=utf-8" };
+  if (a < 0 || b < 0) return new Response("/* catalogue not found */", { status: 500, headers: { ...type, "cache-control": "no-store" } });
+  const json = html.slice(a + CATALOG_TAG.length, b);
+  let body = "window.PC_CATALOG=" + json + ";";
+  if (part >= 0) {
+    const all = JSON.parse(json), n = Math.ceil(all.length / CATALOG_PARTS);
+    body = "window.PC_CATALOG=(window.PC_CATALOG||[]).concat(" + JSON.stringify(all.slice(part * n, (part + 1) * n)) +
+      ");window.PC_CATALOG_GOT=(window.PC_CATALOG_GOT||0)+1;";
+  }
   ctx.waitUntil(caches.default.put(key, new Response(body, { headers: { ...type, "cache-control": "public, max-age=31536000" } })).catch(() => {}));
   return new Response(body, { headers: { ...type, "cache-control": cc } });
 }
@@ -186,7 +198,7 @@ async function hubApp(ctx, url, spec) {
     .on('meta[property="og:url"]', content(canon))
     .on('link[rel="canonical"]', { element(e) { e.setAttribute("href", canon); } })
     .on('script[type="application/ld+json"]', { element(e) { e.remove(); } })
-    .on("script#pc-catalog", { element(e) { e.replace(`<script src="/catalog.js?v=${etagOf(asset)}"></script>`, { html: true }); } })
+    .on("script#pc-catalog", { element(e) { e.replace(catalogTags(etagOf(asset)), { html: true }); } })
     .on("meta[charset]", { element(e) { e.after(head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
     .on("h1.hero-h", { element(e) { e.setInnerContent(spec.h); e.before(crumbHtml, { html: true }); } })
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
