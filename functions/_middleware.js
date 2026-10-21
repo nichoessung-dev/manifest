@@ -2,7 +2,7 @@
 // "200 + homepage" for unknown paths into a real 404, so Google doesn't see soft-404 duplicates.
 import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
-  sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, PRODUCT_TPL } from "./_lib/pages.js";
+  sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL } from "./_lib/pages.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
@@ -51,9 +51,30 @@ const CATALOG_PARTS = 3;
 const etagOf = r => (r.headers.get("etag") || "x").replace(/[^A-Za-z0-9]/g, "").slice(0, 32);
 const catalogTags = ver => `<script>window.PC_CATALOG_WANT=${CATALOG_PARTS}</script>` +
   Array.from({ length: CATALOG_PARTS }, (_, i) => `<script src="/catalog.js?v=${ver}&amp;p=${i}"></script>`).join("");
-const slimHtml = (res, ver) => new HTMLRewriter()
+const slimHtml = (res, ver, cards = "") => new HTMLRewriter()
   .on("script#pc-catalog", { element(e) { e.replace(catalogTags(ver), { html: true }); } })
+  .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
   .transform(res);
+
+// data/link_health.json (the weekly link check): when it last ran and which Weidian listings are dead. Kept for 10 minutes.
+let _lh = null, _lhAt = 0;
+async function linkHealth(ctx, origin) {
+  if (_lh && Date.now() - _lhAt < 600000) return _lh;
+  try {
+    const h = await (await ctx.env.ASSETS.fetch(new Request(origin + "/data/link_health.json"))).json();
+    _lh = { checked: h.checked, dead: new Set((h.dead || []).map(String)) }; _lhAt = Date.now();
+  } catch (e) { if (!_lh) _lh = { checked: null, dead: new Set() }; }
+  return _lh;
+}
+// The app's first cards as HTML (see appCards in pages.js), dead listings left out like the app does. Only once the view
+// stats are read, so the order is the app's; without them the grid stays empty and the app fills it as before.
+async function serverCards(ctx, origin, spec) {
+  if (!statsLoaded()) return { cards: "", more: "" };
+  const { list, base } = hubList(spec), { dead } = await linkHealth(ctx, origin);
+  const live = [];
+  for (const p of list) { if (!dead.has(String(p.id))) live.push(p); if (live.length >= APP_CARDS) break; }
+  return { cards: appCards(live), more: spec ? appPager(base, list.length) : "" };
+}
 
 async function catalogJs(ctx, url) {
   const asset = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "GET" }));
@@ -166,7 +187,10 @@ async function route(ctx) {
 
   const out = await ctx.next();
   const ct = out.headers.get("content-type") || "";
-  if ((path === "/" || path === "/index.html") && out.status === 200 && ct.includes("text/html")) return slimHtml(out, etagOf(out));
+  if ((path === "/" || path === "/index.html") && out.status === 200 && ct.includes("text/html")) {
+    await ensureStats(url.origin);
+    return slimHtml(out, etagOf(out), (await serverCards(ctx, url.origin, null)).cards);
+  }
   if (out.status === 200 && ct.includes("text/html") && !STATIC_HTML.has(path) && !/^\/google[0-9a-f]+\.html$/.test(path)) return notFound(path);
   return out;
 }
@@ -181,14 +205,15 @@ async function hubApp(ctx, url, spec) {
   // The date goes into spec.sub, so the server-rendered subtitle and the app's copy (window.PC_PAGE.sub) match.
   let fresh = "";
   try {
-    const lh = await (await ctx.env.ASSETS.fetch(new Request(url.origin + "/data/link_health.json"))).json();
+    const lh = await linkHealth(ctx, url.origin);
     const d = new Date(lh.checked);
-    if (!isNaN(d)) {
+    if (lh.checked && !isNaN(d)) {
       spec = { ...spec, sub: `${spec.sub} Links checked ${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}.` };
       fresh = '<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage", name: spec.h, url: canon, dateModified: d.toISOString() }).replace(/</g, "\\u003c") + "</script>";
     }
   } catch (e) {}
-  const { crumbHtml, seo, head } = hubParts(spec);
+  const { cards, more } = await serverCards(ctx, url.origin, spec);
+  const { crumbHtml, seo, head } = hubParts(spec, more);
   const content = v => ({ element(e) { e.setAttribute("content", v); } });
   const out = new HTMLRewriter()
     .on("title", { element(e) { e.setInnerContent(spec.title); } })
@@ -199,6 +224,7 @@ async function hubApp(ctx, url, spec) {
     .on('link[rel="canonical"]', { element(e) { e.setAttribute("href", canon); } })
     .on('script[type="application/ld+json"]', { element(e) { e.remove(); } })
     .on("script#pc-catalog", { element(e) { e.replace(catalogTags(etagOf(asset)), { html: true }); } })
+    .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
     .on("meta[charset]", { element(e) { e.after(head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
     .on("h1.hero-h", { element(e) { e.setInnerContent(spec.h); e.before(crumbHtml, { html: true }); } })
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
