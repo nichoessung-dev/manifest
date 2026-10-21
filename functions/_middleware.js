@@ -134,8 +134,19 @@ async function route(ctx) {
 async function hubApp(ctx, url, spec) {
   const asset = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "GET", headers: ctx.request.headers }));
   if (!asset.ok) return asset;
-  const { crumbHtml, seo, head } = hubParts(spec);
   const canon = "https://www.puroclassico.com" + spec.path;
+  // Freshness (21 Oct 2026): the weekly dead-link check is real, so say when it last ran and give Google the same date.
+  // The date goes into spec.sub, so the server-rendered subtitle and the app's copy (window.PC_PAGE.sub) match.
+  let fresh = "";
+  try {
+    const lh = await (await ctx.env.ASSETS.fetch(new Request(url.origin + "/data/link_health.json"))).json();
+    const d = new Date(lh.checked);
+    if (!isNaN(d)) {
+      spec = { ...spec, sub: `${spec.sub} Links checked ${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}.` };
+      fresh = '<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage", name: spec.h, url: canon, dateModified: d.toISOString() }).replace(/</g, "\\u003c") + "</script>";
+    }
+  } catch (e) {}
+  const { crumbHtml, seo, head } = hubParts(spec);
   const content = v => ({ element(e) { e.setAttribute("content", v); } });
   const out = new HTMLRewriter()
     .on("title", { element(e) { e.setInnerContent(spec.title); } })
@@ -145,7 +156,7 @@ async function hubApp(ctx, url, spec) {
     .on('meta[property="og:url"]', content(canon))
     .on('link[rel="canonical"]', { element(e) { e.setAttribute("href", canon); } })
     .on('script[type="application/ld+json"]', { element(e) { e.remove(); } })
-    .on("meta[charset]", { element(e) { e.after(head, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
+    .on("meta[charset]", { element(e) { e.after(head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
     .on("h1.hero-h", { element(e) { e.setInnerContent(spec.h); e.before(crumbHtml, { html: true }); } })
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
     .on("footer", { element(e) { e.before(seo, { html: true }); } })
