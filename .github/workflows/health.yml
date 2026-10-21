@@ -1,0 +1,24 @@
+name: Site health
+# Daily check of the parts that bring money and members (scripts/health_check.py): Discord invite, key pages under
+# Google's 2 MB, sitemaps, one-click unsubscribe, QC photo quota, Postiz API, data freshness, welcome emails.
+# Read-only. A failing check turns the run red, and GitHub emails the owner about failed scheduled runs.
+on:
+  schedule:
+    - cron: '30 6 * * *'   # 08:30 Norwegian time
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check the site
+        run: python scripts/health_check.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
