@@ -37,8 +37,8 @@ jobs:
           SHORTS_CHANNELS: tiktok
           FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L
           FINDS_MODE: carousel
-          # four very good drafts every morning at 5 (owner, 19 Oct 2026); TikTok holds at most 5 waiting drafts per account
-          FINDS_SLOTS: '05:00,05:02,05:04,05:06'
+          # three very good drafts every morning at 5 (owner, 21 Oct 2026: "2-4 strong TikToks a day, focus on quality")
+          FINDS_SLOTS: '05:00,05:02,05:04'
           FINDS_FROM: '2026-10-20'             # 19 Oct already had its morning drafts
           FINDS_BEST: '1'                      # look at 8x the photos, drop the blurriest, strongest same-item pairs
           FINDS_DAYS: '2'                      # each carousel takes minutes to build now (photo clean-up), so keep two days queued, not five
@@ -61,8 +61,9 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L
           FINDS_MODE: carousel
-          FINDS_SLOTS: '06:01,06:03,06:05,15:01,15:03,15:05'     # six a day, like the main account
+          FINDS_SLOTS: '06:01,06:03,06:05'     # three very good drafts a day (owner, 21 Oct 2026)
           FINDS_FROM: '2026-10-19'
+          FINDS_BEST: '1'
           FINDS_DAYS: '2'
           FINDS_SLIDES: '9'
           FINDS_OWN: '2'
