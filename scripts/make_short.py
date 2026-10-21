@@ -84,7 +84,9 @@ def mfont(size, weight=800):
 
 
 def fetch(url, timeout=30, data=None, headers=None):
-    h = dict(UA); h.update(headers or {})
+    # A key set to the word "proxy" (ELEVENLABS_API_KEY=proxy, PEXELS_API_KEY=proxy) means a Claude Code cloud
+    # environment adds the real key to the request itself (a "network secret"), so the header is left out here.
+    h = dict(UA); h.update({k: v for k, v in (headers or {}).items() if v != "proxy"})
     return urllib.request.urlopen(urllib.request.Request(url, data=data, headers=h), timeout=timeout).read()
 
 
