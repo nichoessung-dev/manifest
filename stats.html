@@ -151,6 +151,11 @@
       <div><div class="ch-sub" style="margin-bottom:8px">By agent</div><div class="bars" id="buy-agents"><div class="muted">No clicks yet</div></div></div>
       <div><div class="ch-sub" style="margin-bottom:8px">By country</div><div class="bars" id="buy-countries"><div class="muted">No clicks yet</div></div></div>
     </section>
+    <section class="grid2" style="margin-top:14px">
+      <div><div class="ch-sub" style="margin-bottom:8px">Where the visit came from (since 22 Oct)</div><div class="bars" id="buy-sources"><div class="muted">No clicks yet</div></div></div>
+      <div><div class="ch-sub" style="margin-bottom:8px">From which page</div><div class="bars" id="buy-pages"><div class="muted">No clicks yet</div></div></div>
+    </section>
+    <div class="ch-sub" id="buy-kinds" style="margin-top:12px"></div>
   </section>
 
   <section class="card" style="margin-top:14px" id="links-card" hidden>
@@ -248,6 +253,10 @@ function renderBuys(){
   chart($("c-buy"), b.days, [{name:"buy clicks", data:b.per_day, color:"--green", type:"bar"}]);
   barList($("buy-agents"), b.agents||[], k=>AGENT_NAMES[k]||k);
   barList($("buy-countries"), (b.countries||[]).slice(0,12), k=>k==="??"?"Unknown":countryName(k));
+  /* 22 Oct 2026: source of the visit (track.js), page kind, and item clicks vs sign-up link clicks */
+  if(b.sources) barList($("buy-sources"), b.sources, k=>k==="not recorded"?"Not recorded (before 22 Oct)":k);
+  if(b.pages) barList($("buy-pages"), b.pages, k=>k.charAt(0).toUpperCase()+k.slice(1));
+  if(b.kinds){ let it=0,su=0; Object.values(b.kinds).forEach(v=>{ it+=v.item||0; su+=v.signup||0; }); $("buy-kinds").textContent=fmt(it)+" clicks opened an item, "+fmt(su)+" opened an agent's sign-up page (coupon and invite links)."; }
 }
 function render(){
   if(!D) return;
