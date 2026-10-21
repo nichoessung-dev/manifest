@@ -5,6 +5,11 @@ on:
     # coupon link should arrive while the new member is still on the site. welcome -> (1 min) ordering guide -> (1 day)
     # MyCNBox account nudge (opted-in members only).
     - cron: '*/15 * * * *'
+  # GitHub's own timer is unreliable here (the 4-hourly schedule ran 3 times a day), but the Finds carousel workflow is
+  # started every 15 minutes by the owner's Supabase timer: start with it too. The schedule above stays as a backup.
+  workflow_run:
+    workflows: ["Finds carousel"]
+    types: [requested]
   workflow_dispatch:
     inputs:
       test_email:
