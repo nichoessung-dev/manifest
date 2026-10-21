@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w14";
+export const PRODUCT_TPL = "w15";
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -136,7 +136,7 @@ export async function renderProduct(id, origin) {
     ${buyBox}
     <p class="eyebrow" style="margin:6px 0 0">Spreadsheets: ${AGENT_BRAND_AGENTS.map(k => { const bs = p.brand && agentBrands().includes(p.brand) ? idx().brandSlug.get(p.brand) : null; return `<a href="/${k}-spreadsheet${bs ? "/" + bs : ""}" style="color:var(--muted)">${esc(AGENTS[k].name)}</a>`; }).join(" · ")}</p>
     <dl class="kv"><dt>Marketplace</dt><dd>${plat}</dd><dt>Category</dt><dd>${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(p.cat)}</dd>
-      ${variants.length ? `<dt>Options</dt><dd>${esc(variants.slice(0, 12).join(" · "))}</dd>` : ""}<dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc ? "On record" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd></dl>
+      ${variants.length ? `<dt>Options</dt><dd>${esc(variants.slice(0, 12).join(" · "))}</dd>` : ""}<dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc ? "On record" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd>${productFacts(p, g, checked)}</dl>
     <p><a href="/#p/${encodeURIComponent(p.id)}" style="color:var(--accent)">Open in the catalogue →</a></p>
   </div>
 </div>
@@ -233,6 +233,31 @@ const ITEM_TYPES = [
   ["fleeces", /\bfleeces?\b/i],
   ["ties", /\bties?\b(?![ -]?dye)/i],
 ];
+// Typical shipped weight per item type in grams, the same numbers as the weight estimator (/tools/weight-estimator).
+const TYPE_WEIGHT = { "T-shirts and tops": 250, "polo shirts": 330, "shorts": 350, "hoodies": 700, "sweaters and cardigans": 700,
+  "sweatshirts and crewnecks": 700, "quarter-zips": 700, "pants and joggers": 600, "jeans": 600, "jackets and coats": 700,
+  "puffer jackets": 1100, "bags": 550, "caps and beanies": 220, "belts": 200, "wallets and cardholders": 200, "jewellery": 200 };
+const SHOE_TYPES = new Set(["sneakers and shoes", "boots", "loafers"]);
+// Rows for a product page's facts list that only this site has (21 Oct 2026): its own view and save counts, the link
+// check and a typical shipped weight. A row appears only when there is a real number behind it.
+function productFacts(p, goneAs, checked) {
+  const v = views(p), out = [];
+  if (v[1] >= 5) {
+    const l = p.brand ? idx().byBrand.get(p.brand) : null;
+    let rank = "";
+    if (l && l.length >= 10) {
+      const r = 1 + l.filter(x => views(x)[1] > v[1]).length, joint = l.some(x => x !== p && views(x)[1] === v[1]);
+      if (r <= 10) rank = `, ${joint ? "joint " : ""}#${r} of ${nf(l.length)} ${esc(p.brand)} finds`;
+    }
+    out.push(["Views (30 days)", `${nf(v[1])}${rank}`]);
+  }
+  if (v[3] >= 1) out.push(["Saved by", `${nf(v[3])} member${v[3] === 1 ? "" : "s"}`]);
+  if (p.platform === "weidian" && checked && !goneAs) out.push(["Link check", `Online on ${checked}`]);
+  const t = itemType(p);
+  if (SHOE_TYPES.has(t)) out.push(["Typical weight", `About 0.9 kg, 1.3 kg with the box (<a href="/tools/weight-estimator">estimator</a>)`]);
+  else if (TYPE_WEIGHT[t]) out.push(["Typical weight", `About ${TYPE_WEIGHT[t]} g (<a href="/tools/weight-estimator">estimator</a>)`]);
+  return out.map(([k, x]) => `<dt>${k}</dt><dd>${x}</dd>`).join("");
+}
 const ACCESSORY_ONLY = new Set(["jewellery", "ties"]);
 const CAT_TYPE = { Tops: "other tops", Outerwear: "other outerwear", Shoes: "sneakers and shoes", Pants: "pants and joggers", Shorts: "shorts", Bags: "bags",
   Accessories: "other accessories", Headwear: "caps and beanies", Toys: "building sets and toys" };
