@@ -17,6 +17,9 @@ import json, os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import finds as F
+try:
+    sys.path.insert(0, os.path.join(ROOT, "scripts")); import make_short as _MS; HOOK_SIZE = _MS.hook_size
+except Exception: HOOK_SIZE = None
 
 BANNED = [r"\bfakes?\b", r"\breplicas?\b", r"\bcounterfeits?\b", r"\b1\s*:\s*1\b", r"same as (the )?real", r"\bdupes?\b"]
 DASHES = ["—", "–", "‒", "―"]
@@ -25,6 +28,8 @@ HASHTAGS = "#grisch #oldmoney #taobao #mycnbox #cnfans"
 LIBRARY = {"buzzer-wrong", "cash-drawer", "facepalm", "jacket-on-hanger", "knit-folded", "knit-on-hanger", "knit-shoulder-bumps", "lone-sock",
            "magnifier", "parrot-loud", "price-tag-shock", "thumbs-down", "tick-badge", "trophy-mini", "white-sneaker-puddle"}
 OWN_SFX = {"bell"}
+BAD_CUTOUT = {"964484272869": "white tee on a white photo: the cut-out eats the shirt", "962854952761": "white tee on a white photo: the cut-out eats the shirt",
+              "7776333723": "photo does not load"}
 WPS = 2.75                                                     # spoken words per second at the renderer's pace (speed 1.03)
 NUM = {"zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12,
        "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16, "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30,
@@ -94,13 +99,15 @@ def check_style(st, finds, clips, allowed_music, src_md):
             f = finds.get(str(pid))
             if not f: errs.append("line %d: product %s is not an eligible find (missing, no QC photos, dead or sold out)" % (k, pid)); continue
             line_prices.add(f["usd"]); allowed_say.add(f["usd"])
+            if str(pid) in BAD_CUTOUT: errs.append("line %d: product %s: %s" % (k, pid, BAD_CUTOUT[str(pid)]))
         for pid, tag in (ln.get("tags") or {}).items():
             if str(pid) not in [str(x) for x in ln.get("products") or []]: errs.append("line %d: tag for %s, which is not on the line" % (k, pid))
             big = str(tag[0]) if tag else ""; bad = len(tag) > 2 and tag[2] == "bad"
             for m in re.findall(r"\$([\d,]+)", big):
                 v = int(m.replace(",", ""))
-                if bad:
-                    if v not in shop: errs.append("line %d: shop price $%d on screen has no source" % (k, v))
+                if bad:                                    # struck through: a sourced shop price, or (games) the find's own price
+                    own = finds.get(str(pid)) and v == finds[str(pid)]["usd"]
+                    if v not in shop and not own: errs.append("line %d: shop price $%d on screen has no source" % (k, v))
                 elif finds.get(str(pid)) and v != finds[str(pid)]["usd"]:
                     if not re.search(r"total", " ".join(map(str, tag)).lower()): errs.append("line %d: tag $%d for %s, the find costs $%d" % (k, v, pid, finds[str(pid)]["usd"]))
             if len(tag) > 1 and re.search(r"in the shop", str(tag[1]).lower()) and not bad: warns.append("line %d: 'in the shop' tag not marked bad" % k)
@@ -122,6 +129,9 @@ def check_style(st, finds, clips, allowed_music, src_md):
             n = h.get("name") if isinstance(h, dict) else h
             if n not in OWN_SFX: errs.append("line %d: sfx %r is not one of the owner's sounds" % (k, n))
         if ln.get("hook") and len(str(ln["hook"]).replace("*", "").split()) > 12: warns.append("line %d: hook over 12 words" % k)
+        if ln.get("hook") and HOOK_SIZE:
+            n_l, px = HOOK_SIZE(str(ln["hook"]))
+            if px < 84 or n_l > 3: warns.append("line %d: hook comes out small (%d lines, %d px): shorten it" % (k, n_l, px))
     for k, ln in enumerate(lines, 1):                          # spoken dollars must be a find on the video or a sourced shop price
         for v in spoken_numbers(ln.get("say") or ""):
             extra = set(st.get("totals", [])) | set(st.get("thresholds", [])) | ({500} if COUPON.lower() in (ln.get("say") or "").lower() else set())
