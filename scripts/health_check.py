@@ -50,7 +50,7 @@ def discord():
 
 def pages():
     bad = []
-    for path in ["/", "/kakobuy-spreadsheet", "/mycnbox-spreadsheet", "/brand/ralph-lauren", "/stockholm-spreadsheet", "/product/6716583439", "/how-to-order"]:
+    for path in ["/", "/kakobuy-spreadsheet", "/mycnbox-spreadsheet", "/brand/ralph-lauren", "/stockholm-spreadsheet", "/cnfans-spreadsheet", "/kakobuy-spreadsheet/grisch", "/product/6716583439", "/how-to-order"]:
         st, _, body = req(SITE + path)
         if st != 200: bad.append("%s answered %d" % (path, st)); continue
         if len(body) > LIMIT: bad.append("%s is %.1f MB (over Google's 2 MB)" % (path, len(body) / 1048576))
@@ -92,6 +92,16 @@ def postiz():
         return "FAIL", "Postiz API is down (%d): no TikTok drafts or posts until it is back" % st
     return "OK", "Postiz API answers (%d without a key, as expected)" % st
 
+def cnfans():
+    """/cnfans-spreadsheet says CNFans shows a maintenance page (CNFANS in functions/_lib/pages.js): warn when that changes."""
+    try:
+        st, _, body = req("https://cnfans.com/", headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"}, timeout=20)
+    except Exception: return "WARN", "could not reach cnfans.com"
+    m = re.search(rb"<title>(.*?)</title>", body or b"", re.S | re.I)
+    title = m.group(1).decode("utf-8", "replace").strip() if m else "(no title, status %d)" % st
+    if "aintenance" in title: return "OK", "CNFans still shows its maintenance page"
+    return "WARN", 'CNFans title is now "%s": update CNFANS in functions/_lib/pages.js and the /cnfans-spreadsheet copy' % title[:60]
+
 def data_age():
     bad = []
     st = json.loads(req(SITE + "/data/stats.json")[2]); lh = json.loads(req(SITE + "/data/link_health.json")[2])
@@ -117,6 +127,7 @@ check("Sitemaps", sitemaps)
 check("One-click unsubscribe", unsubscribe)
 check("QC photo quota", qc_quota)
 check("Postiz API", postiz)
+check("CNFans status", cnfans)
 check("Data freshness", data_age)
 check("Welcome emails", welcome)
 
