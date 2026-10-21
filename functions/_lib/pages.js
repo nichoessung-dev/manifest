@@ -1,5 +1,5 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
-import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, productUrl, brandUrl, catUrl,
+import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, gone, LINKS_CHECKED, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, GUIDE_LINKS, TOOL_LINKS } from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
 import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS } from "./content2.js";
@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w12";
+export const PRODUCT_TPL = "w13";
 async function qcThumbs(origin, p) {
   if (p.qc < 1) return [];
   try {
@@ -78,7 +78,11 @@ export async function renderProduct(id, origin) {
   const ag = Object.entries(AGENTS);
   const buyLink = ([k, a], main) => `<a${main ? ' class="first"' : ""} data-agent="${k}" href="${esc(a.build(p))}" target="_blank" rel="sponsored nofollow noopener">Buy via ${a.name}${k === "mycnbox" ? "<small>Most popular</small>" : ""}</a>`;
   const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-  const buyBox = `<div class="buybox"><div class="buy-main">${buyLink(ag[0], true)}</div>` +
+  // A listing the weekly link check found gone: say so above the buttons (a sold-out listing often comes back).
+  const g = gone(p), checked = LINKS_CHECKED ? new Date(LINKS_CHECKED + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "";
+  const goneNote = !g ? "" : `<p class="buy-gone">${g === "dead" ? "This listing was no longer online" : "This listing was sold out"} at our link check${checked ? ` on ${checked}` : ""}. ` +
+    `${g === "dead" ? "The buttons still open it in case the seller puts it back" : "The buttons still open it, since sellers often restock"}; similar finds are below.</p>`;
+  const buyBox = goneNote + `<div class="buybox"><div class="buy-main">${buyLink(ag[0], true)}</div>` +
     `<a class="buy-hint" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener"><span>New to MyCNBox? Sign up with our link for up to $500 in new-user coupons</span>${ARROW}</a>` +
     `<p class="buy-or">Or buy via</p><div class="buy-alt">${ag.slice(1).map(x => buyLink(x, false)).join("")}</div></div>` +
     // The agent the visitor picked in the app becomes the main button; the coupon line only goes with MyCNBox.
