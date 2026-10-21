@@ -1,5 +1,5 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
-import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, gone, LINKS_CHECKED, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, productUrl, brandUrl, catUrl,
+import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, GUIDE_LINKS, TOOL_LINKS } from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
 import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS } from "./content2.js";
@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w16";
+export const PRODUCT_TPL = "w17";
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -828,14 +828,28 @@ export function hubSpec(path) {
   if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet$/))) {
     const key = m[1], a = AGENTS[key], meta = AGENT_INTRO[key]; if (!a || !meta) return null;
     const N = nf(all.length), brands = AGENT_BRAND_AGENTS.includes(key) ? agentBrands() : [];
+    // Agent hubs bring most of the search clicks, but page 1 (this app view) carried 3 short answers while the written intro
+    // and how-to only reached pages 2+ (22 Oct 2026). They go in the block under the app, numbers worked out here.
+    const day = d => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+    const qc1 = all.filter(p => p.qc >= 1).length, qc2 = all.filter(p => p.qc >= 2).length, weidian = all.filter(p => p.platform === "weidian").length;
+    const howTo = agentHowTo({ ...a, key }).replace(/^\s*<h2>[^<]*<\/h2>\s*/, "")
+      .replace('<ol class="steps">', '<ol style="margin:10px 0 0;padding-left:20px;color:var(--muted);font-size:14.5px;line-height:1.6">');
+    // The MyCNBox intro says "our most-used agent" and repeats the coupon offer; how agents are ranked is the owner's call,
+    // so this page uses a plain description for it.
+    const what = key === "mycnbox" ? "<p>MyCNBox is a shopping agent: you pay MyCNBox for the item and the short delivery to its warehouse in China, it buys from the Weidian, Taobao or 1688 seller, takes QC photos when the item arrives, and ships your items together in one parcel when you are ready. Each find here opens the exact listing inside MyCNBox.</p>" : meta.body;
     return { path, preset: { agent: key }, h: `${a.name} Spreadsheet`, sub: `${N} finds, each with a one-tap ${a.name} buy button.`,
+      aboutTitle: `How the ${a.name} spreadsheet works`, about: [[`What is ${a.name}?`, what], [`How to order from the ${a.name} spreadsheet`, howTo]],
       title: `${meta.title}: ${N} Finds | Puro Classico`, desc: `The ${a.name} spreadsheet: ${N} rep finds with prices, QC photos and one-tap ${a.name} links. Search, filter and buy in one place.`,
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, path]],
       chips: [...(AGENT_BRAND_AGENTS.includes(key) ? [[`Styles on ${a.name}`, Object.keys(AGENT_STYLES).map(x => [AGENT_STYLES[x].name, `${path}/${x}`])]] : []),
-              [`Popular brands on ${a.name}`, brands.slice(0, 16).map(b => [b, `${path}/${brandSlug.get(b)}`])],
+              [`Popular brands on ${a.name}`, brands.slice(0, 16).map(b => [`${b} (${nf(byBrand.get(b).length)})`, `${path}/${brandSlug.get(b)}`])],
               ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"]])]],
       faq: [[`What is the ${a.name} spreadsheet?`, `A searchable list of ${N} Weidian, Taobao and 1688 finds. Every find opens directly in ${a.name}, so there is nothing to copy or translate.`],
             [`How do I order with ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the warehouse. Check the QC photos, then ship your parcel.`],
+            [`Is this the official ${a.name} spreadsheet?`, `No. Puro Classico is an independent spreadsheet. Ordering, payment, QC photos and shipping all happen on ${a.name}. Links to ${a.name} may be affiliate links.`],
+            ["How many finds have QC photos?", `Our catalogue marks ${nf(qc1)} of the ${N} finds as having buyer QC photos from earlier orders, and stores the photo count for ${nf(qc2)} of them.`],
+            ...(LINKS_CHECKED ? [["Are the links still working?", `Every week we check all ${nf(weidian)} Weidian listings. The last check, on ${day(LINKS_CHECKED)}, found ${nf(GONE_COUNTS.dead)} gone, which the spreadsheet hides, and ${nf(GONE_COUNTS.sold)} sold out, which their pages point out.`]] : []),
+            ["Are the prices live?", `No. They are the sellers' listed prices from the last catalogue update on ${day(BUILT)}. Check the price on ${a.name} before you pay.`],
             [`Is it free?`, `Yes. You only pay ${a.name} for what you order and for shipping. Links may be affiliate links.`]] };
   }
   if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|sugargoo)-spreadsheet\/([a-z][a-z0-9-]*)$/))) {
@@ -877,7 +891,8 @@ export function hubSpec(path) {
 export function hubParts(spec, more = "") {
   const bc = crumbs(spec.crumbs);
   const crumbHtml = `<nav class="hub-bc" aria-label="Breadcrumb">${spec.crumbs.map((c, i) => i < spec.crumbs.length - 1 ? `<a href="${c[1]}">${esc(c[0])}</a><span>›</span>` : `<span aria-current="page">${esc(c[0])}</span>`).join("")}</nav>`;
-  const seo = `<section class="hub-seo">${more}${spec.chips.filter(c => c[1].length).map(([t, links]) => `<h2>${esc(t)}</h2><div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `<h2>FAQ</h2>${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
+  const about = spec.about && spec.about.length ? `<h2>${esc(spec.aboutTitle || "About")}</h2>${spec.about.map(([q, html]) => `<details><summary>${esc(q)}</summary>${html}</details>`).join("")}<div style="height:28px"></div>` : "";
+  const seo = `<section class="hub-seo">${more}${about}${spec.chips.filter(c => c[1].length).map(([t, links]) => `<h2>${esc(t)}</h2><div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `<h2>FAQ</h2>${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
   const ld = [bc.data]; if (spec.faq.length) ld.push(faqLd(spec.faq));
   const page = { h: spec.h, sub: spec.sub, agent: spec.preset.agent || null, brand: spec.preset.brand || null, cat: spec.preset.cat || null, brands: spec.preset.brands || null };
   const head = `<script>window.PC_PAGE=${JSON.stringify(page).replace(/</g, "\\u003c")};document.documentElement.classList.add("hub"${page.agent ? ',"agent-lock"' : ""});</script>` +
