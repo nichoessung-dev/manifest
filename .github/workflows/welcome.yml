@@ -1,7 +1,10 @@
 name: Welcome emails
 on:
   schedule:
-    - cron: '17 */4 * * *'   # every 4h: welcome -> (1 min) ordering guide -> (1 day) MyCNBox account nudge
+    # every 15 min (was every 4h, 21 Oct 2026): the sign-up window promises the coupons by email, so the welcome with the
+    # coupon link should arrive while the new member is still on the site. welcome -> (1 min) ordering guide -> (1 day)
+    # MyCNBox account nudge (opted-in members only).
+    - cron: '*/15 * * * *'
   workflow_dispatch:
     inputs:
       test_email:
@@ -9,9 +12,13 @@ on:
         required: false
         default: ''
       test_type:
-        description: 'Which test email: mycnbox or ordering'
+        description: 'Which test email: welcome, ordering or mycnbox'
         required: false
         default: 'mycnbox'
+# One run at a time: two overlapping runs could both read a new member as not yet welcomed and send twice.
+concurrency:
+  group: welcome-emails
+  cancel-in-progress: false
 jobs:
   send:
     runs-on: ubuntu-latest
