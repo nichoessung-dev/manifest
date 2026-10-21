@@ -8,7 +8,7 @@
 #               DROPS_PER_RUN   (max products to post per run, default 5)
 import json, os, time, random, urllib.request
 
-SITE   = "https://puroclassico.com"
+SITE   = "https://www.puroclassico.com"
 LOGO   = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/email/logo.png"
 NAVY   = 0x1a2740
 HOOK   = os.environ.get("DISCORD_WEBHOOK", "").strip()

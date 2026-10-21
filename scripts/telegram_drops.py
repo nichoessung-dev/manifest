@@ -8,7 +8,7 @@
 # Optional env: TG_PER_RUN (max products per run, default 10)
 import json, os, time, random, html, urllib.request, urllib.parse
 
-SITE  = "https://puroclassico.com"
+SITE  = "https://www.puroclassico.com"
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 CHAT  = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 LIMIT = int(os.environ.get("TG_PER_RUN", "10"))

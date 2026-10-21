@@ -8,13 +8,15 @@ Puro Classico automated email job. Run modes:
 
 Env (from GitHub Actions secrets):
   BREVO_API_KEY, SUPABASE_SERVICE_KEY, UNSUB_SECRET
-Optional: SITE_URL (default https://puroclassico.com), ACTIVE_DAYS (default 21), MAX_SEND (safety cap)
+Optional: SITE_URL (default https://www.puroclassico.com), ACTIVE_DAYS (default 21), MAX_SEND (safety cap)
 """
 import os, sys, json, re, time, hmac, hashlib, urllib.request, urllib.error
 from datetime import datetime, timezone, timedelta
 
 SUPA_URL = "https://uptpghuduqjqmrxwatbm.supabase.co"
-SITE     = os.environ.get("SITE_URL", "https://puroclassico.com")
+# www, not the bare domain: the bare domain answers with a 301, and a one-click unsubscribe POST (RFC 8058) must not be
+# redirected, so Gmail's unsubscribe button failed. Every other link also saves a redirect hop.
+SITE     = os.environ.get("SITE_URL", "https://www.puroclassico.com")
 SVC      = os.environ["SUPABASE_SERVICE_KEY"]
 BREVO    = os.environ["BREVO_API_KEY"]
 UNSUB_SECRET = os.environ["UNSUB_SECRET"]
@@ -38,13 +40,27 @@ def sb(path, method="GET", body=None, extra=None):
     t = r.read().decode()
     return json.loads(t) if t else []
 
+def sb_all(path, page=1000):
+    """Every row of a GET: Supabase returns at most 1,000 rows per request, so read in pages (Range header). The path must
+    carry an order= so the pages don't overlap. Before this, only the first 1,000 product views were read."""
+    out, start = [], 0
+    while True:
+        rows = sb(path, extra={"Range-Unit": "items", "Range": "%d-%d" % (start, start + page - 1)})
+        out += rows
+        if len(rows) < page: return out
+        start += page
+
+def since(days):
+    return (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
 def hide(msg):
     """The job log of this repository is public: an error text is printed without any email address in it."""
     return re.sub(r"[\w.+%-]+@[\w-]+(?:\.[\w-]+)+", "<address>", str(msg))[:200]
 
-def brevo_send(to_email, subject, html, unsub=None):
+def brevo_send(to_email, subject, html, unsub=None, tag=None):
     body = {"sender": {"name": "Puro Classico", "email": "news@puroclassico.com"},
             "to": [{"email": to_email}], "subject": subject, "htmlContent": html}
+    if tag: body["tags"] = [tag]          # Brevo's statistics split by tag: welcome, ordering, mycnbox, newsletter, saved
     if unsub:
         body["headers"] = {"List-Unsubscribe": "<%s>" % unsub,
                             "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}
@@ -141,21 +157,34 @@ def wrap(inner, unsub):
 <p style="margin:0;font-size:12px;color:#bbb;">&copy; Puro Classico</p></td></tr>
 </table></td></tr></table>""") % (LOGO, inner, SITE, esc(unsub))
 
+WELCOME_SUBJECT = "You're in: your MyCNBox coupons are inside"
+
+def welcome_html(uid):
+    """1st email, sent to every new member. The sign-up window promises "we email you up to $500 in MyCNBox new-user
+    coupons", so the coupon link comes first, in the same words as the site (21 Oct 2026); before, it was the last button
+    of email 2."""
+    inner = ('<h1 style="margin:0 0 12px;font-size:22px;color:#111;font-weight:650;text-align:center;">Welcome to Puro Classico</h1>'
+      '<p style="margin:0 auto 22px;font-size:15px;line-height:1.6;color:#444;max-width:420px;text-align:center;">You\'re in. Thousands of quality-checked Weidian, Taobao and 1688 finds, one tap from your agent. Save what you like with the star, and pick up where you left off any time.</p>'
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fdf1ef;border-radius:14px;"><tr><td style="padding:22px 22px 24px;text-align:center;">'
+      '<img src="' + MYCNBOX_LOGO + '" alt="MyCNBox" width="48" height="48" style="width:48px;height:48px;border-radius:12px;display:inline-block;">'
+      '<h2 style="margin:12px 0 6px;font-size:17px;color:#111;font-weight:650;">Your MyCNBox coupons</h2>'
+      '<p style="margin:0 auto 16px;font-size:14px;line-height:1.6;color:#555;max-width:380px;">New to MyCNBox? Sign up with our link for up to $500 in new-user coupons. It\'s free and takes about a minute.</p>'
+      '<a href="' + MYCNBOX_URL + '" style="display:inline-block;padding:13px 30px;font-size:15px;font-weight:650;color:#fff;background:#E1301F;text-decoration:none;border-radius:10px;">Claim your coupons</a>'
+      '</td></tr></table>'
+      '<div style="text-align:center;margin:22px 0 0;"><a href="' + SITE + '" style="display:inline-block;padding:12px 30px;font-size:15px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Browse the catalog</a></div>'
+      '<div style="height:1px;background:#ececea;margin:26px 0 22px;"></div>'
+      '<h2 style="margin:0 0 8px;font-size:16px;color:#111;font-weight:650;text-align:center;">Join the community</h2>'
+      '<p style="margin:0 auto 18px;font-size:14px;line-height:1.6;color:#555;max-width:380px;text-align:center;">Early drops, QC talk and haul reviews from other members over on Discord.</p>'
+      '<div style="text-align:center;"><a href="' + DISCORD_URL + '" style="display:inline-block;padding:12px 26px;font-size:14px;font-weight:600;color:#fff;background:#5865F2;text-decoration:none;border-radius:10px;"><img src="' + DISC + '" alt="" width="20" height="20" style="width:20px;height:20px;vertical-align:middle;margin-right:9px;border-radius:4px;"><span style="vertical-align:middle;">Join our Discord</span></a></div>')
+    return wrap(inner, unsub_url(uid))
+
 def run_welcome(profiles):
     sent = 0
     for pr in profiles:
         if pr.get("welcomed"): continue
-        email = pr.get("email");
+        email = pr.get("email")
         if not email: continue
-        inner = ('<h1 style="margin:0 0 12px;font-size:22px;color:#111;font-weight:650;text-align:center;">Welcome to Puro Classico</h1>'
-          '<p style="margin:0 auto 22px;font-size:15px;line-height:1.6;color:#444;max-width:420px;text-align:center;">You\'re in. Thousands of quality-checked Weidian, Taobao and 1688 finds, one tap from your agent. Save what you like with the star, and pick up where you left off any time.</p>'
-          '<div style="text-align:center;"><a href="%s" style="display:inline-block;padding:13px 32px;font-size:15px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Browse the catalog</a></div>'
-          '<div style="height:1px;background:#ececea;margin:26px 0 22px;"></div>'
-          '<h2 style="margin:0 0 8px;font-size:16px;color:#111;font-weight:650;text-align:center;">Join the community</h2>'
-          '<p style="margin:0 auto 18px;font-size:14px;line-height:1.6;color:#555;max-width:380px;text-align:center;">Early drops, QC talk and haul reviews from other members over on Discord.</p>'
-          '<div style="text-align:center;"><a href="' + DISCORD_URL + '" style="display:inline-block;padding:12px 26px;font-size:14px;font-weight:600;color:#fff;background:#5865F2;text-decoration:none;border-radius:10px;"><img src="%s" alt="" width="20" height="20" style="width:20px;height:20px;vertical-align:middle;margin-right:9px;border-radius:4px;"><span style="vertical-align:middle;">Join our Discord</span></a></div>') % (SITE, DISC)
-        html = wrap(inner, unsub_url(pr["id"]))
-        ok, msg = brevo_send(email, "Welcome to Puro Classico - you're in", html, unsub_url(pr["id"]))
+        ok, msg = brevo_send(email, WELCOME_SUBJECT, welcome_html(pr["id"]), unsub_url(pr["id"]), "welcome")
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"welcomed": True, "welcomed_at": datetime.now(timezone.utc).isoformat()}, {"Prefer": "return=minimal"})
             sent += 1
@@ -164,6 +193,12 @@ def run_welcome(profiles):
         if sent >= MAX_SEND: break
         time.sleep(0.3)
     print("welcome sent:", sent)
+
+def run_welcome_test(_profiles=None):
+    email = os.environ.get("TEST_EMAIL", "").strip()
+    if not email: print("TEST_EMAIL not set"); return
+    ok, msg = brevo_send(email, WELCOME_SUBJECT, welcome_html("test"), None, "test")
+    print("welcome-test sent" if ok else ("FAIL welcome-test: " + hide(msg)))
 
 ORDERING_SUBJECT = "How to order from Puro Classico (1:47 video)"
 VIDEO_PAGE = SITE + "/how-to-order"
@@ -221,7 +256,7 @@ def run_ordering(profiles):
     for pr in profiles:
         email = pr.get("email")
         if not email or not eligible(pr): continue
-        ok, msg = brevo_send(email, ORDERING_SUBJECT, ordering_html(pr["id"]), unsub_url(pr["id"]))
+        ok, msg = brevo_send(email, ORDERING_SUBJECT, ordering_html(pr["id"]), unsub_url(pr["id"]), "ordering")
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"ordering_sent": True}, {"Prefer": "return=minimal"})
             sent += 1
@@ -263,7 +298,7 @@ def run_mycnbox(profiles):
     for pr in profiles:
         email = pr.get("email")
         if not email or not eligible(pr): continue
-        ok, msg = brevo_send(email, "Set up MyCNBox, your finds are waiting", mycnbox_html(pr["id"]), unsub_url(pr["id"]))
+        ok, msg = brevo_send(email, "Set up MyCNBox, your finds are waiting", mycnbox_html(pr["id"]), unsub_url(pr["id"]), "mycnbox")
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"agent_sent": True}, {"Prefer": "return=minimal"})
             sent += 1
@@ -314,8 +349,9 @@ def run_newsletter(profiles):
             if len(out) >= n: break
         return out
     # each member's taste: brands and categories they viewed, favourites count triple
-    views = sb("product_views?select=user_id,product_id,brand,cat,viewed_at")
-    favs  = sb("favorites?select=user_id,product_id")
+    views = sb_all("product_views?select=user_id,product_id,brand,cat,viewed_at&user_id=not.is.null&viewed_at=gte.%s&order=viewed_at.desc" % since(60))
+    favs  = sb_all("favorites?select=user_id,product_id&order=user_id,product_id")
+    print("taste data: %d product views (60 days), %d favourites" % (len(views), len(favs)))
     by_user = {}
     def U(u): return by_user.setdefault(u, {"brands": {}, "cats": {}, "seen": set(), "last": None})
     for v in views:
@@ -365,7 +401,7 @@ def run_newsletter(profiles):
         if os.environ.get("DRY_RUN"):
             print("DRY %s | %s | %s" % ("perso" if perso else "generic", subject, "; ".join("%s (%d)" % (p.get("title", "")[:28], score[i]) for i, p in recs))); continue
         html = wrap(body, unsub_url(uid))
-        ok, msg = brevo_send(email, subject, html, unsub_url(uid))
+        ok, msg = brevo_send(email, subject, html, unsub_url(uid), "newsletter")
         if not ok: print("FAIL news:", hide(msg))
         if ok: sent += 1
         if sent >= MAX_SEND: break
@@ -376,7 +412,7 @@ def run_saved(profiles):
     """Weekly nudge: 'you saved this' for members who starred something in the last SAVED_DAYS days (each save is mentioned once)."""
     days = int(os.environ.get("SAVED_DAYS", "7"))
     prod, _ = load_products()
-    try: favs = sb("favorites?select=user_id,product_id,created_at&order=created_at.desc")
+    try: favs = sb_all("favorites?select=user_id,product_id,created_at&created_at=gte.%s&order=created_at.desc,user_id,product_id" % since(days + 1))
     except Exception as e: print("favorites have no created_at to go by - nothing sent:", e); return
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     recent = {}
@@ -395,7 +431,7 @@ def run_saved(profiles):
                 ("this" if len(recs) == 1 else "these", "It is" if len(recs) == 1 else "They are")) + grid(recs)
         body += ('<div style="text-align:center;margin-top:22px;"><a href="%s" style="display:inline-block;padding:12px 30px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">See your saved finds</a></div>' % SITE)
         if os.environ.get("DRY_RUN"): print("DRY saved | %s | %d items" % (subject, len(recs))); continue
-        ok, msg = brevo_send(email, subject, wrap(body, unsub_url(uid)), unsub_url(uid))
+        ok, msg = brevo_send(email, subject, wrap(body, unsub_url(uid)), unsub_url(uid), "saved")
         if not ok: print("FAIL saved:", hide(msg))
         if ok: sent += 1
         if sent >= MAX_SEND: break
@@ -422,16 +458,19 @@ def main():
         run_ordering_test(); return
     if mode == "mycnbox-test":
         run_mycnbox_test(); return
+    if mode == "welcome-test":
+        run_welcome_test(); return
     if mode == "welcome":
-        profiles = sb("profiles?select=id,email,welcomed,welcomed_at")     # welcome = transactional, all signups
+        profiles = sb_all("profiles?select=id,email,welcomed,welcomed_at&order=id")     # welcome = transactional, all signups
     elif mode == "ordering":
-        profiles = sb("profiles?welcomed=eq.true&select=id,email,welcomed,welcomed_at,ordering_sent")  # ordering guide = 2nd in sequence, transactional
+        profiles = sb_all("profiles?welcomed=eq.true&select=id,email,welcomed,welcomed_at,ordering_sent&order=id")  # ordering guide = 2nd in sequence, transactional
     elif mode == "mycnbox":
-        profiles = sb("profiles?welcomed=eq.true&select=id,email,welcomed,welcomed_at,agent_sent")  # 3rd in sequence: create-a-MyCNBox-account nudge
+        # 3rd in sequence: the create-a-MyCNBox-account nudge is marketing, so only members who opted in to marketing email
+        profiles = sb_all("profiles?welcomed=eq.true&marketing_opt_in=eq.true&select=id,email,welcomed,welcomed_at,agent_sent&order=id")
     elif mode == "sync":
-        profiles = sb("profiles?select=id,email")
+        profiles = sb_all("profiles?select=id,email&order=id")
     else:
-        profiles = sb("profiles?marketing_opt_in=eq.true&select=id,email,welcomed")
+        profiles = sb_all("profiles?marketing_opt_in=eq.true&select=id,email,welcomed&order=id")
     print("mode=%s profiles=%d" % (mode, len(profiles)))
     {"welcome": run_welcome, "ordering": run_ordering, "mycnbox": run_mycnbox, "saved": run_saved, "sync": run_sync}.get(mode, run_newsletter)(profiles)
 
