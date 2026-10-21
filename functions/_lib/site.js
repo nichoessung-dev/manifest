@@ -59,6 +59,7 @@ export const views = p => VIEWS[p.id] || NO_VIEWS;
 const DEMAND_SET = new Set(DEMAND), GONE = new Map([...DEAD.map(i => [i, "dead"]), ...SOLD_OUT.map(i => [i, "sold_out"])]);
 export const gone = p => GONE.get(p.id) || null;               // "dead" | "sold_out" | null
 export const LINKS_CHECKED = CHECKED;                          // date of that link check (YYYY-MM-DD)
+export const GONE_COUNTS = { dead: DEAD.length, sold: SOLD_OUT.length };   // what that check found, for page copy
 export const indexable = p => !GONE.has(p.id) && (p.qc >= 1 || p.best === 1 || DEMAND_SET.has(p.id));
 
 let _idx = null, _idxVer = -1;
