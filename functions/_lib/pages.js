@@ -1,5 +1,5 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
-import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, views, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, productUrl, brandUrl, catUrl,
+import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, rawImg, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, GUIDE_LINKS, TOOL_LINKS } from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
 import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS } from "./content2.js";
@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w10";
+export const PRODUCT_TPL = "w11";
 async function qcThumbs(origin, p) {
   if (p.qc < 1) return [];
   try {
@@ -655,9 +655,14 @@ export function sitemapIndex() {
 </sitemapindex>`);
 }
 export function sitemapPages() {
-  const { brandSlug } = idx();
+  const { brandSlug, byBrand, byCat } = idx();
+  // Pages 2+ of the brand and category hubs (21 Oct 2026): real lists that were linked from nowhere. Agent and agent x brand
+  // hubs are left out: their pages 2+ repeat the same finds with other buy buttons.
+  const more = (base, n) => Array.from({ length: Math.max(0, Math.ceil(n / PER_PAGE) - 1) }, (_, i) => `${base}/${i + 2}`);
   const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", "/stockholm-spreadsheet", "/grisch-spreadsheet", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), ...AGENT_BRAND_AGENTS.flatMap(k => agentBrands().map(b => `/${k}-spreadsheet/${brandSlug.get(b)}`)),
     ...Object.values(CATS).map(c => "/category/" + c.slug), ...[...brandSlug.values()].map(s => "/brand/" + s),
+    ...[...brandSlug].flatMap(([b, s]) => more("/brand/" + s, byBrand.get(b).length)),
+    ...Object.entries(CATS).flatMap(([c, m]) => more("/category/" + m.slug, (byCat.get(c) || []).length)),
     ...Object.keys(GUIDES).map(s => "/guides/" + s), "/best", ...models().map(m => "/best/" + m.slug), "/tools", ...Object.keys(TOOLS).map(s => "/tools/" + s), "/terms", "/privacy"];
   return xml(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `<url><loc>${SITE}${u}</loc></url>`).join("\n")}\n</urlset>`);
 }
@@ -760,14 +765,54 @@ export function hubSpec(path) {
   }
   return null;
 }
-// The HTML pieces the middleware puts into index.html for a hub spec.
-export function hubParts(spec) {
+// The HTML pieces the middleware puts into index.html for a hub spec. `more` (the links to pages 2+) opens the block.
+export function hubParts(spec, more = "") {
   const bc = crumbs(spec.crumbs);
   const crumbHtml = `<nav class="hub-bc" aria-label="Breadcrumb">${spec.crumbs.map((c, i) => i < spec.crumbs.length - 1 ? `<a href="${c[1]}">${esc(c[0])}</a><span>›</span>` : `<span aria-current="page">${esc(c[0])}</span>`).join("")}</nav>`;
-  const seo = `<section class="hub-seo">${spec.chips.filter(c => c[1].length).map(([t, links]) => `<h2>${esc(t)}</h2><div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `<h2>FAQ</h2>${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
+  const seo = `<section class="hub-seo">${more}${spec.chips.filter(c => c[1].length).map(([t, links]) => `<h2>${esc(t)}</h2><div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `<h2>FAQ</h2>${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
   const ld = [bc.data]; if (spec.faq.length) ld.push(faqLd(spec.faq));
   const page = { h: spec.h, sub: spec.sub, agent: spec.preset.agent || null, brand: spec.preset.brand || null, cat: spec.preset.cat || null, brands: spec.preset.brands || null };
   const head = `<script>window.PC_PAGE=${JSON.stringify(page).replace(/</g, "\\u003c")};document.documentElement.classList.add("hub"${page.agent ? ',"agent-lock"' : ""});</script>` +
     ld.map(o => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, "\\u003c") + "</script>").join("");
   return { crumbHtml, seo, head };
+}
+
+// ------------------------------------------------------------------ server cards on the app pages (21 Oct 2026)
+// The homepage and the hub pages are the catalogue app, whose cards only existed after JavaScript ran: the HTML had one
+// product link, AI search bots (which run no scripts) saw no finds, and pages 2+ of a hub were linked from nowhere. The
+// first APP_CARDS finds now arrive in #grid as the app's own card markup, in popularity order (score(), the same numbers
+// as the app's default "Most popular" sort), and brand and category hubs link their pages 2+. index.html keeps these
+// finds first, in this order, in its first render (pinSsr), so the app taking over does not reshuffle the screen.
+export const APP_CARDS = PER_PAGE;
+// The finds of an app page in popularity order, and the base URL of its server-rendered pages 2+ (null when it has none
+// worth linking). No spec is the homepage.
+export function hubList(spec) {
+  const { all, byBrand, byCat, slugBrand } = idx();
+  const pr = spec ? spec.preset : {};
+  if (pr.brands) return { list: pr.brands.flatMap(s => byBrand.get(slugBrand.get(s)) || []).sort((a, b) => score(b) - score(a)), base: null };
+  if (pr.brand) return { list: byBrand.get(slugBrand.get(pr.brand)) || [], base: pr.agent ? null : "/brand/" + pr.brand };
+  if (pr.cat) return { list: byCat.get(pr.cat) || [], base: CATS[pr.cat] ? "/category/" + CATS[pr.cat].slug : null };
+  return { list: all, base: null };
+}
+// Same markup as card() in index.html (English, USD), plus data-ssr. Image URLs are the catalogue's own (rawImg), so the
+// app's cards reuse the images the browser already has.
+const HEART = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></svg>`;
+const appAlt = p => { const t = p.title || "", b = p.brand || ""; return (b && !t.toLowerCase().startsWith(b.toLowerCase()) ? b + " " : "") + t + " rep"; };
+export function appCards(list) {
+  return list.map((p, i) => {
+    const img = rawImg(p), id = esc(p.id);
+    return `<div class="card" tabindex="0" role="button" data-ssr="${id}"><div class="thumb"><canvas aria-hidden="true"></canvas>` +
+      (img ? `<img class="pimg" src="${esc(img)}" alt="${esc(appAlt(p))}" loading="${i < 8 ? "eager" : "lazy"}"${i < 4 ? ' fetchpriority="high"' : ""} decoding="async" onerror="this.remove()">` : "") +
+      `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save">${HEART}</button>${p.qc >= 2 ? '<span class="qc-badge">\u{1F4F7} QC</span>' : ""}</div>` +
+      `<div class="body">${p.brand ? `<span class="brand-line">${esc(p.brand)}</span>` : ""}<a class="title" href="${productUrl(p)}">${esc(p.title)}</a>` +
+      `<span class="price-row"><span class="price">${money(p.cny)}</span>${isPH(p.cny) ? "" : `<span class="subprice">¥${(+p.cny).toLocaleString("en-US")}</span>`}` +
+      `<span class="starcount" data-sc="${id}"></span><span class="cat">${esc(p.cat)}</span></span></div></div>`;
+  }).join("");
+}
+// Links to pages 2+ (the first 12, then the last), for the block under the app.
+export function appPager(base, n) {
+  const pages = Math.ceil(n / PER_PAGE); if (!base || pages < 2) return "";
+  const nums = []; for (let k = 2; k <= Math.min(pages, 12); k++) nums.push(k);
+  if (pages > 12) nums.push(pages);
+  return `<h2>Browse page by page</h2><div class="hub-chips">${nums.map(k => `<a href="${base}/${k}">Page ${k}</a>`).join("")}</div>`;
 }
