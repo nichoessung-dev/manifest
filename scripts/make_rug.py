@@ -332,7 +332,7 @@ def cover(rnd, last=None):
 
 
 def item_slide(im, name, usd, fk=0):
-    return caption(im, name + ("\n$%d" % usd if usd else ""))
+    return caption(im, name + ("\n$%d" % usd if usd else ""), cy=int(im.height * 0.70))      # below the item, never on it (owner, 22 Oct 2026)
 
 
 def top_shot(im):
