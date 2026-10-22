@@ -9,7 +9,8 @@
   var AG = { "mycnbox.com": "mycnbox", "kakobuy.com": "kakobuy", "ikako.vip": "kakobuy", "oopbuy.com": "oopbuy", "lovegobuy.com": "lovegobuy", "sugargoo.com": "sugargoo" };
   var CHANNEL = { tt: "tiktok", tiktok: "tiktok", yt: "youtube", youtube: "youtube", ig: "instagram", instagram: "instagram", pin: "pinterest",
     pinterest: "pinterest", threads: "threads", dc: "discord", discord: "discord", tg: "telegram", telegram: "telegram", email: "email", x: "x" };
-  var HOSTS = [[/(^|\.)google\./, "google"], [/(^|\.)bing\.com$/, "bing"], [/(^|\.)duckduckgo\.com$/, "duckduckgo"], [/(^|\.)yahoo\./, "yahoo"],
+  var HOSTS = [[/(^|\.)gemini\.google\.com$/, "gemini"], [/(^|\.)copilot\.microsoft\.com$/, "copilot"], [/(^|\.)claude\.ai$/, "claude"],
+    [/(^|\.)google\./, "google"], [/(^|\.)bing\.com$/, "bing"], [/(^|\.)duckduckgo\.com$/, "duckduckgo"], [/(^|\.)yahoo\./, "yahoo"],
     [/(^|\.)yandex\./, "yandex"], [/(^|\.)ecosia\.org$/, "ecosia"], [/(^|\.)(chatgpt\.com|openai\.com)$/, "chatgpt"], [/(^|\.)perplexity\.ai$/, "perplexity"],
     [/(^|\.)reddit\.com$/, "reddit"], [/(^|\.)tiktok\.com$/, "tiktok"], [/(^|\.)instagram\.com$/, "instagram"], [/(^|\.)(youtube\.com|youtu\.be)$/, "youtube"],
     [/(^|\.)(facebook\.com|fb\.com)$/, "facebook"], [/(^|\.)(x\.com|twitter\.com|t\.co)$/, "x"], [/(^|\.)(discord\.com|discordapp\.com|discord\.gg)$/, "discord"],
@@ -33,6 +34,11 @@
     } catch (e) { return ""; }
   }
   var SRC = source();                                             // on the landing page, before any internal navigation
+  // The catalogue app (homepage and hubs) puts /product/<id> in the address bar when it opens a find, so a click there
+  // would look like one on the server-rendered product page. The app's clicks are sent as "/app" + the page it was
+  // loaded on (/app/, /app/kakobuy-spreadsheet ...); real product pages keep their own path.
+  var PAGE = location.pathname.slice(0, 110);
+  function pageNow() { return document.getElementById("grid") ? "/app" + PAGE : location.pathname.slice(0, 120); }
   function agentOf(host) {
     host = (host || "").toLowerCase().replace(/^www\./, "");
     for (var d in AG) if (host === d || host.slice(-d.length - 1) === "." + d) return AG[d];
@@ -54,7 +60,7 @@
     last = { href: href, t: now };
     var u = href; try { u = decodeURIComponent(href); } catch (e) {}
     var pl = /1688\.com|mallType=1688|platform=1688/i.test(u) ? "1688" : /taobao|tmall|mallType=taobao|platform=taobao/i.test(u) ? "taobao" : /weidian/i.test(u) ? "weidian" : "";
-    var body = JSON.stringify({ a: agent, i: itemOf(href), pl: pl, pg: location.pathname.slice(0, 120), r: SRC });
+    var body = JSON.stringify({ a: agent, i: itemOf(href), pl: pl, pg: pageNow(), r: SRC });
     try {
       if (navigator.sendBeacon && navigator.sendBeacon("/api/click", new Blob([body], { type: "application/json" }))) return;
     } catch (e) {}
