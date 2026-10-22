@@ -1938,7 +1938,7 @@ function card(p,i){
       <canvas aria-hidden="true"></canvas>
       ${p.img?`<img class="pimg" src="${esc(p.img)}" alt="${esc(altOf(p))}" loading="${i<8?"eager":"lazy"}"${i<4?' fetchpriority="high"':""} decoding="async" onerror="this.remove()">`:""}
       <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button>
-      ${(p.qc||0)>=2?`<span class="qc-badge">\u{1F4F7} QC</span>`:""}
+      ${(p.qc||0)>=(PCP&&PCP.qc?1:2)?`<span class="qc-badge">\u{1F4F7} QC</span>`:""}
     </div>
     <div class="body">
       ${p.brand?`<span class="brand-line">${esc(p.brand)}</span>`:""}
@@ -2518,6 +2518,9 @@ if(PCP){
   if(PCP.cat && ALL.some(p=>p.cat===PCP.cat)) state.cats=[PCP.cat];
   /* style pages (/stockholm-spreadsheet, /grisch-spreadsheet): only the brands of that look */
   if(Array.isArray(PCP.brands)&&PCP.brands.length){ const keep=new Set(PCP.brands); const sub=ALL.filter(p=>p.brand&&keep.has(slugOf(p.brand))); if(sub.length) ALL=sub; }
+  /* agent hubs "with QC photos" and "budget" (23 Oct 2026): finds marked with QC photos, or listed at PCP.pmax yuan or less */
+  if(PCP.qc){ const sub=ALL.filter(p=>(p.qc||0)>=PCP.qc); if(sub.length) ALL=sub; }
+  if(PCP.pmax){ const sub=ALL.filter(p=>!isPH(p.price)&&p.price<=PCP.pmax); if(sub.length) ALL=sub; }
 }
 buildFilters();
 $("#q").value=state.q||"";
