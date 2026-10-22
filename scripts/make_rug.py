@@ -107,6 +107,10 @@ def edit(model, images, text, fidelity=True):
 
 
 def gemini(model, parts, config, timeout=150):
+    if "responseMimeType" in config and "thinkingConfig" not in config:       # the quick yes/no checks: little thinking, so they take seconds
+        try: return gemini(model, parts, dict(config, thinkingConfig={"thinkingLevel": "low"}), timeout)
+        except RuntimeError as e:
+            if "HTTP 400" not in str(e): raise
     body = {"contents": [{"role": "user", "parts": parts}], "generationConfig": config}
     req = urllib.request.Request(GEMINI % model, data=json.dumps(body).encode(), method="POST",
                                  headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"], "Content-Type": "application/json"})
@@ -375,25 +379,35 @@ def main():
         if sid.endswith(":0") and v.get("i") in FITS and pid in live and pid not in no and (not a.own or owner(pid) == a.own): cands[pid] = v["i"]
     cands = list(cands.items()); rnd.shuffle(cands); cands.sort(key=lambda c: (rc.get(c[0], 0), c[1] == "other"))      # least used on the rug first; known kinds before maybe-bottles
     print("candidates:", len(cands))
-    picks, groups, fails = [], {}, 0                           # 1. pick the photos (a quick check each), a mix of kinds
-    for pid, t in cands:
-        if len(picks) >= a.n + 3: break                       # spares: the judge drops weak images
+    picks, groups, fails = [], {}, 0                           # 1. pick the photos (a quick check each, six at a time), a mix of kinds
+    from concurrent.futures import ThreadPoolExecutor
+    def look(c):
+        pid, t = c
         try: qc = Image.open(io.BytesIO(fetch("https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % pid))); qc.load()
-        except Exception as e: print("could not download", pid, e); continue
-        try: c = check(top_shot(qc)); fails = 0                    # only the shot the image model gets: the lower one is often another item
-        except Exception as e:
-            msg = str(e); print("check failed:", msg[:300]); fails += 1
-            if "insufficient_quota" in msg or "billing" in msg: sys.exit("OpenAI: the account is out of credit or over its spending limit")
-            if fails >= 6: sys.exit("the item check keeps failing: stopping (the next run tries again)")
-            time.sleep(10 * fails); continue
-        g = c.get("group") if c.get("group") in ANGLES else group(t)
-        if not (c.get("fits") and c.get("clear")):
-            print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
-        if groups.get(g, 0) >= max(2, a.n // 3): continue                       # a mix: not six bags
-        groups[g] = groups.get(g, 0) + 1
-        name = re.sub(r"[^a-z0-9 '&.-]", "", str(c.get("name") or c.get("item") or t).lower()).strip()[:28]
-        picks.append({"qc": pid, "img": qc, "name": name, "usd": price(c.get("brand"), c.get("item") or t, g), "group": g, "brand": c.get("brand"),
-                      "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g])})
+        except Exception as e: return c, None, "download: %s" % e
+        try: return c, qc, check(top_shot(qc))                 # only the shot the image model gets: the lower one is often another item
+        except Exception as e: return c, qc, "check: %s" % str(e)[:300]
+    t_pick = time.time()
+    for b in range(0, len(cands), 6):
+        if len(picks) >= a.n + 3 or time.time() - t_pick > 8 * 60: break      # spares for the judge; never more than 8 minutes of checking
+        with ThreadPoolExecutor(6) as ex: seen = list(ex.map(look, cands[b:b + 6]))
+        for (pid, t), qc, c in seen:
+            if isinstance(c, str):
+                print(" ", c); fails += 1
+                if "insufficient_quota" in c or "billing" in c: sys.exit("the AI account is out of credit or over its spending limit")
+                if fails >= 12: sys.exit("the item check keeps failing: stopping (the next run tries again)")
+                continue
+            fails = 0
+            if len(picks) >= a.n + 3: break
+            g = c.get("group") if c.get("group") in ANGLES else group(t)
+            if not (c.get("fits") and c.get("clear")):
+                print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
+            if groups.get(g, 0) >= max(2, a.n // 3): continue                   # a mix: not six bags
+            groups[g] = groups.get(g, 0) + 1
+            name = re.sub(r"[^a-z0-9 '&.-]", "", str(c.get("name") or c.get("item") or t).lower()).strip()[:28]
+            print("  picked", name, "(%.0fs)" % (time.time() - t_pick))
+            picks.append({"qc": pid, "img": qc, "name": name, "usd": price(c.get("brand"), c.get("item") or t, g), "group": g, "brand": c.get("brand"),
+                          "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g])})
     rug = jpeg(Image.open(RUG), 1536)
     t0 = time.time(); budget = float(os.environ.get("RUG_BUDGET_MIN", "15")) * 60
 
@@ -407,7 +421,6 @@ def main():
             ok, why = judge(shot, png); print("  %s, try %d: %s %s" % (p["name"], attempt + 1, "OK" if ok else "REJECTED", why))
             if ok: return p, png, model, use
         return p, None, None, {}
-    from concurrent.futures import ThreadPoolExecutor
     with ThreadPoolExecutor(3) as ex: done = list(ex.map(make, picks))
     log = []
     for p, png, model, use in done:
