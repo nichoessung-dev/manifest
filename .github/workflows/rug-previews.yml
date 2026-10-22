@@ -41,7 +41,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           RUG_ENGINE: gemini
         run: |
-          M=$(grep -E '^gemini-3[.0-9]*-flash-image' models.txt | grep -v -- '-preview-' | head -1)
+          M=$(grep -xE 'gemini-3[.0-9]*-flash-image' models.txt | head -1)
           [ -z "$M" ] && M=$(grep -E '^gemini-3[.0-9]*-(flash|pro)-image' models.txt | head -1)
           echo "model: $M"; [ -z "$M" ] && exit 0
           RUG_MODELS="$M" python scripts/make_rug.py --own 0 --avoid scripts/slides_exclude.json --n 6 --seed 7 --out "rug-out/$M"

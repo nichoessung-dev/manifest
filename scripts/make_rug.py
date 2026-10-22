@@ -29,18 +29,11 @@ BAGS = {"bag", "suitcase"}
 JACKETS = {"puffer jacket", "down vest", "quilted jacket", "field jacket", "bomber jacket", "leather jacket", "coat", "track jacket"}
 FITS = SMALL | SHOES | BAGS | JACKETS | {"other"}          # "other" may be a bottle: the check below decides
 
-ANGLES = {                                                   # how a guy snaps his own haul with an iPhone: never a studio set-up
-    "small": ["a close-up held about 20 cm above it, the iPhone tilted a little, the item sharp and the rug numbers soft behind it",
-              "a quick top-down close-up, slightly off centre, a few big rug numbers in the frame",
-              "a low close-up from the side with the iPhone portrait-mode blur on the background"],
-    "shoes": ["the pair from standing height looking down, slightly tilted, one shoe a little in front of the other",
-              "the pair from a crouch near the floor, three-quarter view, rug numbers blurred behind",
-              "the pair from straight above, one shoe turned a little, laces loose"],
-    "bags": ["standing on the rug, shot from standing height at a slight angle, a little off centre",
-             "a close-up from a crouch on the front and the hardware"],
-    "jackets": ["laid on the rug and shot from straight above while standing, a little crooked, sleeves loose and natural",
-                "laid down casually with a soft fold, shot from above at a slight angle",
-                "folded, a close-up on the chest and logo, shot from a crouch"],
+ANGLES = {                                                   # the owner's verdict (22 Oct 2026): only the standing view of image 1 looks real; close-ups and low angles look AI
+    "small": ["the same standing viewpoint as image 1 but one small step closer, the item in the middle of the rug with several rug numbers around it"],
+    "shoes": ["the same standing viewpoint as image 1, the pair side by side on the rug, one shoe turned a little"],
+    "bags": ["the same standing viewpoint as image 1, the bag lying or standing in the middle of the rug"],
+    "jackets": ["the same standing viewpoint as image 1, the jacket laid flat on the rug, sleeves loose and natural"],
 }
 
 
@@ -49,13 +42,34 @@ def group(t):
 
 
 def prompt(t, angle):
-    return ("Image 1 is my cream Maison Margiela rug (black numbers 0 to 23, 'Maison Margiela PARIS') on a wooden floor in my room. "
+    return ("Image 1 is a photo of my cream Maison Margiela rug (black numbers 0 to 23, 'Maison Margiela PARIS') on the wooden floor of my room, taken standing up with my iPhone. "
             "Image 2 is a quality-check photo of one %s on a green mat. "
-            "Make a real-looking photo of that exact %s lying on my rug, as if I took it myself with an iPhone 15 Pro using the normal 1x camera: %s. "
-            "It must look authentic, like a normal photo in someone's camera roll, not an ad and not a render: natural indoor light from a window and the ceiling lamp, "
-            "real soft shadows under the item, true colours, a little iPhone noise and sharpening, slightly imperfect framing, natural creases and wrinkles in the fabric, real rug fibres. "
+            "Edit image 1: put that exact %s on the rug, %s. Keep everything else of image 1: the same camera position, height and angle, the same room, light and colours. "
+            "It must look like a plain photo from my camera roll, not an ad, not a render and not a close-up: natural light, a real soft shadow under the item, "
+            "natural creases in the fabric, real rug fibres, a little iPhone noise. "
             "Keep the item exactly as in image 2: the same shape, colours, materials, logos, text, stitching and hardware. Never add, move or invent a logo or text. "
-            "Real size for the item on the rug. Only this one item (one pair for shoes). No green mat, no ruler, no round stamp, no hands, no people, no extra objects. Vertical 9:16 photo." % (t, t, angle))
+            "Real size for the item on the rug. Exactly one item; for shoes exactly one pair, two shoes, never three. "
+            "No feet, legs, hands or people. No green mat, no ruler, no round stamp, no other objects. Vertical 9:16 photo." % (t, t, angle))
+
+
+JUDGE = ("Image 1 is a quality-check photo of a fashion item. Image 2 is a photo made from it for TikTok. Reply as JSON "
+         "{\"same_item\": true/false, \"logos_ok\": true/false, \"count_ok\": true/false, \"no_people\": true/false, \"no_extra\": true/false, "
+         "\"standing_view\": true/false, \"real_photo\": 1-10, \"why\": \"...\"}. same_item: image 2 shows the same item (shape, colours, materials). "
+         "logos_ok: logos and text match image 1 and none are invented. count_ok: exactly one item, or exactly one pair (two shoes) for shoes. "
+         "no_people: no feet, legs, hands or people. no_extra: no other objects added. standing_view: shot from standing height looking down at the rug with the whole item in view, "
+         "not a close-up and not a low or dramatic angle. real_photo: how much image 2 looks like a plain iPhone photo from someone's camera roll (10) versus AI, a render or an ad (1). Be strict.")
+
+
+def judge(qc_shot, png):
+    """A strict second look at a made image (Gemini Flash): True when it may be posted. The owner's slop rules (22 Oct 2026)."""
+    if ENGINE != "gemini": return True, "no judge"
+    try:
+        j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": JUDGE}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(qc_shot, 768)).decode()}},
+                   {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(Image.open(io.BytesIO(png)), 768)).decode()}}], {"responseMimeType": "application/json", "temperature": 0}, 90)
+        v = json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
+    except Exception as e: return True, "judge failed: %s" % str(e)[:80]          # never block on a broken judge; the owner still reviews the draft
+    ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= 7
+    return ok, json.dumps(v)[:300]
 
 
 def fetch(url, timeout=120):
@@ -363,7 +377,7 @@ def main():
     print("candidates:", len(cands))
     picks, groups, fails = [], {}, 0                           # 1. pick the photos (a quick check each), a mix of kinds
     for pid, t in cands:
-        if len(picks) >= a.n + 1: break                       # one spare in case an image fails
+        if len(picks) >= a.n + 3: break                       # spares: the judge drops weak images
         try: qc = Image.open(io.BytesIO(fetch("https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % pid))); qc.load()
         except Exception as e: print("could not download", pid, e); continue
         try: c = check(top_shot(qc)); fails = 0                    # only the shot the image model gets: the lower one is often another item
@@ -381,9 +395,14 @@ def main():
         picks.append({"qc": pid, "img": qc, "name": name, "usd": price(c.get("brand"), c.get("item") or t, g), "group": g, "brand": c.get("brand"),
                       "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g])})
     rug = jpeg(Image.open(RUG), 1536)
-    def make(p):                                               # 2. the images, three at a time
-        png, model, use = generate([rug, jpeg(top_shot(p["img"]))], prompt(p["item"], p["angle"]))
-        return p, png, model, use
+    def make(p):                                               # 2. the images, three at a time; each one judged, one retry, then the item is dropped
+        shot = top_shot(p["img"])
+        for attempt in range(2):
+            png, model, use = generate([rug, jpeg(shot)], prompt(p["item"], p["angle"]))
+            if not png: break
+            ok, why = judge(shot, png); print("  %s, try %d: %s %s" % (p["name"], attempt + 1, "OK" if ok else "REJECTED", why))
+            if ok: return p, png, model, use
+        return p, None, None, {}
     from concurrent.futures import ThreadPoolExecutor
     with ThreadPoolExecutor(3) as ex: done = list(ex.map(make, picks))
     log = []
