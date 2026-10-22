@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w17";
+export const PRODUCT_TPL = "w18";
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -777,7 +777,23 @@ const AGENT_STYLES = {
     first: "A cable knit or quarter-zip in navy, grey or cream, a quilted gilet, straight trousers and clean leather sneakers or loafers cover most old money outfits." },
   shoes: { name: "Shoes", cat: "Shoes", parent: ["Sneakers and shoes", "/category/sneakers"],
     first: "Compare the size chart on the listing with a pair you own, in centimetres. Many rep sneakers fit a little small, so ask the seller through your agent if you are between sizes." },
+  // 23 Oct 2026: Google suggests "kakobuy spreadsheet qc / with qc photos" and "kakobuy / oopbuy spreadsheet budget / cheap".
+  // QC: finds the catalogue marks as having buyer QC photos. Budget: a listed-price filter (seller prices, not a claim).
+  qc: { name: "QC photos", qc: 1, parent: ["QC checker", "/tools/qc-checker"],
+    h: a => `${a} Spreadsheet with QC Photos`, title: (a, n) => `${a} Spreadsheet with QC Photos 2026: ${n} Finds | Puro Classico`,
+    sub: (a, n) => `${n} finds marked as having buyer QC photos from earlier orders, each with a one-tap ${a} link.`,
+    desc: (a, n) => `The ${a} spreadsheet with QC photos: ${n} rep finds marked as having buyer QC photos, with prices and one-tap ${a} buy links.`,
+    faq: (a, n, n2) => [[`How do I order from the ${a} spreadsheet with QC photos?`, `Open a find, tap Buy via ${a}, pick your size and pay for the item plus delivery to the ${a} warehouse. ${a} photographs your exact item there, then you ship your parcel.`],
+      ["Will I see the QC photos?", `Our catalogue marks these ${n} finds as having buyer QC photos from earlier orders and stores the photo count for ${n2} of them. Open a find and tap QC to load them. If they can't be loaded right now, ${a} still photographs your exact item at the warehouse before it ships.`]] },
+  budget: { name: "Budget", pmax: 140, parent: ["Weight estimator", "/tools/weight-estimator"],
+    h: a => `${a} Budget Spreadsheet`, title: (a, n) => `${a} Budget Spreadsheet 2026: ${n} Finds Under $20 | Puro Classico`,
+    sub: (a, n) => `${n} finds listed at ¥140 or less (about $20), each with a one-tap ${a} link.`,
+    desc: (a, n) => `The ${a} budget spreadsheet: ${n} rep finds listed at ¥140 or less (about $20), with QC photos where we have them and one-tap ${a} links.`,
+    faq: a => [[`How do I order from the ${a} budget spreadsheet?`, `Open a find, tap Buy via ${a}, pick your size and pay for the item plus delivery to the ${a} warehouse. Check the QC photos there, then ship your parcel.`],
+      ["Are these prices final?", `No. They are the sellers' listed prices from the last catalogue update. ${a} adds shipping, which is charged per parcel by weight, so on cheap items it can cost more than the item. Estimate it with our weight estimator before you order.`]] },
 };
+const AGENT_STYLE_RE = new RegExp(`^/(${AGENT_BRAND_AGENTS.join("|")})-spreadsheet/(${Object.keys(AGENT_STYLES).join("|")})$`);
+const inBudget = (p, max) => !isPH(p.cny) && p.cny <= max;
 
 export function hubSpec(path) {
   const { all, slugBrand, byBrand, brandSlug, byCat } = idx();
@@ -809,21 +825,23 @@ export function hubSpec(path) {
             ["How do I switch from CNFans to another agent?", "Open a find, tap the buy button for the agent you want, create a free account there and pay for the item plus delivery to the warehouse. The seller and the item stay the same; only the agent that buys, checks and ships it changes."],
             ["Is this the official CNFans spreadsheet?", "No. Puro Classico is an independent spreadsheet and is not affiliated with CNFans. Links to other agents may be affiliate links."]] };
   }
-  if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|sugargoo)-spreadsheet\/(grisch|old-money|shoes)$/))) {
+  if ((m = path.match(AGENT_STYLE_RE))) {
     const key = m[1], s = m[2], a = AGENTS[key], st = AGENT_STYLES[s];
     const have = st.brands ? st.brands().filter(b => byBrand.has(b)) : null;
-    const n = nf(have ? have.reduce((t, b) => t + byBrand.get(b).length, 0) : (byCat.get(st.cat) || []).length);
-    const low = s === "shoes" ? "shoe" : st.name.toLowerCase();
-    return { path, preset: have ? { agent: key, brands: have.map(b => slug(b)) } : { agent: key, cat: st.cat },
-      h: `${st.name} on ${a.name}`, sub: `${n} ${low} finds with one-tap ${a.name} links.`,
-      title: `${st.name} ${a.name} Spreadsheet 2026: ${n} Finds | Puro Classico`,
-      desc: `The ${low} ${a.name} spreadsheet: ${n} rep finds with prices, QC photos and one-tap ${a.name} buy links.`,
+    const count = have ? have.reduce((t, b) => t + byBrand.get(b).length, 0) : st.qc ? all.filter(p => p.qc >= st.qc).length
+      : st.pmax ? all.filter(p => inBudget(p, st.pmax)).length : (byCat.get(st.cat) || []).length;
+    const n = nf(count), low = s === "shoes" ? "shoe" : st.name.toLowerCase();
+    const preset = have ? { agent: key, brands: have.map(b => slug(b)) } : st.qc ? { agent: key, qc: st.qc } : st.pmax ? { agent: key, pmax: st.pmax } : { agent: key, cat: st.cat };
+    return { path, preset,
+      h: st.h ? st.h(a.name) : `${st.name} on ${a.name}`, sub: st.sub ? st.sub(a.name, n) : `${n} ${low} finds with one-tap ${a.name} links.`,
+      title: st.title ? st.title(a.name, n) : `${st.name} ${a.name} Spreadsheet 2026: ${n} Finds | Puro Classico`,
+      desc: st.desc ? st.desc(a.name, n) : `The ${low} ${a.name} spreadsheet: ${n} rep finds with prices, QC photos and one-tap ${a.name} buy links.`,
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, `/${key}-spreadsheet`], [st.name, path]],
       chips: [[`${st.name} on other agents`, AGENT_BRAND_AGENTS.filter(k => k !== key).map(k => [AGENTS[k].name, `/${k}-spreadsheet/${s}`]).concat([st.parent])],
               [`More on ${a.name}`, Object.keys(AGENT_STYLES).filter(x => x !== s).map(x => [AGENT_STYLES[x].name, `/${key}-spreadsheet/${x}`]).concat([[`${a.name} spreadsheet`, `/${key}-spreadsheet`]])]],
-      faq: [[`How do I order ${low} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the ${a.name} warehouse. Check the QC photos there, then ship your parcel.`],
-            [s === "shoes" ? `How do I get the right size on ${a.name}?` : "What should I buy first?", st.first],
-            ["Is the spreadsheet free?", `Yes. You only pay ${a.name} for what you order and for shipping. Links may be affiliate links.`]] };
+      faq: (st.faq ? st.faq(a.name, n, nf(all.filter(p => p.qc >= 2).length)) : [[`How do I order ${low} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the ${a.name} warehouse. Check the QC photos there, then ship your parcel.`],
+            [s === "shoes" ? `How do I get the right size on ${a.name}?` : "What should I buy first?", st.first]])
+            .concat([["Is the spreadsheet free?", `Yes. You only pay ${a.name} for what you order and for shipping. Links may be affiliate links.`]]) };
   }
   if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet$/))) {
     const key = m[1], a = AGENTS[key], meta = AGENT_INTRO[key]; if (!a || !meta) return null;
@@ -841,7 +859,7 @@ export function hubSpec(path) {
       aboutTitle: `How the ${a.name} spreadsheet works`, about: [[`What is ${a.name}?`, what], [`How to order from the ${a.name} spreadsheet`, howTo]],
       title: `${meta.title}: ${N} Finds | Puro Classico`, desc: `The ${a.name} spreadsheet: ${N} rep finds with prices, QC photos and one-tap ${a.name} links. Search, filter and buy in one place.`,
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, path]],
-      chips: [...(AGENT_BRAND_AGENTS.includes(key) ? [[`Styles on ${a.name}`, Object.keys(AGENT_STYLES).map(x => [AGENT_STYLES[x].name, `${path}/${x}`])]] : []),
+      chips: [...(AGENT_BRAND_AGENTS.includes(key) ? [[`Browse on ${a.name}`, Object.keys(AGENT_STYLES).map(x => [AGENT_STYLES[x].name, `${path}/${x}`])]] : []),
               [`Popular brands on ${a.name}`, brands.slice(0, 16).map(b => [`${b} (${nf(byBrand.get(b).length)})`, `${path}/${brandSlug.get(b)}`])],
               ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"]])]],
       faq: [[`What is the ${a.name} spreadsheet?`, `A searchable list of ${N} Weidian, Taobao and 1688 finds. Every find opens directly in ${a.name}, so there is nothing to copy or translate.`],
@@ -894,7 +912,8 @@ export function hubParts(spec, more = "") {
   const about = spec.about && spec.about.length ? `<h2>${esc(spec.aboutTitle || "About")}</h2>${spec.about.map(([q, html]) => `<details><summary>${esc(q)}</summary>${html}</details>`).join("")}<div style="height:28px"></div>` : "";
   const seo = `<section class="hub-seo">${more}${about}${spec.chips.filter(c => c[1].length).map(([t, links]) => `<h2>${esc(t)}</h2><div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `<h2>FAQ</h2>${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
   const ld = [bc.data]; if (spec.faq.length) ld.push(faqLd(spec.faq));
-  const page = { h: spec.h, sub: spec.sub, agent: spec.preset.agent || null, brand: spec.preset.brand || null, cat: spec.preset.cat || null, brands: spec.preset.brands || null };
+  const page = { h: spec.h, sub: spec.sub, agent: spec.preset.agent || null, brand: spec.preset.brand || null, cat: spec.preset.cat || null, brands: spec.preset.brands || null,
+    qc: spec.preset.qc || null, pmax: spec.preset.pmax || null };
   const head = `<script>window.PC_PAGE=${JSON.stringify(page).replace(/</g, "\\u003c")};document.documentElement.classList.add("hub"${page.agent ? ',"agent-lock"' : ""});</script>` +
     ld.map(o => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, "\\u003c") + "</script>").join("");
   return { crumbHtml, seo, head };
@@ -912,6 +931,8 @@ export const APP_CARDS = PER_PAGE;
 export function hubList(spec) {
   const { all, byBrand, byCat, slugBrand } = idx();
   const pr = spec ? spec.preset : {};
+  if (pr.qc) return { list: all.filter(p => p.qc >= pr.qc), base: null };
+  if (pr.pmax) return { list: all.filter(p => inBudget(p, pr.pmax)), base: null };
   if (pr.brands) { const want = new Set(pr.brands); return { list: [...byBrand].filter(([b]) => want.has(slug(b))).flatMap(([, l]) => l).sort((a, b) => score(b) - score(a)), base: null }; }
   if (pr.brand) return { list: byBrand.get(slugBrand.get(pr.brand)) || [], base: pr.agent ? null : "/brand/" + pr.brand };
   if (pr.cat) return { list: byCat.get(pr.cat) || [], base: !pr.agent && CATS[pr.cat] ? "/category/" + CATS[pr.cat].slug : null };
@@ -921,12 +942,12 @@ export function hubList(spec) {
 // (imgSrc: Supabase photos through SITE/api/img), so the app's cards reuse the images the browser already has.
 const HEART = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></svg>`;
 const appAlt = p => { const t = p.title || "", b = p.brand || ""; return (b && !t.toLowerCase().startsWith(b.toLowerCase()) ? b + " " : "") + t + " rep"; };
-export function appCards(list) {
+export function appCards(list, qcMin = 2) {   // qcMin: the QC badge threshold (1 on the QC photo hubs, like the app there)
   return list.map((p, i) => {
     const img = imgSrc(p), id = esc(p.id);
     return `<div class="card" tabindex="0" role="button" data-ssr="${id}"><div class="thumb"><canvas aria-hidden="true"></canvas>` +
       (img ? `<img class="pimg" src="${esc(img)}" alt="${esc(appAlt(p))}" loading="${i < 8 ? "eager" : "lazy"}"${i < 4 ? ' fetchpriority="high"' : ""} decoding="async" onerror="this.remove()">` : "") +
-      `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save">${HEART}</button>${p.qc >= 2 ? '<span class="qc-badge">\u{1F4F7} QC</span>' : ""}</div>` +
+      `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save">${HEART}</button>${p.qc >= qcMin ? '<span class="qc-badge">\u{1F4F7} QC</span>' : ""}</div>` +
       `<div class="body">${p.brand ? `<span class="brand-line">${esc(p.brand)}</span>` : ""}<a class="title" href="${productUrl(p)}">${esc(p.title)}</a>` +
       `<span class="price-row"><span class="price">${money(p.cny)}</span>${isPH(p.cny) ? "" : `<span class="subprice">¥${(+p.cny).toLocaleString("en-US")}</span>`}` +
       `<span class="starcount" data-sc="${id}"></span><span class="cat">${esc(p.cat)}</span></span></div></div>`;
