@@ -21,6 +21,7 @@ FOLDER = "10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L"
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
 ENGINE = os.environ.get("RUG_ENGINE", "gemini" if os.environ.get("GEMINI_API_KEY") else "openai")     # "gemini" (Google, about $0.04 an image) or "openai"
 MODELS = [m for m in os.environ.get("RUG_MODELS", "gemini-2.5-flash-image" if ENGINE == "gemini" else "gpt-image-2,gpt-image-1.5,gpt-image-1").split(",") if m]
+MULTI_ON = os.environ.get("RUG_MULTI", "1") == "1"     # several items on one slide (owner, 22 Oct 2026); "0" = one item per slide
 GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent"
 
 SMALL = {"watch", "sunglasses", "wallet", "belt", "jewellery", "cap", "beanie", "bottle"}
@@ -34,6 +35,7 @@ ANGLES = {                                                   # the owner's verdi
     "shoes": ["the same standing viewpoint as image 1, the pair side by side on the rug, one shoe turned a little"],
     "bags": ["the same standing viewpoint as image 1, the bag lying or standing in the middle of the rug"],
     "jackets": ["the same standing viewpoint as image 1, the jacket laid flat on the rug, sleeves loose and natural"],
+    "several": ["the same standing viewpoint as image 1, the items spread over the middle of the rug"],
 }
 
 
@@ -41,33 +43,46 @@ def group(t):
     return "small" if t in SMALL else "shoes" if t in SHOES else "bags" if t in BAGS else "jackets"
 
 
-def prompt(t, angle):
+MULTI = {"small": 3, "shoes": 2, "bags": 2, "jackets": 1}       # items per slide (owner, 22 Oct 2026: several accessories or shoes together; one jacket fills the rug)
+
+
+def prompt(items, angle):
+    """items: the item words of one slide, in the order of their photos (images 2, 3, ...)."""
+    n = len(items); shoes = sum(1 for t in items if re.search(r"sneaker|shoe|loafer|boot|slide", t))
+    if n == 1:
+        what = "Image 2 is a quality-check photo of one %s on a green mat. Edit image 1: put that exact %s on the rug, %s. " % (items[0], items[0], angle)
+        count = "Exactly one item; for shoes exactly one pair, two shoes, never three. "
+    else:
+        what = ("Images 2 to %d are quality-check photos on a green mat of %d different items: %s. Edit image 1: lay all %d items on the rug together like a haul I am showing off, "
+                "side by side with a little space between them so each one is fully visible, %s. " % (n + 1, n, ", ".join("image %d: %s" % (k + 2, t) for k, t in enumerate(items)), n, angle))
+        count = "Exactly these %d items, each exactly once%s, nothing else. " % (n, "; shoes come as pairs, so exactly %d shoes in total" % (2 * shoes) if shoes else "")
     return ("Image 1 is a photo of my cream Maison Margiela rug (black numbers 0 to 23, 'Maison Margiela PARIS') on the wooden floor of my room, taken standing up with my iPhone. "
-            "Image 2 is a quality-check photo of one %s on a green mat. "
-            "Edit image 1: put that exact %s on the rug, %s. Keep everything else of image 1: the same camera position, height and angle, the same room, light and colours. "
-            "It must look like a plain photo from my camera roll, not an ad, not a render and not a close-up: natural light, a real soft shadow under the item, "
+            + what + "Keep everything else of image 1: the same camera position, height and angle, the same room, light and colours. "
+            "It must look like a plain photo from my camera roll, not an ad, not a render and not a close-up: natural light, a real soft shadow under each item, "
             "natural creases in the fabric, real rug fibres, a little iPhone noise. "
-            "Keep the item exactly as in image 2: the same shape, colours, materials, logos, text, stitching and hardware. Never add, move or invent a logo or text. "
-            "Real size for the item on the rug. Exactly one item; for shoes exactly one pair, two shoes, never three. "
-            "No feet, legs, hands or people. No green mat, no ruler, no round stamp, no other objects. Vertical 9:16 photo." % (t, t, angle))
+            "Keep every item exactly as in its photo: the same shape, colours, materials, logos, text, stitching and hardware. Never add, move or invent a logo or text. "
+            "Real sizes on the rug. " + count +
+            "No feet, legs, hands or people. No green mat, no ruler, no round stamp, no other objects. Vertical 9:16 photo.")
 
 
-JUDGE = ("Image 1 is the real photo of my room: a rug, a wooden floor, white drawers and a hanging plant. Image 2 is a quality-check photo of a fashion item. "
-         "Image 3 is a photo made from them for TikTok: the item from image 2 placed on the rug of image 1. Compare image 3 with image 2 for the item and with image 1 for the room. Reply as JSON "
-         "{\"same_item\": true/false, \"logos_ok\": true/false, \"count_ok\": true/false, \"no_people\": true/false, \"no_extra\": true/false, "
-         "\"standing_view\": true/false, \"real_photo\": 1-10, \"why\": \"...\"}. same_item: image 3 shows the same item as image 2 (shape, colours, materials). "
-         "logos_ok: logos and text match image 2 and none are invented. count_ok: exactly one item, or exactly one pair (two shoes) for shoes. "
-         "no_people: no feet, legs, hands or people. no_extra: nothing was added that is not in image 1 or image 2 (the room's plant, drawers and floor are fine). "
-         "standing_view: shot from standing height looking down at the rug like image 1, with the whole item in view, not a close-up and not a low or dramatic angle. real_photo: how much image 3 looks like a plain iPhone photo from someone's camera roll (10) versus AI, a render or an ad (1). Be strict.")
+JUDGE = ("Image 1 is the real photo of my room: a rug, a wooden floor, white drawers and a hanging plant. Images 2 to {last} are quality-check photos of {n} fashion item(s). "
+         "Image {res} is a photo made from them for TikTok: the item(s) placed on the rug of image 1. Compare image {res} with the quality-check photos for the items and with image 1 for the room. Reply as JSON "
+         "{{\"same_item\": true/false, \"logos_ok\": true/false, \"count_ok\": true/false, \"no_people\": true/false, \"no_extra\": true/false, "
+         "\"standing_view\": true/false, \"real_photo\": 1-10, \"why\": \"...\"}}. same_item: every item from the quality-check photos is in image {res} and matches its photo (shape, colours, materials). "
+         "logos_ok: logos and text match the photos and none are invented. count_ok: exactly {n} item(s), each once; shoes as pairs (two shoes per pair, never three). "
+         "no_people: no feet, legs, hands or people. no_extra: nothing was added that is not in image 1 or the quality-check photos (the room's plant, drawers and floor are fine). "
+         "standing_view: shot from standing height looking down at the rug like image 1, with every item fully in view, not a close-up and not a low or dramatic angle. "
+         "real_photo: how much image {res} looks like a plain iPhone photo from someone's camera roll (10) versus AI, a render or an ad (1). Be strict.")
 
 
-def judge(qc_shot, png, room=None):
+def judge(shots, png):
     """A strict second look at a made image (Gemini Flash): True when it may be posted. The owner's slop rules (22 Oct 2026)."""
     if ENGINE != "gemini": return True, "no judge"
+    enc = lambda im: {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(im, 768)).decode()}}
     try:
-        j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": JUDGE}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(Image.open(RUG), 768)).decode()}},
-                   {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(qc_shot, 768)).decode()}},
-                   {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(Image.open(io.BytesIO(png)), 768)).decode()}}], {"responseMimeType": "application/json", "temperature": 0}, 90)
+        text = JUDGE.format(n=len(shots), last=len(shots) + 1, res=len(shots) + 2)
+        j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": text}, enc(Image.open(RUG))] + [enc(x) for x in shots] + [enc(Image.open(io.BytesIO(png)))],
+                   {"responseMimeType": "application/json", "temperature": 0}, 90)
         v = json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
     except Exception as e: return True, "judge failed: %s" % str(e)[:80]          # never block on a broken judge; the owner still reviews the draft
     ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= 6
@@ -174,8 +189,8 @@ CHECK = ("A quality-check photo of a fashion find on a green mat (it may show th
          "novelty or desk items, car parts, toys, sports gear, and anything with rude, joke or offensive words on it. "
          "clear: true when the item itself is clearly visible, including a top-down view of a pair of shoes or one shoe from the side; false only when the photo shows just the soles, "
          "the inside or a box is shown. group: small for watches, sunglasses, belts, wallets, jewellery, caps and bottles. item: the item in 1 or 2 plain words "
-         "(sneakers, puffer vest, duffle bag, perfume). brand: only if you can read it on the item, else \"\" (the round 'puro classico' stamp is not a brand). "
-         "name: 2 to 3 lowercase words: the brand you can read plus the item ('golden goose sneakers', 'ysl duffle bag', 'stone island jacket', 'burberry puffer'); "
+         "(sneakers, puffer vest, duffle bag, perfume). brand: the brand whose logo, monogram, patch or signature design you can see on the item (the YSL monogram, the Ralph Lauren pony or RL, the Golden Goose star, Margiela's tape or tabi toe, the Moncler patch, the Stone Island badge), else \"\"; never guess from colour or shape alone (the round 'puro classico' stamp is not a brand). "
+         "name: 2 to 3 lowercase words: that brand plus the item ('golden goose sneakers', 'ysl duffle bag', 'stone island jacket', 'burberry puffer'); "
          "with no readable brand, the colour plus the item ('white leather sneakers', 'light blue puffer'). Never filler words like cool, nice, sick, fire.")
 
 
@@ -247,10 +262,11 @@ def lines_of(text, f, maxw, d):
     return out + ([cur] if cur else [])
 
 
-def caption(im, text, cy=None, size=72):
+def caption(im, text, cy=None, size=72, width=0.78):
     """TikTok-style text: pale yellow TikTok Sans, centred lines, a soft dark shadow, no outline. Its middle sits at cy (the screen middle by default)."""
     d = ImageDraw.Draw(im); W, H = im.size; f = tt(size); rows = []
-    for part in text.split("\n"): rows += lines_of(part, f, W * 0.78, d)
+    while size > 46 and max(d.textlength(p, font=f) for p in text.split("\n")) > W * width: size -= 2; f = tt(size)      # each item stays on one line
+    for part in text.split("\n"): rows += lines_of(part, f, W * width, d)
     lh = int(size * 1.22); y = int((cy or H / 2) - lh * len(rows) / 2)
     sh = Image.new("RGBA", im.size, (0, 0, 0, 0)); ds = ImageDraw.Draw(sh)
     for k, r in enumerate(rows): ds.text((W / 2 + 2, y + k * lh + 3), r, font=f, fill=(0, 0, 0, 215), anchor="ma")
@@ -332,7 +348,12 @@ def cover(rnd, last=None):
 
 
 def item_slide(im, name, usd, fk=0):
-    return caption(im, name + ("\n$%d" % usd if usd else ""), cy=int(im.height * 0.70))      # below the item, never on it (owner, 22 Oct 2026)
+    """name/usd: one item (two lines: name, price) or lists for several (one line each: "name $price")."""
+    if isinstance(name, list) and len(name) > 1:
+        text = "\n".join(n + (" $%d" % u if u else "") for n, u in zip(name, usd)); return caption(im, text, cy=int(im.height * 0.70), size=64, width=0.9)
+    else:
+        n, u = (name[0], usd[0]) if isinstance(name, list) else (name, usd); text = n + ("\n$%d" % u if u else "")
+    return caption(im, text, cy=int(im.height * 0.70))      # below the items, never on them (owner, 22 Oct 2026)
 
 
 def top_shot(im):
@@ -389,9 +410,10 @@ def main():
         except Exception as e: return c, None, "download: %s" % e
         try: return c, qc, check(top_shot(qc))                 # only the shot the image model gets: the lower one is often another item
         except Exception as e: return c, qc, "check: %s" % str(e)[:300]
+    want, cap = (a.n * 2 + 2, a.n) if MULTI_ON else (a.n + 3, max(2, a.n // 3))
     t_pick = time.time()
     for b in range(0, len(cands), 6):
-        if len(picks) >= a.n + 3 or time.time() - t_pick > 8 * 60: break      # spares for the judge; never more than 8 minutes of checking
+        if len(picks) >= want or time.time() - t_pick > 8 * 60: break      # spares for the judge; never more than 8 minutes of checking
         with ThreadPoolExecutor(6) as ex: seen = list(ex.map(look, cands[b:b + 6]))
         for (pid, t), qc, c in seen:
             if isinstance(c, str):
@@ -400,11 +422,11 @@ def main():
                 if fails >= 12: sys.exit("the item check keeps failing: stopping (the next run tries again)")
                 continue
             fails = 0
-            if len(picks) >= a.n + 3: break
+            if len(picks) >= want: break
             g = c.get("group") if c.get("group") in ANGLES else group(t)
             if not (c.get("fits") and c.get("clear")):
                 print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
-            if groups.get(g, 0) >= max(2, a.n // 3): continue                   # a mix: not six bags
+            if groups.get(g, 0) >= cap: continue                                # a mix: not all bags
             groups[g] = groups.get(g, 0) + 1
             name = re.sub(r"[^a-z0-9 '&.-]", "", str(c.get("name") or c.get("item") or t).lower()).strip()[:28]
             print("  picked", name, "(%.0fs)" % (time.time() - t_pick))
@@ -413,24 +435,34 @@ def main():
     rug = jpeg(Image.open(RUG), 1536)
     t0 = time.time(); budget = float(os.environ.get("RUG_BUDGET_MIN", "15")) * 60
 
-    def make(p):                                               # 2. the images, three at a time; each one judged, one retry, then the item is dropped
-        shot = top_shot(p["img"])
+    by = {}                                                    # 2. slides: several of a kind together (MULTI), kinds taking turns
+    for p in picks: by.setdefault(p["group"], []).append(p)
+    chunks = {g: [ps[k:k + (MULTI.get(g, 1) if MULTI_ON else 1)] for k in range(0, len(ps), MULTI.get(g, 1) if MULTI_ON else 1)] for g, ps in by.items()}
+    slides = []
+    while any(chunks.values()) and len(slides) < a.n + 1:
+        for g in ["small", "shoes", "jackets", "bags"]:
+            if chunks.get(g) and len(slides) < a.n + 1: slides.append(chunks[g].pop(0))
+
+    def make(sl):                                              # 3. the images, three at a time; each one judged, one retry, then the slide is dropped
+        shots = [top_shot(p["img"]) for p in sl]; label = " + ".join(p["name"] for p in sl)
+        angle = rnd.choice(ANGLES["several"]) if len(sl) > 1 else sl[0]["angle"]
         for attempt in range(2):
-            if time.time() - t0 > budget: print("  out of time, skipping", p["name"]); break
-            print("  making", p["name"], "try", attempt + 1, "%.0fs in" % (time.time() - t0))
-            png, model, use = generate([rug, jpeg(shot)], prompt(p["item"], p["angle"]))
+            if time.time() - t0 > budget: print("  out of time, skipping", label); break
+            print("  making", label, "try", attempt + 1, "%.0fs in" % (time.time() - t0))
+            png, model, use = generate([rug] + [jpeg(x) for x in shots], prompt([p["item"] for p in sl], angle))
             if not png: break
-            ok, why = judge(shot, png); print("  %s, try %d: %s %s" % (p["name"], attempt + 1, "OK" if ok else "REJECTED", why))
-            if ok: return p, png, model, use
-        return p, None, None, {}
-    with ThreadPoolExecutor(3) as ex: done = list(ex.map(make, picks))
+            ok, why = judge(shots, png); print("  %s, try %d: %s %s" % (label, attempt + 1, "OK" if ok else "REJECTED", why))
+            if ok: return sl, png, model, use
+        return sl, None, None, {}
+    with ThreadPoolExecutor(3) as ex: done = list(ex.map(make, slides))
     log = []
-    for p, png, model, use in done:
-        if not png or len(log) >= a.n: print("no image for", p["name"]) if not png else None; continue
-        fn = "%02d-%s" % (len(log) + 1, re.sub(r"[^a-z0-9]+", "-", p["name"]))
-        p["img"].convert("RGB").save(os.path.join(a.out, fn + "-qc.jpg"), quality=85)
+    for sl, png, model, use in done:
+        if not png or len(log) >= a.n: print("no image for", " + ".join(p["name"] for p in sl)) if not png else None; continue
+        fn = "%02d-%s" % (len(log) + 1, re.sub(r"[^a-z0-9]+", "-", sl[0]["name"]) + ("-and-%d-more" % (len(sl) - 1) if len(sl) > 1 else ""))
+        for k, p in enumerate(sl): p["img"].convert("RGB").save(os.path.join(a.out, fn + "-qc%s.jpg" % (k or "")), quality=85)
         ImageOps.fit(Image.open(io.BytesIO(png)).convert("RGB"), (1080, 1920), Image.LANCZOS).save(os.path.join(a.out, fn + "-raw.jpg"), quality=94)
-        log.append({"file": fn + ".jpg", "qc": p["qc"], "name": p["name"], "usd": p["usd"], "group": p["group"], "brand": p["brand"], "angle": p["angle"], "model": model, "usage": use})
+        log.append({"file": fn + ".jpg", "qc": [p["qc"] for p in sl], "name": [p["name"] for p in sl], "usd": [p["usd"] for p in sl],
+                    "group": sl[0]["group"], "model": model, "usage": use})
         print("made", fn, "with", model)
     if state_path and a.commit_state: used["rug_skip"] = sorted(rejected)
     if len(log) < min(a.n, 5):                                 # never post a thin carousel
@@ -447,7 +479,8 @@ def main():
     json.dump({"cover": k, "slides": log}, open(os.path.join(a.out, "log.txt"), "w"), indent=1)      # not .json: finds_plan posts the first .json it finds
     print("wrote", len(images), "images;", caption.replace("\n", " | "))
     if state_path and a.commit_state:
-        for x in log: rc[x["qc"]] = rc.get(x["qc"], 0) + 1
+        for x in log:
+            for q in x["qc"]: rc[q] = rc.get(q, 0) + 1
         used["rug_cover"] = k; used["part"] = int(used.get("part", 0)) + 1; json.dump(used, open(state_path, "w"), indent=0)
 
 
