@@ -19,7 +19,10 @@ jobs:
       - run: pip install pillow && (sudo apt-get install -y -q fonts-noto-color-emoji || true)
       - name: Build the carousel
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RUG_ENGINE: gemini
+          RUG_MODELS: gemini-3.1-flash-image
+          PYTHONUNBUFFERED: '1'
         run: python scripts/make_rug.py --n 6 --own 0 --state slides_used.json --commit-state --avoid scripts/slides_exclude.json --out out/rug-now
       - name: Send it to the second account as a draft
         env:

@@ -19,7 +19,9 @@ YELLOW = (252, 250, 190)                                   # TikTok's pale capti
 TTS = os.path.join(ROOT, "scripts", "fonts", "TikTokSans.ttf")   # TikTok Sans (OFL), the app's own caption font
 FOLDER = "10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L"
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
-MODELS = [m for m in os.environ.get("RUG_MODELS", "gpt-image-2,gpt-image-1.5,gpt-image-1").split(",") if m]
+ENGINE = os.environ.get("RUG_ENGINE", "gemini" if os.environ.get("GEMINI_API_KEY") else "openai")     # "gemini" (Google, about $0.04 an image) or "openai"
+MODELS = [m for m in os.environ.get("RUG_MODELS", "gemini-2.5-flash-image" if ENGINE == "gemini" else "gpt-image-2,gpt-image-1.5,gpt-image-1").split(",") if m]
+GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent"
 
 SMALL = {"watch", "sunglasses", "wallet", "belt", "jewellery", "cap", "beanie", "bottle"}
 SHOES = {"sneakers", "loafers", "boots", "dress shoes", "slides"}
@@ -27,18 +29,11 @@ BAGS = {"bag", "suitcase"}
 JACKETS = {"puffer jacket", "down vest", "quilted jacket", "field jacket", "bomber jacket", "leather jacket", "coat", "track jacket"}
 FITS = SMALL | SHOES | BAGS | JACKETS | {"other"}          # "other" may be a bottle: the check below decides
 
-ANGLES = {
-    "small": ["a close-up from a low angle just above the rug, the item sharp and filling most of the frame, the rug letters soft and blurred behind it",
-              "a close-up from directly above, the item filling about two thirds of the frame, a few big rug numbers visible around it",
-              "a close-up at a 45 degree angle, soft daylight from a window on the left, a shallow depth of field"],
-    "shoes": ["the pair at a three-quarter angle, shot from standing height, one shoe slightly in front of the other",
-              "the pair from a low side angle near floor level, the rug numbers blurred behind",
-              "the pair from directly above, one shoe turned a little, laces relaxed"],
-    "bags": ["standing on the rug at a three-quarter angle, shot from standing height",
-             "a close-up from a low angle on the front and the hardware, the rug blurred behind"],
-    "jackets": ["laid flat from directly above, sleeves folded in naturally, the rug letters peeking out around it",
-                "laid casually at a slight angle with a soft fold in the body, shot from above",
-                "folded neatly, a close-up on the chest and the logo area, shot at a slight angle"],
+ANGLES = {                                                   # the owner's verdict (22 Oct 2026): only the standing view of image 1 looks real; close-ups and low angles look AI
+    "small": ["the same standing viewpoint as image 1 but one small step closer, the item in the middle of the rug with several rug numbers around it"],
+    "shoes": ["the same standing viewpoint as image 1, the pair side by side on the rug, one shoe turned a little"],
+    "bags": ["the same standing viewpoint as image 1, the bag lying or standing in the middle of the rug"],
+    "jackets": ["the same standing viewpoint as image 1, the jacket laid flat on the rug, sleeves loose and natural"],
 }
 
 
@@ -47,12 +42,36 @@ def group(t):
 
 
 def prompt(t, angle):
-    return ("Photorealistic phone photo for a TikTok slide. Image 1 is the owner's cream Maison Margiela rug with the black numbers 0 to 23 "
-            "and 'Maison Margiela PARIS' on a wooden floor. Image 2 is a quality-check photo of one %s on a green mat. "
-            "Show that exact %s lying naturally on the rug from image 1, in %s. "
-            "Keep the item identical to image 2: the same shape, colours, materials, logos, text, stitching and hardware. Do not add, move or invent any logo or text. "
-            "Real scale for the item next to the rug, real contact shadows, soft natural indoor light, true colours, slight phone-camera grain. "
-            "Only one item (one pair for shoes). No green mat, no ruler, no round stamp, no hands, no people, no extra objects. Vertical framing with the item centred." % (t, t, angle))
+    return ("Image 1 is a photo of my cream Maison Margiela rug (black numbers 0 to 23, 'Maison Margiela PARIS') on the wooden floor of my room, taken standing up with my iPhone. "
+            "Image 2 is a quality-check photo of one %s on a green mat. "
+            "Edit image 1: put that exact %s on the rug, %s. Keep everything else of image 1: the same camera position, height and angle, the same room, light and colours. "
+            "It must look like a plain photo from my camera roll, not an ad, not a render and not a close-up: natural light, a real soft shadow under the item, "
+            "natural creases in the fabric, real rug fibres, a little iPhone noise. "
+            "Keep the item exactly as in image 2: the same shape, colours, materials, logos, text, stitching and hardware. Never add, move or invent a logo or text. "
+            "Real size for the item on the rug. Exactly one item; for shoes exactly one pair, two shoes, never three. "
+            "No feet, legs, hands or people. No green mat, no ruler, no round stamp, no other objects. Vertical 9:16 photo." % (t, t, angle))
+
+
+JUDGE = ("Image 1 is the real photo of my room: a rug, a wooden floor, white drawers and a hanging plant. Image 2 is a quality-check photo of a fashion item. "
+         "Image 3 is a photo made from them for TikTok: the item from image 2 placed on the rug of image 1. Compare image 3 with image 2 for the item and with image 1 for the room. Reply as JSON "
+         "{\"same_item\": true/false, \"logos_ok\": true/false, \"count_ok\": true/false, \"no_people\": true/false, \"no_extra\": true/false, "
+         "\"standing_view\": true/false, \"real_photo\": 1-10, \"why\": \"...\"}. same_item: image 3 shows the same item as image 2 (shape, colours, materials). "
+         "logos_ok: logos and text match image 2 and none are invented. count_ok: exactly one item, or exactly one pair (two shoes) for shoes. "
+         "no_people: no feet, legs, hands or people. no_extra: nothing was added that is not in image 1 or image 2 (the room's plant, drawers and floor are fine). "
+         "standing_view: shot from standing height looking down at the rug like image 1, with the whole item in view, not a close-up and not a low or dramatic angle. real_photo: how much image 3 looks like a plain iPhone photo from someone's camera roll (10) versus AI, a render or an ad (1). Be strict.")
+
+
+def judge(qc_shot, png, room=None):
+    """A strict second look at a made image (Gemini Flash): True when it may be posted. The owner's slop rules (22 Oct 2026)."""
+    if ENGINE != "gemini": return True, "no judge"
+    try:
+        j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": JUDGE}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(Image.open(RUG), 768)).decode()}},
+                   {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(qc_shot, 768)).decode()}},
+                   {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(Image.open(io.BytesIO(png)), 768)).decode()}}], {"responseMimeType": "application/json", "temperature": 0}, 90)
+        v = json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
+    except Exception as e: return True, "judge failed: %s" % str(e)[:80]          # never block on a broken judge; the owner still reviews the draft
+    ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= 6
+    return ok, json.dumps(v)[:300]
 
 
 def fetch(url, timeout=120):
@@ -89,8 +108,55 @@ def edit(model, images, text, fidelity=True):
     return base64.b64decode(j["data"][0]["b64_json"]), j.get("usage") or {}
 
 
-def generate(images, text):
-    for m in MODELS:
+def gemini(model, parts, config, timeout=150):
+    if "responseMimeType" in config and "thinkingConfig" not in config:       # the quick yes/no checks: little thinking, so they take seconds
+        try: return gemini(model, parts, dict(config, thinkingConfig={"thinkingLevel": "low"}), timeout)
+        except RuntimeError as e:
+            if "HTTP 400" not in str(e): raise
+    body = {"contents": [{"role": "user", "parts": parts}], "generationConfig": config}
+    req = urllib.request.Request(GEMINI % model, data=json.dumps(body).encode(), method="POST",
+                                 headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"], "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r: return json.load(r)
+    except urllib.error.HTTPError as e: raise RuntimeError("HTTP %s %s" % (e.code, e.read().decode("utf-8", "replace")[:300]))
+
+
+_FLASH = None
+
+
+def newest_flash():
+    """The newest plain Gemini Flash text model this key can use (older ones are retired for new users)."""
+    global _FLASH
+    if _FLASH: return _FLASH
+    try:
+        r = urllib.request.Request("https://generativelanguage.googleapis.com/v1beta/models?pageSize=300", headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"]})
+        names = [m["name"].split("/")[-1] for m in json.load(urllib.request.urlopen(r, timeout=60))["models"]]
+        flash = [n for n in names if re.fullmatch(r"gemini-\d+(\.\d+)?-flash", n)]
+        _FLASH = max(flash, key=lambda n: float(re.findall(r"\d+(?:\.\d+)?", n)[0])) if flash else "gemini-flash-latest"
+    except Exception as e: print("  could not list Gemini models:", str(e)[:100]); _FLASH = "gemini-flash-latest"
+    print("  item check model:", _FLASH); return _FLASH
+
+
+def gemini_image(model, images, text):
+    parts = [{"text": text}] + [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(d).decode()}} for d in images]
+    j = gemini(model, parts, {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "9:16"}})
+    for p in ((j.get("candidates") or [{}])[0].get("content") or {}).get("parts", []):
+        d = p.get("inlineData") or p.get("inline_data")
+        if d and d.get("data"): return base64.b64decode(d["data"]), j.get("usageMetadata") or {}
+    raise RuntimeError("no image in the reply: %s" % json.dumps(j)[:200])
+
+
+def generate(images, text, models=None):
+    if ENGINE == "gemini":
+        for m in models or MODELS:
+            for attempt in range(3):
+                try: png, use = gemini_image(m, images, text); return png, m, use
+                except Exception as e:
+                    print("  %s: %s" % (m, str(e)[:200]))
+                    if "429" in str(e) or "503" in str(e) or "timed out" in str(e): time.sleep(10 * (attempt + 1)); continue
+                    break
+        return None, None, {}
+    for m in models or MODELS:
         for fid in (True, False):
             try: png, use = edit(m, images, text, fid); return png, m, use
             except urllib.error.HTTPError as e:
@@ -103,10 +169,10 @@ def generate(images, text):
 
 CHECK = ("A quality-check photo of a fashion find on a green mat (it may show the item twice). Reply as JSON "
          "{\"fits\": true/false, \"clear\": true/false, \"group\": \"small|shoes|bags|jackets\", \"item\": ..., \"brand\": ..., \"name\": ...}. "
-         "fits: true only for shoes, jackets, vests, coats, bags, suitcases, watches, sunglasses, belts, wallets, jewellery, caps, perfume or cologne bottles; "
+         "fits: true for shoes, jackets, vests, coats, bags, suitcases, normal wristwatches (any brand, metal or leather strap), sunglasses, belts, wallets, cardholders, jewellery, caps, perfume or cologne bottles; "
          "false for clothing that is not outerwear, electronics or tech of any brand (smartwatches, Apple Watch with a custom face, phones, cameras, glasses with screens), "
          "novelty or desk items, car parts, toys, sports gear, and anything with rude, joke or offensive words on it. "
-         "clear: true when the item's main side (the top of shoes, the front of a jacket or bag, the face of a watch) is clearly visible, false when only the sole, "
+         "clear: true when the item itself is clearly visible, including a top-down view of a pair of shoes or one shoe from the side; false only when the photo shows just the soles, "
          "the inside or a box is shown. group: small for watches, sunglasses, belts, wallets, jewellery, caps and bottles. item: the item in 1 or 2 plain words "
          "(sneakers, puffer vest, duffle bag, perfume). brand: only if you can read it on the item, else \"\" (the round 'puro classico' stamp is not a brand). "
          "name: 2 to 3 lowercase words: the brand you can read plus the item ('golden goose sneakers', 'ysl duffle bag', 'stone island jacket', 'burberry puffer'); "
@@ -114,8 +180,12 @@ CHECK = ("A quality-check photo of a fashion find on a green mat (it may show th
 
 
 def check(qc):
-    """Is this QC photo right for a rug slide, and what is it called. One small gpt-4o-mini call."""
+    """Is this QC photo right for a rug slide, and what is it called. One small call (Gemini Flash, or gpt-4o-mini)."""
     t = qc.convert("RGB"); t.thumbnail((768, 768)); b = io.BytesIO(); t.save(b, "JPEG", quality=85)
+    if ENGINE == "gemini":
+        j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": CHECK}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(b.getvalue()).decode()}}],
+                   {"responseMimeType": "application/json", "temperature": 0}, 60)
+        return json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
     body = {"model": "gpt-4o-mini", "max_tokens": 120, "temperature": 0, "response_format": {"type": "json_object"}, "messages": [{"role": "user", "content": [
         {"type": "text", "text": CHECK}, {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(b.getvalue()).decode(), "detail": "low"}}]}]}
     req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
@@ -262,7 +332,7 @@ def cover(rnd, last=None):
 
 
 def item_slide(im, name, usd, fk=0):
-    return caption(im, name + ("\n$%d" % usd if usd else ""))
+    return caption(im, name + ("\n$%d" % usd if usd else ""), cy=int(im.height * 0.70))      # below the item, never on it (owner, 22 Oct 2026)
 
 
 def top_shot(im):
@@ -311,30 +381,48 @@ def main():
         if sid.endswith(":0") and v.get("i") in FITS and pid in live and pid not in no and (not a.own or owner(pid) == a.own): cands[pid] = v["i"]
     cands = list(cands.items()); rnd.shuffle(cands); cands.sort(key=lambda c: (rc.get(c[0], 0), c[1] == "other"))      # least used on the rug first; known kinds before maybe-bottles
     print("candidates:", len(cands))
-    picks, groups, fails = [], {}, 0                           # 1. pick the photos (a quick check each), a mix of kinds
-    for pid, t in cands:
-        if len(picks) >= a.n + 1: break                       # one spare in case an image fails
-        try: qc = Image.open(io.BytesIO(fetch("https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % pid))); qc.load()
-        except Exception as e: print("could not download", pid, e); continue
-        try: c = check(qc); fails = 0
-        except Exception as e:
-            msg = str(e); print("check failed:", msg[:300]); fails += 1
-            if "insufficient_quota" in msg or "billing" in msg: sys.exit("OpenAI: the account is out of credit or over its spending limit")
-            if fails >= 6: sys.exit("OpenAI keeps refusing: stopping (the next run tries again)")
-            time.sleep(10 * fails); continue
-        g = c.get("group") if c.get("group") in ANGLES else group(t)
-        if not (c.get("fits") and c.get("clear")):
-            print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
-        if groups.get(g, 0) >= max(2, a.n // 3): continue                       # a mix: not six bags
-        groups[g] = groups.get(g, 0) + 1
-        name = re.sub(r"[^a-z0-9 '&.-]", "", str(c.get("name") or c.get("item") or t).lower()).strip()[:28]
-        picks.append({"qc": pid, "img": qc, "name": name, "usd": price(c.get("brand"), c.get("item") or t, g), "group": g, "brand": c.get("brand"),
-                      "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g])})
-    rug = jpeg(Image.open(RUG), 1536)
-    def make(p):                                               # 2. the images, three at a time
-        png, model, use = generate([rug, jpeg(top_shot(p["img"]))], prompt(p["item"], p["angle"]))
-        return p, png, model, use
+    picks, groups, fails = [], {}, 0                           # 1. pick the photos (a quick check each, six at a time), a mix of kinds
     from concurrent.futures import ThreadPoolExecutor
+    def look(c):
+        pid, t = c
+        try: qc = Image.open(io.BytesIO(fetch("https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % pid))); qc.load()
+        except Exception as e: return c, None, "download: %s" % e
+        try: return c, qc, check(top_shot(qc))                 # only the shot the image model gets: the lower one is often another item
+        except Exception as e: return c, qc, "check: %s" % str(e)[:300]
+    t_pick = time.time()
+    for b in range(0, len(cands), 6):
+        if len(picks) >= a.n + 3 or time.time() - t_pick > 8 * 60: break      # spares for the judge; never more than 8 minutes of checking
+        with ThreadPoolExecutor(6) as ex: seen = list(ex.map(look, cands[b:b + 6]))
+        for (pid, t), qc, c in seen:
+            if isinstance(c, str):
+                print(" ", c); fails += 1
+                if "insufficient_quota" in c or "billing" in c: sys.exit("the AI account is out of credit or over its spending limit")
+                if fails >= 12: sys.exit("the item check keeps failing: stopping (the next run tries again)")
+                continue
+            fails = 0
+            if len(picks) >= a.n + 3: break
+            g = c.get("group") if c.get("group") in ANGLES else group(t)
+            if not (c.get("fits") and c.get("clear")):
+                print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
+            if groups.get(g, 0) >= max(2, a.n // 3): continue                   # a mix: not six bags
+            groups[g] = groups.get(g, 0) + 1
+            name = re.sub(r"[^a-z0-9 '&.-]", "", str(c.get("name") or c.get("item") or t).lower()).strip()[:28]
+            print("  picked", name, "(%.0fs)" % (time.time() - t_pick))
+            picks.append({"qc": pid, "img": qc, "name": name, "usd": price(c.get("brand"), c.get("item") or t, g), "group": g, "brand": c.get("brand"),
+                          "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g])})
+    rug = jpeg(Image.open(RUG), 1536)
+    t0 = time.time(); budget = float(os.environ.get("RUG_BUDGET_MIN", "15")) * 60
+
+    def make(p):                                               # 2. the images, three at a time; each one judged, one retry, then the item is dropped
+        shot = top_shot(p["img"])
+        for attempt in range(2):
+            if time.time() - t0 > budget: print("  out of time, skipping", p["name"]); break
+            print("  making", p["name"], "try", attempt + 1, "%.0fs in" % (time.time() - t0))
+            png, model, use = generate([rug, jpeg(shot)], prompt(p["item"], p["angle"]))
+            if not png: break
+            ok, why = judge(shot, png); print("  %s, try %d: %s %s" % (p["name"], attempt + 1, "OK" if ok else "REJECTED", why))
+            if ok: return p, png, model, use
+        return p, None, None, {}
     with ThreadPoolExecutor(3) as ex: done = list(ex.map(make, picks))
     log = []
     for p, png, model, use in done:

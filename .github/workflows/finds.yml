@@ -64,6 +64,10 @@ jobs:
           SHORTS_CHANNELS: tiktok
           TIKTOK_ACCOUNT: qualityfinds          # the second TikTok account, reconnected in Postiz as "Qualityfinds" (owner confirmed 22 Oct 2026; the old id cmvceahpe1g56o00y2z7vf4nl is gone)
           FINDS_STYLE: rug
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RUG_ENGINE: gemini                   # Google Nano Banana 2, about $0.07 an image (owner chose it over OpenAI, 22 Oct 2026)
+          RUG_MODELS: gemini-3.1-flash-image
+          PYTHONUNBUFFERED: '1'
           FINDS_MAX_NEW: '1'                   # a rug post takes a few minutes: one per run, the next run (10 minutes later) builds the next
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L
