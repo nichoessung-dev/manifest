@@ -30,13 +30,6 @@ jobs:
           names = [m["name"].split("/")[-1] for m in json.load(urllib.request.urlopen(r))["models"]]
           print("\n".join(n for n in names if "image" in n))
           PY
-      - name: Nano Banana (gemini-2.5-flash-image)
-        continue-on-error: true
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          RUG_ENGINE: gemini
-          RUG_MODELS: gemini-2.5-flash-image
-        run: python scripts/make_rug.py --own 0 --avoid scripts/slides_exclude.json --n 6 --seed 7 --out rug-out/nano-banana
       - name: Nano Banana 2 (newest flash image model on this key)
         continue-on-error: true
         env:

@@ -52,23 +52,25 @@ def prompt(t, angle):
             "No feet, legs, hands or people. No green mat, no ruler, no round stamp, no other objects. Vertical 9:16 photo." % (t, t, angle))
 
 
-JUDGE = ("Image 1 is a quality-check photo of a fashion item. Image 2 is a photo made from it for TikTok. Reply as JSON "
+JUDGE = ("Image 1 is the real photo of my room: a rug, a wooden floor, white drawers and a hanging plant. Image 2 is a quality-check photo of a fashion item. "
+         "Image 3 is a photo made from them for TikTok: the item from image 2 placed on the rug of image 1. Compare image 3 with image 2 for the item and with image 1 for the room. Reply as JSON "
          "{\"same_item\": true/false, \"logos_ok\": true/false, \"count_ok\": true/false, \"no_people\": true/false, \"no_extra\": true/false, "
-         "\"standing_view\": true/false, \"real_photo\": 1-10, \"why\": \"...\"}. same_item: image 2 shows the same item (shape, colours, materials). "
-         "logos_ok: logos and text match image 1 and none are invented. count_ok: exactly one item, or exactly one pair (two shoes) for shoes. "
-         "no_people: no feet, legs, hands or people. no_extra: no other objects added. standing_view: shot from standing height looking down at the rug with the whole item in view, "
-         "not a close-up and not a low or dramatic angle. real_photo: how much image 2 looks like a plain iPhone photo from someone's camera roll (10) versus AI, a render or an ad (1). Be strict.")
+         "\"standing_view\": true/false, \"real_photo\": 1-10, \"why\": \"...\"}. same_item: image 3 shows the same item as image 2 (shape, colours, materials). "
+         "logos_ok: logos and text match image 2 and none are invented. count_ok: exactly one item, or exactly one pair (two shoes) for shoes. "
+         "no_people: no feet, legs, hands or people. no_extra: nothing was added that is not in image 1 or image 2 (the room's plant, drawers and floor are fine). "
+         "standing_view: shot from standing height looking down at the rug like image 1, with the whole item in view, not a close-up and not a low or dramatic angle. real_photo: how much image 3 looks like a plain iPhone photo from someone's camera roll (10) versus AI, a render or an ad (1). Be strict.")
 
 
-def judge(qc_shot, png):
+def judge(qc_shot, png, room=None):
     """A strict second look at a made image (Gemini Flash): True when it may be posted. The owner's slop rules (22 Oct 2026)."""
     if ENGINE != "gemini": return True, "no judge"
     try:
-        j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": JUDGE}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(qc_shot, 768)).decode()}},
+        j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": JUDGE}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(Image.open(RUG), 768)).decode()}},
+                   {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(qc_shot, 768)).decode()}},
                    {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(Image.open(io.BytesIO(png)), 768)).decode()}}], {"responseMimeType": "application/json", "temperature": 0}, 90)
         v = json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
     except Exception as e: return True, "judge failed: %s" % str(e)[:80]          # never block on a broken judge; the owner still reviews the draft
-    ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= 7
+    ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= 6
     return ok, json.dumps(v)[:300]
 
 
@@ -167,10 +169,10 @@ def generate(images, text, models=None):
 
 CHECK = ("A quality-check photo of a fashion find on a green mat (it may show the item twice). Reply as JSON "
          "{\"fits\": true/false, \"clear\": true/false, \"group\": \"small|shoes|bags|jackets\", \"item\": ..., \"brand\": ..., \"name\": ...}. "
-         "fits: true only for shoes, jackets, vests, coats, bags, suitcases, watches, sunglasses, belts, wallets, jewellery, caps, perfume or cologne bottles; "
+         "fits: true for shoes, jackets, vests, coats, bags, suitcases, normal wristwatches (any brand, metal or leather strap), sunglasses, belts, wallets, cardholders, jewellery, caps, perfume or cologne bottles; "
          "false for clothing that is not outerwear, electronics or tech of any brand (smartwatches, Apple Watch with a custom face, phones, cameras, glasses with screens), "
          "novelty or desk items, car parts, toys, sports gear, and anything with rude, joke or offensive words on it. "
-         "clear: true when the item's main side (the top of shoes, the front of a jacket or bag, the face of a watch) is clearly visible, false when only the sole, "
+         "clear: true when the item itself is clearly visible, including a top-down view of a pair of shoes or one shoe from the side; false only when the photo shows just the soles, "
          "the inside or a box is shown. group: small for watches, sunglasses, belts, wallets, jewellery, caps and bottles. item: the item in 1 or 2 plain words "
          "(sneakers, puffer vest, duffle bag, perfume). brand: only if you can read it on the item, else \"\" (the round 'puro classico' stamp is not a brand). "
          "name: 2 to 3 lowercase words: the brand you can read plus the item ('golden goose sneakers', 'ysl duffle bag', 'stone island jacket', 'burberry puffer'); "
