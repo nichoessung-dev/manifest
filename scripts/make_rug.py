@@ -19,7 +19,9 @@ YELLOW = (252, 250, 190)                                   # TikTok's pale capti
 TTS = os.path.join(ROOT, "scripts", "fonts", "TikTokSans.ttf")   # TikTok Sans (OFL), the app's own caption font
 FOLDER = "10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L"
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
-MODELS = [m for m in os.environ.get("RUG_MODELS", "gpt-image-2,gpt-image-1.5,gpt-image-1").split(",") if m]
+ENGINE = os.environ.get("RUG_ENGINE", "gemini" if os.environ.get("GEMINI_API_KEY") else "openai")     # "gemini" (Google, about $0.04 an image) or "openai"
+MODELS = [m for m in os.environ.get("RUG_MODELS", "gemini-2.5-flash-image" if ENGINE == "gemini" else "gpt-image-2,gpt-image-1.5,gpt-image-1").split(",") if m]
+GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent"
 
 SMALL = {"watch", "sunglasses", "wallet", "belt", "jewellery", "cap", "beanie", "bottle"}
 SHOES = {"sneakers", "loafers", "boots", "dress shoes", "slides"}
@@ -27,18 +29,18 @@ BAGS = {"bag", "suitcase"}
 JACKETS = {"puffer jacket", "down vest", "quilted jacket", "field jacket", "bomber jacket", "leather jacket", "coat", "track jacket"}
 FITS = SMALL | SHOES | BAGS | JACKETS | {"other"}          # "other" may be a bottle: the check below decides
 
-ANGLES = {
-    "small": ["a close-up from a low angle just above the rug, the item sharp and filling most of the frame, the rug letters soft and blurred behind it",
-              "a close-up from directly above, the item filling about two thirds of the frame, a few big rug numbers visible around it",
-              "a close-up at a 45 degree angle, soft daylight from a window on the left, a shallow depth of field"],
-    "shoes": ["the pair at a three-quarter angle, shot from standing height, one shoe slightly in front of the other",
-              "the pair from a low side angle near floor level, the rug numbers blurred behind",
-              "the pair from directly above, one shoe turned a little, laces relaxed"],
-    "bags": ["standing on the rug at a three-quarter angle, shot from standing height",
-             "a close-up from a low angle on the front and the hardware, the rug blurred behind"],
-    "jackets": ["laid flat from directly above, sleeves folded in naturally, the rug letters peeking out around it",
-                "laid casually at a slight angle with a soft fold in the body, shot from above",
-                "folded neatly, a close-up on the chest and the logo area, shot at a slight angle"],
+ANGLES = {                                                   # how a guy snaps his own haul with an iPhone: never a studio set-up
+    "small": ["a close-up held about 20 cm above it, the iPhone tilted a little, the item sharp and the rug numbers soft behind it",
+              "a quick top-down close-up, slightly off centre, a few big rug numbers in the frame",
+              "a low close-up from the side with the iPhone portrait-mode blur on the background"],
+    "shoes": ["the pair from standing height looking down, slightly tilted, one shoe a little in front of the other",
+              "the pair from a crouch near the floor, three-quarter view, rug numbers blurred behind",
+              "the pair from straight above, one shoe turned a little, laces loose"],
+    "bags": ["standing on the rug, shot from standing height at a slight angle, a little off centre",
+             "a close-up from a crouch on the front and the hardware"],
+    "jackets": ["laid on the rug and shot from straight above while standing, a little crooked, sleeves loose and natural",
+                "laid down casually with a soft fold, shot from above at a slight angle",
+                "folded, a close-up on the chest and logo, shot from a crouch"],
 }
 
 
@@ -47,12 +49,13 @@ def group(t):
 
 
 def prompt(t, angle):
-    return ("Photorealistic phone photo for a TikTok slide. Image 1 is the owner's cream Maison Margiela rug with the black numbers 0 to 23 "
-            "and 'Maison Margiela PARIS' on a wooden floor. Image 2 is a quality-check photo of one %s on a green mat. "
-            "Show that exact %s lying naturally on the rug from image 1, in %s. "
-            "Keep the item identical to image 2: the same shape, colours, materials, logos, text, stitching and hardware. Do not add, move or invent any logo or text. "
-            "Real scale for the item next to the rug, real contact shadows, soft natural indoor light, true colours, slight phone-camera grain. "
-            "Only one item (one pair for shoes). No green mat, no ruler, no round stamp, no hands, no people, no extra objects. Vertical framing with the item centred." % (t, t, angle))
+    return ("Image 1 is my cream Maison Margiela rug (black numbers 0 to 23, 'Maison Margiela PARIS') on a wooden floor in my room. "
+            "Image 2 is a quality-check photo of one %s on a green mat. "
+            "Make a real-looking photo of that exact %s lying on my rug, as if I took it myself with an iPhone 15 Pro using the normal 1x camera: %s. "
+            "It must look authentic, like a normal photo in someone's camera roll, not an ad and not a render: natural indoor light from a window and the ceiling lamp, "
+            "real soft shadows under the item, true colours, a little iPhone noise and sharpening, slightly imperfect framing, natural creases and wrinkles in the fabric, real rug fibres. "
+            "Keep the item exactly as in image 2: the same shape, colours, materials, logos, text, stitching and hardware. Never add, move or invent a logo or text. "
+            "Real size for the item on the rug. Only this one item (one pair for shoes). No green mat, no ruler, no round stamp, no hands, no people, no extra objects. Vertical 9:16 photo." % (t, t, angle))
 
 
 def fetch(url, timeout=120):
@@ -89,8 +92,35 @@ def edit(model, images, text, fidelity=True):
     return base64.b64decode(j["data"][0]["b64_json"]), j.get("usage") or {}
 
 
-def generate(images, text):
-    for m in MODELS:
+def gemini(model, parts, config, timeout=300):
+    body = {"contents": [{"role": "user", "parts": parts}], "generationConfig": config}
+    req = urllib.request.Request(GEMINI % model, data=json.dumps(body).encode(), method="POST",
+                                 headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"], "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r: return json.load(r)
+    except urllib.error.HTTPError as e: raise RuntimeError("HTTP %s %s" % (e.code, e.read().decode("utf-8", "replace")[:300]))
+
+
+def gemini_image(model, images, text):
+    parts = [{"text": text}] + [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(d).decode()}} for d in images]
+    j = gemini(model, parts, {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "9:16"}})
+    for p in ((j.get("candidates") or [{}])[0].get("content") or {}).get("parts", []):
+        d = p.get("inlineData") or p.get("inline_data")
+        if d and d.get("data"): return base64.b64decode(d["data"]), j.get("usageMetadata") or {}
+    raise RuntimeError("no image in the reply: %s" % json.dumps(j)[:200])
+
+
+def generate(images, text, models=None):
+    if ENGINE == "gemini":
+        for m in models or MODELS:
+            for attempt in range(3):
+                try: png, use = gemini_image(m, images, text); return png, m, use
+                except Exception as e:
+                    print("  %s: %s" % (m, str(e)[:200]))
+                    if "429" in str(e) or "503" in str(e): time.sleep(15 * (attempt + 1)); continue
+                    break
+        return None, None, {}
+    for m in models or MODELS:
         for fid in (True, False):
             try: png, use = edit(m, images, text, fid); return png, m, use
             except urllib.error.HTTPError as e:
@@ -114,8 +144,12 @@ CHECK = ("A quality-check photo of a fashion find on a green mat (it may show th
 
 
 def check(qc):
-    """Is this QC photo right for a rug slide, and what is it called. One small gpt-4o-mini call."""
+    """Is this QC photo right for a rug slide, and what is it called. One small call (Gemini Flash, or gpt-4o-mini)."""
     t = qc.convert("RGB"); t.thumbnail((768, 768)); b = io.BytesIO(); t.save(b, "JPEG", quality=85)
+    if ENGINE == "gemini":
+        j = gemini(os.environ.get("RUG_CHECK_MODEL", "gemini-2.5-flash"), [{"text": CHECK}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(b.getvalue()).decode()}}],
+                   {"responseMimeType": "application/json", "temperature": 0}, 60)
+        return json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
     body = {"model": "gpt-4o-mini", "max_tokens": 120, "temperature": 0, "response_format": {"type": "json_object"}, "messages": [{"role": "user", "content": [
         {"type": "text", "text": CHECK}, {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(b.getvalue()).decode(), "detail": "low"}}]}]}
     req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),

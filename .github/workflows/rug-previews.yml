@@ -1,0 +1,54 @@
+name: Rug previews
+# Preview only: renders one rug carousel per Google image model (scripts/make_rug.py) and puts them on the branch "rug-previews-out".
+# Nothing is posted and no state file changes. Runs when the branch "rug-previews" is pushed.
+on:
+  push:
+    branches: [rug-previews]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: rug-previews
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow && (sudo apt-get install -y -q fonts-noto-color-emoji || true)
+      - name: Which Google image models this key can use
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python - <<'PY' | tee models.txt
+          import json, os, urllib.request
+          r = urllib.request.Request("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200", headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"]})
+          names = [m["name"].split("/")[-1] for m in json.load(urllib.request.urlopen(r))["models"]]
+          print("\n".join(n for n in names if "image" in n))
+          PY
+      - name: Nano Banana (gemini-2.5-flash-image)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RUG_ENGINE: gemini
+          RUG_MODELS: gemini-2.5-flash-image
+        run: python scripts/make_rug.py --own 0 --avoid scripts/slides_exclude.json --n 6 --seed 7 --out rug-out/nano-banana
+      - name: Nano Banana 2 (newest flash image model on this key)
+        continue-on-error: true
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RUG_ENGINE: gemini
+        run: |
+          M=$(grep -E '^gemini-3[.0-9]*-flash-image' models.txt | grep -v -- '-preview-' | head -1)
+          [ -z "$M" ] && M=$(grep -E '^gemini-3[.0-9]*-(flash|pro)-image' models.txt | head -1)
+          echo "model: $M"; [ -z "$M" ] && exit 0
+          RUG_MODELS="$M" python scripts/make_rug.py --own 0 --avoid scripts/slides_exclude.json --n 6 --seed 7 --out "rug-out/$M"
+      - name: Publish (branch "rug-previews-out", replaced each run)
+        if: always()
+        run: |
+          mkdir -p rug-out && cp models.txt rug-out/ 2>/dev/null || true
+          cd rug-out && git init -q -b rug-previews-out
+          git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "rug previews [skip ci]" --allow-empty
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" rug-previews-out
