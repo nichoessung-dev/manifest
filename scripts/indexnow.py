@@ -22,7 +22,7 @@ UA = {"User-Agent": "Mozilla/5.0 PuroClassicoIndexNow/1.0"}
 # Pages whose content moves every day without a catalogue change: their first 60 cards follow the view counts.
 DAILY = ["/", "/mycnbox-spreadsheet", "/kakobuy-spreadsheet", "/oopbuy-spreadsheet", "/lovegobuy-spreadsheet",
          "/sugargoo-spreadsheet", "/stockholm-spreadsheet", "/grisch-spreadsheet", "/old-money", "/cnfans-spreadsheet"] + \
-        ["/%s-spreadsheet/%s" % (k, x) for k in ("mycnbox", "kakobuy", "oopbuy", "sugargoo") for x in ("grisch", "old-money", "shoes")]
+        ["/%s-spreadsheet/%s" % (k, x) for k in ("mycnbox", "kakobuy", "oopbuy", "sugargoo") for x in ("grisch", "old-money", "shoes", "qc", "budget")]
 
 def get(url):
     return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60).read().decode("utf-8")
