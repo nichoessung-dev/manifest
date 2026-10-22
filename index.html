@@ -1881,7 +1881,8 @@ function buildFilters(){
 }
 /* search: fold case/accents/apostrophes/punctuation, then every query word must start a word in the product (any order); "offwhite"-style compact queries fall back to a no-space match. Q_SYN maps localized words (incl. our own placeholder examples) to catalog terms. */
 function foldQ(s){ return String(s==null?"":s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/['’‘`´]/g,"").replace(/[^\p{L}\p{N}]+/gu," ").trim(); }
-const Q_SYN={hettegenser:["hoodie"],hettejakke:["hoodie","zip"],genser:["sweater","crewneck","knit","hoodie"],jakke:["jacket","outerwear"],jakker:["jacket","outerwear"],sko:["shoe","sneaker","trainer"],joggesko:["sneaker","trainer"],belte:["belt"],bukse:["pants","trousers","jeans"],bukser:["pants","trousers","jeans"],shortsen:["shorts"],caps:["cap"],lue:["beanie","hat","headwear"],veske:["bag"],sekk:["backpack"],ryggsekk:["backpack"],lommebok:["wallet"],klokke:["watch"],skjorte:["shirt"],tskjorte:["t shirt","tee"],
+const Q_SYN={lv:["louis vuitton"],rl:["ralph lauren"],tnf:["north face"],cdg:["comme des garcons"],cg:["canada goose"],af1:["air force 1","air force"],aj1:["jordan 1"],aj4:["jordan 4"],aj11:["jordan 11"],yzy:["yeezy"],nb:["new balance"],ysl:["saint laurent","ysl"],ald:["aime leon dore"],
+  hettegenser:["hoodie"],hettejakke:["hoodie","zip"],genser:["sweater","crewneck","knit","hoodie"],jakke:["jacket","outerwear"],jakker:["jacket","outerwear"],sko:["shoe","sneaker","trainer"],joggesko:["sneaker","trainer"],belte:["belt"],bukse:["pants","trousers","jeans"],bukser:["pants","trousers","jeans"],shortsen:["shorts"],caps:["cap"],lue:["beanie","hat","headwear"],veske:["bag"],sekk:["backpack"],ryggsekk:["backpack"],lommebok:["wallet"],klokke:["watch"],skjorte:["shirt"],tskjorte:["t shirt","tee"],
   troja:["sweater","sweatshirt","hoodie"],trøja:["sweater","sweatshirt","hoodie"],jacka:["jacket","outerwear"],byxor:["pants","trousers","jeans"],skor:["shoe","sneaker"],balte:["belt"],väska:["bag"],vaska:["bag"],mossa:["beanie","hat"],
   trøje:["sweater","sweatshirt","hoodie"],troje:["sweater","sweatshirt","hoodie"],taske:["bag"],baelte:["belt"],
   kapuzenpullover:["hoodie"],pullover:["sweater","hoodie"],jacke:["jacket","outerwear"],hose:["pants","trousers"],schuhe:["shoe","sneaker"],gurtel:["belt"],tasche:["bag"],mutze:["beanie","hat"],
@@ -1936,7 +1937,7 @@ function card(p,i){
   el.innerHTML=`
     <div class="thumb">
       <canvas aria-hidden="true"></canvas>
-      ${p.img?`<img class="pimg" src="${esc(p.img)}" alt="${esc(altOf(p))}" loading="${i<8?"eager":"lazy"}"${i<4?' fetchpriority="high"':""} decoding="async" onerror="this.remove()">`:""}
+      ${p.img?`<img class="pimg" src="${esc(thumbOf(p.img))}" alt="${esc(altOf(p))}" loading="${i<8?"eager":"lazy"}"${i<4?' fetchpriority="high"':""} decoding="async" onerror="this.remove()">`:""}
       <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button>
       ${(p.qc||0)>=(PCP&&PCP.qc?1:2)?`<span class="qc-badge">\u{1F4F7} QC</span>`:""}
     </div>
@@ -2060,10 +2061,11 @@ function agentRow(p){
   const others=Object.keys(AGENTS).filter(k=>k!==sel);
   const pop=`<span class="agent-badge">${t("most_popular")}</span>`;
   const row=(k,cls)=>{ const a=AGENTS[k]; const inner=`${agentLogo(a)}<span class="agent-name">${t("buy_via").replace("{a}",a.name)}</span>${k==="mycnbox"?pop:""}`;
-    // primary = real buy link (navigates); dropdown items = pick-agent buttons (no redirect)
+    // primary = real buy link; menu items are real buy links too (23 Oct 2026: they used to only swap the main button,
+    // so "Buy via X" bought nothing), and picking one also makes X the main button next time
     return cls.indexOf("primary")>=0
       ? `<a class="${cls}" href="${a.build(p)}" target="_blank" rel="noopener">${inner}</a>`
-      : `<button type="button" class="${cls}" data-agent="${k}">${inner}</button>`; };
+      : `<a class="${cls}" data-agent="${k}" href="${a.build(p)}" target="_blank" rel="noopener">${inner}</a>`; };
   const hint=sel==="mycnbox"?couponHint():"";
   return `<div class="buy-dd">
     ${row(sel,"agent primary")}
@@ -2472,7 +2474,7 @@ function renderFeatured(){
   seq.forEach((p,idx)=>{
     const tl=document.createElement("button"); tl.className="ftile"; tl.type="button"; tl.setAttribute("aria-label",p.title);
     if(idx>=items.length){ tl.tabIndex=-1; tl.setAttribute("aria-hidden","true"); } /* visual-only loop copies */
-    if(p.img){ const im=document.createElement("img"); im.className="fimg"; im.alt=idx>=items.length?"":altOf(p); im.loading=idx<8?"eager":"lazy"; if(idx<3)im.setAttribute("fetchpriority","high"); im.onerror=()=>imgFallback(im,p,idx); im.src=p.img; tl.appendChild(im); }
+    if(p.img){ const im=document.createElement("img"); im.className="fimg"; im.alt=idx>=items.length?"":altOf(p); im.loading=idx<8?"eager":"lazy"; if(idx<3)im.setAttribute("fetchpriority","high"); im.onerror=()=>imgFallback(im,p,idx); im.src=thumbOf(p.img); tl.appendChild(im); }
     else { tl.innerHTML='<canvas aria-hidden="true"></canvas>'; requestAnimationFrame(()=>drawTile(tl.querySelector("canvas"),p,idx)); }
     tl.addEventListener("click",()=>openDetail(p));
     track.appendChild(tl);
@@ -2481,8 +2483,12 @@ function renderFeatured(){
   track.style.animationDuration=(base.length*3.6).toFixed(0)+"s";
 }
 /* image failed: retry once (transient /api/img 502s), then swap in the generated placeholder tile like grid cards */
+/* grid thumbnails: a 400 px copy from Cloudflare image resizing (22 Oct 2026); the drawer and zoom keep the original.
+   A failed copy falls back to the original through the retry in the card's error handler and imgFallback. */
+function thumbOf(u){ if(!u||!/(^|\.)puroclassico\.com$/.test(location.hostname)) return u; const o=location.origin, path=u.indexOf(o+"/")===0?u.slice(o.length):u;
+  return /^\/(img\/|api\/img\?)/.test(path)?o+"/cdn-cgi/image/width=400,quality=75,format=auto"+path:u; }
 function imgFallback(im,p,seed){
-  if(!im.dataset.r){ im.dataset.r="1"; const u=im.getAttribute("src")||""; if(u){ setTimeout(()=>{ if(im.isConnected) im.src=u+(u.indexOf("?")<0?"?":"&")+"r=1"; },700); return; } }
+  if(!im.dataset.r){ im.dataset.r="1"; const u=p.img||im.getAttribute("src")||"";  /* the full-size original when the resized copy failed */ if(u){ setTimeout(()=>{ if(im.isConnected) im.src=u+(u.indexOf("?")<0?"?":"&")+"r=1"; },700); return; } }
   if(!im.isConnected) return;
   const c=document.createElement("canvas"); c.setAttribute("aria-hidden","true"); im.replaceWith(c);
   requestAnimationFrame(()=>drawTile(c,p,seed||0));
@@ -2948,13 +2954,12 @@ function enhanceDrawer(p){
     const caret=$("#buy-dd-caret",drawer), menu=$("#buy-dd-menu",drawer);
     if(!caret||!menu) return;
     caret.addEventListener("click",e=>{ e.stopPropagation(); const open=menu.hidden; menu.hidden=!open; caret.setAttribute("aria-expanded",String(open)); });
-    // pick an agent from the menu -> set it as the selected agent + swap the top button in place (no redirect)
+    // a menu item opens that agent (the link does it) and becomes the selected agent; the row is rebuilt after the click
     menu.querySelectorAll(".buy-dd-item").forEach(it=>it.addEventListener("click",e=>{
       e.stopPropagation();
-      const k=it.getAttribute("data-agent");
+      const k=it.getAttribute("data-agent"); menu.hidden=true; caret.setAttribute("aria-expanded","false");
       if(k&&AGENTS[k]&&k!==state.agent){ state.agent=k; save(); const ag=$("#agent"); if(ag){ ag.value=k; buildCsel(ag,"mast"); }
-        const host=drawer.querySelector(".buy-block .agents"); if(host){ host.innerHTML=agentRow(p); wireBuy(); } }
-      else { menu.hidden=true; }
+        setTimeout(()=>{ const host=drawer.querySelector(".buy-block .agents"); if(host){ host.innerHTML=agentRow(p); wireBuy(); } },0); }
     }));
   })();
   // Gallery visibility, only show tabs/thumbs for photos that actually exist.
