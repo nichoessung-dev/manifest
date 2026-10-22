@@ -48,8 +48,14 @@ jobs:
           TIKTOK_METHOD: UPLOAD
           TIKTOK_AUTO_MUSIC: 'no'
         run: python scripts/finds_plan.py
-      # The second TikTok account (puroclassico.com/repaddict) gets photo slideshows only, three a day, from its own share of the
+      # The second TikTok account (puroclassico.com/repaddict) gets photo carousels only, three a day, from its own share of the
       # photos (never a photo the first account has used). To pause it: set the repo variable SLIDES_LIVE to "false".
+      # Since 22 Oct 2026 (owner): "rug" carousels: the boxes cover, then each item re-shot on the owner's Margiela rug by the
+      # image model, with its name and an estimated price from the site (scripts/make_rug.py). One post is built per run.
+      - name: Colour emoji font for the rug covers
+        if: vars.SLIDES_LIVE != 'false'
+        continue-on-error: true
+        run: sudo apt-get install -y -q fonts-noto-color-emoji
       - name: Slideshows for the second TikTok account
         if: vars.SLIDES_LIVE != 'false'
         continue-on-error: true
@@ -57,7 +63,8 @@ jobs:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
           SHORTS_CHANNELS: tiktok
           TIKTOK_ACCOUNT: cmvceahpe1g56o00y2z7vf4nl     # the second TikTok account (@puroclassicocom, connected 17 Oct 2026; both are named puroclassico.com in Postiz)
-          FINDS_BADGE: '1'
+          FINDS_STYLE: rug
+          FINDS_MAX_NEW: '1'                   # a rug post takes a few minutes: one per run, the next run (10 minutes later) builds the next
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L
           FINDS_MODE: carousel
@@ -65,7 +72,7 @@ jobs:
           FINDS_FROM: '2026-10-19'
           FINDS_BEST: '1'
           FINDS_DAYS: '2'
-          FINDS_SLIDES: '9'
+          FINDS_SLIDES: '6'                    # six items (owner, 22 Oct 2026)
           FINDS_OWN: '2'
           FINDS_STATE: slides_used.json
           FINDS_AVOID: finds_used.json,scripts/slides_exclude.json

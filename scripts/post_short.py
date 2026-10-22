@@ -114,9 +114,11 @@ def main():
     print("channels:", [(p, n) for p, _, n in chans])
     if "tiktok" in WANT and not any(p.startswith("tiktok") for p, _, _ in chans): print("::warning::no TikTok account matched (wanted %s): this post goes out without TikTok" % (TIKTOK_ACCOUNT or TIKTOK_MAIN_NAME))
     if not chans: raise SystemExit("no matching channels connected in Postiz (wanted %s; found %s)" % (WANT, [i.get("identifier") or i.get("providerIdentifier") for i in ints]))
-    media = upload(video); print("uploaded:", media["path"])
+    media = upload(video) if os.path.exists(video) else None             # rug carousels (make_rug.py) are photos only, no video
+    if media: print("uploaded:", media["path"])
     photos = [upload(os.path.join(os.path.dirname(meta_path), os.path.basename(i))) for i in meta.get("images") or []]   # carousel slides
     if photos: print("uploaded", len(photos), "slides")
+    if not photos and not media: raise SystemExit("nothing to post: no video and no photos")
     def files(prov): return photos if photos and prov != "youtube" else [media]                 # YouTube has no carousels: it gets the video
     # YouTube descriptions can carry a clickable link; other platforms only get the caption
     def content(prov):

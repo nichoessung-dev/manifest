@@ -1,0 +1,45 @@
+name: Rug post now
+# Builds one rug carousel for the second TikTok account and hands it to Postiz to send as a TikTok draft about five minutes later.
+# For a post outside the daily slots (the daily ones come from finds.yml). Nothing goes to the main account.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: shorts
+jobs:
+  rug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - run: git fetch -q --depth=20 origin "$GITHUB_REF_NAME" && git reset -q --hard FETCH_HEAD
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow && (sudo apt-get install -y -q fonts-noto-color-emoji || true)
+      - name: Build the carousel
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/make_rug.py --n 6 --own 2 --state slides_used.json --commit-state --avoid finds_used.json,scripts/slides_exclude.json --out out/rug-now
+      - name: Send it to the second account as a draft
+        env:
+          POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+          SHORTS_CHANNELS: tiktok
+          TIKTOK_ACCOUNT: cmvceahpe1g56o00y2z7vf4nl
+          TIKTOK_METHOD: UPLOAD
+          TIKTOK_AUTO_MUSIC: 'no'
+        run: SCHEDULE_AT="$(date -u -d '+5 min' +%Y-%m-%dT%H:%M:00.000Z)" python scripts/post_short.py out/rug-now/rug.json
+      - name: Save state
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add slides_used.json 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -q -m "chore: rug state [skip ci]"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((n * 6))
+          done
+          echo "::error::the rug state could not be saved"; exit 1
