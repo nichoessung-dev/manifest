@@ -73,7 +73,7 @@ async function serverCards(ctx, origin, spec) {
   const { list, base } = hubList(spec), { dead } = await linkHealth(ctx, origin);
   const live = [];
   for (const p of list) { if (!dead.has(String(p.id))) live.push(p); if (live.length >= APP_CARDS) break; }
-  return { cards: appCards(live), more: spec ? appPager(base, list.length) : "" };
+  return { cards: appCards(live, spec && spec.preset.qc ? 1 : 2), more: spec ? appPager(base, list.length) : "" };
 }
 
 async function catalogJs(ctx, url) {
