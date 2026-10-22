@@ -1,0 +1,23 @@
+name: Rug video draft
+# One-off: sends rugvideo/rug-haul.mp4 (made from already generated rug images) to the second TikTok account as a draft.
+# Runs when the branch "rug-video" is pushed. Nothing goes to the main account.
+on:
+  push:
+    branches: [rug-video]
+permissions:
+  contents: read
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Send the video to Qualityfinds as a draft
+        env:
+          POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+          SHORTS_CHANNELS: tiktok
+          TIKTOK_ACCOUNT: qualityfinds
+          TIKTOK_VIDEO_METHOD: UPLOAD
+        run: SCHEDULE_AT="$(date -u -d '+3 min' +%Y-%m-%dT%H:%M:00.000Z)" python scripts/post_short.py rugvideo/rug-haul.json
