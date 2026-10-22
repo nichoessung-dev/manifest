@@ -77,8 +77,10 @@ def link_reports():
 
 
 def page_kind(path):
-    """Which kind of page a buy click came from (buy_clicks.page holds the path)."""
+    """Which kind of page a buy click came from (buy_clicks.page holds the path). Since 22 Oct 2026 track.js sends
+    "/app" + the page the catalogue app was loaded on; before that, app clicks show as product pages."""
     p = path or ""
+    if p.startswith("/app"): return "app on " + page_kind(p[4:] or "/").replace("product page", "homepage")
     if p.startswith("/product/"): return "product page"
     if p in ("", "/"): return "homepage"
     if re.match(r"^/[a-z]+-spreadsheet(/|$)", p): return "agent and style hubs"
