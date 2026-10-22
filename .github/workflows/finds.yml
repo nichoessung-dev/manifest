@@ -62,7 +62,7 @@ jobs:
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
           SHORTS_CHANNELS: tiktok
-          TIKTOK_ACCOUNT: cmvceahpe1g56o00y2z7vf4nl     # the second TikTok account (@puroclassicocom, connected 17 Oct 2026; both are named puroclassico.com in Postiz)
+          TIKTOK_ACCOUNT: qualityfinds          # the second TikTok account, reconnected in Postiz as "Qualityfinds" (owner confirmed 22 Oct 2026; the old id cmvceahpe1g56o00y2z7vf4nl is gone)
           FINDS_STYLE: rug
           FINDS_MAX_NEW: '1'                   # a rug post takes a few minutes: one per run, the next run (10 minutes later) builds the next
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
