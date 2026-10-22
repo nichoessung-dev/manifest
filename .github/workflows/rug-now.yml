@@ -20,7 +20,7 @@ jobs:
       - name: Build the carousel
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: python scripts/make_rug.py --n 6 --own 2 --state slides_used.json --commit-state --avoid finds_used.json,scripts/slides_exclude.json --out out/rug-now
+        run: python scripts/make_rug.py --n 6 --own 0 --state slides_used.json --commit-state --avoid scripts/slides_exclude.json --out out/rug-now
       - name: Send it to the second account as a draft
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}

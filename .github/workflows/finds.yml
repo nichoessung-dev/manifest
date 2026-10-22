@@ -73,9 +73,9 @@ jobs:
           FINDS_BEST: '1'
           FINDS_DAYS: '2'
           FINDS_SLIDES: '6'                    # six items (owner, 22 Oct 2026)
-          FINDS_OWN: '2'
+          FINDS_OWN: '0'                       # rug posts draw from the whole QC pool, main account's photos included (owner, 22 Oct 2026)
           FINDS_STATE: slides_used.json
-          FINDS_AVOID: finds_used.json,scripts/slides_exclude.json
+          FINDS_AVOID: scripts/slides_exclude.json
           FINDS_TEXT: scripts/slides_text.json
           FINDS_LINKS: '0'
           TIKTOK_METHOD: UPLOAD            # sent to the TikTok app as a draft: the owner picks the sound and posts it
