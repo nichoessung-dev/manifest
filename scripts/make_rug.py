@@ -101,6 +101,22 @@ def gemini(model, parts, config, timeout=300):
     except urllib.error.HTTPError as e: raise RuntimeError("HTTP %s %s" % (e.code, e.read().decode("utf-8", "replace")[:300]))
 
 
+_FLASH = None
+
+
+def newest_flash():
+    """The newest plain Gemini Flash text model this key can use (older ones are retired for new users)."""
+    global _FLASH
+    if _FLASH: return _FLASH
+    try:
+        r = urllib.request.Request("https://generativelanguage.googleapis.com/v1beta/models?pageSize=300", headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"]})
+        names = [m["name"].split("/")[-1] for m in json.load(urllib.request.urlopen(r, timeout=60))["models"]]
+        flash = [n for n in names if re.fullmatch(r"gemini-\d+(\.\d+)?-flash", n)]
+        _FLASH = max(flash, key=lambda n: float(re.findall(r"\d+(?:\.\d+)?", n)[0])) if flash else "gemini-flash-latest"
+    except Exception as e: print("  could not list Gemini models:", str(e)[:100]); _FLASH = "gemini-flash-latest"
+    print("  item check model:", _FLASH); return _FLASH
+
+
 def gemini_image(model, images, text):
     parts = [{"text": text}] + [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(d).decode()}} for d in images]
     j = gemini(model, parts, {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "9:16"}})
@@ -147,7 +163,7 @@ def check(qc):
     """Is this QC photo right for a rug slide, and what is it called. One small call (Gemini Flash, or gpt-4o-mini)."""
     t = qc.convert("RGB"); t.thumbnail((768, 768)); b = io.BytesIO(); t.save(b, "JPEG", quality=85)
     if ENGINE == "gemini":
-        j = gemini(os.environ.get("RUG_CHECK_MODEL", "gemini-2.5-flash"), [{"text": CHECK}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(b.getvalue()).decode()}}],
+        j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": CHECK}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(b.getvalue()).decode()}}],
                    {"responseMimeType": "application/json", "temperature": 0}, 60)
         return json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
     body = {"model": "gpt-4o-mini", "max_tokens": 120, "temperature": 0, "response_format": {"type": "json_object"}, "messages": [{"role": "user", "content": [
@@ -354,7 +370,7 @@ def main():
         except Exception as e:
             msg = str(e); print("check failed:", msg[:300]); fails += 1
             if "insufficient_quota" in msg or "billing" in msg: sys.exit("OpenAI: the account is out of credit or over its spending limit")
-            if fails >= 6: sys.exit("OpenAI keeps refusing: stopping (the next run tries again)")
+            if fails >= 6: sys.exit("the item check keeps failing: stopping (the next run tries again)")
             time.sleep(10 * fails); continue
         g = c.get("group") if c.get("group") in ANGLES else group(t)
         if not (c.get("fits") and c.get("clear")):

@@ -29,6 +29,7 @@ jobs:
           print("\n".join(n for n in names if "image" in n))
           PY
       - name: Nano Banana (gemini-2.5-flash-image)
+        continue-on-error: true
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           RUG_ENGINE: gemini
