@@ -8,10 +8,12 @@ on:
 permissions:
   contents: write
 concurrency: rug-previews
+env:
+  PYTHONUNBUFFERED: '1'
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

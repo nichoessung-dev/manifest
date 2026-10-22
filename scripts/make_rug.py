@@ -106,7 +106,7 @@ def edit(model, images, text, fidelity=True):
     return base64.b64decode(j["data"][0]["b64_json"]), j.get("usage") or {}
 
 
-def gemini(model, parts, config, timeout=300):
+def gemini(model, parts, config, timeout=150):
     body = {"contents": [{"role": "user", "parts": parts}], "generationConfig": config}
     req = urllib.request.Request(GEMINI % model, data=json.dumps(body).encode(), method="POST",
                                  headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"], "Content-Type": "application/json"})
@@ -147,7 +147,7 @@ def generate(images, text, models=None):
                 try: png, use = gemini_image(m, images, text); return png, m, use
                 except Exception as e:
                     print("  %s: %s" % (m, str(e)[:200]))
-                    if "429" in str(e) or "503" in str(e): time.sleep(15 * (attempt + 1)); continue
+                    if "429" in str(e) or "503" in str(e) or "timed out" in str(e): time.sleep(10 * (attempt + 1)); continue
                     break
         return None, None, {}
     for m in models or MODELS:
@@ -395,9 +395,13 @@ def main():
         picks.append({"qc": pid, "img": qc, "name": name, "usd": price(c.get("brand"), c.get("item") or t, g), "group": g, "brand": c.get("brand"),
                       "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g])})
     rug = jpeg(Image.open(RUG), 1536)
+    t0 = time.time(); budget = float(os.environ.get("RUG_BUDGET_MIN", "15")) * 60
+
     def make(p):                                               # 2. the images, three at a time; each one judged, one retry, then the item is dropped
         shot = top_shot(p["img"])
         for attempt in range(2):
+            if time.time() - t0 > budget: print("  out of time, skipping", p["name"]); break
+            print("  making", p["name"], "try", attempt + 1, "%.0fs in" % (time.time() - t0))
             png, model, use = generate([rug, jpeg(shot)], prompt(p["item"], p["angle"]))
             if not png: break
             ok, why = judge(shot, png); print("  %s, try %d: %s %s" % (p["name"], attempt + 1, "OK" if ok else "REJECTED", why))
