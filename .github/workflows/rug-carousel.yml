@@ -1,0 +1,24 @@
+name: Rug carousel draft
+# One-off: sends the approved rug carousel in rugcarousel/ to the second TikTok account (Qualityfinds) as a draft.
+# Runs when the branch "rug-carousel" is pushed. Nothing goes to the main account.
+on:
+  push:
+    branches: [rug-carousel]
+permissions:
+  contents: read
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Send the carousel to Qualityfinds as a draft
+        env:
+          POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+          SHORTS_CHANNELS: tiktok
+          TIKTOK_ACCOUNT: qualityfinds
+          TIKTOK_METHOD: UPLOAD
+          TIKTOK_AUTO_MUSIC: 'no'
+        run: SCHEDULE_AT="$(date -u -d '+3 min' +%Y-%m-%dT%H:%M:00.000Z)" python scripts/post_short.py rugcarousel/rug.json
