@@ -95,6 +95,7 @@ def generate(images, text):
             try: png, use = edit(m, images, text, fid); return png, m, use
             except urllib.error.HTTPError as e:
                 msg = e.read().decode("utf-8", "replace")[:200]; print("  %s (fidelity %s): HTTP %s %s" % (m, fid, e.code, msg))
+                if "insufficient_quota" in msg or "billing" in msg: return None, None, {}
                 if e.code == 429: time.sleep(20)
             except Exception as e: print("  %s: %s" % (m, str(e)[:120]))
     return None, None, {}
@@ -119,7 +120,8 @@ def check(qc):
         {"type": "text", "text": CHECK}, {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(b.getvalue()).decode(), "detail": "low"}}]}]}
     req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
                                  headers={"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"], "Content-Type": "application/json"})
-    return json.loads(json.load(urllib.request.urlopen(req, timeout=60))["choices"][0]["message"]["content"])
+    try: return json.loads(json.load(urllib.request.urlopen(req, timeout=60))["choices"][0]["message"]["content"])
+    except urllib.error.HTTPError as e: raise RuntimeError("HTTP %s %s" % (e.code, e.read().decode("utf-8", "replace")[:300]))
 
 
 _ROWS = None
@@ -309,13 +311,17 @@ def main():
         if sid.endswith(":0") and v.get("i") in FITS and pid in live and pid not in no and (not a.own or owner(pid) == a.own): cands[pid] = v["i"]
     cands = list(cands.items()); rnd.shuffle(cands); cands.sort(key=lambda c: (rc.get(c[0], 0), c[1] == "other"))      # least used on the rug first; known kinds before maybe-bottles
     print("candidates:", len(cands))
-    picks, groups = [], {}                                     # 1. pick the photos (a quick check each), a mix of kinds
+    picks, groups, fails = [], {}, 0                           # 1. pick the photos (a quick check each), a mix of kinds
     for pid, t in cands:
         if len(picks) >= a.n + 1: break                       # one spare in case an image fails
         try: qc = Image.open(io.BytesIO(fetch("https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % pid))); qc.load()
         except Exception as e: print("could not download", pid, e); continue
-        try: c = check(qc)
-        except Exception as e: print("check failed:", str(e)[:100]); continue
+        try: c = check(qc); fails = 0
+        except Exception as e:
+            msg = str(e); print("check failed:", msg[:300]); fails += 1
+            if "insufficient_quota" in msg or "billing" in msg: sys.exit("OpenAI: the account is out of credit or over its spending limit")
+            if fails >= 6: sys.exit("OpenAI keeps refusing: stopping (the next run tries again)")
+            time.sleep(10 * fails); continue
         g = c.get("group") if c.get("group") in ANGLES else group(t)
         if not (c.get("fits") and c.get("clear")):
             print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
