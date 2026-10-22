@@ -366,7 +366,7 @@ def main():
         if len(picks) >= a.n + 1: break                       # one spare in case an image fails
         try: qc = Image.open(io.BytesIO(fetch("https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % pid))); qc.load()
         except Exception as e: print("could not download", pid, e); continue
-        try: c = check(qc); fails = 0
+        try: c = check(top_shot(qc)); fails = 0                    # only the shot the image model gets: the lower one is often another item
         except Exception as e:
             msg = str(e); print("check failed:", msg[:300]); fails += 1
             if "insufficient_quota" in msg or "billing" in msg: sys.exit("OpenAI: the account is out of credit or over its spending limit")
