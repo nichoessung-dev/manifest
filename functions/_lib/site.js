@@ -154,6 +154,16 @@ export function imgSrc(p) {
   if (r.charAt(0) === "/") return SITE + r;            // images hosted on the site itself (/img/p/<id>.webp)
   return /\.supabase\.co\/storage\/v1\/object\/public\//.test(r) ? SITE + "/api/img?u=" + encodeURIComponent(r) : r;
 }
+// Grid thumbnails (22 Oct 2026): the cards show photos about 200 px wide, so they load a 400 px copy made by Cloudflare
+// image resizing (AVIF/WebP, ~90% fewer bytes) instead of the 1000-1200 px original. Only our own paths can be resized
+// (/img/p/... and the /api/img proxy for Supabase photos). The original stays in data-o for when resizing fails.
+export const THUMB = "/cdn-cgi/image/width=400,quality=75,format=auto";
+export function thumbSrc(src) {
+  if (!src || src.indexOf(SITE + "/") !== 0) return src;
+  const path = src.slice(SITE.length);
+  return /^\/(img\/|api\/img\?)/.test(path) ? SITE + THUMB + path : src;
+}
+export const IMG_FALLBACK = `onerror="if(this.dataset.o){this.src=this.dataset.o;this.dataset.o=''}else this.remove()"`;
 export const productUrl = p => "/product/" + encodeURIComponent(p.id);
 export const brandUrl = b => { const s = idx().brandSlug.get(b); return s ? "/brand/" + s : null; };
 export const catUrl = c => CATS[c] ? "/category/" + CATS[c].slug : null;
@@ -162,7 +172,7 @@ const ld = o => '<script type="application/ld+json">' + JSON.stringify(o).replac
 export function card(p, lazy = true) {
   const src = imgSrc(p);
   return `<a class="c" href="${productUrl(p)}">` +
-    `<span class="ci">${src ? `<img src="${esc(src)}" alt="${esc(p.title)}" width="300" height="375"${lazy ? ' loading="lazy"' : ""} decoding="async" onerror="this.remove()">` : ""}` +
+    `<span class="ci">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(p.title)}" width="300" height="375"${lazy ? ' loading="lazy"' : ""} decoding="async" ${IMG_FALLBACK}>` : ""}` +
     `${p.qc >= 2 ? `<span class="qb">QC</span>` : ""}</span>` +
     `<span class="cb">${p.brand ? `<span class="cbr">${esc(p.brand)}</span>` : ""}<span class="ct">${esc(p.title)}</span><span class="cp">${money(p.cny)}${isPH(p.cny) ? "" : ` <small>¥${p.cny}</small>`}</span></span></a>`;
 }

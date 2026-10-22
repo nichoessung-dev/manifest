@@ -1,5 +1,5 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
-import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, productUrl, brandUrl, catUrl,
+import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, thumbSrc, IMG_FALLBACK, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, GUIDE_LINKS, TOOL_LINKS } from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
 import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS } from "./content2.js";
@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w18";
+export const PRODUCT_TPL = "w20";
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -524,12 +524,17 @@ export function renderCategory(s, n) {
 // together with a brand name, so every page has a real list behind it instead of thousands of near-empty variations.
 export const AGENT_BRAND_AGENTS = ["mycnbox", "kakobuy", "oopbuy", "sugargoo"];
 export const AGENT_BRAND_MIN = 40, AGENT_BRAND_MAX = 30;
+// Brands outside the 30 largest that visitors look at a lot (23 Oct 2026, data/stats.json: 200+ views in 30 days, 40+
+// finds): Arc'teryx 295 views, Acne Studios 273, Rolex 246, Patagonia 215. A fixed list, so a page never comes and goes
+// with the view counts. Add a name only with that kind of evidence.
+const AGENT_BRAND_PIN = ["Arc'teryx", "Acne Studios", "Rolex", "Patagonia"];
 let _agentBrands = null;
 export function agentBrands() {
   if (_agentBrands) return _agentBrands;
   const { byBrand, brandSlug } = idx();
-  return (_agentBrands = [...brandSlug.keys()].filter(b => byBrand.get(b).length >= AGENT_BRAND_MIN)
-    .sort((a, b) => byBrand.get(b).length - byBrand.get(a).length).slice(0, AGENT_BRAND_MAX));
+  const top = [...brandSlug.keys()].filter(b => byBrand.get(b).length >= AGENT_BRAND_MIN)
+    .sort((a, b) => byBrand.get(b).length - byBrand.get(a).length).slice(0, AGENT_BRAND_MAX);
+  return (_agentBrands = top.concat(AGENT_BRAND_PIN.filter(b => !top.includes(b) && brandSlug.has(b) && byBrand.get(b).length >= AGENT_BRAND_MIN)));
 }
 const COUPON_GUIDE = { mycnbox: ["MyCNBox coupon code", "/guides/mycnbox-coupon-code"], kakobuy: ["KakoBuy coupon code", "/guides/kakobuy-coupon-code"] };
 function agentHowTo(a) {
@@ -946,7 +951,7 @@ export function appCards(list, qcMin = 2) {   // qcMin: the QC badge threshold (
   return list.map((p, i) => {
     const img = imgSrc(p), id = esc(p.id);
     return `<div class="card" tabindex="0" role="button" data-ssr="${id}"><div class="thumb"><canvas aria-hidden="true"></canvas>` +
-      (img ? `<img class="pimg" src="${esc(img)}" alt="${esc(appAlt(p))}" loading="${i < 8 ? "eager" : "lazy"}"${i < 4 ? ' fetchpriority="high"' : ""} decoding="async" onerror="this.remove()">` : "") +
+      (img ? `<img class="pimg" src="${esc(thumbSrc(img))}" data-o="${esc(img)}" alt="${esc(appAlt(p))}" loading="${i < 8 ? "eager" : "lazy"}"${i < 4 ? ' fetchpriority="high"' : ""} decoding="async" ${IMG_FALLBACK}>` : "") +
       `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save">${HEART}</button>${p.qc >= qcMin ? '<span class="qc-badge">\u{1F4F7} QC</span>' : ""}</div>` +
       `<div class="body">${p.brand ? `<span class="brand-line">${esc(p.brand)}</span>` : ""}<a class="title" href="${productUrl(p)}">${esc(p.title)}</a>` +
       `<span class="price-row"><span class="price">${money(p.cny)}</span>${isPH(p.cny) ? "" : `<span class="subprice">¥${(+p.cny).toLocaleString("en-US")}</span>`}` +
