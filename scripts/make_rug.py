@@ -189,8 +189,8 @@ CHECK = ("A quality-check photo of a fashion find on a green mat (it may show th
          "novelty or desk items, car parts, toys, sports gear, and anything with rude, joke or offensive words on it. "
          "clear: true when the item itself is clearly visible, including a top-down view of a pair of shoes or one shoe from the side; false only when the photo shows just the soles, "
          "the inside or a box is shown. group: small for watches, sunglasses, belts, wallets, jewellery, caps and bottles. item: the item in 1 or 2 plain words "
-         "(sneakers, puffer vest, duffle bag, perfume). brand: only if you can read it on the item, else \"\" (the round 'puro classico' stamp is not a brand). "
-         "name: 2 to 3 lowercase words: the brand you can read plus the item ('golden goose sneakers', 'ysl duffle bag', 'stone island jacket', 'burberry puffer'); "
+         "(sneakers, puffer vest, duffle bag, perfume). brand: the brand whose logo, monogram, patch or signature design you can see on the item (the YSL monogram, the Ralph Lauren pony or RL, the Golden Goose star, Margiela's tape or tabi toe, the Moncler patch, the Stone Island badge), else \"\"; never guess from colour or shape alone (the round 'puro classico' stamp is not a brand). "
+         "name: 2 to 3 lowercase words: that brand plus the item ('golden goose sneakers', 'ysl duffle bag', 'stone island jacket', 'burberry puffer'); "
          "with no readable brand, the colour plus the item ('white leather sneakers', 'light blue puffer'). Never filler words like cool, nice, sick, fire.")
 
 
@@ -262,10 +262,11 @@ def lines_of(text, f, maxw, d):
     return out + ([cur] if cur else [])
 
 
-def caption(im, text, cy=None, size=72):
+def caption(im, text, cy=None, size=72, width=0.78):
     """TikTok-style text: pale yellow TikTok Sans, centred lines, a soft dark shadow, no outline. Its middle sits at cy (the screen middle by default)."""
     d = ImageDraw.Draw(im); W, H = im.size; f = tt(size); rows = []
-    for part in text.split("\n"): rows += lines_of(part, f, W * 0.78, d)
+    while size > 46 and max(d.textlength(p, font=f) for p in text.split("\n")) > W * width: size -= 2; f = tt(size)      # each item stays on one line
+    for part in text.split("\n"): rows += lines_of(part, f, W * width, d)
     lh = int(size * 1.22); y = int((cy or H / 2) - lh * len(rows) / 2)
     sh = Image.new("RGBA", im.size, (0, 0, 0, 0)); ds = ImageDraw.Draw(sh)
     for k, r in enumerate(rows): ds.text((W / 2 + 2, y + k * lh + 3), r, font=f, fill=(0, 0, 0, 215), anchor="ma")
@@ -349,7 +350,7 @@ def cover(rnd, last=None):
 def item_slide(im, name, usd, fk=0):
     """name/usd: one item (two lines: name, price) or lists for several (one line each: "name $price")."""
     if isinstance(name, list) and len(name) > 1:
-        text = "\n".join(n + (" $%d" % u if u else "") for n, u in zip(name, usd))
+        text = "\n".join(n + (" $%d" % u if u else "") for n, u in zip(name, usd)); return caption(im, text, cy=int(im.height * 0.70), size=64, width=0.9)
     else:
         n, u = (name[0], usd[0]) if isinstance(name, list) else (name, usd); text = n + ("\n$%d" % u if u else "")
     return caption(im, text, cy=int(im.height * 0.70))      # below the items, never on them (owner, 22 Oct 2026)
