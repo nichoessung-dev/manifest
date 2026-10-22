@@ -24,6 +24,7 @@ SCRIPT = os.path.join(ROOT, "scripts", "fonts", "Parisienne-Regular.ttf")    # t
 ITEMS_FILE = os.path.join(ROOT, "scripts", "qc_items.json")                 # what each QC shot shows (type, item, brand, colour), so a slide pairs two alike
 BEST = os.environ.get("FINDS_BEST", "") == "1"                               # "very good" mode (main account, 19 Oct 2026): look at 8x the photos, drop the blurriest, strongest pairs only
 LABELS = os.environ.get("FINDS_LABELS", "") == "1"                           # the name in the middle of each slide: off since 18 Oct 2026 (owner: a boosted post with brand names was rejected)
+DESC_TAGS = "#oldmoney #finds #haul #grish #spreadsheet"           # the five tags in every carousel description (owner, 22 Oct 2026)
 LABELS_FILE = os.path.join(ROOT, "scripts", "qc_labels.json")               # the short casual name on each slide ("Stoney Half-Zips"), per pair of shots
 
 
@@ -466,13 +467,21 @@ def main():
     part = a.part or int(used.get("part", 0)) + 1
     title = a.title or COVER_TEXT                               # the cover always says the same; the caption hook and tags vary
     hook = (rnd.choice(HOOKS) % title.lower()).replace("{part}", str(part))
-    caption = "%s\n\n%s" % (hook[0].upper() + hook[1:], " ".join(["#grisch", "#oldmoney", "#taobao", "#mycnbox", "#cnfans"]))   # owner, 19 Oct 2026
+    names = [] if a.single else [pair_label(ims[k][1], ims[k + 1][1]) for k in range(0, len(ims) - 1, 2)]   # one short name per slide
+    items = []                                                   # "jeans/ moncler cardigan/ ysl bag": what is on the slides, each once
+    for n in names:
+        for x in re.split(r",| & | and ", n or ""):
+            x = x.strip().lower()
+            if x and x not in items: items.append(x)
+    def describe(head):                                          # owner, 22 Oct 2026: hook as the title, then these tags, then the items
+        return "%s\n\n%s" % (head[0].upper() + head[1:], DESC_TAGS + ("\n" + "/ ".join(items) if items else ""))
+    caption = describe(hook)
     if a.text:                                                   # this account's own lines: none repeats within ten posts; five tags (TikTok's limit)
         T = json.load(open(os.path.join(ROOT, a.text), encoding="utf-8")); recent = used.get("texts", [])[-10:]
         line = rnd.choice([t for t in T["lines"] if t not in recent] or T["lines"])
         season = ["winter", "winter", "spring", "spring", "spring", "summer", "summer", "summer", "autumn", "autumn", "autumn", "winter"][datetime.now().month - 1]
         head = line.replace("{n}", str(len(ims))).replace("{part}", str(part)).replace("{season}", season)
-        caption = "%s\n\n%s" % (head[0].upper() + head[1:], " ".join(T["core"]))            # the five tags in "core", nothing else
+        caption = describe(head)
         used["texts"] = (used.get("texts", []) + [line])[-20:]
     FW, FH = (W, H) if a.video else (SW, SH)                     # both fill the 9:16 screen
     bg, cover_id = None, None
@@ -495,7 +504,7 @@ def main():
         for _, im in ims: frames.append((whole(im, FW, FH), a.hold))
     else:
         badge = make_badge(int(FW * 0.15)) if a.badge else None
-        for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH, badge, pair_label(ims[k][1], ims[k + 1][1]) if LABELS else ""), a.hold))
+        for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH, badge, names[k // 2] if LABELS else ""), a.hold))
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
     cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
     cmd += ["-stream_loop", "-1", "-i", audio, "-af", "afade=t=out:st=%.2f:d=0.6" % (total - 0.7)] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
