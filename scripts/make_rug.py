@@ -9,7 +9,7 @@ A carousel: the boxes photo with a yellow hook (a different one each time), then
 name and an estimated price in yellow. Prices are the median of matching finds on the site (functions/_lib/catalog.js).
 Env: OPENAI_API_KEY. Writes rug-out/NN-*.jpg (1080x1920), the QC photo each came from, and log.json (with the cost).
 """
-import argparse, base64, hashlib, json, os, random, re, html, statistics, sys, time, urllib.request, urllib.error, uuid, io
+import argparse, base64, hashlib, unicodedata, json, os, random, re, html, statistics, sys, time, urllib.request, urllib.error, uuid, io
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -435,7 +435,7 @@ def main():
                 print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
             if groups.get(g, 0) >= cap: continue                                # a mix: not all bags
             groups[g] = groups.get(g, 0) + 1
-            name = re.sub(r"[^a-z0-9 '&.-]", "", str(c.get("name") or c.get("item") or t).lower()).strip()[:28]
+            name = re.sub(r"[^a-z0-9 '&.-]", "", unicodedata.normalize("NFKD", str(c.get("name") or c.get("item") or t)).encode("ascii", "ignore").decode().lower()).strip()[:28]      # "pérignon" -> "perignon", not "prignon"
             print("  picked", name, "(%.0fs)" % (time.time() - t_pick))
             picks.append({"qc": pid, "img": qc, "name": name, "usd": price(c.get("brand"), c.get("item") or t, g), "group": g, "brand": c.get("brand"),
                           "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g])})
