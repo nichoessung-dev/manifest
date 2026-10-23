@@ -401,6 +401,13 @@ def main():
         pid = sid.split(":")[0]
         if sid.endswith(":0") and v.get("i") in FITS and pid in live and pid not in no and (not a.own or owner(pid) == a.own): cands[pid] = v["i"]
     cands = list(cands.items()); rnd.shuffle(cands); cands.sort(key=lambda c: (rc.get(c[0], 0), c[1] == "other"))      # least used on the rug first; known kinds before maybe-bottles
+    try: chosen = json.load(open(os.path.join(ROOT, "scripts", "rug_picks.json")))["ids"]      # the owner's own picks (picker page): these go first
+    except Exception: chosen = []
+    fresh = [pid for pid in chosen if pid in live and not rc.get(pid)]
+    if fresh:                                                  # only picks until every pick has been on the rug once, then the normal pool again
+        rnd.shuffle(fresh); cands = [(pid, (items.get(pid + ":0") or {}).get("i", "other")) for pid in fresh]
+        print("using the owner's picks: %d not posted yet" % len(fresh))
+    picked_ids = set(fresh)
     print("candidates:", len(cands))
     picks, groups, fails = [], {}, 0                           # 1. pick the photos (a quick check each, six at a time), a mix of kinds
     from concurrent.futures import ThreadPoolExecutor
@@ -424,7 +431,7 @@ def main():
             fails = 0
             if len(picks) >= want: break
             g = c.get("group") if c.get("group") in ANGLES else group(t)
-            if not (c.get("fits") and c.get("clear")):
+            if pid not in picked_ids and not (c.get("fits") and c.get("clear")):      # the owner's picks are never skipped
                 print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
             if groups.get(g, 0) >= cap: continue                                # a mix: not all bags
             groups[g] = groups.get(g, 0) + 1
