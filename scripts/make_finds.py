@@ -23,6 +23,7 @@ FONT = os.path.join(ROOT, "scripts", "fonts", "Montserrat.ttf")
 SCRIPT = os.path.join(ROOT, "scripts", "fonts", "Parisienne-Regular.ttf")    # the "puro classico" script in the corner badge
 ITEMS_FILE = os.path.join(ROOT, "scripts", "qc_items.json")                 # what each QC shot shows (type, item, brand, colour), so a slide pairs two alike
 BEST = os.environ.get("FINDS_BEST", "") == "1"                               # "very good" mode (main account, 19 Oct 2026): look at 8x the photos, drop the blurriest, strongest pairs only
+FIT = os.environ.get("FINDS_FIT", "whole")                                   # "whole": photos keep their full width; "fill": cropped to fill each half
 LABELS = os.environ.get("FINDS_LABELS", "") == "1"                           # the name in the middle of each slide: off since 18 Oct 2026 (owner: a boosted post with brand names was rejected)
 DESC_TAGS = "#oldmoney #finds #haul #grish #spreadsheet"           # the five tags in every carousel description (owner, 22 Oct 2026)
 LABELS_FILE = os.path.join(ROOT, "scripts", "qc_labels.json")               # the short casual name on each slide ("Stoney Half-Zips"), per pair of shots
@@ -217,11 +218,19 @@ def slide(a, b, SW=SW, SH=SH, badge=None, label=""):
     """Two photos stacked, each filling its half, a thin white line between them and, when given, a short white label
     ("Stoney Half-Zips") centred on the line. With a badge, it covers the bottom-right corner of each half (where the old
     watermark of exported photos sits)."""
-    im = Image.new("RGB", (SW, SH), (255, 255, 255)); gap = 4; hh = (SH - gap) // 2
-    im.paste(fill(a, SW, hh), (0, 0)); im.paste(fill(b, SW, SH - hh - gap), (0, hh + gap))
+    gap = 4; half = (SH - gap) // 2
+    if FIT == "fill":                                            # the old look: each photo cropped to fill its half
+        ha, hb = half, SH - half - gap
+    else:                                                        # owner, 24 Oct 2026: "way too zoomed in": show the whole width of
+        ha = min(half, int(round(SW * a.height / float(a.width))))   # each photo (a landscape QC photo lost ~25 % at the sides),
+        hb = min(half, int(round(SW * b.height / float(b.width))))   # the pair centred on a dark screen like TikTok's own
+    y0 = (SH - (ha + gap + hb)) // 2
+    im = Image.new("RGB", (SW, SH), (0, 0, 0) if FIT != "fill" else (255, 255, 255))
+    if FIT != "fill": ImageDraw.Draw(im).rectangle([0, y0 + ha, SW, y0 + ha + gap - 1], fill=(255, 255, 255))
+    im.paste(fill(a, SW, ha), (0, y0)); im.paste(fill(b, SW, hb), (0, y0 + ha + gap))
     if badge is not None:
-        im.paste(badge, (SW - badge.width, hh - badge.height)); im.paste(badge, (SW - badge.width, SH - badge.height))
-    if label: pill(im, label, hh + gap // 2)
+        im.paste(badge, (SW - badge.width, y0 + ha - badge.height)); im.paste(badge, (SW - badge.width, y0 + ha + gap + hb - badge.height))
+    if label: pill(im, label, y0 + ha + gap // 2)
     return im
 
 
