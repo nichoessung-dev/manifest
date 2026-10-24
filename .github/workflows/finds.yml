@@ -95,11 +95,12 @@ jobs:
           git add scripts/qc_categories.json 2>/dev/null || true
           git add scripts/qc_labels.json 2>/dev/null || true
           git add scripts/qc_items.json 2>/dev/null || true
+          git add shorts_log.json shorts_posted.json 2>/dev/null || true   # written when carousels are sent right away (manual "now" runs)
           git diff --cached --quiet && exit 0
           git commit -q -m "chore: finds state [skip ci]"
           # someone else may push at the same moment (a site upload, the stats job): try again a few times before giving up
           for n in 1 2 3 4 5; do
-            if git pull --rebase -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
             git rebase --abort 2>/dev/null || true
             sleep $((n * 6))
           done
