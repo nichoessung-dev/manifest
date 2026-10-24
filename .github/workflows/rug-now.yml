@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-concurrency: shorts
+concurrency: rug-now                 # its own queue: in the shared "shorts" queue a newer finds run cancelled it while it waited
 jobs:
   rug:
     runs-on: ubuntu-latest
