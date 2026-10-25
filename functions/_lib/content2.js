@@ -115,8 +115,8 @@ export const GUIDES2 = {
     faq: [["Can I buy a single item on 1688?", "Often yes for clothing and accessories, but some listings have a minimum order quantity. Your agent shows it before you pay."]],
   },
   "mycnbox-review": {
-    title: "Is MyCNBox Legit? MyCNBox Review 2026: Fees, QC & Shipping",
-    desc: "Is MyCNBox legit? What its Trustpilot page showed on 10 October 2026, what it charges, how QC photos and shipping work, and the drawbacks to weigh.",
+    title: "Is MyCNBox Legit? 4.8/5 on Trustpilot, Fees & QC (2026)",
+    desc: "Yes, on the public evidence: 4.8 out of 5 from 422 Trustpilot reviews when we checked on 10 October 2026. What MyCNBox charges, its 4 standard QC photos, shipping and the drawbacks, in two minutes.",
     h1: "Is MyCNBox legit? MyCNBox review from the public evidence",
     updated: "2026-10-10",   // the day the Trustpilot figures and the help-centre facts below were read; change it only when they are re-read
     body: `<p class="lead"><strong>Is MyCNBox legit? On the public evidence, yes.</strong> MyCNBox is an operating shopping agent for Weidian, Taobao and 1688 with iOS and Android apps, and its Trustpilot page showed a TrustScore of 4.8 out of 5 from 422 reviews when we checked on 10 October 2026. The drawbacks: that is a short track record (the Trustpilot profile was claimed in March 2025), the few one-star reviews are mostly about shipping prices and delayed or lost parcels, and the "$500" welcome offer is a package of coupons, not cash.</p>

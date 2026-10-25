@@ -45,7 +45,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w20";
+export const PRODUCT_TPL = "w21";
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -721,7 +721,7 @@ export function sitemapPages() {
   // Pages 2+ of the brand and category hubs (21 Oct 2026): real lists that were linked from nowhere. Agent and agent x brand
   // hubs are left out: their pages 2+ repeat the same finds with other buy buttons.
   const more = (base, n) => Array.from({ length: Math.max(0, Math.ceil(n / PER_PAGE) - 1) }, (_, i) => `${base}/${i + 2}`);
-  const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", "/stockholm-spreadsheet", "/grisch-spreadsheet", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), "/cnfans-spreadsheet",
+  const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", "/stockholm-spreadsheet", "/grisch-spreadsheet", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), "/cnfans-spreadsheet", "/qc-spreadsheet",
     ...AGENT_BRAND_AGENTS.flatMap(k => agentBrands().map(b => `/${k}-spreadsheet/${brandSlug.get(b)}`)), ...AGENT_BRAND_AGENTS.flatMap(k => Object.keys(AGENT_STYLES).map(x => `/${k}-spreadsheet/${x}`)),
     ...Object.values(CATS).map(c => "/category/" + c.slug), ...[...brandSlug.values()].map(s => "/brand/" + s),
     ...[...brandSlug].flatMap(([b, s]) => more("/brand/" + s, byBrand.get(b).length)),
@@ -815,6 +815,24 @@ export function hubSpec(path) {
               ["More old money", other.concat([["Old money spreadsheet", "/old-money"], ["MyCNBox spreadsheet", "/mycnbox-spreadsheet"]])]],
       faq: st.faq };
   }
+  // QC photos spreadsheet (25 Oct 2026): Search Console showed "qc photos" 391 times in 28 days at position 8.4 with no
+  // clicks, and no page answered it directly. Finds the catalogue marks as having buyer QC photos, on every agent.
+  if (path === "/qc-spreadsheet") {
+    const q1 = all.filter(p => p.qc >= 1).length, q2 = all.filter(p => p.qc >= 2).length, n = nf(q1);
+    return { path, preset: { qc: 1 }, h: "QC Photos Spreadsheet",
+      sub: `${n} finds with buyer QC photos from earlier orders. Tap QC on a find to see real photos of the item before you buy.`,
+      title: `QC Photos Spreadsheet 2026: ${n} Finds With Real QC Pics | Puro Classico`,
+      desc: `Rep finds with real QC photos: ${n} Weidian, Taobao and 1688 items with buyer QC pictures from earlier orders, prices and one-tap MyCNBox, KakoBuy, Oopbuy and Sugargoo links.`,
+      crumbs: [["Home", "/"], ["QC photos spreadsheet", path]],
+      chips: [["QC photos on your agent", AGENT_BRAND_AGENTS.map(k => [AGENTS[k].name, `/${k}-spreadsheet/qc`])],
+              ["Check QC photos yourself", [["How to read QC photos", "/guides/how-to-qc"], ["QC checker", "/tools/qc-checker"]]],
+              ["Agent spreadsheets", Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])]],
+      faq: [["What are QC photos?", "QC (quality check) photos are real photos of the exact item a buyer ordered, taken by the shopping agent when it reaches the warehouse in China. They show the stitching, logos, colour and size tag before you pay for international shipping."],
+            ["Where do these QC photos come from?", `From earlier buyers' orders of the same listing. Our catalogue marks ${n} finds as having them and stores the photo count for ${nf(q2)} of them. Open a find and tap QC to load them.`],
+            ["Will I get QC photos of my own item?", "Yes. Your agent photographs your exact item at its warehouse before it ships, so you can return or exchange it if something is wrong."],
+            ["What should I check in QC photos?", "Logo shape and placement, stitching, colour against retail photos, the size tag and any measurements. Our guide on how to read QC photos goes through it step by step."],
+            ["Is the spreadsheet free?", "Yes. You only pay your agent for what you order and for shipping. Links may be affiliate links."]] };
+  }
   if (path === "/cnfans-spreadsheet") {
     const N = nf(all.length);
     return { path, preset: {}, h: "CNFans Spreadsheet",
@@ -866,7 +884,7 @@ export function hubSpec(path) {
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, path]],
       chips: [...(AGENT_BRAND_AGENTS.includes(key) ? [[`Browse on ${a.name}`, Object.keys(AGENT_STYLES).map(x => [AGENT_STYLES[x].name, `${path}/${x}`])]] : []),
               [`Popular brands on ${a.name}`, brands.slice(0, 16).map(b => [`${b} (${nf(byBrand.get(b).length)})`, `${path}/${brandSlug.get(b)}`])],
-              ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"]])]],
+              ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"], ["QC photos spreadsheet", "/qc-spreadsheet"]])]],
       faq: [[`What is the ${a.name} spreadsheet?`, `A searchable list of ${N} Weidian, Taobao and 1688 finds. Every find opens directly in ${a.name}, so there is nothing to copy or translate.`],
             [`How do I order with ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the warehouse. Check the QC photos, then ship your parcel.`],
             [`Is this the official ${a.name} spreadsheet?`, `No. Puro Classico is an independent spreadsheet. Ordering, payment, QC photos and shipping all happen on ${a.name}. Links to ${a.name} may be affiliate links.`],
