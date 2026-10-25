@@ -75,6 +75,25 @@ async function liveOnly(urls) {
   return checks.filter(Boolean);
 }
 
+
+// data/qc_bank.json, read once per isolate for 10 minutes: { items: { "weidian/123": [qc_count, stored_thumbs] } }
+const BANK_PHOTO = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/qc/";
+let bank = null, bankAt = 0;
+async function fromBank(context, url, storefront, id) {
+  try {
+    if (!bank || Date.now() - bankAt > 600000) {
+      const r = await context.env.ASSETS.fetch(new Request(url.origin + "/data/qc_bank.json"));
+      bank = r.ok ? ((await r.json()).items || {}) : {}; bankAt = Date.now();
+    }
+    const e = bank[storefront + "/" + id];
+    if (!e) return null;
+    if (!e[1]) return json({ error: "upstream error", status: 404 }, 404, { "cache-control": "public, max-age=86400" });   // looked up: no photos
+    const thumbs = [];
+    for (let k = 0; k < e[1]; k++) thumbs.push(url.origin + "/api/img?u=" + encodeURIComponent(`${BANK_PHOTO}${storefront}-${id}-${k}.webp`));
+    return json({ storefront, listing_id: id, qc_count: e[0] || e[1], thumbnails: thumbs, banked: true }, 200, { "cache-control": "public, max-age=86400" });
+  } catch (err) { return null; }
+}
+
 export async function onRequestGet(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -101,6 +120,11 @@ export async function onRequestGet(context) {
   // --- validate input (defend against the proxy being used as an open relay) ---
   if (!STOREFRONTS.has(storefront)) return json({ error: "invalid storefront" }, 400);
   if (!/^[1-9][0-9]{5,19}$/.test(id)) return json({ error: "invalid id" }, 400);
+
+  // --- QC photo bank (25 Oct 2026): finds looked up once by scripts/qc_bank.py, photos stored in our Supabase storage.
+  // Answered for every visitor (and for &cached=1) without spending the qualit.ly quota. ---
+  const banked = await fromBank(context, url, storefront, id);
+  if (banked) return banked;
 
   // --- edge cache: one qualit.ly call per (storefront,id) per week across all visitors ---
   const cacheKey = new Request(`https://qc-cache.internal/v2/${storefront}/${id}`, { method: "GET" });
