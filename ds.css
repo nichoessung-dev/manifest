@@ -6,19 +6,20 @@
 /* ---------------------------------------------------------------- tokens */
 :root{
   /* type */
-  --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font:"Instrument Sans",-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --fs-xs:12px; --fs-sm:13.5px; --fs-base:16px; --fs-lg:18px; --fs-h3:19px; --fs-h2:clamp(22px,2.6vw,28px); --fs-h1:clamp(30px,4.6vw,48px);
   /* space (4px grid) */
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px;
   /* radius: control < card < panel */
-  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:22px; --r-pill:999px;
+  --r-sm:10px; --r-md:14px; --r-lg:18px; --r-xl:22px; --r-pill:999px;
   --maxw:1180px;
   --ease:cubic-bezier(.2,.7,.2,1);
   /* brand */
   --brand-red:#D9301E; --brand-red-hover:#C42A1A;
-  /* dark theme (default) */
-  --bg:#0B1220; --surface:#111A2E; --surface-2:#1A2540; --ink:#EEF2F8; --ink-2:#CDD5E4; --muted:#9AA6BD; --faint:#8490A8;
-  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.16); --fill:#EEF2F8; --fill-ink:#0B1220; --accent:#8EA6DC;
+  /* dark theme (default), v7: qualit.ly-style near-black with hairlines */
+  --bg:#0B0D10; --surface:#121519; --surface-2:#181C21; --ink:#ECEFF2; --ink-2:#CBD1D7; --muted:#99A2AB; --faint:#7C848D;
+  --line:#23272E; --line-2:#323840; --fill:#ECEFF2; --fill-ink:#0B0D10; --accent:#8EA6DC; --glass:rgba(18,21,25,.72);
   --studio-a:#EEEDEA; --studio-b:#E2E0DB; --img-edge:rgba(255,255,255,.06);
   --sh-1:0 1px 2px rgba(0,0,0,.4); --sh-pop:0 28px 70px rgba(0,0,0,.6),0 2px 8px rgba(0,0,0,.4);
   /* old names still used by inline styles in pages.js */
@@ -26,8 +27,8 @@
   color-scheme:dark;
 }
 :root[data-theme="light"]{
-  --bg:#FAFAF8; --surface:#FFFFFF; --surface-2:#F1F0EC; --ink:#111110; --ink-2:#2E2D2A; --muted:#5E5D59; --faint:#706F6A;
-  --line:rgba(17,17,16,.09); --line-2:rgba(17,17,16,.16); --fill:#111110; --fill-ink:#FFFFFF; --accent:#2E4B86;
+  --bg:#F5F5F7; --surface:#FFFFFF; --surface-2:#F0F0F2; --ink:#1D1D1F; --ink-2:#3A3A3C; --muted:#6E6E73; --faint:#6E6E73;
+  --line:#E3E3E8; --line-2:#D2D2D7; --fill:#1D1D1F; --fill-ink:#FFFFFF; --accent:#0071E3; --glass:rgba(255,255,255,.72);
   --studio-a:#F3F2EF; --studio-b:#E9E7E2; --img-edge:rgba(0,0,0,.06);
   --sh-1:0 1px 2px rgba(17,17,16,.05),0 4px 14px rgba(17,17,16,.05); --sh-pop:0 24px 60px rgba(17,17,16,.16),0 2px 8px rgba(17,17,16,.08);
   color-scheme:light;
@@ -44,8 +45,8 @@ img{max-width:100%;height:auto}
 :focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:6px}
 .w{max-width:var(--maxw);margin:0 auto;padding:0 var(--s5)}
 @media(max-width:560px){.w{padding:0 var(--s4)}}
-h1,h2,h3{color:var(--ink);text-wrap:balance;font-weight:700}
-h1{font-size:var(--fs-h1);line-height:1.06;letter-spacing:-.04em;margin:0 0 var(--s3)}
+h1,h2,h3{color:var(--ink);text-wrap:balance;font-weight:600}
+h1{font-size:var(--fs-h1);line-height:1.04;letter-spacing:-.035em;margin:0 0 var(--s3)}
 h2{font-size:var(--fs-h2);line-height:1.2;letter-spacing:-.025em;margin:var(--s7) 0 var(--s3)}
 h3{font-size:var(--fs-h3);line-height:1.3;letter-spacing:-.015em;margin:var(--s5) 0 var(--s2)}
 p{text-wrap:pretty}
@@ -196,3 +197,18 @@ footer.f .disc{margin-top:var(--s6);padding-top:var(--s5);border-top:1px solid v
 
 /* ---------------------------------------------------------------- motion */
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------------------------------------------------------------- v7 (25 Oct 2026): qualit.ly + modern Apple
+   Floating glass header, bordered cards with real gaps, mono labels (.eyebrow, brand lines), pill controls. */
+header.h{background:transparent;border:0;-webkit-backdrop-filter:none;backdrop-filter:none;padding:12px 16px 0}
+header.h .w{background:var(--glass);border:1px solid var(--line);border-radius:20px;-webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px);height:60px;padding:0 var(--s4)}
+@media(max-width:560px){header.h{padding:8px 10px 0}header.h .w{border-radius:16px;height:56px}}
+.eyebrow{display:block;font-family:var(--mono);font-size:11.5px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 var(--s3)}
+.g{gap:var(--s4)}
+.c{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;transition:transform .2s var(--ease),border-color .2s var(--ease)}
+@media(hover:hover){.c:hover{transform:translateY(-2px);border-color:var(--line-2)}}
+.c .ci{border-radius:0;box-shadow:none;border-bottom:1px solid var(--line)}
+.c .cb{padding:var(--s3) 14px 14px}
+.cbr{font-family:var(--mono);font-weight:400;letter-spacing:.04em}
+.chips a{border-color:var(--line)}
+input,select,textarea{border-color:var(--line);border-radius:var(--r-md)}
