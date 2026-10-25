@@ -1,15 +1,21 @@
 name: Rug post now
-# Builds one rug carousel for the second TikTok account and hands it to Postiz to send as a TikTok draft about five minutes later.
+# Builds rug carousels (one by default, "count" when started by hand) for the second TikTok account and hands each to Postiz
+# to send as a TikTok draft a few minutes later, two minutes apart.
 # For a post outside the daily slots (the daily ones come from finds.yml). Nothing goes to the main account.
 on:
   workflow_dispatch:
+    inputs:
+      count:
+        description: 'How many carousels (1-8)'
+        required: false
+        default: '1'
 permissions:
   contents: write
 concurrency: rug-now                 # its own queue: in the shared "shorts" queue a newer finds run cancelled it while it waited
 jobs:
   rug:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - run: git fetch -q --depth=20 origin "$GITHUB_REF_NAME" && git reset -q --hard FETCH_HEAD
@@ -17,21 +23,33 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install pillow && (sudo apt-get install -y -q fonts-noto-color-emoji || true)
-      - name: Build the carousel
+      - name: Build the carousels and send each to the second account as a draft
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           RUG_ENGINE: gemini
           RUG_MODELS: gemini-3.1-flash-image
           PYTHONUNBUFFERED: '1'
-        run: python scripts/make_rug.py --n 6 --own 0 --state slides_used.json --commit-state --avoid scripts/slides_exclude.json --out out/rug-now
-      - name: Send it to the second account as a draft
-        env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
           SHORTS_CHANNELS: tiktok
           TIKTOK_ACCOUNT: qualityfinds          # the second TikTok account (Postiz name "Qualityfinds")
           TIKTOK_METHOD: UPLOAD
           TIKTOK_AUTO_MUSIC: 'no'
-        run: SCHEDULE_AT="$(date -u -d '+5 min' +%Y-%m-%dT%H:%M:00.000Z)" python scripts/post_short.py out/rug-now/rug.json
+          COUNT: ${{ inputs.count || '1' }}
+        run: |
+          case "$COUNT" in [1-8]) ;; *) COUNT=1;; esac
+          made=0
+          for k in $(seq 1 "$COUNT"); do
+            echo "::group::carousel $k of $COUNT"
+            if python scripts/make_rug.py --n 6 --own 0 --state slides_used.json --commit-state --avoid scripts/slides_exclude.json --out "out/rug-now-$k" &&
+               SCHEDULE_AT="$(date -u -d "+$((3 + 2 * k)) min" +%Y-%m-%dT%H:%M:00.000Z)" python scripts/post_short.py "out/rug-now-$k/rug.json"; then
+              made=$((made + 1))
+            else
+              echo "::warning::carousel $k was not made or not sent"
+            fi
+            echo "::endgroup::"
+          done
+          echo "sent $made of $COUNT"; echo "### Rug carousels sent: $made of $COUNT" >> "$GITHUB_STEP_SUMMARY"
+          [ "$made" -gt 0 ]
       - name: Save state
         if: always()
         run: |
