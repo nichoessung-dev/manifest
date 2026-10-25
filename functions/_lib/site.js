@@ -201,7 +201,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "6";
+export const DS_VER = "7";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -259,9 +259,9 @@ ${status === 200 ? `<link rel="canonical" href="${esc(url)}">` : ""}
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${esc(img)}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${esc(img)}">
-<meta name="theme-color" content="#0B1220"><link rel="icon" type="image/png" href="/favicon.png">
+<meta name="theme-color" content="#0B0D10"><link rel="icon" type="image/png" href="/favicon.png">
 <script>try{var t=localStorage.getItem("manifest.theme");if(t==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
-<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin><style>@font-face{font-family:"Inter";font-style:normal;font-weight:400 800;font-display:swap;src:url(/fonts/inter-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
+<link rel="preload" href="/fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin><style>@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/instrument-sans-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:400 500;font-display:swap;src:url(/fonts/jetbrains-mono-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
 <link rel="stylesheet" href="/ds.css?v=${DS_VER}">
 ${jsonld.map(ld).join("\n")}
 ${extraHead}
