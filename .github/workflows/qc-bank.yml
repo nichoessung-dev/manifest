@@ -1,0 +1,43 @@
+name: QC photo bank
+# Looks up QC photos once per find and stores them in our own storage (scripts/qc_bank.py), so they show for every
+# visitor without spending the qualit.ly monthly quota (1,000 lookups, reset on the 1st). Runs daily; each run uses at
+# most 300 lookups and always leaves 150 a month for visitors opening finds that are not banked yet.
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+    inputs:
+      max:
+        description: 'Most lookups this run'
+        default: '300'
+permissions:
+  contents: write
+concurrency: qc-bank
+jobs:
+  bank:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - name: Look up and store QC photos
+        env:
+          QUALITLY_KEY: ${{ secrets.QUALITLY_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python -u scripts/qc_bank.py --max "${{ inputs.max || '300' }}"
+      - name: Save the bank
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/qc_bank.json
+          git diff --cached --quiet && exit 0
+          git commit -q -m "chore: QC photo bank [skip ci]"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::the QC bank could not be saved"; exit 1
