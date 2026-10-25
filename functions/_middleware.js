@@ -226,6 +226,7 @@ async function hubApp(ctx, url, spec) {
     .on("script#pc-catalog", { element(e) { e.replace(catalogTags(etagOf(asset)), { html: true }); } })
     .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
     .on("meta[charset]", { element(e) { e.after(head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
+    .on("span.v7-eyebrow", { element(e) { e.remove(); } })                 // hub pages show their breadcrumb there instead
     .on("h1.hero-h", { element(e) { e.setInnerContent(spec.h); e.before(crumbHtml, { html: true }); } })
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
     .on("footer", { element(e) { e.before(seo, { html: true }); } })
