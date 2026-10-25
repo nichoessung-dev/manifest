@@ -21,7 +21,7 @@ SITE = "https://" + HOST
 UA = {"User-Agent": "Mozilla/5.0 PuroClassicoIndexNow/1.0"}
 # Pages whose content moves every day without a catalogue change: their first 60 cards follow the view counts.
 DAILY = ["/", "/mycnbox-spreadsheet", "/kakobuy-spreadsheet", "/oopbuy-spreadsheet", "/lovegobuy-spreadsheet",
-         "/sugargoo-spreadsheet", "/stockholm-spreadsheet", "/grisch-spreadsheet", "/old-money", "/cnfans-spreadsheet"] + \
+         "/sugargoo-spreadsheet", "/stockholm-spreadsheet", "/grisch-spreadsheet", "/old-money", "/cnfans-spreadsheet", "/qc-spreadsheet"] + \
         ["/%s-spreadsheet/%s" % (k, x) for k in ("mycnbox", "kakobuy", "oopbuy", "sugargoo") for x in ("grisch", "old-money", "shoes", "qc", "budget")]
 
 def get(url):
