@@ -217,7 +217,7 @@ export const GUIDE_LINKS = [
   ["What is a rep spreadsheet?", "/guides/what-is-a-rep-spreadsheet"],
   ["Pandabuy alternatives", "/guides/pandabuy-alternatives"],
   ["Rep terms glossary (GL/RL, W2C…)", "/guides/rep-glossary"],
-  ["How to find reps", "/guides/how-to-find-reps"],
+  ["W2C: how to find any rep", "/guides/how-to-find-reps"],
   ["MyCNBox coupon code ($500)", "/guides/mycnbox-coupon-code"],
   ["KakoBuy coupon code ($410)", "/guides/kakobuy-coupon-code"],
   ["All agent sign-up bonuses", "/guides/agent-coupons"],

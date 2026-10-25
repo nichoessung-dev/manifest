@@ -82,8 +82,8 @@ export const GUIDES = {
           ["How long does shipping take?", "Usually a few days to reach the agent's warehouse, then roughly 1–3 weeks internationally depending on the shipping line and destination."]],
   },
   "how-to-qc": {
-    title: "How to Read QC Photos: What to Check Before Your Reps Ship",
-    desc: "A practical checklist for reading QC (quality check) photos from your shopping agent, logos, stitching, colour, sizing tags and what GL/RL means.",
+    title: "How to Read QC Photos: Stitching, Hardware & Logo Checks",
+    desc: "What are QC photos? A checklist for your agent's QC (quality check) pictures: stitching, hardware and zips, logos, colour and size tags, plus what GL/RL means.",
     h1: "How to read QC photos",
     body: `<p class="lead">QC (quality check) photos are real photos of <em>your</em> item, taken by your agent's warehouse after it arrives from the seller and before it ships to you. They're your chance to catch problems while returns are still easy.</p>
 <h2>The 5-point checklist</h2><ol class="steps">

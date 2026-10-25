@@ -95,9 +95,9 @@ export const GUIDES3 = {
     faq: [["What does GL and RL mean?", "GL means green light (the item looks right, ship it) and RL means red light (there's a flaw, so exchange or return it before shipping)."], ["What does W2C mean?", "W2C means 'where to cop', a request for the link to an item."], ["What is a batch?", "A production run from one factory. The same model can come in several batches of different quality."]],
   },
   "how-to-find-reps": {
-    title: "How to Find Reps: Spreadsheets, Image Search & Seller Stores",
-    desc: "Four reliable ways to find a specific rep: spreadsheets, reverse image search, searching inside your agent and following good seller stores.",
-    h1: "How to find reps",
+    title: "W2C: How to Find Any Rep on Weidian, Taobao & 1688 (2026)",
+    desc: "W2C means \"where to cop\". Four ways to find the exact item you want from China: rep spreadsheets, reverse image search, searching inside your agent and good seller stores.",
+    h1: "W2C: how to find any rep",
     body: `<p class="lead">Looking for a specific item? These are the four methods experienced buyers use, from quickest to most thorough.</p>
 <h2>1. Search a spreadsheet</h2><p>Search <a href="/">Puro Classico</a> by brand or item name. Results show photos, prices and whether real QC photos exist. Start with <a href="/best">best reps by model</a> for the most-wanted items, or go straight to a brand's own page from the <a href="/brands">brand list</a>, for example <a href="/brand/ralph-lauren">Ralph Lauren</a>, <a href="/brand/arcteryx">Arc'teryx</a> or <a href="/brand/golden-goose">Golden Goose</a>.</p>
 <h2>2. Reverse image search</h2><p>Many agents have an image-search box: upload a photo of the item and it finds matching Taobao and 1688 listings. Pick listings with many sales and good ratings.</p>
