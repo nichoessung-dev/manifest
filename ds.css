@@ -212,3 +212,6 @@ header.h .w{background:var(--glass);border:1px solid var(--line);border-radius:2
 .cbr{font-family:var(--mono);font-weight:400;letter-spacing:.04em}
 .chips a{border-color:var(--line)}
 input,select,textarea{border-color:var(--line);border-radius:var(--r-md)}
+/* the nav scrolls sideways when it does not fit: fade its right edge instead of cutting a word in half */
+header.h nav{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);padding-right:28px}
+@media(max-width:860px){header.h .w{gap:var(--s3)}}

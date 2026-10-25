@@ -1069,6 +1069,17 @@ h1,h2,h3,.hero h1{font-family:var(--f-disp)!important;font-weight:600!important;
 .cselbtn .cselico{width:18px;height:18px;margin-right:2px}
 .cselitem .ck{width:12px}
 @media(max-width:560px){.masthead{padding:8px 10px 0}.masthead .mast-row{border-radius:16px}.hero{margin-top:-72px;padding-top:72px}}
+/* mid-size screens (561-1180 px): language and currency move behind the globe button, like on phones, so the
+   header stays on one row instead of wrapping the red button (owner, 25 Oct 2026) */
+@media(min-width:561px) and (max-width:1180px){
+  .set-btn{display:inline-flex}
+  .mast-tools .selwrap{display:none!important}
+  .masthead.set-open .mast-row{flex-wrap:wrap}
+  .masthead.set-open .mast-tools{flex-wrap:wrap}
+  .masthead.set-open .mast-tools .selwrap{display:flex!important;order:20}
+  .pc-mycnbox-btn{white-space:nowrap}
+}
+@media(min-width:561px) and (max-width:860px){.pc-mycnbox-btn{font-size:12.5px!important;padding:0 14px!important}.mast-tools .tools-btn{padding:0 8px!important}}
 </style>
 
 <div class="masthead">
