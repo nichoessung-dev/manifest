@@ -59,30 +59,37 @@ jobs:
           FINDS_NOW: ${{ (github.event_name == 'workflow_dispatch' && inputs.account != 'second') && inputs.now || '0' }}
         if: github.event_name != 'workflow_dispatch' || inputs.now == '0' || inputs.account != 'second'
         run: python scripts/finds_plan.py
-      # The second TikTok account (puroclassico.com/repaddict) gets photo slideshows only, three a day, from its own share of the
-      # photos (never a photo the first account has used). To pause it: set the repo variable SLIDES_LIVE to "false".
-      - name: Slideshows for the second TikTok account
+      # The second TikTok account (Qualityfinds in Postiz) gets rug carousels (scripts/make_rug.py): the boxes cover, then the
+      # owner's picked items re-shot on the Margiela rug by Google's image model, with names and site prices. Four drafts every
+      # morning at 5 (owner, 26 Oct 2026). One post is built per run. To pause it: set the repo variable SLIDES_LIVE to "false".
+      - name: Colour emoji font for the rug covers
         if: vars.SLIDES_LIVE != 'false'
+        continue-on-error: true
+        run: sudo apt-get install -y -q fonts-noto-color-emoji
+      - name: Rug carousels for the second TikTok account (Qualityfinds)
+        if: vars.SLIDES_LIVE != 'false' && (github.event_name != 'workflow_dispatch' || inputs.now == '0' || inputs.account != 'main')
         continue-on-error: true
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
           SHORTS_CHANNELS: tiktok
-          TIKTOK_ACCOUNT: cmvceahpe1g56o00y2z7vf4nl     # the second TikTok account (@puroclassicocom, connected 17 Oct 2026; both are named puroclassico.com in Postiz)
-          FINDS_BADGE: '1'
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TIKTOK_ACCOUNT: qualityfinds          # the second TikTok account, reconnected in Postiz as "Qualityfinds" (owner confirmed 22 Oct 2026)
+          FINDS_STYLE: rug
+          FINDS_MAX_NEW: '1'                   # a rug post takes a few minutes: one per run, the next run (10 minutes later) builds the next
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RUG_ENGINE: gemini                   # Google Nano Banana 2 (owner chose it over OpenAI, 22 Oct 2026)
+          RUG_MODELS: gemini-3.1-flash-image
+          PYTHONUNBUFFERED: '1'
           FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L
           FINDS_MODE: carousel
-          FINDS_SLOTS: '06:01,06:03,06:05'     # three very good drafts a day (owner, 21 Oct 2026)
+          FINDS_SLOTS: '05:01,05:03,05:05,05:07'   # four drafts every morning at 5 (owner, 26 Oct 2026)
           FINDS_FROM: '2026-10-19'
-          FINDS_BEST: '1'
           FINDS_DAYS: '2'
-          FINDS_SLIDES: '9'
-          FINDS_OWN: '2'
+          FINDS_SLIDES: '6'                    # six slides, several items each (owner, 22 Oct 2026)
+          FINDS_OWN: '0'                       # the whole QC pool; the owner's picks (scripts/rug_picks.json) go first
           FINDS_STATE: slides_used.json
-          FINDS_AVOID: finds_used.json,scripts/slides_exclude.json
-          FINDS_TEXT: scripts/slides_text.json
+          FINDS_AVOID: scripts/slides_exclude.json
           FINDS_LINKS: '0'
-          TIKTOK_METHOD: UPLOAD            # sent to the TikTok app as a draft: the owner picks the sound and posts it
+          TIKTOK_METHOD: UPLOAD                # sent to the TikTok app as a draft: the owner picks the sound and posts it
           TIKTOK_AUTO_MUSIC: 'no'
           FINDS_NOW: ${{ (github.event_name == 'workflow_dispatch' && inputs.account != 'main') && inputs.now || '0' }}
         run: python scripts/finds_plan.py

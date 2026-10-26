@@ -31,6 +31,15 @@ AUDIO = os.environ.get("FINDS_AUDIO", "1Jl7ptfgdvN4FlMiEW0Y3NZpzKhIGDlrx")   # t
 COVERS = os.environ.get("FINDS_COVERS", "1gRUw48kSbbNU5RKjFUdPdgwR8SQvjSyM")   # Drive folder of start pictures (the owner's "first pic" folder); "qc" = a QC photo instead
 SLIDES = os.environ.get("FINDS_SLIDES", "12")                # slides per post, two QC photos on each
 HOLD = os.environ.get("FINDS_HOLD", "0.8")                   # seconds each slide stays up: the pictures swap fast
+STYLE = os.environ.get("FINDS_STYLE", "")                    # "rug" = items re-shot on the owner's Margiela rug by the image model (scripts/make_rug.py)
+MAX_NEW = int(os.environ.get("FINDS_MAX_NEW", "0") or 0)      # build at most this many posts per run (0 = no limit): rug posts take minutes each
+
+
+def build_cmd(out):
+    """The command that builds one post into out/: a rug carousel (FINDS_STYLE=rug) or a green-mat carousel."""
+    if STYLE == "rug":
+        return [sys.executable, os.path.join(ROOT, "scripts", "make_rug.py"), "--n", os.environ.get("FINDS_SLIDES", "6"), "--own", OWN, "--state", STATE, "--commit-state", "--out", out] + (["--avoid", AVOID] if AVOID else [])
+    return [sys.executable, os.path.join(ROOT, "scripts", "make_finds.py"), "--folder", os.environ["FINDS_FOLDER"], "--slides", SLIDES, "--hold", HOLD, "--own", OWN, "--state", STATE, "--commit-state", "--out", out] + (["--badge"] if BADGE else []) + (["--avoid", AVOID] if AVOID else []) + (["--single"] if SINGLE == "1" else []) + (["--text", TEXT] if TEXT else []) + (["--video"] if MODE == "video" else []) + (["--audio", AUDIO] if AUDIO else []) + (["--covers", COVERS] if COVERS and COVERS != "qc" else ["--qc-cover"])
 
 
 def wanted_slots(now):
@@ -64,9 +73,10 @@ def top_up():
     now = datetime.now(timezone.utc); have = queued(now, mine); made = 0
     print("posts already queued:", sorted(t.strftime("%m-%d %H:%M") for t in have))
     for t in wanted_slots(now):
+        if MAX_NEW and made >= MAX_NEW: print("built", made, "this run; the next run fills the rest"); break
         if any(abs((t - h).total_seconds()) < 60 for h in have): continue      # slots are only 2 minutes apart: match the exact time
         out = os.path.join(ROOT, "out", t.strftime("%m%d-%H%M")); os.makedirs(out, exist_ok=True)
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "make_finds.py"), "--folder", os.environ["FINDS_FOLDER"], "--slides", SLIDES, "--hold", HOLD, "--own", OWN, "--state", STATE, "--commit-state", "--out", out] + (["--badge"] if BADGE else []) + (["--avoid", AVOID] if AVOID else []) + (["--single"] if SINGLE == "1" else []) + (["--text", TEXT] if TEXT else []) + (["--video"] if MODE == "video" else []) + (["--audio", AUDIO] if AUDIO else []) + (["--covers", COVERS] if COVERS and COVERS != "qc" else ["--qc-cover"]))
+        r = subprocess.run(build_cmd(out))
         metas = [f for f in os.listdir(out) if f.endswith(".json")]
         if r.returncode or not metas: print("could not build the carousel for", t); continue
         env = dict(os.environ, SCHEDULE_AT=t.strftime("%Y-%m-%dT%H:%M:%S.000Z"))
@@ -106,7 +116,7 @@ def post_now(n):
     made = 0
     for k in range(n):
         out = os.path.join(ROOT, "out", "now-%d" % k); os.makedirs(out, exist_ok=True)
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "make_finds.py"), "--folder", os.environ["FINDS_FOLDER"], "--slides", SLIDES, "--hold", HOLD, "--own", OWN, "--state", STATE, "--commit-state", "--out", out] + (["--badge"] if BADGE else []) + (["--avoid", AVOID] if AVOID else []) + (["--single"] if SINGLE == "1" else []) + (["--text", TEXT] if TEXT else []) + (["--video"] if MODE == "video" else []) + (["--audio", AUDIO] if AUDIO else []) + (["--covers", COVERS] if COVERS and COVERS != "qc" else ["--qc-cover"]))
+        r = subprocess.run(build_cmd(out))
         metas = [f for f in os.listdir(out) if f.endswith(".json")]
         if r.returncode or not metas: print("could not build carousel", k + 1); continue
         env = {x: v for x, v in os.environ.items() if x != "SCHEDULE_AT"}
