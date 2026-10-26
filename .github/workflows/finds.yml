@@ -97,18 +97,17 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add finds_used.json discord_sent.json 2>/dev/null || true
-          git add slides_used.json 2>/dev/null || true
-          git add scripts/qc_categories.json 2>/dev/null || true
-          git add scripts/qc_labels.json 2>/dev/null || true
-          git add scripts/qc_items.json 2>/dev/null || true
-          git add shorts_log.json shorts_posted.json 2>/dev/null || true   # written when carousels are sent right away (manual "now" runs)
-          git diff --cached --quiet && exit 0
-          git commit -q -m "chore: finds state [skip ci]"
-          # someone else may push at the same moment (a site upload, the stats job): try again a few times before giving up
+          # this run's copies of the state files; each try starts from the newest main and merges them in (scripts/merge_state.py),
+          # so a job that saved at the same moment keeps its records too
+          mkdir -p "$RUNNER_TEMP/state"
+          for f in finds_used.json discord_sent.json slides_used.json scripts/qc_categories.json scripts/qc_labels.json scripts/qc_items.json shorts_log.json shorts_posted.json; do [ -f "$f" ] && cp "$f" "$RUNNER_TEMP/state/$(echo "$f" | tr / _)"; done
           for n in 1 2 3 4 5; do
-            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
-            git rebase --abort 2>/dev/null || true
+            git fetch -q origin "$GITHUB_REF_NAME" && git reset -q --hard FETCH_HEAD
+            for f in finds_used.json discord_sent.json slides_used.json scripts/qc_categories.json scripts/qc_labels.json scripts/qc_items.json shorts_log.json shorts_posted.json; do s="$RUNNER_TEMP/state/$(echo "$f" | tr / _)"; [ -f "$s" ] && python scripts/merge_state.py "$s" "$f"; done
+            git add finds_used.json discord_sent.json slides_used.json scripts/qc_categories.json scripts/qc_labels.json scripts/qc_items.json shorts_log.json shorts_posted.json 2>/dev/null || true
+            git diff --cached --quiet && exit 0
+            git commit -q -m "chore: finds state [skip ci]"
+            if git push -q origin HEAD:"$GITHUB_REF_NAME"; then exit 0; fi
             sleep $((n * 6))
           done
           echo "::error::the finds state could not be saved: the next run may reuse photos"; exit 1
