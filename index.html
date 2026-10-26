@@ -1080,6 +1080,12 @@ h1,h2,h3,.hero h1{font-family:var(--f-disp)!important;font-weight:600!important;
   .pc-mycnbox-btn{white-space:nowrap}
 }
 @media(min-width:561px) and (max-width:860px){.pc-mycnbox-btn{font-size:12.5px!important;padding:0 14px!important}.mast-tools .tools-btn{padding:0 8px!important}}
+/* product view: search and filters stay at the top while scrolling the finds below (owner, 26 Oct 2026) */
+.pp-sticky{position:sticky;top:-28px;z-index:6;background:var(--ground);padding:12px 22px 0;margin:0 -22px 14px;border-bottom:1px solid var(--line);box-shadow:0 8px 16px -14px rgba(0,0,0,.5)}   /* -28px: the panel (.dbody) has 28px top padding, and sticky counts from inside it */
+.pp-sticky .pp-filters{margin-bottom:12px}
+@media(max-width:560px){.pp-sticky{padding-top:10px}.pp-sticky .pp-search{margin:0 0 8px}
+  .pp-sticky .pp-filters{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -22px 10px;padding:0 22px}
+  .pp-sticky .pp-filters::-webkit-scrollbar{display:none}.pp-sticky .pp-filters>*{flex:0 0 auto}}
 </style>
 
 <div class="masthead">
@@ -2222,6 +2228,7 @@ function openDetail(p,fromHash){
       <div id="similar-wrap" class="similar-wrap"></div>
       <div class="d-wide" id="pp-browse">
         <p class="sec-label" data-i18n="browse_all">Browse all finds</p>
+        <div class="pp-sticky">
         <label class="search pp-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="pp-q" type="search" autocomplete="off"></label>
         <div class="filters-row pp-filters">
           <div class="fsel"><select id="pp-type"></select><svg class="fchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
@@ -2231,6 +2238,7 @@ function openDetail(p,fromHash){
           <div class="fsel"><select id="pp-source"></select><svg class="fchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
           <button class="saved-chip" id="pp-saved" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></svg><span data-i18n="saved">Saved</span></button>
           <div class="fsel sort-fsel"><select id="pp-sort"></select><svg class="fchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></div>
+        </div>
         </div>
         <div class="grid" id="pp-grid"></div>
       </div>
