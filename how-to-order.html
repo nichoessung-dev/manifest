@@ -14,24 +14,27 @@
 <meta property="og:url" content="https://www.puroclassico.com/how-to-order">
 <link rel="icon" href="/favicon.png">
 <link rel="preload" href="/fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin><style>@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/instrument-sans-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:400 500;font-display:swap;src:url(/fonts/jetbrains-mono-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
-<link rel="stylesheet" href="/ds.css?v=9">
+<link rel="stylesheet" href="/ds.css?v=10">
 <script>(function(){var t;try{t=localStorage.getItem("manifest.theme");}catch(e){}document.documentElement.setAttribute("data-theme",(t==="light"||t==="dark")?t:"dark");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",document.documentElement.getAttribute("data-theme")==="light"?"#F5F5F7":"#0B0D10");})();</script>
 <style>
   :root{--body:var(--ink-2)}
-  :root[data-theme="light"] .player{box-shadow:0 20px 50px rgba(20,30,60,.18)}
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased}
   a{color:inherit}
-  .wrap{max-width:1120px;margin:0 auto;padding:28px 16px 64px}
+  /* same width and side padding as ds.css .w, so the content lines up under the header bar as on the other pages */
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:28px var(--s5) 64px}
+  @media(max-width:560px){.wrap{padding:24px var(--s4) 56px}}
   h1{font-size:clamp(30px,5vw,48px);line-height:1.06;margin:0 0 10px;font-weight:600;letter-spacing:-.035em}
   .sub{color:var(--muted);font-size:18px;margin:0 0 24px}
-  .player{position:relative;margin:0 auto;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 30px 80px rgba(0,0,0,.45);border:1px solid var(--line)}
+  .player{position:relative;margin:0 auto;border-radius:22px;overflow:hidden;background:#000;box-shadow:var(--sh-pop);border:1px solid var(--line)}
   /* cap the player so it (and its controls) always fits in the viewport; 100vh fallback for browsers without svh */
   .player.landscape{aspect-ratio:16/9;width:min(100%,calc((100vh - 120px)*16/9));width:min(100%,calc((100svh - 120px)*16/9))}
   .player.portrait{aspect-ratio:9/16;width:min(100%,420px,calc((100vh - 120px)*9/16));width:min(100%,420px,calc((100svh - 120px)*9/16))}
   video{display:block;width:100%;height:100%;object-fit:cover}
   .switch{display:flex;justify-content:center;gap:8px;margin:14px 0 0}
-  .switch button{font:600 14px/1 var(--font);color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:9px 14px;cursor:pointer}
+  /* 44 px tall (DESIGN rule 10); they press in instead of flashing the grey tap box (rule 8) */
+  .switch button{font:600 14px/1 var(--font);color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;min-height:44px;padding:0 18px;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;transition:color .15s,border-color .15s,background-color .15s,transform .15s var(--ease)}
+  .switch button:active{transform:scale(.96)}
   .switch button[aria-pressed="true"]{color:var(--text);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
   .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:34px 0 8px}
   .btn{gap:10px;min-height:52px;padding:0 26px;font-size:17px}
@@ -47,9 +50,10 @@
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Do I pay shipping when I buy the item?", "acceptedAnswer": {"@type": "Answer", "text": "No. At checkout you only pay for the item and delivery to the MyCNBox warehouse in China. International shipping is paid later, when you submit your parcel."}}, {"@type": "Question", "name": "How long does delivery take?", "acceptedAnswer": {"@type": "Answer", "text": "MyCNBox usually ships within 24 hours of payment, and most parcels arrive in about 1-3 weeks depending on the shipping line and your country."}}, {"@type": "Question", "name": "What are QC photos?", "acceptedAnswer": {"@type": "Answer", "text": "Real photos of your exact item taken at the warehouse before it ships, so you can check logos, stitching, colour and the size tag. If something is wrong you can usually ask for a return or exchange."}}, {"@type": "Question", "name": "Can I use another agent?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Every find on Puro Classico also has links for KakoBuy, Oopbuy, LoveGoBuy and Sugargoo; the steps are the same."}}]}</script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 <header class="h"><div class="w"><a href="/" aria-label="Puro Classico home"><span class="logo" role="img" aria-label="Puro Classico"></span></a>
-<nav><a href="/">Browse finds</a><a href="/brands">Brands</a><a href="/best">Best reps</a><a href="/old-money">Old money</a><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/how-to-order" aria-current="page">How to order</a></nav></div></header>
-<div class="wrap">
+<nav aria-label="Main"><a href="/">Browse finds</a><a href="/brands">Brands</a><a href="/best">Best reps</a><a href="/old-money">Old money</a><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/how-to-order" aria-current="page">How to order</a></nav></div></header>
+<main class="wrap" id="main">
 
   <h1>How to order with MyCNBox</h1>
   <p class="sub">From Puro Classico to your door in 6 easy steps · 1:47 video</p>
@@ -95,7 +99,7 @@
     <h3 style="font-size:17px;margin:18px 0 6px">Can I use another agent?</h3><p style="color:var(--body);line-height:1.6;margin:0">Yes. Every find on Puro Classico also has links for KakoBuy, Oopbuy, LoveGoBuy and Sugargoo; the steps are the same.</p>
     <p style="margin-top:26px"><a href="/guides/how-to-buy-from-weidian" style="color:var(--accent)">How to buy from Weidian</a> · <a href="/guides/how-to-qc" style="color:var(--accent)">How to read QC photos</a> · <a href="/guides/sizing" style="color:var(--accent)">Sizing guide</a> · <a href="/mycnbox-spreadsheet" style="color:var(--accent)">MyCNBox spreadsheet</a></p>
   </section>
-</div>
+</main>
 <script>
 (function(){
   var SRC={landscape:{v:"/media/how-to-order-landscape.mp4",p:"/media/how-to-order-poster.jpg"},

@@ -18,7 +18,7 @@
     --r-lg:20px; --r-xl:26px;
   }
   *{box-sizing:border-box;margin:0}
-  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scroll-behavior:smooth}
+  html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
   body{background:var(--bg);color:var(--ink);font-family:"Instrument Sans",system-ui,-apple-system,sans-serif;min-height:100vh;overflow-x:hidden}
   a{color:inherit;text-decoration:none}
   img{display:block;max-width:100%}
@@ -45,10 +45,12 @@
   .card{position:relative;display:block;border-radius:var(--r-xl);overflow:hidden;background:var(--surface);
         box-shadow:0 0 0 1px var(--line),0 14px 36px rgba(0,0,0,.30);
         transition:transform .15s ease,box-shadow .15s ease}
-  .card:hover{box-shadow:0 0 0 1px var(--line-2),0 18px 44px rgba(0,0,0,.38)}
   .card:active{transform:scale(.985)}
-  .card img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
-  .card:hover img{transform:scale(1.04)}
+  .card img{width:100%;height:100%;object-fit:cover;transition:transform .2s ease}
+  /* hover only where there is a mouse: on phones (most visitors here come from TikTok) a tap would leave the zoom on */
+  @media(hover:hover){.card:hover{box-shadow:0 0 0 1px var(--line-2),0 18px 44px rgba(0,0,0,.38)}.card:hover img{transform:scale(1.03)}}
+  /* cards, grid photos and pills press in, so they skip the grey tap box (DESIGN rule 8) */
+  .card,.grid a,.pill{-webkit-tap-highlight-color:transparent}
   .arrow{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;flex:none;
          background:var(--ink);color:var(--bg);font-size:18px;font-weight:700}
 
@@ -63,7 +65,7 @@
   /* MyCNBox offer */
   .offer{display:flex;align-items:center;gap:16px;padding:20px;
          background:linear-gradient(135deg,#E5402B 0%,#B8200F 100%);box-shadow:0 14px 36px rgba(217,48,30,.30)}
-  .offer:hover{box-shadow:0 18px 44px rgba(217,48,30,.42)}
+  @media(hover:hover){.offer:hover{box-shadow:0 18px 44px rgba(217,48,30,.42)}}
   .offer .logo{width:64px;height:64px;border-radius:16px;flex:none;background:#fff;padding:6px;box-shadow:0 6px 16px rgba(0,0,0,.2)}
   .offer .logo img{border-radius:10px}
   .offer div{flex:1;min-width:0}
@@ -76,12 +78,12 @@
   .section-h{display:flex;align-items:baseline;justify-content:space-between;margin:10px 4px 0}
   .section-h h3{font-size:15px;font-weight:700;letter-spacing:-.01em}
   .section-h a{font-size:13px;color:var(--muted)}
-  .section-h a:hover{color:var(--ink)}
+  @media(hover:hover){.section-h a:hover{color:var(--ink)}}
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .grid a{aspect-ratio:1;border-radius:16px;overflow:hidden;background:var(--surface-2);box-shadow:0 0 0 1px var(--line);transition:transform .15s ease}
   .grid a:active{transform:scale(.97)}
-  .grid img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
-  .grid a:hover img{transform:scale(1.06)}
+  .grid img{width:100%;height:100%;object-fit:cover;transition:transform .2s ease}
+  @media(hover:hover){.grid a:hover img{transform:scale(1.04)}}
 
   /* videos card */
   .video{aspect-ratio:16/9}
@@ -95,11 +97,13 @@
   .pills{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .pill{display:flex;align-items:center;justify-content:center;gap:10px;min-height:54px;border-radius:16px;background:var(--surface);
         font-weight:700;font-size:15px;box-shadow:0 0 0 1px var(--line);transition:background-color .15s ease,transform .15s ease}
-  .pill:hover{background:var(--surface-2)} .pill:active{transform:scale(.97)}
+  @media(hover:hover){.pill:hover{background:var(--surface-2)}} .pill:active{transform:scale(.97)}
   .pill svg,.pill img{width:20px;height:20px}
 
-  footer{text-align:center;color:var(--faint);font-size:12.5px;margin-top:28px}
-  footer a:hover{color:var(--ink)}
+  footer{text-align:center;color:var(--faint);font-size:12.5px;margin-top:20px}
+  footer a{display:inline-block;padding:14px 8px;line-height:16px;transition:color .15s ease}   /* 44 px tap targets on phones */
+  footer p+p{margin-top:2px;line-height:1.5}
+  @media(hover:hover){footer a:hover{color:var(--ink)}}
 
   /* PC: profile on the left (stays in view), links on the right */
   @media (min-width:900px){
@@ -120,7 +124,7 @@
     footer{grid-column:1/-1;margin-top:8px}
   }
   .side-pills{display:none}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-property:opacity,color,background-color,border-color!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
@@ -178,7 +182,7 @@
     </div>
   </main>
 
-  <footer><a href="https://www.puroclassico.com/">puroclassico.com</a> · <a href="/privacy">Privacy</a><br>Our agent links are affiliate links: we may earn a commission if you order, at no extra cost to you.</footer>
+  <footer><p><a href="https://www.puroclassico.com/">puroclassico.com</a> · <a href="/privacy">Privacy</a></p><p>Our agent links are affiliate links: we may earn a commission if you order, at no extra cost to you.</p></footer>
 </div>
 <script src="/track.js" defer></script>
 </body>
