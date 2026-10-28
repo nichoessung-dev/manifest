@@ -31,6 +31,15 @@ function paged(fn, arg, nStr, base) {
   if (n === 1 || String(n) !== nStr) return Response.redirect(n === 1 ? base : base + "/" + n, 301);  // /x/1, /x/01 duplicate /x, /x/02 -> /x/2
   return fn(arg, n);
 }
+// Like paged(), for a hub whose pages 2+ are retired: page 1 renders, /1 goes to the hub, and a page N that exists
+// (rendered once to check) gets a single 301 to `to(n)`, also when spelled /02. Anything else is a 404 (null).
+function retired(render, nStr, base, to) {
+  if (!nStr) return render(1);
+  const n = parseInt(nStr, 10);
+  if (!(n >= 1)) return null;
+  if (n === 1) return Response.redirect(base, 301);
+  return render(n) ? Response.redirect(to(n), 301) : null;
+}
 
 // Preview deployments are served as they are, so a change can be tried on Cloudflare before it goes live, but never
 // indexed: every answer from one carries "x-robots-tag: noindex" (canonical tags point at www.puroclassico.com anyway).
@@ -41,7 +50,7 @@ const SECURITY_HEADERS = {
   "x-content-type-options": "nosniff",
   "x-frame-options": "DENY",
   "referrer-policy": "strict-origin-when-cross-origin",
-  "permissions-policy": "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()",
+  "permissions-policy": "geolocation=(), microphone=(), camera=(), payment=(), usb=()",
   "cross-origin-opener-policy": "same-origin-allow-popups",
   "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cloudflareinsights.com; frame-src https://*.supabase.co https://accounts.google.com https://appleid.apple.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
 };
@@ -88,7 +97,7 @@ async function serverCards(ctx, origin, spec) {
   const { list, base } = hubList(spec), { dead } = await linkHealth(ctx, origin);
   const live = [];
   for (const p of list) { if (!dead.has(String(p.id))) live.push(p); if (live.length >= APP_CARDS) break; }
-  return { cards: appCards(live, spec && spec.preset.qc ? 1 : 2), more: spec ? appPager(base, list.length) : "" };
+  return { cards: appCards(live, spec && spec.preset.qc ? 1 : 2), more: spec ? appPager(base, list.length) : "", top: live[0] || null };
 }
 
 async function catalogJs(ctx, url) {
@@ -113,8 +122,11 @@ async function catalogJs(ctx, url) {
     // Leaner, faster parts (28 Oct 2026): the app never reads usd, and rating and views are 0 on every row (the app takes views from
     // stats.json), so they are left out (-10% bytes). The rows are sent as one JSON string for JSON.parse, which V8 reads about twice as
     // fast as the same data written as a JavaScript literal (80-92 ms -> 43-48 ms per part on a 4x slowed phone CPU).
+    // In the single-quoted string only backslashes and apostrophes need escaping; U+2028/U+2029 are escaped as well, since
+    // browsers older than ES2019 reject them raw in a string literal (and the whole part with them).
     const rows = all.slice(part * n, (part + 1) * n).map(p => { const q = { ...p }; delete q.usd; if (!q.rating) delete q.rating; if (!q.views) delete q.views; return q; });
-    body = "window.PC_CATALOG=(window.PC_CATALOG||[]).concat(JSON.parse('" + JSON.stringify(rows).replace(/\\/g, "\\\\").replace(/'/g, "\\'") +
+    body = "window.PC_CATALOG=(window.PC_CATALOG||[]).concat(JSON.parse('" +
+      JSON.stringify(rows).replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029") +
       "'));window.PC_CATALOG_GOT=(window.PC_CATALOG_GOT||0)+1;";
   }
   ctx.waitUntil(caches.default.put(key, new Response(body, { headers: { ...type, "cache-control": "public, max-age=31536000" } })).catch(() => {}));
@@ -162,12 +174,21 @@ async function route(ctx) {
       const ver = (a.headers.get("etag") || "x").replace(/[^A-Za-z0-9]/g, "").slice(0, 32);
       ckey = new Request(`https://ssr-cache.internal/page/${BUILT}/${PRODUCT_TPL}/${ver}${path}`, { method: "GET" });
       const hit = await caches.default.match(ckey);
-      if (hit) { const r = new Response(hit.body, hit); r.headers.set("x-ssr-cache", "HIT"); return r; }
+      if (hit) {
+        const r = new Response(hit.body, hit), cc = r.headers.get("x-browser-cc");
+        if (cc) { r.headers.set("cache-control", cc); r.headers.delete("x-browser-cc"); }   // what the browser got on the first build
+        r.headers.set("x-ssr-cache", "HIT"); return r;
+      }
     } catch (e) { ckey = null; }
   }
-  const keep = r => {                      // store a good copy (only when the view stats were read, so the order is right)
+  // Store a good copy (only when the view stats were read, so the order is right). "max-age=3600" is the edge copy's
+  // lifetime; a HIT goes out with the page's own cache-control again (kept in x-browser-cc), so a browser does not hold
+  // the homepage (normally max-age=0, must-revalidate) or a hub (max-age=300) for an hour after a deploy.
+  const keep = r => {
     if (ckey && r && r.status === 200 && statsLoaded()) {
-      const c = new Response(r.clone().body, r); c.headers.set("cache-control", "public, max-age=3600");
+      const c = new Response(r.clone().body, r);
+      c.headers.set("x-browser-cc", r.headers.get("cache-control") || "public, max-age=0, must-revalidate");
+      c.headers.set("cache-control", "public, max-age=3600");
       ctx.waitUntil(caches.default.put(ckey, c).catch(() => {}));
     }
     return r;
@@ -195,16 +216,15 @@ async function route(ctx) {
   else if ((m = path.match(/^\/brand\/([a-z0-9-]+)(?:\/(\d+))?$/)) && BRAND_MOVED[m[1]] && idx().slugBrand.has(BRAND_MOVED[m[1]])) return Response.redirect(url.origin + "/brand/" + BRAND_MOVED[m[1]], 301);
   else if (m) res = paged(renderBrand, m[1], m[2], url.origin + "/brand/" + m[1]);
   else if ((m = path.match(/^\/category\/([a-z0-9-]+)(?:\/(\d+))?$/))) res = paged(renderCategory, m[1], m[2], url.origin + "/category/" + m[1]);
-  // Pages 2+ of the agent and agent x brand hubs (28 Oct 2026): linked from nowhere since page 1 became the app, and card
-  // for card the same finds as every other agent's page N, or as /brand/<x>/N (same list, same order, 60 per page).
-  // A valid page N gets one 301 (to the agent hub, or to the same page of the brand hub); an invalid one stays a 404.
-  else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet(?:\/(\d+))?$/))) {
-    const r = paged(renderAgent, m[1], m[2], url.origin + `/${m[1]}-spreadsheet`);
-    res = r && r.status === 200 && m[2] ? Response.redirect(url.origin + `/${m[1]}-spreadsheet`, 301) : r;
-  }
+  // Pages 2+ of the agent and agent x brand hubs (28 Oct 2026): linked from nowhere since page 1 became the app, and the
+  // same finds as every other agent's page N, or as /brand/<x>/N (the same brand list, so the same number of 60-find
+  // pages; brand pages 2+ put indexable finds first, so the order differs). A valid page N, however it is spelled (/2,
+  // /02), gets one 301: to the agent hub, or to the same page of the brand hub. An invalid one stays a 404, so nothing
+  // redirects to a missing page.
+  else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet(?:\/(\d+))?$/))) { const k = m[1], base = url.origin + `/${k}-spreadsheet`;
+    res = retired(n => renderAgent(k, n), m[2], base, () => base); }
   else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet\/([a-z][a-z0-9-]*)(?:\/(\d+))?$/))) { const k = m[1], b = m[2];
-    const r = paged((x, n) => renderAgentBrand(k, x, n), b, m[3], url.origin + `/${k}-spreadsheet/${b}`);
-    res = r && r.status === 200 && m[3] ? Response.redirect(url.origin + `/brand/${b}/${m[3]}`, 301) : r; }
+    res = retired(n => renderAgentBrand(k, b, n), m[3], url.origin + `/${k}-spreadsheet/${b}`, n => url.origin + `/brand/${b}/${n}`); }
   else if ((m = path.match(/^\/old-money(?:\/(\d+))?$/))) res = paged((_, n) => renderOldMoney(n), null, m[1], url.origin + "/old-money");
   if (res !== undefined) {
     if (!res) return notFound(path);
@@ -231,11 +251,13 @@ async function hubApp(ctx, url, spec) {
   const asset = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "GET", headers: ctx.request.headers }));
   if (!asset.ok) return asset;
   const canon = "https://www.puroclassico.com" + spec.path;
+  const { cards, more, top } = await serverCards(ctx, url.origin, spec);
+  // The page's own first find (the first card shown, dead listings skipped) as its preview image (28 Oct 2026): Google
+  // reads og:image and primaryImageOfPage as the preferred thumbnail, and the site banner says nothing about a KakoBuy or
+  // brand spreadsheet. The alt text names that find. Without the view stats there are no server cards, and the banner stays.
+  const img = top ? imgSrc(top) : "", alt = top ? ((top.brand && !String(top.title || "").toLowerCase().startsWith(top.brand.toLowerCase()) ? top.brand + " " : "") + (top.title || "")).trim() : "";
   // Freshness (21 Oct 2026): the weekly dead-link check is real, so say when it last ran and give Google the same date.
   // The date goes into spec.sub, so the server-rendered subtitle and the app's copy (window.PC_PAGE.sub) match.
-  // The page's own top find as its preview image: Google reads og:image and primaryImageOfPage as the preferred
-  // thumbnail, and the site banner says nothing about a KakoBuy or brand spreadsheet.
-  const top = hubList(spec).list[0], img = top ? imgSrc(top) : "";
   let fresh = "";
   try {
     const lh = await linkHealth(ctx, url.origin);
@@ -245,7 +267,6 @@ async function hubApp(ctx, url, spec) {
       fresh = '<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage", name: spec.h, url: canon, dateModified: d.toISOString(), primaryImageOfPage: img ? { "@type": "ImageObject", contentUrl: img } : undefined }).replace(/</g, "\\u003c") + "</script>";
     }
   } catch (e) {}
-  const { cards, more } = await serverCards(ctx, url.origin, spec);
   const { crumbHtml, seo, head } = hubParts(spec, more);
   const content = v => ({ element(e) { e.setAttribute("content", v); } });
   // Same rule as page() in site.js: Google shows about 60 characters of a title, so a longer one drops the site name
@@ -261,8 +282,8 @@ async function hubApp(ctx, url, spec) {
     .on('meta[name="twitter:image"]', { element(e) { if (img) e.setAttribute("content", img); } })
     .on('meta[property="og:image:width"]', { element(e) { if (img) e.remove(); } })
     .on('meta[property="og:image:height"]', { element(e) { if (img) e.remove(); } })
-    .on('meta[property="og:image:alt"]', { element(e) { if (img) e.setAttribute("content", spec.h); } })
-    .on('meta[name="twitter:image:alt"]', { element(e) { if (img) e.setAttribute("content", spec.h); } })
+    .on('meta[property="og:image:alt"]', { element(e) { if (img) e.setAttribute("content", alt || spec.h); } })
+    .on('meta[name="twitter:image:alt"]', { element(e) { if (img) e.setAttribute("content", alt || spec.h); } })
     .on('link[rel="canonical"]', { element(e) { e.setAttribute("href", canon); } })
     .on('script[type="application/ld+json"]', { element(e) { e.remove(); } })
     .on("script#pc-catalog", { element(e) { e.replace(catalogTags(etagOf(asset)), { html: true }); } })
