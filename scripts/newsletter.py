@@ -204,7 +204,7 @@ def wrap(inner, unsub):
 <tr><td align="center" style="padding:34px 36px 6px;text-align:center;"><img src="%s" alt="Puro Classico" height="40" style="height:40px;width:auto;"><div style="height:1px;background:#ececea;margin:22px 0 0;"></div></td></tr>
 <tr><td style="padding:24px 36px 8px;">%s</td></tr>
 <tr><td align="center" style="padding:18px 36px 34px;text-align:center;"><div style="height:1px;background:#ececea;margin:0 0 16px;"></div>
-<p style="margin:0 0 6px;font-size:12px;line-height:1.6;color:#999;">You get these because you opted in at <a href="%s" style="color:#777;">puroclassico.com</a>. <a href="%s" style="color:#777;">Unsubscribe</a>.</p>
+<p style="margin:0 0 6px;font-size:12px;line-height:1.6;color:#999;">You get this email because you have an account at <a href="%s" style="color:#777;">puroclassico.com</a>. Our links to shopping agents are affiliate links. <a href="%s" style="color:#777;">Unsubscribe from marketing emails</a>.</p>
 <p style="margin:0;font-size:12px;color:#bbb;">&copy; Puro Classico</p></td></tr>
 </table></td></tr></table>""") % (LOGO, inner, SITE, esc(unsub))
 

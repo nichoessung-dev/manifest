@@ -30,7 +30,9 @@ def load_rows():
     src = open(CATALOG, encoding="utf-8").read()
     rows = json.loads(src[src.index("export const ROWS = ") + len("export const ROWS = "):].rstrip().rstrip(";"))
     # row: [id, title, brand, cat, platform, seller, usd, cny, qc, best, views, img, g, itemId, variants]
-    return [{"id": r[0], "title": r[1] or "", "brand": r[2] or "", "qc": r[8], "best": r[9]} for r in rows]
+    # "key" is the find's key in data/qc_bank.json (scripts/qc_bank.py): platform/item id without leading zeros
+    return [{"id": r[0], "title": r[1] or "", "brand": r[2] or "", "qc": r[8], "best": r[9],
+             "key": "%s/%s" % (r[4], str(r[13] if len(r) > 13 and r[13] else r[0]).lstrip("0"))} for r in rows]
 
 
 def previous_demand():
@@ -44,6 +46,17 @@ def main():
     ids = {p["id"] for p in rows}
     stats = json.load(open(arg("--stats", "data/stats.json"), encoding="utf-8")).get("p") or {}
     health = json.load(open(arg("--health", "data/link_health.json"), encoding="utf-8"))
+    # QC photo bank (data/qc_bank.json, 28 Oct 2026). QC_BANKED: finds whose QC photos are stored, with the day they were
+    # (their pages show the photos; the product sitemap gives that day as <lastmod>). NO_QC: finds the catalogue only
+    # flags as having QC photos (qc 1) that the bank looked up and found none for (13 of the first 23 such finds,
+    # 27 Oct 2026); the site treats them as finds without QC photos, so they can still qualify for DEMAND below.
+    try:
+        bank = json.load(open(arg("--bank", "data/qc_bank.json"), encoding="utf-8"))
+    except Exception:
+        bank = {}
+    items, bdate = bank.get("items") or {}, bank.get("checked") or {}
+    banked = {p["id"]: bdate.get(p["key"], "") for p in rows if (items.get(p["key"]) or [0, 0])[1] > 0}
+    no_qc = {p["id"] for p in rows if p["qc"] == 1 and items.get(p["key"]) == [0, 0]}
     dead = sorted(i for i in map(str, health.get("dead") or []) if i in ids)
     sold = sorted(i for i in map(str, health.get("sold_out") or []) if i in ids and i not in set(dead))
     titles = {}
@@ -51,7 +64,7 @@ def main():
         k = (p["brand"] + "|" + p["title"]).lower(); titles[k] = titles.get(k, 0) + 1
     demand = {i for i in previous_demand() if i in ids}
     for p in rows:
-        if p["qc"] >= 1 or p["best"] == 1: continue                     # indexable already
+        if (p["qc"] >= 1 and p["id"] not in no_qc) or p["best"] == 1: continue   # indexable already
         v = stats.get(p["id"]) or [0, 0, 0, 0]
         if not (v[0] >= MIN_VIEWS or (len(v) > 3 and v[3] >= MIN_SAVES)): continue
         if len(p["title"].split()) < MIN_WORDS: continue
@@ -62,7 +75,9 @@ def main():
            "export const CHECKED = " + json.dumps(checked) + ";\n"
            "export const DEMAND = " + json.dumps(sorted(demand)) + ";\n"
            "export const DEAD = " + json.dumps(dead) + ";\n"
-           "export const SOLD_OUT = " + json.dumps(sold) + ";\n")
+           "export const SOLD_OUT = " + json.dumps(sold) + ";\n"
+           "export const QC_BANKED = " + json.dumps(banked, sort_keys=True) + ";\n"
+           "export const NO_QC = " + json.dumps(sorted(no_qc)) + ";\n")
     old = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else None
     if out != old:
         open(OUT, "w", encoding="utf-8").write(out)
