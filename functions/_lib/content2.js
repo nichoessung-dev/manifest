@@ -182,7 +182,7 @@ export const TOOLS = {
     lead: "Paste any Weidian, Taobao, 1688 or shopping-agent link and get a buy link for every agent.",
     about: "<p>The converter reads the marketplace and item ID from the link (it works with agent links too, like MyCNBox or KakoBuy product URLs, and with old links from Pandabuy, which has closed, and from CNFans, whose site has shown a maintenance notice since October 2026) and rebuilds it for each agent. Nothing is stored.</p>" },
   "qc-checker": { name: "QC Checker", title: "QC Photo Checker: Find Real QC Photos for Any Rep Link · Puro Classico",
-    desc: "Paste a Weidian, Taobao or 1688 link or item ID to see real buyer QC photos before you order.",
+    desc: "Paste a Weidian, Taobao, 1688 or shopping-agent link, or just an item ID, to see real buyer QC photos from earlier orders before you buy. Free to use.",
     lead: "Paste a product link or item ID to see real warehouse QC photos from people who already bought it.",
     about: "<p>QC photos only exist for items someone has already bought through an agent, so newer listings may not have any yet. Learn <a href=\"/guides/how-to-qc\">how to read QC photos</a>.</p>" },
   "weight-estimator": { name: "Weight Estimator", title: "Rep Weight Estimator: Shipped Weight by Item Type · Puro Classico",

@@ -208,7 +208,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "9";
+export const DS_VER = "10";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -281,7 +281,7 @@ ${extraHead}
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="h"><div class="w"><a href="/" aria-label="Puro Classico home"><span class="logo" role="img" aria-label="Puro Classico"></span></a>
-<nav>${[["/", "Browse finds"], ["/brands", "Brands"], ["/best", "Best reps"], ["/old-money", "Old money"], ["/guides", "Guides"], ["/tools", "Tools"], ["/how-to-order", "How to order"]].map(([u, t]) => `<a href="${u}"${u !== "/" && (path === u || path.startsWith(u + "/")) ? ' aria-current="page"' : ""}>${t}</a>`).join("")}</nav>
+<nav aria-label="Main">${[["/", "Browse finds"], ["/brands", "Brands"], ["/best", "Best reps"], ["/old-money", "Old money"], ["/guides", "Guides"], ["/tools", "Tools"], ["/how-to-order", "How to order"]].map(([u, t]) => `<a href="${u}"${u !== "/" && (path === u || path.startsWith(u + "/")) ? ' aria-current="page"' : ""}>${t}</a>`).join("")}</nav>
 <a class="btn red hcta" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">Claim $500 MyCNBox coupons</a></div></header>
 <main id="main"><div class="w">
 ${body}

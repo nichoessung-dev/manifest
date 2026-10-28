@@ -33,6 +33,8 @@ export function models() {
 export function modelFor(p) { return models().find(m => m.list.some(x => x.id === p.id)) || null; }
 
 const PER_PAGE = 60;
+// The catalogue date as people write it ("8 Oct 2026"), the format the guides and the hub FAQs already use.
+const BUILT_DAY = (d => isNaN(d) ? BUILT : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }))(new Date(BUILT + "T00:00:00Z"));
 const faqLd = faq => ({ "@context": "https://schema.org", "@type": "FAQPage",
   mainEntity: faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) });
 const faqHtml = faq => `<h2>FAQ</h2><div class="faq">${faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div>`;
@@ -51,7 +53,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w25";
+export const PRODUCT_TPL = "w26";
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -77,7 +79,7 @@ const QC_LOAD_JS = '(function(){var w=document.currentScript.previousElementSibl
   '.then(function(r){return r.ok?r.json():null}).then(function(d){' +
   'var u=((d&&d.thumbnails)||[]).filter(function(x){return String(x).indexOf("https://")===0}).slice(0,8);' +
   'if(!u.length){w.innerHTML="<p class=\\"qc-none\\">QC photos can’t be loaded right now. Your agent photographs your exact item at the warehouse before it ships.</p>";return}' +
-  'w.innerHTML="<h2 class=\\"qc-h\\">Real QC photos</h2><div class=\\"qcs\\">"+u.map(function(x,i){return "<a href=\\""+e(x)+"\\" target=\\"_blank\\" rel=\\"noopener\\"><img src=\\""+e(t(x))+"\\" alt=\\"QC photo "+(i+1)+"\\" width=\\"96\\" height=\\"96\\" onerror=\\"this.parentNode.remove()\\"></a>"}).join("")+"</div>"})' +
+  'w.innerHTML="<h2 class=\\"qc-h\\">Real QC photos</h2><div class=\\"qcs\\">"+u.map(function(x,i){return "<a href=\\""+e(x)+"\\" target=\\"_blank\\" rel=\\"noopener\\"><img src=\\""+e(t(x))+"\\""+(t(x)!==x?" data-o=\\""+e(x)+"\\"":"")+" alt=\\"QC photo "+(i+1)+"\\" width=\\"96\\" height=\\"96\\" decoding=\\"async\\" onerror=\\"if(this.dataset.o){this.src=this.dataset.o;delete this.dataset.o}else this.parentNode.remove()\\"></a>"}).join("")+"</div>"})' +
   '.catch(function(){b.disabled=false;b.textContent="Try again"})})})();';
 
 // Rings of indexable finds for the related blocks on product pages (28 Oct 2026). "More <brand> finds" and "Similar
@@ -203,7 +205,7 @@ function hub({ path, n, list, title, desc, h1, intro, trail, chips = "", top = "
   const qcTotal = list.reduce((s, p) => s + (p.qc || 0), 0);
   const body = `${bc.html}<h1>${esc(h1)}${n > 1 ? ` <small style="color:var(--muted);font-size:.5em">page ${n}</small>` : ""}</h1>
 ${n === 1 ? `<div class="prose">${intro}</div>` : ""}
-<div class="facts"><span>${(total || list.length).toLocaleString("en-US")} finds</span>${idxFirst && n > 1 ? "<span>Order: finds marked as having QC photos, picks and viewed finds first</span>" : ""}${priceRange(list) ? `<span>${priceRange(list)}</span>` : ""}<span>Catalogue updated ${BUILT}</span></div>
+<div class="facts"><span>${(total || list.length).toLocaleString("en-US")} finds</span>${idxFirst && n > 1 ? "<span>QC-marked, curated and viewed finds first</span>" : ""}${priceRange(list) ? `<span>${priceRange(list)}</span>` : ""}<span>Catalogue updated ${BUILT_DAY}</span></div>
 ${chips}
 ${n === 1 ? top : ""}${grid(slice, 4)}
 ${pager(path, n, pages)}
@@ -306,8 +308,10 @@ function productFacts(p, goneAs, checked) {
     const f = brandFacts(p.brand), tl = ((f.types.find(x => x[0] === t) || [])[1] || []).filter(x => !isPH(x.cny));
     const med = tl.length >= PRICE_TYPE_MIN ? f.lowMedian(tl).cny : 0;
     if (med && p.cny * 3 >= med) {
-      const less = tl.filter(x => x.cny < p.cny).length;
-      out.push(["Price compared", `${less ? nf(less) : "None"} of the other ${nf(tl.length - 1)} ${esc(p.brand)} ${esc(t)} on the spreadsheet ${less === 1 ? "is" : "are"} listed for less; half of all ${nf(tl.length)} are listed at ${money(med)} or less`]);
+      const less = tl.filter(x => x.cny < p.cny).length, others = tl.length - 1;
+      const who = less === 0 ? `None of the other ${nf(others)}` : less === others ? `All ${nf(others)} other` : `${nf(less)} of the other ${nf(others)}`;
+      const noun = t === "jewellery" ? "jewellery pieces" : t;   // "12 Chrome Hearts jewellery" does not read as a count
+      out.push(["Price compared", `${who} ${esc(p.brand)} ${esc(noun)} on the spreadsheet ${less === 1 ? "is" : "are"} listed for less; half of all ${nf(tl.length)} are listed at ${money(med)} or less`]);
     }
   }
   const twins = ((p.brand ? idx().byBrand.get(p.brand) : idx().byCat.get(p.cat)) || []).filter(x => x !== p && x.brand === p.brand && x.title.toLowerCase() === p.title.toLowerCase()).slice(0, 6);
@@ -609,7 +613,7 @@ export function renderAgent(key, n) {
   const { all, brandSlug } = idx(); const path = `/${key}-spreadsheet`; const N = all.length.toLocaleString("en-US");
   const faq = [[`What is the ${a.name} spreadsheet?`, `A list of Weidian, Taobao and 1688 finds that open directly in ${a.name}. Puro Classico's spreadsheet has ${N} finds, each with ${a.name} buy links, prices and buyer QC photo counts where we have them.`],
                [`How do I order from the ${a.name} spreadsheet?`, `Open a find, tap Buy via ${a.name}, choose your size and pay for the item plus delivery to the warehouse. After the QC photos arrive, submit your parcel and pay international shipping.`],
-               [`Is the ${a.name} spreadsheet free?`, `Yes. Browsing, searching and saving finds on Puro Classico is free. You only pay ${a.name} for the items you order and for shipping. Links to agents may be affiliate links.`],
+               [`Is the ${a.name} spreadsheet free?`, `Yes. Browsing, searching and saving finds on Puro Classico is free. You only pay ${a.name} for the items you order and for shipping. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you.`],
                [`Can I use the spreadsheet with another agent?`, `Yes. The catalogue is the same for every agent: each product page has buy links for MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo, and the link converter turns any Weidian, Taobao or 1688 link into a link for your agent.`],
                [`How often is the ${a.name} spreadsheet updated?`, `New finds are added to the catalogue regularly; the date of the last catalogue update is shown on this page (${BUILT}).`]];
   const brands = AGENT_BRAND_AGENTS.includes(key) ? agentBrands() : [];
@@ -842,7 +846,7 @@ const STYLE_HUBS = {
           ["What should I buy first?", "A cable-knit or half-zip in navy, grey or cream, a quilted gilet and a pair of clean sneakers cover most outfits. Knitwear is light, so it is cheap to ship."],
           ["Do these finds fit like the real thing?", "Rep knitwear often runs a size small. Compare the listing's measurements with a sweater you own, and check the QC photos before you ship."],
           CNFANS_FAQ,
-          ["Is the spreadsheet free?", "Yes. You pay your agent for the item and shipping only. Links may be affiliate links."]] },
+          ["Is the spreadsheet free?", "Yes. You pay your agent for the item and shipping only. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you."]] },
   grisch: { name: "Grisch", h: "Grisch Spreadsheet",
     brands: ["Ralph Lauren", "Moncler", "Lacoste", "Burberry", "Loro Piana", "Brunello Cucinelli", "Golden Goose", "Stone Island", "Jacob Cohen",
              "Hermes", "Rolex", "Cartier", "Tom Ford", "Zegna", "Barbour", "Canada Goose"],
@@ -853,7 +857,7 @@ const STYLE_HUBS = {
           ["What are the hardest grisch pieces?", "Ralph Lauren cable knits and quarter-zips, Moncler gilets and puffers, Loro Piana suede loafers, Burberry check scarves and Golden Goose sneakers are the core of the look."],
           ["How do I order grisch reps?", "Open a find, tap the buy button for your agent (MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo), pick your size and pay. Check the QC photos at the warehouse before you ship."],
           CNFANS_FAQ,
-          ["Is the spreadsheet free?", "Yes. You pay your agent for the item and shipping only. Links may be affiliate links."]] },
+          ["Is the spreadsheet free?", "Yes. You pay your agent for the item and shipping only. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you."]] },
 };
 // Agent x style pages (22 Oct 2026): Google suggests "kakobuy spreadsheet grisch", "oopbuy spreadsheet grisch", "kakobuy
 // spreadsheet old money", "old money spreadsheet sugargoo", "kakobuy spreadsheet shoes". Each is the style's finds with
@@ -914,7 +918,7 @@ export function hubSpec(path) {
             ["Where do these QC photos come from?", `From earlier buyers' orders of the same listing. Our catalogue marks ${n} finds as having them and stores the photo count for ${nf(q2)} of them. Open a find and tap QC to load them.`],
             ["Will I get QC photos of my own item?", "Yes. Your agent photographs your exact item at its warehouse before it ships, so you can return or exchange it if something is wrong."],
             ["What should I check in QC photos?", "Logo shape and placement, stitching, colour against retail photos, the size tag and any measurements. Our guide on how to read QC photos goes through it step by step."],
-            ["Is the spreadsheet free?", "Yes. You only pay your agent for what you order and for shipping. Links may be affiliate links."]] };
+            ["Is the spreadsheet free?", "Yes. You only pay your agent for what you order and for shipping. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you."]] };
   }
   if (path === "/cnfans-spreadsheet") {
     const N = nf(all.length);
@@ -929,7 +933,7 @@ export function hubSpec(path) {
       faq: [["Is CNFans down?", `When we checked cnfans.com on ${CNFANS.checked}, it showed a website maintenance notice instead of the shop. We will update this page when that changes.`],
             ["Do my old CNFans links still work?", "Paste an old CNFans product link into our link converter. It reads the Weidian, Taobao or 1688 item from the link and opens the same item in another agent."],
             ["How do I switch from CNFans to another agent?", "Open a find, tap the buy button for the agent you want, create a free account there and pay for the item plus delivery to the warehouse. The seller and the item stay the same; only the agent that buys, checks and ships it changes."],
-            ["Is this the official CNFans spreadsheet?", "No. Puro Classico is an independent spreadsheet and is not affiliated with CNFans. Links to other agents may be affiliate links."]] };
+            ["Is this the official CNFans spreadsheet?", "No. Puro Classico is an independent spreadsheet and is not affiliated with CNFans. Our links to other agents are affiliate links: we may earn a commission if you order, at no extra cost to you."]] };
   }
   if ((m = path.match(AGENT_STYLE_RE))) {
     const key = m[1], s = m[2], a = AGENTS[key], st = AGENT_STYLES[s];
@@ -947,7 +951,7 @@ export function hubSpec(path) {
               [`More on ${a.name}`, Object.keys(AGENT_STYLES).filter(x => x !== s).map(x => [AGENT_STYLES[x].name, `/${key}-spreadsheet/${x}`]).concat([[`${a.name} spreadsheet`, `/${key}-spreadsheet`]])]],
       faq: (st.faq ? st.faq(a.name, n, nf(all.filter(p => p.qc >= 2).length)) : [[`How do I order ${low} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the ${a.name} warehouse. Check the QC photos there, then ship your parcel.`],
             [s === "shoes" ? `How do I get the right size on ${a.name}?` : "What should I buy first?", st.first]])
-            .concat([["Is the spreadsheet free?", `Yes. You only pay ${a.name} for what you order and for shipping. Links may be affiliate links.`]]) };
+            .concat([["Is the spreadsheet free?", `Yes. You only pay ${a.name} for what you order and for shipping. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you.`]]) };
   }
   if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet$/))) {
     const key = m[1], a = AGENTS[key], meta = AGENT_INTRO[key]; if (!a || !meta) return null;
@@ -970,11 +974,11 @@ export function hubSpec(path) {
               ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"], ["QC photos spreadsheet", "/qc-spreadsheet"]])]],
       faq: [[`What is the ${a.name} spreadsheet?`, `A searchable list of ${N} Weidian, Taobao and 1688 finds. Every find opens directly in ${a.name}, so there is nothing to copy or translate.`],
             [`How do I order with ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the warehouse. Check the QC photos, then ship your parcel.`],
-            [`Is this the official ${a.name} spreadsheet?`, `No. Puro Classico is an independent spreadsheet. Ordering, payment, QC photos and shipping all happen on ${a.name}. Links to ${a.name} may be affiliate links.`],
+            [`Is this the official ${a.name} spreadsheet?`, `No. Puro Classico is an independent spreadsheet. Ordering, payment, QC photos and shipping all happen on ${a.name}. Our links to ${a.name} are affiliate links: we may earn a commission if you order, at no extra cost to you.`],
             ["How many finds have QC photos?", `Our catalogue marks ${nf(qc1)} of the ${N} finds as having buyer QC photos from earlier orders, and stores the photo count for ${nf(qc2)} of them.`],
             ...(LINKS_CHECKED ? [["Are the links still working?", `Every week we check all ${nf(weidian)} Weidian listings. The last check, on ${day(LINKS_CHECKED)}, found ${nf(GONE_COUNTS.dead)} gone, which the spreadsheet hides, and ${nf(GONE_COUNTS.sold)} sold out, which their pages point out.`]] : []),
             ["Are the prices live?", `No. They are the sellers' listed prices from the last catalogue update on ${day(BUILT)}. Check the price on ${a.name} before you pay.`],
-            [`Is it free?`, `Yes. You only pay ${a.name} for what you order and for shipping. Links may be affiliate links.`]] };
+            [`Is it free?`, `Yes. You only pay ${a.name} for what you order and for shipping. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you.`]] };
   }
   if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|sugargoo)-spreadsheet\/([a-z][a-z0-9-]*)$/))) {
     const key = m[1], s = m[2], a = AGENTS[key], b = slugBrand.get(s);
@@ -1076,7 +1080,7 @@ export function appCards(list, qcMin = 2) {   // qcMin: the QC badge threshold (
     const img = imgSrc(p), id = esc(p.id);
     return `<div class="card" data-ssr="${id}"><div class="thumb"><canvas aria-hidden="true"></canvas>` +
       (img ? `<img class="pimg" src="${esc(thumbSrc(img))}" data-o="${esc(img)}" alt="${esc(appAlt(p))}" loading="${i < 8 ? "eager" : "lazy"}"${i < 4 ? ' fetchpriority="high"' : ""} decoding="async" ${IMG_FALLBACK}>` : "") +
-      `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save ${esc(p.title)}">${HEART}</button>${p.qc >= qcMin ? '<span class="qc-badge">\u{1F4F7} QC</span>' : ""}</div>` +
+      `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save ${esc(p.title)}">${HEART}</button>${p.qc >= qcMin ? '<span class="qc-badge">QC</span>' : ""}</div>` +
       `<div class="body">${p.brand ? `<span class="brand-line">${esc(p.brand)}</span>` : ""}<a class="title" href="${productUrl(p)}">${esc(p.title)}</a>` +
       `<span class="price-row"><span class="price">${money(p.cny)}</span>${isPH(p.cny) ? "" : `<span class="subprice">¥${(+p.cny).toLocaleString("en-US")}</span>`}` +
       `<span class="starcount" data-sc="${id}"></span><span class="cat">${esc(p.cat)}</span></span></div></div>`;
