@@ -10,7 +10,7 @@ async function hmacHex(secret, msg){
 }
 
 function page(msg, sub){
-  return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Email settings · Puro Classico</title><meta name="robots" content="noindex">
   <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;max-width:460px;margin:12vh auto;padding:0 24px;text-align:center;color:#111">
   <div style="font-size:20px;letter-spacing:3px;font-weight:700;margin-bottom:22px;">PURO&nbsp;CLASSICO</div>
   <h1 style="font-size:22px;margin:0 0 10px;">${msg}</h1>
@@ -39,16 +39,16 @@ async function unsubscribe(env, uid, token){
 export async function onRequestGet(context){
   const u = new URL(context.request.url);
   const ok = await unsubscribe(context.env, u.searchParams.get("u"), u.searchParams.get("t"));
-  const html = ok ? page("You're unsubscribed", "You won't receive marketing emails from Puro Classico anymore. You can re-enable them any time from your account.")
-                  : page("Link expired or invalid", "We couldn't process that unsubscribe link. Please contact us or manage email settings from your account.");
+  const html = ok ? page("You're unsubscribed", "You won't get newsletters or deal emails from Puro Classico any more. Still getting them, or changed your mind? Tell us on Discord: puroclassico.com/discord.")
+                  : page("Link expired or invalid", "We couldn't process that unsubscribe link. Message us on Discord at puroclassico.com/discord and we will take you off the list by hand.");
   return new Response(html, { status: ok?200:400, headers:{ "content-type":"text/html; charset=utf-8" }});
 }
 
 // RFC 8058 one-click (Gmail/Apple send POST to the List-Unsubscribe URL)
 export async function onRequestPost(context){
   const u = new URL(context.request.url);
-  await unsubscribe(context.env, u.searchParams.get("u"), u.searchParams.get("t"));
-  return new Response("OK", { status: 200 });
+  const ok = await unsubscribe(context.env, u.searchParams.get("u"), u.searchParams.get("t"));
+  return new Response(ok ? "OK" : "Unsubscribe failed", { status: ok ? 200 : 500 });
 }
 
 // HEAD (link scanners/prefetchers): answer without unsubscribing anyone.
