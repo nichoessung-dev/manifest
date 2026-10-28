@@ -6,8 +6,8 @@ ever pinged it, so new finds reached those engines only when their crawler happe
 
   python scripts/indexnow.py changed [--since-hours 26 | --since-file OLD_products.json] [--dry]
       product pages added or changed since then (indexable ones only: those in the live product sitemap), pages that
-      became indexable or were found gone (functions/_lib/signals.js), their brand hubs, and the main hubs whose server
-      cards follow the view counts (homepage, agent and style spreadsheets).
+      became indexable, were found gone or lost a QC claim the QC bank disproved (functions/_lib/signals.js), their
+      brand hubs, and the main hubs whose server cards follow the view counts (homepage, agent and style spreadsheets).
   python scripts/indexnow.py all [--dry]
       every URL in the live sitemaps, for a site-wide change (run by hand, not on a schedule).
 
@@ -52,15 +52,16 @@ def old_products(args):
     return json.loads(src)
 
 def signal_ids(src):
-    """Every id in DEMAND, DEAD and SOLD_OUT, tagged with its list, from the text of a signals.js."""
+    """Every id in DEMAND, DEAD, SOLD_OUT and NO_QC, tagged with its list, from the text of a signals.js."""
     out = set()
-    for name in ("DEMAND", "DEAD", "SOLD_OUT"):
+    for name in ("DEMAND", "DEAD", "SOLD_OUT", "NO_QC"):   # NO_QC: the page dropped its QC claim (and may be noindex now)
         m = re.search(r"export const %s = (\[[^\n]*\]);" % name, src or "")
         if m: out |= {(name, i) for i in json.loads(m.group(1))}
     return out
 
 def signal_changes(args):
-    """Product ids whose signal changed since then: newly indexable for demand, or newly found dead or sold out."""
+    """Product ids whose signal changed since then: newly indexable for demand, newly found dead or sold out, or newly
+    known to have no QC photos."""
     now = signal_ids(open("functions/_lib/signals.js", encoding="utf-8").read())
     before = set() if "--since-file" in args else signal_ids(old_file(old_rev(args), "functions/_lib/signals.js"))
     return sorted({i for _, i in now - before})

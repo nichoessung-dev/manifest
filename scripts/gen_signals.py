@@ -9,10 +9,14 @@ finds the link check found gone (21 Oct 2026). Run by the Stats workflow after b
   DEAD      listings the weekly link check found removed (data/link_health.json "dead").
   SOLD_OUT  listings it found sold out ("sold_out"). Both get noindex and a notice on their page, not a 404: a sold-out
             listing often comes back.
+  QC_BANKED finds whose QC photos are stored in the QC bank (data/qc_bank.json, scripts/qc_bank.py), with the day they
+            were stored: {id: "YYYY-MM-DD"}.
+  NO_QC     finds the catalogue flags as having QC photos (qc 1) that the bank looked up and found none for ([0, 0]).
+            The site treats them as finds without QC photos, so they can qualify for DEMAND like any other.
 
 The catalogue data (functions/_lib/catalog.js and its BUILT date) is not touched: these are signals, not catalogue changes.
 
-  python scripts/gen_signals.py [--stats data/stats.json] [--health data/link_health.json]
+  python scripts/gen_signals.py [--stats data/stats.json] [--health data/link_health.json] [--bank data/qc_bank.json]
 """
 import json, os, re, sys
 
