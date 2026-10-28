@@ -40,12 +40,18 @@ const listLd = (name, url, items, count = items.length) => ({ "@context": "https
   mainEntity: { "@type": "ItemList", numberOfItems: count,
     itemListElement: items.slice(0, 30).map((p, i) => ({ "@type": "ListItem", position: i + 1, url: SITE + productUrl(p), name: p.title })) } });
 const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort((a, b) => a - b); return u.length ? `${money(u[0])}–${money(u[u.length - 1])}` : ""; };
+// The prices for a meta description. A listed price under a third of the list's half-way price is mostly a deposit or a
+// placeholder (the same test as priceDoubt in brandFacts), so the snippet leaves it out and then says "most" (always
+// true: everything from the half-way price up is kept). The page body keeps the full priceRange.
+const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort((a, b) => a - b); if (!u.length) return "";
+  const med = u[Math.floor((u.length - 1) / 2)], v = u.filter(x => x * 3 >= med), lo = money(v[0]), hi = money(v[v.length - 1]);
+  return `, ${v.length < u.length ? "most " : ""}listed at ${lo === hi ? lo : `${lo}–${hi}`}`; };
 
 // ------------------------------------------------------------------ product
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w24";
+export const PRODUCT_TPL = "w25";
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -65,13 +71,35 @@ async function qcThumbs(origin, p) {
 }
 const QC_LOAD_JS = '(function(){var w=document.currentScript.previousElementSibling,b=w.querySelector("button");' +
   'function e(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}' +
+  'function t(s){s=String(s);var o=location.origin;return s.indexOf(o+"/api/img?")===0?o+"/cdn-cgi/image/width=400,quality=75,format=auto"+s.slice(o.length):s}' +
   'b.addEventListener("click",function(){b.disabled=true;b.textContent="Loading QC photos…";' +
   'fetch("/api/qc?storefront="+encodeURIComponent(b.getAttribute("data-sf"))+"&id="+encodeURIComponent(b.getAttribute("data-id")))' +
   '.then(function(r){return r.ok?r.json():null}).then(function(d){' +
   'var u=((d&&d.thumbnails)||[]).filter(function(x){return String(x).indexOf("https://")===0}).slice(0,8);' +
   'if(!u.length){w.innerHTML="<p class=\\"qc-none\\">QC photos can’t be loaded right now. Your agent photographs your exact item at the warehouse before it ships.</p>";return}' +
-  'w.innerHTML="<h2 class=\\"qc-h\\">Real QC photos</h2><div class=\\"qcs\\">"+u.map(function(x,i){return "<a href=\\""+e(x)+"\\" target=\\"_blank\\" rel=\\"noopener\\"><img src=\\""+e(x)+"\\" alt=\\"QC photo "+(i+1)+"\\" width=\\"96\\" height=\\"96\\" onerror=\\"this.parentNode.remove()\\"></a>"}).join("")+"</div>"})' +
+  'w.innerHTML="<h2 class=\\"qc-h\\">Real QC photos</h2><div class=\\"qcs\\">"+u.map(function(x,i){return "<a href=\\""+e(x)+"\\" target=\\"_blank\\" rel=\\"noopener\\"><img src=\\""+e(t(x))+"\\" alt=\\"QC photo "+(i+1)+"\\" width=\\"96\\" height=\\"96\\" onerror=\\"this.parentNode.remove()\\"></a>"}).join("")+"</div>"})' +
   '.catch(function(){b.disabled=false;b.textContent="Try again"})})})();';
+
+// Rings of indexable finds for the related blocks on product pages (28 Oct 2026). "More <brand> finds" and "Similar
+// <category>" showed the 8 most viewed finds of the brand or category: the same 8 on every page, so 2,405 of the 2,923
+// indexable product pages had no link from any other product page. A ring holds the indexable finds of one brand or one
+// category, sorted by item type and then catalogue position (fixed for a deploy, unlike the view order). A page shows the
+// 4 most viewed plus the next 4 finds after its own place in the ring, so every indexable find is linked from the pages
+// of the finds just before it, mostly of the same item type.
+let _pos = null;
+const _rings = new Map();
+function ringAfter(key, list, p, k, skip = [], ok = () => true) {
+  if (!_pos) _pos = new Map(P.map((x, i) => [x, i]));
+  let r = _rings.get(key);
+  if (!r) {
+    r = list.filter(indexable).map(x => [itemType(x), _pos.get(x), x]).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] - b[1]));
+    _rings.set(key, r);
+  }
+  const t = itemType(p), at = _pos.get(p), out = [];
+  let s = r.findIndex(e => e[0] > t || (e[0] === t && e[1] > at)); if (s < 0) s = 0;
+  for (let j = 0; j < r.length && out.length < k; j++) { const x = r[(s + j) % r.length][2]; if (x !== p && !skip.includes(x) && ok(x)) out.push(x); }
+  return out;
+}
 
 export async function renderProduct(id, origin) {
   const { byId, byBrand, byCat } = idx();
@@ -85,6 +113,7 @@ export async function renderProduct(id, origin) {
   trail.push([p.title, productUrl(p)]);
   const bc = crumbs(trail);
   const variants = p.variants ? p.variants.split("|") : [];
+  const opts = variants.filter(v => v.trim() && !/^standard$/i.test(v.trim()));   // "Standard" is the importer's placeholder (9,000 of 9,202 rows), not a real option
   const src = imgSrc(p);
   // Buy box (21 Oct 2026), the app's pattern: one main button (the visitor's agent from the app's saved state, else
   // MyCNBox), the MyCNBox new-user coupon line under it, the other agents as a compact 2 x 2 grid. On phones a bar keeps
@@ -98,7 +127,8 @@ export async function renderProduct(id, origin) {
     `${g === "dead" ? "The buttons still open it in case the seller puts it back" : "The buttons still open it, since sellers often restock"}; similar finds are below.</p>`;
   const buyBox = goneNote + `<div class="buybox"><div class="buy-main">${buyLink(ag[0], true)}</div>` +
     `<a class="buy-hint" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener"><span>New to MyCNBox? Sign up with our link for up to $500 in new-user coupons</span>${ARROW}</a>` +
-    `<p class="buy-or">Or buy via</p><div class="buy-alt">${ag.slice(1).map(x => buyLink(x, false)).join("")}</div></div>` +
+    `<p class="buy-or">Or buy via</p><div class="buy-alt">${ag.slice(1).map(x => buyLink(x, false)).join("")}</div>` +
+    `<p style="margin:12px 0 0;font-size:12.5px;line-height:1.45;color:var(--muted)">These are affiliate links: we may earn a commission if you order, at no extra cost to you.</p></div>` +
     // The agent the visitor picked in the app becomes the main button; the coupon line only goes with MyCNBox.
     `<script>try{var a=String((JSON.parse(localStorage.getItem("manifest.state")||"{}")||{}).agent||"").replace(/[^a-z0-9]/g,""),x=document.currentScript.previousElementSibling,m=x.querySelector(".buy-main a"),e=a&&x.querySelector('.buy-alt a[data-agent="'+a+'"]');if(e&&m){var n=e.nextSibling,q=e.parentNode;m.parentNode.replaceChild(e,m);q.insertBefore(m,n);e.className="first";m.className="";x.querySelector(".buy-hint").hidden=true;}}catch(_){}</script>`;
   const buyBar = `<div class="buybar" aria-hidden="true"><div class="bb-price">${money(p.cny)}${isPH(p.cny) ? "" : `<small>¥${p.cny}</small>`}</div><a class="bb-buy" href="${esc(ag[0][1].build(p))}" target="_blank" rel="sponsored nofollow noopener" tabindex="-1">Buy via ${ag[0][1].name}</a></div>` +
@@ -115,28 +145,30 @@ export async function renderProduct(id, origin) {
   const desc = [dHead + (p.qc ? ", a listing with buyer QC photos on record" : "") + `. Open it on MyCNBox, KakoBuy, Oopbuy or any shopping agent.`,
                 dHead + (p.qc ? ", QC photos on record" : "") + `. Buy via MyCNBox or any agent.`,
                 dHead + "."].find(x => x.length <= 160) || dHead + ".";
-  const sameBrand = bUrl ? (byBrand.get(p.brand) || []).filter(x => x.id !== p.id).slice(0, 8) : [];
-  const sameCat = (byCat.get(p.cat) || []).filter(x => x.id !== p.id && x.brand !== p.brand).slice(0, 8);
-  const about = `<p>The <strong>${esc(p.title)}</strong> is ${/^[aeiou]/.test(catLc) ? "an" : "a"} ${esc(catLc)} find${p.brand ? ` in the ${esc(p.brand)} style` : ""} listed on ${plat}` +
-    (realSeller ? ` by ${esc(realSeller)}` : "") + (isPH(p.cny) ? `. The seller shows a placeholder price (¥${p.cny}), so ask them for the real price before ordering` : `. The listed price is ¥${p.cny} (about ${money(p.cny)}) before shipping`) +
-    (variants.length ? `, and it comes in ${variants.length} option${variants.length > 1 ? "s" : ""}: ${esc(variants.slice(0, 8).join(", "))}${variants.length > 8 ? "…" : ""}` : "") + `.</p>` +
+  const topBrand = bUrl ? (byBrand.get(p.brand) || []).filter(x => x.id !== p.id).slice(0, 4) : [];
+  const sameBrand = bUrl ? topBrand.concat(ringAfter("b:" + p.brand, byBrand.get(p.brand) || [], p, 4, topBrand)) : [];
+  const topCat = (byCat.get(p.cat) || []).filter(x => x.id !== p.id && x.brand !== p.brand).slice(0, 4);
+  const sameCat = topCat.concat(ringAfter("c:" + p.cat, byCat.get(p.cat) || [], p, 4, topCat, x => x.brand !== p.brand));
+  const about = `<p>The <strong>${esc(p.title)}</strong> is listed on ${plat}${realSeller ? ` by ${esc(realSeller)}` : ""}, in our ${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(cat.name || p.cat)} section${p.brand ? ` (${esc(p.brand)} style)` : ""}.` +
+    (isPH(p.cny) ? ` The seller shows a placeholder price (¥${p.cny}), so ask them for the real price before ordering.` : ` The listed price is ¥${p.cny} (about ${money(p.cny)}) before shipping.`) +
+    (opts.length ? ` Listed option${opts.length > 1 ? "s" : ""}: ${esc(opts.slice(0, 8).join(", "))}${opts.length > 8 ? "…" : ""}.` : "") + `</p>` +
     (p.qc ? `<p>Our catalogue data marks this listing as having <strong>buyer QC photos</strong>: warehouse photos taken for earlier orders. When we can load them, they are shown on this page. Either way, once your own order reaches the warehouse your agent photographs your exact item, so you can check logos, stitching and colour before it ships.</p>`
-          : `<p>There are no buyer QC photos for this listing yet, once you order, your agent photographs your exact item at the warehouse before it ships, so you can still check it before paying for shipping.</p>`) +
+          : `<p>There are no buyer QC photos for this listing yet. Once you order, your agent photographs your exact item at the warehouse before it ships, so you can still check it before paying for shipping.</p>`) +
     `<p>International shipping isn't included in the price; you pay it when you ship your parcel, and it depends on weight and your country.</p>`;
   const body = `${bc.html}
 <div class="pd">
   <div><div class="pimg">${src ? `<img src="${esc(src)}" alt="${esc(p.title)}" width="600" height="600" fetchpriority="high">` : ""}</div>
-    ${qcs.length ? `<h2 class="qc-h">Real QC photos</h2><div class="qcs">${qcs.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="${esc(p.title)} QC photo ${i + 1}" width="96" height="96" loading="lazy" onerror="this.parentNode.remove()"></a>`).join("")}</div>`
+    ${qcs.length ? `<h2 class="qc-h">Real QC photos</h2><div class="qcs">${qcs.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(thumbSrc(u))}" data-o="${esc(u)}" alt="${esc(p.title)} QC photo ${i + 1}" width="96" height="96" loading="lazy" decoding="async" onerror="if(this.dataset.o){this.src=this.dataset.o;this.dataset.o=''}else this.parentNode.remove()"></a>`).join("")}</div>`
       : p.qc >= 1 ? `<div class="qc-load"><button class="btn sm" type="button" data-sf="${esc(p.platform)}" data-id="${esc(p.itemId || p.id)}">Show buyer QC photos</button></div><script>${QC_LOAD_JS}</script>` : ""}
   </div>
   <div>
-    ${bUrl ? `<a href="${bUrl}" style="color:var(--muted);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;font-size:13px">${esc(p.brand)}</a>` : (p.brand ? `<span style="color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-size:13px">${esc(p.brand)}</span>` : "")}
+    ${bUrl ? `<a class="eyebrow" href="${bUrl}" style="text-decoration:none">${esc(p.brand)}</a>` : (p.brand ? `<span class="eyebrow">${esc(p.brand)}</span>` : "")}
     <h1>${esc(p.title)}</h1>
     <div class="price">${money(p.cny)}<small>${isPH(p.cny) ? "placeholder price · ask seller" : `¥${p.cny} · before shipping`}</small></div>
     ${buyBox}
     <p class="eyebrow" style="margin:6px 0 0">Spreadsheets: ${AGENT_BRAND_AGENTS.map(k => { const bs = p.brand && agentBrands().includes(p.brand) ? idx().brandSlug.get(p.brand) : null; return `<a href="/${k}-spreadsheet${bs ? "/" + bs : ""}" style="color:var(--muted)">${esc(AGENTS[k].name)}</a>`; }).join(" · ")}</p>
     <dl class="kv"><dt>Marketplace</dt><dd>${plat}</dd><dt>Category</dt><dd>${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(p.cat)}</dd>
-      ${variants.length ? `<dt>Options</dt><dd>${esc(variants.slice(0, 12).join(" · "))}</dd>` : ""}<dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc ? "On record" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd>${productFacts(p, g, checked)}</dl>
+      ${opts.length ? `<dt>Options</dt><dd>${esc(opts.slice(0, 12).join(" · "))}</dd>` : ""}<dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc ? "On record" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd>${productFacts(p, g, checked)}</dl>
     <p><a href="/#p/${encodeURIComponent(p.id)}" style="color:var(--accent)">Open in the catalogue →</a></p>
   </div>
 </div>
@@ -158,23 +190,30 @@ ${buyBar}`;
 }
 
 // ------------------------------------------------------------------ hubs
-function hub({ path, n, list, title, desc, h1, intro, trail, chips = "", top = "", extra = "", faq = null, total = null, ldCount = undefined }) {
+function hub({ path, n, list, title, desc, h1, intro, trail, chips = "", top = "", extra = "", faq = null, total = null, ldCount = undefined, idxFirst = false }) {
   const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
   if (n < 1 || n > pages) return null;
-  const slice = list.slice((n - 1) * PER_PAGE, n * PER_PAGE);
+  // idxFirst (brand and category hubs, 28 Oct 2026): page 1 is the app with the 60 most viewed. From page 2 on, the finds
+  // whose own page may be indexed come before the noindex ones, each group most viewed first. In plain view order the
+  // indexable finds of /category/tops ran to page 30 of 56; this way they end on page 18 and the later pages hold the rest.
+  const order = idxFirst && n > 1 ? list.slice(0, PER_PAGE).concat(list.slice(PER_PAGE).filter(indexable), list.slice(PER_PAGE).filter(p => !indexable(p))) : list;
+  const slice = order.slice((n - 1) * PER_PAGE, n * PER_PAGE);
   const url = n === 1 ? path : `${path}/${n}`;
   const bc = crumbs(trail.concat(n > 1 ? [[`Page ${n}`, url]] : []));
   const qcTotal = list.reduce((s, p) => s + (p.qc || 0), 0);
   const body = `${bc.html}<h1>${esc(h1)}${n > 1 ? ` <small style="color:var(--muted);font-size:.5em">page ${n}</small>` : ""}</h1>
 ${n === 1 ? `<div class="prose">${intro}</div>` : ""}
-<div class="facts"><span>${(total || list.length).toLocaleString("en-US")} finds</span>${priceRange(list) ? `<span>${priceRange(list)}</span>` : ""}<span>Catalogue updated ${BUILT}</span></div>
+<div class="facts"><span>${(total || list.length).toLocaleString("en-US")} finds</span>${idxFirst && n > 1 ? "<span>Order: finds marked as having QC photos, picks and viewed finds first</span>" : ""}${priceRange(list) ? `<span>${priceRange(list)}</span>` : ""}<span>Catalogue updated ${BUILT}</span></div>
 ${chips}
-${n === 1 ? top : ""}${grid(slice, n === 1 ? 4 : 0)}
+${n === 1 ? top : ""}${grid(slice, 4)}
 ${pager(path, n, pages)}
 ${n === 1 ? extra : ""}${n === 1 && faq && faq.length ? faqHtml(faq) : ""}`;
   const ld = [bc.data, listLd(h1, url, slice, ldCount)]; if (n === 1 && faq && faq.length) ld.push(faqLd(faq));
-  return page({ title: n > 1 ? `${title}: Page ${n}` : title, desc, path: url, body, jsonld: ld,
-    image: slice[0] ? imgSrc(slice[0]) : undefined });
+  // Pages 2+ (28 Oct 2026): the page number goes before the site name ("...: Page 2 · Puro Classico", not "... · Puro
+  // Classico: Page 2", which also stopped page() from trimming long titles), and the description names the page, so
+  // pages 2..N no longer share one description.
+  return page({ title: n > 1 ? title.replace(/( [·|] Puro Classico)?$/, `: Page ${n}$1`) : title, desc: n > 1 && !/^Page \d/.test(desc) ? `Page ${n}: ${desc}` : desc,
+    path: url, body, jsonld: ld, image: slice[0] ? imgSrc(slice[0]) : undefined });
 }
 
 // ------------------------------------------------------------------ brand hubs: facts, top picks, related brands
@@ -256,6 +295,23 @@ function productFacts(p, goneAs, checked) {
   const t = itemType(p);
   if (SHOE_TYPES.has(t)) out.push(["Typical weight", `About 0.9 kg, 1.3 kg with the box (<a href="/tools/weight-estimator">estimator</a>)`]);
   else if (TYPE_WEIGHT[t]) out.push(["Typical weight", `About ${TYPE_WEIGHT[t]} g (<a href="/tools/weight-estimator">estimator</a>)`]);
+  // Facts only this page has (28 Oct 2026), worked out from the catalogue rows. Product pages shared most of their text
+  // with every other product page, and 431 indexable ones share their exact title with another find.
+  //  - Price compared: where the listed price sits among the same brand's listings of the same item type. Only with 3+
+  //    priced listings of that type, and never for a price we do not vouch for (under a third of the half-way price,
+  //    the priceDoubt rule in brandFacts). Seller prices only: nothing here is checked against the live listing.
+  //  - Same name: the other listings with this exact title (marketplace, item ID and price), linked, so each page says
+  //    which one it is.
+  if (p.brand && !isPH(p.cny) && !t.startsWith("other") && idx().brandSlug.has(p.brand)) {
+    const f = brandFacts(p.brand), tl = ((f.types.find(x => x[0] === t) || [])[1] || []).filter(x => !isPH(x.cny));
+    const med = tl.length >= PRICE_TYPE_MIN ? f.lowMedian(tl).cny : 0;
+    if (med && p.cny * 3 >= med) {
+      const less = tl.filter(x => x.cny < p.cny).length;
+      out.push(["Price compared", `${less ? nf(less) : "None"} of the other ${nf(tl.length - 1)} ${esc(p.brand)} ${esc(t)} on the spreadsheet ${less === 1 ? "is" : "are"} listed for less; half of all ${nf(tl.length)} are listed at ${money(med)} or less`]);
+    }
+  }
+  const twins = ((p.brand ? idx().byBrand.get(p.brand) : idx().byCat.get(p.cat)) || []).filter(x => x !== p && x.brand === p.brand && x.title.toLowerCase() === p.title.toLowerCase()).slice(0, 6);
+  if (twins.length) out.push(["Same name", twins.map(x => `<a href="${productUrl(x)}">${esc(PLAT[x.platform] || x.platform)} ${esc(x.itemId || x.id)}, ${money(x.cny)}</a>`).join(" · ")]);
   return out.map(([k, x]) => `<dt>${k}</dt><dd>${x}</dd>`).join("");
 }
 const ACCESSORY_ONLY = new Set(["jewellery", "ties"]);
@@ -439,7 +495,7 @@ function brandFaq(f, best) {
   const from = f.plats.map(([k]) => PLAT[k] || k).join(", ").replace(/, ([^,]*)$/, " and $1");
   // The agents are named here and nowhere else on the hub, which also answers "<brand> kakobuy" style searches without a page per agent and brand.
   const faq = [[`Where can I buy ${b} reps?`, `Puro Classico lists ${nf(f.n)} ${b} find${f.n === 1 ? "" : "s"} from ${from}. Each find's page has buy links for ${agentList}, so this one ${b} spreadsheet works with each of those agents. The agent buys the item for you and ships it internationally.`]];
-  if (range) faq.push([`How much do ${b} reps cost?`, `Listings on this page range from ${range} before international shipping, which depends on weight and your country.` +
+  if (range) faq.push([`How much do ${b} reps cost?`, `The finds on this page are listed at ${range} before international shipping, which depends on weight and your country.` +
       (f.med && f.lo.cny !== f.hi.cny ? ` Half of ${f.priced.length < f.n ? `the ${nf(f.priced.length)} with a listed price` : "them"} are listed at ${money(f.med.cny)} or less.` : "") + (perType.length ? ` By item type: ${perType.join(", ")}.` : "") + ` These are the sellers' listed prices and can change.`]);
   if (f.picks.length) {
     const byViews = f.picks.some(x => x.why.some(w => /viewed|saved/i.test(w.k))), byQc = f.picks.some(x => x.why.some(w => /QC/.test(w.k)));
@@ -504,7 +560,7 @@ export function renderBrand(s, n) {
   return hub({ path: "/brand/" + s, n, list, title: `${n === 1 && best ? "Best " : ""}${b} Reps Spreadsheet 2026: ${N} Finds · Puro Classico`, desc,
     h1: `${b} reps spreadsheet`, intro, trail: [["Home", "/"], ["Brands", "/brands"], [b, "/brand/" + s]],
     chips: (bm.length ? `<div class="chips">${bm.map(m => `<a href="/best/${m.slug}" style="border-color:var(--accent)">Best ${esc(MODEL_TERM[m.slug] || m.name)} reps</a>`).join("")}</div>` : "") + (cats.length > 1 ? `<div class="chips">${cats.map(c => `<a href="${catUrl(c)}">${esc(CATS[c].name)}</a>`).join("")}</div>` : ""),
-    top: BRAND_CSS + brandPicksHtml(f, best), extra, faq: brandFaq(f, best), ldCount: f.n });
+    top: BRAND_CSS + brandPicksHtml(f, best), extra, faq: brandFaq(f, best), ldCount: f.n, idxFirst: true });
 }
 
 export function renderCategory(s, n) {
@@ -514,9 +570,10 @@ export function renderCategory(s, n) {
   const meta = CATS[c], q1 = list.filter(p => p.qc >= 1).length;
   const extra = `<h2>Top brands in ${esc(meta.name.toLowerCase())}</h2><div class="chips">${topBrands.map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}</div>
 <h2>Other categories</h2><div class="chips">${Object.values(CATS).filter(x => x.slug !== s && x.slug !== "toys").map(x => `<a href="/category/${x.slug}">${esc(x.name)}</a>`).join("")}</div>`;
-  return hub({ path: "/category/" + s, n, list, title: `${meta.h}: ${list.length.toLocaleString("en-US")} Finds (2026) · Puro Classico`,
-    desc: `${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds with prices and agent links${q1 ? `, ${q1.toLocaleString("en-US")} marked as having buyer QC photos` : ""}, sorted by most viewed.`,
-    h1: meta.h, intro: CAT_INTRO[c] || "", trail: [["Home", "/"], [meta.name, "/category/" + s]], extra });
+  return hub({ path: "/category/" + s, n, list, title: `Rep ${meta.name} Spreadsheet 2026: ${list.length.toLocaleString("en-US")} Finds · Puro Classico`,
+    desc: n > 1 ? `Page ${n} of the ${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds on Puro Classico${priceRange(list) ? `, with prices (${priceRange(list)})` : ""}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.`
+      : `${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds with prices and agent links${q1 ? `, ${q1.toLocaleString("en-US")} marked as having buyer QC photos` : ""}, sorted by most viewed.`,
+    h1: meta.h, intro: CAT_INTRO[c] || "", trail: [["Home", "/"], [meta.name, "/category/" + s]], extra, idxFirst: true });
 }
 
 // ------------------------------------------------------------------ agent spreadsheets (+ brand pages per agent)
@@ -589,7 +646,7 @@ export function renderOldMoney(n) {
   const list = all.filter(p => set.has(p.brand));
   const brands = OLD_MONEY.brands.concat(OLD_MONEY.linked).filter(b => brandSlug.has(b));   // `linked` brands get a chip; their finds are not part of this page's list
   return hub({ path: "/old-money", n, list, title: `Old Money Spreadsheet 2026: ${list.length.toLocaleString("en-US")} Quiet Luxury Rep Finds | Puro Classico`,
-    desc: `Old money and quiet luxury reps: ${list.length.toLocaleString("en-US")} finds from Ralph Lauren, Loro Piana, Lacoste, Moncler, Golden Goose and more.`,
+    desc: `${list.length.toLocaleString("en-US")} old money and quiet luxury rep finds from Ralph Lauren, Loro Piana, Lacoste, Moncler, Golden Goose and more, each with MyCNBox, KakoBuy and Oopbuy links.`,
     h1: "Old money & quiet luxury reps", intro: OLD_MONEY.intro, trail: [["Home", "/"], ["Old money", "/old-money"]],
     chips: `<div class="chips">${brands.map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}<a href="/stockholm-spreadsheet">Stockholm style spreadsheet</a><a href="/grisch-spreadsheet">Grisch spreadsheet</a></div>` +
       `<div class="chips">${AGENT_BRAND_AGENTS.map(k => `<a href="/${k}-spreadsheet/old-money">Old money on ${esc(AGENTS[k].name)}</a>`).join("")}</div>`,
@@ -614,13 +671,13 @@ export function renderModels() {
   const bc = crumbs([["Home", "/"], ["Best reps", "/best"]]);
   const ms = models().slice().sort((a, b) => b.list.length - a.list.length);
   const body = `${bc.html}<h1>Best reps by model</h1><p class="lead">Every listing of the most popular models side by side, ranked by what buyers actually view. Compare batches, prices and QC before you order.</p>
-<div class="g">${ms.map(m => { const p = m.list[0]; const src = imgSrc(p); return `<a class="c" href="/best/${m.slug}"><span class="ci">${src ? `<img src="${esc(src)}" alt="${esc(m.name)}" loading="lazy" onerror="this.remove()">` : ""}</span><span class="cb"><span class="ct">${esc(m.name)}</span><span class="cbr">${m.list.length} listings</span></span></a>`; }).join("")}</div>`;
+<div class="g">${ms.map(m => { const p = m.list[0]; const src = imgSrc(p); return `<a class="c" href="/best/${m.slug}"><span class="ci">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(m.name)}" width="300" height="375" loading="lazy" decoding="async" ${IMG_FALLBACK}>` : ""}</span><span class="cb"><span class="ct">${esc(m.name)}</span><span class="cbr">${m.list.length} listings</span></span></a>`; }).join("")}</div>`;
   return page({ title: "Best Reps by Model (2026): Compare Batches & QC · Puro Classico", desc: "Compare every listing of the most popular rep models: Air Jordan 1, Samba, Golden Goose, Moncler, Nuptse and more, ranked by views.", path: "/best", body, jsonld: [bc.data] });
 }
 export function renderModel(s, n) {
   const m = models().find(x => x.slug === s); if (!m) return null;
   const list = m.list;
-  const intro = `<p>${esc(m.intro)}</p><p>Below are all ${list.length} ${esc(m.name)} listings on Puro Classico, ranked by how often buyers view them. Prices run from ${priceRange(list)} before shipping.</p>
+  const intro = `<p>${esc(m.intro)}</p><p>Below are all ${list.length} ${esc(m.name)} listings on Puro Classico, ranked by how often buyers view them. Listed prices: ${priceRange(list)} before shipping.</p>
 <h3>What to check in QC</h3><ul>${m.qc.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`;
   const others = models().filter(x => x.slug !== s).slice(0, 14);
   const t = MODEL_TERM[s] || m.name;
@@ -632,36 +689,38 @@ export function renderModel(s, n) {
   const faq = [[`Where can I buy ${t} reps?`, `Puro Classico lists ${list.length} ${m.name} listings from Weidian, Taobao and 1688. Each opens directly in MyCNBox, KakoBuy, Oopbuy or another shopping agent.`],
                [`Which ${m.name} listing is best?`, `Start with the most-viewed listings at the top and compare their buyer QC photos. Check ${m.qc.join(", ")}.`]];
   return hub({ path: "/best/" + s, n, list, title: `Best ${t} Reps (2026): ${list.length} Listings Compared · Puro Classico`,
-    desc: `Compare ${list.length} ${m.name} rep listings ranked by views, with prices (${priceRange(list)}) and what to check in QC.`,
+    desc: [`${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}. Check in QC: ${m.qc[0]}, then ${m.qc[1]}.`,
+      `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}. Check in QC: ${m.qc[0]}.`,
+      `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}, with what to check in QC.`].find(x => x.length <= 160) || `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}.`,
     h1: `Best ${t} reps`, intro, trail: [["Home", "/"], ["Best reps", "/best"], [m.name, "/best/" + s]], faq,
     extra: `${hubLinks}<h2>More models</h2><div class="chips">${others.map(x => `<a href="/best/${x.slug}">${esc(x.name)}</a>`).join("")}<a href="/best">All models →</a></div>` });
 }
 
 // ------------------------------------------------------------------ tools
-const TOOL_CSS = `<style>.tool{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:760px;margin:18px 0}.tool label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}.tool input,.tool select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit}.tool .out{margin-top:14px;font-size:15px;color:var(--ink-2);white-space:pre-line}.tool .out a{color:var(--accent);word-break:break-all}.tool .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.tool .qct{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tool .qct img{width:110px;height:110px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}.tool table{width:100%;border-collapse:collapse}.tool td{padding:6px 4px}</style>`;
+const TOOL_CSS = `<style>.tool{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:760px;margin:18px 0}.tool label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}.tool input,.tool select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit}.tool .out{margin-top:14px;font-size:15px;color:var(--ink-2);white-space:pre-line}.tool .out a{color:var(--accent);word-break:break-all}.tool .out .buybox{margin:12px 0 0}.tool .out .buy-main a{color:var(--fill-ink);word-break:normal}.tool .out .buy-alt a{color:var(--ink);word-break:normal}.tool .out details{margin-top:12px;font-size:13px}.tool .out summary{cursor:pointer;color:var(--muted)}.tool .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.tool .qct{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tool .qct img{width:110px;height:110px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}.tool table{width:100%;border-collapse:collapse}.tool td{padding:6px 4px}</style>`;
 const EXTRACT = `function pcExtract(u){u=(u||"").trim();if(!u)return{};for(var k=0;k<3;k++){var d;try{d=decodeURIComponent(u);}catch(e){break;}if(d===u)break;u=d;}var pl=null,v,m,i;var st=u.match(/[?&#](?:shop_type|platform|source|channel|mall_?type)=([a-z0-9_]+)/i);if(st){v=st[1].toLowerCase();if(/^(?:wd|weidian)/.test(v))pl="weidian";else if(/^(?:1688|ali)/.test(v))pl="1688";else if(/^(?:tb|tao|tmall)/.test(v))pl="taobao";}if(!pl){m=u.match(/\\/product\\/(weidian|taobao|tmall|1688)\\//i);if(m){v=m[1].toLowerCase();pl=v==="tmall"?"taobao":v;}}if(!pl){var H=[["weidian",/(?:^|[\\/.@])(?:weidian\\.com|youshop10\\.com)/i],["taobao",/(?:^|[\\/.@])(?:taobao\\.com|tmall\\.com|tmall\\.hk|tb\\.cn)/i],["1688",/(?:^|[\\/.@])(?:1688\\.com|alibaba\\.com)/i]],b=-1;for(i=0;i<H.length;i++){m=H[i][1].exec(u);if(m&&(b<0||m.index<b)){b=m.index;pl=H[i][0];}}}if(!pl){if(/weidian/i.test(u))pl="weidian";else if(/taobao|tmall/i.test(u))pl="taobao";else if(/alibaba/i.test(u))pl="1688";}var id=null,ps=[/(?:^|[?&#\\/])item_?id=(\\d{6,})/i,/(?:^|[?&#])offer_?id=(\\d{6,})/i,/[?&#]id=(\\d{6,})/i,/\\/offer\\/(\\d{6,})/i,/\\/i(\\d{6,})\\.htm/i,/\\/product\\/(?:weidian|taobao|tmall|1688)\\/(\\d{6,})/i,/\\/item\\/(\\d{6,})/i,/\\/(\\d{9,})\\.html?\\b/i];for(i=0;i<ps.length;i++){m=u.match(ps[i]);if(m){id=m[1];break;}}if(!id&&/^\\d{6,}$/.test(u))id=u;var sh=!id&&/(?:^|[\\/.])(?:m\\.tb\\.cn|e\\.tb\\.cn|youshop10\\.com|qr\\.1688\\.com)/i.test(u);if(!id&&!sh){m=u.replace(/(?:spm|memberId|referId|affcode|invite_?code|scm|pvid|ut_sk|sku_?id)=[^&#]*/gi,"").match(/(\\d{9,})/);if(m)id=m[1];}return{platform:pl,id:id,short:sh};}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c];});}`;
 const TOOL_UI = {
-  "link-converter": () => `<div class="tool"><label for="lc">Weidian, Taobao, 1688 or agent link</label><input id="lc" placeholder="https://weidian.com/item.html?itemID=…"><div class="row"><button class="btn red" id="go">Convert</button></div><div class="out" id="out">Your buy links will appear here.</div></div>
+  "link-converter": () => `<div class="tool"><label for="lc">Weidian, Taobao, 1688 or agent link</label><input id="lc" placeholder="https://weidian.com/item.html?itemID=…"><div class="row"><button class="btn red" id="go">Convert</button></div><div class="out" id="out" role="status">Your buy links will appear here.</div></div>
 <script>${EXTRACT}
 var PCID=new Set(${JSON.stringify(P.map(p => p.id))});
 var R={mycnbox:"LHYDVW",kakobuy:"w5war",lovegobuy:"9WJ54Y",oopbuy:"LHQC0OS8O",sugargoo:"3751749728009774836"};
 function orig(p,id){return p==="taobao"?"https://item.taobao.com/item.htm?id="+id:p==="1688"?"https://detail.1688.com/offer/"+id+".html":"https://weidian.com/item.html?itemID="+id;}
 var A=[["MyCNBox",function(p,id){return "https://mycnbox.com/goodsDetail?mallType="+p+"&itemId="+id+"&referId="+R.mycnbox}],["KakoBuy",function(p,id){return "https://www.kakobuy.com/item/details?url="+encodeURIComponent(orig(p,id))+"&affcode="+R.kakobuy}],["Oopbuy",function(p,id){return "https://oopbuy.com/product/"+p+"/"+id+"?inviteCode="+R.oopbuy}],["LoveGoBuy",function(p,id){return "https://www.lovegobuy.com/product?platform="+p+"&id="+id+"&invite_code="+R.lovegobuy}],["Sugargoo",function(p,id){return "https://www.sugargoo.com/#/home/productDetail?productLink="+encodeURIComponent(orig(p,id))+"&memberId="+R.sugargoo}]];
-function run(){var r=pcExtract(document.getElementById("lc").value),o=document.getElementById("out");if(!r.id){o.textContent=r.short?"That is a short share link. Open it in your browser first, then paste the full product link it opens.":"Couldn't find an item ID in that link. Paste a full product or agent link.";return;}var p=r.platform||(r.id.length<=10?"weidian":"taobao");o.innerHTML="<b>"+esc(p)+(r.platform?"":" (guessed)")+" · "+esc(r.id)+"</b>\\n"+A.map(function(a){var u=a[1](p,r.id);return esc(a[0])+': <a href="'+esc(u)+'" target="_blank" rel="sponsored noopener">'+esc(u)+"</a>";}).join("\\n")+(PCID.has(r.id)?'\\n\\nOn Puro Classico: <a href="/product/'+esc(r.id)+'">/product/'+esc(r.id)+"</a>":"");}
+function run(){var r=pcExtract(document.getElementById("lc").value),o=document.getElementById("out");if(!r.id){o.textContent=r.short?"That is a short share link. Open it in your browser first, then paste the full product link it opens.":"Couldn't find an item ID in that link. Paste a full product or agent link.";return;}var p=r.platform||(r.id.length<=10?"weidian":"taobao"),L=A.map(function(a){return [a[0],a[1](p,r.id)];}),btn=function(x,alt){return '<a href="'+esc(x[1])+'" target="_blank" rel="sponsored nofollow noopener">'+(alt?"":"Open in ")+esc(x[0])+"</a>";};o.innerHTML="<b>"+esc(p)+(r.platform?"":" (guessed)")+" · "+esc(r.id)+'</b><div class="buybox"><div class="buy-main">'+btn(L[0])+'</div><p class="buy-or">Or open in</p><div class="buy-alt">'+L.slice(1).map(function(x){return btn(x,1);}).join("")+"</div></div>"+(PCID.has(r.id)?'<p><a href="/product/'+esc(r.id)+'">Open this find on Puro Classico →</a></p>':"")+"<details><summary>Show the links</summary>"+L.map(function(x){return esc(x[0])+': <a href="'+esc(x[1])+'" target="_blank" rel="sponsored nofollow noopener">'+esc(x[1])+"</a>";}).join("<br>")+"</details>";}
 document.getElementById("go").onclick=run;document.getElementById("lc").onkeydown=function(e){if(e.key==="Enter")run();};</script>`,
-  "qc-checker": () => `<div class="tool"><label for="qi">Product link or item ID</label><input id="qi" placeholder="https://weidian.com/item.html?itemID=… or 7231806587"><label for="qp" style="margin-top:10px">Marketplace (if you paste only an ID)</label><select id="qp"><option value="">Auto-detect</option><option value="weidian">Weidian</option><option value="taobao">Taobao</option><option value="1688">1688</option></select><div class="row"><button class="btn red" id="go">Check QC photos</button></div><div class="out" id="out">QC photos will appear here.</div><div class="qct" id="th"></div></div>
+  "qc-checker": () => `<div class="tool"><label for="qi">Product link or item ID</label><input id="qi" placeholder="https://weidian.com/item.html?itemID=… or 7231806587"><label for="qp" style="margin-top:10px">Marketplace (if you paste only an ID)</label><select id="qp"><option value="">Auto-detect</option><option value="weidian">Weidian</option><option value="taobao">Taobao</option><option value="1688">1688</option></select><div class="row"><button class="btn red" id="go">Check QC photos</button></div><div class="out" id="out" role="status">QC photos will appear here.</div><div class="qct" id="th"></div></div>
 <script>${EXTRACT}
 var PCID=new Set(${JSON.stringify(P.map(p => p.id))});
 async function run(){var v=document.getElementById("qi").value,r=pcExtract(v),o=document.getElementById("out"),th=document.getElementById("th");th.innerHTML="";if(!r.id&&/^\\d{6,}$/.test(v.trim()))r={id:v.trim()};if(!r.id){o.textContent=r.short?"That is a short share link. Open it in your browser first, then paste the full product link it opens.":"Couldn't find an item ID. Paste a full link or the numeric ID.";return;}var p=r.platform||document.getElementById("qp").value||(r.id.length<=10?"weidian":"taobao");o.textContent="Checking "+p+" · "+r.id+"…";
 try{var res=await fetch("/api/qc?storefront="+p+"&id="+encodeURIComponent(r.id));var d=res.ok?await res.json():null;var t=(d&&d.thumbnails)||[];if(t.length){o.innerHTML="Real QC photos for <b>"+esc(p)+" · "+esc(r.id)+"</b> ("+t.length+" shown)."+(PCID.has(r.id)?" <a href=\\"/product/"+esc(r.id)+"\\">Open on Puro Classico →</a>":"");th.innerHTML=t.map(function(u){return '<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="QC photo" loading="lazy" onerror="this.parentNode.remove()"></a>';}).join("");}else o.textContent="No QC photos found yet for "+p+" · "+r.id+". Photos only exist once someone has bought it through an agent.";}catch(e){o.textContent="Couldn't reach the QC service, try again in a moment.";}}
 document.getElementById("go").onclick=run;document.getElementById("qi").onkeydown=function(e){if(e.key==="Enter")run();};</script>`,
-  "weight-estimator": () => `<div class="tool"><table id="wt"></table><div class="out" id="out"></div></div>
+  "weight-estimator": () => `<div class="tool"><table id="wt"></table><div class="out" id="out" role="status"></div></div>
 <script>var W=[["T-shirt",250],["Shirt / polo",330],["Shorts",350],["Hoodie / sweater",700],["Pants / jeans",600],["Light jacket",700],["Puffer / heavy jacket",1100],["Sneakers (no box)",900],["Sneakers (with box)",1300],["Bag",550],["Cap / beanie",220],["Belt / small accessory",200]];
-var t=document.getElementById("wt");t.innerHTML=W.map(function(w,i){return '<tr><td>'+w[0]+' <span style="color:var(--muted)">~'+w[1]+' g</span></td><td style="width:90px"><input type="number" min="0" value="0" data-i="'+i+'"></td></tr>';}).join("");
+var t=document.getElementById("wt");t.innerHTML=W.map(function(w,i){return '<tr><td>'+w[0]+' <span style="color:var(--muted)">~'+w[1]+' g</span></td><td style="width:90px"><input type="number" min="0" value="0" data-i="'+i+'" aria-label="'+w[0]+', number of items"></td></tr>';}).join("");
 function run(){var g=0,n=0;t.querySelectorAll("input").forEach(function(x){var q=Math.max(0,parseInt(x.value)||0);g+=q*W[+x.dataset.i][1];n+=q;});document.getElementById("out").innerHTML=n?("Estimated shipped weight: <b>~"+(g/1000).toFixed(2)+" kg</b> for "+n+" item"+(n>1?"s":"")+". <a href=\\"/tools/shipping-calculator?kg="+(g/1000).toFixed(2)+"\\">Estimate shipping →</a>"):"Add quantities to see a total.";}
 t.addEventListener("input",run);run();</script>`,
-  "shipping-calculator": () => `<div class="tool"><label for="co">Destination</label><select id="co"></select><label for="kg" style="margin-top:10px">Parcel weight (kg)</label><input id="kg" type="number" min="0" step="0.1" placeholder="e.g. 2.5"><div class="out" id="out">Pick a destination and weight.</div></div>
+  "shipping-calculator": () => `<div class="tool"><label for="co">Destination</label><select id="co"></select><label for="kg" style="margin-top:10px">Parcel weight (kg)</label><input id="kg" type="number" min="0" step="0.1" placeholder="e.g. 2.5"><div class="out" id="out" role="status">Pick a destination and weight.</div></div>
 <script>var Z={"United States":"na","Canada":"na","United Kingdom":"eu","Germany":"eu","France":"eu","Netherlands":"eu","Italy":"eu","Spain":"eu","Poland":"eu","Ireland":"eu","Norway":"nordic","Sweden":"nordic","Denmark":"nordic","Finland":"nordic","Rest of Europe":"eu","Australia":"oce","New Zealand":"oce","Rest of world":"row"};
 var RT={nordic:[["Economy",5,7],["Registered / special line",7,10],["Express (DHL/EMS)",9,15]],eu:[["Economy",5,6.5],["Registered / special line",7,9.5],["Express (DHL/EMS)",8,14]],na:[["Economy",6,8],["Registered / special line",8,11],["Express (DHL/EMS)",9,16]],oce:[["Economy",6,9],["Registered / special line",8,12],["Express (DHL/EMS)",10,17]],row:[["Economy",6,9],["Registered / special line",8,12],["Express (DHL/EMS)",10,18]]};
 var co=document.getElementById("co"),kg=document.getElementById("kg");co.innerHTML=Object.keys(Z).map(function(k){return "<option>"+k+"</option>";}).join("");var q=new URLSearchParams(location.search).get("kg");if(q)kg.value=q;
@@ -671,7 +730,7 @@ co.onchange=run;kg.oninput=run;run();</script>`,
 export function renderTools() {
   const bc = crumbs([["Home", "/"], ["Tools", "/tools"]]);
   const body = `${bc.html}<h1>Free rep tools</h1><p class="lead">Convert links, check QC photos and estimate weight and shipping before you order.</p>
-<div class="chips" style="flex-direction:column;align-items:flex-start">${TOOL_LINKS.map(([t, u]) => `<a href="${u}" style="font-size:17px">${esc(t)} →</a>`).join("")}</div>`;
+<div class="gl">${TOOL_LINKS.map(([t, u]) => { const k = u.replace(/^\/tools\//, ""); return `<a href="${u}"><b>${esc(t)}</b>${own(TOOLS, k) ? `<span>${esc(TOOLS[k].desc)}</span>` : ""}</a>`; }).join("")}</div>`;
   return page({ title: "Free Rep Tools: Link Converter, QC Checker, Shipping Calculator · Puro Classico", desc: "Free tools for buying reps through agents: link converter, QC photo checker, weight estimator and shipping calculator.", path: "/tools", body, jsonld: [bc.data] });
 }
 export function renderTool(s) {
@@ -687,21 +746,45 @@ export function renderTool(s) {
 export function renderGuides() {
   const bc = crumbs([["Home", "/"], ["Guides", "/guides"]]);
   const body = `${bc.html}<h1>Guides</h1><p class="lead">Everything you need to order your first finds from China: agents, QC photos, sizing and shipping.</p>
-<div class="chips" style="flex-direction:column;align-items:flex-start">${GUIDE_LINKS.map(([t, u]) => `<a href="${u}" style="font-size:17px">${esc(t)} →</a>`).join("")}</div>`;
+<div class="gl">${GUIDE_LINKS.map(([t, u]) => { const k = u.replace(/^\/guides\//, ""), g = u.startsWith("/guides/") && own(GUIDES, k) ? GUIDES[k] : null;
+  const d = g ? g.desc : u === "/how-to-order" ? "A 1:47 walkthrough: create a MyCNBox account, find an item on Puro Classico, check out, check QC photos, submit packing and track your parcel." : "";
+  return `<a href="${u}"><b>${esc(g ? g.h1 : t)}</b>${d ? `<span>${esc(d)}</span>` : ""}</a>`; }).join("")}</div>`;
   return page({ title: "Rep Buying Guides: Agents, QC, Sizing & Shipping · Puro Classico", desc: "Step-by-step guides for buying from Weidian, Taobao and 1688 through a shopping agent.", path: "/guides", body, jsonld: [bc.data] });
 }
 
 export function renderGuide(s) {
   const g = own(GUIDES, s) ? GUIDES[s] : null; if (!g) return null;
   const path = "/guides/" + s; const bc = crumbs([["Home", "/"], ["Guides", "/guides"], [g.h1, path]]);
-  const { all } = idx();
+  const { all, byCat } = idx();
   // A guide shows a date only when it stores its own (g.updated = the day its text was last revised and its facts
   // re-checked, set by hand in content*.js). The catalogue build date says nothing about a guide's text.
-  const body = `${bc.html}<article class="prose"><h1>${esc(g.h1)}</h1><p style="color:var(--muted);font-size:14px">${g.updated ? `Updated ${esc(g.updated)} · ` : ""}Puro Classico</p>${g.body}${g.faq ? faqHtml(g.faq) : ""}</article>
-<h2>Popular finds</h2>${grid(all.slice(0, 8))}
+  // What is in the catalogue (28 Oct 2026), counted when the page renders, on the rep spreadsheet guide only: the guides that
+  // outrank it for "rep spreadsheet" show their counts by category; ours are first-party numbers. The table takes its
+  // styles (hairlines, tabular numbers) from ds.css. Toys are left out, as in the hubs' category chips.
+  let stats = "";
+  if (s === "what-is-a-rep-spreadsheet") {
+    const day = d => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+    const half = l => { const u = l.filter(p => !isPH(p.cny)).sort((x, y) => x.cny - y.cny); return u.length ? money(u[Math.floor((u.length - 1) / 2)].cny) : "Ask seller"; };
+    const rows = Object.entries(CATS).filter(([, m]) => m.slug !== "toys").map(([c, m]) => [m, byCat.get(c) || []]).filter(([, l]) => l.length >= 20).sort((x, y) => y[1].length - x[1].length);
+    stats = `<h2>What is in this rep spreadsheet</h2><p>Counted from the catalogue, last updated ${day(BUILT)}: ${nf(all.length)} finds, ${nf(all.filter(p => p.qc >= 1).length)} of them marked as having buyer QC photos from earlier orders.` +
+      (LINKS_CHECKED ? ` Our weekly link check last ran on ${day(LINKS_CHECKED)} and found ${nf(GONE_COUNTS.dead)} Weidian listings gone, which the spreadsheet hides, and ${nf(GONE_COUNTS.sold)} sold out.` : "") + `</p>` +
+      `<table><tr><th>Category</th><th>Finds</th><th>Half listed at or under</th><th>Marked with QC photos</th></tr>` +
+      rows.map(([m, l]) => `<tr><td><a href="/category/${m.slug}">${esc(m.name)}</a></td><td>${nf(l.length)}</td><td>${half(l)}</td><td>${nf(l.filter(p => p.qc >= 1).length)}</td></tr>`).join("") + `</table>`;
+  }
+  // Table of contents (28 Oct 2026): ids on the guide's h2s and, with 3 or more, an "On this page" list after the intro, so
+  // long guides can be skimmed and Google can offer "Jump to" links. The date reads "10 Oct 2026", like the rest of the site,
+  // in a mono eyebrow above the H1. The byline links the page that says how the data is checked (content3.js how-we-check).
+  const ids = new Set(), toc = [];
+  const text = (stats ? g.body.replace("<h2>", stats + "<h2>") : g.body).replace(/<h2>([\s\S]*?)<\/h2>/g, (_, h) => { let id = slug(h.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&")) || "section"; while (ids.has(id)) id += "-2"; ids.add(id); toc.push([id, h.replace(/<[^>]+>/g, "")]); return `<h2 id="${id}">${h}</h2>`; });
+  const tocHtml = toc.length >= 3 ? `<nav class="toc" aria-label="On this page"><span class="eyebrow">On this page</span><ol>${toc.map(([id, h]) => `<li><a href="#${id}">${h}</a></li>`).join("")}</ol></nav>` : "";
+  const upd = g.updated && !isNaN(new Date(g.updated + "T00:00:00Z")) ? new Date(g.updated + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : g.updated;
+  const how = s !== "how-we-check" && own(GUIDES, "how-we-check") ? ` · <a href="/guides/how-we-check" style="color:inherit">How we check</a>` : "";
+  const body = `${bc.html}<article class="prose"><span class="eyebrow">Guide${upd ? ` · Updated ${esc(upd)}` : ""}</span><h1>${esc(g.h1)}</h1><p style="color:var(--muted);font-size:14px">By Puro Classico${how}</p>${tocHtml ? text.replace("<h2 id=", tocHtml + "<h2 id=") : text}${g.faq ? faqHtml(g.faq) : ""}</article>
+${(() => { const w = g.finds || {}, l = all.filter(p => (!w.platform || p.platform === w.platform) && (!w.qc || p.qc >= w.qc));
+  return `<h2>${w.platform ? `Popular ${esc({ weidian: "Weidian", taobao: "Taobao", "1688": "1688" }[w.platform] || w.platform)} finds` : w.qc ? "Popular finds with QC photos" : "Popular finds"}</h2>${grid((l.length >= 8 ? l : all).slice(0, 8))}`; })()}
 <h2>More guides</h2><div class="chips">${GUIDE_LINKS.filter(([, u]) => u !== path).map(([t, u]) => `<a href="${u}">${esc(t)}</a>`).join("")}</div>`;
   const art = { "@context": "https://schema.org", "@type": "Article", headline: g.h1, description: g.desc, dateModified: g.updated || undefined, url: SITE + path,
-    author: { "@type": "Organization", name: "Puro Classico", url: SITE + "/" }, publisher: { "@type": "Organization", name: "Puro Classico", logo: { "@type": "ImageObject", url: SITE + "/logo-mark.png" } } };
+    author: { "@type": "Organization", name: "Puro Classico", url: SITE + "/" }, publisher: { "@type": "Organization", name: "Puro Classico", logo: { "@type": "ImageObject", url: SITE + "/logo-mark.png" } }, publishingPrinciples: own(GUIDES, "how-we-check") ? SITE + "/guides/how-we-check" : undefined };
   const ld = [bc.data, art]; if (g.faq) ld.push(faqLd(g.faq));
   return page({ title: g.title + " · Puro Classico", desc: g.desc, path, body, jsonld: ld });
 }
@@ -753,8 +836,8 @@ const STYLE_HUBS = {
     brands: ["Ralph Lauren", "Moncler", "Stone Island", "Lacoste", "Acne Studios", "Ami", "Burberry", "Golden Goose", "Loro Piana", "Arc'teryx",
              "CP Company", "Canada Goose", "Maison Margiela", "Tommy Hilfiger", "Fred Perry"],
     sub: n => `${n} Stockholm style finds: quarter-zips, cable knits, gilets, clean sneakers.`,
-    title: n => `Stockholm Style Spreadsheet 2026: ${n} Finds | Puro Classico`,
-    desc: n => `The Stockholm style reps spreadsheet: ${n} finds from Ralph Lauren, Moncler, Stone Island, Lacoste, Acne Studios and more, with QC photos and one-tap agent links.`,
+    title: n => `Stockholm Style Reps Spreadsheet 2026: ${n} Finds | Puro Classico`,
+    desc: n => `The Stockholm style reps spreadsheet: ${n} finds from Ralph Lauren, Moncler, Stone Island, Lacoste, Acne Studios and more, with one-tap agent links.`,
     faq: [["What is Stockholm style?", "The clean Scandinavian take on old money: Ralph Lauren cable knits and quarter-zips, Moncler gilets, Stone Island, Acne Studios basics, straight jeans and white leather sneakers. Neutral colours, small logos, good fit."],
           ["What should I buy first?", "A cable-knit or half-zip in navy, grey or cream, a quilted gilet and a pair of clean sneakers cover most outfits. Knitwear is light, so it is cheap to ship."],
           ["Do these finds fit like the real thing?", "Rep knitwear often runs a size small. Compare the listing's measurements with a sweater you own, and check the QC photos before you ship."],
@@ -765,7 +848,7 @@ const STYLE_HUBS = {
              "Hermes", "Rolex", "Cartier", "Tom Ford", "Zegna", "Barbour", "Canada Goose"],
     sub: n => `${n} grisch finds: Ralph, Moncler, Loro Piana, Lacoste and the rest of the look.`,
     title: n => `Grisch Spreadsheet 2026: ${n} Old Money Finds | Puro Classico`,
-    desc: n => `The grisch spreadsheet: ${n} old money finds from Ralph Lauren, Moncler, Loro Piana, Lacoste, Burberry and more, with QC photos and one-tap agent links.`,
+    desc: n => `The grisch spreadsheet: ${n} old money finds from Ralph Lauren, Moncler, Loro Piana, Lacoste, Burberry and more, with one-tap agent links.`,
     faq: [["What does grisch mean?", "Grisch is Scandinavian slang for the preppy old money look: Ralph Lauren polos and knits, Moncler, Loro Piana loafers, Lacoste, a good watch and Golden Goose or clean leather sneakers."],
           ["What are the hardest grisch pieces?", "Ralph Lauren cable knits and quarter-zips, Moncler gilets and puffers, Loro Piana suede loafers, Burberry check scarves and Golden Goose sneakers are the core of the look."],
           ["How do I order grisch reps?", "Open a find, tap the buy button for your agent (MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo), pick your size and pay. Check the QC photos at the warehouse before you ship."],
@@ -822,7 +905,7 @@ export function hubSpec(path) {
     return { path, preset: { qc: 1 }, h: "QC Photos Spreadsheet",
       sub: `${n} finds with buyer QC photos from earlier orders. Tap QC on a find to see real photos of the item before you buy.`,
       title: `QC Photos Spreadsheet 2026: ${n} Finds With Real QC Pics | Puro Classico`,
-      desc: `Rep finds with real QC photos: ${n} Weidian, Taobao and 1688 items with buyer QC pictures from earlier orders, prices and one-tap MyCNBox, KakoBuy, Oopbuy and Sugargoo links.`,
+      desc: `${n} rep finds marked as having buyer QC photos from earlier orders, with prices and one-tap links for MyCNBox, KakoBuy, Oopbuy and Sugargoo.`,
       crumbs: [["Home", "/"], ["QC photos spreadsheet", path]],
       chips: [["QC photos on your agent", AGENT_BRAND_AGENTS.map(k => [AGENTS[k].name, `/${k}-spreadsheet/qc`])],
               ["Check QC photos yourself", [["How to read QC photos", "/guides/how-to-qc"], ["QC checker", "/tools/qc-checker"]]],
@@ -838,7 +921,7 @@ export function hubSpec(path) {
     return { path, preset: {}, h: "CNFans Spreadsheet",
       sub: `CNFans showed a maintenance notice when we checked on ${CNFANS.checked}. All ${N} finds here open in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo.`,
       title: `CNFans Spreadsheet 2026: ${N} Finds for Working Agents | Puro Classico`,
-      desc: `CNFans showed a maintenance notice on ${CNFANS.checked}. ${N} rep finds with prices, QC photos and one-tap MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo links, plus a converter for old CNFans links.`,
+      desc: `CNFans showed a maintenance notice on ${CNFANS.checked}. ${N} finds that open in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo, plus an old-link converter.`,
       crumbs: [["Home", "/"], ["CNFans spreadsheet", path]],
       chips: [["Use your old CNFans links", [["Link converter", "/tools/link-converter"], ["Agents that closed or paused", "/guides/pandabuy-alternatives"]]],
               ["Agent spreadsheets that open every find", Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])],
@@ -858,7 +941,7 @@ export function hubSpec(path) {
     return { path, preset,
       h: st.h ? st.h(a.name) : `${st.name} on ${a.name}`, sub: st.sub ? st.sub(a.name, n) : `${n} ${low} finds with one-tap ${a.name} links.`,
       title: st.title ? st.title(a.name, n) : `${st.name} ${a.name} Spreadsheet 2026: ${n} Finds | Puro Classico`,
-      desc: st.desc ? st.desc(a.name, n) : `The ${low} ${a.name} spreadsheet: ${n} rep finds with prices, QC photos and one-tap ${a.name} buy links.`,
+      desc: st.desc ? st.desc(a.name, n) : `The ${low} ${a.name} spreadsheet: ${n} rep finds with prices and one-tap ${a.name} buy links.`,
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, `/${key}-spreadsheet`], [st.name, path]],
       chips: [[`${st.name} on other agents`, AGENT_BRAND_AGENTS.filter(k => k !== key).map(k => [AGENTS[k].name, `/${k}-spreadsheet/${s}`]).concat([st.parent])],
               [`More on ${a.name}`, Object.keys(AGENT_STYLES).filter(x => x !== s).map(x => [AGENT_STYLES[x].name, `/${key}-spreadsheet/${x}`]).concat([[`${a.name} spreadsheet`, `/${key}-spreadsheet`]])]],
@@ -880,7 +963,7 @@ export function hubSpec(path) {
     const what = key === "mycnbox" ? "<p>MyCNBox is a shopping agent: you pay MyCNBox for the item and the short delivery to its warehouse in China, it buys from the Weidian, Taobao or 1688 seller, takes QC photos when the item arrives, and ships your items together in one parcel when you are ready. Each find here opens the exact listing inside MyCNBox.</p>" : meta.body;
     return { path, preset: { agent: key }, h: `${a.name} Spreadsheet`, sub: `${N} finds, each with a one-tap ${a.name} buy button.`,
       aboutTitle: `How the ${a.name} spreadsheet works`, about: [[`What is ${a.name}?`, what], [`How to order from the ${a.name} spreadsheet`, howTo]],
-      title: `${meta.title}: ${N} Finds | Puro Classico`, desc: `The ${a.name} spreadsheet: ${N} rep finds with prices, QC photos and one-tap ${a.name} links. Search, filter and buy in one place.`,
+      title: `${meta.title}: ${N} Finds | Puro Classico`, desc: `The ${a.name} spreadsheet: ${N} rep finds with prices and one-tap ${a.name} links, ${nf(qc1)} marked as having buyer QC photos.${LINKS_CHECKED ? " Weidian links checked every week." : ""}`,
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, path]],
       chips: [...(AGENT_BRAND_AGENTS.includes(key) ? [[`Browse on ${a.name}`, Object.keys(AGENT_STYLES).map(x => [AGENT_STYLES[x].name, `${path}/${x}`])]] : []),
               [`Popular brands on ${a.name}`, brands.slice(0, 16).map(b => [`${b} (${nf(byBrand.get(b).length)})`, `${path}/${brandSlug.get(b)}`])],
@@ -896,34 +979,57 @@ export function hubSpec(path) {
   if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|sugargoo)-spreadsheet\/([a-z][a-z0-9-]*)$/))) {
     const key = m[1], s = m[2], a = AGENTS[key], b = slugBrand.get(s);
     if (!a || !b || !agentBrands().includes(b)) return null;
-    const n = nf(byBrand.get(b).length);
+    const n = nf(byBrand.get(b).length), f = brandFacts(b), range = priceRange(f.list);
+    // Page 1 is the app view: renderAgentBrand's how-to and FAQ were page-1 only and so shown nowhere (the agent hubs got the same fix on 22 Oct 2026).
+    const howTo = agentHowTo({ ...a, key }).replace(/^\s*<h2>[^<]*<\/h2>\s*/, "")
+      .replace('<ol class="steps">', '<ol style="margin:10px 0 0;padding-left:20px;color:var(--muted);font-size:14.5px;line-height:1.6">');
     return { path, preset: { agent: key, brand: s }, h: `${b} on ${a.name}`, sub: `${n} ${b} finds with one-tap ${a.name} links.`,
-      title: `${b} ${a.name} Spreadsheet 2026: ${n} Finds | Puro Classico`, desc: `${n} ${b} rep finds with prices, QC photos and one-tap ${a.name} buy links.`,
+      aboutTitle: `How to buy ${b} on ${a.name}`, about: [[`Ordering ${b} reps through ${a.name}, step by step`, howTo]],
+      title: `${b} ${a.name} Spreadsheet 2026: ${n} Finds | Puro Classico`, desc: `${n} ${b} rep finds with one-tap ${a.name} buy links${f.med ? `, half listed at ${money(f.med.cny)} or less` : ""}${f.q1 ? `, ${nf(f.q1)} marked as having QC photos` : ""}.${LINKS_CHECKED ? " Weidian links checked every week." : ""}`,
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, `/${key}-spreadsheet`], [b, path]],
       chips: [[`${b} on other agents`, AGENT_BRAND_AGENTS.filter(k => k !== key).map(k => [AGENTS[k].name, `/${k}-spreadsheet/${s}`]).concat([[`All ${b} reps`, `/brand/${s}`]])],
               [`More brands on ${a.name}`, agentBrands().filter(x => x !== b).slice(0, 14).map(x => [x, `/${key}-spreadsheet/${brandSlug.get(x)}`])]],
-      faq: [[`How do I buy ${b} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, choose your size and pay. ${a.name} sends QC photos when it reaches the warehouse; check them, then ship.`]] };
+      faq: [[`How do I buy ${b} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, choose your size and pay. ${a.name} sends QC photos when it reaches the warehouse; check them, then ship.`],
+            ...(range ? [[`How much do ${b} reps cost on ${a.name}?`, `${b} finds here are listed at ${range} before international shipping. These are the sellers' listed prices from the last catalogue update, so check the price on ${a.name} before you pay.`]] : []),
+            [`Do these ${b} finds have QC photos?`, f.q1 ? `Our catalogue marks ${nf(f.q1)} of the ${n} as having buyer QC photos from earlier orders. Open a find and tap QC to load them. ${a.name} also photographs your own item at its warehouse before it ships.` : `Our catalogue does not mark any of them as having buyer QC photos yet. ${a.name} photographs your own item at its warehouse before it ships.`],
+            [`Are these ${b} finds only for ${a.name}?`, `No. The same finds open on ${AGENT_BRAND_AGENTS.filter(k => k !== key).map(k => AGENTS[k].name).join(", ")} and LoveGoBuy; each find has a button for every agent.`]] };
   }
   if ((m = path.match(/^\/brand\/([a-z0-9-]+)$/))) {
     const s = m[1], b = slugBrand.get(s); if (!b) return null;
     const list = byBrand.get(b), n = nf(list.length);
     const rel = relatedBrands(b).slice(0, 12);
     const ag = agentBrands().includes(b) ? AGENT_BRAND_AGENTS.map(k => [`${b} on ${AGENTS[k].name}`, `/${k}-spreadsheet/${s}`]) : [];
+    // Page 1 of a brand hub is this app view, so what renderBrand wrote for page 1 (the brand intro and QC checks, the facts
+    // worked out from its rows, its model pages and the brand FAQ) reached no page (28 Oct 2026). It goes in the block under
+    // the app, as the agent hubs' intro did on 22 Oct. Title and description keep to catalogue data (rules above brandFacts):
+    // the half-way listed price (the lowest listed price is often a deposit or placeholder), the main item type when it is
+    // more than half the list, and how many finds are marked as having QC photos (no QC words when there are none).
+    const f = brandFacts(b), bm = models().filter(x => x.list.some(p => p.brand === b));
+    const t0 = f.types[0], share = t0 && !t0[0].startsWith("other") ? t0[1].length / f.n : 0;
+    const half = f.med ? `, half listed at ${money(f.med.cny)} or less` : "", qcN = f.q1 ? `, ${nf(f.q1)} marked as having QC photos` : "";
+    const main = share === 1 ? `, all ${t0[0]}` : share > 0.5 ? `, mostly ${t0[0]}` : "", tail = " Buy via MyCNBox, KakoBuy, Oopbuy or your agent.";
+    const lead = `${n} ${b} rep find${f.n === 1 ? "" : "s"}${half}`;
+    const bDesc = [`${lead}${main}${qcN}.${tail}`, `${lead}${qcN}.${tail}`, `${lead}${qcN}.`].find(x => x.length <= 160) || `${n} ${b} rep finds.`;
     return { path, preset: { brand: s }, h: `${b} Reps`, sub: `${n} ${b} finds from Weidian, Taobao and 1688.`,
-      title: `${b} Reps Spreadsheet 2026: ${n} Finds | Puro Classico`, desc: `${n} ${b} rep finds with prices, QC photos and links for MyCNBox, KakoBuy, Oopbuy and more.`,
+      title: `${b} Reps Spreadsheet 2026: ${n} Finds | Puro Classico`, desc: bDesc,
       crumbs: [["Home", "/"], ["Brands", "/brands"], [b, path]],
-      chips: [...(ag.length ? [[`Buy ${b} with your agent`, ag]] : []), ["Related brands", rel.map(x => [x, `/brand/${brandSlug.get(x)}`]).concat([["All brands", "/brands"]])]],
-      faq: [[`Where can I buy ${b} reps?`, `Every ${b} find here opens in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo. Pick your agent on the find, choose your size and check the QC photos before you ship.`]] };
+      aboutTitle: `About ${b} reps`,
+      about: [[`What to check on ${b} reps`, BRAND_INTRO[b] || ""], [`${b} on the spreadsheet, in numbers`, brandFactsHtml(f)]].filter(([, h]) => h),
+      chips: [...(bm.length ? [["Best reps by model", bm.map(x => [`Best ${MODEL_TERM[x.slug] || x.name} reps`, `/best/${x.slug}`])]] : []),
+              ...(ag.length ? [[`Buy ${b} with your agent`, ag]] : []), ["Related brands", rel.map(x => [x, `/brand/${brandSlug.get(x)}`]).concat([["All brands", "/brands"]])]],
+      faq: brandFaq(f, bestHub(f)) };
   }
   if ((m = path.match(/^\/category\/([a-z0-9-]+)$/))) {
     const s = m[1], c = own(CAT_BY_SLUG, s) ? CAT_BY_SLUG[s] : null; if (!c) return null;
-    const list = byCat.get(c) || [], meta = CATS[c], n = nf(list.length);
+    const list = byCat.get(c) || [], meta = CATS[c], n = nf(list.length), q1 = list.filter(p => p.qc >= 1).length;
     const top = [...new Set(list.map(p => p.brand))].filter(b => brandSlug.has(b)).slice(0, 16);
     return { path, preset: { cat: c }, h: meta.h, sub: `${n} finds, most viewed first.`,
-      title: `${meta.h}: ${n} Finds (2026) | Puro Classico`, desc: `${n} ${meta.name.toLowerCase()} rep finds with prices, QC photos and one-tap agent links, sorted by most viewed.`,
+      title: `Rep ${meta.name} Spreadsheet 2026: ${n} Finds | Puro Classico`, desc: `${n} ${meta.name.toLowerCase()} rep finds${q1 ? `, ${nf(q1)} marked as having buyer QC photos` : ""}, most viewed first. Buy via MyCNBox, KakoBuy, Oopbuy or your agent.`,
       crumbs: [["Home", "/"], [meta.name, path]],
       chips: [[`Top brands in ${meta.name.toLowerCase()}`, top.map(b => [b, `/brand/${brandSlug.get(b)}`])],
               ["Other categories", Object.values(CATS).filter(x => x.slug !== s && x.slug !== "toys").map(x => [x.name, `/category/${x.slug}`])]],
+      // CAT_INTRO was only on renderCategory's page 1, which this app view replaced (28 Oct 2026).
+      aboutTitle: `About ${meta.name.toLowerCase()} reps`, about: CAT_INTRO[c] ? [[`Buying ${meta.name.toLowerCase()} reps`, CAT_INTRO[c]]] : [],
       faq: [] };
   }
   return null;
@@ -931,13 +1037,13 @@ export function hubSpec(path) {
 // The HTML pieces the middleware puts into index.html for a hub spec. `more` (the links to pages 2+) opens the block.
 export function hubParts(spec, more = "") {
   const bc = crumbs(spec.crumbs);
-  const crumbHtml = `<nav class="hub-bc" aria-label="Breadcrumb">${spec.crumbs.map((c, i) => i < spec.crumbs.length - 1 ? `<a href="${c[1]}">${esc(c[0])}</a><span>›</span>` : `<span aria-current="page">${esc(c[0])}</span>`).join("")}</nav>`;
+  const crumbHtml = `<nav class="hub-bc" aria-label="Breadcrumb">${spec.crumbs.map((c, i) => i < spec.crumbs.length - 1 ? `<a href="${c[1]}">${esc(c[0])}</a><span aria-hidden="true">›</span>` : `<span aria-current="page">${esc(c[0])}</span>`).join("")}</nav>`;
   const about = spec.about && spec.about.length ? `<h2>${esc(spec.aboutTitle || "About")}</h2>${spec.about.map(([q, html]) => `<details><summary>${esc(q)}</summary>${html}</details>`).join("")}<div style="height:28px"></div>` : "";
   const seo = `<section class="hub-seo">${more}${about}${spec.chips.filter(c => c[1].length).map(([t, links]) => `<h2>${esc(t)}</h2><div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `<h2>FAQ</h2>${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
   const ld = [bc.data]; if (spec.faq.length) ld.push(faqLd(spec.faq));
   const page = { h: spec.h, sub: spec.sub, agent: spec.preset.agent || null, brand: spec.preset.brand || null, cat: spec.preset.cat || null, brands: spec.preset.brands || null,
     qc: spec.preset.qc || null, pmax: spec.preset.pmax || null };
-  const head = `<script>window.PC_PAGE=${JSON.stringify(page).replace(/</g, "\\u003c")};document.documentElement.classList.add("hub"${page.agent ? ',"agent-lock"' : ""});</script>` +
+  const head = `<script>window.PC_PAGE=${JSON.stringify(page).replace(/</g, "\\u003c")};document.documentElement.classList.add("hub"${page.agent ? ',"agent-lock"' : ""}${page.brand || page.cat ? ',"af-pre"' : ""});</script>` +
     ld.map(o => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, "\\u003c") + "</script>").join("");
   return { crumbHtml, seo, head };
 }
@@ -968,9 +1074,9 @@ const appAlt = p => { const t = p.title || "", b = p.brand || ""; return (b && !
 export function appCards(list, qcMin = 2) {   // qcMin: the QC badge threshold (1 on the QC photo hubs, like the app there)
   return list.map((p, i) => {
     const img = imgSrc(p), id = esc(p.id);
-    return `<div class="card" tabindex="0" role="button" data-ssr="${id}"><div class="thumb"><canvas aria-hidden="true"></canvas>` +
+    return `<div class="card" data-ssr="${id}"><div class="thumb"><canvas aria-hidden="true"></canvas>` +
       (img ? `<img class="pimg" src="${esc(thumbSrc(img))}" data-o="${esc(img)}" alt="${esc(appAlt(p))}" loading="${i < 8 ? "eager" : "lazy"}"${i < 4 ? ' fetchpriority="high"' : ""} decoding="async" ${IMG_FALLBACK}>` : "") +
-      `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save">${HEART}</button>${p.qc >= qcMin ? '<span class="qc-badge">\u{1F4F7} QC</span>' : ""}</div>` +
+      `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save ${esc(p.title)}">${HEART}</button>${p.qc >= qcMin ? '<span class="qc-badge">\u{1F4F7} QC</span>' : ""}</div>` +
       `<div class="body">${p.brand ? `<span class="brand-line">${esc(p.brand)}</span>` : ""}<a class="title" href="${productUrl(p)}">${esc(p.title)}</a>` +
       `<span class="price-row"><span class="price">${money(p.cny)}</span>${isPH(p.cny) ? "" : `<span class="subprice">¥${(+p.cny).toLocaleString("en-US")}</span>`}` +
       `<span class="starcount" data-sc="${id}"></span><span class="cat">${esc(p.cat)}</span></span></div></div>`;

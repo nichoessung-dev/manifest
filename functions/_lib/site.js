@@ -1,7 +1,14 @@
 // Shared server-side rendering for the SEO pages (product pages, hubs, guides, sitemaps, 404).
 // Everything here is plain HTML + a little CSS so Google sees real content without running JS.
 import { ROWS, PREFIX, BUILT } from "./catalog.js";
-import { CHECKED, DEMAND, DEAD, SOLD_OUT } from "./signals.js";
+import * as SIG from "./signals.js";
+const { CHECKED, DEMAND, DEAD, SOLD_OUT } = SIG;
+// QC photo bank results (scripts/gen_signals.py from data/qc_bank.json, 28 Oct 2026), read through the namespace so a
+// signals.js written before these lists existed still loads. QC_BANKED: { id: "YYYY-MM-DD" }, the finds whose QC photos
+// are stored and the day they were. NO_QC: finds the catalogue only flags as having QC photos (qc 1) that the bank looked
+// up and found none for. They count as finds without QC photos everywhere: page text and title, indexing, hub counts.
+export const QC_BANKED = SIG.QC_BANKED || {};
+const NO_QC = new Set(SIG.NO_QC || []);
 
 export const SITE = "https://www.puroclassico.com";
 export const MYCNBOX_INVITE = "https://mycnbox.com/login/main-login?inviteCode=AACPYA";
@@ -24,7 +31,7 @@ function normBrand(p) {
   return p;
 }
 export const P = ROWS.map(r => normBrand({ id: r[0], title: r[1], brand: r[2], cat: r[3], platform: r[4], seller: r[5], usd: r[6], cny: r[7],
-  qc: r[8], best: r[9], views: r[10], img: r[11], g: r[12], itemId: r[13], variants: r[14] }));
+  qc: NO_QC.has(r[0]) ? 0 : r[8], best: r[9], views: r[10], img: r[11], g: r[12], itemId: r[13], variants: r[14] }));
 // Real view stats (data/stats.json, refreshed every 6h by the Stats workflow): { id: [all, 30d, 7d, favourites] }
 // VIEWS_VER counts the different stats files this server instance has loaded (0 = none yet); every cache derived from
 // the numbers (idx(), and the model, brand-facts and related-brands caches in pages.js) is rebuilt when it moves.
@@ -179,7 +186,7 @@ export function card(p, lazy = true) {
 export const grid = (list, eager = 0) => `<div class="g">${list.map((p, i) => card(p, i >= eager)).join("")}</div>`;
 
 export function crumbs(items) {
-  const html = `<nav class="bc" aria-label="Breadcrumb">${items.map((it, i) => i < items.length - 1 ? `<a href="${it[1]}">${esc(it[0])}</a><span>›</span>` : `<span aria-current="page">${esc(it[0])}</span>`).join("")}</nav>`;
+  const html = `<nav class="bc" aria-label="Breadcrumb">${items.map((it, i) => i < items.length - 1 ? `<a href="${it[1]}">${esc(it[0])}</a><span aria-hidden="true">›</span>` : `<span aria-current="page">${esc(it[0])}</span>`).join("")}</nav>`;
   const data = { "@context": "https://schema.org", "@type": "BreadcrumbList",
     itemListElement: items.map((it, i) => ({ "@type": "ListItem", position: i + 1, name: it[0], item: SITE + it[1] })) };
   return { html, data };
@@ -201,7 +208,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "8";
+export const DS_VER = "9";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -222,6 +229,11 @@ export const GUIDE_LINKS = [
   ["KakoBuy coupon code ($410)", "/guides/kakobuy-coupon-code"],
   ["All agent sign-up bonuses", "/guides/agent-coupons"],
 ];
+// The guides in every footer (28 Oct 2026): the ones with the most Search Console impressions (28 days to 26 Oct: rep
+// spreadsheet 3,689, Pandabuy alternatives 3,611, MyCNBox review 2,317, Weidian 2,086, QC 1,221, best agent 746), not the
+// first 7 of GUIDE_LINKS, which gave site-wide links to Taobao (153) and 1688 and none to the top three.
+export const FOOTER_GUIDES = ["/how-to-order", "/guides/what-is-a-rep-spreadsheet", "/guides/pandabuy-alternatives", "/guides/mycnbox-review",
+  "/guides/how-to-buy-from-weidian", "/guides/how-to-qc", "/guides/best-shopping-agent"];
 export const TOOL_LINKS = [["Link converter", "/tools/link-converter"], ["QC checker", "/tools/qc-checker"], ["Weight estimator", "/tools/weight-estimator"], ["Shipping calculator", "/tools/shipping-calculator"]];
 
 function footer() {
@@ -236,15 +248,15 @@ ${col("Categories", Object.values(CATS).filter(c => c.slug !== "toys").map(c => 
 ${col("Brands", topBrands.slice(0, half))}
 ${col("More brands", topBrands.slice(half).concat([["All brands →", "/brands"]]))}
 ${col("Spreadsheets", [["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Old money spreadsheet", "/old-money"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Grisch spreadsheet", "/grisch-spreadsheet"]])}
-${col("Guides", GUIDE_LINKS.slice(0, 7).concat([["All guides →", "/guides"]]))}
+${col("Guides", FOOTER_GUIDES.map(u => GUIDE_LINKS.find(g => g[1] === u)).filter(Boolean).concat([["All guides →", "/guides"]]))}
 ${col("Tools & best reps", TOOL_LINKS.concat([["Best reps by model →", "/best"]]))}
-${col("Puro Classico", [["Browse all finds", "/"], ["Discord community", "/discord"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
-</div><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents may be affiliate links. Prices are shown as listed by the seller and can change. © Puro Classico</p></div></footer>`;
+${col("Puro Classico", [["Browse all finds", "/"], ["How we check", "/guides/how-we-check"], ["Discord community", "/discord"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
+</div><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents are affiliate links: we may earn a commission if you order, at no extra cost to you. Prices are shown as listed by the seller and can change. © Puro Classico</p></div></footer>`;
 }
 
 export function page({ title, desc, path, body, jsonld = [], robots = "index,follow,max-image-preview:large", image, status = 200, extraHead = "" }) {
   const url = SITE + path;
-  if (title.length > 65 && title.endsWith(" · Puro Classico")) title = title.slice(0, -" · Puro Classico".length);   // keep long titles within what Google shows
+  if (title.length > 60) title = title.replace(/ [·|] Puro Classico$/, "");   // Google shows about 60 characters, and prints the site name above every result anyway
   const img = image || SITE + "/og.png";
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -260,17 +272,18 @@ ${status === 200 ? `<link rel="canonical" href="${esc(url)}">` : ""}
 <meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${esc(img)}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${esc(img)}">
 <meta name="theme-color" content="#0B0D10"><link rel="icon" type="image/png" href="/favicon.png">
-<script>try{var t=localStorage.getItem("manifest.theme");if(t==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
+<script>try{var t=localStorage.getItem("manifest.theme");if(t==="light"){document.documentElement.setAttribute("data-theme","light");var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#F5F5F7";}}catch(e){}</script>
 <link rel="preload" href="/fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin><style>@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/instrument-sans-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:400 500;font-display:swap;src:url(/fonts/jetbrains-mono-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
 <link rel="stylesheet" href="/ds.css?v=${DS_VER}">
 ${jsonld.map(ld).join("\n")}
 ${extraHead}
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 <header class="h"><div class="w"><a href="/" aria-label="Puro Classico home"><span class="logo" role="img" aria-label="Puro Classico"></span></a>
 <nav>${[["/", "Browse finds"], ["/brands", "Brands"], ["/best", "Best reps"], ["/old-money", "Old money"], ["/guides", "Guides"], ["/tools", "Tools"], ["/how-to-order", "How to order"]].map(([u, t]) => `<a href="${u}"${u !== "/" && (path === u || path.startsWith(u + "/")) ? ' aria-current="page"' : ""}>${t}</a>`).join("")}</nav>
 <a class="btn red hcta" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">Claim $500 MyCNBox coupons</a></div></header>
-<main><div class="w">
+<main id="main"><div class="w">
 ${body}
 </div></main>
 ${footer()}
