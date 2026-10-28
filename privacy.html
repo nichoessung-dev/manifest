@@ -10,7 +10,7 @@
 <meta name="description" content="Privacy & cookies policy for Puro Classico – what we collect, how we use it, and your GDPR rights.">
 <meta name="robots" content="index,follow">
 <link rel="preload" href="/fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin><style>@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/instrument-sans-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:400 500;font-display:swap;src:url(/fonts/jetbrains-mono-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
-<link rel="stylesheet" href="/ds.css?v=8">
+<link rel="stylesheet" href="/ds.css?v=9">
 <script>(function(){var t;try{t=localStorage.getItem("manifest.theme");}catch(e){}document.documentElement.setAttribute("data-theme",(t==="light"||t==="dark")?t:"dark");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",document.documentElement.getAttribute("data-theme")==="light"?"#F6F8FB":"#0C1220");})();</script>
 <style>
 :root{--ground:var(--bg);--f-disp:var(--font);--f-mono:var(--font);--radius:var(--r-lg)}
@@ -48,7 +48,7 @@ footer a{color:var(--muted)}
 <div class="wrap">
 <p class="eyebrow">Legal</p>
 <h1>Privacy &amp; Cookies</h1>
-<div class="updated">Last updated: 1 October 2026</div>
+<div class="updated">Last updated: 28 October 2026</div>
 
 
 <div class="card">
@@ -60,23 +60,27 @@ footer a{color:var(--muted)}
 <li><b>Account:</b> your email address, so you can sign in. If you use Google or Discord sign-in, we receive your email and a basic profile identifier from them.</li>
 <li><b>Your activity:</b> the items you save and the comments you post.</li>
 <li><b>Usage:</b> which product pages are opened (product, brand and category, linked to your account if you are signed in), used to rank popular items. We also count how many people are viewing the site right now, using a random identifier that is not linked to you.</li>
-<li><b>Marketing emails:</b> only if you opt in (the "Email me new drops &amp; deals" box or the "Notify me" prompt), we use your email address to send occasional emails about new drops and deals. Every email has an unsubscribe link, and you can also ask us to stop on Discord.</li>
+<li><b>Emails:</b> every new member gets a welcome email with the MyCNBox sign-up link and a how-to-order email. Newsletters, saved-item reminders and the MyCNBox reminder go only to members who ticked "Email me new drops &amp; deals". Every email has an unsubscribe link, and you can also ask us to stop on Discord.</li>
 <li><b>Referrals:</b> if you arrive through a referral link, we note which referral code brought you when you create an account.</li>
+<li><b>Buy clicks:</b> when you tap a link to a shopping agent, we record the agent, the item, the page, your country (worked out by Cloudflare from your connection) and where your visit came from, such as a search engine, an app or a referral code. We do not store your IP address or your account with it.</li>
+<li><b>Site statistics:</b> Cloudflare Web Analytics counts page views and page speed. It sets no cookies and stores nothing on your device.</li>
 <li><b>Technical:</b> standard server and security data (such as IP address) processed by our hosting provider.</li>
 </ul>
 <p>We do not collect payment details. Purchases happen entirely on your agent's site.</p>
+<p>Why we use it: your account, the emails that come with it and the buy links are needed to run the service you signed up for. Marketing emails rely on your consent, which you can withdraw at any time. View and click counts, statistics and security logs rely on our legitimate interest in running and improving the site.</p>
 
 <h2>3. Cookies and local storage</h2>
 <p>We use only what the site needs to work, plus a referral cookie when you use a referral link:</p>
 <table>
 <tr><td><b>Sign-in</b></td><td>Set by our authentication provider (Supabase) to keep you logged in.</td></tr>
 <tr><td><b>Referral (pc_ref)</b></td><td>A first-party cookie set only when you open a referral link (/r/&hellip;). It stores the referral code for 30 days so the referrer can be credited.</td></tr>
-<tr><td><b>Preferences</b></td><td>Your language, currency, theme and saved items are stored in your browser (local storage).</td></tr>
+<tr><td><b>Preferences</b></td><td>Your language, currency, theme, saved items, email choice and whether you closed the sign-up window are stored in your browser (local storage). If you arrive through a link with a referral code (?ref=&hellip;), that code is kept there too, so the referrer can be credited if you sign up.</td></tr>
+<tr><td><b>Visit source (pc.src)</b></td><td>Kept in this browser tab only (session storage) and gone when you close it. It notes where this visit came from, so buy clicks can be counted per source.</td></tr>
 </table>
 <p>We do not currently use advertising or third-party tracking cookies. If that changes, we will ask for your consent first.</p>
 
 <h2>4. Who we share with</h2>
-<p>Service providers that run the site on our behalf: Supabase (accounts, database), Cloudflare (hosting, security), Brevo (sending marketing emails, only if you opted in), qualit.ly (product and QC data), and Google or Discord if you choose their sign-in. We do not sell your data.</p>
+<p>Service providers that run the site on our behalf: Supabase (accounts, database), Cloudflare (hosting, security, site statistics), Brevo (sends all our emails, so it holds every member's email address), qualit.ly (product and QC data; we send it no personal data), and Google or Discord if you choose their sign-in. We do not sell your data.</p>
 
 <h2>5. Your rights</h2>
 <p>Under the GDPR you can request access to your data, correction, deletion, or a copy to take elsewhere, and you can object to certain processing. To exercise any of these, message us on our Discord. You can also delete your comments and saved items yourself while signed in, and you may complain to the Norwegian Data Protection Authority (Datatilsynet).</p>

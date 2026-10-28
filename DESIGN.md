@@ -18,7 +18,7 @@ One look for every page: **qualit.ly's dark, hairline-and-card style with modern
 | `--line` / `--line-2` | `#23272E` / `#323840` | `#E3E3E8` / `#D2D2D7` | Hairline borders / hover and control borders |
 | `--fill` / `--fill-ink` | ink / bg | ink / white | Primary pill button |
 | `--glass` | 72% surface | 72% white | Floating header (with an 18 px backdrop blur) |
-| `--accent` | `#8EA6DC` | `#0071E3` | Small highlights only |
+| `--accent` | `#8EA6DC` | `#0066CC` | Small highlights only (4.5:1 as link text on the light ground) |
 | `--brand-red` | `#D9301E` | same | MyCNBox call to action only |
 | `--font` (app: `--f-body`, `--f-disp`) | Instrument Sans | | All text |
 | `--mono` (app: `--f-code`) | JetBrains Mono | | Eyebrow labels, brand lines on cards, small metadata |

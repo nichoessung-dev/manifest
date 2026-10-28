@@ -73,4 +73,6 @@
   }
   document.addEventListener("click", onClick, true);
   document.addEventListener("auxclick", onClick, true);
+  // iOS Safari only shows :active press styles when the page listens for touches; this empty listener turns them on
+  document.addEventListener("touchstart", function () {}, { passive: true });
 })();
