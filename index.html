@@ -2654,6 +2654,8 @@ async function sendMagic(){
   const email=($("#auth-email").value||"").trim(); const st=$("#auth-status");
   st.classList.remove("err");
   if(!validEmail(email)){ st.textContent=t("invalid_email"); st.classList.add("err"); return; }
+  { const fx=emailFix(email); if(fx===""){ st.textContent="That email can't receive mail. Use your real address."; st.classList.add("err"); return; }
+    if(fx&&fx!==email){ $("#auth-email").value=fx; st.textContent="Did you mean "+fx+"? We fixed it. Tap again to send."; st.classList.add("err"); return; } }
   if(!sb){ st.textContent=t("auth_off"); st.classList.add("err"); return; }
   st.textContent="…"; saveReturnHash();
   try{ const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin}}); if(error)throw error; st.textContent=t("check_email"); }
@@ -3366,11 +3368,20 @@ function enhanceDrawer(p){
 
 /* magic link from the gate email box */
 function validEmail(e){ return /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[a-z]{2,}$/i.test(e) && !/\.\./.test(e); }
+/* bounce guard (29 Oct 2026, Supabase warned about bounced sign-in emails): catch common domain typos and fake domains
+   before a magic link is sent. Returns a corrected address, "" when the domain cannot receive mail, or null when fine. */
+function emailFix(e){ try{ const at=e.lastIndexOf("@"); if(at<1) return null; const u=e.slice(0,at), d=e.slice(at+1).toLowerCase();
+  const FIX={"gmial.com":"gmail.com","gmai.com":"gmail.com","gmal.com":"gmail.com","gamil.com":"gmail.com","gnail.com":"gmail.com","gmail.co":"gmail.com","gmail.con":"gmail.com","gmail.cm":"gmail.com","gmail.om":"gmail.com","gmail.comm":"gmail.com","gmaill.com":"gmail.com","gmali.com":"gmail.com","gmail.c":"gmail.com","gmail.cmo":"gmail.com","gmail.vom":"gmail.com","gmail.xom":"gmail.com","googlemail.con":"googlemail.com","hotmial.com":"hotmail.com","hotmai.com":"hotmail.com","hotmal.com":"hotmail.com","hotmail.co":"hotmail.com","hotmail.con":"hotmail.com","homtail.com":"hotmail.com","yaho.com":"yahoo.com","yahooo.com":"yahoo.com","yahoo.con":"yahoo.com","yahoo.co":"yahoo.com","outlok.com":"outlook.com","outloo.com":"outlook.com","outlook.con":"outlook.com","outlook.co":"outlook.com","iclod.com":"icloud.com","icould.com":"icloud.com","icloud.con":"icloud.com","icloud.co":"icloud.com","icoud.com":"icloud.com","live.con":"live.com","protonmail.con":"protonmail.com","proton.mail":"proton.me"};
+  if(FIX[d]) return u+"@"+FIX[d];
+  if(/^(example|test|email|mail|domain|asdf|abc)\.(com|net|org)$/.test(d)||/(^|\.)(test|example|invalid|localhost)$/.test(d)) return "";
+  return null; }catch(x){ return null; } }
 async function sendMagicGate(){
   const inp=$("#gate-email-input"), st=$("#gate-email-status");
   if(!inp) return;
   const email=(inp.value||"").trim();
   if(!validEmail(email)){ if(st){st.textContent=t("invalid_email");st.classList.add("err");} inp.classList.add("err"); inp.focus(); return; }
+  { const fx=emailFix(email); if(fx===""){ if(st){st.textContent="That email can't receive mail. Use your real address.";st.classList.add("err");} inp.classList.add("err"); inp.focus(); return; }
+    if(fx&&fx!==email){ inp.value=fx; if(st){st.textContent="Did you mean "+fx+"? We fixed it. Tap again to send.";st.classList.add("err");} inp.focus(); return; } }
   inp.classList.remove("err"); if(st)st.classList.remove("err");
   if(typeof sb==="undefined"||!sb){ if(st){st.textContent=t("auth_off");st.classList.add("err");} return; }
   if(st)st.textContent="…"; saveReturnHash();
