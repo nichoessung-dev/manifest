@@ -7,130 +7,258 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="light dark">
 <title>Puro Classico Stats</title>
+<meta name="theme-color" content="#FFFFFF">
+<script>(function(){var d=document.documentElement,t;try{t=localStorage.getItem("manifest.theme")}catch(e){}if(t!=="light"&&t!=="dark")t="system";d.setAttribute("data-theme-pref",t);if(t!=="system")d.setAttribute("data-theme",t);d.classList.add("js");try{var k=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector('meta[name="theme-color"]');if(m)m.content=k?"#0A0A0A":"#FFFFFF"}catch(e){}})();</script>
+<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+  /* v9 dashboard shell, shared by /stats and /admin (copies of the ds.css tokens: keep both pages in step with ds.css) */
+  @font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/inter-latin.woff2) format("woff2")}
   :root{
-    --bg:#f5f5f7; --card:#ffffff; --ink:#1d1d1f; --ink2:#6e6e73; --ink3:#a1a1a6; --line:rgba(0,0,0,.08);
-    --blue:#0071e3; --blue-soft:rgba(0,113,227,.14); --green:#28a745; --green-soft:rgba(40,167,69,.14);
-    --violet:#8e5cf7; --violet-soft:rgba(142,92,247,.16); --orange:#f5a623; --red:#e5484d;
-    --shadow:0 1px 2px rgba(0,0,0,.04),0 6px 24px rgba(0,0,0,.05);
+    --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    --r-sm:8px; --r-md:10px; --r-lg:12px; --r-pill:999px; --maxw:1280px;
+    --ease-out:cubic-bezier(.22,1,.36,1);
+    --bg:#FFFFFF; --ink:#0A0A0A; --ink-2:#404040; --surface:#FFFFFF; --surface-2:#F5F5F5; --muted:#6B6B6B;
+    --line:#E5E5E5; --line-2:#E5E5E5; --fill:#171717; --fill-ink:#FAFAFA; --ring:#737373; --input-line:#949494; --hover:#F5F5F5;
+    --header:rgba(255,255,255,.6); --header-solid:#FFFFFF;
+    --sh-sm:0 1px 2px rgba(0,0,0,.05); --sh-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);
+    /* chart + status colours */
+    --c1:#0A0A0A; --c2:#A3A3A3; --grid:#EDEDED; --axis:#737373; --ok:#15803D; --live:#22C55E; --sk:#EDEDED; --sk-hi:#F7F7F7; --seg-on:#FFFFFF;
+    color-scheme:light;
   }
-  @media (prefers-color-scheme:dark){:root{
-    --bg:#000; --card:#151517; --ink:#f5f5f7; --ink2:#a1a1a6; --ink3:#6e6e73; --line:rgba(255,255,255,.09);
-    --blue:#2997ff; --blue-soft:rgba(41,151,255,.18); --green:#30d158; --green-soft:rgba(48,209,88,.16);
-    --violet:#a78bfa; --violet-soft:rgba(167,139,250,.18); --shadow:none;
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0A0A0A; --ink:#FAFAFA; --ink-2:#D4D4D4; --surface:#171717; --surface-2:#262626; --muted:#A1A1A1;
+    --line:rgba(255,255,255,.1); --line-2:rgba(255,255,255,.15); --fill:#E5E5E5; --fill-ink:#171717; --input-line:rgba(255,255,255,.4); --hover:#262626;
+    --header:rgba(10,10,10,.6); --header-solid:#0A0A0A;
+    --sh-sm:0 1px 2px rgba(0,0,0,.3); --sh-md:0 4px 6px -1px rgba(0,0,0,.4),0 2px 4px -2px rgba(0,0,0,.4);
+    --c1:#FAFAFA; --c2:#737373; --grid:#262626; --axis:#8A8A8A; --ok:#4ADE80; --sk:#232323; --sk-hi:#2E2E2E; --seg-on:#404040;
+    color-scheme:dark;
   }}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1080px;margin:0 auto;padding:40px 20px 72px}
-  header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:28px}
-  .eyebrow{font-size:13px;font-weight:600;color:var(--ink2);letter-spacing:.02em}
-  h1{font:700 40px/1.05 -apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",sans-serif;letter-spacing:-.025em;margin:4px 0 0}
-  .tools{display:flex;align-items:center;gap:10px}
-  .live{display:inline-flex;align-items:center;gap:8px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px}
-  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 var(--green-soft);animation:ping 2s infinite}
-  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(48,209,88,.5)}70%{box-shadow:0 0 0 8px rgba(48,209,88,0)}100%{box-shadow:0 0 0 0 rgba(48,209,88,0)}}
-  .btn{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font:600 13px/1 inherit;cursor:pointer;box-shadow:var(--shadow)}
-  .btn:hover{border-color:var(--ink3)}
-  .updated{font-size:12.5px;color:var(--ink3);margin-top:6px}
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
-  @media(max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px}
-  .kpi .label{font-size:13px;color:var(--ink2);font-weight:500}
-  .kpi .value{font:700 34px/1.1 -apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",sans-serif;letter-spacing:-.02em;margin-top:8px;font-variant-numeric:tabular-nums}
-  .kpi .delta{font-size:12.5px;font-weight:600;margin-top:6px;color:var(--ink2)}
-  .up{color:var(--green)} .down{color:var(--red)}
-  .grid2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px}
-  .grid2b{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-  @media(max-width:860px){.grid2,.grid2b{grid-template-columns:1fr}}
-  .ch-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
-  .ch-title{font-weight:650;font-size:16px;letter-spacing:-.01em}
-  .ch-sub{font-size:12.5px;color:var(--ink2);margin-top:2px}
-  .seg{display:inline-flex;background:var(--bg);border-radius:10px;padding:3px;gap:2px}
-  .seg button{appearance:none;border:0;background:transparent;color:var(--ink2);font:600 12px/1 inherit;padding:7px 10px;border-radius:8px;cursor:pointer}
-  .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.1)}
-  .legend{display:flex;gap:14px;font-size:12.5px;color:var(--ink2);margin-top:2px}
-  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-  .chart{position:relative;width:100%;height:240px}
-  .chart.sm{height:200px}
-  .chart svg{display:block;width:100%;height:100%;overflow:visible}
-  .tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;font-weight:600;padding:7px 10px;border-radius:10px;white-space:nowrap;transform:translate(-50%,-110%);opacity:0;transition:opacity .12s}
-  .tip span{font-weight:500;opacity:.75;display:block;font-size:11px}
-  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-  th{font-size:12px;color:var(--ink2);font-weight:600;text-align:right;padding:8px 6px;border-bottom:1px solid var(--line)}
-  td{text-align:right;padding:11px 6px;border-bottom:1px solid var(--line);font-size:14px}
-  th:first-child,td:first-child{text-align:left}
+  :root[data-theme="dark"]{
+    --bg:#0A0A0A; --ink:#FAFAFA; --ink-2:#D4D4D4; --surface:#171717; --surface-2:#262626; --muted:#A1A1A1;
+    --line:rgba(255,255,255,.1); --line-2:rgba(255,255,255,.15); --fill:#E5E5E5; --fill-ink:#171717; --input-line:rgba(255,255,255,.4); --hover:#262626;
+    --header:rgba(10,10,10,.6); --header-solid:#0A0A0A;
+    --sh-sm:0 1px 2px rgba(0,0,0,.3); --sh-md:0 4px 6px -1px rgba(0,0,0,.4),0 2px 4px -2px rgba(0,0,0,.4);
+    --c1:#FAFAFA; --c2:#737373; --grid:#262626; --axis:#8A8A8A; --ok:#4ADE80; --sk:#232323; --sk-hi:#2E2E2E; --seg-on:#404040;
+    color-scheme:dark;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{font:400 15px/1.5 var(--font);font-feature-settings:"cv11","ss01";overflow-x:hidden}
+  a{color:inherit;text-underline-offset:3px}
+  button{font:inherit;color:inherit}
+  a,button,label,select{touch-action:manipulation}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:6px}
+  [hidden]{display:none!important}
+  .w{max-width:var(--maxw);margin:0 auto;padding:0 32px}
+  @media (max-width:640px){.w{padding:0 16px}}
+
+  /* header: same build as the site header, compact */
+  header.h{position:sticky;top:0;z-index:30;background:var(--header-solid);border-bottom:1px solid var(--line)}
+  @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){header.h{background:var(--header);-webkit-backdrop-filter:saturate(1.8) blur(12px);backdrop-filter:saturate(1.8) blur(12px)}}
+  header.h .w{display:flex;align-items:center;gap:16px;height:56px}
+  header.h .home{display:flex;align-items:center;min-height:44px;flex:none;border-radius:8px;text-decoration:none}
+  header.h .logo{display:block;width:99px;height:28px;background-color:var(--ink);-webkit-mask:url(/logo-wordmark.png) left center/contain no-repeat;mask:url(/logo-wordmark.png) left center/contain no-repeat}
+  header.h nav{display:flex;align-items:center;gap:2px;min-width:0;padding-left:12px;border-left:1px solid var(--line)}
+  header.h nav a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:var(--r-pill);font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color .15s,background-color .15s}
+  @media (hover:hover){header.h nav a:hover{color:var(--ink);background:var(--hover)}}
+  header.h nav a[aria-current="page"]{color:var(--ink);background:var(--surface-2)}
+  .hr{display:flex;align-items:center;gap:6px;margin-left:auto;flex:none}
+  .hcta{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 14px;border:1px solid var(--line);border-radius:var(--r-pill);font-size:13px;font-weight:500;color:var(--ink-2);text-decoration:none;white-space:nowrap;transition:background-color .15s,color .15s}
+  @media (hover:hover){.hcta:hover{background:var(--hover);color:var(--ink)}}
+  .hcta svg{width:14px;height:14px;margin-left:2px}
+  .ibtn{display:inline-grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:var(--r-pill);background:transparent;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s,color .15s}
+  @media (hover:hover){.ibtn:hover{background:var(--hover);color:var(--ink)}}
+  .ibtn svg{width:18px;height:18px}
+  .tbtn .i-light,.tbtn .i-dark{display:none}
+  :root[data-theme-pref="light"] .tbtn .i-sys,:root[data-theme-pref="dark"] .tbtn .i-sys{display:none}
+  :root[data-theme-pref="light"] .tbtn .i-light,:root[data-theme-pref="dark"] .tbtn .i-dark{display:block}
+  @media (max-width:640px){
+    header.h .w{gap:8px}
+    header.h .logo{width:84px;height:24px}
+    header.h nav{padding-left:6px}
+    header.h nav a{padding:0 10px}
+    .hcta .t-long{display:none}
+    .hcta{padding:0 12px}
+    .ibtn{width:44px;height:44px}
+  }
+  @media (max-width:380px){.hcta{display:none}}
+
+  /* page head */
+  main{padding:36px 0 80px}
+  @media (max-width:640px){main{padding-top:24px}}
+  main.w{padding-top:36px;padding-bottom:80px}
+  @media (max-width:640px){main.w{padding-top:24px}}
+  .ph{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 16px;flex-wrap:wrap;margin:0 0 20px}
+  .ph h1{font-size:30px;line-height:1.15;letter-spacing:-.025em;font-weight:700;margin:0}
+  .ph .sub{margin:6px 0 0;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .ph .sub a{color:var(--ink);font-weight:500}
+  .tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+  /* buttons: pills */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:0 14px;border-radius:var(--r-pill);font-weight:600;font-size:13px;line-height:1.2;text-decoration:none;cursor:pointer;
+    border:1px solid var(--line-2);background:var(--bg);color:var(--ink);box-shadow:var(--sh-sm);-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;transition:background-color .15s,opacity .15s,transform .1s var(--ease-out)}
+  @media (hover:hover){.btn:hover{background:var(--hover)}}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:var(--fill);color:var(--fill-ink);border-color:var(--fill)}
+  @media (hover:hover){.btn.primary:hover{background:var(--fill);opacity:.9}}
+  .btn svg{width:15px;height:15px}
+  @media (pointer:coarse){.btn{min-height:44px}}
+
+  /* cards, KPI tiles */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:20px;min-width:0}
+  @media (max-width:640px){.card{padding:16px}}
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 12px}
+  @media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .kpi{padding:16px 18px}
+  .kpi .label{font-size:13px;font-weight:500;color:var(--muted);line-height:1.3}
+  .kpi .value{font-size:30px;line-height:1.1;font-weight:650;letter-spacing:-.025em;margin-top:8px;font-variant-numeric:tabular-nums}
+  .kpi .delta{font-size:12.5px;font-weight:500;margin-top:6px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.35}
+  @media (max-width:640px){.kpi{padding:14px}.kpi .value{font-size:24px}}
+  .up{color:var(--ok)!important} .down{color:var(--ink-2)!important}
+
+  /* section heads */
+  .ch-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .ch-title{font-weight:600;font-size:15px;letter-spacing:-.01em;line-height:1.35}
+  .ch-sub{font-size:13px;color:var(--muted);margin-top:2px;line-height:1.45}
+  .legend{display:flex;gap:14px;font-size:12.5px;color:var(--muted);margin-top:4px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:6px;vertical-align:3px}
+
+  /* segmented control: grey well, white active pill (never black) */
+  .seg{display:inline-flex;background:var(--surface-2);border-radius:var(--r-pill);padding:3px;gap:2px;flex:none}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--muted);font:500 12.5px/1 var(--font);padding:0 12px;min-height:30px;border-radius:var(--r-pill);cursor:pointer;white-space:nowrap;transition:color .15s,background-color .15s}
+  @media (hover:hover){.seg button:hover{color:var(--ink)}}
+  .seg button.on{background:var(--seg-on);color:var(--ink);box-shadow:var(--sh-sm)}
+  @media (pointer:coarse){.seg button{min-height:36px}}
+
+  /* tables: hairline rows, right-aligned numbers, sticky header */
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;font-variant-numeric:tabular-nums}
+  th{position:sticky;top:0;z-index:1;background:var(--surface);color:var(--muted);font-weight:500;font-size:12.5px;text-align:right;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  td{text-align:right;padding:10px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left;padding-left:0}
+  th:last-child,td:last-child{padding-right:0}
   tr:last-child td{border-bottom:0}
-  .bars{display:flex;flex-direction:column;gap:12px;margin-top:6px}
-  .bar .row{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px}
-  .bar .row b{font-weight:600} .bar .row span{color:var(--ink2);font-variant-numeric:tabular-nums}
-  .bar .track{height:8px;border-radius:999px;background:var(--bg);overflow:hidden}
-  .bar .fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue),var(--violet))}
-  .ring{display:flex;align-items:center;gap:18px;margin-top:8px}
-  .ring svg{width:110px;height:110px;flex:none}
-  .ring .big{font:700 28px/1 -apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;letter-spacing:-.02em}
-  .muted{color:var(--ink2);font-size:13px}
-  .note{font-size:12.5px;color:var(--ink3);margin-top:18px;line-height:1.6}
-  .err{color:var(--red);font-size:13px;margin:0 0 14px}
-  .skel{color:var(--ink3)}
+
+  /* bar lists */
+  .bars{display:flex;flex-direction:column;gap:12px}
+  .bar .row{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;margin-bottom:6px}
+  .bar .row b{font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar .row span{color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+  .bar .track{height:6px;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden}
+  .bar .fill{height:100%;border-radius:var(--r-pill);background:var(--c1)}
+
+  /* states */
+  .muted{color:var(--muted);font-size:13px}
+  .note{font-size:12.5px;color:var(--muted);margin-top:20px;line-height:1.6;max-width:56rem}
+  .alert{display:flex;gap:10px;align-items:flex-start;margin:0 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface-2);font-size:13.5px;color:var(--ink)}
+  .alert::before{content:"!";display:grid;place-items:center;flex:none;width:18px;height:18px;margin-top:1px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:12px;font-weight:700}
+  .empty{display:grid;place-items:center;padding:28px 12px;color:var(--muted);font-size:13.5px;text-align:center}
+  @keyframes sk{0%{background-position:100% 0}100%{background-position:0 0}}
+  .sk{display:block;border-radius:6px;background:linear-gradient(90deg,var(--sk) 30%,var(--sk-hi) 50%,var(--sk) 70%) 0 0/300% 100%;animation:sk 1.4s ease-in-out infinite}
+  @media (prefers-reduced-motion:reduce){.sk,.is-loading .kpi .value{animation:none}}
+  /* /stats */
+  .live{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 14px;border:1px solid var(--line);border-radius:var(--r-pill);background:var(--surface);font-weight:500;font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .live b{color:var(--ink);font-weight:600}
+  .dot{position:relative;width:8px;height:8px;border-radius:50%;background:var(--live);flex:none}
+  .dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--live);opacity:.5;animation:ping 2s var(--ease-out) infinite}
+  @keyframes ping{0%{transform:scale(1);opacity:.5}80%,100%{transform:scale(2.6);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.dot::after{animation:none;opacity:0}}
+  .stack > * + *{margin-top:12px}
+  .grid2{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px}
+  .grid2b{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+  .grid2c{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 32px}
+  @media (max-width:900px){.grid2,.grid2b,.grid2c{grid-template-columns:minmax(0,1fr)}}
+  .sublabel{font-size:12.5px;font-weight:500;color:var(--muted);margin:0 0 10px}
+  .chart{position:relative;width:100%;height:260px}
+  .chart.sm{height:200px}
+  @media (max-width:640px){.chart{height:220px}.chart.sm{height:180px}}
+  .chart svg{display:block;width:100%;height:100%;overflow:visible}
+  .chart text{font-family:var(--font);font-variant-numeric:tabular-nums}
+  .is-loading .chart:empty{border-radius:var(--r-md);background:linear-gradient(90deg,var(--sk) 30%,var(--sk-hi) 50%,var(--sk) 70%) 0 0/300% 100%;animation:sk 1.4s ease-in-out infinite}
+  main:not(.is-loading) .chart:empty{display:grid;place-items:center;border:1px dashed var(--line);border-radius:var(--r-md)}
+  main:not(.is-loading) .chart:empty::after{content:"No data yet";font-size:13px;color:var(--muted)}
+  .tip{position:absolute;z-index:2;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--sh-md);font-size:12.5px;font-weight:600;line-height:1.45;padding:8px 10px;border-radius:var(--r-md);white-space:nowrap;transform:translate(-50%,calc(-100% - 10px));opacity:0;transition:opacity .12s;font-variant-numeric:tabular-nums}
+  .tip span{font-weight:500;color:var(--muted);display:block;font-size:11.5px}
+  .is-loading .kpi .value{color:transparent;width:62%;border-radius:6px;background:linear-gradient(90deg,var(--sk) 30%,var(--sk-hi) 50%,var(--sk) 70%) 0 0/300% 100%;animation:sk 1.4s ease-in-out infinite}
+  .is-loading .kpi .delta{visibility:hidden}
+  .ring{display:flex;align-items:center;gap:18px;margin:14px 0 6px}
+  .ring svg{width:96px;height:96px;flex:none}
+  .ring .big{font-size:28px;line-height:1;font-weight:650;letter-spacing:-.025em;font-variant-numeric:tabular-nums;margin-bottom:6px}
+  .ring:empty{height:96px;border-radius:var(--r-md);background:var(--surface-2)}
+  .eng td:first-child{color:var(--ink-2)}
+  .eng td{font-weight:500}
+  .tw{overflow:auto;max-height:420px;-webkit-overflow-scrolling:touch}
+  .skr td{padding:12px 0}
+  @media (max-width:640px){.grid2 th{white-space:normal;vertical-align:bottom}.grid2 td,.grid2 th{padding-left:6px;padding-right:6px;font-size:13px}.grid2 td:first-child,.grid2 th:first-child{padding-left:0}}
+  #buy-kinds{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  #buy-kinds:empty{display:none}
+  #links-list .bars a{text-decoration:none;font-variant-numeric:tabular-nums;font-family:var(--font)}
+  @media (hover:hover){#links-list .bars a:hover{text-decoration:underline}}
+  #links-list .bars{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px 16px!important}
+  #reports-list a{text-decoration:none}
+  @media (hover:hover){#reports-list a:hover{text-decoration:underline}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
+<header class="h"><div class="w"><a class="home" href="/" aria-label="Puro Classico home"><span class="logo" role="img" aria-label="Puro Classico"></span></a>
+<nav aria-label="Dashboards"><a href="/stats" aria-current="page">Stats</a><a href="/admin">Admin</a></nav>
+<div class="hr"><button class="ibtn tbtn" type="button" data-theme-toggle aria-label="Change theme"><svg class="i-sys" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><svg class="i-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="i-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg></button><a class="hcta" href="/"><span><span class="t-long">Back to </span>Site</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div></div></header>
+<main class="w is-loading" id="main">
+  <div class="ph">
     <div>
-      <div class="eyebrow">Puro Classico</div>
       <h1>Stats</h1>
-      <div class="updated" id="updated">Loading…</div>
+      <p class="sub" id="updated">Loading…</p>
     </div>
     <div class="tools">
-      <div class="live" title="People on the site right now"><span class="dot"></span><span id="live">–</span>&nbsp;live now</div>
-      <button class="btn" id="refresh">Refresh</button>
+      <div class="live" title="People on the site right now"><span class="dot"></span><span><b id="live">–</b>&nbsp;live now</span></div>
+      <button class="btn" id="refresh" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>Refresh</button>
     </div>
-  </header>
+  </div>
 
-  <p class="err" id="err" hidden></p>
+  <p class="alert" id="err" role="alert" hidden></p>
 
   <section class="kpis">
     <div class="card kpi"><div class="label">Members</div><div class="value" id="k-members">–</div><div class="delta" id="k-members-d">&nbsp;</div></div>
-    <div class="card kpi"><div class="label">Monthly active users</div><div class="value" id="k-mau">–</div><div class="delta" id="k-mau-d">&nbsp;</div></div>
-    <div class="card kpi"><div class="label">Find views · 30 days</div><div class="value" id="k-views">–</div><div class="delta" id="k-views-d">&nbsp;</div></div>
-    <div class="card kpi"><div class="label">Newsletter subscribers</div><div class="value" id="k-opt">–</div><div class="delta" id="k-opt-d">&nbsp;</div></div>
+    <div class="card kpi"><div class="label">Monthly Active Users</div><div class="value" id="k-mau">–</div><div class="delta" id="k-mau-d">&nbsp;</div></div>
+    <div class="card kpi"><div class="label">Find Views · 30 Days</div><div class="value" id="k-views">–</div><div class="delta" id="k-views-d">&nbsp;</div></div>
+    <div class="card kpi"><div class="label">Newsletter Subscribers</div><div class="value" id="k-opt">–</div><div class="delta" id="k-opt-d">&nbsp;</div></div>
   </section>
 
-  <section class="card" style="margin-bottom:14px">
+  <div class="stack">
+  <section class="card">
     <div class="ch-head">
       <div>
         <div class="ch-title">Viewers</div>
-        <div class="legend"><span><i style="background:var(--blue)"></i>Find views</span><span><i style="background:var(--green)"></i>Active members</span></div>
+        <div class="legend"><span><i style="background:var(--c1)"></i>Find views</span><span><i style="background:var(--c2)"></i>Active members</span></div>
       </div>
-      <div class="seg" data-chart="traffic"><button data-r="30" class="on">30D</button><button data-r="90">90D</button><button data-r="0">All</button></div>
+      <div class="seg" data-chart="traffic" role="group" aria-label="Range"><button type="button" data-r="30" class="on">30D</button><button type="button" data-r="90">90D</button><button type="button" data-r="0">All</button></div>
     </div>
     <div class="chart" id="c-traffic"></div>
   </section>
 
   <section class="grid2b">
     <div class="card">
-      <div class="ch-head"><div><div class="ch-title">Members over time</div><div class="ch-sub">Total accounts, day by day</div></div>
-        <div class="seg" data-chart="members"><button data-r="30">30D</button><button data-r="0" class="on">All</button></div></div>
+      <div class="ch-head"><div><div class="ch-title">Members Over Time</div><div class="ch-sub">Total accounts, day by day</div></div>
+        <div class="seg" data-chart="members" role="group" aria-label="Range"><button type="button" data-r="30">30D</button><button type="button" data-r="0" class="on">All</button></div></div>
       <div class="chart sm" id="c-members"></div>
     </div>
     <div class="card">
-      <div class="ch-head"><div><div class="ch-title">New sign-ups</div><div class="ch-sub">Per day</div></div>
-        <div class="seg" data-chart="signups"><button data-r="30" class="on">30D</button><button data-r="0">All</button></div></div>
+      <div class="ch-head"><div><div class="ch-title">New Sign-Ups</div><div class="ch-sub">Per day</div></div>
+        <div class="seg" data-chart="signups" role="group" aria-label="Range"><button type="button" data-r="30" class="on">30D</button><button type="button" data-r="0">All</button></div></div>
       <div class="chart sm" id="c-signups"></div>
     </div>
   </section>
 
   <section class="grid2">
     <div class="card">
-      <div class="ch-head"><div><div class="ch-title">By month</div><div class="ch-sub">Monthly active users are members who opened at least one find that month</div></div></div>
-      <table><thead><tr><th>Month</th><th>Active users</th><th>Find views</th><th>New members</th></tr></thead><tbody id="months"><tr><td class="skel" colspan="4">Loading…</td></tr></tbody></table>
+      <div class="ch-head"><div><div class="ch-title">By Month</div><div class="ch-sub">Monthly active users are members who opened at least one find that month</div></div></div>
+      <div class="tw"><table><thead><tr><th>Month</th><th>Active users</th><th>Find views</th><th>New members</th></tr></thead><tbody id="months"><tr class="skr"><td colspan="4"><span class="sk" style="height:14px"></span></td></tr><tr class="skr"><td colspan="4"><span class="sk" style="height:14px;width:80%"></span></td></tr></tbody></table></div>
     </div>
     <div class="card">
       <div class="ch-title">Engagement</div>
       <div class="ch-sub">Active members in the last day, week and month</div>
       <div class="ring" id="ring"></div>
-      <table style="margin-top:12px"><tbody>
+      <table class="eng"><tbody>
         <tr><td>Daily active</td><td id="k-dau">–</td></tr>
         <tr><td>Weekly active</td><td id="k-wau">–</td></tr>
         <tr><td>Monthly active</td><td id="k-mau2">–</td></tr>
@@ -139,33 +267,39 @@
   </section>
 
   <section class="card">
-    <div class="ch-title">Top brands this week</div>
-    <div class="ch-sub">By find views in the last 7 days</div>
-    <div class="bars" id="brands"><div class="skel">Loading…</div></div>
+    <div class="ch-head"><div><div class="ch-title">Top Brands This Week</div><div class="ch-sub">By find views in the last 7 days</div></div></div>
+    <div class="bars" id="brands"><span class="sk" style="height:28px"></span><span class="sk" style="height:28px;width:70%"></span><span class="sk" style="height:28px;width:50%"></span></div>
   </section>
 
-  <section class="card" style="margin-top:14px" id="buy-card">
-    <div class="ch-head"><div><div class="ch-title">Buy clicks · 30 days</div><div class="ch-sub" id="buy-sub">Clicks on "Buy via …" buttons, by agent and visitor country</div></div></div>
+  <section class="card" id="buy-card">
+    <div class="ch-head"><div><div class="ch-title">Buy Clicks · 30 Days</div><div class="ch-sub" id="buy-sub">Clicks on "Buy via …" buttons, by agent and visitor country</div></div></div>
     <div class="chart sm" id="c-buy"></div>
-    <section class="grid2" style="margin-top:14px">
-      <div><div class="ch-sub" style="margin-bottom:8px">By agent</div><div class="bars" id="buy-agents"><div class="muted">No clicks yet</div></div></div>
-      <div><div class="ch-sub" style="margin-bottom:8px">By country</div><div class="bars" id="buy-countries"><div class="muted">No clicks yet</div></div></div>
+    <section class="grid2c" style="margin-top:20px">
+      <div><div class="sublabel">By agent</div><div class="bars" id="buy-agents"><div class="muted">No clicks yet</div></div></div>
+      <div><div class="sublabel">By country</div><div class="bars" id="buy-countries"><div class="muted">No clicks yet</div></div></div>
     </section>
-    <section class="grid2" style="margin-top:14px">
-      <div><div class="ch-sub" style="margin-bottom:8px">Where the visit came from (since 22 Oct)</div><div class="bars" id="buy-sources"><div class="muted">No clicks yet</div></div></div>
-      <div><div class="ch-sub" style="margin-bottom:8px">From which page</div><div class="bars" id="buy-pages"><div class="muted">No clicks yet</div></div></div>
+    <section class="grid2c" style="margin-top:20px">
+      <div><div class="sublabel">Where the visit came from (since 22 Oct)</div><div class="bars" id="buy-sources"><div class="muted">No clicks yet</div></div></div>
+      <div><div class="sublabel">From which page</div><div class="bars" id="buy-pages"><div class="muted">No clicks yet</div></div></div>
     </section>
-    <div class="ch-sub" id="buy-kinds" style="margin-top:12px"></div>
+    <div class="ch-sub" id="buy-kinds"></div>
   </section>
 
-  <section class="card" style="margin-top:14px" id="links-card" hidden>
-    <div class="ch-head"><div><div class="ch-title">Broken links</div><div class="ch-sub" id="links-sub">Weekly check of every Weidian find</div></div></div>
+  <section class="card" id="links-card" hidden>
+    <div class="ch-head"><div><div class="ch-title">Broken Links</div><div class="ch-sub" id="links-sub">Weekly check of every Weidian find</div></div></div>
     <div id="links-list" class="muted"></div>
   </section>
+  </div>
 
-  <div class="note">Private page, not indexed. Members, subscribers and live viewers are live from the database. Charts are rebuilt every 6 hours (<span id="gen">–</span>). Guests have no account, so they count in find views but not in active users.</div>
-</div>
-
+  <p class="note">Private page, not indexed. Members, subscribers and live viewers are live from the database. Charts are rebuilt every 6 hours (<span id="gen">–</span>). Guests have no account, so they count in find views but not in active users.</p>
+</main>
+<script>/* theme button: system -> light -> dark -> system, same key and order as the site header ("manifest.theme") */
+(function(){var d=document.documentElement;try{var b=document.querySelector("[data-theme-toggle]"),L={system:"System",light:"Light",dark:"Dark"},
+tc=function(){try{var t=d.getAttribute("data-theme-pref"),k=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector('meta[name="theme-color"]');if(m)m.content=k?"#0A0A0A":"#FFFFFF"}catch(e){}},
+lb=function(t){if(b){b.setAttribute("aria-label","Theme: "+L[t]+". Change theme");b.title="Theme: "+L[t]}};lb(d.getAttribute("data-theme-pref")||"system");
+if(b)b.addEventListener("click",function(){var c=d.getAttribute("data-theme-pref")||"system",t=c==="system"?"light":c==="light"?"dark":"system";d.setAttribute("data-theme-pref",t);if(t==="system")d.removeAttribute("data-theme");else d.setAttribute("data-theme",t);
+try{if(t==="system")localStorage.removeItem("manifest.theme");else localStorage.setItem("manifest.theme",t)}catch(e){}lb(t);tc();try{window.dispatchEvent(new Event("pc-theme"))}catch(e){}});
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",tc)}catch(e){}}catch(e){}})();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
 <script>
 const SB="https://uptpghuduqjqmrxwatbm.supabase.co";
@@ -191,27 +325,28 @@ function slice(arr, r){ return r? arr.slice(-r) : arr; }
 function niceMax(v){ if(v<=5) return 5; const p=Math.pow(10,Math.floor(Math.log10(v))); for(const m of [1,2,2.5,5,10]) if(m*p>=v) return m*p; return 10*p; }
 function shortDate(s){ const d=new Date(s+"T12:00:00"); return d.toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
 
-/* one SVG chart: series = [{data, color, fill, type:'area'|'line'|'bar'}] */
+/* one SVG chart: series = [{data, color, fill, type:'area'|'line'|'bar'}]; colours are ds tokens (--c1 ink, --c2 grey) */
 function chart(el, labels, series, opts={}){
   const W=el.clientWidth||600, H=el.clientHeight||240, L=36, R=8, T=10, B=24, w=W-L-R, h=H-T-B, n=labels.length;
   const max=niceMax(Math.max(1,...series.flatMap(s=>s.data)));
   const x=i=> n<=1? L+w/2 : L+i*(w/(n-1)), y=v=>T+h-(v/max)*h;
-  const bw=Math.max(2,Math.min(18,w/n*0.62)), bx=i=>L+(i+0.5)*(w/n);
+  const bw=Math.max(2,Math.min(16,w/n*0.6)), bx=i=>L+(i+0.5)*(w/n);
+  const axis=css('--axis'), grid=css('--grid');
   let g="";
-  for(let k=0;k<=4;k++){ const v=max*k/4, yy=y(v); g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="${css('--line')}"/><text x="${L-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="${css('--ink3')}">${v>=1000?(v/1000)+"k":v}</text>`; }
-  const step=Math.max(1,Math.ceil(n/6));
-  for(let i=0;i<n;i+=step){ const xx=series.some(s=>s.type==='bar')?bx(i):x(i); g+=`<text x="${xx}" y="${H-6}" text-anchor="middle" font-size="11" fill="${css('--ink3')}">${shortDate(labels[i])}</text>`; }
+  for(let k=0;k<=4;k++){ const v=max*k/4, yy=Math.round(y(v))+.5; g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="${k?grid:css('--line')}" shape-rendering="crispEdges"/><text x="${L-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="${axis}">${v>=1000?(v/1000)+"k":v}</text>`; }
+  const step=Math.max(1,Math.ceil(n/(W<500?4:6)));
+  for(let i=0;i<n;i+=step){ const xx=series.some(s=>s.type==='bar')?bx(i):x(i); g+=`<text x="${xx}" y="${H-6}" text-anchor="middle" font-size="11" fill="${axis}">${shortDate(labels[i])}</text>`; }
   for(const s of series){
     const c=css(s.color);
-    if(s.type==='bar'){ s.data.forEach((v,i)=>{ const hh=Math.max(v?2:0,(v/max)*h); g+=`<rect x="${bx(i)-bw/2}" y="${T+h-hh}" width="${bw}" height="${hh}" rx="${Math.min(4,bw/2)}" fill="${c}"/>`; }); continue; }
+    if(s.type==='bar'){ s.data.forEach((v,i)=>{ const hh=Math.max(v?2:0,(v/max)*h); g+=`<rect x="${(bx(i)-bw/2).toFixed(1)}" y="${(T+h-hh).toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" rx="${Math.min(3,bw/2).toFixed(1)}" fill="${c}"/>`; }); continue; }
     const pts=s.data.map((v,i)=>[x(i),y(v)]);
     const path=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
     if(s.type==='area'){ const id="g"+Math.random().toString(36).slice(2);
-      g+=`<defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".28"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs>`;
+      g+=`<defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".14"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs>`;
       g+=`<path d="${path} L${x(n-1)} ${T+h} L${x(0)} ${T+h} Z" fill="url(#${id})"/>`; }
-    g+=`<path d="${path}" fill="none" stroke="${c}" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round"/>`;
+    g+=`<path d="${path}" fill="none" stroke="${c}" stroke-width="${s.type==='area'?2:1.75}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
   }
-  g+=`<line id="hx" x1="0" x2="0" y1="${T}" y2="${T+h}" stroke="${css('--ink3')}" stroke-dasharray="3 3" opacity="0"/>`;
+  g+=`<line id="hx" x1="0" x2="0" y1="${T}" y2="${T+h}" stroke="${axis}" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" opacity="0"/>`;
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg><div class="tip"></div>`;
   const svg=el.querySelector("svg"), tip=el.querySelector(".tip"), hx=svg.querySelector("#hx");
   const isBar=series.some(s=>s.type==='bar');
@@ -220,7 +355,7 @@ function chart(el, labels, series, opts={}){
     let i=isBar? Math.floor((mx-L)/(w/n)) : Math.round((mx-L)/(w/Math.max(1,n-1))); i=Math.max(0,Math.min(n-1,i));
     const xx=isBar?bx(i):x(i); hx.setAttribute("x1",xx); hx.setAttribute("x2",xx); hx.setAttribute("opacity",1);
     tip.innerHTML=`<span>${shortDate(labels[i])}</span>`+series.map(s=>`${fmt(s.data[i])} ${s.name}`).join("<br>");
-    tip.style.left=(xx/W*100)+"%"; tip.style.top=(y(Math.max(...series.map(s=>s.data[i])))/H*100)+"%"; tip.style.opacity=1;
+    tip.style.left=(Math.max(60,Math.min(W-60,xx))/W*100)+"%"; tip.style.top=(y(Math.max(...series.map(s=>s.data[i])))/H*100)+"%"; tip.style.opacity=1;
   });
   svg.addEventListener("mouseleave",()=>{ tip.style.opacity=0; hx.setAttribute("opacity",0); });
 }
@@ -229,17 +364,17 @@ function drawCharts(){
   if(!D) return;
   const r=range.traffic;
   chart($("c-traffic"), slice(D.days,r), [
-    {name:"find views", data:slice(D.views,r), color:"--blue", type:"area"},
-    {name:"active members", data:slice(D.active,r), color:"--green", type:"line"}]);
-  chart($("c-members"), slice(D.days,range.members), [{name:"members", data:slice(D.members,range.members), color:"--violet", type:"area"}]);
-  chart($("c-signups"), slice(D.days,range.signups), [{name:"sign-ups", data:slice(D.signups,range.signups), color:"--blue", type:"bar"}]);
+    {name:"find views", data:slice(D.views,r), color:"--c1", type:"area"},
+    {name:"active members", data:slice(D.active,r), color:"--c2", type:"line"}]);
+  chart($("c-members"), slice(D.days,range.members), [{name:"members", data:slice(D.members,range.members), color:"--c1", type:"area"}]);
+  chart($("c-signups"), slice(D.days,range.signups), [{name:"sign-ups", data:slice(D.signups,range.signups), color:"--c1", type:"bar"}]);
 }
 
 function renderReports(){
   const r=(D&&D.reports)||[]; if(!r.length) return;
   $("links-card").hidden=false;
-  const el=document.getElementById("reports-list")||(()=>{ const d=document.createElement("div"); d.id="reports-list"; d.style.marginTop="16px"; $("links-card").appendChild(d); return d; })();
-  el.innerHTML='<div class="ch-title" style="font-size:14px;margin-bottom:8px">Reported by visitors</div><table><tbody>'+r.slice(0,100).map(([id,n,d])=>'<tr><td><a href="/product/'+encodeURIComponent(id)+'" target="_blank" rel="noopener" style="color:var(--ink)">/product/'+id+'</a></td><td>'+n+' report'+(n===1?'':'s')+'</td><td>'+d+'</td></tr>').join("")+'</tbody></table>';
+  const el=document.getElementById("reports-list")||(()=>{ const d=document.createElement("div"); d.id="reports-list"; d.style.marginTop="20px"; $("links-card").appendChild(d); return d; })();
+  el.innerHTML='<div class="sublabel">Reported by visitors</div><div class="tw" style="max-height:320px"><table><tbody>'+r.slice(0,100).map(([id,n,d])=>'<tr><td><a href="/product/'+encodeURIComponent(id)+'" target="_blank" rel="noopener" style="color:var(--ink)">/product/'+id+'</a></td><td>'+n+' report'+(n===1?'':'s')+'</td><td>'+d+'</td></tr>').join("")+'</tbody></table></div>';
 }
 const AGENT_NAMES={mycnbox:"MyCNBox",kakobuy:"KakoBuy",oopbuy:"Oopbuy",lovegobuy:"LoveGoBuy",sugargoo:"Sugargoo"};
 function countryName(c){ try{ return new Intl.DisplayNames(["en"],{type:"region"}).of(c)||c; }catch(e){ return c; } }
@@ -250,7 +385,7 @@ function barList(el, rows, label){
 function renderBuys(){
   const b=D&&D.buy_clicks; if(!b||!b.days) return;
   $("buy-sub").textContent=fmt(b.total)+' clicks on "Buy via …" buttons in the last 30 days, by agent and visitor country';
-  chart($("c-buy"), b.days, [{name:"buy clicks", data:b.per_day, color:"--green", type:"bar"}]);
+  chart($("c-buy"), b.days, [{name:"buy clicks", data:b.per_day, color:"--c1", type:"bar"}]);
   barList($("buy-agents"), b.agents||[], k=>AGENT_NAMES[k]||k);
   barList($("buy-countries"), (b.countries||[]).slice(0,12), k=>k==="??"?"Unknown":countryName(k));
   /* 22 Oct 2026: source of the visit (track.js), page kind, and item clicks vs sign-up link clicks */
@@ -269,13 +404,18 @@ function render(){
   if(D.views_prev_30d>=500) delta($("k-views-d"), D.views_30d, D.views_prev_30d, "vs previous 30 days"); else { const last7=D.views.slice(-7).reduce((a,b)=>a+b,0); $("k-views-d").className="delta"; $("k-views-d").textContent=fmt(last7)+" in the last 7 days"; }
   const ms=D.months; $("k-mau-d").textContent=fmt(D.wau)+" this week · "+fmt(D.dau)+" today";
   if(LIVE==null) $("k-members").textContent=fmt(members);
-  const pct=members? D.mau/members : 0, C=2*Math.PI*44;
-  $("ring").innerHTML=`<svg viewBox="0 0 110 110"><circle cx="55" cy="55" r="44" fill="none" stroke="${css('--line')}" stroke-width="12"/><circle cx="55" cy="55" r="44" fill="none" stroke="${css('--green')}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(C*Math.min(1,pct)).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 55 55)"/></svg><div><div class="big">${Math.min(100,pct*100).toFixed(0)}%</div><div class="muted">of members were active in the last 30 days</div></div>`;
-  $("months").innerHTML=ms.slice().reverse().map(m=>{ const d=new Date(m.m+"-15"); return `<tr><td>${d.toLocaleDateString("en-US",{month:"long",year:"numeric"})}</td><td>${fmt(m.active)}</td><td>${fmt(m.views)}</td><td>${fmt(m.signups)}</td></tr>`; }).join("") || `<tr><td colspan="4" class="muted">No data yet</td></tr>`;
+  const pct=members? D.mau/members : 0, C=2*Math.PI*42;
+  $("ring").innerHTML=`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" fill="none" stroke="${css('--surface-2')}" stroke-width="10"/><circle cx="50" cy="50" r="42" fill="none" stroke="${css('--c1')}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(C*Math.min(1,pct)).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 50 50)"/></svg><div><div class="big">${Math.min(100,pct*100).toFixed(0)}%</div><div class="muted">of members were active in the last 30 days</div></div>`;
+  $("months").innerHTML=ms.slice().reverse().map(m=>{ const d=new Date(m.m+"-15"); return `<tr><td>${d.toLocaleDateString("en-US",{month:"long",year:"numeric"})}</td><td>${fmt(m.active)}</td><td>${fmt(m.views)}</td><td>${fmt(m.signups)}</td></tr>`; }).join("") || `<tr><td colspan="4"><div class="empty">No data yet</div></td></tr>`;
   const tb=D.top_brands_7d||[], top=tb.length?tb[0][1]:1;
-  $("brands").innerHTML=tb.map(([b,v])=>`<div class="bar"><div class="row"><b>${b.replace(/</g,"&lt;")}</b><span>${fmt(v)}</span></div><div class="track"><div class="fill" style="width:${(v/top*100).toFixed(1)}%"></div></div></div>`).join("") || `<div class="muted">No views this week yet</div>`;
+  $("brands").innerHTML=tb.map(([b,v])=>`<div class="bar"><div class="row"><b>${b.replace(/</g,"&lt;")}</b><span>${fmt(v)}</span></div><div class="track"><div class="fill" style="width:${(v/top*100).toFixed(1)}%"></div></div></div>`).join("") || `<div class="empty">No views this week yet</div>`;
   $("gen").textContent="last built "+new Date(D.generated).toLocaleString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
   drawCharts();
+}
+/* loading skeletons end after the first load; without chart data the placeholders turn into empty states */
+function settle(){
+  $("main").classList.remove("is-loading");
+  if(!D){ $("months").innerHTML='<tr><td colspan="4"><div class="empty">No chart data yet</div></td></tr>'; $("brands").innerHTML='<div class="empty">No chart data yet</div>'; }
 }
 
 async function load(){
@@ -290,6 +430,7 @@ async function load(){
       .catch(e=>errs.push(e.message))
   ]);
   render();
+  settle();
   if(errs.length){ $("err").hidden=false; $("err").textContent="Couldn't load: "+errs.join(", "); }
   $("updated").textContent="Updated "+new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
 }
@@ -299,7 +440,7 @@ async function loadLinks(){
     $("links-card").hidden=false;
     $("links-sub").textContent=fmt(h.weidian_checked)+" Weidian finds checked "+new Date(h.checked).toLocaleDateString("en-US",{month:"short",day:"numeric"})+": "+fmt(h.dead.length)+" dead (hidden from the site), "+fmt(h.sold_out.length)+" sold out, "+fmt(h.errors)+" could not be checked";
     window.__dead=h.dead;
-    $("links-list").innerHTML=h.dead.length? '<div class="bars" style="gap:6px">'+h.dead.slice(0,200).map(id=>'<a href="/product/'+encodeURIComponent(id)+'" target="_blank" rel="noopener" style="color:var(--ink);font-size:13.5px">/product/'+id+'</a>').join("")+'</div>' : "No dead links found.";
+    $("links-list").innerHTML=h.dead.length? '<div class="sublabel">Dead links</div><div class="tw" style="max-height:280px"><div class="bars" style="gap:6px">'+h.dead.slice(0,200).map(id=>'<a href="/product/'+encodeURIComponent(id)+'" target="_blank" rel="noopener" style="color:var(--ink);font-size:13.5px">/product/'+id+'</a>').join("")+'</div></div>' : '<div class="empty">No dead links found.</div>';
   }catch(e){}
 }
 loadLinks();
@@ -310,6 +451,7 @@ document.querySelectorAll(".seg").forEach(seg=>seg.addEventListener("click",e=>{
 $("refresh").onclick=load;
 let rt; addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(drawCharts,120); });
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",render);
+addEventListener("pc-theme",render);
 setInterval(load,60000);
 load();
 </script>
