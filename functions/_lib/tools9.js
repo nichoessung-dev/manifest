@@ -3,35 +3,20 @@
 // r2/TOOLS_SPEC.md). pages.js merges TOOLS9 into TOOLS (hub, sitemap) and hands these three slugs to toolPage9().
 // Everything runs in the browser: no network calls, no keys. Inline scripts are ES5, escape everything they print and
 // keep every localStorage access in try/catch so the pages work without storage.
-import { SITE, esc, crumbs, page, TOOL_LINKS } from "./site.js";
+import { SITE, esc, crumbs, page, TOOL_LINKS, ICONS, ic, icTile, howItWorks } from "./site.js";
 
 // JSON for an inline <script>: "<" is escaped so no value can close the script tag.
 const js = v => JSON.stringify(v).replace(/</g, "\\u003c");
 
-// ------------------------------------------------------------------ icons (24px grid, 1.75 stroke, currentColor)
-const svg = (p, cls = "") => `<svg${cls ? ` class="${cls}"` : ""} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${p}</svg>`;
-const P_ = {
-  qc: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13.5" r="3.5"/>',
-  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
-  box: '<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5Z"/><path d="M3 7.5 12 12l9-4.5"/><path d="M12 12v9"/>',
-  ruler: '<path d="M3 15.5 15.5 3 21 8.5 8.5 21Z"/><path d="m7 12 1.5 1.5"/><path d="m10 9 2 2"/><path d="m13 6 1.5 1.5"/>',
-  pin: '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.5"/>',
-  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
-  copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
-  alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><path d="M12 16.5h.01"/>',
-  x: '<path d="M6 6l12 12M18 6 6 18"/>',
-  plus: '<path d="M12 5v14M5 12h14"/>',
-  minus: '<path d="M5 12h14"/>',
-  ext: '<path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
-  paste: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9z"/>',
-  tee: '<path d="M8.5 3 3 6l2 4.5 2-1V21h10V9.5l2 1L21 6l-5.5-3a3.5 3.5 0 0 1-7 0Z"/>',
-  hoodie: '<path d="M8 4 3.5 7 5 11.5l2-.8V21h10V10.7l2 .8L20.5 7 16 4"/><path d="M8 4a4 4 0 0 0 8 0"/><path d="M10.5 8.5v3M13.5 8.5v3"/>',
-  jacket: '<path d="M9 3 4 6v15h7V8.5"/><path d="M15 3l5 3v15h-7V8.5"/><path d="m9 3 3 5.5L15 3"/>',
-  pants: '<path d="M6 3h12l1.2 18h-5L12 10l-2.2 11h-5Z"/><path d="M6 6.5h12"/>',
-  shoe: '<path d="M3 17v-6l4-.8 3-3.7 3 2.2 3 3 4.3 1a2 2 0 0 1 1.7 2V17Z"/><path d="M3 17v2.5h19V17"/>',
-};
-export const TOOL_ICON_PATHS = { "qc-checker": P_.qc, "link-converter": P_.link, "shipping-calculator": P_.box, "size-estimator": P_.ruler, "parcel-tracker": P_.pin };
-export const toolIcon = slug => svg(TOOL_ICON_PATHS[slug] || P_.box);
+// ------------------------------------------------------------------ icons
+// The one icon set lives in site.js (ICONS, ic()). P_ keeps the short names this file used, as ICONS names; svg(name, cls)
+// returns the whole <svg>. The garment icons are the homepage category geometry.
+const svg = (name, cls = "") => ic(name, cls);
+const P_ = { qc: "camera", link: "link", box: "box", ruler: "ruler", pin: "pin", check: "check", copy: "copy", alert: "alert", x: "x", plus: "plus",
+  minus: "minus", ext: "ext", paste: "paste", tee: "tee", hoodie: "hoodie", jacket: "jacket", pants: "pants", shoe: "shoe" };
+export const TOOL_ICON_PATHS = { "qc-checker": ICONS.camera, "link-converter": ICONS.link, "shipping-calculator": ICONS.box, "size-estimator": ICONS.ruler, "parcel-tracker": ICONS.pin };
+const TOOL_ICON_NAME = { "qc-checker": P_.qc, "link-converter": P_.link, "shipping-calculator": P_.box, "size-estimator": P_.ruler, "parcel-tracker": P_.pin };
+export const toolIcon = slug => svg(TOOL_ICON_NAME[slug] || P_.box);
 // One line per tool (the homepage v9_tool_*_d strings), for the hub and the related-tools cards.
 export const TOOL_SHORT = { "qc-checker": "See real buyer photos of any listing.", "link-converter": "Turn any seller link into agent buy links.",
   "shipping-calculator": "Ballpark your parcel cost by weight and country.", "size-estimator": "Find your size from height, weight and fit.",
@@ -43,6 +28,8 @@ export const TOOL_SHORT = { "qc-checker": "See real buyer photos of any listing.
 export const ITEM_WEIGHTS = [["T-shirt", 250], ["Shirt / polo", 330], ["Shorts", 350], ["Hoodie / sweater", 700], ["Pants / jeans", 600],
   ["Light jacket", 700], ["Puffer / heavy jacket", 1100], ["Sneakers (no box)", 900], ["Sneakers (with box)", 1300], ["Bag", 550],
   ["Cap / beanie", 220], ["Belt / small accessory", 200]];
+// The garment icon on each item chip, same order as ITEM_WEIGHTS.
+const ITEM_ICONS = ["tee", "tee", "shorts", "hoodie", "pants", "jacket", "jacket", "shoe", "box", "bag", "cap", "watch"];
 // URL keys for ITEM_WEIGHTS, same order (?items=hoodie:2,sneakers-box:1).
 const ITEM_KEYS = ["tshirt", "shirt", "shorts", "hoodie", "pants", "light-jacket", "puffer", "sneakers", "sneakers-box", "bag", "cap", "accessory"];
 // Shipping ballpark per region: [line, base USD, USD per kg]. Unchanged from the live calculator.
@@ -121,7 +108,7 @@ return out.filter(function(n,i){return /^(?=[A-Z]*\d)[A-Z0-9]{8,40}$/.test(n)&&o
 
 // Placeholder fill without String.replace's $ patterns (regex sources contain $).
 // An icon for a JS string literal in an inline script: \x22 is a double quote in either quote style.
-const qsvg = p => svg(p).replace(/"/g, "\\x22");
+const qsvg = (p, cls = "") => svg(p, cls).replace(/"/g, "\\x22");
 const fill = (str, map) => Object.keys(map).reduce((a, k) => a.split(k).join(map[k]), str);
 
 // ------------------------------------------------------------------ shared kit JS (inlined once per tool page)
@@ -164,7 +151,7 @@ export const KIT_JS = fill(KIT_RAW, { __COPY_ICONS__: js(COPY_ICONS) });
 // Server-side snippets that mirror the kit JS.
 const copyBtn = (label, attrs, cls = "") => `<button type="button" class="btn sm tk-copy${cls ? " " + cls : ""}" ${attrs}>${COPY_ICONS}<span class="tk-cl">${esc(label)}</span></button>`;
 const segHtml = (id, label, opts, on, cls = "tk-seg") => `<div class="${cls}" role="radiogroup" ${label.startsWith("#") ? `aria-labelledby="${label.slice(1)}"` : `aria-label="${esc(label)}"`} id="${id}">` +
-  opts.map(([v, t, ic]) => `<button type="button" role="radio" data-v="${esc(v)}" aria-checked="${v === on}" tabindex="${v === on ? 0 : -1}">${ic ? svg(ic) : ""}<span>${esc(t)}</span></button>`).join("") + `</div>`;
+  opts.map(([v, t, icn]) => `<button type="button" role="radio" data-v="${esc(v)}" aria-checked="${v === on}" tabindex="${v === on ? 0 : -1}">${icn ? svg(icn) : ""}<span>${esc(t)}</span></button>`).join("") + `</div>`;
 const unitIn = (id, unit, attrs) => `<div class="tk-unitwrap"><input class="tk-in" id="${id}" ${attrs}><span class="tk-unit" data-u="${id}">${esc(unit)}</span></div>`;
 
 // ------------------------------------------------------------------ copy and meta
@@ -198,7 +185,7 @@ export const TOOLS9 = {
 export const TOOL_SLUGS = ["qc-checker", "link-converter", "shipping-calculator", "size-estimator", "parcel-tracker"];
 
 // ------------------------------------------------------------------ shipping calculator
-const SHIP_JS = fill(String.raw`(function(){var W=__W__,KEYS=__KEYS__,Z=__Z__,RT=__RT__,LD=__LD__;
+const SHIP_JS = fill(String.raw`(function(){var W=__W__,KEYS=__KEYS__,Z=__Z__,RT=__RT__,LD=__LD__,LI=['__LI1__','__LI2__','__LI3__'];
 var $=K.$,esc=K.esc,co=$("co"),kg=$("kg"),out=$("out"),hl=$("hl"),sb=$("sb"),cnt={},unit="kg",mode="items",LB=2.20462,vis=true,res=null,ready=false,sayD=K.deb(K.say,700);
 var wm=K.seg($("wm"),function(v){mode=v;show();if(v==="type")setTimeout(function(){kg.focus();},0);run();});
 var ut=K.seg($("ut"),function(v){var k=typed();unit=v;if(k>0)kg.value=fmtIn(k);K.store.set("pc.ship.unit",v);paint();run();});
@@ -228,7 +215,7 @@ res={k:k,lo:lo};if(ready)sayD(wfmt(k)+", from ~"+money(lo));
 var txt="Shipping estimate to "+to+", "+wfmt(k)+(unit==="lb"?" ("+k.toFixed(2)+" kg)":"")+(sub&&mode==="items"?", "+sub:"")+":\n"+L.map(function(l){return l[0]+": "+rng(l);}).join("\n")+"\nBallpark only. Check your agent's estimator for the real price.";
 out.setAttribute("data-state","success");
 out.innerHTML='<div class="tk-res"><p class="tk-res-k">Estimated weight</p><p class="tk-big">'+esc(wfmt(k))+'</p><p class="tk-res-sub">'+esc((unit==="lb"?k.toFixed(2)+" kg · ":"")+(sub?sub+" to ":"To ")+to)+"</p>"+
-'<div class="tk-lines">'+L.map(function(l,i){return '<div class="tk-opt"><div class="tk-opt-main"><span>'+esc(l[0])+"</span>"+(i===best?'<span class="tk-badge">Lowest Price</span>':"")+'<span class="tk-bar" aria-hidden="true"><i style="width:'+Math.max(6,Math.round(l[2]/hi*100))+'%"></i></span></div><span class="tk-opt-v">'+esc(rng(l))+"</span></div>";}).join("")+"</div>"+
+'<div class="tk-lines">'+L.map(function(l,i){return '<div class="tk-opt"><div class="tk-opt-main"><span>'+(LI[i]||"")+esc(l[0])+"</span>"+(i===best?'<span class="tk-badge">Lowest Price</span>':"")+'<span class="tk-bar" aria-hidden="true"><i style="width:'+Math.max(6,Math.round(l[2]/hi*100))+'%"></i></span></div><span class="tk-opt-v">'+esc(rng(l))+"</span></div>";}).join("")+"</div>"+
 '<div class="tk-actions">'+K.cbtn(txt,"Copy Estimate","Estimate copied")+'<button type="button" class="btn sm" data-share>__LINK__<span class="tk-cl">Share</span></button></div>'+
 '<p class="tk-foot">Ballpark only. Check your agent\'s estimator for the real price.</p>'+
 '<details class="tk-more"><summary>How We Estimate</summary><p>Each line is a base fee plus a price per kg for your region, shown as a range from about 15% under to 20% over that figure. Bulky boxes can be charged by <a href="/guides/shipping-lines">volumetric weight</a> instead of real weight.</p></details></div>';
@@ -254,11 +241,11 @@ var qk=parseFloat(q.kg);if(qk>0&&isFinite(qk)){mode="type";kg.value=fmtIn(qk);}
 else if(q.items){loadItems(q.items);mode="items";}
 else if(q.m==="type")mode="type";
 else if(last&&typeof last==="object"){if(last.m==="type"&&last.kg>0){mode="type";kg.value=fmtIn(+last.kg);}else if(last.items)loadItems(last.items);}
-wm.set(mode);show();paint();run();ready=true;})();`, { __W__: js(ITEM_WEIGHTS), __KEYS__: js(ITEM_KEYS), __Z__: js(ZONES), __RT__: js(RATES), __LD__: js(LANG_DEST), __MINUS__: qsvg(P_.minus), __PLUS__: qsvg(P_.plus), __BOX__: qsvg(P_.box), __ALERT__: qsvg(P_.alert), __LINK__: qsvg(P_.link) });
+wm.set(mode);show();paint();run();ready=true;})();`, { __W__: js(ITEM_WEIGHTS), __KEYS__: js(ITEM_KEYS), __Z__: js(ZONES), __RT__: js(RATES), __LD__: js(LANG_DEST), __MINUS__: qsvg(P_.minus), __PLUS__: qsvg(P_.plus), __BOX__: qsvg(P_.box), __ALERT__: qsvg(P_.alert), __LINK__: qsvg(P_.link), __LI1__: qsvg("truck", "sm"), __LI2__: qsvg("shield", "sm"), __LI3__: qsvg("zap", "sm") });
 
 function shipUI() {
   const opts = DEST_GROUPS.map(([g, l]) => `<optgroup label="${esc(g)}">${l.map(c => `<option>${esc(c)}</option>`).join("")}</optgroup>`).join("");
-  const chips = ITEM_WEIGHTS.map(([n], i) => `<button type="button" class="tk-chip" data-add="${i}" aria-label="Add ${esc(n)}">${svg(P_.plus)}<span>${esc(n)}</span><span class="tk-n"></span></button>`).join("");
+  const chips = ITEM_WEIGHTS.map(([n], i) => `<button type="button" class="tk-chip" data-add="${i}" aria-label="Add ${esc(n)}">${svg(P_.plus)}${svg(ITEM_ICONS[i], "sm")}<span>${esc(n)}</span><span class="tk-n"></span></button>`).join("");
   return `<section class="tk-card tk-ship" aria-label="Shipping calculator"><div class="tk-ship-in">
 <div class="tk-field"><label class="tk-label" for="co">Ship to</label><select class="tk-in" id="co" autocomplete="country-name">${opts}</select></div>
 <div class="tk-field"><div class="tk-label"><span id="wml">Weight</span>${segHtml("ut", "Weight unit", [["kg", "kg"], ["lb", "lb"]], "kg", "tk-toggle")}</div>
@@ -457,7 +444,7 @@ function trackUI() {
 <div class="tk-row tk-go"><button class="btn primary" id="go" type="submit">Track Parcel</button><span class="tk-kbd" id="kb" aria-hidden="true"><kbd>Enter</kbd> to track</span></div>
 </form><div class="tk-out" id="out" data-state="empty">${TRACK_EMPTY}</div></section>
 <section class="tk-recent" id="rc" hidden aria-labelledby="rch"><div class="tk-recent-h"><h2 id="rch">Recent</h2><button type="button" class="btn ghost sm" id="clr">Clear</button></div><ul id="rl"></ul></section>
-<details class="tk-more tk-fmts"><summary>Supported Carriers</summary><p>We spot these from the number's format. Examples show the format only.</p><ul class="tk-fmt">${fmts}</ul></details>
+<details class="tk-more tk-fmts"><summary>${svg("truck", "sm")}Supported Carriers</summary><p>We spot these from the number's format. Examples show the format only.</p><ul class="tk-fmt">${fmts}</ul></details>
 <script>${KIT_JS}
 ${TRACK_JS}</script>`;
 }
@@ -470,9 +457,9 @@ const TRUST = { "shipping-calculator": ["Free", "No sign-up", "Runs in your brow
 export const tkHero = (slug, name, h1, lead, trust = TRUST[slug] || ["Free", "No sign-up"]) =>
   `<header class="tk-hero"><span class="tk-hero-ic">${toolIcon(slug)}</span><p class="tk-name">${esc(name)}</p><h1>${esc(h1)}</h1><p class="lead">${esc(lead)}</p>` +
   `<ul class="tk-trust">${trust.map(t => `<li>${svg(P_.check)}${esc(t)}</li>`).join("")}</ul></header>`;
-export const tkRelated = path => `<h2>More Free Tools</h2><div class="tk-related">${TOOL_LINKS.filter(([, u]) => u !== path).map(([n, u]) => {
+export const tkRelated = path => `<h2 class="h-ic">${icTile("grid")}More Free Tools</h2><div class="tk-related">${TOOL_LINKS.filter(([, u]) => u !== path).map(([n, u]) => {
   const k = u.replace(/^\/tools\//, ""); return `<a href="${u}"><span class="tk-ic">${toolIcon(k)}</span><span><b>${esc(n)}</b><span>${esc(TOOL_SHORT[k] || "")}</span></span></a>`; }).join("")}</div>
-<p><a href="/how-to-order">How to order</a></p>`;
+<p><a href="/how-to-order">${svg("play", "sm")}How to order</a></p>`;
 
 const faqLd = faq => ({ "@context": "https://schema.org", "@type": "FAQPage",
   mainEntity: faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) });
@@ -482,10 +469,10 @@ export function toolPage9(s, baseCss = "") {
   const t = Object.prototype.hasOwnProperty.call(TOOLS9, s) ? TOOLS9[s] : null; if (!t) return null;
   const path = "/tools/" + s; const bc = crumbs([["Home", "/"], ["Tools", "/tools"], [t.name, path]]);
   const app = { "@context": "https://schema.org", "@type": "WebApplication", name: t.name + ": Puro Classico", url: SITE + path, applicationCategory: "UtilitiesApplication", operatingSystem: "Any", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, description: t.desc };
-  const faq = `<h2>FAQ</h2><div class="faq">${t.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div>`;
+  const faq = `<h2 class="h-ic">${icTile("help")}FAQ</h2><div class="faq">${t.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div>`;
   const body = `${baseCss}<div class="tk-page${s === "shipping-calculator" ? " wide" : ""}" data-tool="${s}">${bc.html}${tkHero(s, t.name, t.h1 || t.name, t.lead)}
 ${TOOL_UI9[s]()}
-<div class="tk-below"><h2>How It Works</h2><div class="prose">${t.about}</div>${faq}
+<div class="tk-below">${howItWorks(s, t.about)}${faq}
 ${tkRelated(path)}</div></div>`;
   return page({ title: t.title, desc: t.desc, path, body, jsonld: [bc.data, app, faqLd(t.faq)] });
 }

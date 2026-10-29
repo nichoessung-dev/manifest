@@ -1,7 +1,7 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
 import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, thumbSrc, IMG_FALLBACK, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, GUIDE_LINKS, TOOL_LINKS, QC_ICON, origUrl,
-  TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell } from "./site.js";
+  TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell, ic, icTile, icSteps, more } from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
 import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS as TOOLS0 } from "./content2.js";
 import { TOOLS9, TOOL_UI9, toolPage9 } from "./tools9.js";
@@ -42,7 +42,19 @@ const PER_PAGE = 60;
 const BUILT_DAY = (d => isNaN(d) ? BUILT : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }))(new Date(BUILT + "T00:00:00Z"));
 const faqLd = faq => ({ "@context": "https://schema.org", "@type": "FAQPage",
   mainEntity: faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) });
-const faqHtml = faq => `<h2>FAQ</h2><div class="faq">${faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div>`;
+// ------------------------------------------------------------------ icon pass (29 Oct 2026, icons/SPEC.md)
+// Icons sit next to the text they belong to; no text is removed. Long prose that moves out of view goes into a
+// <details class="more"> (still in the HTML Google indexes). Maps from labels and URLs to ICONS names (site.js):
+const CAT_IC = { Tops: "tee", Outerwear: "jacket", Shoes: "shoe", Pants: "pants", Shorts: "shorts", Bags: "bag", Accessories: "watch", Headwear: "cap", Toys: "grid" };
+const CAT_SLUG_IC = Object.fromEntries(Object.entries(CATS).map(([k, v]) => [v.slug, CAT_IC[k] || "grid"]));
+const AGENT_URL = /^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet(\/|$)/;
+// The icon a chip link gets from its URL: best-model pages, categories and agent spreadsheets (brand chips get none).
+const chipIcon = u => /^\/best\//.test(u) ? ic("award", "sm") : /^\/category\//.test(u) ? ic(CAT_SLUG_IC[u.split("/")[2]] || "grid", "sm") : AGENT_URL.test(u) ? ic("users", "sm") : "";
+const chipIcons = html => html.replace(/<a href="([^"]+)"([^>]*)>/g, (m, u) => m + chipIcon(u));
+// A heading with a leading icon tile: <h2 class="h-ic">
+const hIc = (tag, name, html, attrs = "") => `<${tag}${attrs} class="h-ic">${icTile(name)}${html}</${tag}>`;
+const firstIcon = (map, text, dflt) => { for (const [re, n] of map) if (re.test(text)) return n; return dflt; };
+const faqHtml = faq => `${hIc("h2", "help", "FAQ")}<div class="faq">${faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div>`;
 const listLd = (name, url, items, count = items.length) => ({ "@context": "https://schema.org", "@type": "CollectionPage", name, url: SITE + url,
   mainEntity: { "@type": "ItemList", numberOfItems: count,
     itemListElement: items.slice(0, 30).map((p, i) => ({ "@type": "ListItem", position: i + 1, url: SITE + productUrl(p), name: p.title })) } });
@@ -58,7 +70,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w32";
+export const PRODUCT_TPL = "w34";
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -137,16 +149,15 @@ export async function renderProduct(id, origin) {
   // and the main button on screen while the main button is out of view (.buybar, filled in by the script).
   const ag = Object.entries(AGENTS);
   const buyLink = ([k, a], main) => `<a${main ? ' class="first"' : ""} data-agent="${k}" href="${esc(a.build(p))}" target="_blank" rel="sponsored nofollow noopener">Buy via ${a.name}${k === "mycnbox" ? "<small>Most popular</small>" : ""}</a>`;
-  const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-  const CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  const ARROW = ic("arrow-right", "sm"), CHEVRON = ic("chevron-down");
   // A listing the weekly link check found gone: say so above the buttons (a sold-out listing often comes back).
   const g = gone(p), checked = LINKS_CHECKED ? new Date(LINKS_CHECKED + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "";
-  const goneNote = !g ? "" : `<p class="buy-gone">${g === "dead" ? "This listing was no longer online" : "This listing was sold out"} at our link check${checked ? ` on ${checked}` : ""}. ` +
+  const goneNote = !g ? "" : `<p class="buy-gone">${ic("alert", "sm")}${g === "dead" ? "This listing was no longer online" : "This listing was sold out"} at our link check${checked ? ` on ${checked}` : ""}. ` +
     `${g === "dead" ? "The buttons still open it in case the seller puts it back" : "The buttons still open it, since sellers often restock"}; similar finds are below.</p>`;
   const buyBox = goneNote + `<div class="buybox"><div class="buy-split"><div class="buy-main">${buyLink(ag[0], true)}</div>` +
     `<details class="buy-more"><summary aria-label="Other agents">${CHEVRON}</summary><div class="buy-menu"><p class="buy-or">Or buy via</p><div class="buy-alt">${ag.slice(1).map(x => buyLink(x, false)).join("")}</div></div></details></div>` +
-    `<a class="buy-hint" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener"><span>New to MyCNBox? Sign up with our link for up to $500 in new-user coupons</span>${ARROW}</a>` +
-    `<p class="buy-aff">These are affiliate links: we may earn a commission if you order, at no extra cost to you.</p></div>` +
+    `<a class="buy-hint" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">${ic("gift", "sm")}<span>New to MyCNBox? Sign up with our link for up to $500 in new-user coupons</span>${ARROW}</a>` +
+    `<p class="buy-aff">${ic("info", "sm")}These are affiliate links: we may earn a commission if you order, at no extra cost to you.</p></div>` +
     // The agent the visitor picked in the app becomes the main button (it swaps places with MyCNBox, which moves into
     // the menu); the coupon line only goes with MyCNBox. The menu closes on Escape or a click outside it.
     `<script>(function(){var x=document.currentScript.previousElementSibling;try{var a=String((JSON.parse(localStorage.getItem("manifest.state")||"{}")||{}).agent||"").replace(/[^a-z0-9]/g,""),m=x.querySelector(".buy-main a"),e=a&&x.querySelector('.buy-alt a[data-agent="'+a+'"]');if(e&&m){var n=e.nextSibling,q=e.parentNode;m.parentNode.replaceChild(e,m);q.insertBefore(m,n);e.className="first";m.className="";x.querySelector(".buy-hint").hidden=true;}}catch(_){}` +
@@ -169,12 +180,18 @@ export async function renderProduct(id, origin) {
   const sameBrand = bUrl ? topBrand.concat(ringAfter("b:" + p.brand, byBrand.get(p.brand) || [], p, 4, topBrand)) : [];
   const topCat = (byCat.get(p.cat) || []).filter(x => x.id !== p.id && x.brand !== p.brand).slice(0, 4);
   const sameCat = topCat.concat(ringAfter("c:" + p.cat, byCat.get(p.cat) || [], p, 4, topCat, x => x.brand !== p.brand));
-  const about = `<p>The <strong>${esc(p.title)}</strong> is listed on ${plat}${realSeller ? ` by ${esc(realSeller)}` : ""}, in our ${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(cat.name || p.cat)} section${p.brand ? ` (${esc(p.brand)} style)` : ""}.` +
+  const about1 = `<p>The <strong>${esc(p.title)}</strong> is listed on ${plat}${realSeller ? ` by ${esc(realSeller)}` : ""}, in our ${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(cat.name || p.cat)} section${p.brand ? ` (${esc(p.brand)} style)` : ""}.` +
     (isPH(p.cny) ? ` The seller shows a placeholder price (¥${p.cny}), so ask them for the real price before ordering.` : ` The listed price is ¥${p.cny} (about ${money(p.cny)}) before shipping.`) +
-    (opts.length ? ` Listed option${opts.length > 1 ? "s" : ""}: ${esc(opts.slice(0, 8).join(", "))}${opts.length > 8 ? "…" : ""}.` : "") + `</p>` +
-    (p.qc ? `<p>Our catalogue data marks this listing as having <strong>buyer QC photos</strong>: warehouse photos taken for earlier orders. When we can load them, they are shown on this page. Either way, once your own order reaches the warehouse your agent photographs your exact item, so you can check logos, stitching and colour before it ships.</p>`
+    (opts.length ? ` Listed option${opts.length > 1 ? "s" : ""}: ${esc(opts.slice(0, 8).join(", "))}${opts.length > 8 ? "…" : ""}.` : "") + `</p>`;
+  const aboutMore = (p.qc ? `<p>Our catalogue data marks this listing as having <strong>buyer QC photos</strong>: warehouse photos taken for earlier orders. When we can load them, they are shown on this page. Either way, once your own order reaches the warehouse your agent photographs your exact item, so you can check logos, stitching and colour before it ships.</p>`
           : `<p>There are no buyer QC photos for this listing yet. Once you order, your agent photographs your exact item at the warehouse before it ships, so you can still check it before paying for shipping.</p>`) +
     `<p>International shipping isn't included in the price; you pay it when you ship your parcel, and it depends on weight and your country.</p>`;
+  // Icon facts above the first paragraph; they restate the paragraphs (platform, price, QC flag, shipping not included).
+  const aboutFacts = `<ul class="ic-row">${[["store", plat], ["coins", isPH(p.cny) ? "Ask seller" : `${money(p.cny)} · ¥${p.cny}`], ["camera", p.qc ? "QC photos on record" : "No QC photos yet"], ["truck", "Shipping not included"]]
+    .map(([n, t]) => `<li>${ic(n)}<span>${esc(t)}</span></li>`).join("")}</ul>`;
+  const DT_IC = { "Marketplace": "store", "Category": "grid", "QC photos": "camera", "Item ID": "hash", "Typical weight": "scale", "Price compared": "chart", "Same name": "layers",
+    "Spreadsheets": "sheet", "Views (30 days)": "eye", "Saved by": "star", "Link check": "refresh" };
+  const dtIcons = html => html.replace(/<dt>([^<]+)<\/dt>/g, (m, k) => `<dt>${ic(DT_IC[k] || "info", "sm")}${k}</dt>`);
   const sheetBrand = p.brand && agentBrands().includes(p.brand) ? idx().brandSlug.get(p.brand) : null;
   const sheets = AGENT_BRAND_AGENTS.map(k => `<a href="/${k}-spreadsheet${sheetBrand ? "/" + sheetBrand : ""}">${esc(AGENTS[k].name)}</a>`).join(" · ");
   const model = modelFor(p);
@@ -182,7 +199,7 @@ export async function renderProduct(id, origin) {
 <div class="pd">
   <div class="pd-media"><div class="pimg">${src ? `<img id="pmain" src="${esc(src)}" alt="${esc(p.title)}" width="600" height="600" fetchpriority="high">` : ""}</div>
     ${qcs.length ? `<h2 class="qc-h" id="qc">Real QC photos</h2><div class="qcs">${qcs.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(thumbSrc(u))}" data-o="${esc(u)}" alt="${esc(p.title)} QC photo ${i + 1}" width="96" height="96" loading="lazy" decoding="async" onerror="if(this.dataset.o){this.src=this.dataset.o;this.dataset.o=''}else this.parentNode.remove()"></a>`).join("")}</div>`
-      : p.qc >= 1 ? `<div class="qc-load" id="qc"><button class="btn sm" type="button" data-sf="${esc(p.platform)}" data-id="${esc(p.itemId || p.id)}">Show buyer QC photos</button></div><script>${QC_LOAD_JS}</script>` : ""}
+      : p.qc >= 1 ? `<div class="qc-load" id="qc"><button class="btn sm" type="button" data-sf="${esc(p.platform)}" data-id="${esc(p.itemId || p.id)}">${ic("camera", "sm")}Show buyer QC photos</button></div><script>${QC_LOAD_JS}</script>` : ""}
     ${GALLERY_JS}
   </div>
   <div class="pd-info">
@@ -190,18 +207,18 @@ export async function renderProduct(id, origin) {
     <h1>${esc(p.title)}</h1>
     <div class="price">${money(p.cny)}<small>${isPH(p.cny) ? "placeholder price · ask seller" : `¥${p.cny} · before shipping`}</small></div>
     ${buyBox}
-    ${opts.length ? `<div class="opts"><span class="opts-l">Options</span><div class="chips">${opts.slice(0, 12).map(o => `<span>${esc(o)}</span>`).join("")}</div></div>` : ""}
+    ${opts.length ? `<div class="opts"><span class="opts-l">${ic("tag", "sm")}Options</span><div class="chips">${opts.slice(0, 12).map(o => `<span>${esc(o)}</span>`).join("")}</div></div>` : ""}
     <section class="dcard" aria-labelledby="pd-details"><h2 id="pd-details">Details</h2>
-    <dl class="kv"><dt>Marketplace</dt><dd>${plat}</dd><dt>Category</dt><dd>${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(p.cat)}</dd>
-      <dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc ? "On record" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd>${productFacts(p, g, checked)}<dt>Spreadsheets</dt><dd>${sheets}</dd></dl></section>
-    <p class="more"><a href="/#p/${encodeURIComponent(p.id)}">Open in the catalogue →</a></p>
+    <dl class="kv">${dtIcons(`<dt>Marketplace</dt><dd>${plat}</dd><dt>Category</dt><dd>${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(p.cat)}</dd>
+      <dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc ? "On record" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd>${productFacts(p, g, checked)}<dt>Spreadsheets</dt><dd>${sheets}</dd>`)}</dl></section>
+    <p class="more"><a href="/#p/${encodeURIComponent(p.id)}">${ic("grid", "sm")}Open in the catalogue${ic("arrow-right", "sm")}</a></p>
   </div>
 </div>
-<h2>About this find</h2><div class="prose">${about}</div>
-<h2>How to buy it</h2><ol class="steps prose"><li>Tap <strong>Buy via MyCNBox</strong> (or your agent). The listing opens pre-filled.</li><li>Pick your size and colour, check our <a href="/guides/sizing">sizing guide</a>, and pay for the item plus delivery to the warehouse.</li><li>Check the QC photos (<a href="/guides/how-to-qc">what to look for</a>), then combine items into one parcel and ship. <a href="/how-to-order">Watch the 1:47 video</a>.</li></ol>
-${model ? `<div class="note" style="margin-top:22px">Comparing batches? See all <a href="/best/${model.slug}">${model.list.length} ${esc(model.name)} rep listings</a> ranked by views.</div>` : ""}
-${sameBrand.length ? `<div class="sh"><h2>More ${esc(p.brand)} finds</h2><a class="vm" href="${bUrl}">All ${byBrand.get(p.brand).length.toLocaleString("en-US")} ${esc(p.brand)} reps on the spreadsheet →</a></div>${grid(sameBrand)}` : ""}
-${sameCat.length ? `<div class="sh"><h2>Similar ${esc((cat.name || p.cat).toLowerCase())}</h2>${cUrl ? `<a class="vm" href="${cUrl}">All ${esc((cat.name || p.cat).toLowerCase())} →</a>` : ""}</div>${grid(sameCat)}` : ""}
+<h2>About this find</h2>${aboutFacts}<div class="prose">${about1}</div>${more("Read more", `<div class="prose">${aboutMore}</div>`)}
+<h2>How to buy it</h2>${icSteps([["cart", "Tap Buy"], ["ruler", "Pick size, pay"], ["camera", "Check QC, ship"]])}${more("Step by step", `<ol class="steps prose"><li>Tap <strong>Buy via MyCNBox</strong> (or your agent). The listing opens pre-filled.</li><li>Pick your size and colour, check our <a href="/guides/sizing">sizing guide</a>, and pay for the item plus delivery to the warehouse.</li><li>Check the QC photos (<a href="/guides/how-to-qc">what to look for</a>), then combine items into one parcel and ship. <a href="/how-to-order">Watch the 1:47 video</a>.</li></ol>`)}
+${model ? `<div class="note" style="margin-top:22px">${ic("award", "sm")}Comparing batches? See all <a href="/best/${model.slug}">${model.list.length} ${esc(model.name)} rep listings</a> ranked by views.</div>` : ""}
+${sameBrand.length ? `<div class="sh"><h2>More ${esc(p.brand)} finds</h2><a class="vm" href="${bUrl}">All ${byBrand.get(p.brand).length.toLocaleString("en-US")} ${esc(p.brand)} reps on the spreadsheet${ic("arrow-right", "sm")}</a></div>${grid(sameBrand)}` : ""}
+${sameCat.length ? `<div class="sh"><h2>Similar ${esc((cat.name || p.cat).toLowerCase())}</h2>${cUrl ? `<a class="vm" href="${cUrl}">All ${esc((cat.name || p.cat).toLowerCase())}${ic("arrow-right", "sm")}</a>` : ""}</div>${grid(sameCat)}` : ""}
 ${buyBar}`;
   const pageLd = { "@context": "https://schema.org", "@type": "ItemPage", name: p.title, url: SITE + productUrl(p), description: desc,
     primaryImageOfPage: src ? { "@type": "ImageObject", contentUrl: src } : undefined, isPartOf: { "@type": "WebSite", name: "Puro Classico", url: SITE + "/" } };
@@ -215,7 +232,7 @@ ${buyBar}`;
 }
 
 // ------------------------------------------------------------------ hubs
-function hub({ path, n, list, title, desc, h1, intro, trail, chips = "", top = "", extra = "", faq = null, total = null, ldCount = undefined, idxFirst = false }) {
+function hub({ path, n, list, title, desc, h1, intro, trail, chips = "", top = "", extra = "", faq = null, total = null, ldCount = undefined, idxFirst = false, factsMore = "", full = "" }) {
   const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
   if (n < 1 || n > pages) return null;
   // idxFirst (brand and category hubs, 28 Oct 2026): page 1 is the app with the 60 most viewed. From page 2 on, the finds
@@ -226,13 +243,18 @@ function hub({ path, n, list, title, desc, h1, intro, trail, chips = "", top = "
   const url = n === 1 ? path : `${path}/${n}`;
   const bc = crumbs(trail.concat(n > 1 ? [[`Page ${n}`, url]] : []));
   const qcTotal = list.reduce((s, p) => s + (p.qc || 0), 0);
-  const body = `${bc.html}<h1>${esc(h1)}${n > 1 ? ` <small style="color:var(--muted);font-size:.5em">page ${n}</small>` : ""}</h1>
+  // Brand and category pages 2+ (round 4, 29 Oct 2026) look like page 1, the app hub: a compact head (breadcrumbs, the
+  // h1 with the "Open the full ... spreadsheet" pill next to it), the facts and chips as single scrollable rows, the
+  // same card grid, the pager centred under it (ds.css .hub-p2). Same text, links and order as before.
+  const p2 = idxFirst && n > 1 && full;
+  const h1Html = `<h1>${esc(h1)}${n > 1 ? ` <small style="color:var(--muted);font-size:.5em">page ${n}</small>` : ""}</h1>`;
+  const body = `${p2 ? '<div class="hub-p2">' : ""}${bc.html}${p2 ? `<div class="hub-top">${h1Html}<a class="btn primary hub-full" href="${path}">${ic("sheet", "sm")}Open the full ${esc(full)} spreadsheet${ic("arrow-right", "sm")}</a></div>` : h1Html}
 ${n === 1 ? `<div class="prose">${intro}</div>` : ""}
-<div class="facts"><span>${(total || list.length).toLocaleString("en-US")} finds</span>${idxFirst && n > 1 ? "<span>QC-marked, curated and viewed finds first</span>" : ""}${priceRange(list) ? `<span>${priceRange(list)}</span>` : ""}<span>Catalogue updated ${BUILT_DAY}</span></div>
-${chips}
+<div class="facts"><span>${ic("sheet", "sm")}${(total || list.length).toLocaleString("en-US")} finds</span>${factsMore}${idxFirst && n > 1 ? `<span>${ic("camera", "sm")}QC-marked, curated and viewed finds first</span>` : ""}${priceRange(list) ? `<span>${ic("coins", "sm")}${priceRange(list)}</span>` : ""}<span>${ic("clock", "sm")}Catalogue updated ${BUILT_DAY}</span></div>
+${chipIcons(chips)}
 ${n === 1 ? top : ""}${grid(slice, 4)}
 ${pager(path, n, pages)}
-${n === 1 ? extra : ""}${n === 1 && faq && faq.length ? faqHtml(faq) : ""}`;
+${n === 1 ? extra : ""}${n === 1 && faq && faq.length ? faqHtml(faq) : ""}${p2 ? "</div>" : ""}`;
   const ld = [bc.data, listLd(h1, url, slice, ldCount)]; if (n === 1 && faq && faq.length) ld.push(faqLd(faq));
   // Pages 2+ (28 Oct 2026): the page number goes before the site name ("...: Page 2 · Puro Classico", not "... · Puro
   // Classico: Page 2", which also stopped page() from trimming long titles), and the description names the page, so
@@ -576,7 +598,7 @@ export function renderBrand(s, n) {
     related = [...brandSlug.keys()].filter(x => x !== b).sort((x, y) => byBrand.get(y).length - byBrand.get(x).length).slice(0, 10); relTitle = "Other brands"; relNote = "";
   }
   const extra = `<h2>How to buy ${esc(b)} reps</h2><div class="prose"><p>Open a find, tap <strong>Buy via MyCNBox</strong> (or your agent), pick your size and pay for the item plus delivery to the warehouse. Check the QC photos before shipping, see <a href="/guides/how-to-qc">how to read QC photos</a>, then combine your items into one parcel. New to this? <a href="/how-to-order">Watch the how-to-order video</a>.</p></div>
-<h2>${relTitle}</h2>${relNote}<div class="chips">${related.map(x => `<a href="/brand/${brandSlug.get(x)}">${esc(x)} reps</a>`).join("")}${OLD_MONEY_ALL.has(b) ? `<a href="/old-money">Old money reps</a>` : ""}<a href="/brands">All brands →</a></div>`;
+<h2>${relTitle}</h2>${relNote}<div class="chips">${related.map(x => `<a href="/brand/${brandSlug.get(x)}">${esc(x)} reps</a>`).join("")}${OLD_MONEY_ALL.has(b) ? `<a href="/old-money">Old money reps</a>` : ""}<a href="/brands">All brands${ic("arrow-right", "sm")}</a></div>`;
   // Title and description: catalogue data only (see the rules above), so they are the same whether or not the stats were read.
   const qcBit = f.q1 ? `, ${nf(f.q1)} marked as having QC photos` : "";
   const t0 = f.types[0], share = t0 && !t0[0].startsWith("other") ? t0[1].length / f.n : 0;
@@ -587,7 +609,7 @@ export function renderBrand(s, n) {
   return hub({ path: "/brand/" + s, n, list, title: `${n === 1 && best ? "Best " : ""}${b} Reps Spreadsheet 2026: ${N} Finds · Puro Classico`, desc,
     h1: `${b} reps spreadsheet`, intro, trail: [["Home", "/"], ["Brands", "/brands"], [b, "/brand/" + s]],
     chips: (bm.length ? `<div class="chips">${bm.map(m => `<a href="/best/${m.slug}" class="hot">Best ${esc(MODEL_TERM[m.slug] || m.name)} reps</a>`).join("")}</div>` : "") + (cats.length > 1 ? `<div class="chips">${cats.map(c => `<a href="${catUrl(c)}">${esc(CATS[c].name)}</a>`).join("")}</div>` : ""),
-    top: BRAND_CSS + brandPicksHtml(f, best), extra, faq: brandFaq(f, best), ldCount: f.n, idxFirst: true });
+    top: BRAND_CSS + brandPicksHtml(f, best), extra, faq: brandFaq(f, best), ldCount: f.n, idxFirst: true, full: b });
 }
 
 export function renderCategory(s, n) {
@@ -600,7 +622,7 @@ export function renderCategory(s, n) {
   return hub({ path: "/category/" + s, n, list, title: `Rep ${meta.name} Spreadsheet 2026: ${list.length.toLocaleString("en-US")} Finds · Puro Classico`,
     desc: n > 1 ? `Page ${n} of the ${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds on Puro Classico${priceRange(list) ? `, with prices (${priceRange(list)})` : ""}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.`
       : `${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds with prices and agent links${q1 ? `, ${q1.toLocaleString("en-US")} marked as having buyer QC photos` : ""}, sorted by most viewed.`,
-    h1: meta.h, intro: CAT_INTRO[c] || "", trail: [["Home", "/"], [meta.name, "/category/" + s]], extra, idxFirst: true });
+    h1: meta.h, intro: CAT_INTRO[c] || "", trail: [["Home", "/"], [meta.name, "/category/" + s]], extra, idxFirst: true, full: meta.name });
 }
 
 // ------------------------------------------------------------------ agent spreadsheets (+ brand pages per agent)
@@ -623,12 +645,12 @@ export function agentBrands() {
 const COUPON_GUIDE = { mycnbox: ["MyCNBox coupon code", "/guides/mycnbox-coupon-code"], kakobuy: ["KakoBuy coupon code", "/guides/kakobuy-coupon-code"] };
 function agentHowTo(a) {
   return `<h2>How to order from the ${a.name} spreadsheet</h2>
-<ol class="steps">
-<li><strong>Make a free ${a.name} account.</strong> Sign-up bonuses differ per agent; see <a href="${(COUPON_GUIDE[a.key] || ["", "/guides/agent-coupons"])[1]}">${esc((COUPON_GUIDE[a.key] || ["all agent sign-up bonuses"])[0])}</a>.</li>
-<li><strong>Find an item here.</strong> Search or filter the spreadsheet by brand, category, colour or price, and open the find you like.</li>
-<li><strong>Tap "Buy via ${a.name}".</strong> The listing opens inside ${a.name}. Pick your size and colour, then pay for the item and the short delivery to the warehouse.</li>
-<li><strong>Check your QC photos.</strong> When the item reaches the warehouse, ${a.name} photographs it. Compare logos, stitching and the size tag; read <a href="/guides/how-to-qc">how to read QC photos</a>.</li>
-<li><strong>Ship your parcel.</strong> Combine your items, pick a shipping line and pay international shipping. <a href="/guides/shipping-lines">Shipping lines explained</a> · <a href="/tools/shipping-calculator">shipping calculator</a>.</li>
+<ol class="steps ic-steps-list">
+<li>${icTile("user-plus")}<strong>Make a free ${a.name} account.</strong> Sign-up bonuses differ per agent; see <a href="${(COUPON_GUIDE[a.key] || ["", "/guides/agent-coupons"])[1]}">${esc((COUPON_GUIDE[a.key] || ["all agent sign-up bonuses"])[0])}</a>.</li>
+<li>${icTile("search")}<strong>Find an item here.</strong> Search or filter the spreadsheet by brand, category, colour or price, and open the find you like.</li>
+<li>${icTile("cart")}<strong>Tap "Buy via ${a.name}".</strong> The listing opens inside ${a.name}. Pick your size and colour, then pay for the item and the short delivery to the warehouse.</li>
+<li>${icTile("camera")}<strong>Check your QC photos.</strong> When the item reaches the warehouse, ${a.name} photographs it. Compare logos, stitching and the size tag; read <a href="/guides/how-to-qc">how to read QC photos</a>.</li>
+<li>${icTile("truck")}<strong>Ship your parcel.</strong> Combine your items, pick a shipping line and pay international shipping. <a href="/guides/shipping-lines">Shipping lines explained</a> · <a href="/tools/shipping-calculator">shipping calculator</a>.</li>
 </ol>`;
 }
 export function renderAgent(key, n) {
@@ -640,7 +662,7 @@ export function renderAgent(key, n) {
                [`Can I use the spreadsheet with another agent?`, `Yes. The catalogue is the same for every agent: each product page has buy links for MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo, and the link converter turns any Weidian, Taobao or 1688 link into a link for your agent.`],
                [`How often is the ${a.name} spreadsheet updated?`, `New finds are added to the catalogue regularly; the date of the last catalogue update is shown on this page (${BUILT}).`]];
   const brands = AGENT_BRAND_AGENTS.includes(key) ? agentBrands() : [];
-  const brandBlock = brands.length ? `<h2>Popular brands on the ${a.name} spreadsheet</h2><div class="chips">${brands.map(b => `<a href="${path}/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}<a href="/brands">All brands →</a></div>` : "";
+  const brandBlock = brands.length ? `<h2>Popular brands on the ${a.name} spreadsheet</h2><div class="chips">${brands.map(b => `<a href="${path}/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}<a href="/brands">All brands${ic("arrow-right", "sm")}</a></div>` : "";
   const coupon = COUPON_GUIDE[key];
   return hub({ path, n, list: all, title: `${meta.title}: ${N} Finds · Puro Classico`,
     desc: `The ${a.name} spreadsheet: ${N} rep finds with prices, QC photo counts and direct ${a.name} links. Updated ${BUILT}.`,
@@ -648,7 +670,7 @@ export function renderAgent(key, n) {
     trail: [["Home", "/"], [meta.title, path]], faq, chips: brands.length ? `<div class="chips">${brands.slice(0, 12).map(b => `<a href="${path}/${brandSlug.get(b)}">${esc(b)} on ${esc(a.name)}</a>`).join("")}</div>` : "",
     extra: `<div class="prose">${agentHowTo({ ...a, key })}${coupon ? `<p>Before your first order, check the <a href="${coupon[1]}">${esc(coupon[0])}</a> guide for the current sign-up bonus.</p>` : ""}</div>
 ${brandBlock}
-<p><a class="btn light" href="/">Browse all ${N} finds →</a></p><h2>Other agent spreadsheets</h2><div class="chips">${Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => `<a href="/${k}-spreadsheet">${esc(AGENT_INTRO[k].title.replace(/ 2026$/, ""))}</a>`).join("")}<a href="/guides/best-shopping-agent">Which agent is best?</a></div>` });
+<p><a class="btn light" href="/">Browse all ${N} finds${ic("arrow-right", "sm")}</a></p><h2>Other agent spreadsheets</h2><div class="chips">${Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => `<a href="/${k}-spreadsheet">${esc(AGENT_INTRO[k].title.replace(/ 2026$/, ""))}</a>`).join("")}<a href="/guides/best-shopping-agent">Which agent is best?</a></div>` });
 }
 export function renderAgentBrand(key, s, n) {
   const a = AGENTS[key], meta = AGENT_INTRO[key]; if (!a || !meta || !AGENT_BRAND_AGENTS.includes(key)) return null;
@@ -701,26 +723,33 @@ export function renderModels() {
 <div class="g">${ms.map(m => { const p = m.list[0]; const src = imgSrc(p); return `<a class="c" href="/best/${m.slug}"><span class="ci">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(m.name)}" width="300" height="300" loading="lazy" decoding="async" ${IMG_FALLBACK}>` : ""}</span><span class="cb"><span class="ct">${esc(m.name)}</span><span class="cbr">${m.list.length} listings</span></span></a>`; }).join("")}</div>`;
   return page({ title: "Best Reps by Model (2026): Compare Batches & QC · Puro Classico", desc: "Compare every listing of the most popular rep models: Air Jordan 1, Samba, Golden Goose, Moncler, Nuptse and more, ranked by views.", path: "/best", body, jsonld: [bc.data] });
 }
+// The icon for one "What to check in QC" line (first match wins).
+const QC_ITEM_IC = [[/toe|shape|silhouette|sole/i, "shoe"], [/logo|print|swoosh|embroider|font|tag text/i, "type"], [/stitch|seam|thread/i, "scissors"],
+  [/size|label|tag/i, "ruler"], [/colou?r/i, "palette"], [/zip|hardware|buckle|metal/i, "watch"], [/leather|material|knit|fabric|texture/i, "layers"]];
 export function renderModel(s, n) {
   const m = models().find(x => x.slug === s); if (!m) return null;
   const list = m.list;
-  const intro = `<p>${esc(m.intro)}</p><p>Below are all ${list.length} ${esc(m.name)} listings on Puro Classico, ranked by how often buyers view them. Listed prices: ${priceRange(list)} before shipping.</p>
-<h3>What to check in QC</h3><ul>${m.qc.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`;
+  const pr = priceRange(list);
+  // The finds count and price range already lead the .facts row under the intro, so "Ranked by views" joins that row
+  // (factsMore) instead of a second icon row repeating the same numbers.
+  const intro = `<p>${esc(m.intro)}</p>` +
+    more("Read more", `<p>Below are all ${list.length} ${esc(m.name)} listings on Puro Classico, ranked by how often buyers view them. Listed prices: ${pr} before shipping.</p>`) +
+    `${hIc("h3", "camera", "What to check in QC")}<ul class="ic-list">${m.qc.map(q => `<li>${ic(firstIcon(QC_ITEM_IC, q, "check-circle"), "sm")}<span>${esc(q)}</span></li>`).join("")}</ul>`;
   const others = models().filter(x => x.slug !== s).slice(0, 14);
   const t = MODEL_TERM[s] || m.name;
   // Link up to the hub of each brand these listings belong to (a brand needs 3 of them, or all of them; at most 6 brands).
   const { byBrand, brandSlug } = idx();
   const bn = new Map(); for (const p of list) if (brandSlug.has(p.brand)) bn.set(p.brand, (bn.get(p.brand) || 0) + 1);
   const hubs = [...bn].filter(([, c]) => c >= Math.min(3, list.length)).sort((x, y) => y[1] - x[1]).slice(0, 6).map(x => x[0]);
-  const hubLinks = hubs.length ? `<h2>${hubs.length === 1 ? `More ${esc(hubs[0])}` : "Brands on this page"}</h2><div class="chips">${hubs.map(x => `<a href="/brand/${brandSlug.get(x)}">All ${byBrand.get(x).length.toLocaleString("en-US")} ${esc(x)} reps</a>`).join("")}</div>` : "";
+  const hubLinks = hubs.length ? `${hIc("h2", "tag", hubs.length === 1 ? `More ${esc(hubs[0])}` : "Brands on this page")}<div class="chips">${hubs.map(x => `<a href="/brand/${brandSlug.get(x)}">All ${byBrand.get(x).length.toLocaleString("en-US")} ${esc(x)} reps</a>`).join("")}</div>` : "";
   const faq = [[`Where can I buy ${t} reps?`, `Puro Classico lists ${list.length} ${m.name} listings from Weidian, Taobao and 1688. Each opens directly in MyCNBox, KakoBuy, Oopbuy or another shopping agent.`],
                [`Which ${m.name} listing is best?`, `Start with the most-viewed listings at the top and compare their buyer QC photos. Check ${m.qc.join(", ")}.`]];
   return hub({ path: "/best/" + s, n, list, title: `Best ${t} Reps (2026): ${list.length} Listings Compared · Puro Classico`,
     desc: [`${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}. Check in QC: ${m.qc[0]}, then ${m.qc[1]}.`,
       `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}. Check in QC: ${m.qc[0]}.`,
       `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}, with what to check in QC.`].find(x => x.length <= 160) || `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}.`,
-    h1: `Best ${t} reps`, intro, trail: [["Home", "/"], ["Best reps", "/best"], [m.name, "/best/" + s]], faq,
-    extra: `${hubLinks}<h2>More models</h2><div class="chips">${others.map(x => `<a href="/best/${x.slug}">${esc(x.name)}</a>`).join("")}<a href="/best">All models →</a></div>` });
+    h1: `Best ${t} reps`, intro, factsMore: `<span>${ic("eye", "sm")}Ranked by views</span>`, trail: [["Home", "/"], ["Best reps", "/best"], [m.name, "/best/" + s]], faq,
+    extra: `${hubLinks}${hIc("h2", "award", "More models")}<div class="chips">${others.map(x => `<a href="/best/${x.slug}">${esc(x.name)}</a>`).join("")}<a href="/best">All models${ic("arrow-right", "sm")}</a></div>` });
 }
 
 // ------------------------------------------------------------------ tools
@@ -870,16 +899,26 @@ const TOOL_H1 = { "qc-checker": "Real QC Photos In One Click", "link-converter":
 const HUB_FORM = { "qc-checker": ["Check", "Product link or item ID"], "link-converter": ["Convert", "Weidian, Taobao, 1688 or agent link"] };
 const HUB_FLOW = [["Check The QC", "QC Checker", "/tools/qc-checker"], ["Get Your Buy Link", "Link Converter", "/tools/link-converter"],
   ["Price The Shipping", "Shipping Calculator", "/tools/shipping-calculator"], ["Track It Home", "Parcel Tracker", "/tools/parcel-tracker"]];
+// Three feature pills per tool card (icon pass), each a fact the tool's own text states; the long description moves
+// into a <details> in the card.
+const TOOL_PILLS = {
+  "qc-checker": [["store", "Weidian, Taobao, 1688"], ["hash", "Link or item ID"], ["image", "Buyer QC photos"]],
+  "link-converter": [["store", "Weidian, Taobao, 1688"], ["users", "5 agents"], ["zap", "Instant"]],
+  "shipping-calculator": [["globe", "Your country"], ["box", "Items or weight"], ["truck", "3 line types"]],
+  "size-estimator": [["ruler", "Height and weight"], ["tee", "Tops to sneakers"], ["tag", "Asian and EU/US"]],
+  "parcel-tracker": [["hash", "Any tracking number"], ["truck", "Carrier detected"], ["ext", "One-tap tracking"]] };
+const TOOL_IC = { "qc-checker": "camera", "link-converter": "link", "shipping-calculator": "box", "size-estimator": "ruler", "parcel-tracker": "pin" };
 export function renderTools() {
   const bc = crumbs([["Home", "/"], ["Tools", "/tools"]]);
   const cards = TOOL_LINKS.map(([t, u]) => { const k = u.replace(/^\/tools\//, ""), f = HUB_FORM[k];
     return `<article class="tk-hc${f ? " wide" : ""}"><span class="tk-ic">${TK_ICONS[k] || ""}</span><span class="tk-arrow">${TK_I.right}</span><h2><a href="${u}">${esc(t)}</a></h2>` +
-      `<p class="one">${esc(TOOL_ONE[k] || "")}</p>${own(TOOLS, k) ? `<p class="long">${esc(TOOLS[k].desc)}</p>` : ""}` +
+      `<p class="one">${esc(TOOL_ONE[k] || "")}</p>` + (TOOL_PILLS[k] ? `<ul class="ic-row tight">${TOOL_PILLS[k].map(([n, x]) => `<li>${ic(n, "sm")}<span>${esc(x)}</span></li>`).join("")}</ul>` : "") +
+      (own(TOOLS, k) ? more("Details", `<p class="long">${esc(TOOLS[k].desc)}</p>`) : "") +
       (f ? `<form action="${u}" method="get"><label class="vh" for="hub-${k}">${esc(f[1])}</label><input class="tk-in" id="hub-${k}" name="u" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Paste a link" required><button class="btn primary" type="submit">${f[0]}</button></form>` : "") + `</article>`; }).join("");
   const body = `<div class="tk-page hub">${bc.html}${tkHero({ h1: "Free Rep Tools", lead: "Check QC photos, convert links, estimate shipping, find your size and track your parcel. Free, no sign-up.", trust: [TK_TRUST.free, TK_TRUST.nosign] })}
 <div class="tk-hub">${cards}</div>
-<h2>Your Haul In 4 Tools</h2><ol class="tk-flow">${HUB_FLOW.map(([s, n, u]) => `<li><a href="${u}"><b>${esc(s)}</b><span>${esc(n)}</span></a></li>`).join("")}</ol>
-<p class="tk-flow-tip">Not sure about the size? <a href="/tools/size-estimator">Size Estimator</a></p></div>`;
+<h2>Your Haul In 4 Tools</h2><ol class="tk-flow">${HUB_FLOW.map(([s, n, u]) => `<li><a href="${u}">${icTile(TOOL_IC[u.replace(/^\/tools\//, "")] || "grid")}<b>${esc(s)}</b><span>${esc(n)}</span></a></li>`).join("")}</ol>
+<p class="tk-flow-tip">${ic("ruler", "sm")}Not sure about the size? <a href="/tools/size-estimator">Size Estimator</a></p></div>`;
   const list = { "@context": "https://schema.org", "@type": "ItemList", name: "Free Rep Tools",
     itemListElement: TOOL_LINKS.map(([n, u], i) => ({ "@type": "ListItem", position: i + 1, name: n, url: SITE + u })) };
   return page({ title: "Free Rep Tools: QC Checker, Link Converter, Size Estimator & Parcel Tracker · Puro Classico", desc: "Free tools for buying reps through agents: QC photo checker, link converter, shipping calculator, size estimator and parcel tracker.", path: "/tools", body, jsonld: [bc.data, list] });
@@ -894,15 +933,44 @@ export function renderTool(s) {
 }
 
 // ------------------------------------------------------------------ guides
+// Guides hub groups (icon pass): every GUIDE_LINKS entry lands in exactly one group, in GUIDE_LINKS order; anything not
+// listed goes to "More Guides". GUIDE_IC: the icon of each guide (cards, "More guides" chips).
+const GUIDE_GROUPS = [["Start Here", "book", ["/how-to-order", "/guides/what-is-a-rep-spreadsheet", "/guides/how-to-find-reps", "/guides/rep-glossary"]],
+  ["Buy From China", "store", ["/guides/how-to-buy-from-weidian", "/guides/how-to-buy-from-taobao", "/guides/how-to-buy-from-1688", "/guides/pandabuy-alternatives"]],
+  ["Agents And Coupons", "users", ["/guides/best-shopping-agent", "/guides/mycnbox-review", "/guides/kakobuy-vs-mycnbox", "/guides/mycnbox-coupon-code", "/guides/kakobuy-coupon-code", "/guides/agent-coupons"]],
+  ["QC, Sizing And Shipping", "camera", ["/guides/how-to-qc", "/guides/sizing", "/guides/shipping-lines"]]];
+const GUIDE_IC = { "/how-to-order": "play", "/guides/how-to-buy-from-weidian": "store", "/guides/how-to-buy-from-taobao": "store", "/guides/how-to-buy-from-1688": "store",
+  "/guides/how-to-qc": "camera", "/guides/sizing": "ruler", "/guides/best-shopping-agent": "users", "/guides/mycnbox-review": "shield", "/guides/kakobuy-vs-mycnbox": "split",
+  "/guides/shipping-lines": "truck", "/guides/what-is-a-rep-spreadsheet": "sheet", "/guides/pandabuy-alternatives": "refresh", "/guides/rep-glossary": "book",
+  "/guides/how-to-find-reps": "search", "/guides/how-we-check": "shield" };
+const guideIcon = u => GUIDE_IC[u] || (/coupon/.test(u) ? "gift" : "book");
 export function renderGuides() {
   const bc = crumbs([["Home", "/"], ["Guides", "/guides"]]);
+  const card = ([t, u]) => { const k = u.replace(/^\/guides\//, ""), g = u.startsWith("/guides/") && own(GUIDES, k) ? GUIDES[k] : null;
+    const d = g ? g.desc : u === "/how-to-order" ? "A 1:47 walkthrough: create a MyCNBox account, find an item on Puro Classico, check out, check QC photos, submit packing and track your parcel." : "";
+    return `<a href="${u}">${icTile(guideIcon(u))}<span class="gl-t"><b>${esc(g ? g.h1 : t)}</b>${d ? `<span class="gl-d">${esc(d)}</span>` : ""}</span></a>`; };
+  const listed = new Set(GUIDE_GROUPS.flatMap(x => x[2])), rest = GUIDE_LINKS.filter(([, u]) => !listed.has(u));
+  const groups = GUIDE_GROUPS.map(([h, n, us]) => [h, n, GUIDE_LINKS.filter(([, u]) => us.includes(u))]).concat(rest.length ? [["More Guides", "book", rest]] : []);
   const body = `${bc.html}<h1>Guides</h1><p class="lead">Everything you need to order your first finds from China: agents, QC photos, sizing and shipping.</p>
-<div class="gl">${GUIDE_LINKS.map(([t, u]) => { const k = u.replace(/^\/guides\//, ""), g = u.startsWith("/guides/") && own(GUIDES, k) ? GUIDES[k] : null;
-  const d = g ? g.desc : u === "/how-to-order" ? "A 1:47 walkthrough: create a MyCNBox account, find an item on Puro Classico, check out, check QC photos, submit packing and track your parcel." : "";
-  return `<a href="${u}"><b>${esc(g ? g.h1 : t)}</b>${d ? `<span>${esc(d)}</span>` : ""}</a>`; }).join("")}</div>`;
+${groups.filter(x => x[2].length).map(([h, n, l]) => `${hIc("h2", n, esc(h))}<div class="gl">${l.map(card).join("")}</div>`).join("\n")}`;
   return page({ title: "Rep Buying Guides: Agents, QC, Sizing & Shipping · Puro Classico", desc: "Step-by-step guides for buying from Weidian, Taobao and 1688 through a shopping agent.", path: "/guides", body, jsonld: [bc.data] });
 }
 
+// Guide icons (icon pass): h2s by heading text, steps by their leading words (first match wins). Text is unchanged.
+const H2_IC = [[/GL or RL|QC|photo|checklist/i, "camera"], [/siz|measure/i, "ruler"], [/ship|volumetric|line/i, "truck"], [/cost|fee|price|charges|save|what it costs/i, "coins"],
+  [/coupon|bonus|claim|cover/i, "gift"], [/\bvs\b|side by side|compare|choose|which/i, "split"], [/agent/i, "users"], [/step|how ordering|how to use|how to move|order/i, "list"],
+  [/tip|rules of thumb|before you buy|using them well|test an agent/i, "bulb"], [/link check|links working|weekly/i, "refresh"], [/what is|main types|types/i, "book"],
+  [/search|reverse image|find/i, "search"], [/seller|store/i, "store"], [/drawback|closed|paused|correction/i, "alert"], [/affiliate/i, "info"],
+  [/facts|popularity|top picks|finds and prices|what is in/i, "chart"], [/weidian|taobao|1688/i, "store"]];
+const STEP_IC = [[/account|sign up|register/i, "user-plus"], [/find|search|link/i, "search"], [/pay|checkout|buy|order/i, "cart"], [/QC|photo|check/i, "camera"],
+  [/size|measure/i, "ruler"], [/ship|parcel|line/i, "truck"], [/track/i, "pin"], [/warehouse/i, "warehouse"], [/coupon|bonus/i, "gift"], [/logo|print/i, "type"],
+  [/stitch/i, "scissors"], [/colou?r/i, "palette"], [/defect/i, "alert"]];
+const plain = h => h.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&");
+// <ol class="steps"> in a guide body: each step keeps its text; an icon tile (with the step number as a badge, ds.css) leads it.
+const iconSteps = html => html.replace(/<ol class="steps">([\s\S]*?)<\/ol>/g, (m, inner) => `<ol class="steps ic-steps-list">${inner.replace(/<li>([\s\S]*?)(?=<\/li>)/g, (x, li) => {
+  const lead = (li.match(/^\s*<strong>([\s\S]*?)<\/strong>/) || [])[1]; return `<li>${icTile(firstIcon(STEP_IC, plain(lead || li).slice(0, 80), "list"))}${li}`; })}</ol>`);
+// A callout keeps its text; a tile on the left says what it is (a tip or a note).
+const iconNotes = html => html.replace(/<div class="note">/g, (m, at) => `<div class="note has-ic">${icTile(/^\s*Tip/.test(plain(html.slice(at + m.length, at + m.length + 40))) ? "bulb" : "info")}`);
 export function renderGuide(s) {
   const g = own(GUIDES, s) ? GUIDES[s] : null; if (!g) return null;
   const path = "/guides/" + s; const bc = crumbs([["Home", "/"], ["Guides", "/guides"], [g.h1, path]]);
@@ -920,22 +988,23 @@ export function renderGuide(s) {
     stats = `<h2>What is in this rep spreadsheet</h2><p>Counted from the catalogue, last updated ${day(BUILT)}: ${nf(all.length)} finds, ${nf(all.filter(p => p.qc >= 1).length)} of them marked as having buyer QC photos from earlier orders.` +
       (LINKS_CHECKED ? ` Our weekly link check last ran on ${day(LINKS_CHECKED)} and found ${nf(GONE_COUNTS.dead)} Weidian listings gone, which the spreadsheet hides, and ${nf(GONE_COUNTS.sold)} sold out.` : "") + `</p>` +
       `<table><tr><th>Category</th><th>Finds</th><th>Half listed at or under</th><th>Marked with QC photos</th></tr>` +
-      rows.map(([m, l]) => `<tr><td><a href="/category/${m.slug}">${esc(m.name)}</a></td><td>${nf(l.length)}</td><td>${half(l)}</td><td>${nf(l.filter(p => p.qc >= 1).length)}</td></tr>`).join("") + `</table>`;
+      rows.map(([m, l]) => `<tr><td><a href="/category/${m.slug}">${ic(CAT_SLUG_IC[m.slug] || "grid", "sm")}${esc(m.name)}</a></td><td>${nf(l.length)}</td><td>${half(l)}</td><td>${nf(l.filter(p => p.qc >= 1).length)}</td></tr>`).join("") + `</table>`;
   }
   // Table of contents (28 Oct 2026): ids on the guide's h2s and, with 3 or more, an "On this page" list after the intro, so
   // long guides can be skimmed and Google can offer "Jump to" links. The date reads "10 Oct 2026", like the rest of the site,
   // in a mono eyebrow pill above the H1 (v8), inside a <time> with the same YYYY-MM-DD as the Article JSON-LD dateModified.
   // Then the byline (p.byline, styled in ds.css) with the link to the page that says how the data is checked (content3.js how-we-check).
   const ids = new Set(), toc = [];
-  const text = (stats ? g.body.replace("<h2>", stats + "<h2>") : g.body).replace(/<h2>([\s\S]*?)<\/h2>/g, (_, h) => { let id = slug(h.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&")) || "section"; while (ids.has(id)) id += "-2"; ids.add(id); toc.push([id, h.replace(/<[^>]+>/g, "")]); return `<h2 id="${id}">${h}</h2>`; });
-  const tocHtml = toc.length >= 3 ? `<nav class="toc" aria-label="On this page"><span class="eyebrow">On this page</span><ol>${toc.map(([id, h]) => `<li><a href="#${id}">${h}</a></li>`).join("")}</ol></nav>` : "";
+  const text = iconNotes(iconSteps((stats ? g.body.replace("<h2>", stats + "<h2>") : g.body).replace(/<h2>([\s\S]*?)<\/h2>/g, (_, h) => { let id = slug(h.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&")) || "section"; while (ids.has(id)) id += "-2"; ids.add(id);
+    const n = firstIcon(H2_IC, plain(h), "book"); toc.push([id, h.replace(/<[^>]+>/g, ""), n]); return hIc("h2", n, h, ` id="${id}"`); })));
+  const tocHtml = toc.length >= 3 ? `<nav class="toc" aria-label="On this page"><span class="eyebrow">${ic("list", "sm")}On this page</span><ol>${toc.map(([id, h, n]) => `<li><a href="#${id}">${ic(n, "sm")}${h}</a></li>`).join("")}</ol></nav>` : "";
   const upd = g.updated && !isNaN(new Date(g.updated + "T00:00:00Z")) ? new Date(g.updated + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : g.updated;
-  const updTxt = upd ? (/^\d{4}-\d{2}-\d{2}$/.test(g.updated) ? `<time datetime="${esc(g.updated)}">Updated ${esc(upd)}</time>` : `Updated ${esc(upd)}`) : "";
-  const how = s !== "how-we-check" && own(GUIDES, "how-we-check") ? ` · <a href="/guides/how-we-check">How we check</a>` : "";
+  const updTxt = upd ? (/^\d{4}-\d{2}-\d{2}$/.test(g.updated) ? `${ic("clock", "sm")}<time datetime="${esc(g.updated)}">Updated ${esc(upd)}</time>` : `${ic("clock", "sm")}Updated ${esc(upd)}`) : "";
+  const how = s !== "how-we-check" && own(GUIDES, "how-we-check") ? ` · <a href="/guides/how-we-check">${ic("shield", "sm")}How we check</a>` : "";
   const body = `${bc.html}<article class="prose"><span class="eyebrow pill">Guide${updTxt ? ` · ${updTxt}` : ""}</span><h1>${esc(g.h1)}</h1>${(tocHtml ? text.replace("<h2 id=", tocHtml + "<h2 id=") : text).replace(/^(\s*<p class="lead">[\s\S]*?<\/p>)?/, (m) => m + `<p class="byline">By Puro Classico${how}</p>`)}${g.faq ? faqHtml(g.faq) : ""}</article>
 ${(() => { const w = g.finds || {}, l = all.filter(p => (!w.platform || p.platform === w.platform) && (!w.qc || p.qc >= w.qc));
-  return `<h2>${w.platform ? `Popular ${esc({ weidian: "Weidian", taobao: "Taobao", "1688": "1688" }[w.platform] || w.platform)} finds` : w.qc ? "Popular finds with QC photos" : "Popular finds"}</h2>${grid((l.length >= 8 ? l : all).slice(0, 8))}`; })()}
-<h2>More guides</h2><div class="chips">${GUIDE_LINKS.filter(([, u]) => u !== path).map(([t, u]) => `<a href="${u}">${esc(t)}</a>`).join("")}</div>`;
+  return `${hIc("h2", "flame", w.platform ? `Popular ${esc({ weidian: "Weidian", taobao: "Taobao", "1688": "1688" }[w.platform] || w.platform)} finds` : w.qc ? "Popular finds with QC photos" : "Popular finds")}${grid((l.length >= 8 ? l : all).slice(0, 8))}`; })()}
+${hIc("h2", "book", "More guides")}<div class="chips">${GUIDE_LINKS.filter(([, u]) => u !== path).map(([t, u]) => `<a href="${u}">${ic(guideIcon(u), "sm")}${esc(t)}</a>`).join("")}</div>`;
   const art = { "@context": "https://schema.org", "@type": "Article", headline: g.h1, description: g.desc, dateModified: g.updated || undefined, url: SITE + path,
     author: { "@type": "Organization", name: "Puro Classico", url: SITE + "/" }, publisher: { "@type": "Organization", name: "Puro Classico", logo: { "@type": "ImageObject", url: SITE + "/logo-mark.png" } }, publishingPrinciples: own(GUIDES, "how-we-check") ? SITE + "/guides/how-we-check" : undefined };
   const ld = [bc.data, art]; if (g.faq) ld.push(faqLd(g.faq));
@@ -1188,11 +1257,16 @@ export function hubSpec(path) {
   return null;
 }
 // The HTML pieces the middleware puts into index.html for a hub spec. `more` (the links to pages 2+) opens the block.
+// Icons for the hub-seo block (styles: index.html): h2s by title, about summaries by question.
+const HUB_H2_IC = [[/^About/, "info"], [/Best reps by model/, "award"], [/with your agent|on your agent|agents?\b/i, "users"], [/Related brands|Top brands|Brands in the/, "tag"],
+  [/Other categories/, "grid"], [/Browse page by page/, "layers"], [/More old money|More /, "layers"], [/^FAQ$/, "help"]];
+const HUB_SUM_IC = [[/^What to check/, "camera"], [/in numbers/, "chart"], [/^Buying|^Ordering|order from|step by step/i, "cart"], [/^What is/, "info"]];
 export function hubParts(spec, more = "") {
   const bc = crumbs(spec.crumbs);
   const crumbHtml = `<nav class="hub-bc" aria-label="Breadcrumb">${spec.crumbs.map((c, i) => i < spec.crumbs.length - 1 ? `<a href="${c[1]}">${esc(c[0])}</a><span aria-hidden="true">›</span>` : `<span aria-current="page">${esc(c[0])}</span>`).join("")}</nav>`;
-  const about = spec.about && spec.about.length ? `<h2>${esc(spec.aboutTitle || "About")}</h2>${spec.about.map(([q, html]) => `<details><summary>${esc(q)}</summary>${html}</details>`).join("")}<div style="height:28px"></div>` : "";
-  const seo = `<section class="hub-seo">${more}${about}${spec.chips.filter(c => c[1].length).map(([t, links]) => `<h2>${esc(t)}</h2><div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `<h2>FAQ</h2>${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
+  const h2 = t => hIc("h2", firstIcon(HUB_H2_IC, t, "book"), esc(t));
+  const about = spec.about && spec.about.length ? `${h2(spec.aboutTitle || "About")}${spec.about.map(([q, html]) => `<details><summary>${ic(firstIcon(HUB_SUM_IC, q, "book"), "sm")}${esc(q)}</summary>${html}</details>`).join("")}<div style="height:28px"></div>` : "";
+  const seo = `<section class="hub-seo">${more}${about}${spec.chips.filter(c => c[1].length).map(([t, links]) => `${h2(t)}<div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${chipIcon(u)}${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `${h2("FAQ")}${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
   const ld = [bc.data]; if (spec.faq.length) ld.push(faqLd(spec.faq));
   const page = { h: spec.h, sub: spec.sub, agent: spec.preset.agent || null, brand: spec.preset.brand || null, cat: spec.preset.cat || null, brands: spec.preset.brands || null,
     qc: spec.preset.qc || null, pmax: spec.preset.pmax || null };
@@ -1222,9 +1296,12 @@ export function hubList(spec) {
 }
 // Same markup as card() in index.html (English, USD), plus data-ssr; v9 adds the .card-acts row (QC pill + black Buy pill). Image URLs are built the way the app builds them
 // (imgSrc: Supabase photos through SITE/api/img), so the app's cards reuse the images the browser already has.
-const HEART = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></svg>`;
+// The app's ICON(name) markup (index.html): a <use> of its #pc-icons sprite, byte for byte, so these cards match the
+// cards the app draws and stay small (60 per page).
+const useIcon = n => `<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-${n}"/></svg>`;
+const HEART = useIcon("star");
 const appAlt = p => { const t = p.title || "", b = p.brand || ""; return (b && !t.toLowerCase().startsWith(b.toLowerCase()) ? b + " " : "") + t + " rep"; };
-const CAM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`;
+const CAM = useIcon("camera");
 export function appCards(list, qcMin = 1, agent = "mycnbox", off = 0) {   // qcMin: the QC pill threshold (1: finds marked as having QC photos, like the app and server cards). off: added to the index for the eager/high image slots (8 on the homepage, where the grid sits below the v9 sections)
   const a = AGENTS[agent] || AGENTS.mycnbox;
   return list.map((p, i) => {
@@ -1244,5 +1321,5 @@ export function appPager(base, n) {
   const pages = Math.ceil(n / PER_PAGE); if (!base || pages < 2) return "";
   const nums = []; for (let k = 2; k <= Math.min(pages, 12); k++) nums.push(k);
   if (pages > 12) nums.push(pages);
-  return `<h2>Browse page by page</h2><div class="hub-chips">${nums.map(k => `<a href="${base}/${k}">Page ${k}</a>`).join("")}</div>`;
+  return `${hIc("h2", "layers", "Browse page by page")}<div class="hub-chips">${nums.map(k => `<a href="${base}/${k}">Page ${k}</a>`).join("")}</div>`;
 }
