@@ -101,7 +101,7 @@ export const GUIDES3 = {
 <dt>Agent</dt><dd>A service that buys from Chinese marketplaces for you, inspects items and ships internationally. <a href="/guides/best-shopping-agent">Best agents</a>.</dd>
 <dt>Weidian / Taobao / 1688</dt><dd>The Chinese marketplaces where most finds are listed. Guides: <a href="/guides/how-to-buy-from-weidian">Weidian</a>, <a href="/guides/how-to-buy-from-taobao">Taobao</a>, <a href="/guides/how-to-buy-from-1688">1688</a>.</dd>
 <dt>Shipping line</dt><dd>The courier route your agent uses; each has its own price, speed and weight limits. <a href="/guides/shipping-lines">Shipping lines explained</a>.</dd>
-<dt>Volumetric weight</dt><dd>Shipping is charged on size as well as weight, which is why people remove shoe boxes. Try the <a href="/tools/weight-estimator">weight estimator</a>.</dd>
+<dt>Volumetric weight</dt><dd>Shipping is charged on size as well as weight, which is why people remove shoe boxes. Try the <a href="/tools/shipping-calculator">shipping calculator</a>.</dd>
 <dt>Rehearsal (rehearsal packaging)</dt><dd>Your agent packs the parcel and shows you its final weight and size before you pay for shipping.</dd>
 <dt>Retail</dt><dd>The authentic product from the brand, used as the reference when comparing QC photos.</dd>
 <dt>1:1 / budget</dt><dd>Seller shorthand for how close a copy aims to be; budget versions are cheaper and less accurate. Always judge from QC photos, not the label.</dd>
@@ -132,7 +132,7 @@ export const GUIDES3 = {
 <li>Create your free account.</li>
 <li>Find the coupons under your account's coupon section; they apply at checkout on your first orders.</li></ol>
 <h2>What the coupons cover</h2><p>The bundle is made up of several coupons with different minimum spends, mostly for international shipping. The exact split and expiry dates are shown in your account, check them before you order so you use the biggest ones on your first parcel.</p>
-<h2>Using them well</h2><ul><li>Combine several items into one parcel so the shipping coupons cover more.</li><li>Remove shoe boxes to cut volumetric weight (<a href="/tools/weight-estimator">weight estimator</a>).</li><li>Compare lines with the <a href="/tools/shipping-calculator">shipping calculator</a>.</li></ul>
+<h2>Using them well</h2><ul><li>Combine several items into one parcel so the shipping coupons cover more.</li><li>Remove shoe boxes to cut volumetric weight (add your items in the <a href="/tools/shipping-calculator">shipping calculator</a>).</li><li>Compare lines with the <a href="/tools/shipping-calculator">shipping calculator</a>.</li></ul>
 <p>Ready to shop? Browse the <a href="/mycnbox-spreadsheet">MyCNBox spreadsheet</a>, every find opens straight in MyCNBox. New to agents? Watch the <a href="/how-to-order">how-to-order video</a> or read our <a href="/guides/mycnbox-review">MyCNBox review</a>.</p>
 <p style="font-size:13px">Offer details are set by MyCNBox and can change; this link is an affiliate link.</p>`,
     faq: [["What is the MyCNBox invite code?", "AACPYA. Signing up with it unlocks MyCNBox's new-member coupon bundle, worth up to $500."], ["Is the $500 a cash discount?", "No, it's a bundle of coupons with minimum spends, mostly for shipping. The exact coupons and expiry dates show in your account after sign-up."], ["Can existing users get the coupons?", "The bundle is for new members; existing accounts may get other promotions inside the app."]],

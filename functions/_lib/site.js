@@ -176,12 +176,18 @@ export const brandUrl = b => { const s = idx().brandSlug.get(b); return s ? "/br
 export const catUrl = c => CATS[c] ? "/category/" + CATS[c].slug : null;
 const ld = o => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, "\\u003c") + "</script>";
 
+// v9 product card (29 Oct 2026), the rep-find pattern: square photo well, brand, title (2 lines), price, then two
+// small pills: "QC" (to the QC photos on the find's page, only for finds marked as having them) and a black "Buy"
+// (the MyCNBox link; AGENT_SWAP_JS below points it at the visitor's own agent from the app's saved state).
+// The card is a <div>: a link cannot hold the two pill links, so the photo and text are one link and the pills two more.
+export const QC_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>';
 export function card(p, lazy = true) {
-  const src = imgSrc(p);
-  return `<a class="c" href="${productUrl(p)}">` +
-    `<span class="ci">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(p.title)}" width="300" height="375"${lazy ? ' loading="lazy"' : ""} decoding="async" ${IMG_FALLBACK}>` : ""}` +
-    `${p.qc >= 2 ? `<span class="qb">QC</span>` : ""}</span>` +
-    `<span class="cb">${p.brand ? `<span class="cbr">${esc(p.brand)}</span>` : ""}<span class="ct">${esc(p.title)}</span><span class="cp">${money(p.cny)}${isPH(p.cny) ? "" : ` <small>¥${p.cny}</small>`}</span></span></a>`;
+  const src = imgSrc(p), u = productUrl(p), ag = AGENTS.mycnbox;
+  return `<div class="c"><a class="cl" href="${u}">` +
+    `<span class="ci">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(p.title)}" width="300" height="300"${lazy ? ' loading="lazy"' : ""} decoding="async" ${IMG_FALLBACK}>` : ""}</span>` +
+    `<span class="cb">${p.brand ? `<span class="cbr">${esc(p.brand)}</span>` : ""}<span class="ct">${esc(p.title)}</span><span class="cp">${money(p.cny)}${isPH(p.cny) ? "" : ` <small>¥${p.cny}</small>`}</span></span></a>` +
+    `<span class="ca">${p.qc >= 1 ? `<a class="cq" href="${u}#qc" aria-label="QC photos: ${esc(p.title)}">${QC_ICON}QC</a>` : ""}` +
+    `<a class="cbuy" href="${esc(ag.build(p))}" data-agent="mycnbox" data-pl="${esc(p.platform)}" data-iid="${esc(p.itemId || p.id)}" target="_blank" rel="sponsored nofollow noopener" aria-label="Buy ${esc(p.title)} via ${ag.name}">Buy</a></span></div>`;
 }
 export const grid = (list, eager = 0) => `<div class="g">${list.map((p, i) => card(p, i >= eager)).join("")}</div>`;
 
@@ -208,7 +214,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "12";
+export const DS_VER = "14";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -234,7 +240,7 @@ export const GUIDE_LINKS = [
 // first 7 of GUIDE_LINKS, which gave site-wide links to Taobao (153) and 1688 and none to the top three.
 export const FOOTER_GUIDES = ["/how-to-order", "/guides/what-is-a-rep-spreadsheet", "/guides/pandabuy-alternatives", "/guides/mycnbox-review",
   "/guides/how-to-buy-from-weidian", "/guides/how-to-qc", "/guides/best-shopping-agent"];
-export const TOOL_LINKS = [["Link converter", "/tools/link-converter"], ["QC checker", "/tools/qc-checker"], ["Weight estimator", "/tools/weight-estimator"], ["Shipping calculator", "/tools/shipping-calculator"]];
+export const TOOL_LINKS = [["QC Checker", "/tools/qc-checker"], ["Link Converter", "/tools/link-converter"], ["Shipping Calculator", "/tools/shipping-calculator"], ["Size Estimator", "/tools/size-estimator"], ["Parcel Tracker", "/tools/parcel-tracker"]];
 
 function footer() {
   const { byBrand, brandSlug } = idx();
@@ -243,7 +249,9 @@ function footer() {
   const topBrands = searched.concat(largest.filter(b => !searched.includes(b))).map(b => [b + " reps", "/brand/" + brandSlug.get(b)]);
   const half = Math.ceil(topBrands.length / 2);
   const col = (t, links) => `<div><h4>${t}</h4>${links.map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}</div>`;
-  return `<footer class="f"><div class="w"><div class="cols">
+  return `<footer class="f"><div class="w"><div class="ftop">
+<div class="fbrand"><span class="logo" role="img" aria-label="Puro Classico"></span><p>The rep spreadsheet: finds from Weidian, Taobao and 1688 with prices, QC photos and one-tap agent links.</p><a class="btn sm" href="/discord">Join the Discord</a></div>
+<div class="cols">
 ${col("Categories", Object.values(CATS).filter(c => c.slug !== "toys").map(c => [c.name, "/category/" + c.slug]))}
 ${col("Brands", topBrands.slice(0, half))}
 ${col("More brands", topBrands.slice(half).concat([["All brands →", "/brands"]]))}
@@ -251,26 +259,43 @@ ${col("Spreadsheets", [["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBu
 ${col("Guides", FOOTER_GUIDES.map(u => GUIDE_LINKS.find(g => g[1] === u)).filter(Boolean).concat([["All guides →", "/guides"]]))}
 ${col("Tools & best reps", TOOL_LINKS.concat([["Best reps by model →", "/best"]]))}
 ${col("Puro Classico", [["Browse all finds", "/"], ["How we check", "/guides/how-we-check"], ["Discord community", "/discord"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
-</div><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents are affiliate links: we may earn a commission if you order, at no extra cost to you. Prices are shown as listed by the seller and can change.</p><p class="legal">© Puro Classico</p></div></footer>`;
+</div></div><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents are affiliate links: we may earn a commission if you order, at no extra cost to you. Prices are shown as listed by the seller and can change.</p><p class="legal">© Puro Classico</p></div></footer>`;
 }
 
-// v8 (28 Oct 2026): the two page states ds.css styles, set here because server pages run no app script. Each part is
-// in its own try, so a browser without one of these APIs only misses that effect.
-//   header.h.scrolled: past 8 px of scroll the glass bar firms up and shows its shadow. The listener is passive and
-//     only touches the class when the state flips. how-to-order, privacy and terms carry the same header snippet.
-//   .rv (scroll reveal): only on section headings and blocks whose top is below the first screen, so nothing visible
-//     at load ever starts faded; never on product grids, the product photo or the QC heading. Only where ds.css can
-//     drive it (animation-timeline: view()) and motion is not reduced. ds.css animates .rv only, and this list must
-//     stay equal to the one in its "scroll reveal" comment. The positions are read once the web fonts have settled
-//     (the first layout requests them, document.fonts.ready waits for them): with the fallback font a block can sit
-//     just below the fold and then move up into view when Instrument Sans swaps in. A block inside one that is
-//     already marked is skipped, so a nested heading or table never fades twice. Printing drops every .rv first (and
-//     stops further marking): a scroll-scrubbed block below the scroll position would print in its faded start state.
-const V8_JS = `<script>(function(){try{var h=document.querySelector("header.h");if(h){var on=null,f=function(){var s=(window.scrollY||window.pageYOffset||0)>8;if(s!==on){on=s;h.classList.toggle("scrolled",s)}};f();addEventListener("scroll",f,{passive:true})}}catch(e){}` +
-  `try{if(window.CSS&&CSS.supports&&CSS.supports("animation-timeline","view()")&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!(function(){try{var n=performance.getEntriesByType("navigation")[0];return n&&/back_forward|reload/.test(n.type)}catch(e){return false}})()){var done=0,mark=function(){try{if(done)return;var H=innerHeight;` +
-  `[].forEach.call(document.querySelectorAll("main h2:not(.qc-h),main .faq,main .steps,main .note,main .prose table"),function(e){if(e.getBoundingClientRect().top>H&&!e.parentElement.closest(".rv"))e.classList.add("rv")})}catch(e){}};` +
-  `addEventListener("beforeprint",function(){try{done=1;[].forEach.call(document.querySelectorAll(".rv"),function(e){e.classList.remove("rv")})}catch(e){}});` +
-  `requestAnimationFrame(function(){try{void document.body.offsetHeight;var F=document.fonts;if(F&&F.ready)F.ready.then(mark,mark);else mark()}catch(e){}})}}catch(e){}})();</script>`;
+// v9 (29 Oct 2026) page scripts. Server pages run no app script, so the few behaviours live here, each in its own try.
+// THEME_HEAD runs in <head> before the first paint: the saved choice ("manifest.theme", the app's key) becomes
+// data-theme on <html>; anything else is "system" (no attribute, ds.css follows prefers-color-scheme). data-theme-pref
+// tells the toggle's icon which of the three it is, and "js" lets ds.css fold the phone nav into the menu button.
+// how-to-order.html, privacy.html and terms.html carry copies of THEME_HEAD and PAGE_JS: change them together.
+export const THEME_HEAD = `<script>(function(){var d=document.documentElement,t;try{t=localStorage.getItem("manifest.theme")}catch(e){}if(t!=="light"&&t!=="dark")t="system";d.setAttribute("data-theme-pref",t);if(t!=="system")d.setAttribute("data-theme",t);d.classList.add("js");try{var k=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector('meta[name="theme-color"]');if(m)m.content=k?"#0A0A0A":"#FFFFFF"}catch(e){}})();</script>`;
+// The theme button cycles system -> light -> dark -> system ("system" removes the key, as a first visit has none).
+// The menu button opens the nav on phones (Escape or a tap outside closes it).
+const PAGE_JS = `<script>(function(){var d=document.documentElement;try{var b=document.querySelector("[data-theme-toggle]"),L={system:"System",light:"Light",dark:"Dark"},` +
+  `tc=function(){try{var t=d.getAttribute("data-theme-pref"),k=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector('meta[name="theme-color"]');if(m)m.content=k?"#0A0A0A":"#FFFFFF"}catch(e){}},` +
+  `lb=function(t){if(b){b.setAttribute("aria-label","Theme: "+L[t]+". Change theme");b.title="Theme: "+L[t]}};lb(d.getAttribute("data-theme-pref")||"system");` +
+  `if(b)b.addEventListener("click",function(){var c=d.getAttribute("data-theme-pref")||"system",t=c==="system"?"light":c==="light"?"dark":"system";d.setAttribute("data-theme-pref",t);if(t==="system")d.removeAttribute("data-theme");else d.setAttribute("data-theme",t);` +
+  `try{if(t==="system")localStorage.removeItem("manifest.theme");else localStorage.setItem("manifest.theme",t)}catch(e){}lb(t);tc()});` +
+  `try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",tc)}catch(e){}}catch(e){}` +
+  `try{var h=document.querySelector("header.h"),mb=h&&h.querySelector(".mbtn");if(mb){var set=function(o){h.classList.toggle("open",o);mb.setAttribute("aria-expanded",o?"true":"false")};` +
+  `mb.addEventListener("click",function(e){e.stopPropagation();set(!h.classList.contains("open"))});document.addEventListener("click",function(e){if(!h.contains(e.target))set(false)});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&h.classList.contains("open")){set(false);mb.focus()}})}}catch(e){}})();</script>`;
+// The card "Buy" pills open MyCNBox; a visitor who picked another agent in the app (manifest.state.agent) gets that
+// agent's link instead. The link formats and codes are the same as AGENTS above and the link converter's.
+const AGENT_SWAP_JS = `<script>(function(){try{var a=String((JSON.parse(localStorage.getItem("manifest.state")||"{}")||{}).agent||"").replace(/[^a-z0-9]/g,"");if(!a||a==="mycnbox")return;` +
+  `var o=function(p,i){return p==="taobao"?"https://item.taobao.com/item.htm?id="+i:p==="1688"?"https://detail.1688.com/offer/"+i+".html":"https://weidian.com/item.html?itemID="+i},` +
+  `B={kakobuy:["KakoBuy",function(p,i){return "https://www.kakobuy.com/item/details?url="+encodeURIComponent(o(p,i))+"&affcode=${REFS.kakobuy}"}],oopbuy:["Oopbuy",function(p,i){return "https://oopbuy.com/product/"+p+"/"+i+"?inviteCode=${REFS.oopbuy}"}],` +
+  `lovegobuy:["LoveGoBuy",function(p,i){return "https://www.lovegobuy.com/product?platform="+p+"&id="+i+"&invite_code=${REFS.lovegobuy}"}],sugargoo:["Sugargoo",function(p,i){return "https://www.sugargoo.com/#/home/productDetail?productLink="+encodeURIComponent(o(p,i))+"&memberId=${REFS.sugargoo}"}]}[a];if(!B)return;` +
+  `[].forEach.call(document.querySelectorAll("a.cbuy[data-iid]"),function(l){l.href=B[1](l.getAttribute("data-pl"),l.getAttribute("data-iid"));l.setAttribute("data-agent",a);l.setAttribute("aria-label",(l.getAttribute("aria-label")||"").replace(/ via [A-Za-z]+$/," via "+B[0]))})}catch(e){}})();</script>`;
+const ICON_SYS = '<svg class="i-sys" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>';
+const ICON_LIGHT = '<svg class="i-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const ICON_DARK = '<svg class="i-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>';
+const ICON_MENU = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+export const NAV = [["/", "Finds"], ["/brands", "Brands"], ["/tools", "Tools"], ["/guides", "Guides"], ["/how-to-order", "How to Order"]];
+// The header every server page shares (the static pages carry a copy). `path` marks the current section.
+export function header(path = "") {
+  return `<header class="h"><div class="w"><a href="/" aria-label="Puro Classico home"><span class="logo" role="img" aria-label="Puro Classico"></span></a>
+<nav id="pc-nav" aria-label="Main">${NAV.map(([u, t]) => `<a href="${u}"${u !== "/" && (path === u || path.startsWith(u + "/")) ? ' aria-current="page"' : ""}>${t}</a>`).join("")}</nav>
+<div class="hr"><a class="hcta" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">Claim $500 MyCNBox coupons</a><button class="ibtn tbtn" type="button" data-theme-toggle aria-label="Change theme">${ICON_SYS}${ICON_LIGHT}${ICON_DARK}</button><button class="ibtn mbtn" type="button" aria-expanded="false" aria-controls="pc-nav" aria-label="Menu">${ICON_MENU}</button></div></div></header>`;
+}
 
 export function page({ title, desc, path, body, jsonld = [], robots = "index,follow,max-image-preview:large", image, status = 200, extraHead = "" }) {
   const url = SITE + path;
@@ -289,23 +314,21 @@ ${status === 200 ? `<link rel="canonical" href="${esc(url)}">` : ""}
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${esc(img)}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${esc(img)}">
-<meta name="theme-color" content="#0B0D10"><link rel="icon" type="image/png" href="/favicon.png">
-<script>try{var t=localStorage.getItem("manifest.theme");if(t==="light"){document.documentElement.setAttribute("data-theme","light");var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#F5F5F7";}}catch(e){}</script>
-<link rel="preload" href="/fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin><style>@font-face{font-family:"Instrument Sans";font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/instrument-sans-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:400 500;font-display:swap;src:url(/fonts/jetbrains-mono-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
+<meta name="theme-color" content="#FFFFFF"><link rel="icon" type="image/png" href="/favicon.png">
+${THEME_HEAD}
+<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/ds.css?v=${DS_VER}">
 ${jsonld.map(ld).join("\n")}
 ${extraHead}
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="h"><div class="w"><a href="/" aria-label="Puro Classico home"><span class="logo" role="img" aria-label="Puro Classico"></span></a>
-<nav aria-label="Main">${[["/", "Browse finds"], ["/brands", "Brands"], ["/best", "Best reps"], ["/old-money", "Old money"], ["/guides", "Guides"], ["/tools", "Tools"], ["/how-to-order", "How to order"]].map(([u, t]) => `<a href="${u}"${u !== "/" && (path === u || path.startsWith(u + "/")) ? ' aria-current="page"' : ""}>${t}</a>`).join("")}</nav>
-<a class="btn red hcta" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">Claim $500 MyCNBox coupons</a></div></header>
+${header(path)}
 <main id="main"><div class="w">
 ${body}
 </div></main>
 ${footer()}
-${V8_JS}
+${PAGE_JS}${body.indexOf('class="cbuy"') >= 0 ? AGENT_SWAP_JS : ""}
 <script src="/track.js" defer></script>
 </body>
 </html>`;

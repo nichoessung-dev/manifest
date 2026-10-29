@@ -1,8 +1,12 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
 import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, thumbSrc, IMG_FALLBACK, productUrl, brandUrl, catUrl,
-  grid, crumbs, pager, page, card, GUIDE_LINKS, TOOL_LINKS } from "./site.js";
+  grid, crumbs, pager, page, card, GUIDE_LINKS, TOOL_LINKS, QC_ICON } from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
-import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS } from "./content2.js";
+import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS as TOOLS0 } from "./content2.js";
+import { TOOLS9, TOOL_UI9, toolPage9 } from "./tools9.js";
+// v9 tools: the weight estimator merged into the shipping calculator (/tools/weight-estimator 301s there), plus the size
+// estimator and parcel tracker. TOOLS drives the tools hub descriptions and the sitemap.
+const TOOLS = Object.fromEntries(Object.entries(Object.assign({}, TOOLS0, TOOLS9)).filter(([k]) => k !== "weight-estimator"));
 import { MODELS3, GUIDES3, MODEL_TERM } from "./content3.js";
 const MODELS = MODELS2.concat(MODELS3);
 const BRAND_INTRO = Object.assign({}, BRAND_INTRO2, BRAND_INTRO1);
@@ -53,7 +57,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w28";
+export const PRODUCT_TPL = "w31";
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -81,6 +85,15 @@ const QC_LOAD_JS = '(function(){var w=document.currentScript.previousElementSibl
   'if(!u.length){w.innerHTML="<p class=\\"qc-none\\">QC photos can’t be loaded right now. Your agent photographs your exact item at the warehouse before it ships.</p>";return}' +
   'w.innerHTML="<h2 class=\\"qc-h\\">Real QC photos</h2><div class=\\"qcs\\">"+u.map(function(x,i){return "<a href=\\""+e(x)+"\\" target=\\"_blank\\" rel=\\"noopener\\"><img src=\\""+e(t(x))+"\\""+(t(x)!==x?" data-o=\\""+e(x)+"\\"":"")+" alt=\\"QC photo "+(i+1)+"\\" width=\\"96\\" height=\\"96\\" decoding=\\"async\\" onerror=\\"if(this.dataset.o){this.src=this.dataset.o;delete this.dataset.o}else this.parentNode.remove()\\"></a>"}).join("")+"</div>"})' +
   '.catch(function(){b.disabled=false;b.textContent="Try again"})})})();';
+
+// Product photo gallery (v9): on screens wider than a phone a QC thumbnail shows its photo in the main square instead of
+// opening a new tab, and a "Product photo" thumbnail (added on the first swap) brings the listing photo back. Phones keep
+// the large swipeable row, where a tap opens the full photo. Works for photos QC_LOAD_JS adds later too (delegated).
+const GALLERY_JS = '<script>(function(){try{var w=document.currentScript.parentNode,m=document.getElementById("pmain");if(!m)return;var o=m.getAttribute("src"),oa=m.alt;' +
+  'w.addEventListener("click",function(e){var a=e.target.closest(".qcs a,.thumbs button");if(!a||!matchMedia("(min-width: 641px)").matches)return;e.preventDefault();' +
+  'var t=w.querySelector(".thumbs");if(!t&&o){t=document.createElement("div");t.className="thumbs";t.innerHTML=\'<button type="button" aria-label="Product photo"><img alt="" src="\'+o.replace(/"/g,"&quot;")+\'"></button>\';var h=w.querySelector(".qc-h");if(h)h.parentNode.insertBefore(t,h)}' +
+  'var on=a.tagName==="BUTTON";m.src=on?o:a.href;m.alt=on?oa:(a.querySelector("img")||{}).alt||oa;' +
+  '[].forEach.call(w.querySelectorAll(".qcs a,.thumbs button"),function(x){x.classList.toggle("on",x===a)})})}catch(e){}})();</script>';
 
 // Rings of indexable finds for the related blocks on product pages (28 Oct 2026). "More <brand> finds" and "Similar
 // <category>" showed the 8 most viewed finds of the brand or category: the same 8 on every page, so 2,405 of the 2,923
@@ -117,22 +130,26 @@ export async function renderProduct(id, origin) {
   const variants = p.variants ? p.variants.split("|") : [];
   const opts = variants.filter(v => v.trim() && !/^standard$/i.test(v.trim()));   // "Standard" is the importer's placeholder (9,000 of 9,202 rows), not a real option
   const src = imgSrc(p);
-  // Buy box (21 Oct 2026), the app's pattern: one main button (the visitor's agent from the app's saved state, else
-  // MyCNBox), the MyCNBox new-user coupon line under it, the other agents as a compact 2 x 2 grid. On phones a bar keeps
-  // the price and the main button on screen while the main button is out of view (.buybar, filled in by the script).
+  // Buy box (v9, 29 Oct 2026): one black split button, the rep-find pattern. The main part is the visitor's agent from the
+  // app's saved state, else MyCNBox; the arrow opens a <details> menu with the other agents. Under it the MyCNBox
+  // new-user coupon line (a quiet muted row, only with MyCNBox) and the affiliate note. On phones a bar keeps the price
+  // and the main button on screen while the main button is out of view (.buybar, filled in by the script).
   const ag = Object.entries(AGENTS);
   const buyLink = ([k, a], main) => `<a${main ? ' class="first"' : ""} data-agent="${k}" href="${esc(a.build(p))}" target="_blank" rel="sponsored nofollow noopener">Buy via ${a.name}${k === "mycnbox" ? "<small>Most popular</small>" : ""}</a>`;
   const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  const CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
   // A listing the weekly link check found gone: say so above the buttons (a sold-out listing often comes back).
   const g = gone(p), checked = LINKS_CHECKED ? new Date(LINKS_CHECKED + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "";
   const goneNote = !g ? "" : `<p class="buy-gone">${g === "dead" ? "This listing was no longer online" : "This listing was sold out"} at our link check${checked ? ` on ${checked}` : ""}. ` +
     `${g === "dead" ? "The buttons still open it in case the seller puts it back" : "The buttons still open it, since sellers often restock"}; similar finds are below.</p>`;
-  const buyBox = goneNote + `<div class="buybox"><div class="buy-main">${buyLink(ag[0], true)}</div>` +
+  const buyBox = goneNote + `<div class="buybox"><div class="buy-split"><div class="buy-main">${buyLink(ag[0], true)}</div>` +
+    `<details class="buy-more"><summary aria-label="Other agents">${CHEVRON}</summary><div class="buy-menu"><p class="buy-or">Or buy via</p><div class="buy-alt">${ag.slice(1).map(x => buyLink(x, false)).join("")}</div></div></details></div>` +
     `<a class="buy-hint" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener"><span>New to MyCNBox? Sign up with our link for up to $500 in new-user coupons</span>${ARROW}</a>` +
-    `<p class="buy-or">Or buy via</p><div class="buy-alt">${ag.slice(1).map(x => buyLink(x, false)).join("")}</div>` +
-    `<p style="margin:12px 0 0;font-size:12.5px;line-height:1.45;color:var(--muted)">These are affiliate links: we may earn a commission if you order, at no extra cost to you.</p></div>` +
-    // The agent the visitor picked in the app becomes the main button; the coupon line only goes with MyCNBox.
-    `<script>try{var a=String((JSON.parse(localStorage.getItem("manifest.state")||"{}")||{}).agent||"").replace(/[^a-z0-9]/g,""),x=document.currentScript.previousElementSibling,m=x.querySelector(".buy-main a"),e=a&&x.querySelector('.buy-alt a[data-agent="'+a+'"]');if(e&&m){var n=e.nextSibling,q=e.parentNode;m.parentNode.replaceChild(e,m);q.insertBefore(m,n);e.className="first";m.className="";x.querySelector(".buy-hint").hidden=true;}}catch(_){}</script>`;
+    `<p class="buy-aff">These are affiliate links: we may earn a commission if you order, at no extra cost to you.</p></div>` +
+    // The agent the visitor picked in the app becomes the main button (it swaps places with MyCNBox, which moves into
+    // the menu); the coupon line only goes with MyCNBox. The menu closes on Escape or a click outside it.
+    `<script>(function(){var x=document.currentScript.previousElementSibling;try{var a=String((JSON.parse(localStorage.getItem("manifest.state")||"{}")||{}).agent||"").replace(/[^a-z0-9]/g,""),m=x.querySelector(".buy-main a"),e=a&&x.querySelector('.buy-alt a[data-agent="'+a+'"]');if(e&&m){var n=e.nextSibling,q=e.parentNode;m.parentNode.replaceChild(e,m);q.insertBefore(m,n);e.className="first";m.className="";x.querySelector(".buy-hint").hidden=true;}}catch(_){}` +
+    `try{var d=x.querySelector(".buy-more");document.addEventListener("click",function(ev){if(d.open&&!d.contains(ev.target))d.open=false});document.addEventListener("keydown",function(ev){if(ev.key==="Escape"&&d.open){d.open=false;d.querySelector("summary").focus()}})}catch(_){}})();</script>`;
   const buyBar = `<div class="buybar" aria-hidden="true"><div class="bb-price">${money(p.cny)}${isPH(p.cny) ? "" : `<small>¥${p.cny}</small>`}</div><a class="bb-buy" href="${esc(ag[0][1].build(p))}" target="_blank" rel="sponsored nofollow noopener" tabindex="-1">Buy via ${ag[0][1].name}</a></div>` +
     `<script>(function(){var b=document.querySelector(".buybar"),m=document.querySelector(".buy-main a");if(!b||!m||!window.IntersectionObserver)return;var l=b.querySelector("a");l.href=m.href;l.setAttribute("data-agent",m.getAttribute("data-agent"));l.textContent=m.firstChild.nodeValue;document.body.classList.add("has-buybar");new IntersectionObserver(function(es){var on=!es[0].isIntersecting;b.classList.toggle("on",on);b.setAttribute("aria-hidden",on?"false":"true");l.tabIndex=on?0:-1;}).observe(m);})();</script>`;
   const plat = { weidian: "Weidian", taobao: "Taobao", "1688": "1688" }[p.platform] || p.platform;
@@ -157,28 +174,33 @@ export async function renderProduct(id, origin) {
     (p.qc ? `<p>Our catalogue data marks this listing as having <strong>buyer QC photos</strong>: warehouse photos taken for earlier orders. When we can load them, they are shown on this page. Either way, once your own order reaches the warehouse your agent photographs your exact item, so you can check logos, stitching and colour before it ships.</p>`
           : `<p>There are no buyer QC photos for this listing yet. Once you order, your agent photographs your exact item at the warehouse before it ships, so you can still check it before paying for shipping.</p>`) +
     `<p>International shipping isn't included in the price; you pay it when you ship your parcel, and it depends on weight and your country.</p>`;
+  const sheetBrand = p.brand && agentBrands().includes(p.brand) ? idx().brandSlug.get(p.brand) : null;
+  const sheets = AGENT_BRAND_AGENTS.map(k => `<a href="/${k}-spreadsheet${sheetBrand ? "/" + sheetBrand : ""}">${esc(AGENTS[k].name)}</a>`).join(" · ");
+  const model = modelFor(p);
   const body = `${bc.html}
 <div class="pd">
-  <div class="pd-media"><div class="pimg">${src ? `<img src="${esc(src)}" alt="${esc(p.title)}" width="600" height="600" fetchpriority="high">` : ""}</div>
-    ${qcs.length ? `<h2 class="qc-h">Real QC photos</h2><div class="qcs">${qcs.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(thumbSrc(u))}" data-o="${esc(u)}" alt="${esc(p.title)} QC photo ${i + 1}" width="96" height="96" loading="lazy" decoding="async" onerror="if(this.dataset.o){this.src=this.dataset.o;this.dataset.o=''}else this.parentNode.remove()"></a>`).join("")}</div>`
-      : p.qc >= 1 ? `<div class="qc-load"><button class="btn sm" type="button" data-sf="${esc(p.platform)}" data-id="${esc(p.itemId || p.id)}">Show buyer QC photos</button></div><script>${QC_LOAD_JS}</script>` : ""}
+  <div class="pd-media"><div class="pimg">${src ? `<img id="pmain" src="${esc(src)}" alt="${esc(p.title)}" width="600" height="600" fetchpriority="high">` : ""}</div>
+    ${qcs.length ? `<h2 class="qc-h" id="qc">Real QC photos</h2><div class="qcs">${qcs.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(thumbSrc(u))}" data-o="${esc(u)}" alt="${esc(p.title)} QC photo ${i + 1}" width="96" height="96" loading="lazy" decoding="async" onerror="if(this.dataset.o){this.src=this.dataset.o;this.dataset.o=''}else this.parentNode.remove()"></a>`).join("")}</div>`
+      : p.qc >= 1 ? `<div class="qc-load" id="qc"><button class="btn sm" type="button" data-sf="${esc(p.platform)}" data-id="${esc(p.itemId || p.id)}">Show buyer QC photos</button></div><script>${QC_LOAD_JS}</script>` : ""}
+    ${GALLERY_JS}
   </div>
   <div class="pd-info">
-    ${bUrl ? `<a class="eyebrow pill" href="${bUrl}" style="text-decoration:none">${esc(p.brand)}</a>` : (p.brand ? `<span class="eyebrow pill">${esc(p.brand)}</span>` : "")}
+    ${bUrl ? `<a class="eyebrow pill" href="${bUrl}">${esc(p.brand)}</a>` : (p.brand ? `<span class="eyebrow pill">${esc(p.brand)}</span>` : "")}
     <h1>${esc(p.title)}</h1>
     <div class="price">${money(p.cny)}<small>${isPH(p.cny) ? "placeholder price · ask seller" : `¥${p.cny} · before shipping`}</small></div>
     ${buyBox}
-    <p class="eyebrow" style="margin:6px 0 0">Spreadsheets: ${AGENT_BRAND_AGENTS.map(k => { const bs = p.brand && agentBrands().includes(p.brand) ? idx().brandSlug.get(p.brand) : null; return `<a href="/${k}-spreadsheet${bs ? "/" + bs : ""}" style="color:var(--muted)">${esc(AGENTS[k].name)}</a>`; }).join(" · ")}</p>
+    ${opts.length ? `<div class="opts"><span class="opts-l">Options</span><div class="chips">${opts.slice(0, 12).map(o => `<span>${esc(o)}</span>`).join("")}</div></div>` : ""}
+    <section class="dcard" aria-labelledby="pd-details"><h2 id="pd-details">Details</h2>
     <dl class="kv"><dt>Marketplace</dt><dd>${plat}</dd><dt>Category</dt><dd>${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(p.cat)}</dd>
-      ${opts.length ? `<dt>Options</dt><dd>${esc(opts.slice(0, 12).join(" · "))}</dd>` : ""}<dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc ? "On record" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd>${productFacts(p, g, checked)}</dl>
-    <p><a href="/#p/${encodeURIComponent(p.id)}" style="color:var(--accent)">Open in the catalogue →</a></p>
+      <dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc ? "On record" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd>${productFacts(p, g, checked)}<dt>Spreadsheets</dt><dd>${sheets}</dd></dl></section>
+    <p class="more"><a href="/#p/${encodeURIComponent(p.id)}">Open in the catalogue →</a></p>
   </div>
 </div>
 <h2>About this find</h2><div class="prose">${about}</div>
 <h2>How to buy it</h2><ol class="steps prose"><li>Tap <strong>Buy via MyCNBox</strong> (or your agent). The listing opens pre-filled.</li><li>Pick your size and colour, check our <a href="/guides/sizing">sizing guide</a>, and pay for the item plus delivery to the warehouse.</li><li>Check the QC photos (<a href="/guides/how-to-qc">what to look for</a>), then combine items into one parcel and ship. <a href="/how-to-order">Watch the 1:47 video</a>.</li></ol>
-${(() => { const m = modelFor(p); return m ? `<div class="note" style="margin-top:22px">Comparing batches? See all <a href="/best/${m.slug}" style="color:var(--accent)">${m.list.length} ${esc(m.name)} rep listings</a> ranked by views.</div>` : ""; })()}
-${sameBrand.length ? `<h2>More ${esc(p.brand)} finds</h2>${grid(sameBrand)}<p><a href="${bUrl}" style="color:var(--accent)">All ${byBrand.get(p.brand).length.toLocaleString("en-US")} ${esc(p.brand)} reps on the spreadsheet →</a></p>` : ""}
-${sameCat.length ? `<h2>Similar ${esc((cat.name || p.cat).toLowerCase())}</h2>${grid(sameCat)}${cUrl ? `<p><a href="${cUrl}" style="color:var(--accent)">All ${esc((cat.name || p.cat).toLowerCase())} →</a></p>` : ""}` : ""}
+${model ? `<div class="note" style="margin-top:22px">Comparing batches? See all <a href="/best/${model.slug}">${model.list.length} ${esc(model.name)} rep listings</a> ranked by views.</div>` : ""}
+${sameBrand.length ? `<div class="sh"><h2>More ${esc(p.brand)} finds</h2><a class="vm" href="${bUrl}">All ${byBrand.get(p.brand).length.toLocaleString("en-US")} ${esc(p.brand)} reps on the spreadsheet →</a></div>${grid(sameBrand)}` : ""}
+${sameCat.length ? `<div class="sh"><h2>Similar ${esc((cat.name || p.cat).toLowerCase())}</h2>${cUrl ? `<a class="vm" href="${cUrl}">All ${esc((cat.name || p.cat).toLowerCase())} →</a>` : ""}</div>${grid(sameCat)}` : ""}
 ${buyBar}`;
   const pageLd = { "@context": "https://schema.org", "@type": "ItemPage", name: p.title, url: SITE + productUrl(p), description: desc,
     primaryImageOfPage: src ? { "@type": "ImageObject", contentUrl: src } : undefined, isPartOf: { "@type": "WebSite", name: "Puro Classico", url: SITE + "/" } };
@@ -274,7 +296,7 @@ const ITEM_TYPES = [
   ["fleeces", /\bfleeces?\b/i],
   ["ties", /\bties?\b(?![ -]?dye)/i],
 ];
-// Typical shipped weight per item type in grams, the same numbers as the weight estimator (/tools/weight-estimator).
+// Typical shipped weight per item type in grams, the same numbers as the shipping calculator's item list (/tools/shipping-calculator, tools9.js ITEM_WEIGHTS).
 const TYPE_WEIGHT = { "T-shirts and tops": 250, "polo shirts": 330, "shorts": 350, "hoodies": 700, "sweaters and cardigans": 700,
   "sweatshirts and crewnecks": 700, "quarter-zips": 700, "pants and joggers": 600, "jeans": 600, "jackets and coats": 700,
   "puffer jackets": 1100, "bags": 550, "caps and beanies": 220, "belts": 200, "wallets and cardholders": 200, "jewellery": 200 };
@@ -295,8 +317,8 @@ function productFacts(p, goneAs, checked) {
   if (v[3] >= 1) out.push(["Saved by", `${nf(v[3])} member${v[3] === 1 ? "" : "s"}`]);
   if (p.platform === "weidian" && checked && !goneAs) out.push(["Link check", `Online on ${checked}`]);
   const t = itemType(p);
-  if (SHOE_TYPES.has(t)) out.push(["Typical weight", `About 0.9 kg, 1.3 kg with the box (<a href="/tools/weight-estimator">estimator</a>)`]);
-  else if (TYPE_WEIGHT[t]) out.push(["Typical weight", `About ${TYPE_WEIGHT[t]} g (<a href="/tools/weight-estimator">estimator</a>)`]);
+  if (SHOE_TYPES.has(t)) out.push(["Typical weight", `About 0.9 kg, 1.3 kg with the box (<a href="/tools/shipping-calculator">shipping calculator</a>)`]);
+  else if (TYPE_WEIGHT[t]) out.push(["Typical weight", `About ${TYPE_WEIGHT[t]} g (<a href="/tools/shipping-calculator">shipping calculator</a>)`]);
   // Facts only this page has (28 Oct 2026), worked out from the catalogue rows. Product pages shared most of their text
   // with every other product page, and 431 indexable ones share their exact title with another find.
   //  - Price compared: where the listed price sits among the same brand's listings of the same item type. Only with 3+
@@ -315,7 +337,7 @@ function productFacts(p, goneAs, checked) {
     }
   }
   const twins = ((p.brand ? idx().byBrand.get(p.brand) : idx().byCat.get(p.cat)) || []).filter(x => x !== p && x.brand === p.brand && x.title.toLowerCase() === p.title.toLowerCase()).slice(0, 6);
-  if (twins.length) out.push(["Same name", twins.map(x => `<a href="${productUrl(x)}">${esc(PLAT[x.platform] || x.platform)} ${esc(x.itemId || x.id)}, ${money(x.cny)}</a>`).join(" · ")]);
+  if (twins.length) out.push(["Same name", `<span class="lchips">${twins.map(x => `<a href="${productUrl(x)}">${esc(PLAT[x.platform] || x.platform)} ${esc(x.itemId || x.id)}, ${money(x.cny)}</a>`).join("")}</span>`]);
   return out.map(([k, x]) => `<dt>${k}</dt><dd>${x}</dd>`).join("");
 }
 const ACCESSORY_ONLY = new Set(["jewellery", "ties"]);
@@ -469,12 +491,12 @@ function brandFactsHtml(f) {
 }
 // The QC line of a pick card. A count is printed only when one is stored; the flag alone is "marked as having".
 const qcLine = p => p.qc >= 2 ? `${nf(p.qc)} buyer QC photos on record` : p.qc === 1 ? "Marked as having buyer QC photos" : "No buyer QC photos on record yet";
-const BRAND_CSS = `<style>.pk .ci{box-shadow:inset 0 0 0 1px var(--accent)}.pkw{display:block;font-size:12.5px;line-height:1.35;color:var(--ink-2)}.pkw b{color:var(--accent);font-weight:700}.pkq{font-size:12.5px;color:var(--muted)}.pkn{color:var(--muted);font-size:14px;max-width:780px;margin:0 0 4px}</style>`;
+const BRAND_CSS = `<style>.pk .c{box-shadow:inset 0 0 0 1px var(--line)}.pkw{display:block;font-size:12.5px;line-height:1.35;color:var(--ink-2)}.pkw b{color:var(--ink);font-weight:600}.pkq{font-size:12.5px;color:var(--muted)}.pkn{color:var(--muted);font-size:14px;max-width:780px;margin:0 0 4px}</style>`;
 function pickCard({ p, why, doubt }, eager) {
   const src = imgSrc(p);
   // A price we do not vouch for (priceDoubt in brandFacts) is shown as the seller lists it, in yuan, without our dollar figure.
   const price = doubt ? `Listed at ¥${p.cny} <small>check the listing</small>` : `${money(p.cny)}${isPH(p.cny) ? "" : ` <small>¥${p.cny}</small>`}`;
-  return `<a class="c" href="${productUrl(p)}"><span class="ci">${src ? `<img src="${esc(src)}" alt="${esc(p.title)}" width="300" height="375"${eager ? "" : ' loading="lazy"'} decoding="async" onerror="this.remove()">` : ""}</span>` +
+  return `<a class="c" href="${productUrl(p)}"><span class="ci">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(p.title)}" width="300" height="300"${eager ? "" : ' loading="lazy"'} decoding="async" ${IMG_FALLBACK}>` : ""}</span>` +
     `<span class="cb">${why.map(w => `<span class="pkw"><b>${esc(w.k)}</b> · ${esc(w.d)}</span>`).join("")}<span class="ct">${esc(p.title)}</span>` +
     `<span class="cp">${price}</span><span class="pkq">${qcLine(p)}</span></span></a>`;
 }
@@ -605,7 +627,7 @@ function agentHowTo(a) {
 <li><strong>Find an item here.</strong> Search or filter the spreadsheet by brand, category, colour or price, and open the find you like.</li>
 <li><strong>Tap "Buy via ${a.name}".</strong> The listing opens inside ${a.name}. Pick your size and colour, then pay for the item and the short delivery to the warehouse.</li>
 <li><strong>Check your QC photos.</strong> When the item reaches the warehouse, ${a.name} photographs it. Compare logos, stitching and the size tag; read <a href="/guides/how-to-qc">how to read QC photos</a>.</li>
-<li><strong>Ship your parcel.</strong> Combine your items, pick a shipping line and pay international shipping. <a href="/guides/shipping-lines">Shipping lines explained</a> · <a href="/tools/weight-estimator">weight estimator</a>.</li>
+<li><strong>Ship your parcel.</strong> Combine your items, pick a shipping line and pay international shipping. <a href="/guides/shipping-lines">Shipping lines explained</a> · <a href="/tools/shipping-calculator">shipping calculator</a>.</li>
 </ol>`;
 }
 export function renderAgent(key, n) {
@@ -675,7 +697,7 @@ export function renderModels() {
   const bc = crumbs([["Home", "/"], ["Best reps", "/best"]]);
   const ms = models().slice().sort((a, b) => b.list.length - a.list.length);
   const body = `${bc.html}<h1>Best reps by model</h1><p class="lead">Every listing of the most popular models side by side, ranked by what buyers actually view. Compare batches, prices and QC before you order.</p>
-<div class="g">${ms.map(m => { const p = m.list[0]; const src = imgSrc(p); return `<a class="c" href="/best/${m.slug}"><span class="ci">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(m.name)}" width="300" height="375" loading="lazy" decoding="async" ${IMG_FALLBACK}>` : ""}</span><span class="cb"><span class="ct">${esc(m.name)}</span><span class="cbr">${m.list.length} listings</span></span></a>`; }).join("")}</div>`;
+<div class="g">${ms.map(m => { const p = m.list[0]; const src = imgSrc(p); return `<a class="c" href="/best/${m.slug}"><span class="ci">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(m.name)}" width="300" height="300" loading="lazy" decoding="async" ${IMG_FALLBACK}>` : ""}</span><span class="cb"><span class="ct">${esc(m.name)}</span><span class="cbr">${m.list.length} listings</span></span></a>`; }).join("")}</div>`;
   return page({ title: "Best Reps by Model (2026): Compare Batches & QC · Puro Classico", desc: "Compare every listing of the most popular rep models: Air Jordan 1, Samba, Golden Goose, Moncler, Nuptse and more, ranked by views.", path: "/best", body, jsonld: [bc.data] });
 }
 export function renderModel(s, n) {
@@ -701,7 +723,7 @@ export function renderModel(s, n) {
 }
 
 // ------------------------------------------------------------------ tools
-const TOOL_CSS = `<style>.tool{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:760px;margin:18px 0}.tool label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}.tool input,.tool select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit}.tool .out{margin-top:14px;font-size:15px;color:var(--ink-2);white-space:pre-line}.tool .out a{color:var(--accent);word-break:break-all}.tool .out .buybox{margin:12px 0 0}.tool .out .buy-main a{color:var(--fill-ink);word-break:normal}.tool .out .buy-alt a{color:var(--ink);word-break:normal}.tool .out details{margin-top:12px;font-size:13px}.tool .out summary{cursor:pointer;color:var(--muted)}.tool .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.tool .qct{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tool .qct img{width:110px;height:110px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}.tool table{width:100%;border-collapse:collapse}.tool td{padding:6px 4px}</style>`;
+const TOOL_CSS = "";   // v9: ds.css styles the tools (.tool, .out, .row, .qct)
 const EXTRACT = `function pcExtract(u){u=(u||"").trim();if(!u)return{};for(var k=0;k<3;k++){var d;try{d=decodeURIComponent(u);}catch(e){break;}if(d===u)break;u=d;}var pl=null,v,m,i;var st=u.match(/[?&#](?:shop_type|platform|source|channel|mall_?type)=([a-z0-9_]+)/i);if(st){v=st[1].toLowerCase();if(/^(?:wd|weidian)/.test(v))pl="weidian";else if(/^(?:1688|ali)/.test(v))pl="1688";else if(/^(?:tb|tao|tmall)/.test(v))pl="taobao";}if(!pl){m=u.match(/\\/product\\/(weidian|taobao|tmall|1688)\\//i);if(m){v=m[1].toLowerCase();pl=v==="tmall"?"taobao":v;}}if(!pl){var H=[["weidian",/(?:^|[\\/.@])(?:weidian\\.com|youshop10\\.com)/i],["taobao",/(?:^|[\\/.@])(?:taobao\\.com|tmall\\.com|tmall\\.hk|tb\\.cn)/i],["1688",/(?:^|[\\/.@])(?:1688\\.com|alibaba\\.com)/i]],b=-1;for(i=0;i<H.length;i++){m=H[i][1].exec(u);if(m&&(b<0||m.index<b)){b=m.index;pl=H[i][0];}}}if(!pl){if(/weidian/i.test(u))pl="weidian";else if(/taobao|tmall/i.test(u))pl="taobao";else if(/alibaba/i.test(u))pl="1688";}var id=null,ps=[/(?:^|[?&#\\/])item_?id=(\\d{6,})/i,/(?:^|[?&#])offer_?id=(\\d{6,})/i,/[?&#]id=(\\d{6,})/i,/\\/offer\\/(\\d{6,})/i,/\\/i(\\d{6,})\\.htm/i,/\\/product\\/(?:weidian|taobao|tmall|1688)\\/(\\d{6,})/i,/\\/item\\/(\\d{6,})/i,/\\/(\\d{9,})\\.html?\\b/i];for(i=0;i<ps.length;i++){m=u.match(ps[i]);if(m){id=m[1];break;}}if(!id&&/^\\d{6,}$/.test(u))id=u;var sh=!id&&/(?:^|[\\/.])(?:m\\.tb\\.cn|e\\.tb\\.cn|youshop10\\.com|qr\\.1688\\.com)/i.test(u);if(!id&&!sh){m=u.replace(/(?:spm|memberId|referId|affcode|invite_?code|scm|pvid|ut_sk|sku_?id)=[^&#]*/gi,"").match(/(\\d{9,})/);if(m)id=m[1];}return{platform:pl,id:id,short:sh};}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c];});}`;
 const TOOL_UI = {
@@ -718,7 +740,8 @@ document.getElementById("go").onclick=run;document.getElementById("lc").onkeydow
 var PCID=new Set(${JSON.stringify(P.map(p => p.id))});
 async function run(){var v=document.getElementById("qi").value,r=pcExtract(v),o=document.getElementById("out"),th=document.getElementById("th");th.innerHTML="";if(!r.id&&/^\\d{6,}$/.test(v.trim()))r={id:v.trim()};if(!r.id){o.textContent=r.short?"That is a short share link. Open it in your browser first, then paste the full product link it opens.":"Couldn't find an item ID. Paste a full link or the numeric ID.";return;}var p=r.platform||document.getElementById("qp").value||(r.id.length<=10?"weidian":"taobao");o.textContent="Checking "+p+" · "+r.id+"…";
 try{var res=await fetch("/api/qc?storefront="+p+"&id="+encodeURIComponent(r.id));var d=res.ok?await res.json():null;var t=(d&&d.thumbnails)||[];if(t.length){o.innerHTML="Real QC photos for <b>"+esc(p)+" · "+esc(r.id)+"</b> ("+t.length+" shown)."+(PCID.has(r.id)?" <a href=\\"/product/"+esc(r.id)+"\\">Open on Puro Classico →</a>":"");th.innerHTML=t.map(function(u){return '<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="QC photo" loading="lazy" onerror="this.parentNode.remove()"></a>';}).join("");}else o.textContent="No QC photos found yet for "+p+" · "+r.id+". Photos only exist once someone has bought it through an agent.";}catch(e){o.textContent="Couldn't reach the QC service. Try again in a moment.";}}
-document.getElementById("go").onclick=run;document.getElementById("qi").onkeydown=function(e){if(e.key==="Enter")run();};</script>`,
+document.getElementById("go").onclick=run;document.getElementById("qi").onkeydown=function(e){if(e.key==="Enter")run();};
+try{var qu=new URLSearchParams(location.search).get("u");if(qu){document.getElementById("qi").value=qu.slice(0,500);run();}}catch(e){}</script>`,
   "weight-estimator": () => `<div class="tool"><table id="wt"></table><div class="out" id="out" role="status"></div></div>
 <script>var W=[["T-shirt",250],["Shirt / polo",330],["Shorts",350],["Hoodie / sweater",700],["Pants / jeans",600],["Light jacket",700],["Puffer / heavy jacket",1100],["Sneakers (no box)",900],["Sneakers (with box)",1300],["Bag",550],["Cap / beanie",220],["Belt / small accessory",200]];
 var t=document.getElementById("wt");t.innerHTML=W.map(function(w,i){return '<tr><td>'+w[0]+' <span style="color:var(--muted)">~'+w[1]+' g</span></td><td style="width:90px"><input type="number" min="0" value="0" data-i="'+i+'" aria-label="'+w[0]+', number of items"></td></tr>';}).join("");
@@ -733,11 +756,12 @@ co.onchange=run;kg.oninput=run;run();</script>`,
 };
 export function renderTools() {
   const bc = crumbs([["Home", "/"], ["Tools", "/tools"]]);
-  const body = `${bc.html}<h1>Free rep tools</h1><p class="lead">Convert links, check QC photos and estimate weight and shipping before you order.</p>
+  const body = `${bc.html}<h1>Free Rep Tools</h1><p class="lead">Check QC photos, convert links, estimate shipping, find your size and track your parcel. Free, no sign-up.</p>
 <div class="gl">${TOOL_LINKS.map(([t, u]) => { const k = u.replace(/^\/tools\//, ""); return `<a href="${u}"><b>${esc(t)}</b>${own(TOOLS, k) ? `<span>${esc(TOOLS[k].desc)}</span>` : ""}</a>`; }).join("")}</div>`;
-  return page({ title: "Free Rep Tools: Link Converter, QC Checker, Shipping Calculator · Puro Classico", desc: "Free tools for buying reps through agents: link converter, QC photo checker, weight estimator and shipping calculator.", path: "/tools", body, jsonld: [bc.data] });
+  return page({ title: "Free Rep Tools: QC Checker, Link Converter, Size Estimator & Parcel Tracker · Puro Classico", desc: "Free tools for buying reps through agents: QC photo checker, link converter, shipping calculator, size estimator and parcel tracker.", path: "/tools", body, jsonld: [bc.data] });
 }
 export function renderTool(s) {
+  if (own(TOOL_UI9, s)) return toolPage9(s, TOOL_CSS);
   const t = own(TOOLS, s) && own(TOOL_UI, s) ? TOOLS[s] : null; if (!t) return null;
   const path = "/tools/" + s; const bc = crumbs([["Home", "/"], ["Tools", "/tools"], [t.name, path]]);
   const app = { "@context": "https://schema.org", "@type": "WebApplication", name: t.name + ": Puro Classico", url: SITE + path, applicationCategory: "UtilitiesApplication", operatingSystem: "Any", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, description: t.desc };
@@ -879,12 +903,12 @@ const AGENT_STYLES = {
     desc: (a, n) => `The ${a} spreadsheet with QC photos: ${n} rep finds marked as having buyer QC photos, with prices and one-tap ${a} buy links.`,
     faq: (a, n, n2) => [[`How do I order from the ${a} spreadsheet with QC photos?`, `Open a find, tap Buy via ${a}, pick your size and pay for the item plus delivery to the ${a} warehouse. ${a} photographs your exact item there, then you ship your parcel.`],
       ["Will I see the QC photos?", `Our catalogue marks these ${n} finds as having buyer QC photos from earlier orders and stores the photo count for ${n2} of them. Open a find and tap QC to load them. If they can't be loaded right now, ${a} still photographs your exact item at the warehouse before it ships.`]] },
-  budget: { name: "Budget", pmax: 140, parent: ["Weight estimator", "/tools/weight-estimator"],
+  budget: { name: "Budget", pmax: 140, parent: ["Shipping calculator", "/tools/shipping-calculator"],
     h: a => `${a} Budget Spreadsheet`, title: (a, n) => `${a} Budget Spreadsheet 2026: ${n} Finds Under $20 | Puro Classico`,
     sub: (a, n) => `${n} finds listed at ¥140 or less (about $20), each with a one-tap ${a} link.`,
     desc: (a, n) => `The ${a} budget spreadsheet: ${n} rep finds listed at ¥140 or less (about $20), with QC photos where we have them and one-tap ${a} links.`,
     faq: a => [[`How do I order from the ${a} budget spreadsheet?`, `Open a find, tap Buy via ${a}, pick your size and pay for the item plus delivery to the ${a} warehouse. Check the QC photos there, then ship your parcel.`],
-      ["Are these prices final?", `No. They are the sellers' listed prices from the last catalogue update. ${a} adds shipping, which is charged per parcel by weight, so on cheap items it can cost more than the item. Estimate it with our weight estimator before you order.`]] },
+      ["Are these prices final?", `No. They are the sellers' listed prices from the last catalogue update. ${a} adds shipping, which is charged per parcel by weight, so on cheap items it can cost more than the item. Estimate it with our shipping calculator before you order.`]] },
 };
 const AGENT_STYLE_RE = new RegExp(`^/(${AGENT_BRAND_AGENTS.join("|")})-spreadsheet/(${Object.keys(AGENT_STYLES).join("|")})$`);
 const inBudget = (p, max) => !isPH(p.cny) && p.cny <= max;
@@ -1073,19 +1097,23 @@ export function hubList(spec) {
   if (pr.cat) return { list: byCat.get(pr.cat) || [], base: !pr.agent && CATS[pr.cat] ? "/category/" + CATS[pr.cat].slug : null };
   return { list: all, base: null };
 }
-// Same markup as card() in index.html (English, USD), plus data-ssr. Image URLs are built the way the app builds them
+// Same markup as card() in index.html (English, USD), plus data-ssr; v9 adds the .card-acts row (QC pill + black Buy pill). Image URLs are built the way the app builds them
 // (imgSrc: Supabase photos through SITE/api/img), so the app's cards reuse the images the browser already has.
 const HEART = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></svg>`;
 const appAlt = p => { const t = p.title || "", b = p.brand || ""; return (b && !t.toLowerCase().startsWith(b.toLowerCase()) ? b + " " : "") + t + " rep"; };
-export function appCards(list, qcMin = 2) {   // qcMin: the QC badge threshold (1 on the QC photo hubs, like the app there)
+const CAM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`;
+export function appCards(list, qcMin = 1, agent = "mycnbox", off = 0) {   // qcMin: the QC pill threshold (1: finds marked as having QC photos, like the app and server cards). off: added to the index for the eager/high image slots (8 on the homepage, where the grid sits below the v9 sections)
+  const a = AGENTS[agent] || AGENTS.mycnbox;
   return list.map((p, i) => {
-    const img = imgSrc(p), id = esc(p.id);
+    const img = imgSrc(p), id = esc(p.id), url = productUrl(p);
     return `<div class="card" data-ssr="${id}"><div class="thumb"><canvas aria-hidden="true"></canvas>` +
-      (img ? `<img class="pimg" src="${esc(thumbSrc(img))}" data-o="${esc(img)}" alt="${esc(appAlt(p))}" loading="${i < 8 ? "eager" : "lazy"}"${i < 4 ? ' fetchpriority="high"' : ""} decoding="async" ${IMG_FALLBACK}>` : "") +
-      `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save ${esc(p.title)}">${HEART}</button>${p.qc >= qcMin ? '<span class="qc-badge">QC</span>' : ""}</div>` +
-      `<div class="body">${p.brand ? `<span class="brand-line">${esc(p.brand)}</span>` : ""}<a class="title" href="${productUrl(p)}">${esc(p.title)}</a>` +
+      (img ? `<img class="pimg" src="${esc(thumbSrc(img))}" data-o="${esc(img)}" alt="${esc(appAlt(p))}" loading="${i + off < 8 ? "eager" : "lazy"}"${i + off < 4 ? ' fetchpriority="high"' : ""} decoding="async" ${IMG_FALLBACK}>` : "") +
+      `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save ${esc(p.title)}">${HEART}</button></div>` +
+      `<div class="body">${p.brand ? `<span class="brand-line">${esc(p.brand)}</span>` : ""}<a class="title" href="${url}">${esc(p.title)}</a>` +
       `<span class="price-row"><span class="price">${money(p.cny)}</span>${isPH(p.cny) ? "" : `<span class="subprice">¥${(+p.cny).toLocaleString("en-US")}</span>`}` +
-      `<span class="starcount" data-sc="${id}"></span><span class="cat">${esc(p.cat)}</span></span></div></div>`;
+      `<span class="starcount" data-sc="${id}"></span><span class="cat">${esc(p.cat)}</span></span>` +
+      `<span class="card-acts">${(p.qc || 0) >= qcMin ? `<a class="qc-pill" href="${url}#qc" aria-label="QC photos of ${esc(p.title)}">${CAM}QC</a>` : ""}` +
+      `<a class="buy-pill" href="${esc(a.build(p))}" data-agent="${esc(AGENTS[agent] ? agent : "mycnbox")}" target="_blank" rel="sponsored nofollow noopener" aria-label="Buy via ${esc(a.name)}: ${esc(p.title)}">Buy</a></span></div></div>`;
   }).join("");
 }
 // Links to pages 2+ (the first 12, then the last), for the block under the app.
