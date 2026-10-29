@@ -3,6 +3,7 @@
 // Unknown/removed ids get a real 404.
 import { renderProduct, PRODUCT_TPL } from "../_lib/pages.js";
 import { notFound, ensureStats, BUILT } from "../_lib/site.js";
+import { countView } from "../_lib/views.js";
 
 const PAGE_TTL = 60 * 60 * 24;     // 1 day
 const QC_MISS_TTL = 60 * 15;       // 15 min when the QC lookup failed
@@ -19,10 +20,13 @@ export async function onRequestGet(context) {
   const cache = caches.default;
   const key = new Request(`https://ssr-cache.internal/product/${BUILT}-${PRODUCT_TPL}/${encodeURIComponent(id)}`, { method: "GET" });
   const hit = await cache.match(key);
-  if (hit) { const r = new Response(hit.body, hit); r.headers.set("cache-control", BROWSER_CC); r.headers.set("x-ssr-cache", "HIT"); return r; }
+  // Page view counter (functions/_lib/views.js): people only, GET only, written after the response in waitUntil, never
+  // blocks or breaks the page. Counted here, before the cached copy is returned, so cached pages count too.
+  if (hit) { countView(context, id); const r = new Response(hit.body, hit); r.headers.set("cache-control", BROWSER_CC); r.headers.set("x-ssr-cache", "HIT"); return r; }
   await ensureStats(url.origin);
   const res = await renderProduct(id, url.origin);
   if (!res) return notFound(url.pathname);
+  if (res.status === 200) countView(context, id);                  // a real find (unknown ids 404 above and are not counted)
   const ttl = res.headers.get("x-qc-miss") ? QC_MISS_TTL : PAGE_TTL;   // a render without its QC photos is retried soon
   res.headers.delete("x-qc-miss");
   const stored = new Response(res.clone().body, res);
