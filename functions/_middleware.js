@@ -296,11 +296,12 @@ async function hubApp(ctx, url, spec) {
     .on("meta[charset]", { element(e) { e.after(head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
     // v8 hero parts (eyebrow, CTA row, stats, Trustpilot badge, agents strip, favourites strip) are no longer in the v9
     // index.html, so their removal rules are gone. The app code still checks for each element before using it.
-    // v9 (29 Oct 2026): the homepage sections between the hero and the toolbar, the hero search and the hero buttons
+    // v9 (29 Oct 2026): the homepage sections between the hero and the toolbar, the hero search, the hero buttons and the hero trust row
     // are homepage only. Removed here like the v8 hero parts; home.js no-ops when they are missing.
     .on("div#v9-home", { element(e) { e.remove(); } })
     .on("form#v9-hero-search", { element(e) { e.remove(); } })
     .on("div.v9-hero-actions", { element(e) { e.remove(); } })
+    .on("div.v9-trust", { element(e) { e.remove(); } })
     .on("h1.hero-h", { element(e) { e.setInnerContent(spec.h); e.before(crumbHtml, { html: true }); } })
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
     .on("footer", { element(e) { e.before(seo, { html: true }); } })
