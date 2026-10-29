@@ -247,6 +247,7 @@ async function route(ctx) {
 
 // A hub page served as the catalogue app: index.html with this page's title, meta, canonical, heading and filter preset
 // (window.PC_PAGE), the homepage's own structured data swapped for this page's, and a compact FAQ/links block before the footer.
+// Its hero is only the breadcrumb, the h1 and the subtitle: the homepage's other hero parts are removed below.
 async function hubApp(ctx, url, spec) {
   const asset = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "GET", headers: ctx.request.headers }));
   if (!asset.ok) return asset;
@@ -290,6 +291,17 @@ async function hubApp(ctx, url, spec) {
     .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
     .on("meta[charset]", { element(e) { e.after(head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
     .on("span.v7-eyebrow", { element(e) { e.remove(); } })                 // hub pages show their breadcrumb there instead
+    // v8 (28 Oct 2026): the hero of a hub is only breadcrumb, h1 and subtitle. Its other parts used to be sent and then
+    // hidden by html.hub CSS; they are removed instead, so a hub carries no hidden text and loads no favourites photos
+    // nobody sees (renderFeatured() builds eager images). The CTA row with the "How ordering works" link goes too: every
+    // hub links /how-to-order in its footer. The app code checks for each element before using it (updateHero,
+    // wireHeroCTA, wireStripPause, renderFeatured and the v8 motion script).
+    .on("div.hero-actions", { element(e) { e.remove(); } })
+    .on("div#hero-stats", { element(e) { e.remove(); } })
+    .on("a.tp-badge", { element(e) { e.remove(); } })
+    .on("div.agents-strip", { element(e) { e.remove(); } })
+    .on("div.strip-head", { element(e) { e.remove(); } })
+    .on("div#hero-strip", { element(e) { e.remove(); } })
     .on("h1.hero-h", { element(e) { e.setInnerContent(spec.h); e.before(crumbHtml, { html: true }); } })
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
     .on("footer", { element(e) { e.before(seo, { html: true }); } })
