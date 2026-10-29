@@ -2412,6 +2412,7 @@ function qcFetch(p,live){
   QC_CACHE[key]=pr; return pr;
 }
 function openDetail(p,fromHash){
+  if(!fromHash){ try{ if(window.pcSearch&&state.q&&(_rlist.includes(p)||(drawer.__pplist||[]).includes(p))) pcSearch.open(); }catch(_){} }   /* search-log hook C: a search result was opened */
   try{ if(sb&&p&&p.id){ if(!window.__pv)window.__pv=new Set(); if(!window.__pv.has(p.id)){ window.__pv.add(p.id); sb.from("product_views").insert({user_id:(ME?ME.id:null),product_id:p.id,brand:p.brand||null,cat:p.cat||null}).then(()=>{},()=>{}); } } }catch(e){}
   const _wasOpen=drawer.classList.contains("open");
   if(!_wasOpen&&!drawer.contains(document.activeElement)){ lastFocus=document.activeElement; drawer.__lfId=p.id; drawer.__sig=_gridSig(); drawer.__gridY=window.scrollY; }
@@ -2787,7 +2788,8 @@ $("#f-color").addEventListener("change",e=>{state.color=e.target.value;render();
 wirePriceSlider();
 $("#saved-chip").addEventListener("click",()=>{state.saved=!state.saved;render();});
 ["#empty-clear","#clear-chip"].forEach(id=>{ const b=$(id); if(b)b.addEventListener("click",clearFilters); });
-let qt;$("#q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{state.q=e.target.value.trim();syncQParam();render();},110);});
+let qt;$("#q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{state.q=e.target.value.trim();syncQParam();render();try{window.pcSearch&&pcSearch.q(state.q,_rlist.length,location.pathname==="/"?"home":/^\/product\//.test(location.pathname)?"product":"hub");}catch(_){}},110);});   /* search-log hook A (29 Oct 2026, track.js pcSearch) */
+$("#q").addEventListener("keydown",e=>{ if(e.key==="Enter"){ try{window.pcSearch&&pcSearch.commit();}catch(_){} } }); $("#q").addEventListener("blur",()=>{ try{window.pcSearch&&pcSearch.commit();}catch(_){} });   /* search-log hook B */
 $("#q").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.isComposing&&window.matchMedia&&matchMedia("(pointer: coarse)").matches){ e.preventDefault(); e.target.blur(); } });   /* touch screens: the Search key closes the keyboard so the results show */
 $("#sort").addEventListener("change",e=>{state.sort=e.target.value;render();});
 $("#lang").addEventListener("change",e=>{state.lang=e.target.value;save();applyStatic();buildFilters();render();});
@@ -3454,7 +3456,8 @@ function wirePPFilters(){
   on("#pp-price","change",e=>{const v=e.target.value; if(v==="all"){state.pmin=null;state.pmax=null;} else if(v==="lo"){state.pmin=null;state.pmax=100;} else if(v==="mid"){state.pmin=100;state.pmax=200;} else if(v==="hi"){state.pmin=200;state.pmax=null;} else return; save();renderPPGrid();});
   on("#pp-sort","change",e=>{state.sort=e.target.value;save();renderPPGrid();});
   const sv=$("#pp-saved",drawer); if(sv)sv.addEventListener("click",()=>{state.saved=!state.saved;sv.setAttribute("aria-pressed",String(state.saved));save();renderPPGrid();});
-  let qt; const q=$("#pp-q",drawer); if(q)q.addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{state.q=e.target.value.trim();save();syncQParam();renderPPGrid();},120);});
+  let qt; const q=$("#pp-q",drawer); if(q)q.addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{state.q=e.target.value.trim();save();syncQParam();renderPPGrid();try{window.pcSearch&&pcSearch.q(state.q,(drawer.__pplist||[]).length,"product");}catch(_){}},120);});   /* search-log hook D */
+  if(q){ q.addEventListener("keydown",e=>{ if(e.key==="Enter"){ try{window.pcSearch&&pcSearch.commit();}catch(_){} } }); q.addEventListener("blur",()=>{ try{window.pcSearch&&pcSearch.commit();}catch(_){} }); }   /* search-log hook E */
 }
 
 </script>

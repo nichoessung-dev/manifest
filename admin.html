@@ -30,6 +30,8 @@
   .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px}
   input{max-width:100%}
   tr.gone td{opacity:.55}
+  .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:12px;margin-bottom:22px}.two>div{min-width:0}
+  .card .d{color:var(--muted);font-size:12px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -39,6 +41,8 @@
   <div class="cards" id="cards"></div>
   <h3 style="margin:0 0 8px">Views per day (last 30 days)</h3>
   <div class="chart" id="chart"></div>
+  <div id="views" hidden></div>
+  <div id="search" hidden></div>
   <div class="tabs" id="tabs">
     <button data-k="7" class="on">Most viewed · 7 days</button><button data-k="30">Most viewed · 30 days</button><button data-k="all">Most viewed · all time</button><button data-k="fav">Most favourited</button><button data-k="brand">Brands</button>
     <input id="q" placeholder="Filter by title, brand or ID">
@@ -72,6 +76,46 @@
     const el=document.createElement("div"); el.className="card"; el.style.gridColumn="1/-1";
     el.innerHTML=`<div class="l" style="margin:0 0 6px">qualit.ly API quota (QC photos)</div><div style="display:flex;flex-wrap:wrap;gap:6px 18px">${flat.slice(0,12).map(([k,v])=>`<span><span class="muted">${esc(k.replace(/_/g," "))}:</span> <b>${esc(v)}</b></span>`).join("")}</div>`;
     $("#cards").appendChild(el); }).catch(()=>{});
+  // Site search (search_log via scripts/bake_stats.py into /data/dashboard.json "search"). Hidden until the table has data.
+  const dashP=fetch("/data/dashboard.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null);
+  dashP.then(dj=>{ const S=dj&&dj.search; if(!S||!S.week||!S.week.n) return;
+    const W=S.week, P=S.prev_week||{n:0,zero:0,opened:0}, pct=(a,b)=>b?Math.round(a/b*100)+"%":"n/a";
+    const vs=b=>`<div class="d">prev 7d: ${esc(b)}</div>`;
+    const c2=(n,l,prev)=>`<div class="card"><div class="n">${esc(n)}</div><div class="l">${l}</div>${prev}</div>`;
+    const tbl=(head,rows)=>rows.length?`<div class="tw"><table><tr>${head.map((h,i)=>`<th${i?' class="n"':""}>${h}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map((v,i)=>`<td${i?' class="n"':""}>${esc(v)}</td>`).join("")}</tr>`).join("")}</table></div>`:`<p class="muted">No query seen ${esc(S.min_seen||5)}+ times (in ${esc(S.min_hours||3)}+ different hours) this week yet.</p>`;
+    const el=$("#search"); el.hidden=false;
+    el.innerHTML=`<h3 style="margin:0 0 8px">Site search · 7 days</h3>
+      <div class="cards">${c2(W.n.toLocaleString(),"Searches",vs(P.n))}${c2(pct(W.zero,W.n),"Zero results",vs(pct(P.zero,P.n)))}${c2(pct(W.opened,W.n),"Opened a find after",vs(pct(P.opened,P.n)))}</div>
+      <div class="two"><div><h3 style="margin:0 0 8px">Top searches</h3>${tbl(["Query","Searches","Opened","Results"],(S.top||[]).map(r=>[r[0],r[1],r[1]?Math.round(r[2]/r[1]*100)+"%":"",r[3]]))}</div>
+      <div><h3 style="margin:0 0 8px">Zero-result searches</h3>${tbl(["Query","Searches","With 0 results"],(S.zero||[]).map(r=>[r[0],r[1],r[2]]))}<p class="muted" style="margin:6px 0 0">Add a synonym or source the find. Queries seen fewer than ${esc(S.min_seen||5)} times, or in fewer than ${esc(S.min_hours||3)} different hours, are not listed.</p></div></div>`;
+  }).catch(()=>{});
+  // Product page views (product_page_views via bake_stats.py into dashboard.json "page_views") and campaigns (buy_clicks).
+  // Counted on the server for /product/<id> pages, people only. Hidden until the table has data (OWNER_SQL.sql run).
+  dashP.then(dj=>{ const V=dj&&dj.page_views, B=(dj&&dj.buy_clicks)||{}; if(!V||!V.totals||!V.totals.d30) return;
+    const T=V.totals, nf=n=>(+n||0).toLocaleString(), pct=(a,b,d=1)=>b?(a/b*100).toFixed(d)+"%":"n/a";
+    const c2=(n,l,sub)=>`<div class="card"><div class="n">${esc(n)}</div><div class="l">${l}</div>${sub?`<div class="d">${sub}</div>`:""}</div>`;
+    const tbl=(head,rows,empty)=>rows.length?`<div class="tw"><table><tr>${head.map((h,i)=>`<th${i?' class="n"':""}>${h}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map((v,i)=>i===0&&v&&v.html!=null?`<td>${v.html}</td>`:`<td${i?' class="n"':""}>${esc(v)}</td>`).join("")}</tr>`).join("")}</table></div>`:`<p class="muted">${empty}</p>`;
+    const find=id=>{ const p=prods[id]; return {html:p?`<a href="/product/${encodeURIComponent(id)}" target="_blank">${esc(p.title||id)}</a><div class="brand">${esc(p.brand||"")} · ${esc(id)}</div>`:`<span class="muted">#${esc(id)} (removed)</span>`}; };
+    const min=V.min_views||20, F=(V.finds||[]).filter(f=>Array.isArray(f)&&f[1]>=min), avg=V.rate_30d||0;
+    const best=F.slice().sort((a,b)=>b[3]-a[3]||b[1]-a[1]).slice(0,15);
+    const low=F.filter(f=>f[3]<avg/2).sort((a,b)=>b[1]-a[1]).slice(0,15);
+    const S30=(V.sources||[]).reduce((a,s)=>a+(+s[2]||0),0);
+    // by campaign: page views (product_page_views) next to buy clicks and agent sign-up link clicks (buy_clicks), 30 days
+    const cm={}, key=(s,c)=>s+"\u0000"+c;
+    (V.campaigns||[]).forEach(([s,c,n])=>{ const k=key(s,c); cm[k]=cm[k]||{s,c,v:0,b:0,u:0}; cm[k].v+=+n||0; });
+    (B.campaigns||[]).forEach(([s,c,b,u])=>{ const k=key(s,c); cm[k]=cm[k]||{s,c,v:0,b:0,u:0}; cm[k].b+=+b||0; cm[k].u+=+u||0; });
+    const CM=Object.values(cm).sort((a,b)=>b.v-a.v||b.b-a.b||a.c.localeCompare(b.c)).slice(0,25);
+    const el=$("#views"); el.hidden=false;
+    el.innerHTML=`<h3 style="margin:0 0 8px">Product pages · counted on the server</h3>
+      <div class="cards">${c2(nf(T.d7),"Page views · 7 days",`prev 7d: ${nf(T.prev7)}`)}${c2(nf(T.d30),"Page views · 30 days","")}${c2(pct(V.buys_on_page_30d,T.d30),"Buy rate · 30 days",`${nf(V.buys_on_page_30d)} buy clicks on product pages`)}</div>
+      <div class="two"><div><h3 style="margin:0 0 8px">Views by source</h3>${tbl(["Source","7 days","30 days","Share"],(V.sources||[]).map(s=>[s[0],nf(s[1]),nf(s[2]),pct(s[2],S30,0)]),"No views yet.")}
+        <p class="muted" style="margin:6px 0 0">site = a link on puroclassico.com. direct = no referrer and no tag. Tagged links (utm_source) win over the referrer.</p></div>
+      <div><h3 style="margin:0 0 8px">By campaign · 30 days</h3>${tbl(["Campaign","Page views","Buy clicks","Agent sign-up clicks"],CM.map(x=>[x.s+" · "+x.c,nf(x.v),nf(x.b),nf(x.u)]),"No tagged visits yet. Links from Discord, Telegram, Pinterest, YouTube, Threads and emails carry utm_campaign.")}
+        <p class="muted" style="margin:6px 0 0">Buy and sign-up clicks are taps on agent links during a visit that arrived through that campaign.</p></div></div>
+      <div class="two"><div><h3 style="margin:0 0 8px">Best buy rate · 30 days</h3>${tbl(["Find","Views","Buys","Rate"],best.map(f=>[find(f[0]),nf(f[1]),nf(f[2]),pct(f[2],f[1])]),`No find has ${esc(min)}+ page views yet.`)}</div>
+      <div><h3 style="margin:0 0 8px">Many views, low buy rate</h3>${tbl(["Find","Views","Buys","Rate"],low.map(f=>[find(f[0]),nf(f[1]),nf(f[2]),pct(f[2],f[1])]),"None under half the average rate.")}
+        <p class="muted" style="margin:6px 0 0">Buy rate = buy clicks on that product page ÷ its page views, finds with ${esc(min)}+ views only. Under half the average (${pct(avg,1)}): check price, photos or QC.</p></div></div>`;
+  }).catch(()=>{});
   const rows=Object.entries(stats.p).map(([id,v])=>{ v=Array.isArray(v)?v:[]; const gone=!prods[id]; const p=prods[id]||{}; const im=/\.supabase\.co\/storage\/v1\/object\/public\//.test(p.img||"")?"/api/img?u="+encodeURIComponent(p.img):(p.img||""); return {id,gone,title:p.title||("#"+id+" (removed)"),brand:p.brand||"",img:im,all:+v[0]||0,d30:+v[1]||0,d7:+v[2]||0,fav:+v[3]||0}; });
   let tab="7", q="";
   function draw(){

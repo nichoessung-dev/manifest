@@ -42,7 +42,7 @@ hr{margin:30px 0}
 <main class="wrap" id="main">
 <p class="eyebrow pill">Legal</p>
 <h1>Privacy &amp; Cookies</h1>
-<div class="updated">Last updated: 28 October 2026</div>
+<div class="updated">Last updated: 29 October 2026</div>
 
 
 <div class="card">
@@ -56,7 +56,9 @@ hr{margin:30px 0}
 <li><b>Usage:</b> which product pages are opened (product, brand and category, linked to your account if you are signed in), used to rank popular items. We also count how many people are viewing the site right now, using a random identifier that is not linked to you.</li>
 <li><b>Emails:</b> every new member gets a welcome email with the MyCNBox sign-up link and a how-to-order email. Newsletters, saved-item reminders and the MyCNBox reminder go only to members who ticked "Email me new drops &amp; deals". Every email has an unsubscribe link, and you can also ask us to stop on Discord.</li>
 <li><b>Referrals:</b> if you arrive through a referral link, we note which referral code brought you when you create an account.</li>
-<li><b>Buy clicks:</b> when you tap a link to a shopping agent, we record the agent, the item, the page, your country (worked out by Cloudflare from your connection) and where your visit came from, such as a search engine, an app or a referral code. We do not store your IP address or your account with it.</li>
+<li><b>Buy clicks:</b> when you tap a link to a shopping agent, we record the agent, the item, the page, your country (worked out by Cloudflare from your connection) and where your visit came from, such as a search engine, an app or a referral code, plus the campaign tag on the link you arrived through (for example "drop" on our Discord posts). We do not store your IP address or your account with it.</li>
+<li><b>Product page counts:</b> when a product page loads, our server adds one to a daily count for that product, together with the kind of place the visit came from (such as Google, an email, Discord, TikTok, or no referrer) and the campaign tag on the link, if any. Nothing is stored on your device for this, and we do not store your IP address, your browser, your country, the full address you came from or your account with it. Search engines and other automated visits are not counted. These daily counts are kept for about 25 months.</li>
+<li><b>Site searches:</b> when you search the finds, we record the words you searched (in lower case, cut to 80 characters), how many finds matched, whether you opened a find afterwards, and the kind of page. Searches that look like an email address, a phone number or a link are never sent. We do not store your IP address, your account or anything else about you with it, and we delete these rows after 30 days.</li>
 <li><b>Site statistics:</b> Cloudflare Web Analytics counts page views and page speed. It sets no cookies and stores nothing on your device.</li>
 <li><b>Technical:</b> standard server and security data (such as IP address) processed by our hosting provider.</li>
 </ul>
@@ -69,7 +71,7 @@ hr{margin:30px 0}
 <tr><td><b>Sign-in</b></td><td>Set by our authentication provider (Supabase) to keep you logged in.</td></tr>
 <tr><td><b>Referral (pc_ref)</b></td><td>A first-party cookie set only when you open a referral link (/r/&hellip;). It stores the referral code for 30 days so the referrer can be credited.</td></tr>
 <tr><td><b>Preferences</b></td><td>Your language, currency, theme, saved items, email choice and whether you closed the sign-up window are stored in your browser (local storage). If you arrive through a link with a referral code (?ref=&hellip;), that code is kept there too, so the referrer can be credited if you sign up.</td></tr>
-<tr><td><b>Visit source (pc.src)</b></td><td>Kept in this browser tab only (session storage) and gone when you close it. It notes where this visit came from, so buy clicks can be counted per source.</td></tr>
+<tr><td><b>Visit source (pc.src, pc.cmp)</b></td><td>Kept in this browser tab only (session storage) and gone when you close it. It notes where this visit came from and the link's campaign tag, so buy clicks can be counted per source and campaign.</td></tr>
 </table>
 <p>We do not currently use advertising or third-party tracking cookies. If that changes, we will ask for your consent first.</p>
 
