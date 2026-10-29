@@ -2625,7 +2625,7 @@ function openAuth(){ showGate(); }
 let _gateFocus=null;
 function showGate(){ const g=$("#gate"); if(!g)return; const s=$("#gate-email-status"); if(s){ s.textContent=""; s.classList.remove("err"); }
   if(g.hidden){ _gateFocus=document.activeElement; g.hidden=false; document.documentElement.style.overflow="hidden"; }
-  const f=[$("#gate-google"),$("#gate-discord")].find(b=>b&&b.offsetParent!==null); if(f){ try{ f.focus({preventScroll:true}); }catch(e){} } }
+  const f=[$("#gate-google"),$("#gate .gis-slot iframe"),$("#gate-discord")].find(b=>b&&b.offsetParent!==null); if(f){ try{ f.focus({preventScroll:true}); }catch(e){} } }
 function hideGate(){ const g=$("#gate"); if(!g||g.hidden)return; g.hidden=true; document.documentElement.style.overflow="";
   const f=_gateFocus; _gateFocus=null; if(f&&f.focus&&f!==document.body&&document.contains(f)){ try{ f.focus({preventScroll:true}); }catch(e){} } }
 /* signed in (session restored, OAuth/magic-link return): the entry gate has nothing left to ask */
@@ -3043,7 +3043,7 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
     if(g.hidden) return;
     if(e.key==="Escape"){ e.stopImmediatePropagation(); done(true); return; }
     if(e.key!=="Tab") return;
-    const f=[...g.querySelectorAll("button,input,a[href],select,textarea")].filter(el=>!el.disabled&&el.offsetParent!==null);
+    const f=[...g.querySelectorAll("button,input,a[href],select,textarea,iframe")].filter(el=>!el.disabled&&el.offsetParent!==null);
     if(!f.length) return;
     const first=f[0], last=f[f.length-1], cur=document.activeElement;
     if(!g.contains(cur)){ e.preventDefault(); (e.shiftKey?last:first).focus(); }
@@ -3060,6 +3060,100 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
     try{ sb.auth.getSession().then(r=>{ if(r&&r.data&&r.data.session) return; open(); },open); }catch(e){ open(); }
   };
   setTimeout(check,700);
+})();
+/* Google sign-in on our own origin (Google Identity Services + supabase signInWithIdToken), so Google's account screen names
+   puroclassico.com instead of the Supabase project host. The GIS script loads only when the gate or the account sheet opens.
+   Google's own button takes the place of ours once it has rendered; until then, and whenever anything fails, ours stays and
+   runs the redirect flow, oauth("google"). In-app browsers keep Google hidden (the gate block above). */
+(function(){
+  const CID="336486221723-74qu6phm5g88r9fsab0dvt473bub6p1r.apps.googleusercontent.com";
+  /* the origins authorised for this client in Google Cloud: anywhere else Google refuses the button, so the redirect flow stays */
+  const HOSTS=/^(?:(?:www\.)?puroclassico\.com|v9-preview\.manifest-bq9\.pages\.dev)$/;
+  const SLOTS=[["gate","gate-google"],["auth-modal","auth-google"]];
+  let st=0, raw="";   /* st: 0 not loaded, 1 loading, 2 ready, -1 off (redirect flow only) */
+  const hex=a=>Array.from(a,x=>x.toString(16).padStart(2,"0")).join("");
+  const say=m=>{ ["#auth-status","#gate-email-status"].forEach(id=>{ const a=$(id); if(a){ a.textContent=m; a.classList.remove("err"); } }); };
+  /* back to our own buttons; only undoes what this block hid (the in-app rule's display:none stays) */
+  const off=()=>{ st=-1; document.querySelectorAll(".gis-slot").forEach(s=>s.remove());
+    SLOTS.forEach(([,id])=>{ const b=document.getElementById(id); if(b&&b.__gisHid){ b.__gisHid=0; b.style.display=""; } }); };
+  const usable=b=>!!b&&!(b.style.display==="none"&&!b.__gisHid);
+  /* after the visitor picked an account: a short note, then the classic Google redirect */
+  const fallback=()=>{ off(); say("Google sign-in hit a snag, opening the Google page instead."); try{ oauth("google"); }catch(e){} };
+  async function onCred(resp){
+    try{ const g=document.getElementById("gate"), c=g&&!g.hidden?document.getElementById("gate-optin"):null;   /* saveOptin(), as for the redirect */
+      if(c){ localStorage.setItem("pc.optin",c.checked?"1":"0"); localStorage.setItem("pc.optin.asked","1"); } }catch(e){}
+    if(!sb||!resp||!resp.credential){ fallback(); return; }
+    say("…");
+    let u=null;
+    try{ const {data,error}=await sb.auth.signInWithIdToken({provider:"google",token:resp.credential,nonce:raw});
+      if(error||!data||!data.session) throw error||new Error("no session"); u=data.user||data.session.user; }
+    catch(e){ fallback(); return; }
+    say("");
+    /* the same path a redirect return takes (onUser -> gateSignedIn, profile + opt-in, saves); the visitor never left the page,
+       so there is no saved return to go back to */
+    try{ const m=document.getElementById("auth-modal"); if(m&&!m.hidden) closeAuth(); }catch(e){}
+    try{ await onUser(u); }catch(e){}
+  }
+  /* the look Google's button is drawn with: the site's theme and language at that moment */
+  const look=()=>{ const th=document.documentElement.getAttribute("data-theme");
+    let lang="en"; try{ lang=state.lang==="zh"?"zh_CN":(state.lang||"en"); }catch(e){}   /* the site's language, not the browser's */
+    const dark=th==="dark"||(th!=="light"&&!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches));
+    return {dark,lang,key:(dark?"d":"l")+lang}; };
+  /* drop a Google button and bring ours back (theme or language changed since it was drawn) */
+  const unmount=b=>{ const s=b.__slot; b.__slot=null; b.__gis=0;
+    if(s){ if(s.__stop) s.__stop(); s.remove(); }
+    if(b.__gisHid){ b.__gisHid=0; b.style.display=""; } };
+  function mount(b){
+    if(st!==2||!usable(b)||b.__gis) return;
+    const w=b.offsetWidth; if(!w) return;   /* layout width: the gate card scales in while it opens */
+    b.__gis=1;
+    const slot=document.createElement("div"); slot.className="gis-slot";
+    slot.style.cssText="display:flex;justify-content:center;margin:0;height:0;overflow:hidden";   /* invisible, takes no space until rendered */
+    b.after(slot); b.__slot=slot;
+    const L=look(); slot.__key=L.key;
+    let done=0, t=0, mo=null;
+    const stop=()=>{ done=1; clearTimeout(t); if(mo) mo.disconnect(); };
+    slot.__stop=stop;
+    const show=()=>{ if(done||!slot.isConnected) return; stop();
+      /* take exactly our button's box, so swapping the two does not move anything */
+      const h=b.offsetHeight, mb=getComputedStyle(b).marginBottom;
+      slot.style.height=""; slot.style.overflow=""; slot.style.minHeight=(h||40)+"px"; slot.style.alignItems="center"; slot.style.marginBottom=mb;
+      const had=document.activeElement===b; b.__gisHid=1; b.style.display="none";
+      if(had){ const f=slot.querySelector("iframe"); try{ (f||slot).focus({preventScroll:true}); }catch(e){} } };
+    try{ google.accounts.id.renderButton(slot,{type:"standard",theme:L.dark?"filled_black":"outline",size:"large",shape:"pill",
+      text:"continue_with",logo_alignment:"left",width:Math.min(400,Math.max(200,w)),locale:L.lang}); }
+    catch(e){ stop(); slot.remove(); b.__slot=null; return; }
+    /* Google's button is an iframe: it counts as rendered once that frame has loaded. The observer sees the frame
+       being added before it can load, so a fast (cached) frame is not missed */
+    const hook=()=>{ const f=slot.querySelector("iframe"); if(f&&!f.__gisHook){ f.__gisHook=1; f.addEventListener("load",show); } };
+    try{ mo=new MutationObserver(hook); mo.observe(slot,{childList:true,subtree:true}); }catch(e){}
+    hook();
+    t=setTimeout(()=>{ if(done) return; stop();   /* never rendered: ours stays, and the next opening tries again */
+      slot.remove(); if(b.__slot===slot){ b.__slot=null; b.__gis=0; } },8000);
+  }
+  const mountAll=()=>SLOTS.forEach(([m,id])=>{ const el=document.getElementById(m); if(el&&!el.hidden) mount(document.getElementById(id)); });
+  function load(){
+    if(st) return;
+    if(!HOSTS.test(location.hostname)||!window.crypto||!crypto.subtle||!window.TextEncoder){ st=-1; return; }
+    st=1;
+    try{ const r=new Uint8Array(32); crypto.getRandomValues(r); raw=hex(r); }catch(e){ st=-1; return; }
+    /* Google gets sha256(nonce) in hex, Supabase the raw nonce: it hashes it again and compares with the ID token's nonce */
+    const hp=crypto.subtle.digest("SHA-256",new TextEncoder().encode(raw)).then(h=>hex(new Uint8Array(h)));
+    const sp=new Promise((res,rej)=>{ const s=document.createElement("script"); s.src="https://accounts.google.com/gsi/client";
+      s.async=true; s.onload=res; s.onerror=()=>rej(new Error("gsi blocked")); document.head.appendChild(s);
+      setTimeout(()=>rej(new Error("gsi timeout")),10000); });
+    Promise.all([hp,sp]).then(([nonce])=>{
+      const id=window.google&&google.accounts&&google.accounts.id; if(!id) throw new Error("gsi missing");
+      id.initialize({client_id:CID,callback:r=>{ onCred(r); },nonce:nonce,use_fedcm_for_button:true,itp_support:true,context:"signin"});
+      st=2; mountAll();
+    }).catch(()=>off());
+  }
+  SLOTS.forEach(([m,id])=>{ const el=document.getElementById(m); if(!el) return;
+    const go=()=>{ if(el.hidden) return; const b=document.getElementById(id);
+      if(st===2&&b&&b.__slot&&b.__slot.__key!==look().key) unmount(b);   /* redraw in the current theme and language */
+      if(!usable(b)) return; load(); if(st===2) mount(b); };
+    try{ new MutationObserver(go).observe(el,{attributes:true,attributeFilter:["hidden"]}); }catch(e){}
+    go(); });
 })();
 /* link converter */
 function pcExtract(u){u=(u||"").trim();if(!u)return{};for(var k=0;k<3;k++){var d;try{d=decodeURIComponent(u);}catch(e){break;}if(d===u)break;u=d;}var pl=null,v,m,i;var st=u.match(/[?&#](?:shop_type|platform|source|channel|mall_?type)=([a-z0-9_]+)/i);if(st){v=st[1].toLowerCase();if(/^(?:wd|weidian)/.test(v))pl="weidian";else if(/^(?:1688|ali)/.test(v))pl="1688";else if(/^(?:tb|tao|tmall)/.test(v))pl="taobao";}if(!pl){m=u.match(/\/product\/(weidian|taobao|tmall|1688)\//i);if(m){v=m[1].toLowerCase();pl=v==="tmall"?"taobao":v;}}if(!pl){var H=[["weidian",/(?:^|[\/.@])(?:weidian\.com|youshop10\.com)/i],["taobao",/(?:^|[\/.@])(?:taobao\.com|tmall\.com|tmall\.hk|tb\.cn)/i],["1688",/(?:^|[\/.@])(?:1688\.com|alibaba\.com)/i]],b=-1;for(i=0;i<H.length;i++){m=H[i][1].exec(u);if(m&&(b<0||m.index<b)){b=m.index;pl=H[i][0];}}}if(!pl){if(/weidian/i.test(u))pl="weidian";else if(/taobao|tmall/i.test(u))pl="taobao";else if(/alibaba/i.test(u))pl="1688";}var id=null,ps=[/(?:^|[?&#\/])item_?id=(\d{6,})/i,/(?:^|[?&#])offer_?id=(\d{6,})/i,/[?&#]id=(\d{6,})/i,/\/offer\/(\d{6,})/i,/\/i(\d{6,})\.htm/i,/\/product\/(?:weidian|taobao|tmall|1688)\/(\d{6,})/i,/\/item\/(\d{6,})/i,/\/(\d{9,})\.html?\b/i];for(i=0;i<ps.length;i++){m=u.match(ps[i]);if(m){id=m[1];break;}}if(!id&&/^\d{6,}$/.test(u))id=u;var sh=!id&&/(?:^|[\/.])(?:m\.tb\.cn|e\.tb\.cn|youshop10\.com|qr\.1688\.com)/i.test(u);if(!id&&!sh){m=u.replace(/(?:spm|memberId|referId|affcode|invite_?code|scm|pvid|ut_sk|sku_?id)=[^&#]*/gi,"").match(/(\d{9,})/);if(m)id=m[1];}return{platform:pl,id:id,short:sh};}
