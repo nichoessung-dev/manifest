@@ -29,7 +29,7 @@ One look for every page: **qualit.ly's dark, hairline-and-card style with modern
 
 In the app, `--f-mono` stays the body font on purpose: older components use it for normal UI text. Use `--f-code` for monospace.
 
-- **Type:** headings 600 weight with tight negative letter spacing (h1 `-0.035em`), body 16 px, small 13.5 px. Eyebrows: 11.5 px JetBrains Mono, uppercase, 0.14em letter spacing, `--muted`. (v8: display sizes, 17 px article copy, below.)
+- **Type:** headings 600 weight with tight negative letter spacing (h1 `-0.035em`), body 16 px, small 13.5 px. Eyebrows: 11.5 px JetBrains Mono, uppercase, 0.14em letter spacing, `--muted` (pills above an h1 use the body font, see v8). (v8: display sizes, 17 px article copy, below.)
 - **Spacing:** a 4 px grid (`--s1` 4 … `--s8` 64). Card grids have 16 px gaps (v8: 12 px on phones, 20 px from 1100 px).
 - **Radius:** controls are pills, inputs 14 px, cards 18 px, the floating header 20 px (16 px on phones). (v8: cards 22 px, buy tile 28 px, header capsule 30 px from 821 px.)
 
@@ -69,7 +69,7 @@ Exits are faster than enters (a sheet enters in 480 ms and leaves in 320 ms). St
 - Hub and index h1 `--fs-display` (40 to 76 px), guide and static-page h1 `--fs-title` (34 to 56 px), product h1 `--fs-product` (28 to 42 px); line-height 1.04 to 1.08, tracking `-0.035em` (`-0.04em` from 1069 px; Instrument Sans has no optical sizes). The app's homepage hero h1 goes up to 92 px.
 - Big h1s get a quiet vertical ink fade (`--ink` to `--ink-2`, clipped to the text) with a solid fallback, a forced-colors fallback and a little padding so descenders are never cut.
 - Section h2 `--fs-section` (26 to 40 px) with `--sec-gap` (56 to 96 px) above; h2s over link lists and in articles `--fs-section-sm` (22 to 28 px). Lead `--fs-lead` (18 to 21 px, `--muted`, about 40rem wide). Article copy `--fs-copy` 17 px at 1.6. `text-wrap: balance` on headings, `pretty` on copy.
-- An eyebrow above an h1 is a small pill: hairline, translucent fill, specular top rim, 6 px `--accent` dot (`.eyebrow.pill`; positional selectors cover older markup). Other eyebrows ("Spreadsheets:", "On this page") stay plain labels.
+- An eyebrow above an h1 is a small pill: hairline, translucent fill, specular top rim, 7 px `--accent` dot with a soft halo, Instrument Sans 13-14 px weight 500 in sentence case (29 Oct 2026: owner found the mono caps too technical) (`.eyebrow.pill`; positional selectors cover older markup). Other eyebrows ("Spreadsheets:", "On this page") stay plain labels.
 
 ### Glass (Liquid Glass lite)
 - Only on the functional layer: the header bar, the phone buy bars, the app's stuck toolbar, menus, popovers and toasts. Never on content; product cards stay opaque, and the QC badge is a solid fill (no blur on a scrolling grid).

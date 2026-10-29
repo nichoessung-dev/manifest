@@ -361,10 +361,10 @@ main .w > h2:has(+ .chips){font-size:var(--fs-section-sm);letter-spacing:-.022em
 .prose a{transition:text-decoration-color var(--d-ctl) linear,color var(--d-ctl) linear}
 .lead,.prose .lead,.prose p.lead,main .w > h1 + .prose > p:first-child,main.wrap > .sub{font-size:var(--fs-lead);line-height:1.42;letter-spacing:-.012em;color:var(--muted);max-width:40rem;margin:0 0 24px;text-wrap:pretty}
 :is(.eyebrow.pill,article.prose > .eyebrow:first-child,.pd > div > .eyebrow:first-child,.eyebrow:has(+ h1)){display:inline-block;position:relative;margin:0 0 18px;
-  padding:6px calc(12px - .14em) 6px 11px;border:1px solid var(--glass-line);border-radius:999px;background:var(--pill-fill);box-shadow:inset 0 1px 0 var(--glass-rim);
-  font-size:11px;line-height:1.2;color:var(--muted);text-decoration:none;transition:color var(--d-ctl) linear,border-color var(--d-ctl) linear,transform var(--d-1) var(--ease-out)}
-:is(.eyebrow.pill,article.prose > .eyebrow:first-child,.pd > div > .eyebrow:first-child,.eyebrow:has(+ h1))::before{content:"";display:inline-block;width:6px;height:6px;margin-right:8px;
-  border-radius:50%;background:var(--accent);vertical-align:middle;position:relative;top:-1px}
+  padding:6px 14px 6px 12px;border:1px solid var(--glass-line);border-radius:999px;background:var(--pill-fill);box-shadow:inset 0 1px 0 var(--glass-rim),0 1px 2px oklch(0 0 0 / .05);
+  font-family:var(--font);font-size:13px;font-weight:500;line-height:18px;letter-spacing:-.005em;text-transform:none;color:var(--ink-2);font-variant-numeric:tabular-nums;text-decoration:none;transition:color var(--d-ctl) linear,border-color var(--d-ctl) linear,transform var(--d-1) var(--ease-out)}
+:is(.eyebrow.pill,article.prose > .eyebrow:first-child,.pd > div > .eyebrow:first-child,.eyebrow:has(+ h1))::before{content:"";display:inline-block;width:7px;height:7px;margin-right:9px;
+  border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 22%,transparent);vertical-align:middle;position:relative;top:-1px}
 :is(a.eyebrow.pill,.pd > div > a.eyebrow:first-child){-webkit-tap-highlight-color:transparent}
 @media (hover:hover){:is(a.eyebrow.pill,.pd > div > a.eyebrow:first-child):hover{color:var(--ink);border-color:var(--line-2)}}
 :is(a.eyebrow.pill,.pd > div > a.eyebrow:first-child):active{transform:scale(.96)}
