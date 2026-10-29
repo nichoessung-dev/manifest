@@ -1,0 +1,135 @@
+name: Enrich finds (Claude)
+# Labels catalogue finds with Claude vision through the Message Batches API (half price).
+# Writes data/enrich/ (enrich.json, batch_state.json, failures.json, report.md); see data/enrich/README.md.
+#   pilot  -> submit the N most popular unlabelled finds, then poll up to wait_minutes and collect
+#   full   -> submit unlabelled finds (all, or max_items), refused when spent + in flight + new is above max_cost
+#   status -> only poll / collect / retry batches already submitted
+# The schedule only runs when batches are in flight. It collects them and resubmits failed finds
+# (up to 3 tries each), but only while the total stays under the cap saved by the last pilot/full run.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'pilot, full or status'
+        type: choice
+        options: [pilot, full, status]
+        default: pilot
+      n:
+        description: 'pilot size (most popular finds first)'
+        default: '100'
+      max_items:
+        description: 'full: submit at most this many finds (empty = all left)'
+        default: ''
+      image_mode:
+        description: 'resize = send a 768px JPEG (cheaper), url = let the API fetch the original'
+        type: choice
+        options: [resize, url]
+        default: resize
+      max_cost:
+        description: 'cap on TOTAL spend in USD (spent + in flight + this run). Empty: 60 for pilot/full, last cap for status'
+        default: ''
+      wait_minutes:
+        description: 'keep polling in this job for up to this many minutes (cap 115)'
+        default: '115'
+      batch_id:
+        description: 'status mode: optional batch id to adopt and collect'
+        default: ''
+  schedule:
+    - cron: '41 */3 * * *'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  gate:
+    # No concurrency group here, so a scheduled run never enters the queue (and never replaces a
+    # queued manual run) unless there is work and no manual run is waiting or running.
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: data/enrich
+      - name: Decide
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          BATCH_ID: ${{ github.event.inputs.batch_id || '' }}
+        run: |
+          if [ "$EVENT" != "schedule" ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; exit 0; fi
+          busy="$(gh run list -R "$GITHUB_REPOSITORY" --workflow enrich.yml --event workflow_dispatch --limit 20 \
+            --json status -q '[.[] | select(.status != "completed")] | length' || echo 0)"
+          if [ "${busy:-0}" -gt 0 ]; then echo "a manual run is queued or running; it will collect"; echo "run=no" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if python3 -c "
+          import json,sys
+          try: s=json.load(open('data/enrich/batch_state.json'))
+          except Exception: sys.exit(1)
+          sys.exit(0 if any(b.get('status')!='collected' for b in s.get('batches',[])) else 1)"; then
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "nothing pending"; echo "run=no" >> "$GITHUB_OUTPUT"
+          fi
+  enrich:
+    needs: gate
+    if: needs.gate.outputs.run == 'yes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    concurrency:
+      group: enrich
+      cancel-in-progress: false
+    env:
+      MODE: ${{ github.event.inputs.mode || 'status' }}
+      N: ${{ github.event.inputs.n || '100' }}
+      MAX_ITEMS: ${{ github.event.inputs.max_items || '' }}
+      IMAGE_MODE: ${{ github.event.inputs.image_mode || 'resize' }}
+      MAX_COST: ${{ github.event.inputs.max_cost || '' }}
+      WAIT: ${{ github.event.inputs.wait_minutes || '0' }}
+      BATCH_ID: ${{ github.event.inputs.batch_id || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install SDK
+        run: pip install --quiet anthropic==1.14.0 pillow==12.3.0
+      - name: Submit batch
+        if: env.MODE != 'status'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python scripts/claude_enrich.py "$MODE" --n "$N" --image-mode "$IMAGE_MODE" \
+            ${MAX_COST:+--max-cost "$MAX_COST"} ${MAX_ITEMS:+--max-items "$MAX_ITEMS"}
+      - name: Commit batch id
+        if: always() && env.MODE != 'status'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/enrich
+          git diff --cached --quiet && { echo "no change"; exit 0; }
+          git commit -q -m "chore: enrich batch submitted ($MODE) [skip ci]"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q origin HEAD:"$GITHUB_REF_NAME"; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::enrich state not saved"; exit 1
+      - name: Poll, collect, retry
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          W="$WAIT"; [ "$(printf '%.0f' "$W")" -gt 115 ] && W=115
+          python scripts/claude_enrich.py status --image-mode "$IMAGE_MODE" --wait-minutes "$W" \
+            ${MAX_COST:+--max-cost "$MAX_COST"} ${BATCH_ID:+--batch-id "$BATCH_ID"}
+      - name: Commit results
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/enrich
+          git diff --cached --quiet && { echo "no change"; exit 0; }
+          git commit -q -m "chore: enrich results ($MODE) [skip ci]"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q origin HEAD:"$GITHUB_REF_NAME"; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::enrich state not saved"; exit 1
