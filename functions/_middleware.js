@@ -3,7 +3,7 @@
 import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
   sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL } from "./_lib/pages.js";
-import { imgSrc } from "./_lib/site.js";
+import { imgSrc, navKey } from "./_lib/site.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
@@ -277,7 +277,11 @@ async function hubApp(ctx, url, spec) {
   // Same rule as page() in site.js: Google shows about 60 characters of a title, so a longer one drops the site name
   // (Google prints the site name above every result anyway).
   const title = spec.title.length > 60 ? spec.title.replace(/ [|·] Puro Classico$/, "") : spec.title;
+  // Header (round 4): index.html marks Finds as the current section; a hub in another section (/brand/x -> Brands) gets
+  // the mark moved here, before the first paint, so the active pill never jumps. Same map as the server pages (navKey).
+  const navHref = { finds: "/", brands: "/brands", tools: "/tools", guides: "/guides", how: "/how-to-order" }[navKey(spec.path)] || "";
   const out = new HTMLRewriter()
+    .on("nav.v9-nav a.v9-nl", { element(e) { if (e.getAttribute("href") === navHref) e.setAttribute("aria-current", "page"); else e.removeAttribute("aria-current"); } })
     .on("title", { element(e) { e.setInnerContent(title); } })
     .on('meta[name="description"]', content(spec.desc))
     .on('meta[property="og:title"]', content(title)).on('meta[name="twitter:title"]', content(title))
