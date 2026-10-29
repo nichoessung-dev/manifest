@@ -34,6 +34,16 @@ MYCNBOX_URL  = "https://mycnbox.com/login/main-login?inviteCode=AACPYA"
 # Our own address for the Discord invite: it redirects to the current invite (DISCORD_INVITE in functions/_lib/site.js),
 # so emails already sent keep working when the invite is replaced. Never put a discord.gg link in an email.
 DISCORD_URL  = "https://www.puroclassico.com/discord"
+# Campaign tags on links to our own site (29 Oct 2026): main() sets CAMPAIGN to the mode (welcome, ordering, mycnbox,
+# newsletter, saved), so /admin shows product page views and buy clicks per email. Never added to MyCNBox, Discord or
+# unsubscribe links. utm_source stays "email", so track.js still counts these visits as ~email.
+CAMPAIGN = "newsletter"
+
+def site_link(url):
+    """A link to our own site with the email campaign tags; a #fragment stays at the end."""
+    base, h, frag = url.partition("#")
+    if base.count("/") == 2: base += "/"                       # https://www.puroclassico.com -> https://www.puroclassico.com/
+    return base + ("&" if "?" in base else "?") + "utm_source=email&utm_medium=email&utm_campaign=" + CAMPAIGN + h + frag
 
 def sb(path, method="GET", body=None, extra=None):
     url = SUPA_URL + "/rest/v1/" + path
@@ -220,7 +230,7 @@ def btn(href, label, kind="primary", rel=""):
 
 def card(pid, p):
     img = esc(email_img(pid, p.get("img")) if p.get("img") else "")
-    url = esc(SITE + "/product/" + urllib.parse.quote(pid) + "?utm_source=email")   # track.js counts buy clicks from these visits as ~email
+    url = esc(site_link(SITE + "/product/" + urllib.parse.quote(pid)))   # track.js counts buy clicks from these visits as ~email
     title = esc(p.get("title") or "")
     well = ('<a href="%s" style="display:block;text-decoration:none;"><img class="pc-img" src="%s" width="232" height="232" alt="%s" '
             'style="display:block;width:100%%;max-width:232px;height:auto;margin:0 auto;border:0;outline:none;"></a>' % (url, img, title)) if img else "&nbsp;"
@@ -320,7 +330,7 @@ def wrap(inner, unsub):
 </td></tr>
 </table>
 <!--[if mso]></td></tr></table><![endif]-->
-</td></tr></table></body></html>""") % (css, ogsc, hidden, FONT, SITE, FONT, SITE, FONT, FONT, inner, FONT, SITE, esc(unsub), FONT)
+</td></tr></table></body></html>""") % (css, ogsc, hidden, FONT, esc(site_link(SITE)), FONT, esc(site_link(SITE)), FONT, FONT, inner, FONT, esc(site_link(SITE)), esc(unsub), FONT)
 
 WELCOME_SUBJECT = "You're in: your MyCNBox coupons are inside"
 
@@ -356,7 +366,7 @@ def welcome_html(uid):
       + lead("Thousands of quality-checked Weidian, Taobao and 1688 finds, one tap from your agent. Save what you like with the star and pick up where you left off any time.")
       + coupons
       + '<div style="height:24px;line-height:24px;font-size:24px;">&nbsp;</div>'
-      + btn(SITE, "Browse Finds", "outline")
+      + btn(esc(site_link(SITE)), "Browse Finds", "outline")
       + hr("44px 0 36px")
       + h2("Your First Haul In 3 Steps", "left")
       + '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>'
@@ -412,16 +422,16 @@ def ordering_html(uid):
                  '<td valign="top" style="padding:0 0 20px;vertical-align:top;">'
                  '<div class="pc-ink" style="margin:4px 0 4px;font-family:%s;font-size:15px;line-height:20px;font-weight:600;color:#0A0A0A;">%s</div>'
                  '<div class="pc-mut" style="font-family:%s;font-size:14px;line-height:21px;color:#6B6B6B;">%s</div></td></tr>') % (FONT, n, FONT, h, FONT, esc(b))
-    video = ('<a class="pcv-d" href="%s?f=landscape" style="display:block;text-decoration:none;">'
+    video = ('<a class="pcv-d" href="%s" style="display:block;text-decoration:none;">'
              '<img src="%s/media/how-to-order-email.jpg" width="536" alt="Watch: How to order with MyCNBox (1:47)" style="display:block;width:100%%;max-width:536px;height:auto;border:0;border-radius:12px;margin:0 auto;"></a>'
-             '<!--[if !mso]><!--><a class="pcv-m" href="%s?f=portrait" style="display:none;max-height:0;overflow:hidden;text-decoration:none;">'
+             '<!--[if !mso]><!--><a class="pcv-m" href="%s" style="display:none;max-height:0;overflow:hidden;text-decoration:none;">'
              '<img src="%s/media/how-to-order-email-portrait.jpg" width="280" alt="Watch: How to order with MyCNBox (1:47)" style="display:block;width:280px;max-width:85%%;height:auto;border:0;border-radius:12px;margin:0 auto;"></a><!--<![endif]-->'
-             ) % (VIDEO_PAGE, SITE, VIDEO_PAGE, SITE)
+             ) % (esc(site_link(VIDEO_PAGE + "?f=landscape")), SITE, esc(site_link(VIDEO_PAGE + "?f=portrait")), SITE)
     inner = (pre("Watch the 1:47 video, then follow 6 short steps from Buy to your door.")
       + h1("How To Order Your First Find")
       + lead("First haul from China? Watch the 1:47 video and you'll know the whole flow, from tapping Buy to tracking your parcel.")
       + '<div style="text-align:center;margin:0 0 24px;">' + video + '</div>'
-      + btn(VIDEO_PAGE, "&#9654;&nbsp; Watch The Video")
+      + btn(esc(site_link(VIDEO_PAGE)), "&#9654;&nbsp; Watch The Video")
       + hr("44px 0 36px")
       + h2("The 6 Steps In Short", "left")
       + '<div style="height:12px;line-height:12px;font-size:12px;">&nbsp;</div>'
@@ -474,7 +484,7 @@ def mycnbox_html(uid):
       + btn(MYCNBOX_URL, "Create Your Free MyCNBox Account", "primary", "sponsored nofollow noopener")
       + lead("Signing up is free and takes about a minute. Grab your new-member coupons before your first haul.", 13, 0).replace("margin:0 auto 0px", "margin:16px auto 0")
       + hr("40px 0 28px")
-      + '<p class="pc-mut" style="margin:0 auto;max-width:420px;font-family:' + FONT + ';font-size:14px;line-height:1.6;color:#6B6B6B;text-align:center;">New to all this? Read our quick <a href="' + SITE + '/#tutorial" class="pc-ink" style="color:#0A0A0A;text-decoration:underline;">How to order</a> guide first, or ask in the <a href="' + DISCORD_URL + '" class="pc-ink" style="color:#0A0A0A;text-decoration:underline;">Discord</a>.</p>')
+      + '<p class="pc-mut" style="margin:0 auto;max-width:420px;font-family:' + FONT + ';font-size:14px;line-height:1.6;color:#6B6B6B;text-align:center;">New to all this? Read our quick <a href="' + esc(site_link(SITE + '/#tutorial')) + '" class="pc-ink" style="color:#0A0A0A;text-decoration:underline;">How to order</a> guide first, or ask in the <a href="' + DISCORD_URL + '" class="pc-ink" style="color:#0A0A0A;text-decoration:underline;">Discord</a>.</p>')
     return wrap(inner, unsub_url(uid))
 
 def run_mycnbox(profiles):
@@ -599,7 +609,7 @@ def run_newsletter(profiles):
                             (" (" + esc(", ".join(shown[:2])) + ")" if shown else ""), 16, 36))
             subject = ("Popular %s finds picked for you" % shown[0]) if shown else "Popular finds picked for you"
             body = intro + grid(recs)
-            body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(SITE, "Browse All Finds")
+            body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(esc(site_link(SITE)), "Browse All Finds")
         else:
             recs = pick(6, lambda i: score[i] / top_score, rnd=rnd)
             intro = (pre("What everyone is viewing and saving on Puro Classico right now.")
@@ -607,7 +617,7 @@ def run_newsletter(profiles):
                      + lead("What everyone is viewing and saving on Puro Classico right now.", 16, 36))
             subject = "The most popular finds at Puro Classico right now"
             body = intro + grid(recs)
-            body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(SITE, "Browse All Finds")
+            body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(esc(site_link(SITE)), "Browse All Finds")
         if os.environ.get("DRY_RUN"):
             print("DRY tier %d %s | %s | %s" % (tier(pr), "perso" if perso else "generic", subject, "; ".join("%s (%d)" % (p.get("title", "")[:28], score[i]) for i, p in recs)))
             sent += 1; continue
@@ -655,7 +665,7 @@ def run_saved(profiles):
                 + h1("Still Thinking It Over?")
                 + lead("You saved %s this week. %s still in the catalogue, one tap from your agent." %
                        ("this" if len(recs) == 1 else "these", "It is" if len(recs) == 1 else "They are"), 16, 36)) + grid(recs)
-        body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(SITE + "/?saved=1", "See Your Saved Finds")
+        body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(esc(site_link(SITE + "/?saved=1")), "See Your Saved Finds")
         if os.environ.get("DRY_RUN"): print("DRY saved | %s | %d items" % (subject, len(recs))); sent += 1; continue
         ok, msg = brevo_send(email, subject, wrap(body, unsub_url(uid)), unsub_url(uid), "saved")
         if ok: sent += 1; fails = 0
@@ -681,6 +691,8 @@ def run_sync(profiles):
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "newsletter"
+    global CAMPAIGN   # the campaign tag on site links in this run's emails (site_link)
+    CAMPAIGN = mode if mode in ("welcome", "ordering", "mycnbox", "saved", "welcome-test", "ordering-test", "mycnbox-test") else "newsletter"
     if mode == "ordering-test":
         run_ordering_test(); return
     if mode == "mycnbox-test":
