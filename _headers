@@ -36,3 +36,8 @@
 
 /track.js
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# web app manifest (round 5): a day, so a changed name or icon reaches installs soon
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: public, max-age=86400

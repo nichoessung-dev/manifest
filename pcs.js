@@ -410,8 +410,8 @@ KEYS.forEach(function(k,i){EN_L[k]=L.en[i];});
 var TT=G("T");
 if(TT)Object.keys(L).forEach(function(l){if(!TT[l])return;var o={};KEYS.forEach(function(k,i){o[k]=L[l][i];});Object.assign(TT[l],o);});
 }catch(e){}
-var CATS=[["Shoes","/img/cat/shoes.webp"],["Tops","/img/cat/tops.webp"],["Outerwear","/img/cat/outerwear.webp"],["Pants","/img/cat/pants.webp"],
-["Shorts","/img/cat/shorts.webp"],["Bags","/img/cat/bags.webp"],["Accessories","/img/cat/accessories.webp"],["Headwear","/img/cat/headwear.webp"]];
+var CATS=[["Shoes","/img/cat/shoes.webp?v=r5"],["Tops","/img/cat/tops.webp?v=r5"],["Outerwear","/img/cat/outerwear.webp?v=r5"],["Pants","/img/cat/pants.webp?v=r5"],
+["Shorts","/img/cat/shorts.webp?v=r5"],["Bags","/img/cat/bags.webp?v=r5"],["Accessories","/img/cat/accessories.webp?v=r5"],["Headwear","/img/cat/headwear.webp?v=r5"]];
 var EN=null,builtLen=-1,seenStats=null,seenSold=null;
 function all(){var a=G("ALL");return Array.isArray(a)?a:null;}
 function mk(){
