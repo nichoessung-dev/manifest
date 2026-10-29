@@ -97,7 +97,7 @@ async function serverCards(ctx, origin, spec) {
   const { list, base } = hubList(spec), { dead } = await linkHealth(ctx, origin);
   const live = [];
   for (const p of list) { if (!dead.has(String(p.id))) live.push(p); if (live.length >= APP_CARDS) break; }
-  return { cards: appCards(live, spec && spec.preset.qc ? 1 : 2), more: spec ? appPager(base, list.length) : "", top: live[0] || null };
+  return { cards: appCards(live, 1, spec && spec.preset.agent, spec ? 0 : 8), more: spec ? appPager(base, list.length) : "", top: live[0] || null };
 }
 
 async function catalogJs(ctx, url) {
@@ -161,6 +161,8 @@ async function route(ctx) {
   // One 301 hop: strip the trailing slash and, for hub URLs (/brand/Fendi, /Best/X ...), lowercase.
   let to = path.length > 1 ? path.replace(/\/+$/, "") || "/" : path;
   if (/^\/(brand|category|brands|old-money|guides|best|tools)\b|^\/[a-z]+-spreadsheet/i.test(to)) to = to.toLowerCase();
+  // v9: the weight estimator moved into the shipping calculator; one hop even from /tools/weight-estimator/.
+  if (to === "/tools/weight-estimator") return Response.redirect(url.origin + "/tools/shipping-calculator", 301);
   if (to !== path) return Response.redirect(url.origin + to + url.search, 301);
   let m, res = undefined;
   // Edge cache for the hub and list pages (20 Oct 2026): building one takes 0.3-0.6 s (catalogue index + view stats), a
@@ -210,6 +212,8 @@ async function route(ctx) {
     if (hubUrl) return Response.redirect(url.origin + hubUrl, 301);
     res = paged(renderModel, m[1], m[2], url.origin + "/best/" + m[1]);
   }
+  // v9: the weight estimator lives on inside the shipping calculator ("add items").
+  else if (path === "/tools/weight-estimator") return Response.redirect(url.origin + "/tools/shipping-calculator", 301);
   else if (path === "/tools") res = renderTools();
   else if ((m = path.match(/^\/tools\/([a-z0-9-]+)$/))) res = renderTool(m[1]);
   // An old spelling redirects only when the brand it was merged into has a hub; otherwise it is a plain 404, not a 301 to a 404.
@@ -290,18 +294,13 @@ async function hubApp(ctx, url, spec) {
     .on("script#pc-catalog", { element(e) { e.replace(catalogTags(etagOf(asset)), { html: true }); } })
     .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
     .on("meta[charset]", { element(e) { e.after(head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
-    .on("span.v7-eyebrow", { element(e) { e.remove(); } })                 // hub pages show their breadcrumb there instead
-    // v8 (28 Oct 2026): the hero of a hub is only breadcrumb, h1 and subtitle. Its other parts used to be sent and then
-    // hidden by html.hub CSS; they are removed instead, so a hub carries no hidden text and loads no favourites photos
-    // nobody sees (renderFeatured() builds eager images). The CTA row with the "How ordering works" link goes too: every
-    // hub links /how-to-order in its footer. The app code checks for each element before using it (updateHero,
-    // wireHeroCTA, wireStripPause, renderFeatured and the v8 motion script).
-    .on("div.hero-actions", { element(e) { e.remove(); } })
-    .on("div#hero-stats", { element(e) { e.remove(); } })
-    .on("a.tp-badge", { element(e) { e.remove(); } })
-    .on("div.agents-strip", { element(e) { e.remove(); } })
-    .on("div.strip-head", { element(e) { e.remove(); } })
-    .on("div#hero-strip", { element(e) { e.remove(); } })
+    // v8 hero parts (eyebrow, CTA row, stats, Trustpilot badge, agents strip, favourites strip) are no longer in the v9
+    // index.html, so their removal rules are gone. The app code still checks for each element before using it.
+    // v9 (29 Oct 2026): the homepage sections between the hero and the toolbar, the hero search and the hero buttons
+    // are homepage only. Removed here like the v8 hero parts; home.js no-ops when they are missing.
+    .on("div#v9-home", { element(e) { e.remove(); } })
+    .on("form#v9-hero-search", { element(e) { e.remove(); } })
+    .on("div.v9-hero-actions", { element(e) { e.remove(); } })
     .on("h1.hero-h", { element(e) { e.setInnerContent(spec.h); e.before(crumbHtml, { html: true }); } })
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
     .on("footer", { element(e) { e.before(seo, { html: true }); } })
