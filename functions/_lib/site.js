@@ -208,7 +208,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "10";
+export const DS_VER = "11";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -251,8 +251,26 @@ ${col("Spreadsheets", [["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBu
 ${col("Guides", FOOTER_GUIDES.map(u => GUIDE_LINKS.find(g => g[1] === u)).filter(Boolean).concat([["All guides →", "/guides"]]))}
 ${col("Tools & best reps", TOOL_LINKS.concat([["Best reps by model →", "/best"]]))}
 ${col("Puro Classico", [["Browse all finds", "/"], ["How we check", "/guides/how-we-check"], ["Discord community", "/discord"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
-</div><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents are affiliate links: we may earn a commission if you order, at no extra cost to you. Prices are shown as listed by the seller and can change. © Puro Classico</p></div></footer>`;
+</div><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents are affiliate links: we may earn a commission if you order, at no extra cost to you. Prices are shown as listed by the seller and can change.</p><p class="legal">© Puro Classico</p></div></footer>`;
 }
+
+// v8 (28 Oct 2026): the two page states ds.css styles, set here because server pages run no app script. Each part is
+// in its own try, so a browser without one of these APIs only misses that effect.
+//   header.h.scrolled: past 8 px of scroll the glass bar firms up and shows its shadow. The listener is passive and
+//     only touches the class when the state flips. how-to-order, privacy and terms carry the same header snippet.
+//   .rv (scroll reveal): only on section headings and blocks whose top is below the first screen, so nothing visible
+//     at load ever starts faded; never on product grids, the product photo or the QC heading. Only where ds.css can
+//     drive it (animation-timeline: view()) and motion is not reduced. ds.css animates .rv only, and this list must
+//     stay equal to the one in its "scroll reveal" comment. The positions are read once the web fonts have settled
+//     (the first layout requests them, document.fonts.ready waits for them): with the fallback font a block can sit
+//     just below the fold and then move up into view when Instrument Sans swaps in. A block inside one that is
+//     already marked is skipped, so a nested heading or table never fades twice. Printing drops every .rv first (and
+//     stops further marking): a scroll-scrubbed block below the scroll position would print in its faded start state.
+const V8_JS = `<script>(function(){try{var h=document.querySelector("header.h");if(h){var on=null,f=function(){var s=(window.scrollY||window.pageYOffset||0)>8;if(s!==on){on=s;h.classList.toggle("scrolled",s)}};f();addEventListener("scroll",f,{passive:true})}}catch(e){}` +
+  `try{if(window.CSS&&CSS.supports&&CSS.supports("animation-timeline","view()")&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!(function(){try{var n=performance.getEntriesByType("navigation")[0];return n&&/back_forward|reload/.test(n.type)}catch(e){return false}})()){var done=0,mark=function(){try{if(done)return;var H=innerHeight;` +
+  `[].forEach.call(document.querySelectorAll("main h2:not(.qc-h),main .faq,main .steps,main .note,main .prose table"),function(e){if(e.getBoundingClientRect().top>H&&!e.parentElement.closest(".rv"))e.classList.add("rv")})}catch(e){}};` +
+  `addEventListener("beforeprint",function(){try{done=1;[].forEach.call(document.querySelectorAll(".rv"),function(e){e.classList.remove("rv")})}catch(e){}});` +
+  `requestAnimationFrame(function(){try{void document.body.offsetHeight;var F=document.fonts;if(F&&F.ready)F.ready.then(mark,mark);else mark()}catch(e){}})}}catch(e){}})();</script>`;
 
 export function page({ title, desc, path, body, jsonld = [], robots = "index,follow,max-image-preview:large", image, status = 200, extraHead = "" }) {
   const url = SITE + path;
@@ -287,6 +305,7 @@ ${extraHead}
 ${body}
 </div></main>
 ${footer()}
+${V8_JS}
 <script src="/track.js" defer></script>
 </body>
 </html>`;
