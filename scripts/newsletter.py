@@ -178,35 +178,149 @@ def email_img(pid, src):
     _EMAIL_IMG[pid] = out
     return out
 
+# ---------------------------------------------------------------- email template (v9 site look)
+# Tokens mirror ds.css v9: white page, #F5F5F5 wells, ink #0A0A0A, primary #171717 on #FAFAFA, muted #6B6B6B,
+# hairlines #E5E5E5, 12px cards, round pills, Inter. Every critical style is inline (Gmail can drop <style>);
+# the <style> blocks in wrap() only add dark mode, the phone layout and (separately) Outlook.com dark ([data-ogsc]).
+FONT = "Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+INK, MUT, LINE, WELL, PRI, PRI_FG = "#0A0A0A", "#6B6B6B", "#E5E5E5", "#F5F5F5", "#171717", "#FAFAFA"
+
+def pre(text):
+    """Preheader for wrap(): put it first in the inner HTML; wrap() lifts it into the hidden preview line."""
+    return "<!--pre:%s-->" % esc(text).replace("--", "- -")
+
+def h1(text):
+    return ('<h1 class="pc-ink pc-h1" style="margin:0 0 12px;font-family:%s;font-size:30px;line-height:1.15;font-weight:700;'
+            'letter-spacing:-0.025em;color:%s;text-align:center;">%s</h1>') % (FONT, INK, text)
+
+def h2(text, align="center"):
+    return ('<h2 class="pc-ink" style="margin:0 0 8px;font-family:%s;font-size:20px;line-height:1.25;font-weight:700;'
+            'letter-spacing:-0.02em;color:%s;text-align:%s;">%s</h2>') % (FONT, INK, align, text)
+
+def lead(text, size=16, mb=24):
+    return ('<p class="pc-mut" style="margin:0 auto %dpx;max-width:440px;font-family:%s;font-size:%dpx;line-height:1.55;'
+            'color:%s;text-align:center;">%s</p>') % (mb, FONT, size, MUT, text)
+
+def hr(m="32px 0"):
+    return ('<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin:%s;"><tr>'
+            '<td class="pc-line" height="1" style="height:1px;line-height:1px;font-size:1px;background:%s;">&nbsp;</td></tr></table>') % (m, LINE)
+
+def btn(href, label, kind="primary", rel=""):
+    """Bulletproof pill: a table cell carries the colour, the padded <a> is the hit area. kind: primary | outline."""
+    r = (' rel="%s"' % rel) if rel else ""
+    if kind == "outline":
+        td = ('<td class="pc-out" align="center" bgcolor="#FFFFFF" style="border:1px solid %s;border-radius:999px;background:#FFFFFF;mso-padding-alt:13px 26px;">' % LINE)
+        a = ('<a class="pc-ink" href="%s"%s style="display:inline-block;padding:13px 26px;font-family:%s;font-size:15px;line-height:18px;'
+             'font-weight:600;color:%s;text-decoration:none;border-radius:999px;mso-padding-alt:0;">%s</a>') % (href, r, FONT, INK, label)
+    else:
+        td = ('<td class="pc-btn" align="center" bgcolor="%s" style="border-radius:999px;background:%s;mso-padding-alt:14px 30px;">' % (PRI, PRI))
+        a = ('<a class="pc-btn-a" href="%s"%s style="display:inline-block;padding:14px 30px;font-family:%s;font-size:15px;line-height:18px;'
+             'font-weight:600;color:%s;text-decoration:none;border-radius:999px;mso-padding-alt:0;">%s</a>') % (href, r, FONT, PRI_FG, label)
+    return ('<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>%s%s</td></tr></table>' % (td, a))
+
 def card(pid, p):
     img = esc(email_img(pid, p.get("img")) if p.get("img") else "")
-    url = SITE + "/product/" + urllib.parse.quote(pid) + "?utm_source=email"   # track.js counts buy clicks from these visits as ~email
-    imgtag = ('<img src="%s" width="228" height="228" alt="%s" style="width:228px;max-width:100%%;height:auto;background:#f7f7f8;border-radius:12px;display:block;border:0;">' % (img, esc(p.get("title") or ""))) if img else ""
-    return ('<td width="50%%" style="padding:8px;vertical-align:top;">'
-            '<a href="%s" style="text-decoration:none;color:inherit;display:block;">%s'
-            '<div style="font-family:monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#999;margin:10px 0 2px;">%s</div>'
-            '<div style="font-size:14px;color:#111;font-weight:600;line-height:1.3;">%s</div>'
-            '<div style="font-size:14px;color:#111;font-weight:700;margin-top:4px;">%s</div>'
-            '</a></td>') % (url, imgtag, esc(p.get("brand") or ""), esc(p.get("title") or ""), usd(p))
+    url = esc(SITE + "/product/" + urllib.parse.quote(pid) + "?utm_source=email")   # track.js counts buy clicks from these visits as ~email
+    title = esc(p.get("title") or "")
+    well = ('<a href="%s" style="display:block;text-decoration:none;"><img class="pc-img" src="%s" width="232" height="232" alt="%s" '
+            'style="display:block;width:100%%;max-width:232px;height:auto;margin:0 auto;border:0;outline:none;"></a>' % (url, img, title)) if img else "&nbsp;"
+    pill = ('<td class="%s" align="center" bgcolor="%s" style="border-radius:999px;background:%s;mso-padding-alt:9px 0;%s">'
+            '<a class="%s" href="%s" style="display:block;padding:9px 0;font-family:%s;font-size:13px;line-height:16px;font-weight:600;'
+            'color:%s;text-decoration:none;border-radius:999px;mso-padding-alt:0;">%s</a></td>')
+    pills = ('<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr>%s'
+             '<td width="8" style="width:8px;font-size:0;line-height:0;">&nbsp;</td>%s</tr></table>') % (
+        pill % ("pc-out", "#FFFFFF", "#FFFFFF", "width:40%%;border:1px solid %s;" % LINE, "pc-ink", url + "#qc", FONT, INK, "QC"),
+        pill % ("pc-btn", PRI, PRI, "", "pc-btn-a", url, FONT, PRI_FG, "Buy"))
+    return ('<td class="pc-col" width="50%%" valign="top" style="width:50%%;padding:0 8px 28px;vertical-align:top;">'
+            '<table role="presentation" width="100%%" cellpadding="0" cellspacing="0">'
+            '<tr><td class="pc-well" bgcolor="%s" style="padding:14px;background:%s;border-radius:12px;">%s</td></tr>'
+            '<tr><td style="padding:12px 2px 0;">'
+            '<div class="pc-mut" style="font-family:%s;font-size:12px;line-height:16px;font-weight:500;color:%s;">%s</div>'
+            '<a href="%s" class="pc-ink" style="display:block;height:38px;overflow:hidden;margin-top:3px;font-family:%s;font-size:14px;line-height:19px;font-weight:600;color:%s;text-decoration:none;">%s</a>'
+            '<div class="pc-ink" style="margin-top:6px;font-family:%s;font-size:15px;line-height:20px;font-weight:700;color:%s;">%s</div>'
+            '%s</td></tr></table></td>') % (WELL, WELL, well, FONT, MUT, esc(p.get("brand") or ""), url, FONT, INK, title,
+                                            FONT, INK, usd(p), pills)
 
 def grid(prods):
     rows = ""
     for i in range(0, len(prods), 2):
         pair = prods[i:i+2]
-        cells = "".join(card(pid, p) for pid, p in pair)
-        if len(pair) == 1: cells += '<td width="50%"></td>'
+        cells = [card(pid, p) for pid, p in pair]
+        cells[0] = cells[0].replace("padding:0 8px 28px;", "padding:0 8px 28px 0;", 1)   # gutter sits between the two cards
+        if len(cells) > 1: cells[1] = cells[1].replace("padding:0 8px 28px;", "padding:0 0 28px 8px;", 1)
+        cells = "".join(cells)
+        if len(pair) == 1: cells += '<td class="pc-col pc-empty" width="50%" style="width:50%;"></td>'
         rows += "<tr>%s</tr>" % cells
-    return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + rows + '</table>'
+    return ('<table role="presentation" width="100%" cellpadding="0" cellspacing="0" >'
+            + rows + '</table>')
+
+DARK_CSS = (
+    # body reset, phone layout and dark mode; inline styles already give the light look, so a client that drops this block stays correct.
+    # The Outlook.com [data-ogsc]/[data-ogsb] rules go in a second <style> in wrap(), so a client that rejects attribute selectors
+    # cannot take the phone layout down with them. The color-scheme meta tags declare light/dark (no :root rule).
+    "body{margin:0!important;padding:0!important;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}"
+    "a{text-decoration:none}"
+    "@media only screen and (max-width:600px){"
+    ".pc-pad{padding-left:20px!important;padding-right:20px!important}"
+    ".pc-h1{font-size:26px!important}"
+    ".pc-col{display:block!important;width:100%!important;box-sizing:border-box;padding-left:0!important;padding-right:0!important}"
+    ".pc-empty{display:none!important}"
+    ".pc-img{max-width:220px!important}"
+    ".pcv-d{display:none!important;max-height:0!important;overflow:hidden!important}"
+    ".pcv-m{display:block!important;max-height:none!important;overflow:visible!important}}"
+    "@media (prefers-color-scheme:dark){__DARK__}"
+)
+_DARK_RULES = [
+    (".pc-bg", "background:#0A0A0A!important;background-color:#0A0A0A!important"),
+    (".pc-card", "background:#171717!important;background-color:#171717!important"),
+    (".pc-well", "background:#262626!important;background-color:#262626!important"),
+    (".pc-ink", "color:#FAFAFA!important"),
+    (".pc-mut", "color:#A1A1A1!important"),
+    (".pc-line", "background:#262626!important;background-color:#262626!important"),
+    (".pc-btn", "background:#E5E5E5!important;background-color:#E5E5E5!important"),
+    (".pc-btn-a", "color:#171717!important"),
+    (".pc-out", "background:#0A0A0A!important;background-color:#0A0A0A!important;border-color:#333333!important"),
+    (".pc-well .pc-out", "background:#262626!important;background-color:#262626!important"),
+]
+def _dark():
+    return "".join("%s{%s}" % (sel, rule) for sel, rule in _DARK_RULES)
 
 def wrap(inner, unsub):
-    return ("""<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f4f2;margin:0;padding:32px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
-<tr><td align="center"><table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);">
-<tr><td align="center" style="padding:34px 36px 6px;text-align:center;"><img src="%s" alt="Puro Classico" height="40" style="height:40px;width:auto;"><div style="height:1px;background:#ececea;margin:22px 0 0;"></div></td></tr>
-<tr><td style="padding:24px 36px 8px;">%s</td></tr>
-<tr><td align="center" style="padding:18px 36px 34px;text-align:center;"><div style="height:1px;background:#ececea;margin:0 0 16px;"></div>
-<p style="margin:0 0 6px;font-size:12px;line-height:1.6;color:#999;">You get this email because you have an account at <a href="%s" style="color:#777;">puroclassico.com</a>. Our links to shopping agents are affiliate links. <a href="%s" style="color:#777;">Unsubscribe from marketing emails</a>.</p>
-<p style="margin:0;font-size:12px;color:#bbb;">&copy; Puro Classico</p></td></tr>
-</table></td></tr></table>""") % (LOGO, inner, SITE, esc(unsub))
+    pre_text = ""
+    m = re.match(r"<!--pre:(.*?)-->", inner, re.S)
+    if m: pre_text, inner = m.group(1), inner[m.end():]
+    ogsc = "".join("[data-ogsc] %s{%s}" % (sel, rule) for sel, rule in _DARK_RULES) + \
+           "[data-ogsb] .pc-bg,[data-ogsb] .pc-out{background:#0A0A0A!important}[data-ogsb] .pc-well{background:#262626!important}[data-ogsb] .pc-btn{background:#E5E5E5!important}"
+    css = DARK_CSS.replace("__DARK__", _dark())
+    hidden = ('<div style="display:none;max-height:0;max-width:0;overflow:hidden;opacity:0;mso-hide:all;font-size:1px;line-height:1px;color:#FFFFFF;">%s%s</div>'
+              % (pre_text, "&#8199;&#65279;&#847; " * 60)) if pre_text else ""
+    return ("""<!DOCTYPE html><html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><meta name="x-apple-disable-message-reformatting">
+<title>Puro Classico</title>
+<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><style>table,td,h1,h2,p,a,div{font-family:Arial,Helvetica,sans-serif!important}</style><![endif]-->
+<style>%s</style>
+<style>%s</style></head>
+<body class="pc-bg" style="margin:0;padding:0;background:#FFFFFF;">%s
+<table role="presentation" class="pc-bg" width="100%%" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF" style="background:#FFFFFF;margin:0;padding:0;font-family:%s;">
+<tr><td align="center" style="padding:0;">
+<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" align="center"><tr><td><![endif]-->
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+<tr><td class="pc-pad" style="padding:28px 32px 20px;">
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0"><tr>
+<td align="left"><a href="%s" class="pc-ink" style="font-family:%s;font-size:18px;line-height:24px;font-weight:700;letter-spacing:-0.02em;color:#0A0A0A;text-decoration:none;">Puro Classico</a></td>
+<td align="right"><a href="%s" class="pc-mut" style="font-family:%s;font-size:14px;line-height:24px;font-weight:500;color:#6B6B6B;text-decoration:none;">Browse Finds</a></td>
+</tr></table></td></tr>
+<tr><td class="pc-pad" style="padding:0 32px;"><table role="presentation" width="100%%" cellpadding="0" cellspacing="0"><tr><td class="pc-line" height="1" style="height:1px;line-height:1px;font-size:1px;background:#E5E5E5;">&nbsp;</td></tr></table></td></tr>
+<tr><td class="pc-pad" style="padding:44px 32px 8px;font-family:%s;">%s</td></tr>
+<tr><td class="pc-pad" style="padding:24px 32px 40px;">
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0"><tr><td class="pc-line" height="1" style="height:1px;line-height:1px;font-size:1px;background:#E5E5E5;">&nbsp;</td></tr></table>
+<p class="pc-mut" style="margin:20px 0 6px;font-family:%s;font-size:12px;line-height:1.6;color:#6B6B6B;text-align:center;">You get this email because you have an account at <a href="%s" class="pc-mut" style="color:#6B6B6B;text-decoration:underline;">puroclassico.com</a>. Our links to shopping agents are affiliate links. <a href="%s" class="pc-mut" style="color:#6B6B6B;text-decoration:underline;">Unsubscribe from marketing emails</a>.</p>
+<p class="pc-mut" style="margin:0;font-family:%s;font-size:12px;line-height:1.6;color:#6B6B6B;text-align:center;">&copy; Puro Classico</p>
+</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr></table></body></html>""") % (css, ogsc, hidden, FONT, SITE, FONT, SITE, FONT, FONT, inner, FONT, SITE, esc(unsub), FONT)
 
 WELCOME_SUBJECT = "You're in: your MyCNBox coupons are inside"
 
@@ -214,19 +328,43 @@ def welcome_html(uid):
     """1st email, sent to every new member. The sign-up window promises "we email you up to $500 in MyCNBox new-user
     coupons", so the coupon link comes first, in the same words as the site (21 Oct 2026); before, it was the last button
     of email 2."""
-    inner = ('<h1 style="margin:0 0 12px;font-size:22px;color:#111;font-weight:650;text-align:center;">Welcome to Puro Classico</h1>'
-      '<p style="margin:0 auto 22px;font-size:15px;line-height:1.6;color:#444;max-width:420px;text-align:center;">You\'re in. Thousands of quality-checked Weidian, Taobao and 1688 finds, one tap from your agent. Save what you like with the star, and pick up where you left off any time.</p>'
-      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fdf1ef;border-radius:14px;"><tr><td style="padding:22px 22px 24px;text-align:center;">'
-      '<img src="' + MYCNBOX_LOGO + '" alt="MyCNBox" width="48" height="48" style="width:48px;height:48px;border-radius:12px;display:inline-block;">'
-      '<h2 style="margin:12px 0 6px;font-size:17px;color:#111;font-weight:650;">Your MyCNBox coupons</h2>'
-      '<p style="margin:0 auto 16px;font-size:14px;line-height:1.6;color:#555;max-width:380px;">New to MyCNBox? Sign up with our link for up to $500 in new-user coupons. It\'s free and takes about a minute.</p>'
-      '<a href="' + MYCNBOX_URL + '" style="display:inline-block;padding:13px 30px;font-size:15px;font-weight:650;color:#fff;background:#E1301F;text-decoration:none;border-radius:10px;">Claim your coupons</a>'
-      '</td></tr></table>'
-      '<div style="text-align:center;margin:22px 0 0;"><a href="' + SITE + '" style="display:inline-block;padding:12px 30px;font-size:15px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Browse the catalog</a></div>'
-      '<div style="height:1px;background:#ececea;margin:26px 0 22px;"></div>'
-      '<h2 style="margin:0 0 8px;font-size:16px;color:#111;font-weight:650;text-align:center;">Join the community</h2>'
-      '<p style="margin:0 auto 18px;font-size:14px;line-height:1.6;color:#555;max-width:380px;text-align:center;">Early drops, QC talk and haul reviews from other members over on Discord.</p>'
-      '<div style="text-align:center;"><a href="' + DISCORD_URL + '" style="display:inline-block;padding:12px 26px;font-size:14px;font-weight:600;color:#fff;background:#5865F2;text-decoration:none;border-radius:10px;"><img src="' + DISC + '" alt="" width="20" height="20" style="width:20px;height:20px;vertical-align:middle;margin-right:9px;border-radius:4px;"><span style="vertical-align:middle;">Join our Discord</span></a></div>')
+    steps = [("1", "Make An Agent Account", "Sign up free with an agent like MyCNBox or KakoBuy. They buy from Chinese sellers for you."),
+             ("2", "Order And Check QC", "Open a find, buy it through your agent and check the warehouse photos before anything ships."),
+             ("3", "Ship One Parcel", "Bundle your haul into one parcel and pick a shipping line that fits your country and budget.")]
+    # stacked rows on every screen (like the ordering steps), so it reads right even when a client drops <style>
+    spacer = '<tr><td height="10" style="height:10px;line-height:10px;font-size:10px;">&nbsp;</td></tr>'
+    cells = spacer.join(
+        ('<tr><td class="pc-well" valign="top" bgcolor="#F5F5F5" style="padding:18px;vertical-align:top;background:#F5F5F5;border-radius:12px;">'
+         '<table role="presentation" width="100%%" cellpadding="0" cellspacing="0"><tr><td valign="top" style="width:28px;padding:0 14px 0 0;vertical-align:top;">'
+         '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td class="pc-btn" align="center" valign="middle" bgcolor="#171717" width="28" height="28" '
+         'style="width:28px;height:28px;border-radius:999px;background:#171717;font-family:%s;font-size:13px;line-height:28px;font-weight:700;"><span class="pc-btn-a" style="color:#FAFAFA;">%s</span></td></tr></table></td>'
+         '<td valign="top" style="vertical-align:top;">'
+         '<div class="pc-ink" style="margin:4px 0 4px;font-family:%s;font-size:15px;line-height:20px;font-weight:600;color:#0A0A0A;">%s</div>'
+         '<div class="pc-mut" style="font-family:%s;font-size:14px;line-height:21px;color:#6B6B6B;">%s</div></td></tr></table></td></tr>')
+        % (FONT, n, FONT, h, FONT, b) for n, h, b in steps)
+    # the coupon block comes first, right under the intro (the sign-up window promises it): a grey well like the step rows
+    coupons = ('<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
+        '<td class="pc-well" align="center" bgcolor="#F5F5F5" style="padding:28px 22px 30px;background:#F5F5F5;border-radius:12px;text-align:center;">'
+        '<img src="' + MYCNBOX_LOGO + '" alt="MyCNBox" width="48" height="48" style="display:inline-block;width:48px;height:48px;border:0;border-radius:12px;">'
+        '<div style="height:12px;line-height:12px;font-size:12px;">&nbsp;</div>'
+        + h2("Your MyCNBox Coupons")
+        + lead("New to MyCNBox? Sign up with our link for up to $500 in new-user coupons. It's free and takes about a minute.", 15, 20)
+        + btn(MYCNBOX_URL, "Claim Your Coupons", "primary", "sponsored nofollow noopener")
+        + '</td></tr></table>')
+    inner = (pre("Your MyCNBox coupons are inside, plus how your first haul works.")
+      + h1("You're In. Find It. QC It. Buy It.")
+      + lead("Thousands of quality-checked Weidian, Taobao and 1688 finds, one tap from your agent. Save what you like with the star and pick up where you left off any time.")
+      + coupons
+      + '<div style="height:24px;line-height:24px;font-size:24px;">&nbsp;</div>'
+      + btn(SITE, "Browse Finds", "outline")
+      + hr("44px 0 36px")
+      + h2("Your First Haul In 3 Steps", "left")
+      + '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>'
+      + '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + cells + '</table>'
+      + hr("36px 0 32px")
+      + h2("Join The Community")
+      + lead("Early drops, QC talk and haul reviews from other members over on Discord.", 15, 20)
+      + btn(DISCORD_URL, '<img src="%s" alt="" width="18" height="18" style="width:18px;height:18px;vertical-align:-3px;margin-right:8px;border:0;border-radius:4px;">Join Our Discord' % DISC, "outline"))
     return wrap(inner, unsub_url(uid))
 
 def run_welcome(profiles):
@@ -258,39 +396,41 @@ def ordering_html(uid):
     """Build the 'How to order' email: the video guide (phone thumbnail on phones, 16:9 on desktop) + the 6 steps in short.
     Used by the real send and the test send."""
     steps = [
-        ("1", "Create your free MyCNBox account", "Sign up through Puro Classico and unlock up to $500 in new-user coupons."),
-        ("2", "Tap <b>Buy via MyCNBox</b>", "Open any find on Puro Classico. The exact listing opens inside MyCNBox, pre-filled."),
-        ("3", "Pick size &amp; colour, check out", "You only pay for the item + delivery to the warehouse in China. International shipping comes later."),
-        ("4", "Check your QC photos", "Real photos appear under Warehouse. Check logos, stitching, colour and the size tag."),
-        ("5", "Submit packing &amp; pay shipping", "Combine your items into one parcel, choose a carrier and apply your coupon."),
-        ("6", "Track it under Parcels", "It leaves the warehouse within 24 hours and usually arrives in 1-3 weeks."),
+        ("1", "Create Your Free MyCNBox Account", "Sign up through Puro Classico and unlock up to $500 in new-user coupons."),
+        ("2", "Tap Buy via MyCNBox", "Open any find on Puro Classico. The exact listing opens inside MyCNBox, pre-filled."),
+        ("3", "Pick Size And Colour, Check Out", "You only pay for the item + delivery to the warehouse in China. International shipping comes later."),
+        ("4", "Check Your QC Photos", "Real photos appear under Warehouse. Check logos, stitching, colour and the size tag."),
+        ("5", "Submit Packing And Pay Shipping", "Combine your items into one parcel, choose a carrier and apply your coupon."),
+        ("6", "Track It Under Parcels", "It leaves the warehouse within 24 hours and usually arrives in 1-3 weeks."),
     ]
     rows = ""
     for n, h, b in steps:
-        rows += ('<tr><td style="padding:0 0 16px;vertical-align:top;width:40px;">'
-                 '<div style="width:28px;height:28px;border-radius:50%%;background:#111;color:#fff;font-weight:700;font-size:13px;text-align:center;line-height:28px;">%s</div></td>'
-                 '<td style="padding:0 0 16px 4px;vertical-align:top;">'
-                 '<div style="font-size:15px;font-weight:650;color:#111;margin:3px 0 3px;">%s</div>'
-                 '<div style="font-size:13.5px;line-height:1.5;color:#555;">%s</div></td></tr>') % (n, h, b)
+        rows += ('<tr><td valign="top" style="padding:0 14px 20px 0;vertical-align:top;width:28px;">'
+                 '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td class="pc-btn" align="center" valign="middle" bgcolor="#171717" width="28" height="28" '
+                 'style="width:28px;height:28px;border-radius:999px;background:#171717;font-family:%s;font-size:13px;line-height:28px;font-weight:700;">'
+                 '<span class="pc-btn-a" style="color:#FAFAFA;">%s</span></td></tr></table></td>'
+                 '<td valign="top" style="padding:0 0 20px;vertical-align:top;">'
+                 '<div class="pc-ink" style="margin:4px 0 4px;font-family:%s;font-size:15px;line-height:20px;font-weight:600;color:#0A0A0A;">%s</div>'
+                 '<div class="pc-mut" style="font-family:%s;font-size:14px;line-height:21px;color:#6B6B6B;">%s</div></td></tr>') % (FONT, n, FONT, h, FONT, esc(b))
     video = ('<a class="pcv-d" href="%s?f=landscape" style="display:block;text-decoration:none;">'
-             '<img src="%s/media/how-to-order-email.jpg" width="488" alt="Watch: How to order with MyCNBox (1:47)" style="display:block;width:100%%;max-width:488px;height:auto;border:0;border-radius:12px;margin:0 auto;"></a>'
+             '<img src="%s/media/how-to-order-email.jpg" width="536" alt="Watch: How to order with MyCNBox (1:47)" style="display:block;width:100%%;max-width:536px;height:auto;border:0;border-radius:12px;margin:0 auto;"></a>'
              '<!--[if !mso]><!--><a class="pcv-m" href="%s?f=portrait" style="display:none;max-height:0;overflow:hidden;text-decoration:none;">'
              '<img src="%s/media/how-to-order-email-portrait.jpg" width="280" alt="Watch: How to order with MyCNBox (1:47)" style="display:block;width:280px;max-width:85%%;height:auto;border:0;border-radius:12px;margin:0 auto;"></a><!--<![endif]-->'
              ) % (VIDEO_PAGE, SITE, VIDEO_PAGE, SITE)
-    inner = ('<h1 style="margin:0 0 10px;font-size:22px;color:#111;font-weight:650;text-align:center;">How to order your first find</h1>'
-      '<p style="margin:0 auto 20px;font-size:15px;line-height:1.6;color:#444;max-width:440px;text-align:center;">First haul from China? Watch the 1:47 video and you\'ll know the whole flow, from tapping Buy to tracking your parcel.</p>'
-      '<div style="text-align:center;">' + video + '</div>'
-      '<div style="text-align:center;margin:18px 0 6px;"><a href="' + VIDEO_PAGE + '" style="display:inline-block;padding:13px 30px;font-size:15px;font-weight:600;color:#fff;background:#E8322B;text-decoration:none;border-radius:10px;">&#9654;&nbsp; Watch the video</a></div>'
-      '<div style="height:1px;background:#ececea;margin:24px 0 20px;"></div>'
-      '<h2 style="margin:0 0 14px;font-size:16px;color:#111;font-weight:650;text-align:center;">The 6 steps in short</h2>'
-      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + rows + '</table>'
-      '<div style="text-align:center;margin-top:6px;"><a href="' + MYCNBOX_URL + '" style="display:inline-block;padding:12px 26px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Claim your MyCNBox coupons</a></div>'
-      '<p style="margin:18px auto 0;font-size:13.5px;line-height:1.6;color:#777;max-width:400px;text-align:center;">Stuck on anything? Ask in our <a href="' + DISCORD_URL + '" style="color:#5865F2;">Discord</a> - members share QC tips and haul reviews daily.</p>')
-    # Full document so the <style> sits in <head> (Gmail/Apple Mail/Outlook apps honour it): phones get the vertical thumbnail.
-    head = ('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
-            '<style>@media only screen and (max-width:600px){.pcv-d{display:none!important;max-height:0!important;overflow:hidden!important}'
-            '.pcv-m{display:block!important;max-height:none!important;overflow:visible!important}}</style></head><body style="margin:0;padding:0;">')
-    return head + wrap(inner, unsub_url(uid)) + "</body></html>"
+    inner = (pre("Watch the 1:47 video, then follow 6 short steps from Buy to your door.")
+      + h1("How To Order Your First Find")
+      + lead("First haul from China? Watch the 1:47 video and you'll know the whole flow, from tapping Buy to tracking your parcel.")
+      + '<div style="text-align:center;margin:0 0 24px;">' + video + '</div>'
+      + btn(VIDEO_PAGE, "&#9654;&nbsp; Watch The Video")
+      + hr("44px 0 36px")
+      + h2("The 6 Steps In Short", "left")
+      + '<div style="height:12px;line-height:12px;font-size:12px;">&nbsp;</div>'
+      + '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + rows + '</table>'
+      + '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>'
+      + btn(MYCNBOX_URL, "Claim Your MyCNBox Coupons", "outline", "sponsored nofollow noopener")
+      + '<p class="pc-mut" style="margin:24px auto 0;max-width:420px;font-family:' + FONT + ';font-size:14px;line-height:1.6;color:#6B6B6B;text-align:center;">Stuck on anything? Ask in our <a href="' + DISCORD_URL + '" class="pc-ink" style="color:#0A0A0A;text-decoration:underline;">Discord</a>. Members share QC tips and haul reviews daily.</p>')
+    # wrap() returns the full document; its <style> in <head> swaps in the vertical video thumbnail on phones.
+    return wrap(inner, unsub_url(uid))
 
 def run_ordering(profiles):
     """Ordering guide - the 2nd email in the sequence, sent GUIDE_DELAY_MINUTES after the welcome.
@@ -326,13 +466,15 @@ def run_ordering_test(_profiles=None):
 
 def mycnbox_html(uid):
     """3rd email in the sequence: nudge to create a MyCNBox account (our featured agent)."""
-    inner = ('<div style="text-align:center;"><img src="' + MYCNBOX_LOGO + '" alt="MyCNBox" width="72" height="72" style="width:72px;height:72px;border-radius:16px;display:inline-block;"></div>'
-      '<h1 style="margin:16px 0 10px;font-size:22px;color:#111;font-weight:650;text-align:center;">Ready to order? Set up MyCNBox</h1>'
-      '<p style="margin:0 auto 22px;font-size:15px;line-height:1.6;color:#444;max-width:430px;text-align:center;">To actually buy your finds you\'ll need an <strong>agent</strong> - the service that buys each item in China, checks it and ships it to you. We\'ve tried them all, and <strong>MyCNBox</strong> is the one we recommend: the cleanest app, fast QC photos and the best new-member coupon bundle.</p>'
-      '<div style="text-align:center;"><a href="' + MYCNBOX_URL + '" style="display:inline-block;padding:14px 34px;font-size:15px;font-weight:650;color:#fff;background:#E1301F;text-decoration:none;border-radius:10px;">Create your free MyCNBox account</a></div>'
-      '<p style="margin:14px auto 0;font-size:13px;line-height:1.6;color:#999;max-width:400px;text-align:center;">Signing up is free and takes about a minute. Your new-member coupons are waiting - grab them before your first haul.</p>'
-      '<div style="height:1px;background:#ececea;margin:26px 0 20px;"></div>'
-      '<p style="margin:0 auto;font-size:13.5px;line-height:1.6;color:#777;max-width:420px;text-align:center;">New to all this? Read our quick <a href="' + SITE + '/#tutorial" style="color:#111;">How to order</a> guide first, or ask in the <a href="' + DISCORD_URL + '" style="color:#5865F2;">Discord</a>.</p>')
+    inner = (pre("Free sign-up, about a minute. Your new-member coupons are waiting.")
+      + '<div style="text-align:center;margin:0 0 20px;"><img src="' + MYCNBOX_LOGO + '" alt="MyCNBox" width="64" height="64" style="display:inline-block;width:64px;height:64px;border:0;border-radius:16px;"></div>'
+      + h1("Ready To Order? Set Up MyCNBox")
+      + lead("To actually buy your finds you need an <strong class=\"pc-ink\" style=\"color:#0A0A0A;font-weight:600;\">agent</strong>: the service that buys each item in China, checks it and ships it to you. "
+             "We've tried them all, and <strong class=\"pc-ink\" style=\"color:#0A0A0A;font-weight:600;\">MyCNBox</strong> is the one we recommend: the cleanest app, fast QC photos and the best new-member coupon bundle.", 16, 28)
+      + btn(MYCNBOX_URL, "Create Your Free MyCNBox Account", "primary", "sponsored nofollow noopener")
+      + lead("Signing up is free and takes about a minute. Grab your new-member coupons before your first haul.", 13, 0).replace("margin:0 auto 0px", "margin:16px auto 0")
+      + hr("40px 0 28px")
+      + '<p class="pc-mut" style="margin:0 auto;max-width:420px;font-family:' + FONT + ';font-size:14px;line-height:1.6;color:#6B6B6B;text-align:center;">New to all this? Read our quick <a href="' + SITE + '/#tutorial" class="pc-ink" style="color:#0A0A0A;text-decoration:underline;">How to order</a> guide first, or ask in the <a href="' + DISCORD_URL + '" class="pc-ink" style="color:#0A0A0A;text-decoration:underline;">Discord</a>.</p>')
     return wrap(inner, unsub_url(uid))
 
 def run_mycnbox(profiles):
@@ -451,16 +593,21 @@ def run_newsletter(profiles):
             recs = pick(6, w, exclude=u["seen"], rnd=rnd)
             if len(recs) < 6: recs += pick(6 - len(recs), w, exclude={i for i, _ in recs}, rnd=rnd)
             shown = [b for b in tset if any(p.get("brand") == b for _, p in recs)]
-            intro = ('<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#333;">The most viewed and saved finds right now, picked to match what you\'ve been eyeing%s:</p>' %
-                     (" (" + esc(", ".join(shown[:2])) + ")" if shown else ""))
+            intro = (pre("The most viewed and saved finds right now, matched to what you've been eyeing.")
+                     + h1("Popular Finds Picked For You")
+                     + lead("The most viewed and saved finds right now, picked to match what you've been eyeing%s." %
+                            (" (" + esc(", ".join(shown[:2])) + ")" if shown else ""), 16, 36))
             subject = ("Popular %s finds picked for you" % shown[0]) if shown else "Popular finds picked for you"
             body = intro + grid(recs)
+            body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(SITE, "Browse All Finds")
         else:
             recs = pick(6, lambda i: score[i] / top_score, rnd=rnd)
-            intro = '<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#333;">What everyone is viewing and saving on Puro Classico right now:</p>'
+            intro = (pre("What everyone is viewing and saving on Puro Classico right now.")
+                     + h1("Most Popular Right Now")
+                     + lead("What everyone is viewing and saving on Puro Classico right now.", 16, 36))
             subject = "The most popular finds at Puro Classico right now"
             body = intro + grid(recs)
-            body += ('<div style="text-align:center;margin-top:22px;"><a href="%s" style="display:inline-block;padding:12px 30px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">Browse all finds</a></div>' % SITE)
+            body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(SITE, "Browse All Finds")
         if os.environ.get("DRY_RUN"):
             print("DRY tier %d %s | %s | %s" % (tier(pr), "perso" if perso else "generic", subject, "; ".join("%s (%d)" % (p.get("title", "")[:28], score[i]) for i, p in recs)))
             sent += 1; continue
@@ -504,9 +651,11 @@ def run_saved(profiles):
         recs = [(i, prod[i]) for i in ids[:4]]
         first = recs[0][1]
         subject = "Still thinking about the %s?" % (first.get("title") or "find you saved")[:60]
-        body = ('<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#333;">You saved %s this week. %s still in the catalogue, one tap from your agent:</p>' %
-                ("this" if len(recs) == 1 else "these", "It is" if len(recs) == 1 else "They are")) + grid(recs)
-        body += ('<div style="text-align:center;margin-top:22px;"><a href="%s" style="display:inline-block;padding:12px 30px;font-size:14px;font-weight:600;color:#fff;background:#111;text-decoration:none;border-radius:10px;">See your saved finds</a></div>' % (SITE + "/?saved=1"))
+        body = (pre("Your saved finds are still in the catalogue, one tap from your agent.")
+                + h1("Still Thinking It Over?")
+                + lead("You saved %s this week. %s still in the catalogue, one tap from your agent." %
+                       ("this" if len(recs) == 1 else "these", "It is" if len(recs) == 1 else "They are"), 16, 36)) + grid(recs)
+        body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(SITE + "/?saved=1", "See Your Saved Finds")
         if os.environ.get("DRY_RUN"): print("DRY saved | %s | %d items" % (subject, len(recs))); sent += 1; continue
         ok, msg = brevo_send(email, subject, wrap(body, unsub_url(uid)), unsub_url(uid), "saved")
         if ok: sent += 1; fails = 0
