@@ -1,6 +1,7 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
 import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, thumbSrc, IMG_FALLBACK, productUrl, brandUrl, catUrl,
-  grid, crumbs, pager, page, card, GUIDE_LINKS, TOOL_LINKS, QC_ICON } from "./site.js";
+  grid, crumbs, pager, page, card, GUIDE_LINKS, TOOL_LINKS, QC_ICON, origUrl,
+  TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell } from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
 import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS as TOOLS0 } from "./content2.js";
 import { TOOLS9, TOOL_UI9, toolPage9 } from "./tools9.js";
@@ -57,7 +58,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w31";
+export const PRODUCT_TPL = "w32";
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -723,51 +724,173 @@ export function renderModel(s, n) {
 }
 
 // ------------------------------------------------------------------ tools
-const TOOL_CSS = "";   // v9: ds.css styles the tools (.tool, .out, .row, .qct)
-const EXTRACT = `function pcExtract(u){u=(u||"").trim();if(!u)return{};for(var k=0;k<3;k++){var d;try{d=decodeURIComponent(u);}catch(e){break;}if(d===u)break;u=d;}var pl=null,v,m,i;var st=u.match(/[?&#](?:shop_type|platform|source|channel|mall_?type)=([a-z0-9_]+)/i);if(st){v=st[1].toLowerCase();if(/^(?:wd|weidian)/.test(v))pl="weidian";else if(/^(?:1688|ali)/.test(v))pl="1688";else if(/^(?:tb|tao|tmall)/.test(v))pl="taobao";}if(!pl){m=u.match(/\\/product\\/(weidian|taobao|tmall|1688)\\//i);if(m){v=m[1].toLowerCase();pl=v==="tmall"?"taobao":v;}}if(!pl){var H=[["weidian",/(?:^|[\\/.@])(?:weidian\\.com|youshop10\\.com)/i],["taobao",/(?:^|[\\/.@])(?:taobao\\.com|tmall\\.com|tmall\\.hk|tb\\.cn)/i],["1688",/(?:^|[\\/.@])(?:1688\\.com|alibaba\\.com)/i]],b=-1;for(i=0;i<H.length;i++){m=H[i][1].exec(u);if(m&&(b<0||m.index<b)){b=m.index;pl=H[i][0];}}}if(!pl){if(/weidian/i.test(u))pl="weidian";else if(/taobao|tmall/i.test(u))pl="taobao";else if(/alibaba/i.test(u))pl="1688";}var id=null,ps=[/(?:^|[?&#\\/])item_?id=(\\d{6,})/i,/(?:^|[?&#])offer_?id=(\\d{6,})/i,/[?&#]id=(\\d{6,})/i,/\\/offer\\/(\\d{6,})/i,/\\/i(\\d{6,})\\.htm/i,/\\/product\\/(?:weidian|taobao|tmall|1688)\\/(\\d{6,})/i,/\\/item\\/(\\d{6,})/i,/\\/(\\d{9,})\\.html?\\b/i];for(i=0;i<ps.length;i++){m=u.match(ps[i]);if(m){id=m[1];break;}}if(!id&&/^\\d{6,}$/.test(u))id=u;var sh=!id&&/(?:^|[\\/.])(?:m\\.tb\\.cn|e\\.tb\\.cn|youshop10\\.com|qr\\.1688\\.com)/i.test(u);if(!id&&!sh){m=u.replace(/(?:spm|memberId|referId|affcode|invite_?code|scm|pvid|ut_sk|sku_?id)=[^&#]*/gi,"").match(/(\\d{9,})/);if(m)id=m[1];}return{platform:pl,id:id,short:sh};}
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c];});}`;
-const TOOL_UI = {
-  "link-converter": () => `<div class="tool"><label for="lc">Weidian, Taobao, 1688 or agent link</label><input id="lc" placeholder="https://weidian.com/item.html?itemID=…"><div class="row"><button class="btn red" id="go">Convert</button></div><div class="out" id="out" role="status">Your buy links will appear here.</div></div>
-<script>${EXTRACT}
-var PCID=new Set(${JSON.stringify(P.map(p => p.id))});
-var R={mycnbox:"LHYDVW",kakobuy:"w5war",lovegobuy:"9WJ54Y",oopbuy:"LHQC0OS8O",sugargoo:"3751749728009774836"};
+// v9 tools kit (TOOLS_SPEC.md): QC Checker and Link Converter render here through site.js toolShell(), the other three
+// in tools9.js. Styles: the "v9 tools kit" block in ds.css. Client helpers: site.js TK_JS (window.TK).
+const TOOL_CSS = "";   // kept for toolPage9(s, baseCss); ds.css styles every tool
+const EXTRACT = `function pcExtract(u){u=(u||"").trim();if(!u)return{};for(var k=0;k<3;k++){var d;try{d=decodeURIComponent(u);}catch(e){break;}if(d===u)break;u=d;}var pl=null,v,m,i;var st=u.match(/[?&#](?:shop_type|platform|source|channel|mall_?type)=([a-z0-9_]+)/i);if(st){v=st[1].toLowerCase();if(/^(?:wd|weidian)/.test(v))pl="weidian";else if(/^(?:1688|ali)/.test(v))pl="1688";else if(/^(?:tb|tao|tmall)/.test(v))pl="taobao";}if(!pl){m=u.match(/\\/product\\/(weidian|taobao|tmall|1688)\\//i);if(m){v=m[1].toLowerCase();pl=v==="tmall"?"taobao":v;}}if(!pl){var H=[["weidian",/(?:^|[\\/.@])(?:weidian\\.com|youshop10\\.com)/i],["taobao",/(?:^|[\\/.@])(?:taobao\\.com|tmall\\.com|tmall\\.hk|tb\\.cn)/i],["1688",/(?:^|[\\/.@])(?:1688\\.com|alibaba\\.com)/i]],b=-1;for(i=0;i<H.length;i++){m=H[i][1].exec(u);if(m&&(b<0||m.index<b)){b=m.index;pl=H[i][0];}}}if(!pl){if(/weidian/i.test(u))pl="weidian";else if(/taobao|tmall/i.test(u))pl="taobao";else if(/alibaba/i.test(u))pl="1688";}var id=null,ps=[/(?:^|[?&#\\/])item_?id=(\\d{6,})/i,/(?:^|[?&#])offer_?id=(\\d{6,})/i,/[?&#]id=(\\d{6,})/i,/\\/offer\\/(\\d{6,})/i,/\\/i(\\d{6,})\\.htm/i,/\\/product\\/(?:weidian|taobao|tmall|1688)\\/(\\d{6,})/i,/\\/item\\/(\\d{6,})/i,/\\/(\\d{9,})\\.html?\\b/i];for(i=0;i<ps.length;i++){m=u.match(ps[i]);if(m){id=m[1];break;}}if(!id&&/^\\d{6,}$/.test(u))id=u;var sh=!id&&/(?:^|[\\/.])(?:m\\.tb\\.cn|e\\.tb\\.cn|youshop10\\.com|qr\\.1688\\.com)/i.test(u);if(!id&&!sh){m=u.replace(/(?:spm|memberId|referId|affcode|invite_?code|scm|pvid|ut_sk|sku_?id)=[^&#]*/gi,"").match(/(\\d{9,})/);if(m)id=m[1];}return{platform:pl,id:id,short:sh};}`;
+// Agent link builders: the same formats and referral codes as before (and as site.js AGENTS / AGENT_SWAP_JS).
+// A[i] = [id, name, build]. ag(p, id) puts the visitor's agent from the app (manifest.state.agent) first, then MyCNBox,
+// then the rest in this order.
+const AGENT_JS = `var R={mycnbox:"LHYDVW",kakobuy:"w5war",lovegobuy:"9WJ54Y",oopbuy:"LHQC0OS8O",sugargoo:"3751749728009774836"};
 function orig(p,id){return p==="taobao"?"https://item.taobao.com/item.htm?id="+id:p==="1688"?"https://detail.1688.com/offer/"+id+".html":"https://weidian.com/item.html?itemID="+id;}
-var A=[["MyCNBox",function(p,id){return "https://mycnbox.com/goodsDetail?mallType="+p+"&itemId="+id+"&referId="+R.mycnbox}],["KakoBuy",function(p,id){return "https://www.kakobuy.com/item/details?url="+encodeURIComponent(orig(p,id))+"&affcode="+R.kakobuy}],["Oopbuy",function(p,id){return "https://oopbuy.com/product/"+p+"/"+id+"?inviteCode="+R.oopbuy}],["LoveGoBuy",function(p,id){return "https://www.lovegobuy.com/product?platform="+p+"&id="+id+"&invite_code="+R.lovegobuy}],["Sugargoo",function(p,id){return "https://www.sugargoo.com/#/home/productDetail?productLink="+encodeURIComponent(orig(p,id))+"&memberId="+R.sugargoo}]];
-function run(){var r=pcExtract(document.getElementById("lc").value),o=document.getElementById("out");if(!r.id){o.textContent=r.short?"That is a short share link. Open it in your browser first, then paste the full product link it opens.":"Couldn't find an item ID in that link. Paste a full product or agent link.";return;}var p=r.platform||(r.id.length<=10?"weidian":"taobao"),L=A.map(function(a){return [a[0],a[1](p,r.id)];}),btn=function(x,alt){return '<a href="'+esc(x[1])+'" target="_blank" rel="sponsored nofollow noopener">'+(alt?"":"Open in ")+esc(x[0])+"</a>";};o.innerHTML="<b>"+esc(p)+(r.platform?"":" (guessed)")+" · "+esc(r.id)+'</b><div class="buybox"><div class="buy-main">'+btn(L[0])+'</div><p class="buy-or">Or open in</p><div class="buy-alt">'+L.slice(1).map(function(x){return btn(x,1);}).join("")+"</div></div>"+(PCID.has(r.id)?'<p><a href="/product/'+esc(r.id)+'">Open this find on Puro Classico →</a></p>':"")+"<details><summary>Show the links</summary>"+L.map(function(x){return esc(x[0])+': <a href="'+esc(x[1])+'" target="_blank" rel="sponsored nofollow noopener">'+esc(x[1])+"</a>";}).join("<br>")+"</details>";}
-document.getElementById("go").onclick=run;document.getElementById("lc").onkeydown=function(e){if(e.key==="Enter")run();};</script>`,
-  "qc-checker": () => `<div class="tool"><label for="qi">Product link or item ID</label><input id="qi" placeholder="https://weidian.com/item.html?itemID=… or 7231806587"><label for="qp" style="margin-top:10px">Marketplace (if you paste only an ID)</label><select id="qp"><option value="">Auto-detect</option><option value="weidian">Weidian</option><option value="taobao">Taobao</option><option value="1688">1688</option></select><div class="row"><button class="btn red" id="go">Check QC photos</button></div><div class="out" id="out" role="status">QC photos will appear here.</div><div class="qct" id="th"></div></div>
-<script>${EXTRACT}
-var PCID=new Set(${JSON.stringify(P.map(p => p.id))});
-async function run(){var v=document.getElementById("qi").value,r=pcExtract(v),o=document.getElementById("out"),th=document.getElementById("th");th.innerHTML="";if(!r.id&&/^\\d{6,}$/.test(v.trim()))r={id:v.trim()};if(!r.id){o.textContent=r.short?"That is a short share link. Open it in your browser first, then paste the full product link it opens.":"Couldn't find an item ID. Paste a full link or the numeric ID.";return;}var p=r.platform||document.getElementById("qp").value||(r.id.length<=10?"weidian":"taobao");o.textContent="Checking "+p+" · "+r.id+"…";
-try{var res=await fetch("/api/qc?storefront="+p+"&id="+encodeURIComponent(r.id));var d=res.ok?await res.json():null;var t=(d&&d.thumbnails)||[];if(t.length){o.innerHTML="Real QC photos for <b>"+esc(p)+" · "+esc(r.id)+"</b> ("+t.length+" shown)."+(PCID.has(r.id)?" <a href=\\"/product/"+esc(r.id)+"\\">Open on Puro Classico →</a>":"");th.innerHTML=t.map(function(u){return '<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" alt="QC photo" loading="lazy" onerror="this.parentNode.remove()"></a>';}).join("");}else o.textContent="No QC photos found yet for "+p+" · "+r.id+". Photos only exist once someone has bought it through an agent.";}catch(e){o.textContent="Couldn't reach the QC service. Try again in a moment.";}}
-document.getElementById("go").onclick=run;document.getElementById("qi").onkeydown=function(e){if(e.key==="Enter")run();};
-try{var qu=new URLSearchParams(location.search).get("u");if(qu){document.getElementById("qi").value=qu.slice(0,500);run();}}catch(e){}</script>`,
-  "weight-estimator": () => `<div class="tool"><table id="wt"></table><div class="out" id="out" role="status"></div></div>
-<script>var W=[["T-shirt",250],["Shirt / polo",330],["Shorts",350],["Hoodie / sweater",700],["Pants / jeans",600],["Light jacket",700],["Puffer / heavy jacket",1100],["Sneakers (no box)",900],["Sneakers (with box)",1300],["Bag",550],["Cap / beanie",220],["Belt / small accessory",200]];
-var t=document.getElementById("wt");t.innerHTML=W.map(function(w,i){return '<tr><td>'+w[0]+' <span style="color:var(--muted)">~'+w[1]+' g</span></td><td style="width:90px"><input type="number" min="0" value="0" data-i="'+i+'" aria-label="'+w[0]+', number of items"></td></tr>';}).join("");
-function run(){var g=0,n=0;t.querySelectorAll("input").forEach(function(x){var q=Math.max(0,parseInt(x.value)||0);g+=q*W[+x.dataset.i][1];n+=q;});document.getElementById("out").innerHTML=n?("Estimated shipped weight: <b>~"+(g/1000).toFixed(2)+" kg</b> for "+n+" item"+(n>1?"s":"")+". <a href=\\"/tools/shipping-calculator?kg="+(g/1000).toFixed(2)+"\\">Estimate shipping →</a>"):"Add quantities to see a total.";}
-t.addEventListener("input",run);run();</script>`,
-  "shipping-calculator": () => `<div class="tool"><label for="co">Destination</label><select id="co"></select><label for="kg" style="margin-top:10px">Parcel weight (kg)</label><input id="kg" type="number" min="0" step="0.1" placeholder="e.g. 2.5"><div class="out" id="out" role="status">Pick a destination and weight.</div></div>
-<script>var Z={"United States":"na","Canada":"na","United Kingdom":"eu","Germany":"eu","France":"eu","Netherlands":"eu","Italy":"eu","Spain":"eu","Poland":"eu","Ireland":"eu","Norway":"nordic","Sweden":"nordic","Denmark":"nordic","Finland":"nordic","Rest of Europe":"eu","Australia":"oce","New Zealand":"oce","Rest of world":"row"};
-var RT={nordic:[["Economy",5,7],["Registered / special line",7,10],["Express (DHL/EMS)",9,15]],eu:[["Economy",5,6.5],["Registered / special line",7,9.5],["Express (DHL/EMS)",8,14]],na:[["Economy",6,8],["Registered / special line",8,11],["Express (DHL/EMS)",9,16]],oce:[["Economy",6,9],["Registered / special line",8,12],["Express (DHL/EMS)",10,17]],row:[["Economy",6,9],["Registered / special line",8,12],["Express (DHL/EMS)",10,18]]};
-var co=document.getElementById("co"),kg=document.getElementById("kg");co.innerHTML=Object.keys(Z).map(function(k){return "<option>"+k+"</option>";}).join("");var q=new URLSearchParams(location.search).get("kg");if(q)kg.value=q;
-function run(){var k=parseFloat(kg.value),o=document.getElementById("out");if(!k||k<=0){o.textContent="Pick a destination and weight.";return;}if(k>30){o.textContent="Too heavy for a parcel estimate (over 30 kg). Split it into several parcels or ask your agent for a freight quote.";return;}o.innerHTML=RT[Z[co.value]].map(function(l){var lo=Math.round(l[1]+l[2]*k*0.85),hi=Math.round(l[1]+l[2]*k*1.2);return l[0]+": <b>~$"+(lo===hi?lo.toLocaleString("en-US"):lo.toLocaleString("en-US")+"–"+hi.toLocaleString("en-US"))+"</b>";}).join("\\n")+"\\n\\n<span style=\\"color:var(--muted)\\">Ballpark only. Check your agent's estimator for the real price.</span>";}
-co.onchange=run;kg.oninput=run;run();</script>`,
+var A=[["mycnbox","MyCNBox",function(p,id){return "https://mycnbox.com/goodsDetail?mallType="+p+"&itemId="+id+"&referId="+R.mycnbox}],["kakobuy","KakoBuy",function(p,id){return "https://www.kakobuy.com/item/details?url="+encodeURIComponent(orig(p,id))+"&affcode="+R.kakobuy}],["oopbuy","Oopbuy",function(p,id){return "https://oopbuy.com/product/"+p+"/"+id+"?inviteCode="+R.oopbuy}],["lovegobuy","LoveGoBuy",function(p,id){return "https://www.lovegobuy.com/product?platform="+p+"&id="+id+"&invite_code="+R.lovegobuy}],["sugargoo","Sugargoo",function(p,id){return "https://www.sugargoo.com/#/home/productDetail?productLink="+encodeURIComponent(orig(p,id))+"&memberId="+R.sugargoo}]];
+function myAgent(){try{return String((JSON.parse(localStorage.getItem("manifest.state")||"{}")||{}).agent||"").replace(/[^a-z0-9]/g,"");}catch(e){return "";}}
+function ag(p,id){var me=myAgent(),L=A.map(function(a){return{id:a[0],name:a[1],url:a[2](p,id),mine:a[0]===me};});L.sort(function(x,y){return (y.mine-x.mine)||0;});return L;}
+var PL={weidian:"Weidian",taobao:"Taobao","1688":"1688"};
+function onCat(id){var k="pc.pid."+id,c=TK.sess.get(k,null);function f(ok){var b=document.getElementById("opc");if(b&&ok)b.hidden=false;}if(c!=null){f(c);return;}try{fetch("/product/"+encodeURIComponent(id),{method:"HEAD",redirect:"manual"}).then(function(r){var ok=r.status===200;TK.sess.set(k,ok);f(ok);},function(){});}catch(e){}}`;
+const sameItem = "function(a,b){return a.p===b.p&&a.id===b.id;}";
+
+// Example chips: real catalogue finds that have QC photos (most viewed first), picked at render time.
+let EXAMPLES = null;
+function toolExamples() {
+  if (EXAMPLES) return EXAMPLES;
+  const ok = P.filter(p => p.qc >= 1 && !p.itemId && /^\d{6,}$/.test(p.id)).sort((a, b) => (b.views || 0) - (a.views || 0));
+  const w = ok.find(p => p.platform === "weidian"), t = ok.find(p => p.platform === "taobao");
+  const id = ok.find(p => p !== w && p.platform === "weidian" && p.id.length === 10) || ok.find(p => p !== w && p !== t);
+  const ag = ok.find(p => p !== t && p.platform === "taobao") || t;
+  EXAMPLES = { w: w && origUrl(w), t: t && origUrl(t), id: id && id.id, agent: ag && `https://oopbuy.com/product/${ag.platform}/${ag.id}` };
+  return EXAMPLES;
+}
+const chip = (label, v) => v ? `<button type="button" class="tk-chip" data-ex="${esc(v)}">${esc(label)}</button>` : "";
+const pasteField = (id, label, ph, hint) => `<div class="tk-field"><label class="tk-label" for="${id}">${esc(label)}${hint}</label>` +
+  `<div class="tk-inwrap"><span class="tk-in-ic">${TK_I.link}</span><input id="${id}" name="u" class="tk-in tk-in-lg" type="text" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" maxlength="2000" placeholder="${esc(ph)}">` +
+  `<span class="tk-in-act"><button type="button" class="btn sm secondary" id="${id}-paste" hidden>Paste</button><button type="button" class="tk-x" id="${id}-clr" aria-label="Clear the link" hidden>${TK_I.x}</button></span></div></div>`;
+const platSeg = (id, auto) => `<div class="tk-field" id="${id}w" hidden><span class="tk-label" id="${id}l">Marketplace</span><div class="tk-seg" role="radiogroup" aria-labelledby="${id}l" id="${id}">` +
+  (auto ? `<button type="button" role="radio" aria-checked="true" data-v="">Auto</button>` : "") +
+  `<button type="button" role="radio" aria-checked="${auto ? "false" : "true"}" data-v="weidian">Weidian</button><button type="button" role="radio" aria-checked="false" data-v="taobao">Taobao</button><button type="button" role="radio" aria-checked="false" data-v="1688">1688</button></div></div>`;
+const recentBox = title => `<section class="tk-recent" id="rc" aria-labelledby="rch" hidden><div class="tk-recent-h"><h2 id="rch">${esc(title)}</h2><button type="button" class="btn ghost sm" id="rcx">Clear</button></div><ul id="rl"></ul></section>`;
+// Shared client bits for both paste tools: output states, recent list rendering.
+const PASTE_JS = `var $=function(i){return document.getElementById(i);},esc=TK.esc,I=${JSON.stringify({ alert: TK_I.alert, x: TK_I.x, link: TK_I.link, image: TK_I.image })},CP=${JSON.stringify(tkCopyBtn("Copy"))};
+function cpBtn(l,a){return CP.replace('<span class="l">Copy</span>','<span class="l">'+esc(l)+'</span>').replace('class="btn sm tk-copy"','class="btn sm tk-copy" '+a);}
+function alertH(t,b,act,role){return '<div class="tk-alert"'+(role?' role="alert"':'')+'>'+I.alert+'<div><b>'+esc(t)+'</b><p>'+b+'</p>'+(act?'<div class="tk-actions">'+act+'</div>':'')+'</div></div>';}
+function pbSync(id,v){var b=$(id);if(!b)return;var ok=false;try{ok=!!(navigator.clipboard&&navigator.clipboard.readText);}catch(e){}b.hidden=!!v||!ok;}
+var said="";function sayOnce(m){if(m&&m!==said){said=m;TK.say(m);}}
+function setOut(st,h){var o=$("out");o.setAttribute("data-state",st);o.innerHTML=h;}
+function drawRecent(q,cur,row){var a=q.list(),rl=$("rl"),idx=[];a.forEach(function(x,i){if(!(cur&&x.p===cur.p&&x.id===cur.id))idx.push(i);});$("rc").hidden=!idx.length;rl.innerHTML=idx.map(function(i){var x=a[i];return '<li><button type="button" data-r="'+i+'">'+row(x)+'<span style="min-width:0"><span class="t">'+esc((PL[x.p]||x.p)+" · "+x.id)+'</span><span class="s">'+esc(TK.ago(x.t))+'</span></span></button><button type="button" class="tk-x" data-x="'+i+'" aria-label="Remove '+esc((PL[x.p]||x.p)+" "+x.id)+'">'+I.x+'</button></li>';}).join("");}`;
+
+const TOOL_UI = {
+  "link-converter": () => { const ex = toolExamples();
+    const empty = `<div class="tk-empty">${TK_I.link}<p>Paste a link to get a buy link for every agent.</p><div class="tk-chips"><span>Try:</span>${chip("Weidian link", ex.w)}${chip("Taobao link", ex.t)}${chip("Agent link", ex.agent)}</div></div>`;
+    return `<section class="tk-card" aria-label="Link Converter">${pasteField("lc", "Weidian, Taobao, 1688 or agent link", "Paste a Weidian, Taobao, 1688 or agent link", `<span class="tk-kbd" aria-hidden="true"><kbd>Enter</kbd> to convert</span>`)}${platSeg("lp", false)}
+<div class="tk-out" id="out" data-state="empty">${empty}</div></section>${recentBox("Recent")}
+<script>(function(){${EXTRACT}${TK_JS}${AGENT_JS}${PASTE_JS}
+var EMPTY=${JSON.stringify(empty)},inp=$("lc"),clr=$("lc-clr"),pw=$("lpw"),pick=null,cur=null,L=[],rq=TK.recent("pc.link.recent",6),same=${sameItem};
+var seg=TK.seg($("lp"),function(v){if(cur){pick={id:cur.id,p:v};run(true);}});
+var keep=TK.debounce(function(d){if(cur&&cur.id===d.id){rq.add({p:d.p,id:d.id,t:Date.now()},same);}},1200);
+function recent(){drawRecent(rq,cur,function(){return '<span class="tk-ic">'+I.link+'</span>';});}
+function run(now){var v=inp.value.trim();clr.hidden=!v;pbSync("lc-paste",v);if(!v){pw.hidden=true;cur=null;said="";setOut("empty",EMPTY);TK.qs.set({u:null});recent();return;}
+var r=pcExtract(v);if(!r.id&&/^\\d{6,}$/.test(v))r={id:v};
+if(!r.id){pw.hidden=true;cur=null;sayOnce(r.short?"That is a share link":"No item ID found");setOut("error",r.short?alertH("That Is A Share Link","Open it in your browser first, then copy the full product link from the address bar."):alertH("No Item ID Found","Paste the full product or agent link."));return;}
+var g=!r.platform,p=r.platform||(pick&&pick.id===r.id?pick.p:"")||(r.id.length<=10?"weidian":"taobao");if(pick&&pick.id===r.id)g=false;
+pw.hidden=!!r.platform;if(!r.platform)seg.set(p);
+cur={p:p,id:r.id};L=ag(p,r.id);var o=orig(p,r.id),me=L[0];sayOnce(L.length+" agent links ready for "+PL[p]+" "+r.id);
+var opt=function(a){return '<div class="tk-opt"><div class="tk-opt-main">'+esc(a.name)+'</div><div class="tk-opt-act"><a class="btn sm" href="'+esc(a.url)+'" data-agent="'+a.id+'" target="_blank" rel="sponsored nofollow noopener" aria-label="Open in '+esc(a.name)+'">Open</a>'+cpBtn("Copy",'data-copy="'+esc(a.url)+'" aria-label="Copy the '+esc(a.name)+' link"')+'</div></div>';};
+setOut("success",'<div class="tk-res"><div class="tk-res-top"><p class="tk-res-k">'+esc(PL[p]+" · "+r.id)+(g?' <span class="tk-badge">Guessed</span>':'')+'</p>'+cpBtn("Copy Item Link",'data-copy="'+esc(o)+'" data-msg="Item link copied"')+'</div>'+
+'<div class="tk-buy"><a class="btn primary lg" href="'+esc(me.url)+'" data-agent="'+me.id+'" target="_blank" rel="sponsored nofollow noopener">Buy On '+esc(me.name)+'</a>'+(me.mine?'<span class="tk-badge">Your Agent</span>':'')+'</div>'+
+'<p class="tk-sub">Other agents</p>'+L.slice(1).map(opt).join("")+
+'<div class="tk-actions"><a class="btn" href="/tools/qc-checker?u='+encodeURIComponent(v.slice(0,500))+'">Check QC Photos</a><a class="btn" id="opc" href="/product/'+esc(r.id)+'" hidden>Open On Puro Classico</a>'+cpBtn("Copy All Links",'data-copy="*" data-msg="All links copied"')+'</div>'+
+'<details class="tk-more"><summary>Show All Links</summary><p>'+L.map(function(a){return esc(a.name)+': <a href="'+esc(a.url)+'" data-agent="'+a.id+'" target="_blank" rel="sponsored nofollow noopener">'+esc(a.url)+'</a>';}).join("<br>")+'</p></details></div>');
+TK.qs.set({u:v.length<=500?v:o});onCat(r.id);keep(cur);recent();}
+var live=TK.debounce(function(){run();},200);
+inp.addEventListener("input",live);inp.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();run(true);}});
+clr.addEventListener("click",function(){inp.value="";pick=null;run();inp.focus();});
+TK.pasteBtn(inp,$("lc-paste"));
+$("out").addEventListener("click",function(e){var b=e.target.closest("[data-copy]");if(b){var c=b.getAttribute("data-copy");TK.copy(c==="*"?L.map(function(a){return a.name+": "+a.url;}).join("\\n"):c,b,b.getAttribute("data-msg")||"Link copied");return;}var x=e.target.closest("[data-ex]");if(x){inp.value=x.getAttribute("data-ex");run(true);}});
+$("rl").addEventListener("click",function(e){var b=e.target.closest("[data-x]"),a=rq.list();if(b){rq.remove(+b.getAttribute("data-x"));recent();$("lc").focus();return;}b=e.target.closest("[data-r]");if(b){var x=a[+b.getAttribute("data-r")];if(x){inp.value=orig(x.p,x.id);run(true);inp.focus();}}});
+$("rcx").addEventListener("click",function(){rq.clear();recent();});
+var q=TK.qs.get("u");if(q){inp.value=q.slice(0,2000);run(true);}else recent();})();</script>`; },
+
+  "qc-checker": () => { const ex = toolExamples();
+    const empty = `<div class="tk-empty">${TK_I.image}<p>Paste a link to see real QC photos from earlier buyers.</p><div class="tk-chips"><span>Try:</span>${chip("Weidian link", ex.w)}${chip("Taobao link", ex.t)}${chip("Item ID", ex.id)}</div></div>`;
+    return `<section class="tk-card" aria-label="QC Checker"><form id="qf" action="/tools/qc-checker" method="get" novalidate>${pasteField("qi", "Product link or item ID", "Paste a Weidian, Taobao or 1688 link", "")}${platSeg("qp", true)}
+<div class="tk-row"><button type="submit" class="btn primary lg" id="go"><span class="tk-spin" aria-hidden="true"></span><span class="l">Find QC Photos</span></button><span class="tk-kbd" aria-hidden="true"><kbd>Enter</kbd> to check</span></div></form>
+<div class="tk-out" id="out" data-state="empty">${empty}</div></section>${recentBox("Recent Checks")}
+<dialog class="tk-lightbox" id="lb" aria-label="QC photo viewer"><div class="tk-lb-fig" id="lbf"><img id="lbi" alt=""><button type="button" class="tk-lb-nav prev" id="lbp" aria-label="Previous photo">${TK_I.prev}</button><button type="button" class="tk-lb-nav next" id="lbn" aria-label="Next photo">${TK_I.next}</button></div>
+<div class="tk-lb-bar"><span id="lbc" aria-live="polite"></span><div class="tk-actions"><a class="btn sm" id="lbo" href="#" target="_blank" rel="noopener">${TK_I.ext}Open Original</a><button type="button" class="btn sm" id="lbx">Close</button></div></div></dialog>
+<script>(function(){${EXTRACT}${TK_JS}${AGENT_JS}${PASTE_JS}
+var EMPTY=${JSON.stringify(empty)},inp=$("qi"),go=$("go"),clr=$("qi-clr"),pw=$("qpw"),busy=false,again=false,cur=null,lastK="",skT=0,rq=TK.recent("pc.qc.recent",6),same=${sameItem};
+var seg=TK.seg($("qp"),function(){if(cur)run(true);});
+function primary(on){go.classList.toggle("primary",on);}
+function parse(v){var r=pcExtract(v);if(!r.id&&/^\\d{6,}$/.test(v))r={id:v};return r;}
+function sync(){var v=inp.value.trim(),r=v?parse(v):{};clr.hidden=!v;pbSync("qi-paste",v);pw.hidden=!(r.id&&!r.platform);}
+function recent(){drawRecent(rq,cur,function(x){return x.th?'<img src="'+esc(x.th)+'" alt="" loading="lazy" onerror="this.style.visibility=\\'hidden\\'">':'<span class="tk-ic">'+I.image+'</span>';});}
+function cnt(n){return n+" QC Photo"+(n===1?"":"s");}
+function idle(){busy=false;go.disabled=false;go.removeAttribute("aria-busy");go.querySelector(".l").textContent="Find QC Photos";$("out").removeAttribute("aria-busy");}
+function skel(d){var h='<div class="tk-res" aria-hidden="true"><p class="tk-res-k">'+esc(PL[d.p]+" · "+d.id)+'</p><span class="tk-skel big"></span><div class="tk-gal">';for(var i=0;i<5;i++)h+='<span class="tk-skel"></span>';return h+'</div></div>';}
+function show(d){var who=esc(PL[d.p]+" · "+d.id)+(d.g?' <span class="tk-badge">Guessed</span>':'');
+if(d.s==="ok"){primary(false);TK.say(cnt(d.t.length)+" found");var a=ag(d.p,d.id)[0];
+setOut("success",'<div class="tk-res"><p class="tk-res-k">'+who+'</p><p class="tk-big" id="qn">'+cnt(d.t.length)+'</p>'+(d.n?'<p class="tk-res-sub">'+esc(d.n)+'</p>':'')+
+'<div class="tk-gal" id="gal">'+d.t.map(function(u,i){return '<button type="button" data-u="'+esc(u)+'" aria-label="Open QC photo '+(i+1)+'"><img src="'+esc(u)+'" alt="QC photo '+(i+1)+'" loading="lazy" decoding="async"></button>';}).join("")+'</div>'+
+'<div class="tk-actions"><a class="btn primary" href="'+esc(a.url)+'" data-agent="'+a.id+'" target="_blank" rel="sponsored nofollow noopener">Buy On '+esc(a.name)+'</a><a class="btn" id="opc" href="/product/'+esc(d.id)+'" hidden>Open On Puro Classico</a>'+cpBtn("Copy Link",'data-copy="share"')+'</div></div>');
+[].forEach.call($("gal").querySelectorAll("img"),function(im){im.addEventListener("error",function(){var b=im.parentNode;if(b&&b.parentNode)b.parentNode.removeChild(b);var n=$("gal").children.length,q=$("qn");if(q)q.textContent=cnt(n);});});
+onCat(d.id);rq.add({p:d.p,id:d.id,th:d.t[0]||"",t:Date.now()},same);recent();return;}
+primary(true);
+if(d.s==="none"){TK.say("No QC photos yet");setOut("none",alertH("No QC Photos Yet",who+'<br>Photos only exist once someone has bought this item through an agent.','<a class="btn sm" href="/tools/link-converter?u='+encodeURIComponent(orig(d.p,d.id))+'">Get Buy Links</a><a class="btn sm ghost" href="/guides/how-to-qc">How To Read QC</a>'));recent();return;}
+if(d.s==="busy")setOut("error",alertH("Too Many Checks Right Now","Try again in about 10 minutes.","",1));
+else if(d.s==="bad")setOut("error",alertH("That ID Does Not Look Right","Paste the full product link instead.","",1));
+else setOut("error",alertH("QC Service Not Reachable","Try again in a moment.",'<button type="button" class="btn sm" id="again">Try Again</button>',1));
+lastK="";}
+function run(force){if(busy){again=true;return;}var v=inp.value.trim();sync();if(!v){cur=null;lastK="";primary(true);setOut("empty",EMPTY);TK.qs.set({u:null});recent();return;}
+var r=parse(v);if(!r.id){cur=null;lastK="";primary(true);setOut("error",r.short?alertH("That Is A Share Link","Open it in your browser first, then copy the full product link from the address bar.","",1):alertH("No Item ID Found","Paste the full product link, or the item ID on its own.","",1));return;}
+var g=0,p=r.platform;if(!p){p=seg.get();if(!p){p=r.id.length<=10?"weidian":"taobao";g=1;}}
+var k="pc.qc."+p+"."+r.id;if(k===lastK&&!force)return;lastK=k;cur={p:p,id:r.id};TK.qs.set({u:v.length<=500?v:orig(p,r.id)});
+var c=TK.sess.get(k,null);if(c&&c.t){c.g=g;show(c);return;}
+busy=true;go.disabled=true;go.setAttribute("aria-busy","true");go.querySelector(".l").textContent="Checking";$("out").setAttribute("aria-busy","true");
+clearTimeout(skT);skT=setTimeout(function(){setOut("loading",skel(cur));},150);
+var ctl=null;try{ctl=new AbortController();}catch(e){}var to=setTimeout(function(){if(ctl)ctl.abort();},10000);
+fetch("/api/qc?storefront="+p+"&id="+encodeURIComponent(r.id),ctl?{signal:ctl.signal}:{}).then(function(res){
+if(res.status===200)return res.json().then(function(d){var t=(d&&d.thumbnails)||[];return{s:t.length?"ok":"none",t:t.slice(0,12),n:d&&typeof d.name==="string"?d.name.slice(0,200):""};},function(){return{s:"down"};});
+return{s:res.status===404?"none":res.status===429?"busy":res.status===400?"bad":"down"};},function(){return{s:"down"};}).then(function(d){
+clearTimeout(to);clearTimeout(skT);idle();d.p=p;d.id=r.id;if(again){again=false;var nv=parse(inp.value.trim());if(!inp.value.trim()||(nv.id&&nv.id!==r.id)){if(d.s==="ok"||d.s==="none"){d.t=d.t||[];TK.sess.set(k,d);}run(true);return;}}if(d.s==="ok"||d.s==="none"){d.t=d.t||[];TK.sess.set(k,d);}d.g=g;if(cur&&cur.id===r.id&&cur.p===p)show(d);});}
+var auto=TK.debounce(function(){var v=inp.value.trim(),r=parse(v);if(r.id&&!/^\\d+$/.test(v))run();},300);
+inp.addEventListener("input",function(){sync();auto();});
+inp.addEventListener("paste",function(){setTimeout(function(){sync();var v=inp.value.trim();if(parse(v).id)run();},0);});
+inp.addEventListener("tk:paste",function(){run();});
+inp.addEventListener("blur",function(){var v=inp.value.trim();if(/^\\d{6,}$/.test(v))run();});
+$("qf").addEventListener("submit",function(e){e.preventDefault();run(true);});
+clr.addEventListener("click",function(){inp.value="";run();inp.focus();});
+TK.pasteBtn(inp,$("qi-paste"));
+var lb=$("lb"),li=$("lbi"),tiles=[],at=0,from=null;
+function lbShow(i){at=(i+tiles.length)%tiles.length;var u=tiles[at].getAttribute("data-u");li.src=u;li.alt="QC photo "+(at+1)+" of "+tiles.length;$("lbo").href=u;$("lbc").textContent=(at+1)+" / "+tiles.length;$("lbp").hidden=$("lbn").hidden=tiles.length<2;}
+function lbOpen(b){tiles=[].slice.call($("gal").querySelectorAll("button"));from=b;if(!lb.showModal){window.open(b.getAttribute("data-u"),"_blank","noopener");return;}lbShow(tiles.indexOf(b));lb.showModal();}
+lb.addEventListener("close",function(){if(from&&from.isConnected)from.focus();});
+lb.addEventListener("click",function(e){if(e.target===lb)lb.close();});
+lb.addEventListener("keydown",function(e){if(e.key==="ArrowLeft"){e.preventDefault();lbShow(at-1);}else if(e.key==="ArrowRight"){e.preventDefault();lbShow(at+1);}});
+$("lbp").addEventListener("click",function(){lbShow(at-1);});$("lbn").addEventListener("click",function(){lbShow(at+1);});$("lbx").addEventListener("click",function(){lb.close();});
+var sx=0,sy=0;$("lbf").addEventListener("touchstart",function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+$("lbf").addEventListener("touchend",function(e){var dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))lbShow(at+(dx<0?1:-1));else if(dy>90)lb.close();},{passive:true});
+$("out").addEventListener("click",function(e){var t=e.target.closest("#gal button");if(t){lbOpen(t);return;}var b=e.target.closest("[data-copy]");if(b){TK.copy(location.origin+"/tools/qc-checker?u="+encodeURIComponent(cur?orig(cur.p,cur.id):inp.value.trim()),b,"Link copied");return;}if(e.target.closest("#again")){run(true);return;}var x=e.target.closest("[data-ex]");if(x){inp.value=x.getAttribute("data-ex");run(true);}});
+$("rl").addEventListener("click",function(e){var b=e.target.closest("[data-x]"),a=rq.list();if(b){rq.remove(+b.getAttribute("data-x"));recent();inp.focus();return;}b=e.target.closest("[data-r]");if(b){var x=a[+b.getAttribute("data-r")];if(x){inp.value=orig(x.p,x.id);run(true);inp.focus();}}});
+$("rcx").addEventListener("click",function(){rq.clear();recent();});
+var q=TK.qs.get("u");if(q){inp.value=q.slice(0,2000);run(true);}else{sync();recent();}})();</script>`; },
 };
+const TRUST = { "qc-checker": [TK_TRUST.free, TK_TRUST.nosign], "link-converter": [TK_TRUST.free, TK_TRUST.nosign, TK_TRUST.nostore] };
+const TOOL_H1 = { "qc-checker": "Real QC Photos In One Click", "link-converter": "Any Link To Any Agent" };
+// Hub: the "before you buy" pair is wide and carries a real mini form; the flow strip is navigation only.
+const HUB_FORM = { "qc-checker": ["Check", "Product link or item ID"], "link-converter": ["Convert", "Weidian, Taobao, 1688 or agent link"] };
+const HUB_FLOW = [["Check The QC", "QC Checker", "/tools/qc-checker"], ["Get Your Buy Link", "Link Converter", "/tools/link-converter"],
+  ["Price The Shipping", "Shipping Calculator", "/tools/shipping-calculator"], ["Track It Home", "Parcel Tracker", "/tools/parcel-tracker"]];
 export function renderTools() {
   const bc = crumbs([["Home", "/"], ["Tools", "/tools"]]);
-  const body = `${bc.html}<h1>Free Rep Tools</h1><p class="lead">Check QC photos, convert links, estimate shipping, find your size and track your parcel. Free, no sign-up.</p>
-<div class="gl">${TOOL_LINKS.map(([t, u]) => { const k = u.replace(/^\/tools\//, ""); return `<a href="${u}"><b>${esc(t)}</b>${own(TOOLS, k) ? `<span>${esc(TOOLS[k].desc)}</span>` : ""}</a>`; }).join("")}</div>`;
-  return page({ title: "Free Rep Tools: QC Checker, Link Converter, Size Estimator & Parcel Tracker · Puro Classico", desc: "Free tools for buying reps through agents: QC photo checker, link converter, shipping calculator, size estimator and parcel tracker.", path: "/tools", body, jsonld: [bc.data] });
+  const cards = TOOL_LINKS.map(([t, u]) => { const k = u.replace(/^\/tools\//, ""), f = HUB_FORM[k];
+    return `<article class="tk-hc${f ? " wide" : ""}"><span class="tk-ic">${TK_ICONS[k] || ""}</span><span class="tk-arrow">${TK_I.right}</span><h2><a href="${u}">${esc(t)}</a></h2>` +
+      `<p class="one">${esc(TOOL_ONE[k] || "")}</p>${own(TOOLS, k) ? `<p class="long">${esc(TOOLS[k].desc)}</p>` : ""}` +
+      (f ? `<form action="${u}" method="get"><label class="vh" for="hub-${k}">${esc(f[1])}</label><input class="tk-in" id="hub-${k}" name="u" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Paste a link" required><button class="btn primary" type="submit">${f[0]}</button></form>` : "") + `</article>`; }).join("");
+  const body = `<div class="tk-page hub">${bc.html}${tkHero({ h1: "Free Rep Tools", lead: "Check QC photos, convert links, estimate shipping, find your size and track your parcel. Free, no sign-up.", trust: [TK_TRUST.free, TK_TRUST.nosign] })}
+<div class="tk-hub">${cards}</div>
+<h2>Your Haul In 4 Tools</h2><ol class="tk-flow">${HUB_FLOW.map(([s, n, u]) => `<li><a href="${u}"><b>${esc(s)}</b><span>${esc(n)}</span></a></li>`).join("")}</ol>
+<p class="tk-flow-tip">Not sure about the size? <a href="/tools/size-estimator">Size Estimator</a></p></div>`;
+  const list = { "@context": "https://schema.org", "@type": "ItemList", name: "Free Rep Tools",
+    itemListElement: TOOL_LINKS.map(([n, u], i) => ({ "@type": "ListItem", position: i + 1, name: n, url: SITE + u })) };
+  return page({ title: "Free Rep Tools: QC Checker, Link Converter, Size Estimator & Parcel Tracker · Puro Classico", desc: "Free tools for buying reps through agents: QC photo checker, link converter, shipping calculator, size estimator and parcel tracker.", path: "/tools", body, jsonld: [bc.data, list] });
 }
 export function renderTool(s) {
   if (own(TOOL_UI9, s)) return toolPage9(s, TOOL_CSS);
   const t = own(TOOLS, s) && own(TOOL_UI, s) ? TOOLS[s] : null; if (!t) return null;
   const path = "/tools/" + s; const bc = crumbs([["Home", "/"], ["Tools", "/tools"], [t.name, path]]);
   const app = { "@context": "https://schema.org", "@type": "WebApplication", name: t.name + ": Puro Classico", url: SITE + path, applicationCategory: "UtilitiesApplication", operatingSystem: "Any", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, description: t.desc };
-  const body = `${bc.html}${TOOL_CSS}<h1>${esc(t.name)}</h1><p class="lead">${esc(t.lead)}</p>${TOOL_UI[s]()}<div class="prose">${t.about}</div>
-<h2>More tools</h2><div class="chips">${TOOL_LINKS.filter(([, u]) => u !== path).map(([n, u]) => `<a href="${u}">${esc(n)}</a>`).join("")}<a href="/how-to-order">How to order</a></div>`;
-  return page({ title: t.title, desc: t.desc, path, body, jsonld: [bc.data, app] });
+  return toolShell({ slug: s, name: t.name, h1: TOOL_H1[s] || t.name, lead: t.lead, trust: TRUST[s] || [], ui: TOOL_UI[s](), about: t.about,
+    title: t.title, desc: t.desc, jsonld: [bc.data, app], bc: bc.html });
 }
 
 // ------------------------------------------------------------------ guides

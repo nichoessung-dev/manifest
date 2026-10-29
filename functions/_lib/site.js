@@ -214,7 +214,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "14";
+export const DS_VER = "15";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -241,6 +241,87 @@ export const GUIDE_LINKS = [
 export const FOOTER_GUIDES = ["/how-to-order", "/guides/what-is-a-rep-spreadsheet", "/guides/pandabuy-alternatives", "/guides/mycnbox-review",
   "/guides/how-to-buy-from-weidian", "/guides/how-to-qc", "/guides/best-shopping-agent"];
 export const TOOL_LINKS = [["QC Checker", "/tools/qc-checker"], ["Link Converter", "/tools/link-converter"], ["Shipping Calculator", "/tools/shipping-calculator"], ["Size Estimator", "/tools/size-estimator"], ["Parcel Tracker", "/tools/parcel-tracker"]];
+
+// ------------------------------------------------------------------ v9 tools kit (shared by pages.js and tools9.js)
+// Markup helpers for the tool pages (styles: the "v9 tools kit" block in ds.css). One icon set for the homepage
+// tool cards (index.html .v9-tool-ic), the tools hub and every tool page.
+const tkSvg = (d, w = "1.75") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${d}</svg>`;
+export const TK_ICONS = {
+  "qc-checker": tkSvg('<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13.5" r="3.5"/>'),
+  "link-converter": tkSvg('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+  "shipping-calculator": tkSvg('<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5Z"/><path d="M3 7.5 12 12l9-4.5"/><path d="M12 12v9"/>'),
+  "size-estimator": tkSvg('<path d="M3 15.5 15.5 3 21 8.5 8.5 21Z"/><path d="m7 12 1.5 1.5"/><path d="m10 9 2 2"/><path d="m13 6 1.5 1.5"/>'),
+  "parcel-tracker": tkSvg('<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.5"/>'),
+};
+// Small UI icons (16 to 20px in the kit). Use with class names from ds.css (.i-cp/.i-ok inside .tk-copy).
+export const TK_I = {
+  check: tkSvg('<path d="M20 6 9 17l-5-5"/>', "2"),
+  copy: tkSvg('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>', "2"),
+  alert: tkSvg('<circle cx="12" cy="12" r="9"/><path d="M12 8v4.5"/><path d="M12 16h.01"/>', "2"),
+  x: tkSvg('<path d="M18 6 6 18M6 6l12 12"/>', "2"),
+  link: tkSvg('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>', "2"),
+  share: tkSvg('<path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>', "2"),
+  ext: tkSvg('<path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>', "2"),
+  right: tkSvg('<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>', "2"),
+  prev: tkSvg('<path d="m15 18-6-6 6-6"/>', "2"),
+  next: tkSvg('<path d="m9 18 6-6-6-6"/>', "2"),
+  image: tkSvg('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>', "1.75"),
+};
+// One line per tool (the homepage v9_tool_*_d strings), for the hub and the "More Free Tools" cards.
+export const TOOL_ONE = {
+  "qc-checker": "See real buyer photos of any listing.",
+  "link-converter": "Turn any seller link into agent buy links.",
+  "shipping-calculator": "Ballpark your parcel cost by weight and country.",
+  "size-estimator": "Find your size from height, weight and fit.",
+  "parcel-tracker": "Spot the carrier and track your parcel.",
+};
+export const TK_TRUST = { free: "Free", nosign: "No sign-up", local: "Runs in your browser", nostore: "Nothing is stored" };
+// <header class="tk-hero">: icon tile (omit slug for the hub), tool name above the h1, lead, trust facts.
+export function tkHero({ slug = "", name = "", h1, lead, trust = [] }) {
+  return `<header class="tk-hero">${slug && TK_ICONS[slug] ? `<span class="tk-hero-ic">${TK_ICONS[slug]}</span>` : ""}${name ? `<p class="tk-name">${esc(name)}</p>` : ""}` +
+    `<h1>${esc(h1)}</h1><p class="lead">${esc(lead)}</p>` +
+    (trust.length ? `<ul class="tk-trust">${trust.map(t => `<li>${TK_I.check}${esc(t)}</li>`).join("")}</ul>` : "") + `</header>`;
+}
+// "More Free Tools": the 4 other tools as compact cards, then the How to order link.
+export function tkRelated(path) {
+  return `<h2>More Free Tools</h2><div class="tk-related">${TOOL_LINKS.filter(([, u]) => u !== path).map(([n, u]) => { const k = u.replace(/^\/tools\//, "");
+    return `<a href="${u}"><span class="tk-ic">${TK_ICONS[k] || ""}</span><span><b>${esc(n)}</b><span>${esc(TOOL_ONE[k] || "")}</span></span></a>`; }).join("")}</div>` +
+    `<p><a class="more" href="/how-to-order">How to order</a></p>`;
+}
+// A copy button for the kit (TK.copy swaps the icon and label for 1.5 s): <button class="btn sm tk-copy" data-copy="...">
+export const tkCopyBtn = (label = "Copy", attrs = "") => `<button type="button" class="btn sm tk-copy"${attrs}>${TK_I.copy.replace("<svg ", '<svg class="i-cp" ')}${TK_I.check.replace("<svg ", '<svg class="i-ok" ')}<span class="l">${esc(label)}</span></button>`;
+// The page every tool shares. ui = the tool's card markup + script. about = the SEO text (kept, shown under "How It Works").
+// jsonld is passed through unchanged so the structured data stays byte-identical.
+export function toolShell({ slug, name, h1, lead, trust = [], ui, about = "", faq = "", title, desc, jsonld = [], wide = false, bc }) {
+  const path = "/tools/" + slug;
+  const body = `<div class="tk-page${wide ? " wide" : ""}">${bc}${tkHero({ slug, name, h1, lead, trust })}${ui}` +
+    `<div class="tk-below"><h2>How It Works</h2><div class="prose">${about}</div>${faq}${tkRelated(path)}</div></div>`;
+  return page({ title, desc, path, body, jsonld });
+}
+// Client helpers every tool page inlines once (ES5, no libraries): window.TK.
+// TK.esc, TK.copy(text, btn, msg), TK.say(msg), TK.debounce(fn, ms), TK.qs.get(k) / TK.qs.set({k: v}) (replaceState,
+// 300 ms debounce), TK.recent(key, max).list/add(item, same)/remove(i)/clear, TK.seg(el, onChange) (roving radiogroup),
+// TK.pasteBtn(input, btn), TK.ago(t), TK.store(get|set) on localStorage and TK.sess on sessionStorage (all in try/catch).
+export const TK_JS = String.raw`var TK=(function(){var D=document;
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
+function say(m){var r=D.getElementById("tk-live");if(!r){r=D.createElement("div");r.id="tk-live";r.className="vh";r.setAttribute("aria-live","polite");D.body.appendChild(r);}r.textContent="";setTimeout(function(){r.textContent=m;},40);}
+function copy(t,b,m){function ok(){if(b){var l=b.querySelector(".l");if(l&&!b.getAttribute("data-label"))b.setAttribute("data-label",l.textContent);b.classList.add("ok");if(l)l.textContent="Copied";clearTimeout(b._t);b._t=setTimeout(function(){b.classList.remove("ok");if(l)l.textContent=b.getAttribute("data-label");},1500);}say(m||"Copied");}
+function fb(){var a=D.createElement("textarea"),d=false;a.value=t;a.setAttribute("readonly","");a.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";D.body.appendChild(a);a.select();try{d=D.execCommand("copy");}catch(e){}D.body.removeChild(a);if(d){ok();return;}var x=D.createElement("input");x.readOnly=true;x.value=t;x.className="tk-in tk-copyfb";x.setAttribute("aria-label","Copy this text");x.addEventListener("blur",function(){if(x.parentNode)x.parentNode.removeChild(x);});(b&&b.parentNode?b.parentNode:D.body).insertBefore(x,b?b.nextSibling:null);x.focus();x.select();say("Press Ctrl+C to copy");}
+try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,fb);return;}}catch(e){}fb();}
+function debounce(f,ms){var h;return function(){var a=arguments,s=this;clearTimeout(h);h=setTimeout(function(){f.apply(s,a);},ms);};}
+var pend={},qt;function qget(k){try{return new URLSearchParams(location.search).get(k);}catch(e){return null;}}
+function qset(o){for(var k in o)pend[k]=o[k];clearTimeout(qt);qt=setTimeout(function(){try{var u=new URL(location.href);for(var k in pend){if(pend[k]==null||pend[k]==="")u.searchParams.delete(k);else u.searchParams.set(k,pend[k]);}pend={};history.replaceState(history.state,"",u.pathname+(u.search||"")+u.hash);}catch(e){}},300);}
+function sget(S,k,d){try{var v=S.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}function sset(S,k,v){try{if(v==null)S.removeItem(k);else S.setItem(k,JSON.stringify(v));}catch(e){}}
+var LS,SS;try{LS=window.localStorage;}catch(e){}try{SS=window.sessionStorage;}catch(e){}
+function recent(k,max){max=max||6;function list(){var a=sget(LS,k,[]);return Array.isArray(a)?a:[];}
+return{list:list,add:function(it,same){var a=list().filter(function(x){return !same(x,it);});a.unshift(it);sset(LS,k,a.slice(0,max));},remove:function(i){var a=list();a.splice(i,1);sset(LS,k,a);},clear:function(){sset(LS,k,null);}};}
+function seg(el,on){var bs=[].slice.call(el.querySelectorAll('[role="radio"]'));function pick(b,fire,focus){bs.forEach(function(x){var c=x===b;x.setAttribute("aria-checked",c?"true":"false");x.tabIndex=c?0:-1;});if(focus)b.focus();if(fire&&on)on(b.getAttribute("data-v"),b);}
+bs.forEach(function(b,i){b.addEventListener("click",function(){pick(b,true);});b.addEventListener("keydown",function(e){var j=e.key==="ArrowRight"||e.key==="ArrowDown"?i+1:e.key==="ArrowLeft"||e.key==="ArrowUp"?i-1:e.key==="Home"?0:e.key==="End"?bs.length-1:null;if(j==null)return;e.preventDefault();j=(j+bs.length)%bs.length;pick(bs[j],true,true);});});
+var cur=bs.filter(function(b){return b.getAttribute("aria-checked")==="true";})[0]||bs[0];pick(cur,false);
+return{get:function(){var c=bs.filter(function(b){return b.getAttribute("aria-checked")==="true";})[0];return c?c.getAttribute("data-v"):"";},set:function(v,fire){var b=bs.filter(function(x){return x.getAttribute("data-v")===String(v);})[0];if(b)pick(b,!!fire);}};}
+function pasteBtn(i,b){if(!b)return;try{if(!(navigator.clipboard&&navigator.clipboard.readText))return;}catch(e){return;}b.hidden=false;b.addEventListener("click",function(){navigator.clipboard.readText().then(function(t){t=String(t||"").trim();if(!t){say("Clipboard is empty");return;}i.value=t.slice(0,2000);i.dispatchEvent(new Event("input",{bubbles:true}));i.dispatchEvent(new CustomEvent("tk:paste"));},function(){i.focus();say("Paste with Ctrl+V");});});}
+function ago(t){var s=Math.max(0,(Date.now()-t)/1000|0);if(s<60)return"Just now";if(s<3600)return(s/60|0)+" min ago";if(s<86400)return(s/3600|0)+" h ago";var d=s/86400|0;return d===1?"Yesterday":d+" days ago";}
+return{esc:esc,say:say,copy:copy,debounce:debounce,qs:{get:qget,set:qset},recent:recent,seg:seg,pasteBtn:pasteBtn,ago:ago,store:{get:function(k,d){return sget(LS,k,d);},set:function(k,v){sset(LS,k,v);}},sess:{get:function(k,d){return sget(SS,k,d);},set:function(k,v){sset(SS,k,v);}}};})();`;
 
 function footer() {
   const { byBrand, brandSlug } = idx();
