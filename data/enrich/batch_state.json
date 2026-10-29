@@ -15,7 +15,7 @@
   "4454131329": 1,
   "5738118972": 1,
   "6406833678": 1,
-  "6646357483": 1,
+  "6646357483": 3,
   "670236763544": 1,
   "6716583439": 1,
   "674945610775": 1,
@@ -70,7 +70,7 @@
   "7801851389": 1,
   "7843021775": 1,
   "7852361579": 1,
-  "798075690797": 1,
+  "798075690797": 2,
   "805059071491": 1,
   "829815347538": 1,
   "837655077198": 1,
@@ -103,6 +103,7 @@
  },
  "batches": [
   {
+   "collected": "2026-10-29T23:10:18Z",
    "count": 100,
    "created": "2026-10-29T23:08:14Z",
    "id": "msgbatch_01SdrEfemd28WTTrnLsvjP7A",
@@ -210,16 +211,62 @@
    ],
    "image_mode": "resize",
    "label": "pilot",
-   "status": "in_progress"
+   "result": {
+    "canceled": 0,
+    "errored": 0,
+    "expired": 0,
+    "invalid": 2,
+    "succeeded": 98
+   },
+   "status": "collected"
+  },
+  {
+   "collected": "2026-10-29T23:14:20Z",
+   "count": 2,
+   "created": "2026-10-29T23:10:19Z",
+   "id": "msgbatch_01PpcmNbNiChrkXUv6g7Ki6h",
+   "ids": [
+    "6646357483",
+    "798075690797"
+   ],
+   "image_mode": "resize",
+   "label": "retry of msgbatch_01SdrEfemd28WTTrnLsvjP7A",
+   "result": {
+    "canceled": 0,
+    "errored": 0,
+    "expired": 0,
+    "invalid": 1,
+    "succeeded": 1
+   },
+   "status": "collected"
+  },
+  {
+   "collected": "2026-10-29T23:16:21Z",
+   "count": 1,
+   "created": "2026-10-29T23:14:21Z",
+   "id": "msgbatch_01EXRSWoNL4QHMJFZPcCcthC",
+   "ids": [
+    "6646357483"
+   ],
+   "image_mode": "resize",
+   "label": "retry of msgbatch_01PpcmNbNiChrkXUv6g7Ki6h",
+   "result": {
+    "canceled": 0,
+    "errored": 0,
+    "expired": 0,
+    "invalid": 1,
+    "succeeded": 0
+   },
+   "status": "collected"
   }
  ],
- "cost_usd": 0.0,
+ "cost_usd": 1.2356,
  "max_cost": 5.0,
  "usage": {
-  "cache_read": 0,
-  "cache_write_1h": 0,
+  "cache_read": 88920,
+  "cache_write_1h": 216372,
   "cache_write_5m": 0,
-  "input": 0,
-  "output": 0
+  "input": 86249,
+  "output": 18920
  }
 }
