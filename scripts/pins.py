@@ -81,7 +81,8 @@ def main():
             if not (now + timedelta(minutes=20) <= t <= now + timedelta(days=DAYS)) or any(abs((t - h).total_seconds()) < 1800 for h in have) or not fresh: continue
             pid = fresh.pop(0); p = prod[pid]
             media = P.upload(render(p, os.path.join(out, "pin-%s.jpg" % pid)))
-            link = "%s/product/%s?ref=pin" % (SITE, urllib.parse.quote(pid))
+            # ref=pin stays (the site saves it as the sign-up channel); the utm tags give /admin the source and campaign
+            link = "%s/product/%s?ref=pin&utm_source=pinterest&utm_medium=social&utm_campaign=pin" % (SITE, urllib.parse.quote(pid))
             title = ("%s %s" % (p.get("brand") or "", p.get("title") or "")).strip() if (p.get("brand") or "") not in (p.get("title") or "") else p.get("title")
             text = "%s. Quality-checked find with QC photos, one tap from your agent. #oldmoney #fashionfinds #%s" % (title, "".join(c for c in (p.get("brand") or "style").lower() if c.isalnum()))
             body = {"type": "schedule", "date": t.strftime("%Y-%m-%dT%H:%M:%S.000Z"), "shortLink": False, "tags": [],
