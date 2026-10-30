@@ -3915,15 +3915,7 @@ function pcAInit(){
   /* density: comfortable (bigger cards, default) or compact (the old size), remembered per visitor */
   try{ const g=document.querySelector(".pc-dens"); if(g){ const sync=()=>{ const c=document.documentElement.classList.contains("grid-compact"); g.querySelectorAll("[data-dens]").forEach(b=>b.setAttribute("aria-pressed",String((b.getAttribute("data-dens")==="compact")===c))); };
     g.addEventListener("click",e=>{ const b=e.target.closest("[data-dens]"); if(!b) return; const c=b.getAttribute("data-dens")==="compact"; document.documentElement.classList.toggle("grid-compact",c); try{ localStorage.setItem("pc.grid.density",c?"compact":"comfortable"); }catch(_){} sync(); }); sync(); } }catch(e){}
-  /* back to top: shows two screens below the toolbar, scrolls to the All Finds heading (the toolbar on hubs) */
-  try{ if(!document.getElementById("pc-top")){ const b=document.createElement("button"); b.type="button"; b.id="pc-top"; b.className="pc-top"; b.tabIndex=-1; b.setAttribute("aria-hidden","true");
-    b.innerHTML=ICON("chevron-down")+`<span>${esc(t("back_top"))}</span>`; document.body.appendChild(b);
-    const anchor=()=>{ const h=document.getElementById("v9-all"); return (h&&h.getClientRects().length)?h:document.getElementById("pc-tb-sent"); };
-    let raf=0; const upd=()=>{ raf=0; const a=anchor(); if(!a) return; const y=a.getBoundingClientRect().top+window.scrollY;
-      const on=window.scrollY>y+2*window.innerHeight&&!document.body.classList.contains("pp-open")&&!drawer.classList.contains("open")&&!PC_FS.open;
-      if(on!==b.classList.contains("on")){ b.classList.toggle("on",on); b.tabIndex=on?0:-1; if(on) b.removeAttribute("aria-hidden"); else b.setAttribute("aria-hidden","true"); } };
-    window.addEventListener("scroll",()=>{ if(!raf) raf=requestAnimationFrame(upd); },{passive:true});
-    b.addEventListener("click",()=>{ const a=anchor(); if(!a) return; const y=a.getBoundingClientRect().top+window.scrollY-8; window.scrollTo({top:Math.max(0,y),behavior:pcRm()?"auto":"smooth"}); }); } }catch(e){}
+  /* back-to-top button removed (owner, 30 Oct 2026) */
   try{ pcPeekInit(); }catch(e){}
   /* portalled toolbar popovers follow their pill while the page or the pill row scrolls */
   try{ let raf=0; const go=()=>{ raf=0; if(window.innerWidth<=560) return; document.querySelectorAll(".cselmenu.cm-portal:not([hidden]),#price-pop.pc-port:not([hidden])").forEach(mm=>{ const b=mm.__btn||(mm.id==="price-pop"?document.getElementById("price-btn"):null); if(b&&b.getClientRects().length) pcPlace(mm,b); }); };
