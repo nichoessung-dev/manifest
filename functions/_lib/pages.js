@@ -71,7 +71,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w38";   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
+export const PRODUCT_TPL = "w39";   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -157,8 +157,7 @@ export async function renderProduct(id, origin) {
     `${g === "dead" ? "The buttons still open it in case the seller puts it back" : "The buttons still open it, since sellers often restock"}; similar finds are below.</p>`;
   const buyBox = goneNote + `<div class="buybox"><div class="buy-split"><div class="buy-main">${buyLink(ag[0], true)}</div>` +
     `<details class="buy-more"><summary aria-label="Other agents">${CHEVRON}</summary><div class="buy-menu"><p class="buy-or">Or buy via</p><div class="buy-alt">${ag.slice(1).map(x => buyLink(x, false)).join("")}</div></div></details></div>` +
-    // r6 item 17: a quiet "Affiliate link" label right under the buy button; the full sentence sits in its popover (PAGE_JS)
-    `<div class="aff-lb"><button type="button" class="aff-btn" aria-expanded="false" aria-controls="aff-pop-1"><span>Affiliate link</span>${ic("info", "sm")}</button><span class="aff-pop" id="aff-pop-1" role="tooltip">These are affiliate links: we may earn a commission if you order, at no extra cost to you.</span></div>` +
+    // affiliate label under the buy button removed (owner, 30 Oct 2026); the disclosure stays in the footer, FAQ and /terms
     `<a class="buy-hint" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">${ic("gift", "sm")}<span>New to MyCNBox? Sign up with our link for up to $500 in new-user coupons</span>${ARROW}</a>` +
     `</div>` +
     // The agent the visitor picked in the app becomes the main button (it swaps places with MyCNBox, which moves into
