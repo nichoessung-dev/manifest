@@ -4185,7 +4185,7 @@ function agentRow(p){
   </div>${affLabel()}${hint}`;
 }
 /* item 17: quiet "Affiliate link" label right under the buy button (before the coupon hint); the popover script is delegated */
-function affLabel(){ return `<div class="aff-lb"><button type="button" class="aff-btn" aria-expanded="false" aria-controls="aff-pop-1"><span>${t("aff_label")}</span>${ICON("info","sm")}</button><span class="aff-pop" id="aff-pop-1" role="tooltip">${t("aff_note")}</span></div>`; }
+function affLabel(){ return ""; }   /* owner 30 Oct 2026: label removed; disclosure stays in the footer and /terms */
 /* the MyCNBox welcome offer, right under the buy button (21 Oct 2026): the coupons go to accounts made with our invite link */
 function couponHint(){ return `<a class="buy-hint" href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" target="_blank" rel="sponsored noopener"><span>${t("coupon_hint")}</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a>`; }
 /* phones: the bar at the bottom of the product view copies the main buy button (link, rel and label) and shows while that
