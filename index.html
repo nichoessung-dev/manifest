@@ -4024,7 +4024,6 @@ function card(p,i){
     <div class="thumb">
       <canvas aria-hidden="true"></canvas>
       ${p.img?`<img class="pimg" src="${esc(thumbOf(p.img))}" alt="${esc(altOf(p))}" loading="${top<8?"eager":"lazy"}"${top<4?' fetchpriority="high"':""} decoding="async" onerror="this.remove()">`:""}
-      <span class="pc-qv" aria-hidden="true">${hasQC?CAM+"<b>"+esc(t("qc_only"))+"</b><i></i>":""}<span>${esc((PLAT[p.platform]||{}).label||p.platform||"")}</span></span>
       <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save ${esc(p.title)}">${HEART}</button>${colourBadge(p)}
     </div>
     <div class="body">
