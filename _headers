@@ -30,5 +30,17 @@
 /ds.css
   Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
 
+# the header search (engine + UI) is linked as /pcs.js?v=<hash of the file>, so a new build always gets a new URL
+/pcs.js
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+
+/pcs.css
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+
 /track.js
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# web app manifest (round 5): a day, so a changed name or icon reaches installs soon
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: public, max-age=86400
