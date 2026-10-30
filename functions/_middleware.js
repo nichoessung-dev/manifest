@@ -3,7 +3,7 @@
 import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
   sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL } from "./_lib/pages.js";
-import { imgSrc } from "./_lib/site.js";
+import { imgSrc, navKey } from "./_lib/site.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
@@ -52,7 +52,7 @@ const SECURITY_HEADERS = {
   "referrer-policy": "strict-origin-when-cross-origin",
   "permissions-policy": "geolocation=(), microphone=(), camera=(), payment=(), usb=()",
   "cross-origin-opener-policy": "same-origin-allow-popups",
-  "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cloudflareinsights.com; frame-src https://*.supabase.co https://accounts.google.com https://appleid.apple.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+  "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cloudflareinsights.com https://accounts.google.com/gsi/; frame-src https://*.supabase.co https://accounts.google.com https://appleid.apple.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
 };
 export async function onRequest(ctx) {
   const res = await route(ctx);
@@ -97,7 +97,7 @@ async function serverCards(ctx, origin, spec) {
   const { list, base } = hubList(spec), { dead } = await linkHealth(ctx, origin);
   const live = [];
   for (const p of list) { if (!dead.has(String(p.id))) live.push(p); if (live.length >= APP_CARDS) break; }
-  return { cards: appCards(live, spec && spec.preset.qc ? 1 : 2), more: spec ? appPager(base, list.length) : "", top: live[0] || null };
+  return { cards: appCards(live, 1, spec && spec.preset.agent, spec ? 0 : 8), more: spec ? appPager(base, list.length) : "", top: live[0] || null };
 }
 
 async function catalogJs(ctx, url) {
@@ -133,6 +133,30 @@ async function catalogJs(ctx, url) {
   return new Response(body, { headers: { ...type, "cache-control": cc } });
 }
 
+// /search-index.json (round 6, item 10): the catalogue the header search on server pages loads on first use, and the
+// QC checker / link converter read for a find's marketplace. Built by functions/_lib/search_index.js once per isolate
+// (and per stats version), shared between isolates through caches.default. ?v=<BUILT> makes it immutable; ETag + 304.
+async function searchIndexJson(ctx, url) {
+  const SI = await import("./_lib/search_index.js");
+  await ensureStats(url.origin);
+  let ix = SI.cachedIndex(), body = ix && ix.body, etag = ix && ix.etag;
+  const ver = ix ? ix.ver : SI.statsVersion();
+  const key = new Request(`https://ssr-cache.internal/search-index/${BUILT}/${ver}`, { method: "GET" });
+  if (!body) {
+    const hit = await caches.default.match(key).catch(() => null);
+    if (hit) { body = await hit.text(); etag = hit.headers.get("etag") || `"${BUILT}-${SI.fnv8(body)}"`; }
+  }
+  if (!body) {
+    ix = SI.buildSearchIndex(); body = ix.body; etag = ix.etag;
+    ctx.waitUntil(caches.default.put(key, new Response(body, { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=31536000", etag } })).catch(() => {}));
+  }
+  const headers = { "content-type": "application/json; charset=utf-8", etag,
+    "cache-control": url.searchParams.get("v") === BUILT ? "public, max-age=31536000, immutable" : "public, max-age=3600, stale-while-revalidate=86400" };
+  const inm = ctx.request.headers.get("if-none-match") || "";
+  if (inm && inm.split(",").some(t => t.trim().replace(/^W\//, "") === etag || t.trim() === "*")) return new Response(null, { status: 304, headers });
+  return new Response(ctx.request.method === "HEAD" ? null : body, { headers });
+}
+
 async function route(ctx) {
   const { request } = ctx;
   if (request.method !== "GET" && request.method !== "HEAD") return ctx.next();
@@ -141,6 +165,7 @@ async function route(ctx) {
   // The old pages.dev address still resolves: send everything to the real domain so traffic and ranking are not split.
   if (url.hostname === PAGES_DEV) return Response.redirect("https://www.puroclassico.com" + path + url.search, 301);
   if (path === "/catalog.js") return catalogJs(ctx, url);
+  if (path === "/search-index.json") return searchIndexJson(ctx, url);   // r6 GROUP C: header search index for server pages
   // Search-engine ownership files, answered here so Pages' ".html -> pretty URL" redirect can't get in the way.
   if (VERIFY[path]) return new Response(VERIFY[path], { headers: { "content-type": "text/html; charset=utf-8" } });
   // /discord (any case, with or without a trailing slash) is the one address the site, static pages and emails link to.
@@ -161,6 +186,8 @@ async function route(ctx) {
   // One 301 hop: strip the trailing slash and, for hub URLs (/brand/Fendi, /Best/X ...), lowercase.
   let to = path.length > 1 ? path.replace(/\/+$/, "") || "/" : path;
   if (/^\/(brand|category|brands|old-money|guides|best|tools)\b|^\/[a-z]+-spreadsheet/i.test(to)) to = to.toLowerCase();
+  // v9: the weight estimator moved into the shipping calculator; one hop even from /tools/weight-estimator/.
+  if (to === "/tools/weight-estimator") return Response.redirect(url.origin + "/tools/shipping-calculator", 301);
   if (to !== path) return Response.redirect(url.origin + to + url.search, 301);
   let m, res = undefined;
   // Edge cache for the hub and list pages (20 Oct 2026): building one takes 0.3-0.6 s (catalogue index + view stats), a
@@ -210,6 +237,8 @@ async function route(ctx) {
     if (hubUrl) return Response.redirect(url.origin + hubUrl, 301);
     res = paged(renderModel, m[1], m[2], url.origin + "/best/" + m[1]);
   }
+  // v9: the weight estimator lives on inside the shipping calculator ("add items").
+  else if (path === "/tools/weight-estimator") return Response.redirect(url.origin + "/tools/shipping-calculator", 301);
   else if (path === "/tools") res = renderTools();
   else if ((m = path.match(/^\/tools\/([a-z0-9-]+)$/))) res = renderTool(m[1]);
   // An old spelling redirects only when the brand it was merged into has a hub; otherwise it is a plain 404, not a 301 to a 404.
@@ -273,7 +302,11 @@ async function hubApp(ctx, url, spec) {
   // Same rule as page() in site.js: Google shows about 60 characters of a title, so a longer one drops the site name
   // (Google prints the site name above every result anyway).
   const title = spec.title.length > 60 ? spec.title.replace(/ [|·] Puro Classico$/, "") : spec.title;
+  // Header (round 4): index.html marks Finds as the current section; a hub in another section (/brand/x -> Brands) gets
+  // the mark moved here, before the first paint, so the active pill never jumps. Same map as the server pages (navKey).
+  const navHref = { finds: "/", brands: "/brands", tools: "/tools", guides: "/guides", how: "/how-to-order" }[navKey(spec.path)] || "";
   const out = new HTMLRewriter()
+    .on("nav.v9-nav a.v9-nl", { element(e) { if (e.getAttribute("href") === navHref) e.setAttribute("aria-current", "page"); else e.removeAttribute("aria-current"); } })
     .on("title", { element(e) { e.setInnerContent(title); } })
     .on('meta[name="description"]', content(spec.desc))
     .on('meta[property="og:title"]', content(title)).on('meta[name="twitter:title"]', content(title))
@@ -290,18 +323,14 @@ async function hubApp(ctx, url, spec) {
     .on("script#pc-catalog", { element(e) { e.replace(catalogTags(etagOf(asset)), { html: true }); } })
     .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
     .on("meta[charset]", { element(e) { e.after(head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
-    .on("span.v7-eyebrow", { element(e) { e.remove(); } })                 // hub pages show their breadcrumb there instead
-    // v8 (28 Oct 2026): the hero of a hub is only breadcrumb, h1 and subtitle. Its other parts used to be sent and then
-    // hidden by html.hub CSS; they are removed instead, so a hub carries no hidden text and loads no favourites photos
-    // nobody sees (renderFeatured() builds eager images). The CTA row with the "How ordering works" link goes too: every
-    // hub links /how-to-order in its footer. The app code checks for each element before using it (updateHero,
-    // wireHeroCTA, wireStripPause, renderFeatured and the v8 motion script).
-    .on("div.hero-actions", { element(e) { e.remove(); } })
-    .on("div#hero-stats", { element(e) { e.remove(); } })
-    .on("a.tp-badge", { element(e) { e.remove(); } })
-    .on("div.agents-strip", { element(e) { e.remove(); } })
-    .on("div.strip-head", { element(e) { e.remove(); } })
-    .on("div#hero-strip", { element(e) { e.remove(); } })
+    // v8 hero parts (eyebrow, CTA row, stats, Trustpilot badge, agents strip, favourites strip) are no longer in the v9
+    // index.html, so their removal rules are gone. The app code still checks for each element before using it.
+    // v9 (29 Oct 2026): the homepage sections between the hero and the toolbar, the hero search, the hero buttons and the hero trust row
+    // are homepage only. Removed here like the v8 hero parts; home.js no-ops when they are missing.
+    .on("div#v9-home", { element(e) { e.remove(); } })
+    .on("form#v9-hero-search", { element(e) { e.remove(); } })
+    .on("div.v9-hero-actions", { element(e) { e.remove(); } })
+    .on("div.v9-trust", { element(e) { e.remove(); } })
     .on("h1.hero-h", { element(e) { e.setInnerContent(spec.h); e.before(crumbHtml, { html: true }); } })
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
     .on("footer", { element(e) { e.before(seo, { html: true }); } })
