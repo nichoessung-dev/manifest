@@ -71,7 +71,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w41";   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
+export const PRODUCT_TPL = "w42";   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -1303,11 +1303,11 @@ export function appCards(list, qcMin = 1, agent = "mycnbox", off = 0) {   // qcM
     const img = imgSrc(p), id = esc(p.id), url = productUrl(p);
     return `<div class="card" data-ssr="${id}"><div class="thumb"><canvas aria-hidden="true"></canvas>` +
       (img ? `<img class="pimg" src="${esc(thumbSrc(img))}" data-o="${esc(img)}" alt="${esc(appAlt(p))}" loading="${i + off < 8 ? "eager" : "lazy"}"${i + off < 4 ? ' fetchpriority="high"' : ""} decoding="async" ${IMG_FALLBACK}>` : "") +
-      `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save ${esc(p.title)}">${HEART}</button>${colourBadge(p, PALETTE)}</div>` +
+      `<button class="fav" data-fav="${id}" aria-pressed="false" aria-label="Save ${esc(p.title)}">${HEART}</button><span class="tbadges">${colourBadge(p, PALETTE)}${(p.qc || 0) >= qcMin ? `<a class="cbadge qcb" href="${url}#qc" aria-label="QC photos of ${esc(p.title)}">${CAM}</a>` : ""}</span></div>` +
       `<div class="body">${p.brand ? `<span class="brand-line">${esc(p.brand)}</span>` : ""}<a class="title" href="${url}">${esc(p.title)}</a>` +
       `<span class="price-row"><span class="price">${money(p.cny)}</span>${isPH(p.cny) ? "" : `<span class="subprice">¥${(+p.cny).toLocaleString("en-US")}</span>`}` +
       `<span class="starcount" data-sc="${id}"></span><span class="cat">${esc(p.cat)}</span></span>` +
-      `<span class="card-acts">${(p.qc || 0) >= qcMin ? `<a class="qc-pill" href="${url}#qc" aria-label="QC photos of ${esc(p.title)}">${CAM}QC</a>` : ""}` +
+      `<span class="card-acts">` +
       `<a class="buy-pill" href="${esc(a.build(p))}" data-agent="${esc(AGENTS[agent] ? agent : "mycnbox")}" target="_blank" rel="sponsored nofollow noopener" aria-label="Buy via ${esc(a.name)}: ${esc(p.title)}">Buy</a></span></div></div>`;
   }).join("");
 }
