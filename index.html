@@ -2564,6 +2564,16 @@ html .fav,html .card .fav,html .drawer .fav{background:rgba(255,255,255,.92)!imp
   background:var(--badge-bg);box-shadow:inset 0 0 0 1px var(--badge-line);color:var(--badge-ink);font:500 12px/1 var(--f-body);font-variant-numeric:tabular-nums;letter-spacing:0;pointer-events:none;user-select:none;-webkit-user-select:none}
 .cbadge .ic{width:14px;height:14px;flex:none}
 .sim-thumb{position:relative}
+/* r10 (31 Oct 2026): the card's QC link is a camera badge beside the colour badge (owner); Buy takes the whole row */
+.thumb .tbadges{position:absolute;top:12px;left:8px;z-index:3;display:flex;gap:6px;pointer-events:none}
+.thumb .tbadges:empty{display:none}
+.tbadges .cbadge{position:static}
+.tbadges .qcb{position:relative;top:0;left:0;width:24px;padding:0;justify-content:center;pointer-events:auto;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s var(--ease),transform .15s var(--ease)}
+.tbadges .qcb:active{transform:scale(.96)}
+.tbadges .qcb:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+@media (hover:hover){.tbadges .qcb:hover{background:rgba(10,10,10,.8)}}
+@media (pointer:coarse){.tbadges .qcb::before{content:"";position:absolute;inset:-10px -4px}}
+.card-acts .buy-pill{flex:1 1 100%}
 .sim-thumb .cbadge{top:6px;left:auto;right:6px;height:22px;padding:0 8px 0 6px}
 /* round 9 (31 Oct 2026): compact tool sections on phones (QC, size/track teasers, Free Tools, 3 steps). CSS only, phones only,
    every word stays in the DOM and visible (descriptions are clamped, not hidden); tap targets stay 44px. Desktop untouched. */
@@ -4070,7 +4080,7 @@ function card(p,i){
     <div class="thumb">
       <canvas aria-hidden="true"></canvas>
       ${p.img?`<img class="pimg" src="${esc(thumbOf(p.img))}" alt="${esc(altOf(p))}" loading="${top<8?"eager":"lazy"}"${top<4?' fetchpriority="high"':""} decoding="async" onerror="this.remove()">`:""}
-      <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save ${esc(p.title)}">${HEART}</button>${colourBadge(p)}
+      <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save ${esc(p.title)}">${HEART}</button><span class="tbadges">${colourBadge(p)}${hasQC?`<a class="cbadge qcb" href="/product/${encodeURIComponent(p.id)}#qc" aria-label="${esc(t("qc_of").replace("{t}",p.title))}">${ICON("camera")}</a>`:""}</span>
     </div>
     <div class="body">
       ${p.brand?`<span class="brand-line">${esc(p.brand)}</span>`:""}
@@ -4082,11 +4092,11 @@ function card(p,i){
         <span class="cat">${esc(catName(p.cat))}</span>
         ${SHOW_VIEWS?`<span class="cviews" title="Views: last 7 days / 30 days / all time · favourites">👁 ${p.views7||0} / ${p.views||0} / ${p.viewsAll||0} · ★ ${p.favs||0}</span>`:""}
       </span>
-      <span class="card-acts">${hasQC?`<a class="qc-pill" href="/product/${encodeURIComponent(p.id)}#qc" aria-label="${esc(t("qc_of").replace("{t}",p.title))}">${CAM}QC</a>`:""}<a class="buy-pill" href="${esc(ag.build(p))}" data-agent="${esc(ak)}" target="_blank" rel="sponsored nofollow noopener" aria-label="${esc(t("buy_via").replace("{a}",ag.name)+": "+p.title)}">${esc(t("buy_short"))}</a></span>
+      <span class="card-acts"><a class="buy-pill" href="${esc(ag.build(p))}" data-agent="${esc(ak)}" target="_blank" rel="sponsored nofollow noopener" aria-label="${esc(t("buy_via").replace("{a}",ag.name)+": "+p.title)}">${esc(t("buy_short"))}</a></span>
     </div>`;
   const open=()=>openDetail(p);
   _warmHooks(el,p);   /* r7: hover prefetch, pointerdown builds the view */
-  el.addEventListener("click",e=>{ if(e.target.closest(".fav,.buy-pill"))return; const qc=e.target.closest(".qc-pill"); if((qc||e.target.closest("a.title"))&&(e.metaKey||e.ctrlKey||e.shiftKey||e.button===1))return; e.preventDefault(); open();
+  el.addEventListener("click",e=>{ if(e.target.closest(".fav,.buy-pill"))return; const qc=e.target.closest(".qc-pill,.qcb"); if((qc||e.target.closest("a.title"))&&(e.metaKey||e.ctrlKey||e.shiftKey||e.button===1))return; e.preventDefault(); open();
     /* the QC pill opens the find on its QC photos */
     if(qc){ const qt=drawer.querySelector('.gtab[data-mode="qc"]'); if(qt&&qt.style.display!=="none") qt.click(); } });
   /* keyboard: the title link is the card's focus stop; Enter on it fires the click handler above, Enter on Save saves */
