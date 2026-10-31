@@ -9,8 +9,10 @@ import { itemTypeOf, typeGrams, boxedGrams, fmtGrams } from "./weights.js";
 // v9 tools: the weight estimator merged into the shipping calculator (/tools/weight-estimator 301s there), plus the size
 // estimator and parcel tracker. TOOLS drives the tools hub descriptions and the sitemap.
 const TOOLS = Object.fromEntries(Object.entries(Object.assign({}, TOOLS0, TOOLS9)).filter(([k]) => k !== "weight-estimator"));
-import { MODELS3, GUIDES3, MODEL_TERM } from "./content3.js";
-const MODELS = MODELS2.concat(MODELS3);
+import { MODELS3, GUIDES3, MODEL_TERM as MODEL_TERM3 } from "./content3.js";
+import { MODELS4, MODEL_TERM4 } from "./content4.js";
+const MODELS = MODELS2.concat(MODELS3, MODELS4);
+const MODEL_TERM = Object.assign({}, MODEL_TERM3, MODEL_TERM4);
 const BRAND_INTRO = Object.assign({}, BRAND_INTRO2, BRAND_INTRO1);
 const GUIDES = Object.assign({}, GUIDES1, GUIDES2, GUIDES3);
 const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);   // a slug from the URL must be the object's own key: "constructor" is a key of every plain object, and not a guide
@@ -71,7 +73,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w42";   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
+export const PRODUCT_TPL = "w43";   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
