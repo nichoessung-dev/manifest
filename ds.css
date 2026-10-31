@@ -1126,3 +1126,73 @@ header.h .pcs-hd{position:relative}
 .cbadge{position:absolute;top:8px;right:8px;z-index:2;display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px 0 6px;border-radius:var(--r-pill);
   background:var(--badge-bg);box-shadow:inset 0 0 0 1px var(--badge-line);color:var(--badge-ink);font:500 12px/1 var(--font);font-variant-numeric:tabular-nums;pointer-events:none;user-select:none}
 .cbadge .ic{width:14px;height:14px;flex:none}
+
+/* ---------------------------------------------------------------- round 9 (31 Oct 2026): compact tools on phones (the 340px one-column fallback for .tk-grid2 follows below)
+   /tools hub cards and the tool pages take far less height at 560px and below. CSS only, phones only: every word stays in
+   the DOM and visible (chip rows scroll sideways instead of wrapping), tap targets stay 44px, desktop is untouched. */
+@media (max-width:560px){
+  /* hero: icon tile next to the title instead of above it */
+  .tk-hero{display:grid;grid-template-columns:40px minmax(0,1fr);column-gap:12px;align-items:center;margin:4px 0 16px}
+  .tk-hero > *{grid-column:1/-1}
+  .tk-hero > .tk-hero-ic{grid-column:1;grid-row:1;width:40px;height:40px;margin:0;border-radius:12px}
+  .tk-hero > .tk-hero-ic + h1{grid-column:2;grid-row:1}
+  .tk-hero-ic svg{width:20px;height:20px}
+  .tk-hero h1{margin:0;font-size:24px;line-height:1.2}
+  .tk-hero h1 .tk-name{font-size:13px;line-height:1.4}
+  .tk-hero .lead{margin:8px 0 8px;font-size:15px;line-height:1.5}
+  .tk-page.hub .tk-hero .lead{margin-top:0}
+  /* hub cards: icon beside name and one-liner, chips + Details on one row, form below */
+  .tk-hub{gap:10px;margin-top:16px}
+  .tk-hc{display:grid;grid-template-columns:36px minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;padding:14px}
+  .tk-hc > *{grid-column:1/-1}
+  .tk-hc > .tk-ic{grid-column:1;grid-row:1/span 2;align-self:start;width:36px;height:36px;margin:2px 0 0;border-radius:10px}
+  .tk-hc .tk-ic svg{width:18px;height:18px}
+  .tk-hc > h2{grid-column:2/-1;grid-row:1;padding-right:24px;font-size:16px}
+  .tk-hc > .one{grid-column:2/-1;grid-row:2;font-size:14px;line-height:1.4}
+  .tk-hc .tk-arrow{top:16px;right:14px}
+  .tk-hc > .ic-row.tight{grid-column:1/3;position:relative;z-index:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:8px 0 0;padding:0}
+  .tk-hc > .ic-row.tight::-webkit-scrollbar{display:none}
+  .tk-hc > .ic-row.tight,.tk-empty .tk-chips{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent);padding-right:16px}
+  .tk-hub ~ h2{margin-top:28px}
+  .tk-hc > .ic-row.tight li{flex:none;white-space:nowrap}
+  .tk-hc > details.more{grid-column:3;margin-top:8px}
+  .tk-hc > details.more[open]{grid-column:1/-1;margin-top:0}
+  .tk-hc > details.more > summary{gap:6px;padding-left:4px}
+  .tk-hc form{padding-top:6px}
+  .tk-hc form .tk-in{flex:1 1 0}
+  .tk-flow{gap:8px;margin-top:10px}
+  .tk-flow a{flex-direction:row;flex-wrap:wrap;align-items:center;column-gap:10px;row-gap:2px;padding:10px 12px}
+  .tk-flow a .ic-tile{width:32px;height:32px}
+  .tk-flow a .ic-tile .ic{width:16px;height:16px}
+  .tk-flow a::before{top:4px;left:34px}
+  .tk-flow b{flex:1 1 0;min-width:0;font-size:14px}
+  .tk-flow a > span:not(.ic-tile){flex-basis:100%}
+  /* tool cards */
+  .tk-page{--tk-gap:12px}
+  .tk-card{padding:14px}
+  .tk-empty{padding:10px 12px;gap:6px}
+  .tk-out[data-state="empty"] .tk-empty{min-height:88px}
+  .tk-empty .tk-chips{flex-wrap:nowrap;justify-content:flex-start;max-width:100%;overflow-x:auto;scrollbar-width:none}
+  .tk-empty .tk-chips::-webkit-scrollbar{display:none}
+  .tk-empty .tk-chips > *{flex:none}
+  .tk-chips{gap:6px;margin-top:8px}
+  .tk-row{gap:6px 12px}
+  .tk-seg.wrap > button{min-height:52px}
+  .tk-grid2{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .tk-grid2 .tk-unitwrap .tk-in{padding-left:12px;padding-right:30px}
+  .tk-grid2 .tk-unit{right:10px}
+  .tk-res{padding:14px}
+  /* below the tool: steps in one row of three, compact related tools */
+  .tk-below{margin-top:28px}
+  .tk-below > h2{margin-top:24px}
+  .tk-below .ic-steps{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0}
+  .tk-below .ic-steps li{flex-direction:column;justify-content:flex-start;gap:6px;padding:10px 4px;text-align:center;font-size:13px;line-height:1.3}
+  .tk-below .ic-steps li .ic-tile{width:32px;height:32px}
+  .tk-below .ic-steps li .ic-tile .ic{width:16px;height:16px}
+  .tk-below .ic-steps li::after{top:4px;left:calc(50% + 8px)}
+  .tk-related{gap:8px;margin-top:10px}
+  .tk-related a{min-height:56px;padding:10px 12px;gap:10px}
+  .tk-related .tk-ic{width:36px;height:36px;border-radius:10px}
+  .tk-related b + span{line-height:1.35}
+}
+@media (max-width:340px){.tk-grid2{grid-template-columns:1fr}}
