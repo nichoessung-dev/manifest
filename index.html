@@ -2703,7 +2703,7 @@ html .fav,html .card .fav,html .drawer .fav{background:rgba(255,255,255,.92)!imp
     <p class="hero-sub v9-hero-sub" data-i18n="hero_sub">The rep spreadsheet for Weidian, Taobao and 1688 finds, with real buyer QC photos and one-tap buy links for your agent.</p>
     <form class="v9-hero-search" id="v9-hero-search" action="/" method="get" role="search">
       <svg class="ic v9-s-ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>
-      <input id="v9-q" name="q" type="search" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="Search 9,200+ finds" aria-label="Search finds">
+      <input id="v9-q" name="q" type="search" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="Search 9,100+ finds" aria-label="Search finds">
       <button type="submit" class="v9-s-go" aria-label="Search"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></button>
     </form>
     <div class="v9-hero-actions">
@@ -2812,7 +2812,7 @@ html .fav,html .card .fav,html .drawer .fav{background:rgba(255,255,255,.92)!imp
   <div class="v9-wrap">
     <h2 class="v9-vh" id="v9-nums-h" data-i18n="v9_nums_h">The Sheet In Numbers</h2>
     <dl class="v9-nums-grid">
-      <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-sheet"/></svg></span><span data-i18n="v9_n_finds">Finds on the sheet</span></dt><dd data-num="finds">9,200+</dd></div>
+      <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-sheet"/></svg></span><span data-i18n="v9_n_finds">Finds on the sheet</span></dt><dd data-num="finds">9,100+</dd></div>
       <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg></span><span data-i18n="v9_n_qc">Finds with QC photos</span></dt><dd data-num="qc">2,100+</dd></div>
       <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-store"/></svg></span><span data-i18n="v9_n_markets">Marketplaces</span></dt><dd data-num="markets">3</dd></div>
       <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-users"/></svg></span><span data-i18n="v9_n_agents">Agents supported</span></dt><dd data-num="agents">5</dd></div>
@@ -4874,7 +4874,7 @@ fetch("/data/link_health.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).t
   const dead=new Set(h.dead.map(String)), n=ALL.length;
   ALL=ALL.filter(p=>!dead.has(String(p.id)));
   if(ALL.length!==n) _bgDirty=true;
-}).catch(()=>{}).finally(_bgDone);
+}).catch(()=>{}).finally(()=>{ window.__lhDone=1; try{ window.__pcNumbers&&window.__pcNumbers(); }catch(e){} _bgDone(); });
 /* real popularity: aggregated product views + favourites (data/stats.json, refreshed every 6h by the Stats workflow) */
 function popScore(p){ return (p.views||0) + (p.views7||0); }   /* views in the last 30 days, last 7 days count double */
 let STATS = null;
@@ -5749,20 +5749,24 @@ function wirePPFilters(){
   }
 
   /* ---------- live numbers, tile counts, the active tile, the search placeholder ---------- */
+  window.__pcNumbers = function () { try { numbers(); } catch (e) {} };
   function numbers() {
     var a = list(), qc = 0, by = {};
     a.forEach(function (p) { if ((p.qc || 0) > 0) qc++; by[p.cat] = (by[p.cat] || 0) + 1; });
     var ag = 5; try { ag = Object.keys(AGENTS).length; } catch (e) {}
-    var v = { finds: a.length, qc: qc, markets: 3, agents: ag };
-    [].forEach.call(home.querySelectorAll("[data-num]"), function (el) { var k = el.getAttribute("data-num"); if (v[k] != null && a.length) el.textContent = nf(v[k]); });
+    /* r11 (31 Oct 2026): finds and QC counts are rounded down to the hundred with a "+", and only written once the dead-link
+       check has answered (window.__lhDone), so the number no longer jumps (9,202 then 9,159) while the page loads */
+    var ok = a.length && window.__lhDone, h = function (n) { return nf(Math.floor(n / 100) * 100) + "+"; };
+    var v = { finds: h(a.length), qc: h(qc), markets: "3", agents: String(ag) };
+    [].forEach.call(home.querySelectorAll("[data-num]"), function (el) { var k = el.getAttribute("data-num"); if (v[k] != null && ok) el.textContent = v[k]; });
     var s = st(), on = s && s.cats && s.cats.length === 1 ? s.cats[0] : "";
     [].forEach.call(home.querySelectorAll(".v9-cat[data-cat]"), function (el) {
       var c = el.getAttribute("data-cat");   /* round 5: no count under the label any more (rep-find look) */
       el.classList.toggle("is-on", c === on);
     });
     var inp = $("v9-q");
-    if (inp && a.length) inp.placeholder = tr("v9_search_ph", "Search {n} finds").replace("{n}", nf(a.length));
-    var hi = $("pcs-hi"); if (hi && a.length) hi.placeholder = tr("pcs_ph_n", "Search {n} finds").replace("{n}", nf(a.length));
+    if (inp && ok) inp.placeholder = tr("v9_search_ph", "Search {n} finds").replace("{n}", v.finds);
+    var hi = $("pcs-hi"); if (hi && ok) hi.placeholder = tr("pcs_ph_n", "Search {n} finds").replace("{n}", v.finds);
   }
 
   /* ---------- first build, then again when currency, language, agent, the stats or the dead-link check change it ---------- */
