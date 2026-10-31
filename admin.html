@@ -8,7 +8,7 @@
 <title>Admin · Puro Classico</title>
 <link rel="icon" type="image/png" href="/favicon.png">
 <meta name="theme-color" content="#FFFFFF">
-<script>(function(){var d=document.documentElement,t;try{t=localStorage.getItem("manifest.theme")}catch(e){}if(t!=="light"&&t!=="dark")t="system";d.setAttribute("data-theme-pref",t);if(t!=="system")d.setAttribute("data-theme",t);d.classList.add("js");try{var k=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector('meta[name="theme-color"]');if(m)m.content=k?"#0A0A0A":"#FFFFFF"}catch(e){}})();</script>
+<script>(function(){var d=document.documentElement,t;try{t=localStorage.getItem("manifest.theme")}catch(e){}if(t!=="light"&&t!=="dark"&&t!=="system")t="light";d.setAttribute("data-theme-pref",t);if(t!=="system")d.setAttribute("data-theme",t);d.classList.add("js");try{var k=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector('meta[name="theme-color"]');if(m)m.content=k?"#0A0A0A":"#FFFFFF"}catch(e){}})();</script>
 <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
   /* v9 dashboard shell, shared by /stats and /admin (copies of the ds.css tokens: keep both pages in step with ds.css) */
@@ -253,9 +253,9 @@
 <script>/* theme button: system -> light -> dark -> system, same key and order as the site header ("manifest.theme") */
 (function(){var d=document.documentElement;try{var b=document.querySelector("[data-theme-toggle]"),L={system:"System",light:"Light",dark:"Dark"},
 tc=function(){try{var t=d.getAttribute("data-theme-pref"),k=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector('meta[name="theme-color"]');if(m)m.content=k?"#0A0A0A":"#FFFFFF"}catch(e){}},
-lb=function(t){if(b){b.setAttribute("aria-label","Theme: "+L[t]+". Change theme");b.title="Theme: "+L[t]}};lb(d.getAttribute("data-theme-pref")||"system");
-if(b)b.addEventListener("click",function(){var c=d.getAttribute("data-theme-pref")||"system",t=c==="system"?"light":c==="light"?"dark":"system";d.setAttribute("data-theme-pref",t);if(t==="system")d.removeAttribute("data-theme");else d.setAttribute("data-theme",t);
-try{if(t==="system")localStorage.removeItem("manifest.theme");else localStorage.setItem("manifest.theme",t)}catch(e){}lb(t);tc();try{window.dispatchEvent(new Event("pc-theme"))}catch(e){}});
+lb=function(t){if(b){b.setAttribute("aria-label","Theme: "+L[t]+". Change theme");b.title="Theme: "+L[t]}};lb(d.getAttribute("data-theme-pref")||"light");
+if(b)b.addEventListener("click",function(){var c=d.getAttribute("data-theme-pref")||"light",t=c==="system"?"light":c==="light"?"dark":"system";d.setAttribute("data-theme-pref",t);if(t==="system")d.removeAttribute("data-theme");else d.setAttribute("data-theme",t);
+try{if(t==="system")localStorage.setItem("manifest.theme","system");else localStorage.setItem("manifest.theme",t)}catch(e){}lb(t);tc();try{window.dispatchEvent(new Event("pc-theme"))}catch(e){}});
 try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",tc)}catch(e){}}catch(e){}})();</script>
 <script>
 (async function(){

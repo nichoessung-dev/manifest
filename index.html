@@ -34,7 +34,7 @@
 <meta name="twitter:image" content="https://www.puroclassico.com/og.png">
 <meta name="twitter:image:alt" content="Puro Classico catalog">
 <meta name="theme-color" content="#FFFFFF">
-<script>(function(){var t,h=document.documentElement;try{t=localStorage.getItem("manifest.theme");}catch(e){}if(t==="light"||t==="dark")h.setAttribute("data-theme",t);h.classList.add("js-fade");var _f=function(e){var i=e.target;if(i&&i.tagName==="IMG")i.classList.add("is-in");};document.addEventListener("load",_f,true);document.addEventListener("error",_f,true);h.setAttribute("data-tp",(t==="light"||t==="dark")?t:"system");function dk(){var a=h.getAttribute("data-theme");return a?a==="dark":!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);}window.setThemeColor=function(){var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dk()?"#0A0A0A":"#FFFFFF");};setThemeColor();})();</script>
+<script>(function(){var t,h=document.documentElement;try{t=localStorage.getItem("manifest.theme");}catch(e){}if(t!=="dark"&&t!=="system")t="light";if(t!=="system")h.setAttribute("data-theme",t);h.classList.add("js-fade");var _f=function(e){var i=e.target;if(i&&i.tagName==="IMG")i.classList.add("is-in");};document.addEventListener("load",_f,true);document.addEventListener("error",_f,true);h.setAttribute("data-tp",(t==="light"||t==="dark")?t:"system");function dk(){var a=h.getAttribute("data-theme");return a?a==="dark":!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);}window.setThemeColor=function(){var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dk()?"#0A0A0A":"#FFFFFF");};setThemeColor();})();</script>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest">
 <script type="application/ld+json">
@@ -2383,6 +2383,7 @@ body.pp-open .pc-top{display:none}
 .pcwf-card{position:relative;box-sizing:border-box;display:flex;flex-direction:column;width:100%;max-width:520px;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);font-family:var(--f-body);text-align:left;transform:translateY(8px) scale(.98);transition:transform .2s cubic-bezier(.2,.8,.2,1)}
 .pcwf-ov.on .pcwf-card{transform:none}
 .pcwf-x{position:absolute;top:10px;right:10px;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:999px;background:transparent;color:var(--muted);cursor:pointer}
+.pcwf-btn[hidden]{display:none!important}.pcwf-x{color:var(--faint);opacity:.75}.pcwf-x svg{width:15px;height:15px}   /* owner, 31 Oct 2026: subtle close x */
 @media (hover:hover){.pcwf-x:hover{background:var(--surface-2);color:var(--ink)}}
 .pcwf-head{padding:24px 24px 16px}
 .pcwf-eye{margin:0 0 6px;font:500 13px/1.2 var(--f-body);letter-spacing:normal!important;text-transform:none;color:var(--muted)}
@@ -4662,7 +4663,7 @@ $("#auth-cancel").addEventListener("click",closeAuth);
 $("#auth-modal").addEventListener("click",e=>{ if(e.target.id==="auth-modal") closeAuth(); });
 /* theme (v9, 29 Oct 2026): light, dark or system, under the same "manifest.theme" key as before. The header button opens a
    small menu; on phones the same three choices sit in the settings popover. System removes data-theme so the CSS follows the OS. */
-function themePref(){ let v=null; try{ v=localStorage.getItem("manifest.theme"); }catch(e){} return v==="light"||v==="dark"?v:"system"; }
+function themePref(){ let v=null; try{ v=localStorage.getItem("manifest.theme"); }catch(e){} return v==="light"||v==="dark"||v==="system"?v:"light"; }
 function syncThemeUI(){ const pr=themePref(); document.documentElement.setAttribute("data-tp",pr);
   $$("[data-theme-set]").forEach(b=>{ const on=b.getAttribute("data-theme-set")===pr; b.setAttribute(b.getAttribute("role")==="menuitemradio"?"aria-checked":"aria-pressed",String(on)); });
   const tb=$("#theme"); if(tb){ const l=t("theme_label")+": "+t("theme_"+pr); tb.setAttribute("aria-label",l); tb.title=l; } }
@@ -6019,7 +6020,7 @@ function wirePPFilters(){
       </div>
     </div>
     <div class="pcwf-foot">
-      <button type="button" class="pcwf-btn ol" id="pcwf-a" data-i18n="wf_later">Maybe later</button>
+      <button type="button" class="pcwf-btn ol" id="pcwf-a" data-i18n="wf_back" hidden>Back</button>
       <button type="button" class="pcwf-btn pri" id="pcwf-b" data-i18n="wf_continue">Continue</button>
     </div>
   </div>
@@ -6124,7 +6125,8 @@ function wirePPFilters(){
     [1,2,3].forEach(function(i){ var s=$("pcwf-s"+i); if(s) s.hidden=i!==n; });
     if(n===3){ setTx(h,"",tr("wf_s3_h","Last Step: Register At {a}").replace("{a}",aName(agent))); p.hidden=true; buildReg(); }
     else { setTx(h,H[n][0],H[n][1]); setTx(p,P[n][0],P[n][1]); p.hidden=false; }
-    if(n===1) setTx(a,"wf_later","Maybe later"); else setTx(a,"wf_back","Back");
+    /* owner, 31 Oct 2026: no "Maybe later" on step 1, the subtle x in the corner closes the flow */
+    a.hidden=n===1; if(n!==1) setTx(a,"wf_back","Back");
     setTx(b,"wf_continue","Continue"); b.hidden=n===3;
     b.disabled=n===1&&!agents()[agent];
     [].forEach.call(ov.querySelectorAll(".pcwf-prog i"),function(seg,i){ seg.classList.toggle("on",i<n); });
