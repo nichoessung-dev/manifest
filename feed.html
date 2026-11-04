@@ -13,12 +13,10 @@
 <link rel="preload" href="/fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 @font-face{font-family:"Instrument Sans";src:url(/fonts/instrument-sans-latin.woff2) format("woff2");font-weight:400 700;font-display:swap}
-@font-face{font-family:"JetBrains Mono";src:url(/fonts/jetbrains-mono-latin.woff2) format("woff2");font-weight:400 500;font-display:swap}
 :root{
   --bg:#000;--ink:#fff;--muted:rgba(255,255,255,.72);--faint:rgba(255,255,255,.5);--line:rgba(255,255,255,.14);
   --glass:rgba(20,22,26,.55);--glass-2:rgba(255,255,255,.12);--red:#D9301E;--red-hover:#C42A1A;--like:#ff3b5c;
   --ease:cubic-bezier(.2,.7,.2,1);--f:"Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --top:env(safe-area-inset-top,0px);--bot:env(safe-area-inset-bottom,0px)
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -31,7 +29,7 @@ a{color:inherit}
 /* feed column: full screen on phones, a phone-shaped column on desktop */
 #feed{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;outline:none}
 #feed::-webkit-scrollbar{display:none}
-.slide{touch-action:manipulation;position:relative;height:100vh;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;contain:strict}
+.slide{touch-action:manipulation;content-visibility:auto;position:relative;height:100vh;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;contain:strict}
 @media (min-width:700px){
   #feed{left:50%;right:auto;width:min(480px,100vw);transform:translateX(-50%)}
   .slide{border-left:1px solid var(--line);border-right:1px solid var(--line)}
@@ -39,13 +37,13 @@ a{color:inherit}
 
 /* photos: seller photo first, then QC photos sideways */
 .bgblur{position:absolute;inset:-40px;background-size:cover;background-position:center;filter:blur(36px) saturate(1.2) brightness(.55);transform:scale(1.1)}
-.track{position:absolute;inset:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.track{touch-action:pan-x pan-y;position:absolute;inset:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 .track::-webkit-scrollbar{display:none}
 .ph{flex:0 0 100%;height:100%;scroll-snap-align:center;display:flex;align-items:center;justify-content:center;padding:calc(var(--top) + 64px) 0 220px}
-.ph img{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px;user-select:none;-webkit-user-drag:none;opacity:0;transition:opacity .25s var(--ease)}
+.ph img{width:100%;height:100%;object-fit:contain;image-rendering:auto;border-radius:4px;user-select:none;-webkit-user-drag:none;opacity:0;transition:opacity .25s var(--ease)}
 .ph img.ok{opacity:1}
 .ph.qc{position:relative}
-.qctag{position:absolute;left:12px;top:calc(var(--top) + 64px);font:500 11px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:6px 8px;border-radius:6px}
+.qctag{position:absolute;left:12px;top:calc(var(--top) + 64px);font:600 12px/1 var(--f);background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:6px 8px;border-radius:6px}
 .dots{position:absolute;left:0;right:0;bottom:200px;display:flex;justify-content:center;gap:5px;pointer-events:none}
 .dots i{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.35);transition:width .2s var(--ease),background-color .2s var(--ease)}
 .dots i.on{width:16px;background:#fff}
@@ -54,12 +52,12 @@ a{color:inherit}
 /* text + buttons */
 .info{position:absolute;left:16px;right:84px;bottom:calc(var(--bot) + 86px);pointer-events:none}
 .info>*{pointer-events:auto}
-.why{display:inline-flex;align-items:center;gap:6px;font:500 11px/1 var(--mono);letter-spacing:.03em;color:var(--muted);background:var(--glass-2);padding:6px 8px;border-radius:999px;margin-bottom:10px}
+.why{display:inline-flex;align-items:center;gap:6px;font:600 12px/1 var(--f);color:var(--muted);background:var(--glass-2);padding:6px 8px;border-radius:999px;margin-bottom:10px}
 .brand{font-weight:700;font-size:15px;text-decoration:none;display:inline-block;margin-bottom:4px}
 .title{font-size:15px;line-height:1.3;margin:0 0 8px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-wrap:pretty}
 .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .price{font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;margin-right:4px}
-.chip{font:500 11px/1 var(--mono);color:var(--muted);border:1px solid var(--line);padding:5px 7px;border-radius:999px;text-decoration:none}
+.chip{font:500 12px/1 var(--f);color:var(--muted);border:1px solid var(--line);padding:5px 7px;border-radius:999px;text-decoration:none}
 button.chip{cursor:pointer}
 .rail{position:absolute;right:8px;bottom:calc(var(--bot) + 92px);display:flex;flex-direction:column;align-items:center;gap:14px}
 .rb{display:flex;flex-direction:column;align-items:center;gap:4px;width:56px;font:600 11px/1 var(--f);color:var(--ink);text-shadow:0 1px 2px rgba(0,0,0,.4);text-decoration:none}
@@ -71,8 +69,19 @@ button.chip{cursor:pointer}
 .rb.saved svg.bm{fill:currentColor}
 .rb:focus-visible .ic,.buy:focus-visible,.tab:focus-visible{outline:2px solid #fff;outline-offset:2px}
 @media (hover:hover){.rb:hover .ic{background:rgba(40,44,50,.75)}}
-.buy{position:absolute;left:16px;right:16px;bottom:calc(var(--bot) + 18px);height:52px;border-radius:999px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:16px;text-decoration:none;transition:background-color .15s var(--ease),transform .15s var(--ease);box-shadow:0 6px 20px rgba(217,48,30,.35)}
-.buy:active{transform:scale(.96)}
+.buyrow{position:absolute;left:16px;right:16px;bottom:calc(var(--bot) + 18px);height:52px;display:flex;border-radius:999px;box-shadow:0 6px 20px rgba(217,48,30,.35)}
+.agsw{flex:none;width:56px;height:52px;border-radius:0 999px 999px 0;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;border-left:1px solid rgba(255,255,255,.28);transition:background-color .15s var(--ease)}
+.agsw svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.agsw:active{background:var(--red-hover)}
+@media (hover:hover){.agsw:hover{background:var(--red-hover)}}
+.agsw:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.agl{display:flex;align-items:center;gap:12px;width:100%;padding:12px 4px;font-size:16px;font-weight:600;border-bottom:1px solid var(--line);text-align:left}
+.agl:last-child{border-bottom:0}
+.agl img{width:32px;height:32px;border-radius:8px}
+.agl .ck{margin-left:auto;width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.agl[aria-checked="true"] .ck{opacity:1}
+.buy{flex:1;min-width:0;height:52px;border-radius:999px 0 0 999px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:16px;text-decoration:none;transition:background-color .15s var(--ease),transform .15s var(--ease)}
+.buy:active{background:var(--red-hover)}
 @media (hover:hover){.buy:hover{background:var(--red-hover)}}
 .buy img{width:20px;height:20px;border-radius:5px}
 
@@ -100,7 +109,7 @@ button.chip{cursor:pointer}
 .grab{width:36px;height:5px;border-radius:3px;background:rgba(255,255,255,.25);margin:0 auto 14px}
 .sheet h2{font-size:18px;margin:0 0 4px}
 .sheet p{color:var(--muted);font-size:14px;margin:0 0 14px;line-height:1.45}
-.sec{font:500 11px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin:16px 0 8px}
+.sec{font:600 13px/1 var(--f);color:var(--faint);margin:16px 0 8px}
 .opts{display:flex;flex-wrap:wrap;gap:8px}
 .opt{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);font-size:14px;font-weight:500;transition:background-color .15s var(--ease),color .15s var(--ease)}
 .opt[aria-pressed="true"]{background:#fff;color:#000;border-color:#fff}
@@ -117,7 +126,7 @@ button.chip{cursor:pointer}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
 /* first-visit hint + loader */
-.hint{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(0,0,0,.55);font-weight:600;font-size:17px;text-align:center;padding:24px;transition:opacity .3s var(--ease)}
+.hint{pointer-events:none;position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(0,0,0,.55);font-weight:600;font-size:17px;text-align:center;padding:24px;transition:opacity .3s var(--ease)}
 .hint.off{opacity:0;pointer-events:none}
 .hint svg{width:44px;height:44px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;animation:up 1.4s var(--ease) infinite}
 .hint small{display:block;font-weight:400;font-size:14px;color:var(--muted);margin-top:6px;max-width:30ch}
@@ -138,6 +147,8 @@ button.chip{cursor:pointer}
   <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
   <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
   <symbol id="i-tune" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 20V4M5 11l7-7 7 7"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></symbol>
@@ -158,7 +169,7 @@ button.chip{cursor:pointer}
 
 <div class="hint off" id="hint" role="dialog" aria-label="How the feed works">
   <svg><use href="#i-up"/></svg>
-  <div>Swipe up for the next find<small>Swipe sideways for QC photos. Double tap to like. The feed learns what you like as you scroll.</small></div>
+  <div>Swipe up for the next find<small>Swipe sideways for QC photos. Double tap to favourite. The feed learns what you like as you scroll.</small></div>
 </div>
 
 <div class="scrim" id="scrim"></div>
@@ -167,6 +178,7 @@ button.chip{cursor:pointer}
 
 <script id="pc-catalog-load"></script>
 <script src="/track.js" defer></script>
+<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js" onload="window.__sbReady&&window.__sbReady()"></script>
 <script>
 (function () {
 "use strict";
@@ -372,7 +384,7 @@ function nextFy() {
   // every 5th find is an exploration pick once the feed knows a little: something outside the current taste, chosen by
   // popularity, so the feed never closes in on a few brands (and can discover a new interest)
   // a run of skips means the feed has it wrong: explore every other find until something lands
-  var exploreSlot = conf > 0.25 && (shown.length % 5 === 4 || (skips >= 3 && shown.length % 2 === 0)), liked = new Set(M.liked);
+  var exploreSlot = conf > 0.25 && (shown.length % 5 === 4 || (skips >= 3 && shown.length % 2 === 0)), liked = FAVES;
   for (var k = 0; k < ALL.length; k++) {
     var p = ALL[k];
     if (inFeed[p.id] || !eligible(p) || liked.has(p.id)) continue;
@@ -429,8 +441,8 @@ var FAVES = new Set(LS.get("manifest.faves", []) || []);
 function saveFaves() { LS.set("manifest.faves", Array.from(FAVES)); }
 
 function slideHtml(p, i) {
-  var ag = AGENTS[agentKey], src = sized(p._img, 800), w = why[p.id] || "";
-  var liked = M.liked.indexOf(p.id) >= 0, saved = FAVES.has(p.id);
+  var ag = AGENTS[agentKey], src = p._img, w = why[p.id] || "";
+  var saved = FAVES.has(p.id);
   var brand = p.brand ? '<a class="brand" href="/brand/' + encodeURIComponent(slug(p.brand)) + '">' + esc(p.brand) + "</a>" : "";
   var nv = (p.variants || []).length;
   return '<div class="bgblur" style="background-image:url(\'' + esc(sized(p._img, 200)) + '\')"></div>' +
@@ -443,13 +455,15 @@ function slideHtml(p, i) {
         (nv > 1 ? '<span class="chip">' + nv + " options</span>" : "") +
         '<span class="chip">' + esc(p.platform === "1688" ? "1688" : (p.platform || "").charAt(0).toUpperCase() + (p.platform || "").slice(1)) + "</span></div></div>" +
     '<div class="rail">' +
-      '<button class="rb' + (liked ? " on" : "") + '" type="button" data-act="like" aria-pressed="' + liked + '" aria-label="Like"><span class="ic"><svg class="heart"><use href="#i-heart"/></svg></span>Like</button>' +
-      '<button class="rb' + (saved ? " saved" : "") + '" type="button" data-act="save" aria-pressed="' + saved + '" aria-label="Save"><span class="ic"><svg class="bm"><use href="#i-bm"/></svg></span>Save</button>' +
-      '<a class="rb" href="/product/' + encodeURIComponent(p.id) + '" data-act="info" aria-label="Details"><span class="ic"><svg><use href="#i-info"/></svg></span>Details</a>' +
+      '<button class="rb' + (saved ? " on" : "") + '" type="button" data-act="fav" aria-pressed="' + saved + '" aria-label="Favourite"><span class="ic"><svg class="heart"><use href="#i-heart"/></svg></span>Favourite</button>' +
       '<button class="rb" type="button" data-act="share" aria-label="Share"><span class="ic"><svg><use href="#i-share"/></svg></span>Share</button>' +
       '<button class="rb" type="button" data-act="more" aria-label="More"><span class="ic"><svg><use href="#i-more"/></svg></span></button>' +
     "</div>" +
-    '<a class="buy" data-act="buy" href="' + esc(ag.build(p)) + '" target="_blank" rel="noopener sponsored"><img src="' + ag.logo + '" alt="">Buy on ' + esc(ag.name) + "</a>";
+    '<div class="buyrow">' + buyHtml(p) + '<button class="agsw" type="button" data-act="agent" aria-label="Change agent"><svg><use href="#i-down"/></svg></button></div>';
+}
+function buyHtml(p) {
+  var ag = AGENTS[agentKey];
+  return '<a class="buy" data-act="buy" href="' + esc(ag.build(p)) + '" target="_blank" rel="noopener sponsored"><img src="' + ag.logo + '" alt="">Buy on ' + esc(ag.name) + "</a>";
 }
 function slug(s) { return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
 
@@ -468,7 +482,7 @@ function addSlide() {
   el.innerHTML = slideHtml(p, i);
   var im = el.querySelector(".ph img");
   im.onload = function () { im.classList.add("ok"); };
-  im.onerror = function () { if (!im.dataset.r && p._img) { im.dataset.r = 1; im.src = p._img; } };
+  im.onerror = function () { if (!im.dataset.r && p.img) { im.dataset.r = 1; im.src = p.img; } };
   feed.appendChild(el);
   return true;
 }
@@ -494,7 +508,7 @@ function leave(i) {
   if (i < 0 || !shown[i]) return;
   var ms = Date.now() - t0 - hiddenMs, a = acts[i] || {};
   // a skip after an action (like, QC swipe) is not a "no"
-  if (a.like || a.save || a.buy || a.info) { skips = 0; return; }
+  if (a.fav || a.buy || a.share) { skips = 0; return; }
   var r = dwellReward(ms) + (a.photos ? 0.8 : 0);
   skips = r < 0 ? skips + 1 : 0;
   learn(shown[i], r, true);
@@ -519,7 +533,7 @@ document.addEventListener("visibilitychange", function () {
 });
 window.addEventListener("pagehide", function () { leave(cur_i); cur_i = -1; LS.set(MODEL_KEY, M); });
 function preload(i) {
-  for (var k = i + 1; k <= i + 2 && k < shown.length; k++) { var im = new Image(); im.decoding = "async"; im.src = sized(shown[k]._img, 800); }
+  for (var k = i + 1; k <= i + 2 && k < shown.length; k++) { var im = new Image(); im.decoding = "async"; im.src = shown[k]._img; }
 }
 
 /* QC photos: fetched when a find is on screen, added to the right of the seller photo */
@@ -535,7 +549,7 @@ function loadQC(el, p) {
         var th = (d && d.thumbnails || []).slice(0, 8);
         if (!th.length) return;
         var tr = el.querySelector(".track"), html = "";
-        th.forEach(function (u, k) { html += '<div class="ph qc"><span class="qctag">QC photo ' + (k + 1) + "/" + th.length + '</span><img alt="QC photo ' + (k + 1) + '" src="' + esc(sized(u, 800)) + '" loading="lazy" decoding="async" draggable="false" onload="this.classList.add(\'ok\')"></div>'; });
+        th.forEach(function (u, k) { html += '<div class="ph qc"><span class="qctag">QC photo ' + (k + 1) + "/" + th.length + '</span><img alt="QC photo ' + (k + 1) + '" src="' + esc(u) + '" loading="lazy" decoding="async" draggable="false" onload="this.classList.add(\'ok\')"></div>'; });
         tr.insertAdjacentHTML("beforeend", html);
         var dots = el.querySelector(".dots"), n = th.length + 1, dh = "";
         for (var k = 0; k < n; k++) dh += "<i" + (k ? "" : ' class="on"') + "></i>";
@@ -551,18 +565,66 @@ function loadQC(el, p) {
 
 /* ---------- actions ---------- */
 function slideOf(t) { var s = t.closest(".slide"); return s ? { el: s, i: +s.dataset.i, p: shown[+s.dataset.i] } : null; }
-function setLike(x, on) {
-  var p = x.p, b = x.el.querySelector('[data-act="like"]'), idx = M.liked.indexOf(p.id);
-  if (on && idx < 0) { M.liked.push(p.id); if (M.liked.length > 500) M.liked.shift(); }
-  if (!on && idx >= 0) M.liked.splice(idx, 1);
-  b.classList.toggle("on", on); b.setAttribute("aria-pressed", on);
-  var a = acts[x.i] || (acts[x.i] = {});
-  if (on && !a.like) { a.like = 1; learn(p, 3); FAVES.add(p.id); saveFaves(); markSave(x, true); }
-  else if (!on && a.like) { a.like = 0; learn(p, -2.5); }
-  else if (!on) learn(p, -1);
+/* Favourite = the site's real saved list: the account's favourites when signed in (same table the main site reads),
+   this browser's saved list otherwise (the main site uploads it to the account at the next sign-in). */
+function setFav(x, on) {
+  var p = x.p, a = acts[x.i] || (acts[x.i] = {});
+  if (on === FAVES.has(p.id)) return;
+  if (on) { FAVES.add(p.id); LOCAL_NEW.add(p.id); } else { FAVES.delete(p.id); LOCAL_NEW.delete(p.id); }
+  saveFaves(); markFavs(p.id);
+  if (on) { a.fav = 1; learn(p, 3); } else { a.fav = 0; learn(p, -2.5); }
+  if (sb && ME) {
+    var q = on ? sb.from("favorites").insert({ user_id: ME.id, product_id: p.id, platform: p.platform })
+               : sb.from("favorites").delete().eq("user_id", ME.id).eq("product_id", p.id);
+    q.then(function (r) { if (r && r.error && !(on && r.error.code === "23505")) toast("Could not save. Try again."); }, function () { toast("Could not save. Try again."); });
+  }
+  toast(on ? (ME ? "Added to your favourites" : "Added to favourites. Sign in to keep them on every device.") : "Removed from favourites");
   persist();
 }
-function markSave(x, on) { var b = x.el.querySelector('[data-act="save"]'); b.classList.toggle("saved", on); b.setAttribute("aria-pressed", on); }
+function markFavs(id) {
+  [].forEach.call(feed.querySelectorAll(".slide"), function (el) {
+    var p = shown[+el.dataset.i]; if (!p || (id && p.id !== id)) return;
+    var b = el.querySelector('[data-act="fav"]'), on = FAVES.has(p.id);
+    if (b) { b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); }
+  });
+}
+/* the signed-in account, through the same Supabase client and session as the main site */
+var sb = null, ME = null;
+var SUPABASE_URL = "https://uptpghuduqjqmrxwatbm.supabase.co", SUPABASE_KEY = "sb_publishable_qFcO570Cpl0_VWS6e_sAUg_noD-2XmY";
+window.__sbReady = function () {
+  try { if (sb || !window.supabase || !window.supabase.createClient) return; sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) { return; }
+  sb.auth.getSession().then(function (r) {
+    ME = r && r.data && r.data.session ? r.data.session.user : null;
+    if (!ME) return;
+    return sb.from("favorites").select("product_id").then(function (q) {
+      if (q && q.data && !q.error) {
+        var mine = new Set(q.data.map(function (row) { return String(row.product_id); }));
+        // saves made here before the session was read go up now
+        FAVES.forEach(function (id) { if (!mine.has(id) && BY[id] && LOCAL_NEW.has(id)) { mine.add(id); sb.from("favorites").insert({ user_id: ME.id, product_id: id, platform: BY[id].platform }).then(function () {}, function () {}); } });
+        FAVES = mine; saveFaves(); markFavs();
+      }
+    });
+  }).catch(function () {});
+};
+var LOCAL_NEW = new Set();
+function agentSheet() {
+  var html = "";
+  Object.keys(AGENTS).forEach(function (k) {
+    var a = AGENTS[k];
+    html += '<button class="agl" type="button" role="menuitemradio" data-ag="' + k + '" aria-checked="' + (k === agentKey) + '"><img src="' + a.logo + '" alt="">' + esc(a.name) + '<svg class="ck"><use href="#i-check"/></svg></button>';
+  });
+  openSheet('<h2 id="sheet-h">Buy with</h2><p>Pick the agent you order with. The whole site uses it.</p><div role="menu">' + html + "</div>");
+  sheet.onclick = function (e) {
+    var b = e.target.closest("[data-ag]"); if (!b) return;
+    agentKey = b.dataset.ag;
+    var st = LS.get("manifest.state", {}) || {}; st.agent = agentKey; LS.set("manifest.state", st);
+    [].forEach.call(feed.querySelectorAll(".slide"), function (el) {
+      var p = shown[+el.dataset.i], old = el.querySelector(".buy");
+      if (p && old) old.outerHTML = buyHtml(p);
+    });
+    closeSheet(); toast("Buying with " + AGENTS[agentKey].name);
+  };
+}
 function heartBurst(el, x, y) {
   var r = el.getBoundingClientRect(), h = document.createElement("div");
   h.className = "burst"; h.style.left = (x - r.left) + "px"; h.style.top = (y - r.top) + "px";
@@ -572,31 +634,24 @@ function heartBurst(el, x, y) {
 feed.addEventListener("click", function (e) {
   var b = e.target.closest("[data-act]"), x = slideOf(e.target);
   if (!x) return;
-  if (!b) {   /* double tap on the photo = like */
+  if (!b) {   /* double tap on the photo = favourite */
     var now = Date.now();
     if (now - (feed._lt || 0) < 300 && Math.abs(e.clientY - (feed._ly || 0)) < 40) {
       heartBurst(x.el, e.clientX, e.clientY);
-      if (M.liked.indexOf(x.p.id) < 0) setLike(x, true);
+      setFav(x, true);
       feed._lt = 0;
     } else { feed._lt = now; feed._ly = e.clientY; }
     return;
   }
   var act = b.dataset.act, a = acts[x.i] || (acts[x.i] = {});
-  if (act === "like") setLike(x, M.liked.indexOf(x.p.id) < 0);
-  else if (act === "save") {
-    var on = !FAVES.has(x.p.id);
-    if (on) FAVES.add(x.p.id); else FAVES.delete(x.p.id);
-    saveFaves(); markSave(x, on);
-    if (on && !a.save) { a.save = 1; learn(x.p, 3); }
-    toast(on ? "Saved to your finds" : "Removed from saved");
-  }
+  if (act === "fav") setFav(x, !FAVES.has(x.p.id));
+  else if (act === "agent") agentSheet();
   else if (act === "share") { e.preventDefault(); share(x.p); a.share = 1; learn(x.p, 2.5); }
   else if (act === "qc") {
     var tr = x.el.querySelector(".track");
     if (tr.children.length > 1) tr.scrollTo({ left: tr.clientWidth, behavior: "smooth" });
     else { loadQC(x.el, x.p); toast("Loading QC photos"); }
   }
-  else if (act === "info") { a.info = 1; learn(x.p, 2.5); LS.set(MODEL_KEY, M); }
   else if (act === "buy") { a.buy = 1; learn(x.p, 5); LS.set(MODEL_KEY, M); }
   else if (act === "more") moreSheet(x);
 });
@@ -613,9 +668,21 @@ document.addEventListener("keydown", function (e) {
   var el = feed.querySelector('.slide[data-i="' + cur_i + '"]');
   if (e.key === "ArrowDown" || e.key === "j" || e.key === " " || e.key === "PageDown") { e.preventDefault(); go(1); }
   else if (e.key === "ArrowUp" || e.key === "k" || e.key === "PageUp") { e.preventDefault(); go(-1); }
-  else if ((e.key === "l" || e.key === "L") && el) { var x = slideOf(el); setLike(x, M.liked.indexOf(x.p.id) < 0); }
+  else if ((e.key === "f" || e.key === "F" || e.key === "l" || e.key === "L") && el) { var x = slideOf(el); setFav(x, !FAVES.has(x.p.id)); }
   else if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && el) { var tr = el.querySelector(".track"); tr.scrollBy({ left: (e.key === "ArrowRight" ? 1 : -1) * tr.clientWidth, behavior: "smooth" }); }
 });
+/* mouse: drag the photo up or down like a finger (touch screens scroll natively) */
+var drag = null;
+feed.addEventListener("pointerdown", function (e) {
+  if (e.pointerType !== "mouse" || e.button !== 0 || e.target.closest("a,button")) return;
+  drag = { y: e.clientY, x: e.clientX, t: Date.now() };
+});
+window.addEventListener("pointerup", function (e) {
+  if (!drag) return;
+  var dy = e.clientY - drag.y, dx = e.clientX - drag.x; drag = null;
+  if (Math.abs(dy) > 50 && Math.abs(dy) > Math.abs(dx)) go(dy < 0 ? 1 : -1);
+});
+feed.addEventListener("dragstart", function (e) { e.preventDefault(); });
 function go(d) { var t = feed.querySelector('.slide[data-i="' + (cur_i + d) + '"]'); if (t) t.scrollIntoView({ behavior: "smooth" }); }
 
 /* ---------- sheets ---------- */
@@ -630,7 +697,7 @@ function moreSheet(x) {
     '<button class="mi" type="button" data-m="nb"><svg><use href="#i-x"/></svg>Show less ' + esc(p.brand || "of this brand") + "</button>" +
     '<a class="mi" href="/product/' + encodeURIComponent(p.id) + '#qc"><svg><use href="#i-cam"/></svg>All QC photos and agents</a>' +
     (p.brand ? '<a class="mi" href="/brand/' + encodeURIComponent(slug(p.brand)) + '"><svg><use href="#i-grid"/></svg>All ' + esc(p.brand) + " finds</a>" : "") +
-    '<button class="mi" type="button" data-m="liked"><svg><use href="#i-heart"/></svg>Your likes (' + M.liked.length + ")</button>");
+    '<button class="mi" type="button" data-m="liked"><svg><use href="#i-heart"/></svg>Your favourites (' + FAVES.size + ")</button>");
   sheet.onclick = function (e) {
     var b = e.target.closest("[data-m]"); if (!b) return;
     var m = b.dataset.m;
@@ -640,9 +707,9 @@ function moreSheet(x) {
   };
 }
 function likedSheet() {
-  var ids = M.liked.slice().reverse(), html = "";
+  var ids = Array.from(FAVES).reverse(), html = "";
   ids.forEach(function (id) { var p = BY[id]; if (p) html += '<a href="/product/' + encodeURIComponent(id) + '"><img src="' + esc(sized(p._img, 300)) + '" alt="' + esc(p.title) + '" loading="lazy"></a>'; });
-  openSheet('<h2 id="sheet-h">Your likes</h2><p>Likes are also in your saved finds on the main site.</p>' + (html ? '<div class="liked">' + html + "</div>" : "<p>No likes yet. Double tap a find you like.</p>"));
+  openSheet('<h2 id="sheet-h">Your favourites</h2><p>The same favourites as on the main site.</p>' + (html ? '<div class="liked">' + html + "</div>" : "<p>No favourites yet. Double tap a find you like.</p>"));
   sheet.onclick = null;
 }
 var CATS = ["Tops", "Outerwear", "Shoes", "Pants", "Shorts", "Bags", "Accessories", "Headwear"];
@@ -659,7 +726,7 @@ $("#tune").onclick = function () {
     var b = e.target.closest("button"); if (!b) return;
     if (b.dataset.c) { var k = c.indexOf(b.dataset.c); if (k >= 0) c.splice(k, 1); else c.push(b.dataset.c); b.setAttribute("aria-pressed", k < 0); }
     else if (b.hasAttribute("data-g")) { g = b.dataset.g; [].forEach.call(sheet.querySelectorAll("[data-g]"), function (x) { x.setAttribute("aria-pressed", x.dataset.g === g); }); }
-    else if (b.dataset.r === "reset") { M = { v: 1, w: {}, n: {}, N: 0, ev: 0, seen: {}, ni: [], liked: M.liked, seeded: 1 }; S = { w: {}, n: 0 }; NI = new Set(); LS.set(MODEL_KEY, M); closeSheet(); toast("Fresh start"); reset(); }
+    else if (b.dataset.r === "reset") { M = { v: 1, w: {}, n: {}, N: 0, ev: 0, seen: {}, ni: [], liked: [], seeded: 1 }; S = { w: {}, n: 0 }; NI = new Set(); LS.set(MODEL_KEY, M); closeSheet(); toast("Fresh start"); reset(); }
     else if (b.dataset.r === "go") { FILT = { cats: c, pr: g }; LS.set("pc.feed.filter", FILT); closeSheet(); reset(); }
   };
 };
@@ -681,7 +748,7 @@ function reset(first) {
 }
 var hintOn = false;
 function hideHint() { if (!hintOn) return; hintOn = false; $("#hint").classList.add("off"); LS.set("pc.feed.hint", 1); }
-$("#hint").onclick = hideHint;
+["touchstart", "wheel", "pointerdown", "keydown"].forEach(function (t) { window.addEventListener(t, hideHint, { passive: true }); });
 
 /* ---------- start ---------- */
 function loadCatalog() {
@@ -710,7 +777,7 @@ Promise.all([loadCatalog(), getJSON("/data/stats.json"), getJSON("/data/link_hea
   if (br) { var bl = br.toLowerCase(); S.w["b:" + (ALL.find(function (p) { return p.brand && p.brand.toLowerCase() === bl; }) || {}).brand] = 3; }
   $("#load").remove();
   reset(first);
-  if (!LS.get("pc.feed.hint", 0)) { hintOn = true; $("#hint").classList.remove("off"); }
+  if (!LS.get("pc.feed.hint", 0)) { hintOn = true; $("#hint").classList.remove("off"); setTimeout(hideHint, 4000); }
   feed.focus({ preventScroll: true });
 }).catch(function () {
   $("#load").innerHTML = '<div>Could not load the finds.</div><a class="chip" href="/feed">Try again</a>';
