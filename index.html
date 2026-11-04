@@ -5750,7 +5750,7 @@ function wirePPFilters(){
   }
 
   /* ---------- live numbers, tile counts, the active tile, the search placeholder ---------- */
-  window.__pcNumbers = function () { try { numbers(); } catch (e) {} };
+  window.__pcNumbers = function () { try { refresh(); } catch (e) {} };   /* the dead-link check calls this when it answers: numbers, and the first row build */
   function numbers() {
     var a = list(), qc = 0, by = {};
     a.forEach(function (p) { if ((p.qc || 0) > 0) qc++; by[p.cat] = (by[p.cat] || 0) + 1; });
@@ -5777,8 +5777,16 @@ function wirePPFilters(){
     return [s.cur, s.lang, s.agent, list().length, stats].join("|");
   }
   var last = "";
+  /* r12 (4 Nov 2026): the rows wait (grey placeholders) until the view stats and the dead-link check are both in, then
+     build once. Building on the bare catalogue first and again when each answered swapped every card and reloaded
+     every photo a second or two after the page opened. After 4 s they build with whatever is there. */
+  function dataReady() {
+    var s = 0; try { s = STATS ? 1 : 0; } catch (e) {}
+    return (s && w.__lhDone) || !w.performance || performance.now() > 4000;
+  }
   function refresh() {
     guard(numbers);
+    if (!built && !dataReady()) return;
     var now = sig(); if (now === last) return;
     var prev = last.split("|"), cur = now.split("|");
     last = now;
