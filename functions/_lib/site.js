@@ -555,7 +555,7 @@ ${body}
 </div></main>
 ${footer()}
 ${PAGE_JS}${SEARCH_BOOT_JS}${body.indexOf('class="cbuy"') >= 0 ? AGENT_SWAP_JS : ""}
-<script src="/track.js" defer></script>
+<script src="/track.js?v=2" defer></script>
 </body>
 </html>`;
   return new Response(html, { status, headers: { "content-type": "text/html; charset=utf-8",
