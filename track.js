@@ -98,7 +98,7 @@
   function sSend() {
     var c = SQ.cur; SQ.cur = null; clearTimeout(SQ.t);
     if (!c || !c.done || (c.q === SQ.last && !c.o)) return;
-    SQ.last = c.q;
+    SQ.last = c.q; taste("q", c.q);
     var body = JSON.stringify({ q: c.q, n: c.n, o: c.o ? 1 : 0, k: c.k });
     try { if (navigator.sendBeacon && navigator.sendBeacon("/api/search", new Blob([body], { type: "application/json" }))) return; } catch (e) {}
     try { fetch("/api/search", { method: "POST", body: body, headers: { "content-type": "application/json" }, keepalive: true }); } catch (e) {}
@@ -117,4 +117,30 @@
   };
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") sSend(); });
   window.addEventListener("pagehide", sSend);
+
+  /* Taste log (4 Nov 2026) for the Swipe Finds feed (/feed): the visitor's last searches and the finds they opened, kept
+     only in this browser (localStorage "pc.taste") and never sent anywhere. The feed reads it to rank finds for them.
+     q = [[query, time], ...] (last 40), v = [[product id, time], ...] (last 150). */
+  function taste(kind, val) {
+    try {
+      var t = JSON.parse(localStorage.getItem("pc.taste") || "{}") || {}, a = Array.isArray(t[kind]) ? t[kind] : [];
+      if (a.length && a[a.length - 1][0] === val) return;
+      a.push([val, Date.now()]); t[kind] = a.slice(kind === "v" ? -150 : -40);
+      localStorage.setItem("pc.taste", JSON.stringify(t));
+    } catch (e) {}
+  }
+  function seen(path) {
+    var m = /^\/product\/([^\/?#]+)/.exec(path || ""); if (!m) return;
+    var id = m[1]; try { id = decodeURIComponent(id); } catch (e) {}
+    if (/^[A-Za-z0-9_-]{4,40}$/.test(id)) taste("v", id);
+  }
+  seen(location.pathname);                                       // a product page, or the app opened on one
+  ["pushState", "replaceState"].forEach(function (k) {           // the app opens a find by putting /product/<id> in the address bar
+    var orig = history[k]; if (typeof orig !== "function") return;
+    history[k] = function (st, title, url) {
+      var r = orig.apply(this, arguments);
+      try { if (url != null) seen(new URL(String(url), location.href).pathname); } catch (e) {}
+      return r;
+    };
+  });
 })();
