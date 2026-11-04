@@ -18,6 +18,11 @@ BOXES = os.path.join(ROOT, "scripts", "rug", "boxes.jpg")
 YELLOW = (252, 250, 190)                                   # TikTok's pale caption yellow (owner's reference, 22 Oct 2026)
 TTS = os.path.join(ROOT, "scripts", "fonts", "TikTokSans.ttf")   # TikTok Sans (OFL), the app's own caption font
 FOLDER = "10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L"
+# The site's own QC photos (owner, 4 Nov 2026: "use the photos from our sheet"): the thumbnails scripts/qc_bank.py stored in
+# our Supabase storage, listed in data/qc_bank.json. They take turns with the Drive photos. Only the second account uses
+# them (the main account's carousels read the Drive folder only), so the two accounts still never share a photo.
+SITE_QC = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/qc/%s-%s-%d.webp"
+SITE_ON = os.environ.get("RUG_SITE", "1") == "1"
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
 ENGINE = os.environ.get("RUG_ENGINE", "gemini" if os.environ.get("GEMINI_API_KEY") else "openai")     # "gemini" (Google, about $0.04 an image) or "openai"
 MODELS = [m for m in os.environ.get("RUG_MODELS", "gemini-2.5-flash-image" if ENGINE == "gemini" else "gpt-image-2,gpt-image-1.5,gpt-image-1").split(",") if m]
@@ -222,6 +227,7 @@ def price(brand, item, grp):
     if _ROWS is None:
         t = open(os.path.join(ROOT, "functions", "_lib", "catalog.js"), encoding="utf-8").read(); i = t.index("export const ROWS = ") + 20
         _ROWS = json.loads(t[i:t.index("];", i) + 1])
+    if grp is None: return None
     words = "|".join(v for k, v in WORDS.items() if k in (item or "").lower())
     rows = [r for r in _ROWS if r[3] in CATS.get(grp, set()) and isinstance(r[6], (int, float)) and r[6] > 0]
     kw = [r for r in rows if words and re.search(words, r[1], re.I)]
@@ -367,6 +373,31 @@ def top_shot(im):
     return im.crop((0, 0, im.width, int(row * im.height / float(h)))) if cov >= .5 else im
 
 
+def site_cands(no):
+    """The site's stored QC photos as candidates "site:<storefront>/<id>/<k>"."""
+    try: items = json.load(open(os.path.join(ROOT, "data", "qc_bank.json")))["items"]
+    except Exception: return []
+    out = []
+    for key, v in items.items():
+        for k in range(int(v[1] if len(v) > 1 else 0)):
+            sid = "site:%s/%d" % (key, k)
+            if sid not in no: out.append((sid, "other"))
+    return out
+
+
+def site_find(sid):
+    """("taobao", "760438413422", 0) for "site:taobao/760438413422/0"."""
+    sf, fid, k = sid[5:].split("/"); return sf, fid, int(k)
+
+
+def site_row(fid):
+    """The find's row in functions/_lib/catalog.js (title, brand, price ...), or None."""
+    price(None, None, None)                                    # loads _ROWS
+    for r in _ROWS:
+        if r[0] == fid: return r
+    return None
+
+
 def owner(pid):
     """Same rule as make_finds.owner: which TikTok account a photo belongs to, so the accounts never share one."""
     return 2 if int(hashlib.md5(pid.encode()).hexdigest(), 16) % 3 == 0 else 1
@@ -408,14 +439,23 @@ def main():
         rnd.shuffle(fresh); cands = [(pid, (items.get(pid + ":0") or {}).get("i", "other")) for pid in fresh]
         print("using the owner's picks: %d not posted yet" % len(fresh))
     picked_ids = set(fresh)
+    if SITE_ON and not fresh:                                  # the site's QC photos take turns with the Drive photos, least used first
+        site = site_cands(no); rnd.shuffle(site); site.sort(key=lambda c: rc.get(c[0], 0))
+        mix = []
+        for k in range(max(len(cands), len(site))):
+            if k < len(site): mix.append(site[k])
+            if k < len(cands): mix.append(cands[k])
+        print("site QC photos:", len(site)); cands = mix
     print("candidates:", len(cands))
     picks, groups, fails = [], {}, 0                           # 1. pick the photos (a quick check each, six at a time), a mix of kinds
     from concurrent.futures import ThreadPoolExecutor
     def look(c):
         pid, t = c
-        try: qc = Image.open(io.BytesIO(fetch("https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % pid))); qc.load()
+        url = SITE_QC % site_find(pid) if pid.startswith("site:") else "https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % pid
+        try: qc = Image.open(io.BytesIO(fetch(url))); qc.load()
         except Exception as e: return c, None, "download: %s" % e
-        try: return c, qc, check(top_shot(qc))                 # only the shot the image model gets: the lower one is often another item
+        if pid.startswith("site:"): qc = qc.convert("RGB")     # one photo, not two stacked like the Drive exports
+        try: return c, qc, check(qc if pid.startswith("site:") else top_shot(qc))      # only the shot the image model gets: the lower one is often another item
         except Exception as e: return c, qc, "check: %s" % str(e)[:300]
     want, cap = (a.n * 2 + 2, a.n) if MULTI_ON else (a.n + 3, max(2, a.n // 3))
     t_pick = time.time()
@@ -434,10 +474,14 @@ def main():
             if pid not in picked_ids and not (c.get("fits") and c.get("clear")):      # the owner's picks are never skipped
                 print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
             if groups.get(g, 0) >= cap: continue                                # a mix: not all bags
+            fid = site_find(pid)[1] if pid.startswith("site:") else ""
+            if fid and any(p.get("find") == fid for p in picks): continue      # one photo per find in a post
             groups[g] = groups.get(g, 0) + 1
             name = re.sub(r"[^a-z0-9 '&.-]", "", unicodedata.normalize("NFKD", str(c.get("name") or c.get("item") or t)).encode("ascii", "ignore").decode().lower()).strip()[:28]      # "pérignon" -> "perignon", not "prignon"
             print("  picked", name, "(%.0fs)" % (time.time() - t_pick))
-            picks.append({"qc": pid, "img": qc, "name": name, "usd": price(c.get("brand"), c.get("item") or t, g), "group": g, "brand": c.get("brand"),
+            row = site_row(fid) if fid else None
+            usd = int(round(row[6])) if row and isinstance(row[6], (int, float)) and row[6] > 0 else price(c.get("brand"), c.get("item") or t, g)   # a site photo: its find's own price
+            picks.append({"qc": pid, "img": qc, "name": name, "usd": usd, "group": g, "brand": c.get("brand"), "find": fid, "single": bool(fid),
                           "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g])})
     rug = jpeg(Image.open(RUG), 1536)
     t0 = time.time(); budget = float(os.environ.get("RUG_BUDGET_MIN", "15")) * 60
@@ -451,7 +495,7 @@ def main():
             if chunks.get(g) and len(slides) < a.n + 1: slides.append(chunks[g].pop(0))
 
     def make(sl):                                              # 3. the images, three at a time; each one judged, one retry, then the slide is dropped
-        shots = [top_shot(p["img"]) for p in sl]; label = " + ".join(p["name"] for p in sl)
+        shots = [p["img"] if p.get("single") else top_shot(p["img"]) for p in sl]; label = " + ".join(p["name"] for p in sl)
         angle = rnd.choice(ANGLES["several"]) if len(sl) > 1 else sl[0]["angle"]
         for attempt in range(2):
             if time.time() - t0 > budget: print("  out of time, skipping", label); break
