@@ -65,6 +65,15 @@ def sb_all(path, page=1000):
         if len(rows) < page: return out
         start += page
 
+def sb_all_opt(path, col):
+    """sb_all for a select whose column `col` may not exist yet (profiles.agent, OWNER_SQL 5 Nov 2026): Supabase then
+    answers 400, so the rows are read again without it and every member counts as having no value."""
+    try: return sb_all(path)
+    except urllib.error.HTTPError as e:
+        if e.code != 400 or ("," + col + "&") not in path: raise
+        print("profiles.%s not readable (%d): read without it, every member counts as no agent picked" % (col, e.code))
+        return sb_all(path.replace("," + col + "&", "&", 1))
+
 def since(days):
     return (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -75,7 +84,9 @@ def hide(msg):
 def brevo_send(to_email, subject, html, unsub=None, tag=None):
     body = {"sender": {"name": "Puro Classico", "email": "news@puroclassico.com"},
             "to": [{"email": to_email}], "subject": subject, "htmlContent": html}
-    if tag: body["tags"] = [tag]          # Brevo's statistics split by tag: welcome, ordering, mycnbox, newsletter, saved
+    # Brevo's statistics split by tag: welcome, ordering, mycnbox, newsletter, saved. A list adds more tags (the ordering
+    # email also carries "ordering-<agent>" for the agent the member picked).
+    if tag: body["tags"] = list(tag) if isinstance(tag, (list, tuple)) else [tag]
     if unsub:
         body["headers"] = {"List-Unsubscribe": "<%s>" % unsub,
                             "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}
@@ -402,6 +413,19 @@ def run_welcome_test(_profiles=None):
 ORDERING_SUBJECT = "How to order from Puro Classico (1:47 video)"
 VIDEO_PAGE = SITE + "/how-to-order"
 
+def step_rows(steps):
+    """Numbered step rows (round number + title + one line) for the ordering emails; the body text is escaped here."""
+    rows = ""
+    for n, h, b in steps:
+        rows += ('<tr><td valign="top" style="padding:0 14px 20px 0;vertical-align:top;width:28px;">'
+                 '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td class="pc-btn" align="center" valign="middle" bgcolor="#171717" width="28" height="28" '
+                 'style="width:28px;height:28px;border-radius:999px;background:#171717;font-family:%s;font-size:13px;line-height:28px;font-weight:700;">'
+                 '<span class="pc-btn-a" style="color:#FAFAFA;">%s</span></td></tr></table></td>'
+                 '<td valign="top" style="padding:0 0 20px;vertical-align:top;">'
+                 '<div class="pc-ink" style="margin:4px 0 4px;font-family:%s;font-size:15px;line-height:20px;font-weight:600;color:#0A0A0A;">%s</div>'
+                 '<div class="pc-mut" style="font-family:%s;font-size:14px;line-height:21px;color:#6B6B6B;">%s</div></td></tr>') % (FONT, n, FONT, h, FONT, esc(b))
+    return rows
+
 def ordering_html(uid):
     """Build the 'How to order' email: the video guide (phone thumbnail on phones, 16:9 on desktop) + the 6 steps in short.
     Used by the real send and the test send."""
@@ -413,16 +437,8 @@ def ordering_html(uid):
         ("5", "Submit Packing And Pay Shipping", "Combine your items into one parcel, choose a carrier and apply your coupon."),
         ("6", "Track It Under Parcels", "It leaves the warehouse within 24 hours and usually arrives in 1-3 weeks."),
     ]
-    rows = ""
-    for n, h, b in steps:
-        rows += ('<tr><td valign="top" style="padding:0 14px 20px 0;vertical-align:top;width:28px;">'
-                 '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td class="pc-btn" align="center" valign="middle" bgcolor="#171717" width="28" height="28" '
-                 'style="width:28px;height:28px;border-radius:999px;background:#171717;font-family:%s;font-size:13px;line-height:28px;font-weight:700;">'
-                 '<span class="pc-btn-a" style="color:#FAFAFA;">%s</span></td></tr></table></td>'
-                 '<td valign="top" style="padding:0 0 20px;vertical-align:top;">'
-                 '<div class="pc-ink" style="margin:4px 0 4px;font-family:%s;font-size:15px;line-height:20px;font-weight:600;color:#0A0A0A;">%s</div>'
-                 '<div class="pc-mut" style="font-family:%s;font-size:14px;line-height:21px;color:#6B6B6B;">%s</div></td></tr>') % (FONT, n, FONT, h, FONT, esc(b))
-    video = ('<a class="pcv-d" href="%s" style="display:block;text-decoration:none;">'
+    rows = step_rows(steps)
+    video =('<a class="pcv-d" href="%s" style="display:block;text-decoration:none;">'
              '<img src="%s/media/how-to-order-email.jpg" width="536" alt="Watch: How to order with MyCNBox (1:47)" style="display:block;width:100%%;max-width:536px;height:auto;border:0;border-radius:12px;margin:0 auto;"></a>'
              '<!--[if !mso]><!--><a class="pcv-m" href="%s" style="display:none;max-height:0;overflow:hidden;text-decoration:none;">'
              '<img src="%s/media/how-to-order-email-portrait.jpg" width="280" alt="Watch: How to order with MyCNBox (1:47)" style="display:block;width:280px;max-width:85%%;height:auto;border:0;border-radius:12px;margin:0 auto;"></a><!--<![endif]-->'
@@ -442,6 +458,69 @@ def ordering_html(uid):
     # wrap() returns the full document; its <style> in <head> swaps in the vertical video thumbnail on phones.
     return wrap(inner, unsub_url(uid))
 
+# ---------------------------------------------------------------- ordering email per agent (5 Nov 2026)
+# profiles.agent is the agent the member picked on the site (index.html pcAgentSave, feed.html agentSave; NULL = no pick
+# saved). MyCNBox and no pick get ordering_html() above, unchanged. The other agents get their own short version.
+# Sign-up links: the site's own (WB_LINKS in index.html, the same links as the /guides/agent-coupons table). Bonus lines:
+# only what the site already says about that agent (WB_LINKS and /guides/agent-coupons); never more. If a line changes
+# on the site, change it here too. KakoBuy's link is the one the site uses (ikako.vip, code w5war); /go/ serves MyCNBox only.
+AGENT_MAIL = {
+    "kakobuy":   {"name": "KakoBuy",   "url": "https://ikako.vip/r/w5war",
+                  "bonus": "New members get up to $410 in welcome coupons."},
+    "lovegobuy": {"name": "LoveGoBuy", "url": "https://www.lovegobuy.com/?invite_code=9WJ54Y",
+                  "bonus": "LoveGoBuy has welcome coupons for new members."},
+    "oopbuy":    {"name": "Oopbuy",    "url": "https://oopbuy.com/register?inviteCode=LHQC0OS8O",
+                  "bonus": "Oopbuy gives new-user coupons on your first orders."},
+    "sugargoo":  {"name": "Sugargoo",  "url": "https://www.sugargoo.com/register?memberId=3751749728009774836",
+                  "bonus": "Sugargoo has a new-member coupon pack."},
+}
+AGENT_KEYS = ("mycnbox",) + tuple(AGENT_MAIL)       # the values profiles.agent may hold (OWNER_SQL.md check constraint)
+ORDERING_AGENT_SUBJECT = "How to order with %s in 4 short steps"
+
+def agent_of(pr):
+    """The member's picked agent key, or None when there is none (no column yet, NULL, or a value we don't know)."""
+    a = str((pr or {}).get("agent") or "").strip().lower()
+    return a if a in AGENT_KEYS else None
+
+def ordering_agent_html(uid, key):
+    """The ordering email for a member who picked an agent other than MyCNBox: sign up with that agent, 4 short steps
+    and the how-to-order video. Same template helpers as ordering_html()."""
+    a = AGENT_MAIL[key]; name = a["name"]
+    signup = ('<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
+        '<td class="pc-well" align="center" bgcolor="#F5F5F5" style="padding:28px 22px 30px;background:#F5F5F5;border-radius:12px;text-align:center;">'
+        + h2("Your %s Account" % esc(name))
+        + lead(esc(("Sign up free with our link. " + a["bonus"]).strip()), 15, 20)
+        + btn(esc(a["url"]), "Sign Up With %s" % esc(name), "primary", "sponsored nofollow noopener")
+        + '</td></tr></table>')
+    steps = [
+        ("1", "Make Your Free %s Account" % name, "Sign up with the button above. Your account is free."),
+        ("2", "Tap Buy Via %s" % name, "Open any find on Puro Classico. The listing opens inside %s. Pick size and colour, then pay for the item and delivery to the warehouse." % name),
+        ("3", "Check Your QC Photos", "When it reaches the warehouse, %s takes photos. Check logos, stitching, colour and the size tag." % name),
+        ("4", "Ship One Parcel", "Combine your items, pick a shipping line and pay international shipping."),
+    ]
+    inner = (pre("You picked %s. Here is your first order in 4 short steps, plus the 1:47 video." % name)
+      + h1("How To Order With %s" % esc(name))
+      + lead(esc("You picked %s as your agent. Here is your first order in 4 short steps, from tapping Buy to your parcel." % name))
+      + signup
+      + hr("44px 0 36px")
+      + h2("Your First Order In 4 Steps", "left")
+      + '<div style="height:12px;line-height:12px;font-size:12px;">&nbsp;</div>'
+      + '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + step_rows(steps) + '</table>'
+      + hr("20px 0 36px")
+      + h2("Watch The 1:47 Video")
+      + lead(esc("The video shows MyCNBox, but the flow is the same with %s: tap Buy, check QC, ship." % name), 15, 20)
+      + btn(esc(site_link(VIDEO_PAGE)), "&#9654;&nbsp; Watch The Video", "outline")
+      + '<p class="pc-mut" style="margin:24px auto 0;max-width:420px;font-family:' + FONT + ';font-size:14px;line-height:1.6;color:#6B6B6B;text-align:center;">Stuck on anything? Ask in our <a href="' + DISCORD_URL + '" class="pc-ink" style="color:#0A0A0A;text-decoration:underline;">Discord</a>. Members share QC tips and haul reviews daily.</p>'
+      + '<p class="pc-mut" style="margin:16px auto 0;max-width:420px;font-family:' + FONT + ';font-size:12px;line-height:1.6;color:#6B6B6B;text-align:center;">Sign-up offers are set by %s and can change.</p>' % esc(name))
+    return wrap(inner, unsub_url(uid))
+
+def ordering_email(uid, agent):
+    """(subject, html, Brevo tags) of the ordering email for this member's agent. No pick: today's email, tag "ordering".
+    MyCNBox: the same email, tags "ordering" + "ordering-mycnbox". Another agent: its own email, + "ordering-<agent>"."""
+    if agent in AGENT_MAIL:
+        return ORDERING_AGENT_SUBJECT % AGENT_MAIL[agent]["name"], ordering_agent_html(uid, agent), ["ordering", "ordering-" + agent]
+    return ORDERING_SUBJECT, ordering_html(uid), ["ordering"] + (["ordering-mycnbox"] if agent == "mycnbox" else [])
+
 def run_ordering(profiles):
     """Ordering guide - the 2nd email in the sequence, sent GUIDE_DELAY_MINUTES after the welcome.
     Eligible = welcomed, not yet sent the guide, and welcomed >= GUIDE_DELAY_MINUTES ago (or unknown)."""
@@ -457,7 +536,8 @@ def run_ordering(profiles):
     for pr in profiles:
         email = pr.get("email")
         if not email or not eligible(pr): continue
-        ok, msg = brevo_send(email, ORDERING_SUBJECT, ordering_html(pr["id"]), unsub_url(pr["id"]), "ordering")
+        subject, html, tags = ordering_email(pr["id"], agent_of(pr))      # the version for the agent they picked (or today's)
+        ok, msg = brevo_send(email, subject, html, unsub_url(pr["id"]), tags)
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"ordering_sent": True}, {"Prefer": "return=minimal"})
             sent += 1
@@ -468,11 +548,18 @@ def run_ordering(profiles):
     print("ordering sent:", sent)
 
 def run_ordering_test(_profiles=None):
-    """Send the ordering guide to a single TEST_EMAIL, ignoring DB gating and marking nothing. For previews."""
+    """Send the ordering guide to a single TEST_EMAIL, ignoring DB gating and marking nothing. For previews.
+    TEST_AGENT picks the version: empty = no agent picked (today's email), mycnbox, kakobuy, lovegobuy, oopbuy, sugargoo,
+    or "all" for one of each (6 emails)."""
     email = os.environ.get("TEST_EMAIL", "").strip()
     if not email: print("TEST_EMAIL not set"); return
-    ok, msg = brevo_send(email, ORDERING_SUBJECT, ordering_html("test"), None)
-    print("ordering-test sent" if ok else ("FAIL ordering-test: " + hide(msg)))
+    want = os.environ.get("TEST_AGENT", "").strip().lower()
+    if want and want != "all" and want not in AGENT_KEYS: print("TEST_AGENT %r unknown, use one of: %s or all" % (want, ", ".join(AGENT_KEYS))); return
+    for agent in ([None] + list(AGENT_KEYS) if want == "all" else [want or None]):
+        subject, html, _tags = ordering_email("test", agent)
+        ok, msg = brevo_send(email, subject, html, None)
+        print(("ordering-test sent (agent: %s)" % (agent or "none")) if ok else ("FAIL ordering-test: " + hide(msg)))
+        if want == "all": time.sleep(0.3)
 
 def mycnbox_html(uid):
     """3rd email in the sequence: nudge to create a MyCNBox account (our featured agent)."""
@@ -487,12 +574,17 @@ def mycnbox_html(uid):
       + '<p class="pc-mut" style="margin:0 auto;max-width:420px;font-family:' + FONT + ';font-size:14px;line-height:1.6;color:#6B6B6B;text-align:center;">New to all this? Read our quick <a href="' + esc(site_link(SITE + '/#tutorial')) + '" class="pc-ink" style="color:#0A0A0A;text-decoration:underline;">How to order</a> guide first, or ask in the <a href="' + DISCORD_URL + '" class="pc-ink" style="color:#0A0A0A;text-decoration:underline;">Discord</a>.</p>')
     return wrap(inner, unsub_url(uid))
 
+def mycnbox_nudge_ok(pr):
+    """The MyCNBox account nudge is for members with no agent saved or MyCNBox; one who picked another agent gets nothing."""
+    return agent_of(pr) in (None, "mycnbox")
+
 def run_mycnbox(profiles):
     """Sent AGENT_DELAY_MINUTES (default 1 day) after signup, once, to welcomed users who haven't had it yet."""
     delay_m = int(os.environ.get("AGENT_DELAY_MINUTES", "1440"))
     cutoff  = datetime.now(timezone.utc) - timedelta(minutes=delay_m)
     def eligible(pr):
         if not pr.get("welcomed") or pr.get("agent_sent"): return False
+        if not mycnbox_nudge_ok(pr): return False   # picked another agent: no MyCNBox nudge (not marked, so a later switch to MyCNBox still gets it)
         wa = pr.get("welcomed_at")
         if not wa: return True
         try: return datetime.fromisoformat(wa.replace("Z", "+00:00")) <= cutoff
@@ -702,10 +794,11 @@ def main():
     if mode == "welcome":
         profiles = sb_all("profiles?select=id,email,welcomed,welcomed_at&order=id")     # welcome = transactional, all signups
     elif mode == "ordering":
-        profiles = sb_all("profiles?welcomed=eq.true&select=id,email,welcomed,welcomed_at,ordering_sent&order=id")  # ordering guide = 2nd in sequence, transactional
+        # ordering guide = 2nd in sequence, transactional; agent = the one they picked (sb_all_opt: no column yet = no pick)
+        profiles = sb_all_opt("profiles?welcomed=eq.true&select=id,email,welcomed,welcomed_at,ordering_sent,agent&order=id", "agent")
     elif mode == "mycnbox":
         # 3rd in sequence: the create-a-MyCNBox-account nudge is marketing, so only members who opted in to marketing email
-        profiles = sb_all("profiles?welcomed=eq.true&marketing_opt_in=eq.true&select=id,email,welcomed,welcomed_at,agent_sent&order=id")
+        profiles = sb_all_opt("profiles?welcomed=eq.true&marketing_opt_in=eq.true&select=id,email,welcomed,welcomed_at,agent_sent,agent&order=id", "agent")
     elif mode == "sync":
         profiles = sb_all("profiles?select=id,email&order=id")
     else:
