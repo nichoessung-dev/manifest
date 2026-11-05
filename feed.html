@@ -1012,10 +1012,11 @@ function loadCatalog() {
   });
 }
 function getJSON(u) { return fetch(u).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
-Promise.all([loadCatalog(), getJSON("/data/stats.json"), getJSON("/data/link_health.json")]).then(function (r) {
-  var cat = r[0] || [], st = r[1], lh = r[2];
+Promise.all([loadCatalog(), getJSON("/data/stats.json"), getJSON("/data/link_health.json"), getJSON("/data/reported.json")]).then(function (r) {
+  var cat = r[0] || [], st = r[1], lh = r[2], rp = r[3];
   if (st && st.p) for (var id in st.p) { var v = st.p[id]; POP[id] = (v[1] || 0) + (v[2] || 0) + 3 * (v[3] || 0); POP7[id] = v[2] || 0; if (POP[id] > maxPop) maxPop = POP[id]; }
   if (lh && lh.dead) lh.dead.forEach(function (id) { DEAD[String(id)] = 1; });
+  if (rp && Array.isArray(rp.hidden)) rp.hidden.forEach(function (id) { DEAD[String(id)] = 1; });   // removed after member reports (scripts/bake_reports.py)
   cat.forEach(function (p) { p.id = String(p.id); p._img = imgOf(p); p._t = typeOf(p); p._k = colOf(p); p._n = (p.title || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); BY[p.id] = p; });
   ALL = cat;
   buildVocab();

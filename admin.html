@@ -211,6 +211,11 @@
   /* live data cards (search + product page views), drawn in the v9 KPI style */
   .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:12px;margin-bottom:22px}.two>div{min-width:0}
   #views,#search{margin:0 0 22px}
+  #reported{margin:0 0 22px}
+  #reported h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+  #reported .tw{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg)}
+  #reported .why{color:var(--muted);font-size:12.5px}
+  #reported td.n{white-space:nowrap}
   #views h3,#search h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
   #views .cards,#search .cards{grid-template-columns:repeat(3,minmax(0,1fr))}
   @media (max-width:640px){#views .cards,#search .cards{grid-template-columns:1fr}}
@@ -241,6 +246,7 @@
   </section>
   <div id="views" hidden></div>
   <div id="search" hidden></div>
+  <div id="reported" hidden></div>
   <div class="toolbar">
     <div class="seg" id="tabs" role="group" aria-label="Table">
       <button type="button" data-k="7" class="on">Most Viewed · 7 Days</button><button type="button" data-k="30">Most Viewed · 30 Days</button><button type="button" data-k="all">Most Viewed · All Time</button><button type="button" data-k="fav">Most Favourited</button><button type="button" data-k="brand">Brands</button>
@@ -264,6 +270,25 @@ try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",tc)}cat
     fetch("/data/stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null),
     fetch("/products.json").then(r=>r.json()).catch(()=>({}))
   ]);
+  // Reported finds (product_reports via scripts/bake_reports.py into /data/reported.json, every 2 hours). Hidden until a
+  // find has reports. "Removed" finds are left out of the site; "Watching" ones have reports but not enough yet.
+  fetch("/data/reported.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(R=>{
+    const items=(R&&Array.isArray(R.items))?R.items:[], watch=(R&&Array.isArray(R.watch))?R.watch:[];
+    if(!items.length&&!watch.length) return;
+    const e=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    const RN={dead:"dead link",wrong:"wrong item or photos",scam:"scam seller",other:"other"};
+    const find=id=>{ const p=(prods||{})[id]; return p?`<a href="/product/${encodeURIComponent(id)}" target="_blank">${e(p.title||id)}</a><div class="brand">${e(p.brand||"")} · ${e(id)}</div>`:`<span class="muted">#${e(id)}</span>`; };
+    const why=x=>Object.entries(x.reasons||{}).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`${e(RN[k]||k)} ${e(n)}`).join(", ");
+    const by=x=>x.by==="owner"?"you (overrides)":x.by==="reports"?"reports":"";
+    const tbl=(L,last)=>`<div class="tw"><table><tr><th>Find</th><th class="n">Score</th><th class="n">Needed</th><th class="n">People</th><th class="n">Networks</th><th>Reasons</th><th class="n">${last}</th></tr>${L.map(x=>`<tr><td>${find(x.id)}</td><td class="n">${e(x.score)}</td><td class="n">${e(x.need)}</td><td class="n">${e(x.people)}</td><td class="n">${e(x.nets)}</td><td class="why">${why(x)}${by(x)?`<div>by ${by(x)}</div>`:""}</td><td class="n">${e(last==="Since"?(x.since||""):(x.last||""))}</td></tr>`).join("")}</table></div>`;
+    const el=document.getElementById("reported"); el.hidden=false;
+    const ud=R.updated?new Date(R.updated):null;
+    el.innerHTML=`<h3 style="margin:0 0 8px">Removed after reports · ${items.length.toLocaleString()} finds</h3>`+
+      (items.length?tbl(items,"Since"):`<p class="muted">No find has been removed.</p>`)+
+      (R.held?`<p class="muted" style="margin:6px 0 0">${e(R.held)} more finds reached the limit in one run and were held back (at most ${e((R.rule||{}).max_new_per_run||25)} new removals per run). They stay on the watch list; check them for a coordinated attack.</p>`:"")+
+      (watch.length?`<h3 style="margin:16px 0 8px">Watching · reported, not removed</h3>${tbl(watch,"Last report")}`:"")+
+      `<p class="muted" style="margin:6px 0 0">A find is removed when its reports reach the score needed (3 plus more for finds with many views) from at least ${e((R.rule||{}).min_people||3)} people on ${e((R.rule||{}).min_nets||2)}+ networks. Signed-in members count 1, guests 0.3 (all guests together at most ${e((R.rule||{}).anon_cap||1.5)}), accounts younger than an hour 0. To put a find back, add its ID under "keep" in data/report_overrides.json with today's date: older reports then stop counting. To remove one yourself, add its ID under "hide". ${ud&&!isNaN(ud)?"Updated "+e(ud.toLocaleString())+".":""}</p>`;
+  }).catch(()=>{});
   if(!stats){ $("#gen").textContent="No stats yet, run the Stats workflow in GitHub Actions."; $("#cards").innerHTML=""; $("#chart").classList.remove("sk"); $("#tbl").innerHTML='<div class="empty">No stats yet</div>'; return; }
   const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   /* tolerate a partial/empty stats.json (e.g. {} or a run that failed half-way) */
