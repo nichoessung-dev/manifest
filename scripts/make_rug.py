@@ -128,6 +128,20 @@ def edit(model, images, text, fidelity=True):
     return base64.b64decode(j["data"][0]["b64_json"]), j.get("usage") or {}
 
 
+class NoCredit(RuntimeError): pass
+
+
+def to_openai(why):
+    """Gemini has no credit left (HTTP 402): finish this run with OpenAI so the drafts keep coming (5 Nov 2026). The next
+    run tries Gemini again, so topping up the Gemini account switches back by itself."""
+    global ENGINE, MODELS
+    if not os.environ.get("OPENAI_API_KEY"): return False
+    if ENGINE == "gemini":                                   # several checks run at once: only the first one switches
+        print("  GEMINI OUT OF CREDIT (%s): using OpenAI for this run" % why[:80])
+        ENGINE = "openai"; MODELS = [m for m in os.environ.get("RUG_FALLBACK_MODELS", "gpt-image-2,gpt-image-1.5,gpt-image-1").split(",") if m]
+    return True
+
+
 def gemini(model, parts, config, timeout=150):
     if "responseMimeType" in config and "thinkingConfig" not in config:       # the quick yes/no checks: little thinking, so they take seconds
         try: return gemini(model, parts, dict(config, thinkingConfig={"thinkingLevel": "low"}), timeout)
@@ -138,7 +152,10 @@ def gemini(model, parts, config, timeout=150):
                                  headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"], "Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r: return json.load(r)
-    except urllib.error.HTTPError as e: raise RuntimeError("HTTP %s %s" % (e.code, e.read().decode("utf-8", "replace")[:300]))
+    except urllib.error.HTTPError as e:
+        msg = e.read().decode("utf-8", "replace")[:300]
+        if e.code == 402 or "credits are depleted" in msg: raise NoCredit("HTTP %s %s" % (e.code, msg))
+        raise RuntimeError("HTTP %s %s" % (e.code, msg))
 
 
 _FLASH = None
@@ -171,6 +188,9 @@ def generate(images, text, models=None):
         for m in models or MODELS:
             for attempt in range(3):
                 try: png, use = gemini_image(m, images, text); return png, m, use
+                except NoCredit as e:
+                    if to_openai(str(e)): return generate(images, text)
+                    return None, None, {}
                 except Exception as e:
                     print("  %s: %s" % (m, str(e)[:200]))
                     if "429" in str(e) or "503" in str(e) or "timed out" in str(e): time.sleep(10 * (attempt + 1)); continue
@@ -203,8 +223,12 @@ def check(qc):
     """Is this QC photo right for a rug slide, and what is it called. One small call (Gemini Flash, or gpt-4o-mini)."""
     t = qc.convert("RGB"); t.thumbnail((768, 768)); b = io.BytesIO(); t.save(b, "JPEG", quality=85)
     if ENGINE == "gemini":
-        j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": CHECK}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(b.getvalue()).decode()}}],
-                   {"responseMimeType": "application/json", "temperature": 0}, 60)
+        try:
+            j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": CHECK}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(b.getvalue()).decode()}}],
+                       {"responseMimeType": "application/json", "temperature": 0}, 60)
+        except NoCredit as e:
+            if not to_openai(str(e)): raise
+            return check(qc)
         return json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
     body = {"model": "gpt-4o-mini", "max_tokens": 120, "temperature": 0, "response_format": {"type": "json_object"}, "messages": [{"role": "user", "content": [
         {"type": "text", "text": CHECK}, {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(b.getvalue()).decode(), "detail": "low"}}]}]}
