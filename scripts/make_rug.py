@@ -116,7 +116,7 @@ def jpeg(im, side=1024):
 def edit(model, images, text, fidelity=True):
     """OpenAI image edit with several input images; returns PNG bytes."""
     bd = "----rug" + uuid.uuid4().hex; parts = []
-    fields = {"model": model, "prompt": text, "size": "1024x1536", "quality": "high", "n": "1"}
+    fields = {"model": model, "prompt": text, "size": "1024x1536", "quality": os.environ.get("RUG_OPENAI_QUALITY", "medium"), "n": "1"}   # medium: about a quarter of the high price
     if fidelity: fields["input_fidelity"] = "high"
     for k, v in fields.items(): parts.append(('--%s\r\nContent-Disposition: form-data; name="%s"\r\n\r\n%s\r\n' % (bd, k, v)).encode())
     for n, data in enumerate(images):
@@ -409,6 +409,28 @@ def site_cands(no):
     return out
 
 
+POP_N = int(os.environ.get("RUG_POP_N", "300"))
+
+
+def pop_cands(no):
+    """Product photos of the site's most popular finds (owner, 5 Nov 2026: "randomly of the most popular ones"), as
+    candidates "pop:<id>". Popularity = views in the last 30 days + views in the last 7 + 3 x favourites (data/stats.json)."""
+    try: st = json.load(open(os.path.join(ROOT, "data", "stats.json"))).get("p") or {}
+    except Exception: return []
+    price(None, None, None)                                    # loads _ROWS
+    rows = [r for r in _ROWS if r[11] and r[3] in ("Shoes", "Outerwear", "Bags", "Accessories", "Headwear")]   # the kinds that fit the rug
+    sc = lambda r: (lambda v: (v[1] or 0) + (v[2] or 0) + 3 * (v[3] or 0))(st.get(r[0]) or [0, 0, 0, 0])
+    rows.sort(key=sc, reverse=True)
+    return [("pop:" + r[0], "other") for r in rows[:POP_N] if sc(r) > 0 and ("pop:" + r[0]) not in no]
+
+
+def pop_url(sid):
+    r = site_row(sid[4:]); img = r[11] if r else ""
+    if img.startswith("/"): return "https://www.puroclassico.com" + img
+    if img[:1] == "B": return "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/" + img[1:]
+    return ""
+
+
 def site_find(sid):
     """("taobao", "760438413422", 0) for "site:taobao/760438413422/0"."""
     sf, fid, k = sid[5:].split("/"); return sf, fid, int(k)
@@ -465,21 +487,26 @@ def main():
     picked_ids = set(fresh)
     if SITE_ON and not fresh:                                  # the site's QC photos take turns with the Drive photos, least used first
         site = site_cands(no); rnd.shuffle(site); site.sort(key=lambda c: rc.get(c[0], 0))
+        pop = pop_cands(no); rnd.shuffle(pop); pop.sort(key=lambda c: rc.get(c[0], 0))     # random among the popular ones, least used first
         mix = []
-        for k in range(max(len(cands), len(site))):
+        for k in range(max(len(cands), len(site), len(pop))):
+            if k < len(pop): mix.append(pop[k])
             if k < len(site): mix.append(site[k])
             if k < len(cands): mix.append(cands[k])
-        print("site QC photos:", len(site)); cands = mix
+        print("site QC photos:", len(site), "popular product photos:", len(pop)); cands = mix
     print("candidates:", len(cands))
     picks, groups, fails = [], {}, 0                           # 1. pick the photos (a quick check each, six at a time), a mix of kinds
     from concurrent.futures import ThreadPoolExecutor
     def look(c):
         pid, t = c
-        url = SITE_QC % site_find(pid) if pid.startswith("site:") else "https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % pid
+        url = SITE_QC % site_find(pid) if pid.startswith("site:") else pop_url(pid) if pid.startswith("pop:") else "https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % pid
         try: qc = Image.open(io.BytesIO(fetch(url))); qc.load()
         except Exception as e: return c, None, "download: %s" % e
-        if pid.startswith("site:"): qc = qc.convert("RGB")     # one photo, not two stacked like the Drive exports
-        try: return c, qc, check(qc if pid.startswith("site:") else top_shot(qc))      # only the shot the image model gets: the lower one is often another item
+        if pid.startswith(("site:", "pop:")):                 # one photo, not two stacked like the Drive exports
+            if qc.mode in ("RGBA", "LA", "P"):                 # the product photos are cut-outs: put them on white
+                qc = qc.convert("RGBA"); bg = Image.new("RGB", qc.size, (255, 255, 255)); bg.paste(qc, mask=qc.split()[-1]); qc = bg
+            else: qc = qc.convert("RGB")
+        try: return c, qc, check(qc if pid.startswith(("site:", "pop:")) else top_shot(qc))      # only the shot the image model gets: the lower one is often another item
         except Exception as e: return c, qc, "check: %s" % str(e)[:300]
     want, cap = (a.n * 2 + 2, a.n) if MULTI_ON else (a.n + 3, max(2, a.n // 3))
     t_pick = time.time()
@@ -498,7 +525,7 @@ def main():
             if pid not in picked_ids and not (c.get("fits") and c.get("clear")):      # the owner's picks are never skipped
                 print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
             if groups.get(g, 0) >= cap: continue                                # a mix: not all bags
-            fid = site_find(pid)[1] if pid.startswith("site:") else ""
+            fid = site_find(pid)[1] if pid.startswith("site:") else pid[4:] if pid.startswith("pop:") else ""
             if fid and any(p.get("find") == fid for p in picks): continue      # one photo per find in a post
             groups[g] = groups.get(g, 0) + 1
             name = re.sub(r"[^a-z0-9 '&.-]", "", unicodedata.normalize("NFKD", str(c.get("name") or c.get("item") or t)).encode("ascii", "ignore").decode().lower()).strip()[:28]      # "pérignon" -> "perignon", not "prignon"
