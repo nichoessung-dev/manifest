@@ -47,16 +47,55 @@ def strip_colours(t):
     return re.sub(r"\s+", " ", COLRX.sub(" ", re.sub(r"(?i)off-white", "offwhite", t or ""))).strip().lower().replace("offwhite", "off-white")
 
 
+# plain item nouns: adding one of these is not new information ("Crewneck" -> "Crewneck Sweater")
+PLAIN = set("""sweater jacket sneakers sneaker shoes shoe shirt top pants trousers bag watch wallet belt cap hat tee t-shirt
+set other item and with of the in a""".split())
+# colour families: a change inside one family (blue / navy, white / grey / cream) is a matter of shade, never applied
+FAMILY = {}
+for fam, cols in {"blue": "blue navy light dark sky royal denim indigo teal turquoise",
+                  "light": "white off-white cream ivory beige grey gray silver sand ecru charcoal",
+                  "black": "black charcoal", "brown": "brown tan camel coffee khaki",
+                  "green": "green olive army mint khaki teal", "red": "red burgundy maroon wine rose",
+                  "pink": "pink rose", "purple": "purple lilac", "yellow": "yellow gold", "orange": "orange apricot",
+                  "multi": "multicolour multicolor two-tone"}.items():
+    for c in cols.split():
+        FAMILY.setdefault(c, set()).add(fam)
+
+
+def colour_words(t):
+    return [m.group(0) for m in COLRX.finditer(re.sub(r"(?i)off-white", "offwhite", t or ""))]
+
+
+def families(cols):
+    out = set()
+    for c in cols:
+        for w in c.lower().split():
+            out |= FAMILY.get(w, {w})
+    return out
+
+
+def toks(t):
+    """lower-case words, hyphenated words also split ("zip-up" -> zip, up)"""
+    out = []
+    for w in words(t):
+        out += [x for x in w.split("-") if x] if "-" in w else [w]
+    return out
+
+
 def compose_titles(items, labels, allow_design, min_title, all_items=None):
-    """New titles for finds whose label passes the rules. Colour is added only when it tells finds apart:
-    when another find of the same brand gets (or has) the same base title."""
-    all_items = all_items or items
+    """New titles that pass the rules (owner, 5 Nov 2026):
+    format Brand + model/item + colour; never drop a colour the current title has; change a colour only when the
+    model is 0.95+ sure AND it is a clearly different colour (not navy vs blue, not white vs grey); keep every detail
+    word of the current title ("Green Dial", "21 Inch", "Washed", "Check", "Polo"); accept a change only when it ADDS
+    information (a model name, a sub-type like Zip Hoodie, a second colour, a colour where there was none) or fixes
+    the brand spelling. Anything else keeps its current title."""
     cand = {}
     why = collections.Counter()
     for p in items:
         r = labels.get(p["id"])
         if not r or r.get("error") or r.get("model") == "mock":
             continue
+        old = p.get("title") or ""
         base = re.sub(r"\s+", " ", no_dash(r.get("title_base") or "")).strip()
         brand = p.get("brand") or ""
         if not base:
@@ -69,38 +108,62 @@ def compose_titles(items, labels, allow_design, min_title, all_items=None):
             why["does not start with brand"] += 1; continue
         if BANNED.search(re.sub(r"(?i)margiela replica", "", base)):
             why["banned words"] += 1; continue
-        if any(w in COLWORDS for w in words(base)[len(brand.split()):]) and not re.search(r"(?i)off-white", base):
+        # colour words inside the base are only allowed when they are a detail phrase of the current title ("Green Dial")
+        base_cols = colour_words(base[len(brand):])
+        if base_cols and not all(re.search(r"(?i)\b%s \w+" % re.escape(c), old) for c in base_cols):
             why["colour inside base"] += 1; continue
         n = len(base.split())
-        if n < 2 or n > 6 or len(base) > 40:
+        if n < 2 or n > 7 or len(base) > 44:
             why["length"] += 1; continue
-        # no invented words: every word must be in brand / current title / variants / item words, unless the model
-        # name was read in the photo (or recognised by design and --allow-design)
-        known = set(words(brand)) | set(words(p.get("title"))) | ITEM_WORDS | COLWORDS
+        # no invented words
+        known = set(words(brand)) | set(words(old)) | set(toks(old)) | ITEM_WORDS | COLWORDS
         for v in p.get("variants") or []:
             if isinstance(v, list) and v and isinstance(v[0], str): known |= set(words(v[0]))
-        new = [w for w in words(base) if w not in known]
+        new_words = [w for w in words(base) if w not in known and not all(x in known for x in w.split("-"))]
         src = r.get("model_source")
-        if new and not (src == "visible_text" or (src == "design" and allow_design)):
+        if new_words and not (src == "visible_text" or (src == "design" and allow_design)):
             why["new words without a source"] += 1; continue
-        if new and src == "design" and r.get("title_confidence", 0) < 0.92:
+        if new_words and src == "design" and r.get("title_confidence", 0) < 0.92:
             why["design guess below 0.92"] += 1; continue
-        cand[p["id"]] = (base, (r.get("colour") or "").strip().title())
-    # colour only when useful
-    groups = collections.defaultdict(list)
-    for i, (base, col) in cand.items():
-        groups[base.lower()].append(i)
-    idx = {p["id"]: p for p in items}
-    # finds keeping their title count by their title without colour words ("Moncler Navy Down Jacket" -> "moncler down jacket")
-    other = collections.Counter(strip_colours(p.get("title")) for p in all_items if p["id"] not in cand)
-    out = {}
-    for i, (base, col) in cand.items():
-        shared = len(groups[base.lower()]) > 1 or other[strip_colours(base)] > 0
-        t = base + (" " + col if col and shared and len((base + " " + col)) <= 48 else "")
-        if t.lower() == (idx[i].get("title") or "").lower():
+        # colour: keep the current one unless clearly wrong
+        old_cols = colour_words(old[len(brand):] if old.lower().startswith(brand.lower()) else old)
+        ai_col = (r.get("colour") or "").strip().title()
+        ai_cols = colour_words(ai_col)
+        col_conf = r.get("colour_confidence", min(r.get("title_confidence", 0), r.get("confidence", 0)))
+        added_colour = False
+        if old_cols:
+            col = " ".join(c.title() for c in old_cols).replace("Offwhite", "Off-White")
+            olds = set(c.lower() for c in old_cols)
+            if ai_cols and olds < set(c.lower() for c in ai_cols):
+                col = ai_col; added_colour = True                       # a second colour: "Navy" -> "Navy White"
+            elif ai_cols and col_conf >= 0.95 and not (families(old_cols) & families(ai_cols)):
+                col = ai_col; added_colour = True                       # a clear error fixed (0.95+, another colour family)
+        else:
+            col = ai_col if ai_cols and col_conf >= 0.85 and ai_col.lower() not in ("multicolour", "multicolor") else ""
+            added_colour = bool(col)
+        if base_cols:                                                    # the colour already sits in a detail phrase
+            col = ""
+        t = (base + " " + col).strip() if col else base
+        # every detail word of the current title must survive
+        tl = toks(t); joined = re.sub(r"[\s\-']", "", t.lower())
+        lost = [w for w in toks(old) if w not in tl and w not in set(toks(brand)) and w not in PLAIN
+                and w not in COLWORDS and w != "offwhite" and not (len(w) >= 5 and w.replace("'", "") in joined)]
+        if brand.lower() not in old.lower():
+            lost = [w for w in lost if w.replace("'", "") not in re.sub(r"[\s\-']", "", brand.lower())]
+        if lost:
+            why["would drop detail words"] += 1; continue
+        # it must add information
+        gained = [w for w in tl if w not in set(toks(old)) and w not in PLAIN and w not in COLWORDS
+                  and w not in set(toks(brand)) and not (len(w) >= 5 and w in re.sub(r"[\s\-']", "", old.lower()))]
+        brand_fix = bool(brand) and brand.lower() not in old.lower()
+        if not (gained or added_colour or brand_fix):
+            why["adds nothing"] += 1; continue
+        if len(t) > 48:
+            why["length"] += 1; continue
+        if t.lower() == old.lower():
             why["same as now"] += 1; continue
-        out[i] = t
-    return out, why
+        cand[p["id"]] = t
+    return cand, why
 
 
 def object_span(raw, pid):

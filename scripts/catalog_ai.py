@@ -82,14 +82,21 @@ Return JSON only, with these fields:
   or the design is unmistakable and you are certain (for example "Gel-Kayano 14", "Air Force 1", "Box Logo", "Nuptse", "Replica" for Maison Margiela GATs).
   Otherwise "". Never guess a model number. A graphic or print name (for example "Rolling Loud", "Wreath", "Polo Bear") may be used when it is readable.
 - model_source: "title" (already in the current title), "visible_text" (you can read it in the photo), "design" (recognised by design only), or "none".
-- title_base: the new title WITHOUT colour: "<brand> <model if any> <item>", 2 to 6 words, at most 40 characters, Title Case,
-  the brand spelled exactly "{brand}" (when brand is empty, start with the model or item).
+- title_base: the title WITHOUT the main colour: "<brand> <model if any> <item>", 2 to 7 words, at most 44 characters,
+  Title Case, the brand spelled exactly "{brand}" (when brand is empty, start with the model or item).
+  Start from the current title and only ADD what you are sure of (a model name, a sub-type like "Zip Hoodie" or
+  "Quarter Zip"). Keep EVERY detail word of the current title (print or model names, "Check", "Washed", "Polo",
+  "Striped", "21 Inch"); a colour that is part of a detail phrase stays in title_base as written ("Green Dial").
+  If you cannot add anything for sure, return the current title without its colour.
   Good: "Chanel Runner", "Asics Gel-Kayano 14", "Maison Margiela Replica Gats", "Moncler Maya Down Jacket", "Stussy Dice T-Shirt", "Corteiz Alcatraz Cargo Pants".
   Rules: no colour words in title_base, no sizes, no years, no "Men's"/"Women's", no seller words (rep, replica (except the Margiela model), 1:1, batch, top quality, new, hot),
   no dashes as punctuation (hyphens inside a model name like "Gel-Kayano" are fine), no words you cannot see or do not know for sure.
   Keep useful words from the current title (model names, prints, materials like "Suede" or "Leather" when true).
-- colour: the main colour in plain English (Black, White, Grey, Navy, Blue, Light Blue, Red, Burgundy, Pink, Purple, Green, Olive, Khaki,
+- colour: the colour of the item. The current title's colour comes from the seller's listing and is usually right:
+  repeat it as written unless the photo clearly shows a different colour (not a shade: navy vs blue or white vs grey
+  is the same colour). You may add a clear second colour ("Navy" -> "Navy White"). Plain English (Black, White, Grey, Navy, Blue, Light Blue, Red, Burgundy, Pink, Purple, Green, Olive, Khaki,
   Yellow, Orange, Brown, Tan, Beige, Cream, Silver, Gold, Multicolour), two words at most ("Black White" for a two-tone shoe), "" if unclear.
+- colour_confidence: 0 to 1, how sure you are of colour. Use 0.95+ only when the photo leaves no doubt.
 - is_set: true when the find is clearly sold as two or more different garments together (tee + shorts, hoodie + pants).
 - is_clean_product_photo: true only when the photo shows the item alone, whole, centred, on a plain white or very light background,
   with no person, hand, hanger, rack, box, extra views, collage, text, logo stamp or watermark added. A pair of shoes counts as one item. A set shown together is fine.
@@ -110,6 +117,7 @@ SCHEMA = {
         "model_source": {"type": "STRING", "enum": ["title", "visible_text", "design", "none"]},
         "title_base": {"type": "STRING"},
         "colour": {"type": "STRING"},
+        "colour_confidence": {"type": "NUMBER"},
         "is_set": {"type": "BOOLEAN"},
         "is_clean_product_photo": {"type": "BOOLEAN"},
         "photo_issues": {"type": "ARRAY", "items": {"type": "STRING", "enum": ISSUES}},
@@ -121,10 +129,10 @@ SCHEMA = {
         "confidence": {"type": "NUMBER"},
         "note": {"type": "STRING"},
     },
-    "required": ["cat", "item", "model", "model_source", "title_base", "colour", "is_set", "is_clean_product_photo",
+    "required": ["cat", "item", "model", "model_source", "title_base", "colour", "colour_confidence", "is_set", "is_clean_product_photo",
                  "photo_issues", "has_text_or_watermark", "is_collage", "brand_check", "cat_confidence",
                  "title_confidence", "confidence", "note"],
-    "propertyOrdering": ["cat", "item", "model", "model_source", "title_base", "colour", "is_set", "is_clean_product_photo",
+    "propertyOrdering": ["cat", "item", "model", "model_source", "title_base", "colour", "colour_confidence", "is_set", "is_clean_product_photo",
                          "photo_issues", "has_text_or_watermark", "is_collage", "brand_check", "cat_confidence",
                          "title_confidence", "confidence", "note"],
 }
@@ -264,7 +272,7 @@ def clean_answer(r, p):
         out[k] = bool(r.get(k))
     out["photo_issues"] = [x for x in (r.get("photo_issues") or []) if x in ISSUES]
     out["brand_check"] = r.get("brand_check") if r.get("brand_check") in ("matches", "different", "not_visible") else "not_visible"
-    for k in ("cat_confidence", "title_confidence", "confidence"):
+    for k in ("cat_confidence", "title_confidence", "colour_confidence", "confidence"):
         try: out[k] = max(0.0, min(1.0, float(r.get(k))))
         except Exception: out[k] = 0.0
     return out

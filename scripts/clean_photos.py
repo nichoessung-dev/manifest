@@ -9,6 +9,8 @@ seller photo. Per find:
   3. tidy the mask: drop loose specks, trim a hanger hook / rack pole sticking out of the top of a garment,
      optionally keep only the main view when the vision labels say the photo shows extra views (--keep-main-view)
   4. quality gate: skip (and log) masks that look wrong: too small / too big, many separate pieces, hazy, no cut-out
+  4b. small photos (short side under 900 px): enlarged with Real-ESRGAN (scripts/restore.py) behind a shrink-back
+     judge, or Lanczos when the model is missing or the judge says no
   5. compose: crop to the item, scale so its long side is --fill of the canvas, centre, soft contact shadow,
      on #f2f5fa (the site's photo card; --bg ffffff for white), 1200x1200 WebP
   6. fidelity check: the item pixels in the result must match the original (mean difference under a few levels)
@@ -77,6 +79,38 @@ def label(mask):
                     lab[n] = n_; stack.append(n)
         areas.append(area); boxes.append((x0, y0, x1 + 1, y1 + 1))
     return lab, areas, boxes
+
+
+def upscale(im, alpha, a):
+    """Small photos (short side under --upscale-below): enlarge to 1200 px on the long side. Real-ESRGAN (scripts/restore.py,
+    the general x4v3 model the Finds job uses; it sharpens what is there and draws nothing new) when its model files
+    are present, else Lanczos. Judge: the enlarged photo shrunk back must match the original (mean difference on the
+    item under 6 of 255), otherwise the plain Lanczos result is used. Returns (im RGBA, alpha, note)."""
+    w, h = im.size
+    if min(w, h) >= a.upscale_below:
+        return im, alpha, ""
+    s = SIZE / max(w, h)
+    nw, nh = round(w * s), round(h * s)
+    lanczos = im.convert("RGBA").resize((nw, nh), Image.LANCZOS)
+    big_a = alpha.resize((nw, nh), Image.LANCZOS)
+    try:
+        sys.path.insert(0, os.path.join(ROOT, "scripts"))
+        from restore import restore, _load
+        if _load() is None:
+            raise RuntimeError("Real-ESRGAN model not installed")
+        sr = restore(im.convert("RGB"), nw, nh).resize((nw, nh), Image.LANCZOS)
+        back = sr.resize((w, h), Image.LANCZOS)
+        solid = alpha.point(lambda v: 255 if v >= 250 else 0)
+        diff = ImageChops.multiply(ImageChops.difference(back, im.convert("RGB")).convert("L"), solid).histogram()
+        mad = sum(i * c for i, c in enumerate(diff)) / max(1, solid.histogram()[255])
+        if mad > 6.0:
+            out = lanczos; note = "upscaled (Lanczos; Real-ESRGAN rejected, diff %.1f)" % mad
+        else:
+            out = sr.convert("RGBA"); note = "upscaled (Real-ESRGAN, diff %.1f)" % mad
+    except Exception as e:
+        out = lanczos; note = "upscaled (Lanczos: %s)" % str(e)[:40]
+    out.putalpha(big_a)
+    return out, big_a, note
 
 
 def tidy(alpha, cat, keep_main):
@@ -270,6 +304,7 @@ def main():
     ap.add_argument("--rembg-model", default="isnet-general-use")
     ap.add_argument("--keep-main-view", action="store_true", help="drop extra views when the labels say multiple_views / collage")
     ap.add_argument("--max-parts", type=int, default=3)
+    ap.add_argument("--upscale-below", type=int, default=900, help="enlarge photos whose short side is under this (px)")
     ap.add_argument("--quality", type=int, default=84)
     ap.add_argument("--sheets", default=os.path.join(ROOT, "photo-sheets"))
     ap.add_argument("--dry-run", action="store_true", help="process and make sheets, but write no images and no records")
@@ -301,6 +336,8 @@ def main():
             multi = bool(set(lab.get("photo_issues") or []) & {"multiple_views", "collage_or_grid"}) or lab.get("is_collage")
             keep_main = a.keep_main_view and multi and not lab.get("is_set")
             alpha, notes = tidy(alpha, p.get("cat"), keep_main)
+            im, alpha, up = upscale(im, alpha, a)
+            if up: notes.append(up)
             bad, st = gate(alpha, a)
             bad += [n[9:] for n in notes if n.startswith("DAMAGED: ")]       # a broken old cut-out: needs a new photo
             rec.update({"mask": how, "notes": notes, "stats": st})
