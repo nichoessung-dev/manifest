@@ -1384,7 +1384,7 @@ html.agent-lock .masthead .mast-tools .v9-prefs .selwrap:has(#agent){display:non
 .v9-theme-seg button{height:32px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--muted);font:500 13px/1 var(--f-body);cursor:pointer}
 .v9-theme-seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--sh-sm)}
 @media (max-width:1180px){.mast-tools .icon-btn{display:none!important}}
-@media (max-width:1023px){.v9-nl{display:none!important}.tools-menu .v9-mob{display:block}.tools-menu .tools-sep.v9-mob{display:block}}
+@media (max-width:1099px){.v9-nl{display:none!important}.tools-menu .v9-mob{display:block}.tools-menu .tools-sep.v9-mob{display:block}}
 @media (min-width:561px) and (max-width:860px){.pc-mycnbox-btn{font-size:12.5px!important;padding:0 12px!important}}
 /* hero sits under the header now, not behind a floating bar */
 .hero,html .hero{margin-top:0!important;padding-top:0!important;border:0!important;background:var(--ground)!important}
@@ -1950,9 +1950,10 @@ html .masthead .brand{display:flex!important;align-items:center;min-height:44px;
    so there is no width where the Discord icon also fits. It stays in the footer (and the markup stays), like the server header */
 .mast-tools .icon-btn{display:none!important}
 .mast-tools{padding-left:8px}
-/* 561 to 1279px: the theme choice moves into the globe popover (the phone layout already has it there), so the
+/* from 561px (5 Nov 2026: was 561 to 1279px; at 1280px and up the row needs the room since Swipe joined the nav, and the
+   server pages have the same globe): the theme choice moves into the globe popover (the phone layout already has it there), so the
    header row keeps room for the search button next to the full nav */
-@media (min-width:561px) and (max-width:1279px){.theme-wrap{display:none!important}html .masthead.set-open .v9-theme-seg{display:flex;flex:0 0 100%}}
+@media (min-width:561px){.theme-wrap{display:none!important}html .masthead.set-open .v9-theme-seg{display:flex;flex:0 0 100%}}
 /* 561 to 719px: logo + nav + search + sign in + globe already fill the 56px row, so the MyCNBox pill takes its own full-width
    row under it (as on phones) instead of running off the right edge; the first row keeps its 56px positions */
 @media (min-width:561px) and (max-width:719px){
@@ -1985,8 +1986,9 @@ html .masthead .brand{display:flex!important;align-items:center;min-height:44px;
 @supports not (anchor-name:--a){
   .v9-nav>.v9-nl[aria-current="page"],.v9-nav>.tools-nav:has(>.v9-nl[aria-current="page"]){background:var(--surface-2)!important}
 }
-/* under 1024px the links fold into the Tools menu: the chevron button shows its label again, no pill */
-@media (max-width:1023px){
+/* under 1100px the links fold into the Tools menu: the chevron button shows its label again, no pill (5 Nov 2026: was
+   1024px; with Swipe in the nav the full row needs 1083px) */
+@media (max-width:1099px){
   .v9-nav .tools-btn{width:auto;margin-left:0;padding:0 12px!important}
   .v9-nav .tools-btn .tb-l{display:inline}
   .v9-nav .tools-nav{padding-right:0}
@@ -2002,6 +2004,7 @@ html .masthead .brand{display:flex!important;align-items:center;min-height:44px;
 @media (prefers-reduced-motion:no-preference){
   html:not(.vt-morph) body:not(.pp-open) .masthead{view-transition-name:site-header}
   html:not(.vt-morph) body:not(.pp-open) .v9-nav>.v9-nl[href="/"]{view-transition-name:nl-finds}
+  html:not(.vt-morph) body:not(.pp-open) .v9-nav>.v9-nl[href="/feed"]{view-transition-name:nl-swipe}
   html:not(.vt-morph) body:not(.pp-open) .v9-nav>.v9-nl[href="/brands"]{view-transition-name:nl-brands}
   html:not(.vt-morph) body:not(.pp-open) .v9-nav>.tools-nav{view-transition-name:nl-tools}
   html:not(.vt-morph) body:not(.pp-open) .v9-nav>.v9-nl[href="/guides"]{view-transition-name:nl-guides}
@@ -2009,7 +2012,18 @@ html .masthead .brand{display:flex!important;align-items:center;min-height:44px;
   html:not(.vt-morph) body:not(.pp-open) .v9-nav>.nl-pill{view-transition-name:nav-pill}
 }
 ::view-transition-group(nav-pill){animation-duration:260ms;animation-timing-function:var(--ease-in-out)}
-::view-transition-group(nl-finds),::view-transition-group(nl-brands),::view-transition-group(nl-tools),::view-transition-group(nl-guides),::view-transition-group(nl-how){animation-duration:220ms;animation-timing-function:var(--ease-in-out)}
+::view-transition-group(nl-finds),::view-transition-group(nl-swipe),::view-transition-group(nl-brands),::view-transition-group(nl-tools),::view-transition-group(nl-guides),::view-transition-group(nl-how){animation-duration:220ms;animation-timing-function:var(--ease-in-out)}
+/* header parity with the server pages (5 Nov 2026, ds.css "header parity" block has the same numbers):
+   - hover only darkens the link text; the grey pill means "you are here" and nothing else (a hovered Finds next to the
+     current Brands read as two selected items)
+   - from 1280px the search field gives up the few px the row is short of, instead of pushing the globe off the row */
+@media (hover:hover){
+  html .v9-nav>.v9-nl:hover{background:transparent!important}
+  html .v9-nav .tools-nav:hover:not(:has(.tools-btn[aria-expanded="true"])){background:transparent}
+}
+@media (min-width:1280px){html .masthead .pcs-hd{flex:0 1 240px}}
+/* phones: the Tools menu opens leftwards from its button (it ran 55px off a 375px screen) */
+@media (max-width:560px){.v9-nav .tools-menu{left:auto;right:0;transform-origin:top right}}
 
 /* ---------- category circles (round 5, rep-find style): a light grey circle (#F2F2F2, dark #262626) with the product as
    a true cut-out (transparent WebP, /img/cat/*.webp), shown whole and centred at 80 % of the circle. No counts. ---------- */
@@ -2655,6 +2669,7 @@ html .fav,html .card .fav,html .drawer .fav{background:rgba(255,255,255,.92)!imp
           <a href="#affiliate" data-i18n="affiliate">Affiliate Program</a>
           <div class="tools-sep v9-mob"></div>
           <a class="v9-mob" href="/" data-nav="finds" data-i18n="nav_finds">Finds</a>
+          <a class="v9-mob" href="/feed" data-nav="swipe">Swipe</a>
           <a class="v9-mob" href="/brands" data-i18n="nav_brands">Brands</a>
           <a class="v9-mob" href="/guides" data-i18n="guides">Guides</a>
           <a class="v9-mob" href="/how-to-order" data-i18n="how_to_order">How to Order</a>
@@ -4734,6 +4749,11 @@ $("#lang").addEventListener("change",e=>{state.lang=e.target.value;save();applyS
 $("#cur").addEventListener("change",e=>{window.__curTouched=1;state.cur=e.target.value;save();buildFilters();render();try{window.pcFreightRun&&window.pcFreightRun();}catch(_){}if(drawer.classList.contains("open")&&drawer.__pid&&BY_ID[drawer.__pid])openDetail(BY_ID[drawer.__pid],true);});
 $("#agent")&&$("#agent").addEventListener("change",e=>{state.agent=e.target.value;save();render();if(drawer.classList.contains("open")&&drawer.__pid&&BY_ID[drawer.__pid])openDetail(BY_ID[drawer.__pid],true);});
 $("#auth-btn").addEventListener("click",()=>{ if(ME) toggleMenu(); else openAuth(); });
+/* the server pages' "Sign in" link is /?signin=1 and their globe popover links /?prefs=1 (5 Nov 2026): open the same thing
+   here, then drop the parameter so a reload or a shared link does not open it again */
+try{ const _u=new URL(location.href), _si=_u.searchParams.get("signin")==="1", _pf=_u.searchParams.get("prefs")==="1";
+  if(_si||_pf){ _u.searchParams.delete("signin"); _u.searchParams.delete("prefs"); history.replaceState(history.state,"",_u.pathname+_u.search+_u.hash);
+    setTimeout(()=>{ try{ if(_si&&!ME) openAuth(); if(_pf){ const _b=$("#set-btn"); if(_b&&_b.getAttribute("aria-expanded")!=="true") _b.click(); } }catch(e){} },300); } }catch(e){}
 $("#auth-send").addEventListener("click",sendMagic);
 $("#auth-cancel").addEventListener("click",closeAuth);
 $("#auth-modal").addEventListener("click",e=>{ if(e.target.id==="auth-modal") closeAuth(); });
