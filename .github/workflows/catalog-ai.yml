@@ -1,0 +1,146 @@
+name: Catalog AI
+# Better categories, titles and photos for the catalogue, in batches (see PLAN.md).
+#   audit   numbers only (no API calls); report + photo sample in the run's artifacts
+#   label   vision labels for the next <limit> finds -> data/catalog_ai.json (resumable; reruns skip done finds)
+#   photos  clean product shots on the site's #f2f5fa card colour for the next <limit> finds -> Supabase products/pc2/<id>.webp
+#           + before/after contact sheets in the run's artifacts
+# apply=yes changes index.html, and only through scripts/apply_catalog_ai.py (confident, rule-passing changes;
+# old values logged in data/catalog_ai_applied.json for a revert). Without it index.html is never touched.
+on:
+  workflow_dispatch:
+    inputs:
+      step:
+        description: 'audit, label or photos'
+        type: choice
+        options: [audit, label, photos]
+        default: label
+      limit:
+        description: 'Finds this run (batches of 500 are safe; 0 = do nothing new, only apply)'
+        default: '50'
+      ids:
+        description: 'Only these ids (comma separated, optional)'
+        default: ''
+      model:
+        description: 'Vision model for label: claude-haiku-5-5 (default), claude-sonnet-5-5 (recheck), gemini-2.5-flash, gpt-4o-mini'
+        default: 'claude-haiku-5-5'
+      recheck_below:
+        description: 'Label step: also re-label finds whose saved confidence is below this (e.g. 0.7 with claude-sonnet-5-5); 0 = off'
+        default: '0'
+      photo_store:
+        description: 'Where cleaned photos go: supabase (products/pc2, default) or git (img/p2)'
+        type: choice
+        options: [supabase, git]
+        default: supabase
+      apply:
+        description: 'Write confident changes into index.html (yes/no)'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+      apply_what:
+        description: 'With apply=yes: cats, titles, both, or photos (adds the p2 marker)'
+        type: choice
+        options: [cats, titles, both, photos]
+        default: cats
+      max_usd:
+        description: 'Stop the label run when it has spent this much (USD)'
+        default: '25'
+permissions:
+  contents: write
+concurrency:
+  group: catalog-ai
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      LIMIT: ${{ inputs.limit }}
+      IDS: ${{ inputs.ids }}
+      MODEL: ${{ inputs.model }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: |
+          pip install pillow
+          if [ "${{ inputs.step }}" = "label" ]; then pip install anthropic; fi
+          if [ "${{ inputs.step }}" = "photos" ]; then pip install "rembg[cpu]>=2.0.59,<3"; fi
+      - name: Cache background-removal model
+        if: inputs.step == 'photos'
+        uses: actions/cache@v4
+        with:
+          path: ~/.u2net
+          key: u2net-isnet-general-use-v1
+
+      - name: Audit
+        if: inputs.step == 'audit'
+        run: python -u scripts/catalog_audit.py --photos 150 --cache /tmp/audit-photos --out out/catalog_audit.json | tee out-audit.md
+
+      - name: Label (vision model)
+        if: inputs.step == 'label' && inputs.limit != '0'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          # engine follows the model name: claude-* -> Anthropic (default), gemini-* -> Gemini, gpt-* -> OpenAI.
+          # Exit code 3 = the account is out of credit: good labels are kept and committed by the Commit step.
+          python -u scripts/catalog_ai.py --model "$MODEL" --limit "$LIMIT" ${IDS:+--ids "$IDS"} \
+            --recheck-below "${{ inputs.recheck_below }}" \
+            --order best --workers 6 --max-minutes 80 --max-usd "${{ inputs.max_usd }}"
+
+      - name: Clean photos
+        if: inputs.step == 'photos' && inputs.limit != '0'
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python -u scripts/clean_photos.py --limit "$LIMIT" ${IDS:+--ids "$IDS"} --store "${{ inputs.photo_store }}" --bg f2f5fa --keep-main-view \
+            --sheets out/photo-sheets --max-minutes 80
+
+      - name: Apply to index.html (only with apply=yes)
+        id: apply
+        if: inputs.apply == 'yes' && inputs.step != 'audit'
+        run: |
+          case "${{ inputs.apply_what }}" in
+            cats) F="--cats";; titles) F="--titles";; both) F="--cats --titles";; photos) F="--photos";;
+          esac
+          python scripts/apply_catalog_ai.py $F ${IDS:+--ids "$IDS"} --write --report out/catalog_ai_apply.md
+          # pushes made with the workflow token do not start other workflows, so regenerate the derived files here
+          # (what catalog-sync.yml would do)
+          python scripts/gen_catalog.py
+          python scripts/sync_catalog.py --no-thumbs
+
+      - name: Keep reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-ai-${{ inputs.step }}-${{ github.run_number }}
+          path: |
+            out/
+            out-audit.md
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Commit
+        if: always() && inputs.step != 'audit'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/catalog_ai.json
+          [ -d img/p2 ] && git add img/p2
+          MSG="chore: catalog AI ${{ inputs.step }} [skip ci]"
+          if [ "${{ inputs.apply }}" = "yes" ] && [ "${{ steps.apply.outcome }}" = "success" ]; then
+            git add index.html data/catalog_ai_applied.json functions/_lib/catalog.js products.json sitemap.xml
+            MSG="catalog AI: apply ${{ inputs.apply_what }}"      # no [skip ci]: Cloudflare must deploy it
+          fi
+          # never commit anything else (contact sheets and reports live in the artifacts)
+          git diff --cached --quiet && { echo "nothing to commit"; exit 0; }
+          git diff --cached --stat | tail -3
+          git commit -q -m "$MSG"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::could not push the results"; exit 1
