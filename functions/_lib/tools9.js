@@ -31,25 +31,60 @@ export const ITEM_WEIGHTS = CALC_ITEMS;
 const ITEM_ICONS = ["tee", "tee", "shorts", "hoodie", "pants", "jacket", "jacket", "shoe", "box", "bag", "cap", "watch"];
 // URL keys for ITEM_WEIGHTS, same order (?items=hoodie:2,sneakers-box:1).
 const ITEM_KEYS = ["tshirt", "shirt", "shorts", "hoodie", "pants", "light-jacket", "puffer", "sneakers", "sneakers-box", "bag", "cap", "accessory"];
+// Packed volume per item type in litres, same order as ITEM_WEIGHTS (folded clothes in a polybag, a sneaker box is
+// about 33 x 22 x 12 cm). Only used for the volumetric weight that some lines charge on bulky parcels.
+const ITEM_LITRES = [2, 2.5, 1.5, 4, 3, 5, 12, 6, 9, 8, 3, 0.5];
 // Shipping ballpark per region: [line, base USD, USD per kg]. Unchanged from the live calculator.
-const ZONES = { "United States": "na", "Canada": "na", "United Kingdom": "eu", "Germany": "eu", "France": "eu", "Netherlands": "eu", "Italy": "eu",
-  "Spain": "eu", "Poland": "eu", "Ireland": "eu", "Norway": "nordic", "Sweden": "nordic", "Denmark": "nordic", "Finland": "nordic", "Rest of Europe": "eu",
+const ZONES = { "United States": "na", "Canada": "na", "United Kingdom": "eu", "Germany": "eu", "France": "eu", "Netherlands": "eu", "Belgium": "eu",
+  "Austria": "eu", "Switzerland": "eu", "Italy": "eu", "Spain": "eu", "Portugal": "eu", "Poland": "eu", "Czechia": "eu", "Ireland": "eu", "Greece": "eu",
+  "Romania": "eu", "Norway": "nordic", "Sweden": "nordic", "Denmark": "nordic", "Finland": "nordic", "Iceland": "nordic", "Rest of Europe": "eu",
   "Australia": "oce", "New Zealand": "oce", "Rest of world": "row" };
 const RATES = { nordic: [["Economy", 5, 7], ["Registered / special line", 7, 10], ["Express (DHL/EMS)", 9, 15]], eu: [["Economy", 5, 6.5], ["Registered / special line", 7, 9.5], ["Express (DHL/EMS)", 8, 14]],
   na: [["Economy", 6, 8], ["Registered / special line", 8, 11], ["Express (DHL/EMS)", 9, 16]], oce: [["Economy", 6, 9], ["Registered / special line", 8, 12], ["Express (DHL/EMS)", 10, 17]],
   row: [["Economy", 6, 9], ["Registered / special line", 8, 12], ["Express (DHL/EMS)", 10, 18]] };
+// Per line, same order as RATES rows: [typical delivery time, volumetric divisor in cm3 per kg or 0 when the line charges
+// real weight only]. Special lines commonly use 6000 and express couriers 5000.
+const LINE_INFO = [["15 to 30 days", 0], ["10 to 20 days", 6000], ["5 to 10 days", 5000]];
+// The agent's outer box and tape: a fixed part plus a share of the contents.
+const PACK_G = 150, PACK_SHARE = 0.05;
 // Destination groups for the <select>, every ZONES key exactly once.
-const DEST_GROUPS = [["North America", ["United States", "Canada"]], ["Europe", ["United Kingdom", "Germany", "France", "Netherlands", "Italy", "Spain", "Poland", "Ireland", "Rest of Europe"]],
-  ["Nordics", ["Norway", "Sweden", "Denmark", "Finland"]], ["Oceania", ["Australia", "New Zealand"]], ["Other", ["Rest of world"]]];
+const DEST_GROUPS = [["North America", ["United States", "Canada"]], ["Europe", ["United Kingdom", "Germany", "France", "Netherlands", "Belgium", "Austria", "Switzerland", "Italy", "Spain",
+  "Portugal", "Poland", "Czechia", "Ireland", "Greece", "Romania", "Rest of Europe"]], ["Nordics", ["Norway", "Sweden", "Denmark", "Finland", "Iceland"]],
+  ["Oceania", ["Australia", "New Zealand"]], ["Other", ["Rest of world"]]];
+// Customs and tax in one or two plain sentences per destination (general rules, hedged: lines and limits change).
+const EU_TAX = "Import VAT is due from the first euro. Many special lines include it in the price (tax-included or IOSS lines), otherwise the carrier asks for it on delivery.";
+const DEST_NOTE = { "United States": "Since August 2025 parcels of any value can be charged import duty. Many lines include it in the price, so check the line description before you pay.",
+  "Canada": "Parcels over about C$20 can be charged GST/HST and duty on delivery.",
+  "United Kingdom": "Parcels can be charged 20% VAT. Some lines include it in the price, otherwise the carrier asks for it on delivery.",
+  "Switzerland": "VAT is usually charged on delivery once it comes to more than about CHF 5, plus the carrier's handling fee.",
+  "Norway": "VAT (25%) is due from the first krone. Lines registered for VOEC collect it with the shipping price, others charge it on delivery.",
+  "Iceland": "VAT and customs fees are charged on delivery for most parcels.",
+  "Australia": "GST (10%) is usually collected with the shipping price for parcels up to A$1,000.",
+  "New Zealand": "GST (15%) is usually collected with the shipping price for parcels up to NZ$1,000.",
+  "Rest of Europe": "Most European countries charge VAT on delivery or include it in tax-included lines.",
+  "Rest of world": "Import rules differ by country. Your agent's line description says what is included." };
+for (const c of ["Germany", "France", "Netherlands", "Belgium", "Austria", "Italy", "Spain", "Portugal", "Poland", "Czechia", "Ireland", "Greece", "Romania", "Sweden", "Denmark", "Finland"]) DEST_NOTE[c] = EU_TAX;
 // Browser language region (or language) to destination, used once when nothing is stored. No network call.
-const LANG_DEST = { US: "United States", CA: "Canada", GB: "United Kingdom", UK: "United Kingdom", DE: "Germany", AT: "Rest of Europe", CH: "Rest of Europe", FR: "France", BE: "Rest of Europe",
-  NL: "Netherlands", IT: "Italy", ES: "Spain", PT: "Rest of Europe", PL: "Poland", IE: "Ireland", NO: "Norway", SE: "Sweden", DK: "Denmark", FI: "Finland", AU: "Australia", NZ: "New Zealand",
-  nb: "Norway", nn: "Norway", no: "Norway", sv: "Sweden", da: "Denmark", fi: "Finland", de: "Germany", nl: "Netherlands", pl: "Poland", it: "Italy", es: "Spain", fr: "France" };
+const LANG_DEST = { US: "United States", CA: "Canada", GB: "United Kingdom", UK: "United Kingdom", DE: "Germany", AT: "Austria", CH: "Switzerland", FR: "France", BE: "Belgium",
+  NL: "Netherlands", IT: "Italy", ES: "Spain", PT: "Portugal", PL: "Poland", CZ: "Czechia", IE: "Ireland", GR: "Greece", RO: "Romania", NO: "Norway", SE: "Sweden", DK: "Denmark",
+  FI: "Finland", IS: "Iceland", AU: "Australia", NZ: "New Zealand",
+  nb: "Norway", nn: "Norway", no: "Norway", sv: "Sweden", da: "Denmark", fi: "Finland", is: "Iceland", de: "Germany", nl: "Netherlands", pl: "Poland", cs: "Czechia",
+  it: "Italy", es: "Spain", pt: "Portugal", el: "Greece", ro: "Romania", fr: "France" };
 
 // Pure shipping maths, shared by the page script and the unit tests: [[line, low USD, high USD], ...] for a weight in kg.
-export function shipQuote(zone, kg) {
-  return (RATES[zone] || RATES.row).map(l => [l[0], Math.round(l[1] + l[2] * kg * 0.85), Math.round(l[1] + l[2] * kg * 1.2)]);
+// kgs (optional) gives each line its own chargeable weight (the volumetric weight when that is higher).
+export function shipQuote(zone, kg, kgs) {
+  return (RATES[zone] || RATES.row).map((l, i) => { const k = kgs && kgs[i] > 0 ? kgs[i] : kg; return [l[0], Math.round(l[1] + l[2] * k * 0.85), Math.round(l[1] + l[2] * k * 1.2)]; });
 }
+// Parcel maths for the item list: grams of the contents, the box and tape, and the litres of the parcel.
+export function parcelOf(counts) {
+  let g = 0, l = 0;
+  for (const i in counts) { g += counts[i] * ITEM_WEIGHTS[i][1]; l += counts[i] * ITEM_LITRES[i]; }
+  const pack = g > 0 ? Math.round((PACK_G + g * PACK_SHARE) / 10) * 10 : 0;
+  return { items: g, pack, total: g + pack, litres: g > 0 ? Math.max(2, l * 1.15) : 0 };
+}
+// Chargeable kg per line for a parcel of kg and litres (litres 0 = unknown: real weight).
+export const chargeable = (kg, litres) => LINE_INFO.map(([, div]) => div && litres > 0 ? Math.max(kg, litres * 1000 / div) : kg);
 export const SHIP_ZONES = ZONES;
 
 // Size maths (same as the live estimator). Returns {x: EU/US index, a: Asian label index, top: true when past the chart}.
@@ -58,8 +93,17 @@ const GADJ = { tops: 0, hoodies: 0.25, jackets: 0.5, pants: 0 };
 // Common men's / unisex sneaker chart: [foot length cm, US men, EU]
 const SHOES = [[24, 6, 38.5], [24.5, 6.5, 39], [25, 7, 40], [25.5, 7.5, 40.5], [26, 8, 41], [26.5, 8.5, 42], [27, 9, 42.5], [27.5, 9.5, 43], [28, 10, 44],
   [28.5, 10.5, 44.5], [29, 11, 45], [29.5, 11.5, 45.5], [30, 12, 46], [30.5, 12.5, 47], [31, 13, 47.5]];
-const SIZE_FN = `function sizeFor(g,h,w,fit){var s=(w-50)/10+Math.max(-0.75,Math.min(0.75,(h-175)/40))+fit+(G[g]||0),x=Math.max(0,Math.min(7,Math.floor(s)));return{x:x,a:Math.min(7,x+1),top:x>=7};}
+const SIZE_FN = `function sizeFor(g,h,w,fit){var s=(w-50)/10+Math.max(-0.75,Math.min(0.75,(h-175)/40))+fit+(G[g]||0),x=Math.max(0,Math.min(7,Math.floor(s)));return{x:x,a:Math.min(7,x+1),top:x>=7,f:s-Math.floor(s)};}
 function shoeFor(f){if(f<SH[0][0]-0.25)return{r:SH[0],top:false,low:true};for(var i=0;i<SH.length;i++)if(SH[i][0]>=f-0.05)return{r:SH[i],top:false};return{r:SH[SH.length-1],top:true};}`;
+// Brand fit notes, only what the site's own brand and model pages say about the cut: [key, name, clothes note, sneaker note].
+const BRAND_FIT = [["arcteryx", "Arc'teryx", "Arc'teryx runs trim. Pick Relaxed if you want room for layers.", ""],
+  ["balenciaga", "Balenciaga", "Balenciaga tees and hoodies are cut oversized with a drop shoulder, so your usual label already fits loose. Compare the chest on the seller's chart.", "Balenciaga sneakers often run large. Compare your foot length with the seller's chart before you pick your usual size."],
+  ["cole-buxton", "Cole Buxton", "Cole Buxton is cut boxy and heavyweight. Compare the chest with a garment you own rather than the size letter.", ""],
+  ["corteiz", "Corteiz", "Corteiz pieces are cut boxy. Compare measurements rather than the size letter.", ""],
+  ["essentials", "Essentials", "Essentials is cut oversized and boxy, so measurements matter more than the label. Compare the chest with a hoodie or tee you own.", ""],
+  ["golden-goose", "Golden Goose", "", "Golden Goose sneakers are usually true to size in EU."],
+  ["hellstar", "Hellstar", "Hellstar has a cropped, boxy fit. Compare the length and chest on the seller's chart.", ""],
+  ["represent", "Represent", "Represent is cut oversized. Check the chest on the seller's chart before you size up.", ""]];
 // Chart parser and comparison (seller's chart mode), also unit-tested.
 const CHART_FN = String.raw`function parseChart(t){var rows=[];String(t||"").split(/\r?\n/).forEach(function(line){var m=line.trim().match(/^([A-Za-z0-9.]{1,8})[\s:,;|]+(\d+(?:\.\d+|,\d(?!\d))?)(?:[\s,;|]+(\d+(?:\.\d+|,\d(?!\d))?))?/);if(m)rows.push([m[1],parseFloat(m[2].replace(",",".")),m[3]?parseFloat(m[3].replace(",",".")):null]);});return rows.slice(0,12);}
 function closest(yc,yl,rows){var best=null,res=[];rows.forEach(function(r){var c=r[1],l=r[2];if(!isFinite(c)||c===null||!isFinite(yc))return;var dc=c-yc,dl=(l!==null&&isFinite(l)&&isFinite(yl))?l-yl:null,sc=Math.abs(dc)+(dl===null?0:Math.abs(dl)*0.5),o={n:String(r[0]||"").trim()||"?",dc:dc,dl:dl,sc:sc};res.push(o);if(!best||sc<best.sc)best=o;});return{best:best,res:res};}`;
@@ -184,72 +228,94 @@ export const TOOLS9 = {
 export const TOOL_SLUGS = ["qc-checker", "link-converter", "shipping-calculator", "size-estimator", "parcel-tracker"];
 
 // ------------------------------------------------------------------ shipping calculator
-const SHIP_JS = fill(String.raw`(function(){var W=__W__,KEYS=__KEYS__,Z=__Z__,RT=__RT__,LD=__LD__,LI=['__LI1__','__LI2__','__LI3__'];
+// Round 10: the estimate is line by line. Items mode adds the agent's box and tape, works out the parcel volume and
+// bills each line on its own chargeable weight (real weight, or volumetric weight on lines that use it). Type It mode
+// takes the parcel weight from the agent and, when the box size is given, the volumetric weight too.
+const SHIP_JS = fill(String.raw`(function(){var W=__W__,VOL=__VOL__,KEYS=__KEYS__,Z=__Z__,RT=__RT__,LN=__LN__,LD=__LD__,NOTE=__NOTE__,PK=__PK__,LI=['__LI1__','__LI2__','__LI3__'];
 var $=K.$,esc=K.esc,co=$("co"),kg=$("kg"),out=$("out"),hl=$("hl"),sb=$("sb"),cnt={},unit="kg",mode="items",LB=2.20462,vis=true,res=null,ready=false,sayD=K.deb(K.say,700);
 var wm=K.seg($("wm"),function(v){mode=v;show();if(v==="type")setTimeout(function(){kg.focus();},0);run();});
 var ut=K.seg($("ut"),function(v){var k=typed();unit=v;if(k>0)kg.value=fmtIn(k);K.store.set("pc.ship.unit",v);paint();run();});
 function fmtIn(k){var v=unit==="lb"?k*LB:k;return String(Math.round(v*100)/100);}
 function typed(){var v=parseFloat(String(kg.value).replace(",","."));if(!(v>0))return 0;return unit==="lb"?v/LB:v;}
-function itemsG(){var g=0,n=0;for(var i in cnt){g+=cnt[i]*W[i][1];n+=cnt[i];}return{g:g,n:n};}
+function dims(){var a=["bl","bw","bh"].map(function(i){var v=parseFloat(String($(i).value).replace(",","."));return v>0&&v<300?v:0;});return a[0]&&a[1]&&a[2]?a[0]*a[1]*a[2]/1000:0;}
+function parcel(){var g=0,l=0,n=0;for(var i in cnt){g+=cnt[i]*W[i][1];l+=cnt[i]*VOL[i];n+=cnt[i];}var p=g>0?Math.round((PK[0]+g*PK[1])/10)*10:0;return{g:g,pack:p,total:g+p,l:g>0?Math.max(2,l*1.15):0,n:n};}
 function wfmt(k){return unit==="lb"?(k*LB).toFixed(2)+" lb":k.toFixed(2)+" kg";}
-function gfmt(g){return unit==="lb"?"~"+(g/1000*LB).toFixed(2)+" lb":"~"+g+" g";}
+function gfmt(g){return unit==="lb"?"~"+(g/1000*LB).toFixed(2)+" lb":g>=1000?"~"+(g/1000).toFixed(2)+" kg":"~"+g+" g";}
 function show(){$("pt").hidden=mode!=="type";$("pi").hidden=mode!=="items";}
 function paint(){[].forEach.call(document.querySelectorAll('[data-u="kg"]'),function(s){s.textContent=unit;});kg.setAttribute("aria-label","Parcel weight in "+unit);
-var it=itemsG(),ids=Object.keys(cnt).sort(function(a,b){return a-b;});
+var it=parcel(),ids=Object.keys(cnt).sort(function(a,b){return a-b;});
 $("hh").hidden=!ids.length;$("he").hidden=!!ids.length;$("ht").textContent=it.n?it.n+" item"+(it.n>1?"s":"")+" · "+wfmt(it.g/1000):"";
 hl.innerHTML=ids.map(function(i){var w=W[i],c=cnt[i];return '<li><div class="tk-haul-n"><span>'+esc(w[0])+"</span><small>"+esc(gfmt(w[1]))+" each</small></div>"+
 '<div class="tk-step"><button type="button" data-d="-1" data-i="'+i+'" aria-label="Fewer '+esc(w[0])+'">__MINUS__</button><output aria-label="'+esc(w[0])+'">'+c+'</output><button type="button" data-d="1" data-i="'+i+'" aria-label="More '+esc(w[0])+'"'+(c>=99?" disabled":"")+">__PLUS__</button></div></li>";}).join("");
 [].forEach.call(document.querySelectorAll("[data-add]"),function(b){var c=cnt[b.getAttribute("data-add")]||0,n=b.querySelector(".tk-n");if(n)n.textContent=c?"×"+c:"";b.classList.toggle("on",c>0);});}
 function add(i,dlt){i=+i;var c=Math.max(0,Math.min(99,(cnt[i]||0)+dlt));if(c)cnt[i]=c;else delete cnt[i];paint();run();}
 function money(v){return"$"+v.toLocaleString("en-US");}
-function run(){var k,it=itemsG(),sub="",to=co.value;
-if(mode==="type"){k=typed();sub=k>0?"Typed weight":"";}else{k=it.g/1000;sub=it.n?it.n+" item"+(it.n>1?"s":""):"";}
+function charge(k,l){return LN.map(function(x){return x[1]&&l>0?Math.max(k,l*1000/x[1]):k;});}
+function quote(to,k,l){var c=charge(k,l);return RT[Z[to]].map(function(x,i){return[x[0],Math.round(x[1]+x[2]*c[i]*0.85),Math.round(x[1]+x[2]*c[i]*1.2),c[i]];});}
+function mid(L,i){return(L[i][1]+L[i][2])/2;}
+function run(){var k,l=0,it=parcel(),sub="",to=co.value,rows=[];
+if(mode==="type"){k=typed();l=dims();}else{k=it.total/1000;l=it.l;sub=it.n?it.n+" item"+(it.n>1?"s":"")+" + box":"";}
 save();res=null;
-if(!(k>0)){out.setAttribute("data-state","empty");out.innerHTML='<div class="tk-empty">__BOX__<p>'+(mode==="type"?"Type a weight to see prices.":"Add an item or type a weight to see prices.")+'</p><div class="tk-chips"><span>Try:</span><button type="button" class="tk-chip" data-add="3">+ Hoodie</button><button type="button" class="tk-chip" data-add="8">+ Sneakers (with box)</button></div></div>';bar();return;}
+if(!(k>0)){out.setAttribute("data-state","empty");out.innerHTML='<div class="tk-empty">__BOX__<p>'+(mode==="type"?"Type the parcel weight to see prices.":"Add an item or type a weight to see prices.")+'</p><div class="tk-chips"><span>Try:</span><button type="button" class="tk-chip" data-add="3">+ Hoodie</button><button type="button" class="tk-chip" data-add="8">+ Sneakers (with box)</button></div></div>';bar();return;}
 if(k>30){out.setAttribute("data-state","error");out.innerHTML='<div class="tk-alert" role="alert">__ALERT__<div><b>Too Heavy For One Parcel</b><p>That is over 30 kg. Split it into several parcels or ask your agent for a freight quote.</p></div></div>';bar();return;}
-var L=RT[Z[to]].map(function(l){return[l[0],Math.round(l[1]+l[2]*k*0.85),Math.round(l[1]+l[2]*k*1.2)];}),lo=Infinity,hi=0,best=0;
-L.forEach(function(l,i){if(l[1]<lo){lo=l[1];best=i;}if(l[2]>hi)hi=l[2];});
-var rng=function(l){return"~"+(l[1]===l[2]?money(l[1]):money(l[1])+" to "+money(l[2]));};
+var L=quote(to,k,l),lo=Infinity,hi=0,best=0;
+L.forEach(function(x,i){if(x[1]<lo){lo=x[1];best=i;}if(x[2]>hi)hi=x[2];});
+var rng=function(x){return"~"+(x[1]===x[2]?money(x[1]):money(x[1])+" to "+money(x[2]));};
 res={k:k,lo:lo};if(ready)sayD(wfmt(k)+", from ~"+money(lo));
-var txt="Shipping estimate to "+to+", "+wfmt(k)+(unit==="lb"?" ("+k.toFixed(2)+" kg)":"")+(sub&&mode==="items"?", "+sub:"")+":\n"+L.map(function(l){return l[0]+": "+rng(l);}).join("\n")+"\nBallpark only. Check your agent's estimator for the real price.";
+// weight breakdown, line by line
+if(mode==="items"){Object.keys(cnt).sort(function(a,b){return a-b;}).forEach(function(i){rows.push([cnt[i]+" × "+W[i][0],gfmt(cnt[i]*W[i][1])]);});rows.push(["Agent's box and tape",gfmt(it.pack)]);}
+rows.push(["Parcel weight",wfmt(k)]);
+if(l>0)rows.push(["Parcel size","~"+Math.round(l)+" L"+(mode==="items"?" (estimated)":"")]);
+var vol=L.some(function(x){return x[3]>k+0.005;});
+var tip="";if(mode==="items"&&cnt[8]){var c2={};for(var j in cnt)c2[j]=cnt[j];c2[7]=(c2[7]||0)+c2[8];delete c2[8];var g2=0,l2=0;for(var j2 in c2){g2+=c2[j2]*W[j2][1];l2+=c2[j2]*VOL[j2];}var k2=(g2+Math.round((PK[0]+g2*PK[1])/10)*10)/1000,L2=quote(to,k2,Math.max(2,l2*1.15)),sv=Math.round(mid(L,1)-mid(L2,1));
+if(sv>=2)tip='<p class="tk-foot"><b>Tip:</b> ship the sneakers without the box to save about '+esc(wfmt(k-k2))+" and about "+esc(money(sv))+" on a special line.</p>";}
+var txt="Shipping estimate to "+to+", "+wfmt(k)+(unit==="lb"?" ("+k.toFixed(2)+" kg)":"")+(sub&&mode==="items"?", "+sub:"")+":\n"+L.map(function(x,i){return x[0]+" ("+LN[i][0]+"): "+rng(x);}).join("\n")+"\nBallpark only. Check your agent's estimator for the real price.";
 out.setAttribute("data-state","success");
-out.innerHTML='<div class="tk-res"><p class="tk-res-k">Estimated weight</p><p class="tk-big">'+esc(wfmt(k))+'</p><p class="tk-res-sub">'+esc((unit==="lb"?k.toFixed(2)+" kg · ":"")+(sub?sub+" to ":"To ")+to)+"</p>"+
-'<div class="tk-lines">'+L.map(function(l,i){return '<div class="tk-opt"><div class="tk-opt-main"><span>'+(LI[i]||"")+esc(l[0])+"</span>"+(i===best?'<span class="tk-badge">Lowest Price</span>':"")+'<span class="tk-bar" aria-hidden="true"><i style="width:'+Math.max(6,Math.round(l[2]/hi*100))+'%"></i></span></div><span class="tk-opt-v">'+esc(rng(l))+"</span></div>";}).join("")+"</div>"+
+out.innerHTML='<div class="tk-res"><p class="tk-res-k">'+(mode==="type"?"Your parcel":"Estimated parcel weight")+'</p><p class="tk-big">'+esc(wfmt(k))+'</p><p class="tk-res-sub">'+esc((unit==="lb"?k.toFixed(2)+" kg · ":"")+(sub?sub+" to ":"To ")+to)+"</p>"+
+'<div class="tk-lines">'+L.map(function(x,i){var cw=x[3]>k+0.005?"billed on "+wfmt(x[3])+" (box size)":"";return '<div class="tk-opt"><div class="tk-opt-main"><span>'+(LI[i]||"")+esc(x[0])+"</span>"+(i===best?'<span class="tk-badge">Lowest Price</span>':"")+'<small>'+esc(LN[i][0]+(cw?" · "+cw:""))+'</small><span class="tk-bar" aria-hidden="true"><i style="width:'+Math.max(6,Math.round(x[2]/hi*100))+'%"></i></span></div><span class="tk-opt-v">'+esc(rng(x))+"</span></div>";}).join("")+"</div>"+tip+
+'<details class="tk-more"><summary>Weight Breakdown</summary><ul class="tk-rows">'+rows.map(function(r){return'<li><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+"</span></li>";}).join("")+"</ul>"+
+(vol?"<p>Bulky parcels are billed on volumetric weight (length × width × height in cm, divided by 6000 on special lines or 5000 on express) when that is more than the real weight.</p>":"")+"</details>"+
+(NOTE[to]?'<details class="tk-more"><summary>Customs And Tax: '+esc(to)+"</summary><p>"+esc(NOTE[to])+"</p><p>Rules and limits change. Your agent's line description says what is included.</p></details>":"")+
 '<div class="tk-actions">'+K.cbtn(txt,"Copy Estimate","Estimate copied")+'<button type="button" class="btn sm" data-share>__LINK__<span class="tk-cl">Share</span></button></div>'+
 '<p class="tk-foot">Ballpark only. Check your agent\'s estimator for the real price.</p>'+
-'<details class="tk-more"><summary>How We Estimate</summary><p>Each line is a base fee plus a price per kg for your region, shown as a range from about 15% under to 20% over that figure. Bulky boxes can be charged by <a href="/guides/shipping-lines">volumetric weight</a> instead of real weight.</p></details></div>';
+'<details class="tk-more"><summary>How We Estimate</summary><p>Each line is a base fee plus a price per kg for your region, shown as a range from about 15% under to 20% over that figure. In Add My Items we add about '+PK[0]+" g plus 5% for the agent's box and tape, and estimate the parcel size from typical folded sizes. Economy lines charge the real weight, special lines and express can charge the <a href=\"/guides/shipping-lines\">volumetric weight</a> instead. Delivery times are typical, not promised.</p></details></div>";
 bar();}
 function bar(){if(!sb)return;var on=!!res&&!vis;sb.classList.toggle("on",on);sb.hidden=!on;if(res)$("sbt").textContent=wfmt(res.k)+" · from ~"+money(res.lo);}
 function itemsQ(){return Object.keys(cnt).sort(function(a,b){return a-b;}).map(function(i){return KEYS[i]+":"+cnt[i];}).join(",");}
-function save(){var o={to:co.value};if(mode==="type"){var k=typed();if(k>0)o.kg=String(Math.round(k*1000)/1000);else o.m="type";}else{var q=itemsQ();if(q)o.items=q;}if(unit==="lb")o.unit="lb";K.qs.put(o);
-K.store.set("pc.ship.last",{m:mode,kg:mode==="type"?typed():0,items:itemsQ()});}
+function dimQ(){var a=["bl","bw","bh"].map(function(i){var v=parseFloat(String($(i).value).replace(",","."));return v>0&&v<300?Math.round(v):0;});return a[0]&&a[1]&&a[2]?a.join("x"):"";}
+function save(){var o={to:co.value};if(mode==="type"){var k=typed();if(k>0)o.kg=String(Math.round(k*1000)/1000);else o.m="type";var dq=dimQ();if(dq)o.box=dq;}else{var q=itemsQ();if(q)o.items=q;}if(unit==="lb")o.unit="lb";K.qs.put(o);
+K.store.set("pc.ship.last",{m:mode,kg:mode==="type"?typed():0,items:itemsQ(),box:mode==="type"?dimQ():""});}
 function loadItems(s){cnt={};String(s||"").split(",").forEach(function(p){var a=p.split(":"),i=KEYS.indexOf(a[0]),c=parseInt(a[1],10);if(i>=0&&c>0)cnt[i]=Math.min(99,c);});}
+function loadBox(s){var a=String(s||"").split("x");if(a.length===3)["bl","bw","bh"].forEach(function(i,j){var v=parseInt(a[j],10);if(v>0&&v<300)$(i).value=String(v);});}
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-add],[data-d]");if(!b)return;
 if(b.hasAttribute("data-add")){if(mode!=="items"){mode="items";wm.set("items");show();}add(b.getAttribute("data-add"),1);K.say("Added "+W[+b.getAttribute("data-add")][0]);return;}
 var i=b.getAttribute("data-i"),d=+b.getAttribute("data-d");add(i,d);if(!cnt[i]){var c=document.querySelector('#pi [data-add="'+i+'"]');if(c)c.focus();K.say("Removed "+W[+i][0]);}else{var nb=hl.querySelector('[data-i="'+i+'"][data-d="'+d+'"]');if(nb&&!nb.disabled)nb.focus();}});
 $("hc").addEventListener("click",function(){cnt={};paint();run();K.say("Haul cleared");var c=document.querySelector("#pi [data-add]");if(c)c.focus();});
-kg.addEventListener("input",run);co.addEventListener("change",function(){K.store.set("pc.ship.to",co.value);run();});
+kg.addEventListener("input",run);["bl","bw","bh"].forEach(function(i){$(i).addEventListener("input",run);});co.addEventListener("change",function(){K.store.set("pc.ship.to",co.value);run();});
 if(sb){sb.addEventListener("click",function(){out.scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});});
 if("IntersectionObserver"in window)new IntersectionObserver(function(es){vis=es[0].isIntersecting;bar();},{rootMargin:"0px 0px -40px 0px"}).observe(out);}
 // initial state: URL, then this device's last state, then the browser language for the destination
-var q={to:K.qs.get("to"),kg:K.qs.get("kg"),items:K.qs.get("items"),unit:K.qs.get("unit"),m:K.qs.get("m")},any=q.to||q.kg||q.items||q.m,last=any?null:K.store.get("pc.ship.last",null);
+var q={to:K.qs.get("to"),kg:K.qs.get("kg"),items:K.qs.get("items"),unit:K.qs.get("unit"),m:K.qs.get("m"),box:K.qs.get("box")},any=q.to||q.kg||q.items||q.m,last=any?null:K.store.get("pc.ship.last",null);
 unit=(q.unit||K.store.get("pc.ship.unit","kg"))==="lb"?"lb":"kg";ut.set(unit);
 var to=q.to&&Z.hasOwnProperty(q.to)?q.to:K.store.get("pc.ship.to","");if(!Z.hasOwnProperty(to)){to="";try{var lg=String(navigator.language||""),pr=lg.split("-");to=LD[(pr[1]||"").toUpperCase()]||LD[pr[0].toLowerCase()]||"";}catch(e){}}
 if(to&&Z.hasOwnProperty(to))co.value=to;
-var qk=parseFloat(q.kg);if(qk>0&&isFinite(qk)){mode="type";kg.value=fmtIn(qk);}
+var qk=parseFloat(q.kg);if(qk>0&&isFinite(qk)){mode="type";kg.value=fmtIn(qk);loadBox(q.box);}
 else if(q.items){loadItems(q.items);mode="items";}
 else if(q.m==="type")mode="type";
-else if(last&&typeof last==="object"){if(last.m==="type"&&last.kg>0){mode="type";kg.value=fmtIn(+last.kg);}else if(last.items)loadItems(last.items);}
-wm.set(mode);show();paint();run();ready=true;})();`, { __W__: js(ITEM_WEIGHTS), __KEYS__: js(ITEM_KEYS), __Z__: js(ZONES), __RT__: js(RATES), __LD__: js(LANG_DEST), __MINUS__: qsvg(P_.minus), __PLUS__: qsvg(P_.plus), __BOX__: qsvg(P_.box), __ALERT__: qsvg(P_.alert), __LINK__: qsvg(P_.link), __LI1__: qsvg("truck", "sm"), __LI2__: qsvg("shield", "sm"), __LI3__: qsvg("zap", "sm") });
+else if(last&&typeof last==="object"){if(last.m==="type"&&last.kg>0){mode="type";kg.value=fmtIn(+last.kg);loadBox(last.box);}else if(last.items)loadItems(last.items);}
+wm.set(mode);show();paint();run();ready=true;})();`, { __W__: js(ITEM_WEIGHTS), __VOL__: js(ITEM_LITRES), __KEYS__: js(ITEM_KEYS), __Z__: js(ZONES), __RT__: js(RATES), __LN__: js(LINE_INFO), __LD__: js(LANG_DEST),
+  __NOTE__: js(DEST_NOTE), __PK__: js([PACK_G, PACK_SHARE]), __MINUS__: qsvg(P_.minus), __PLUS__: qsvg(P_.plus), __BOX__: qsvg(P_.box), __ALERT__: qsvg(P_.alert), __LINK__: qsvg(P_.link), __LI1__: qsvg("truck", "sm"), __LI2__: qsvg("shield", "sm"), __LI3__: qsvg("zap", "sm") });
 
 function shipUI() {
   const opts = DEST_GROUPS.map(([g, l]) => `<optgroup label="${esc(g)}">${l.map(c => `<option>${esc(c)}</option>`).join("")}</optgroup>`).join("");
   const chips = ITEM_WEIGHTS.map(([n], i) => `<button type="button" class="tk-chip" data-add="${i}" aria-label="Add ${esc(n)}">${svg(P_.plus)}${svg(ITEM_ICONS[i], "sm")}<span>${esc(n)}</span><span class="tk-n"></span></button>`).join("");
+  const dim = (id, l) => `<div class="tk-field">${unitIn(id, "cm", `type="number" inputmode="numeric" min="1" max="299" placeholder="${l[1]}" aria-label="Box ${l[0]} in cm" autocomplete="off"`)}</div>`;
   return `<section class="tk-card tk-ship" aria-label="Shipping calculator"><div class="tk-ship-in">
 <div class="tk-field"><label class="tk-label" for="co">Ship to</label><select class="tk-in" id="co" autocomplete="country-name">${opts}</select></div>
 <div class="tk-field"><div class="tk-label"><span id="wml">Weight</span>${segHtml("ut", "Weight unit", [["kg", "kg"], ["lb", "lb"]], "kg", "tk-toggle")}</div>
 ${segHtml("wm", "#wml", [["items", "Add My Items"], ["type", "Type It"]], "items")}</div>
-<div class="tk-field" id="pt" hidden><label class="tk-label" for="kg">Parcel weight</label>${unitIn("kg", "kg", 'type="number" inputmode="decimal" min="0" step="0.1" placeholder="2.5" autocomplete="off"')}</div>
+<div id="pt" hidden><div class="tk-field"><label class="tk-label" for="kg">Parcel weight<span class="tk-hint">From your agent's parcel page</span></label>${unitIn("kg", "kg", 'type="number" inputmode="decimal" min="0" step="0.1" placeholder="2.5" autocomplete="off"')}</div>
+<div class="tk-field"><span class="tk-label" id="bxl">Box size, optional<span class="tk-hint">Length, width, height</span></span><div class="tk-grid3" role="group" aria-labelledby="bxl">${dim("bl", ["length", "40"])}${dim("bw", ["width", "30"])}${dim("bh", ["height", "15"])}</div></div></div>
 <div class="tk-field" id="pi"><span class="tk-label">Tap to add<span class="tk-hint">Typical shipped weights</span></span><div class="tk-chips tk-add">${chips}</div>
 <div class="tk-haul"><div class="tk-haul-h" id="hh" hidden><b>Your haul</b><span id="ht"></span><button type="button" class="btn ghost sm" id="hc">Clear Haul</button></div><p class="tk-haul-e" id="he">Your haul is empty. Tap an item above to add it.</p><ul id="hl"></ul></div></div>
 </div><div class="tk-out tk-ship-out" id="out" data-state="empty"></div></section>
@@ -259,11 +325,11 @@ ${SHIP_JS}</script>`;
 }
 
 // ------------------------------------------------------------------ size estimator
-const SIZE_JS = fill(String.raw`(function(){var L=__L__,EU=__EU__,WA=__WA__,SH=__SH__,G=__G__,CAT=__CAT__;
+const SIZE_JS = fill(String.raw`(function(){var L=__L__,EU=__EU__,WA=__WA__,SH=__SH__,G=__G__,CAT=__CAT__,BF=__BF__;
 __SIZEFN__
 __CHARTFN__
 var $=K.$,esc=K.esc,o=$("out"),co=$("cout"),FN={"-0.5":"fitted cut","0":"regular fit","0.5":"relaxed fit","1":"oversized fit"},GN={tops:"Tops",hoodies:"Hoodies",jackets:"Jackets",pants:"Pants",shoes:"Sneakers"};
-var st={m:"body",g:"tops",u:"m",fit:"0"},said="",ready=false,sayD=K.deb(function(m){if(m!==said){said=m;K.say(m);}},700);
+var st={m:"body",g:"tops",u:"m",fit:"0",br:""},said="",ready=false,sayD=K.deb(function(m){if(m!==said){said=m;K.say(m);}},700);
 var md=K.seg($("md"),function(v){st.m=v;pane();upd();if(v==="chart")cmp();});
 var ga=K.seg($("ga"),function(v){st.g=v;pane();run();});
 var fi=K.seg($("fi"),function(v){st.fit=v;run();});
@@ -284,8 +350,9 @@ $("hm").hidden=imp;$("hi").hidden=!imp;$("body").hidden=shoe;$("foot").hidden=!s
 $("fl").placeholder=imp?"10.6":"27";$("wg").placeholder=imp?"165":"75";["yc","yl"].forEach(function(i){$(i).placeholder=imp?(i==="yc"?"22":"27.5"):(i==="yc"?"56":"70");});}
 function scale(x,a){return'<ol class="tk-scale" aria-label="Size scale">'+L.map(function(s,i){var c=i===a?"is-a":i===x?"is-x":"";return"<li"+(c?' class="'+c+'"':"")+(i===a?' aria-label="'+s+', label to look for"':i===x?' aria-label="'+s+', your EU/US size"':"")+">"+s+"</li>";}).join("")+'</ol><p class="tk-scale-k"><span class="is-a"></span>Label to look for<span class="is-x"></span>Your EU/US size</p>';}
 function acts(txt){var c=CAT[st.g];return'<div class="tk-actions">'+(c?'<a class="btn primary" href="'+esc(c[0])+'">'+esc(c[1])+"</a>":"")+K.cbtn(txt,"Copy Result","Result copied")+'<button type="button" class="btn sm" data-share>__LINK__<span class="tk-cl">Share</span></button></div>';}
+function bnote(){for(var i=0;i<BF.length;i++)if(BF[i][0]===st.br){var t=st.g==="shoes"?BF[i][3]:BF[i][2];return t?'<p class="tk-foot"><b>'+esc(BF[i][1])+' fit:</b> '+esc(t)+"</p>":"";}return"";}
 function remember(o2){K.store.set("pc.size.last",o2);$("clr").hidden=false;}
-function upd(){var p={g:st.g,fit:st.fit==="0"?"":st.fit,u:st.u==="i"?"i":""};if(st.m==="chart"){p.m="chart";var yc=num("yc"),yl=num("yl");if(yc>0)p.yc=r1(yc);if(yl>0)p.yl=r1(yl);var cr=[].map.call($("ct").querySelectorAll(".tk-chart-r"),function(r){var q=r.querySelectorAll("input"),n=String(q[0].value).replace(/[^A-Za-z0-9.]/g,"").slice(0,8),c=parseFloat(q[1].value),l=parseFloat(q[2].value);return n&&isFinite(c)?n+":"+r1(c)+(isFinite(l)?":"+r1(l):""):"";}).filter(Boolean);if(cr.length)p.c=cr.join(",");}var x=metric();if(st.g==="shoes"){if(x.f>0)p.f=r1(x.f);}else{if(x.h>0)p.h=Math.round(x.h);if(x.w>0)p.w=Math.round(x.w);}K.qs.put(p);}
+function upd(){var p={g:st.g,fit:st.fit==="0"?"":st.fit,u:st.u==="i"?"i":"",br:st.br};if(st.m==="chart"){p.m="chart";var yc=num("yc"),yl=num("yl");if(yc>0)p.yc=r1(yc);if(yl>0)p.yl=r1(yl);var cr=[].map.call($("ct").querySelectorAll(".tk-chart-r"),function(r){var q=r.querySelectorAll("input"),n=String(q[0].value).replace(/[^A-Za-z0-9.]/g,"").slice(0,8),c=parseFloat(q[1].value),l=parseFloat(q[2].value);return n&&isFinite(c)?n+":"+r1(c)+(isFinite(l)?":"+r1(l):""):"";}).filter(Boolean);if(cr.length)p.c=cr.join(",");}var x=metric();if(st.g==="shoes"){if(x.f>0)p.f=r1(x.f);}else{if(x.h>0)p.h=Math.round(x.h);if(x.w>0)p.w=Math.round(x.w);}K.qs.put(p);}
 function metric(){var imp=st.u==="i",h=imp?(num("hf")*12+(num("hn")||0))*2.54:num("hc"),w=imp?num("wg")*0.4536:num("wg"),f=imp?num("fl")*2.54:num("fl");return{h:h,w:w,f:f};}
 function empty(t){said="";o.setAttribute("data-state","empty");o.innerHTML='<div class="tk-empty">__RULER__<p>'+esc(t)+"</p></div>";}
 function alertBox(t,b){if(ready)sayD(t);o.setAttribute("data-state","error");o.innerHTML='<div class="tk-alert">__ALERT__<div><b>'+esc(t)+"</b><p>"+esc(b)+"</p></div></div>";}
@@ -295,21 +362,23 @@ if(x.f<20||x.f>33){alertBox("Check Your Numbers",imp?"Foot length 7.9 to 13 in, 
 remember({g:st.g,f:x.f,u:st.u});var s=shoeFor(x.f),r=s.r,big=s.low?"EU "+r[2]+" or smaller":s.top?"EU "+r[2]+" or bigger":"EU "+r[2];if(ready)sayD("Your sneaker size: "+big);
 o.setAttribute("data-state","success");
 o.innerHTML='<div class="tk-res"><p class="tk-res-k">Your sneaker size</p><p class="tk-big">'+esc(big)+'</p><p class="tk-res-sub">'+(s.low?"You are below our chart. Check the seller's chart in cm.":s.top?"You are at the top of our chart. Check the seller's chart in cm.":esc("US men "+r[1]+" · Chinese label "+r[0]*10+" mm"))+"</p>"+
-acts("Sneakers: "+big+" (US men "+r[1]+", "+r[0]*10+" mm) for a "+r1(x.f)+" cm foot")+
+bnote()+acts("Sneakers: "+big+" (US men "+r[1]+", "+r[0]*10+" mm) for a "+r1(x.f)+" cm foot")+
 '<details class="tk-more"><summary>How We Work This Out</summary><p>A '+esc(r1(x.f).toFixed(1))+" cm foot fits the "+esc(r[0])+" cm row of a common men's sneaker chart (we round up to the next half size). Check whether the model runs large or small at retail, and compare with the seller's chart.</p></details></div>";return;}
 var hasH=x.h>0,hasW=x.w>0;if(!hasH||!hasW){empty("Enter your height and weight to see your size.");return;}
 if(!(x.h>=120&&x.h<=230)||!(x.w>=35&&x.w<=250)){alertBox("Check Your Numbers",imp?"Height 3 ft 11 to 7 ft 6, weight 78 to 551 lb.":"Height 120 to 230 cm, weight 35 to 250 kg.");return;}
 remember({g:st.g,h:x.h,w:x.w,fit:st.fit,u:st.u});
 var z=sizeFor(st.g,x.h,x.w,parseFloat(st.fit)),west=st.g==="pants"?"US waist "+WA[z.x]+" · EU "+(WA[z.x]+16)+" · "+L[z.x]:"EU/US "+L[z.x]+" · EU "+EU[z.x];
 var big=z.top?"4XL or bigger":L[z.a],sub=z.top?"You are at the top of our chart. Check the seller's chart in cm.":west;
+var rg=z.top?"":z.f>=0.8&&z.a<7?"You are between sizes: "+L[z.a]+", or "+L[z.a+1]+" for more room.":z.f<=0.2&&z.x>0?"You are between sizes: "+L[z.a]+", or "+L[z.a-1]+" for a closer fit.":"";
 var who=imp?esc($("hf").value||0)+"'"+esc($("hn").value||0)+'" and '+esc(Math.round(num("wg")))+" lb":esc(Math.round(x.h))+" cm and "+esc(Math.round(x.w))+" kg";
-if(ready)sayD("Look for "+big);var txt=GN[st.g]+", "+FN[st.fit]+": look for "+(z.top?"4XL or bigger":L[z.a])+" ("+west+")";
+if(ready)sayD("Look for "+big);var txt=GN[st.g]+", "+FN[st.fit]+": look for "+(z.top?"4XL or bigger":L[z.a])+" ("+west+")"+(rg?". "+rg:"");
 o.setAttribute("data-state","success");
-o.innerHTML='<div class="tk-res"><p class="tk-res-k">Look for this size on the seller\'s chart</p><p class="tk-big">'+esc(big)+'</p><p class="tk-res-sub">'+esc(sub)+"</p>"+scale(z.x,z.a)+acts(txt)+
+o.innerHTML='<div class="tk-res"><p class="tk-res-k">Look for this size on the seller\'s chart</p><p class="tk-big">'+esc(big)+'</p><p class="tk-res-sub">'+esc(sub)+"</p>"+(rg?'<p class="tk-foot">'+esc(rg)+"</p>":"")+scale(z.x,z.a)+bnote()+acts(txt)+
 '<p class="tk-next"><button type="button" class="tk-link" id="tochart">Compare with the seller\'s chart</button></p>'+
 '<details class="tk-more"><summary>How We Work This Out</summary><p>At '+who+" a "+esc(FN[st.fit])+(st.g==="jackets"?" with room for layers":"")+" is usually "+esc(L[z.x])+" in EU/US sizing. Many Weidian and Taobao sellers use Asian sizing that runs about one size small, so the label to look for is "+esc(z.top?"4XL or bigger":L[z.a])+". A rough starting point: confirm it with the seller's chart in cm.</p></details></div>";}
 o.addEventListener("click",function(e){if(e.target.closest&&e.target.closest("#tochart")){md.set("chart");st.m="chart";pane();upd();cmp();$("md").querySelector('[data-v="chart"]').focus();}});
 ["hc","hf","hn","wg","fl"].forEach(function(i){$(i).addEventListener("input",run);});
+$("br").addEventListener("change",function(){st.br=this.value;run();});
 $("clr").addEventListener("click",function(){["hc","hf","hn","wg","fl"].forEach(function(i){$(i).value="";});K.store.del("pc.size.last");$("clr").hidden=true;run();$(st.g==="shoes"?"fl":st.u==="i"?"hf":"hc").focus();});
 // seller's chart
 var tb=$("ct");
@@ -339,6 +408,7 @@ $("pag").addEventListener("click",function(){$("pa").hidden=true;$("pt").hidden=
 var Q=function(k){return K.qs.get(k);},any=Q("h")||Q("w")||Q("g")||Q("f")||Q("m"),last=any?null:K.store.get("pc.size.last",null);
 var u0=Q("u")==="i"||Q("u")==="m"?Q("u"):(K.store.get("pc.size.unit","m")==="i"?"i":"m");
 var g0=Q("g")||(last&&last.g)||"tops";if(!GN.hasOwnProperty(g0))g0="tops";st.g=g0;ga.set(g0);
+var b0=Q("br")||"";if(BF.some(function(b){return b[0]===b0;})){st.br=b0;$("br").value=b0;}
 var f0=Q("fit")||(last&&last.fit)||"0";if(!FN.hasOwnProperty(f0))f0="0";st.fit=f0;fi.set(f0);
 var h0=parseFloat(Q("h")||(last&&last.h)),w0=parseFloat(Q("w")||(last&&last.w)),ft0=parseFloat(Q("f")||(last&&last.f));
 if(h0>=120&&h0<=230)setv("hc",Math.round(h0));if(w0>=35&&w0<=250)setv("wg",Math.round(w0));if(ft0>=20&&ft0<=33)setv("fl",r1(ft0));
@@ -347,7 +417,7 @@ st.u="m";if(u0==="i"){units("i");}else{un1.set("m");un2.set("m");}
 if(Q("m")==="chart"){st.m="chart";md.set("chart");}
 var c0=Q("c");if(c0){var rr=String(c0).slice(0,400).split(",").map(function(x){var a=x.split(":");return[String(a[0]||"").replace(/[^A-Za-z0-9.]/g,"").slice(0,8),parseFloat(a[1]),parseFloat(a[2])];}).filter(function(x){return x[0]&&x[1]>0&&x[1]<500;}).slice(0,12);if(rr.length){tb.innerHTML="";rr.forEach(function(x){addRow(x[0],x[1],x[2]>0&&x[2]<500?x[2]:null);});}}
 var yc0=parseFloat(Q("yc")),yl0=parseFloat(Q("yl"));if(yc0>0&&yc0<500)setv("yc",r1(yc0));if(yl0>0&&yl0<500)setv("yl",r1(yl0));
-pane();run();cmp();ready=true;})();`, { __L__: js(SIZE_L), __EU__: js(SIZE_EU), __WA__: js(SIZE_WA), __SH__: js(SHOES), __G__: js(GADJ), __CAT__: js({ tops: ["/category/tops", "Shop Tops"], hoodies: ["/category/tops", "Shop Hoodies"], jackets: ["/category/jackets", "Shop Jackets"], pants: ["/category/pants", "Shop Pants"], shoes: ["/category/sneakers", "Shop Sneakers"] }), __SIZEFN__: SIZE_FN, __CHARTFN__: CHART_FN, __RULER__: qsvg(P_.ruler), __ALERT__: qsvg(P_.alert), __LINK__: qsvg(P_.link), __X__: qsvg(P_.x) });
+pane();run();cmp();ready=true;})();`, { __L__: js(SIZE_L), __EU__: js(SIZE_EU), __WA__: js(SIZE_WA), __SH__: js(SHOES), __G__: js(GADJ), __BF__: js(BRAND_FIT), __CAT__: js({ tops: ["/category/tops", "Shop Tops"], hoodies: ["/category/tops", "Shop Hoodies"], jackets: ["/category/jackets", "Shop Jackets"], pants: ["/category/pants", "Shop Pants"], shoes: ["/category/sneakers", "Shop Sneakers"] }), __SIZEFN__: SIZE_FN, __CHARTFN__: CHART_FN, __RULER__: qsvg(P_.ruler), __ALERT__: qsvg(P_.alert), __LINK__: qsvg(P_.link), __X__: qsvg(P_.x) });
 
 const MEASURE_SVG = `<svg class="tk-measure-svg" viewBox="0 0 120 80" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
 <path d="M44 6 30 12 14 26l8 12 10-6v42h56V32l10 6 8-12-16-14-14-6a16 16 0 0 1-32 0Z" opacity=".5"/>
@@ -364,6 +434,7 @@ function sizeUI() {
 <div class="tk-field"><label class="tk-label" for="wg">Weight</label><div class="tk-unitwrap"><input class="tk-in" id="wg" type="number" inputmode="decimal" min="35" max="551" placeholder="75" autocomplete="off"><span class="tk-unit" data-u="wg">kg</span></div></div></div>
 <div class="tk-field" id="foot" hidden><label class="tk-label" for="fl">Foot length<span class="tk-hint">Heel to longest toe, standing</span></label><div class="tk-unitwrap"><input class="tk-in" id="fl" type="number" inputmode="decimal" step="0.1" placeholder="27" autocomplete="off"><span class="tk-unit" data-u="fl">cm</span></div></div></div>
 <div class="tk-field" id="fitf"><span class="tk-label" id="fil">Fit you like</span>${segHtml("fi", "#fil", [["-0.5", "Fitted"], ["0", "Regular"], ["0.5", "Relaxed"], ["1", "Oversized"]], "0")}</div>
+<div class="tk-field"><label class="tk-label" for="br">Brand<span class="tk-hint">Optional, adds a fit note</span></label><select class="tk-in" id="br"><option value="">Any brand</option>${BRAND_FIT.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join("")}</select></div>
 <div class="tk-out" id="out" data-state="empty"></div>
 <p class="tk-clear"><button type="button" class="tk-link" id="clr" hidden>Clear my numbers</button></p>
 </section>

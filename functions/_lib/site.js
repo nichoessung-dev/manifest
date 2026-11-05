@@ -150,6 +150,14 @@ export const slug = s => String(s).toLowerCase().replace(/&/g, " and ").replace(
 // Prices: one source of truth, the CNY listing price × the same USD rate the SPA uses (CUR.USD.rate).
 // Seller placeholder prices (¥1–4 "ask me", ¥99,999+ "not for sale") are not real prices.
 export const USD_RATE = 0.14;
+// Prices in the visitor's currency (5 Nov 2026): the pages are cached for everyone, so they are rendered in USD with the
+// yuan price in a <small> next to it; this script swaps the dollar amount for the currency picked in the app
+// (manifest.state.cur), with the same rates as the app's CUR table. CNY shows the yuan price alone.
+const CUR_JS = `<script>(function(){try{var c=(JSON.parse(localStorage.getItem("manifest.state")||"{}")||{}).cur;` +
+  `var R={EUR:["\u20ac",.13],NOK:["kr ",1.45],SEK:["kr ",1.47],DKK:["kr ",.97],GBP:["\u00a3",.11],CHF:["CHF ",.125],PLN:["z\u0142 ",.55],CAD:["C$",.19],AUD:["A$",.21],JPY:["JP\u00a5",21],CNY:["\u00a5",1]}[c];if(!R)return;` +
+  `document.querySelectorAll("small").forEach(function(s){var m=/^\u00a5(\d+)$/.exec(s.textContent.trim());if(!m)return;var n=s.previousSibling;` +
+  `while(n&&!(n.nodeType===3&&/\$[\d,]+/.test(n.nodeValue)))n=n.previousSibling;if(!n)return;var v=Math.max(1,Math.round(+m[1]*R[1]));` +
+  `n.nodeValue=n.nodeValue.replace(/\$[\d,]+/,R[0]+v.toLocaleString("en-US"));if(c==="CNY")s.remove();});}catch(e){}})();</script>`;
 export const isPH = cny => !(cny >= 5 && cny < 99999);
 export const money = cny => { const v = Math.round((+cny || 0) * USD_RATE); return isPH(cny) ? "Ask seller" : "$" + Math.max(1, v).toLocaleString("en-US"); };
 export function rawImg(p) {
@@ -325,7 +333,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "22";
+export const DS_VER = "23";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -458,18 +466,23 @@ ${col("Puro Classico", [["Browse all finds", "/"], ["How we check", "/guides/how
 export const THEME_HEAD = `<script>(function(){var d=document.documentElement,t;try{t=localStorage.getItem("manifest.theme")}catch(e){}if(t!=="light"&&t!=="dark"&&t!=="system")t="light";d.setAttribute("data-theme-pref",t);if(t!=="system")d.setAttribute("data-theme",t);d.classList.add("js","js-fade");var f=function(e){var i=e.target;if(i&&i.tagName==="IMG")i.classList.add("is-in")};document.addEventListener("load",f,true);document.addEventListener("error",f,true);try{var k=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector('meta[name="theme-color"]');if(m)m.content=k?"#0A0A0A":"#FFFFFF"}catch(e){}})();</script>`;
 // js-fade (round 4): ds.css hides a card photo until it has loaded and fades it in; the capture listeners above mark
 // every <img> that loaded (or failed) with .is-in, and PAGE_JS marks the ones that were already complete. No JS, no fade.
-// The theme button cycles system -> light -> dark -> system ("system" removes the key, as a first visit has none).
-// The menu button opens the nav on phones (Escape or a tap outside closes it).
+// The theme buttons ([data-theme-set], in the globe popover) save "manifest.theme"; an old [data-theme-toggle] button still
+// cycles light -> dark -> system. The globe opens its popover (Escape or a tap outside closes it).
 export const PAGE_JS = `<script>(function(){var d=document.documentElement;try{var b=document.querySelector("[data-theme-toggle]"),L={system:"System",light:"Light",dark:"Dark"},` +
   `tc=function(){try{var t=d.getAttribute("data-theme-pref"),k=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector('meta[name="theme-color"]');if(m)m.content=k?"#0A0A0A":"#FFFFFF"}catch(e){}},` +
-  `lb=function(t){if(b){b.setAttribute("aria-label","Theme: "+L[t]+". Change theme");b.title="Theme: "+L[t]}};lb(d.getAttribute("data-theme-pref")||"light");` +
-  `if(b)b.addEventListener("click",function(){var c=d.getAttribute("data-theme-pref")||"light",t=c==="system"?"light":c==="light"?"dark":"system";d.setAttribute("data-theme-pref",t);if(t==="system")d.removeAttribute("data-theme");else d.setAttribute("data-theme",t);` +
-  `try{if(t==="system")localStorage.setItem("manifest.theme","system");else localStorage.setItem("manifest.theme",t)}catch(e){}lb(t);tc()});` +
+  `lb=function(t){if(b){b.setAttribute("aria-label","Theme: "+L[t]+". Change theme");b.title="Theme: "+L[t]}[].forEach.call(document.querySelectorAll("[data-theme-set]"),function(x){x.setAttribute("aria-pressed",x.getAttribute("data-theme-set")===t?"true":"false")})};lb(d.getAttribute("data-theme-pref")||"light");` +
+  `var st=function(t){d.setAttribute("data-theme-pref",t);if(t==="system")d.removeAttribute("data-theme");else d.setAttribute("data-theme",t);try{localStorage.setItem("manifest.theme",t)}catch(e){}lb(t);tc()};` +
+  `if(b)b.addEventListener("click",function(){var c=d.getAttribute("data-theme-pref")||"light";st(c==="system"?"light":c==="light"?"dark":"system")});` +
+  `document.addEventListener("click",function(e){var x=e.target&&e.target.closest&&e.target.closest("[data-theme-set]");if(x)st(x.getAttribute("data-theme-set"))});` +
   `try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",tc)}catch(e){}}catch(e){}` +
-  `try{var h=document.querySelector("header.h"),mb=h&&h.querySelector(".mbtn");if(mb){var set=function(o){h.classList.toggle("open",o);mb.setAttribute("aria-expanded",o?"true":"false")};` +
-  `mb.addEventListener("click",function(e){e.stopPropagation();set(!h.classList.contains("open"))});document.addEventListener("click",function(e){if(!h.contains(e.target))set(false)});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&h.classList.contains("open")){set(false);mb.focus()}})}}catch(e){}` +
+  /* the globe: a popover with the theme choice and a link to the app's language / currency / agent pickers */
+  `try{var gb=document.getElementById("set-btn"),gp=document.getElementById("hprefs");if(gb&&gp){var gs=function(o,f){gp.hidden=!o;gb.setAttribute("aria-expanded",o?"true":"false");if(!o&&f)gb.focus()};` +
+  `gb.addEventListener("click",function(){gs(gp.hidden)});document.addEventListener("click",function(e){if(!gp.hidden&&!(e.target.closest&&e.target.closest("#hprefs,#set-btn")))gs(false)});` +
+  `document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!gp.hidden)gs(false,true)})}}catch(e){}` +
+  /* the MyCNBox pill goes after its first use, as in the app (a real link: removed after the click, not during it) */
+  `try{var mc=document.getElementById("pc-mycnbox-btn");if(mc)mc.addEventListener("click",function(){try{localStorage.setItem("pc.mycnbox.cta","1")}catch(e){}setTimeout(function(){if(mc.parentNode)mc.parentNode.removeChild(mc)},0)})}catch(e){}` +
   `try{var tb=document.getElementById("tools-btn"),tm=document.getElementById("tools-menu");if(tb&&tm){var ts=function(o,f){tm.hidden=!o;tb.setAttribute("aria-expanded",o?"true":"false");if(!o&&f)tb.focus()};` +
-  `tb.addEventListener("click",function(e){e.stopPropagation();ts(tm.hidden)});document.addEventListener("click",function(e){if(!tm.hidden&&!(e.target.closest&&e.target.closest(".tools-nav")))ts(false)});` +
+  `tb.addEventListener("click",function(){ts(tm.hidden)});document.addEventListener("click",function(e){if(!tm.hidden&&!(e.target.closest&&e.target.closest(".tools-nav")))ts(false)});` +
   `document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!tm.hidden)ts(false,true)})}}catch(e){}` +
   `try{var si=document.getElementById("pcs-hi"),kb=document.querySelector(".pcs-kbd");if(kb)kb.textContent=/Mac|iPhone|iPad|iPod/.test(navigator.platform||navigator.userAgent||"")?"\u2318K":"Ctrl K";` +
   `if(si&&si.form)si.form.addEventListener("submit",function(e){if(!si.value.trim()){e.preventDefault();si.focus()}})}catch(e){}` +   /* r6 C: keys and the phone button are SEARCH_BOOT_JS's */
@@ -484,12 +497,13 @@ const AGENT_SWAP_JS = `<script>(function(){try{var a=String((JSON.parse(localSto
   `B={kakobuy:["KakoBuy",function(p,i){return "https://www.kakobuy.com/item/details?url="+encodeURIComponent(o(p,i))+"&affcode=${REFS.kakobuy}"}],oopbuy:["Oopbuy",function(p,i){return "https://oopbuy.com/product/"+p+"/"+i+"?inviteCode=${REFS.oopbuy}"}],` +
   `lovegobuy:["LoveGoBuy",function(p,i){return "https://www.lovegobuy.com/product?platform="+p+"&id="+i+"&invite_code=${REFS.lovegobuy}"}],sugargoo:["Sugargoo",function(p,i){return "https://www.sugargoo.com/#/home/productDetail?productLink="+encodeURIComponent(o(p,i))+"&memberId=${REFS.sugargoo}"}]}[a];if(!B)return;` +
   `[].forEach.call(document.querySelectorAll("a.cbuy[data-iid]"),function(l){l.href=B[1](l.getAttribute("data-pl"),l.getAttribute("data-iid"));l.setAttribute("data-agent",a);l.setAttribute("aria-label",(l.getAttribute("aria-label")||"").replace(/ via [A-Za-z]+$/," via "+B[0]))})}catch(e){}})();</script>`;
-const ICON_SYS = ic("monitor", "i-sys"), ICON_LIGHT = ic("sun", "i-light"), ICON_DARK = ic("moon", "i-dark"), ICON_MENU = ic("menu");
-export const NAV = [["/", "Finds"], ["/brands", "Brands"], ["/tools", "Tools"], ["/guides", "Guides"], ["/how-to-order", "How to Order"]];
+const ICON_GLOBE = ic("globe");
+export const NAV = [["/", "Finds"], ["/feed", "Swipe"], ["/brands", "Brands"], ["/tools", "Tools"], ["/guides", "Guides"], ["/how-to-order", "How to Order"]];
 // The section a path belongs to (round 4, 29 Oct 2026). index.html mirrors it: the homepage markup marks Finds, and
 // _middleware.js hubApp() moves aria-current to navKey(spec.path) on the app hubs, so no page marks nothing by accident.
 export function navKey(path = "") {
   const p = String(path || "/").replace(/[?#].*$/, "") || "/";
+  if (p === "/feed" || p.startsWith("/feed/")) return "swipe";
   if (p === "/brands" || p.startsWith("/brand/")) return "brands";
   if (p === "/tools" || p.startsWith("/tools/")) return "tools";
   if (p === "/guides" || p.startsWith("/guides/")) return "guides";
@@ -497,29 +511,45 @@ export function navKey(path = "") {
   if (p === "/" || p.startsWith("/category/") || /^\/[^/]*-spreadsheet/.test(p) || p.startsWith("/old-money") || p === "/best" || p.startsWith("/best/") || p.startsWith("/product/")) return "finds";
   return "";
 }
-const NAV_KEY = { "/": "finds", "/brands": "brands", "/tools": "tools", "/guides": "guides", "/how-to-order": "how" };
+const NAV_KEY = { "/": "finds", "/feed": "swipe", "/brands": "brands", "/tools": "tools", "/guides": "guides", "/how-to-order": "how" };
 // The header search shell (the app's #pcs-hd has the same markup and sizes). Server pages have no catalogue: the form
 // is a plain GET to /?q=..., and the button, Cmd/Ctrl+K and "/" focus the field when it shows, else open /?s=1 (PAGE_JS).
+// The placeholder carries the app's count (index.html numbers(): the catalogue rounded down to the hundred, "9,200+"), so the
+// field reads the same on both sides of a page change.
+const FINDS_N = (Math.floor(P.length / 100) * 100).toLocaleString("en-US") + "+";
 const SEARCH_SHELL = `<div class="pcs-hd" id="pcs-hd"><form class="pcs-hf" action="/" method="get" role="search">${ic("search", "sm")}` +
-  `<input class="pcs-hi" id="pcs-hi" name="q" type="search" placeholder="Search finds" aria-label="Search finds" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search">` +
+  `<input class="pcs-hi" id="pcs-hi" name="q" type="search" placeholder="Search ${FINDS_N} finds" aria-label="Search finds" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search">` +
   `<kbd class="pcs-kbd" aria-hidden="true">\u2318K</kbd></form><button class="pcs-hb" id="pcs-hb" type="button" aria-label="Search finds">${ic("search")}</button></div>`;
 // r6 GROUP C: the header search on server pages (item 10). Page load adds only this; the first search intent (focus,
 // hover or touch on #pcs-hd, Cmd/Ctrl+K, "/", the phone button, ?s=1) loads /pcs.css, /search-index.json and /pcs.js once.
 // It also owns those keys and the button (capture phase), falling back to the old focus-or-/?s=1 when pcs.js fails.
 // GENERATED by V/r6/tools/gen_boot.py (hashes of pcs.js / pcs.css); the static pages carry the same <script id="pcs-boot">.
 const SEARCH_BOOT_JS = `<script id="pcs-boot" data-v="${BUILT}">(function(){var w=window,d=document,B=w.PCS_BOOT=w.PCS_BOOT||{},hd=d.getElementById("pcs-hd"),si=d.getElementById("pcs-hi"),hb=d.getElementById("pcs-hb"),me=d.getElementById("pcs-boot"),v=me&&me.getAttribute("data-v"),bt=0;if(!hd||w.PCS)return;function ld(){if(B.go)return;B.go=1;B.css=new Promise(function(r){var l=d.createElement("link");l.rel="stylesheet";l.href="/pcs.css?v=b90d3d6a";l.onload=l.onerror=function(){r()};d.head.appendChild(l)});B.idx=w.fetch?fetch("/search-index.json"+(v?"?v="+encodeURIComponent(v):"")).then(function(r){if(!r.ok)throw 0;return r.json()}):Promise.reject(0);B.idx.catch(function(){});var s=d.createElement("script");s.src="/pcs.js?v=b45443ad";s.async=true;s.onerror=function(){B.fail=1;un();var x=B.want;B.want=null;if(x)old()};d.head.appendChild(s)}function un(){clearTimeout(bt);bt=0;if(hb)hb.classList.remove("is-busy")}B.onready=un;function vis(){return si&&si.offsetParent&&si.getClientRects().length}function old(){if(vis()){si.focus();try{si.select()}catch(e){}}else location.href="/?s=1"}function want(f){if(w.PCS&&w.PCS.ready){w.PCS.open(f);return}if(vis()){si.focus();ld();return}if(B.fail){old();return}B.want={from:f};ld();if(hb&&!bt)bt=setTimeout(function(){hb.classList.add("is-busy")},200)}w.addEventListener("keydown",function(e){if(e.isComposing)return;var t=e.target,ty=t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName||""));if((e.key==="k"||e.key==="K")&&(e.metaKey||e.ctrlKey)&&!e.altKey||e.key==="/"&&!ty&&!e.metaKey&&!e.ctrlKey&&!e.altKey){e.preventDefault();e.stopImmediatePropagation();want(d.activeElement)}},true);w.addEventListener("click",function(e){if(hb&&e.target.closest&&e.target.closest("#pcs-hb")){e.preventDefault();e.stopImmediatePropagation();want(hb)}},true);hd.addEventListener("focusin",ld);hd.addEventListener("pointerenter",ld);hd.addEventListener("touchstart",ld,{passive:true});if(/[?&]s=1(&|$)/.test(location.search))ld()})();</script>`;
-// The header every server page shares (the static pages carry a copy). `path` marks the current section. The nav is the
-// app's nav, item for item: same sizes, a Tools link plus a chevron button for the tools menu, and one .nl-pill that sits
-// under the active item (ds.css: anchor positioning, view-transition-name nav-pill, so it glides between pages).
+// The header every server page shares (the static pages carry a copy). `path` marks the current section. It is the app's
+// header (index.html .masthead), item for item and pixel for pixel (5 Nov 2026, "the menu doesn't stay the same"): logo,
+// Finds, Swipe, Brands, Tools (+ chevron), Guides, How to Order, the search shell, then the MyCNBox pill, Sign in and the
+// globe. Under 1100px the links fold into the Tools menu (its .nl-mob rows), as in the app. Sign in and the language /
+// currency / agent pickers live in the app, so here they are links to /?signin=1 and /?prefs=1; the globe popover holds
+// the theme choice (Light / Dark / System, the app's "manifest.theme" key) like the app's. HEADER_JS (in PAGE_JS) hides the
+// MyCNBox pill once it was used (the app's "pc.mycnbox.cta" key) and shows "@name" for a signed-in visitor.
+// Before the first paint, like the app: no MyCNBox pill once it was used, "@name" for a signed-in visitor (supabase-js
+// keeps the session under sb-<project>-auth-token; the app's sign-in button shows the part of the e-mail before the @).
+const CTA_GONE_JS = `<script>try{if(localStorage.getItem("pc.mycnbox.cta")){var _mb=document.getElementById("pc-mycnbox-btn");_mb.parentNode.removeChild(_mb)}}catch(e){}</script>`;
+const AUTH_NAME_JS = `<script>try{var _s=JSON.parse(localStorage.getItem("sb-uptpghuduqjqmrxwatbm-auth-token")||"null"),_u=_s&&(_s.user||(_s.currentSession&&_s.currentSession.user)),_e=_u&&_u.email;if(_e){var _a=document.getElementById("auth-btn");_a.textContent="@"+String(_e).split("@")[0];_a.setAttribute("data-in","1");_a.href="/"}}catch(e){}</script>`;
 export function header(path = "") {
   const on = navKey(path), cur = u => NAV_KEY[u] === on ? ' aria-current="page"' : "";
+  const mob = NAV.filter(([u]) => u !== "/tools").map(([u, t]) => `<a class="nl-mob" href="${u}"${cur(u)}>${t}</a>`).join("");
   const items = NAV.map(([u, t]) => u === "/tools"
-    ? `<div class="tools-nav"><a href="/tools"${cur(u)}>${t}</a><button class="tools-btn" id="tools-btn" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="tools-menu" aria-label="Tools menu">${ic("chevron-down", "sm")}</button>` +
-      `<div class="tools-menu" id="tools-menu" hidden>${TOOL_LINKS.concat([["All tools", "/tools"]]).map(([n, l]) => `<a href="${l}">${esc(n)}</a>`).join("")}</div></div>`
+    ? `<div class="tools-nav"><a href="/tools"${cur(u)}>${t}</a><button class="tools-btn" id="tools-btn" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="tools-menu" aria-label="Tools menu"><span class="tb-l">Tools</span>${ic("chevron-down", "sm")}</button>` +
+      `<div class="tools-menu" id="tools-menu" hidden>${TOOL_LINKS.concat([["All tools", "/tools"]]).map(([n, l]) => `<a href="${l}">${esc(n)}</a>`).join("")}<div class="tools-sep nl-mob" aria-hidden="true"></div>${mob}</div></div>`
     : `<a href="${u}"${cur(u)}>${t}</a>`).join("");
   return `<header class="h"><div class="w"><a href="/" aria-label="Puro Classico home"><span class="logo" role="img" aria-label="Puro Classico"></span></a>
 <nav id="pc-nav" aria-label="Main">${items}<span class="nl-pill" aria-hidden="true"></span></nav>
-${SEARCH_SHELL}<div class="hr"><a class="hcta" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">${ic("gift", "sm")}Claim $500 MyCNBox coupons</a><button class="ibtn tbtn" type="button" data-theme-toggle aria-label="Change theme">${ICON_SYS}${ICON_LIGHT}${ICON_DARK}</button><button class="ibtn mbtn" type="button" aria-expanded="false" aria-controls="pc-nav" aria-label="Menu">${ICON_MENU}</button></div></div></header>`;
+${SEARCH_SHELL}<div class="hr"><a class="hcta" id="pc-mycnbox-btn" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">Make an account with MyCNBox</a>${CTA_GONE_JS}` +
+    `<a class="hauth" id="auth-btn" href="/?signin=1">Sign in</a>${AUTH_NAME_JS}` +
+    `<button class="ibtn hset" id="set-btn" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="hprefs" aria-label="Theme, language, currency and agent" title="Theme, language, currency and agent">${ICON_GLOBE}</button>` +
+    `<div class="hprefs" id="hprefs" hidden><div class="hseg" role="group" aria-label="Theme"><button type="button" data-theme-set="light" aria-pressed="false">Light</button><button type="button" data-theme-set="dark" aria-pressed="false">Dark</button><button type="button" data-theme-set="system" aria-pressed="false">System</button></div>` +
+    `<a class="hprefs-l" href="/?prefs=1">Language, currency and agent</a></div></div></div></header>`;
 }
 
 export function page({ title, desc, path, body, jsonld = [], robots = "index,follow,max-image-preview:large", image, status = 200, extraHead = "" }) {
@@ -554,8 +584,9 @@ ${header(path)}
 ${body}
 </div></main>
 ${footer()}
-${PAGE_JS}${SEARCH_BOOT_JS}${body.indexOf('class="cbuy"') >= 0 ? AGENT_SWAP_JS : ""}
-<script src="/track.js?v=2" defer></script>
+${PAGE_JS}${SEARCH_BOOT_JS}${body.indexOf('class="cbuy"') >= 0 ? AGENT_SWAP_JS : ""}${CUR_JS}
+<script src="/track.js?v=3" defer></script>
+<script src="/chat.js?v=1" defer></script>
 </body>
 </html>`;
   return new Response(html, { status, headers: { "content-type": "text/html; charset=utf-8",

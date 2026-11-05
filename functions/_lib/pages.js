@@ -73,7 +73,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w44";   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
+export const PRODUCT_TPL = "w45";   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -755,6 +755,23 @@ function ag(p,id){var me=myAgent(),L=A.map(function(a){return{id:a[0],name:a[1],
 var PL={weidian:"Weidian",taobao:"Taobao","1688":"1688"};
 function onCat(id){var k="pc.pid."+id,c=TK.sess.get(k,null);function f(ok){var b=document.getElementById("opc");if(b&&ok)b.hidden=false;}if(c!=null){f(c);return;}try{fetch("/product/"+encodeURIComponent(id),{method:"HEAD",redirect:"manual"}).then(function(r){var ok=r.status===200;TK.sess.set(k,ok);f(ok);},function(){});}catch(e){}}
 function opcCheck(id,pid){var b=document.getElementById("opc");function sh(x){if(b){b.href="/product/"+encodeURIComponent(x);b.hidden=false;}}if(pid){sh(pid);return;}var c=PCCAT.look(id);if(c)sh(c.pid);else if(c===undefined||PCCAT.failed())onCat(id);}`;
+// Round 10 tools pass: share links, shop links and the matching find, for both paste tools (client side of
+// functions/api/link.js). shortOf(v): the share link (m.tb.cn, youshop10.com, qr.1688.com...) in a pasted text, else "".
+// isShop(v): a seller's shop page rather than one item. resolveShort(u, cb): the item behind a share link, via /api/link.
+// findCheck(p, id, pid): fills <div id="fnd" data-k> with our find for that listing (falls back to opcCheck offline).
+const LINK_JS = String.raw`var SHORT_H=/(?:^|\.)(?:tb\.cn|youshop10\.com|koudai\.com|vdian\.com)$|^qr\.1688\.com$/;
+function firstUrl(v){var m=String(v||"").match(/https?:\/\/[^\s<>"'，。、「」【】（）()]+/i);return m?m[0]:"";}
+function shortOf(v){var u=firstUrl(v),h=((u.match(/^https?:\/\/([^\/?#:]+)/i)||[])[1]||"").toLowerCase();return h&&SHORT_H.test(h)&&!/[?&#](?:item_?id|id)=\d{6,}/i.test(u)?u:"";}
+function isShop(v){v=String(v||"");try{v=decodeURIComponent(v);}catch(e){}if(/item_?id=|[?&#](?:id|offer_?id)=\d|\/offer\/\d|\/item\/\d|\/i\d{6,}\.htm|\/product\/|^\d+$/i.test(v))return false;
+return /[?&#]user_?id=\d|^(?:https?:\/\/)?shop\d*\.(?:v\.)?weidian\.com|^(?:https?:\/\/)?(?:www\.|m\.)?weidian\.com\/?(?:[?#]|$)|^(?:https?:\/\/)?shop\d+\.(?:m\.)?(?:taobao|tmall)\.com|^(?:https?:\/\/)?[a-z0-9-]+\.(?:taobao|tmall)\.com\/?(?:[?#]|$)|\.(?:taobao|tmall)\.com\/(?:shop|search|category)|winport|shop\.1688\.com|\.1688\.com\/(?:page|shop)\//i.test(v);}
+var RES={};function resolveShort(u,cb){if(Object.prototype.hasOwnProperty.call(RES,u)){cb(RES[u]);return;}var c=TK.sess.get("pc.res."+u,null);if(c&&c.id){cb(c);return;}
+var done=false,to=setTimeout(function(){fin(null);},9000);function fin(d){if(done)return;done=true;clearTimeout(to);d=d&&d.id&&d.url?{platform:d.platform,id:String(d.id),url:String(d.url)}:null;if(d)TK.sess.set("pc.res."+u,d);RES[u]=d;cb(d);}
+try{fetch("/api/link?u="+encodeURIComponent(u)).then(function(r){return r.ok?r.json():null;}).then(fin,function(){fin(null);});}catch(e){fin(null);}}
+function findCard(f){return'<a class="tk-find" href="'+esc(f.url)+'"><img src="'+esc(f.img)+'" alt="" loading="lazy" decoding="async" onerror="this.style.visibility=\'hidden\'"><span><span class="tk-find-k">Our find</span><span class="t">'+esc(f.title)+'</span><span class="s">'+esc(f.price+(f.qc?" · "+f.qc+" QC photo"+(f.qc===1?"":"s"):"")+(f.sold?" · Sold out":""))+"</span></span></a>";}
+function findCheck(p,id,pid){var k="pc.find."+p+"."+id;function slot(){var s=document.getElementById("fnd");return s&&s.getAttribute("data-k")===k?s:null;}
+function put(f){var s=slot();if(!s||!f||!f.url)return;s.innerHTML=findCard(f);s.hidden=false;var b=document.getElementById("opc");if(b){b.href=f.url;b.hidden=false;}}
+var c=TK.sess.get(k,null);if(c!==null){if(c)put(c);return;}
+try{fetch("/api/link?p="+encodeURIComponent(p)+"&id="+encodeURIComponent(id)).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){var f=d&&d.find&&d.find.url?d.find:false;TK.sess.set(k,f);put(f);},function(){if(slot())opcCheck(id,pid);});}catch(e){opcCheck(id,pid);}}`;
 const sameItem = "function(a,b){return a.p===b.p&&a.id===b.id;}";
 
 // Example chips: real catalogue finds that have QC photos (most viewed first), picked at render time.
@@ -791,7 +808,7 @@ const TOOL_UI = {
     const empty = `<div class="tk-empty">${TK_I.link}<p>Paste a link to get a buy link for every agent.</p><div class="tk-chips"><span>Try:</span>${chip("Weidian link", ex.w)}${chip("Taobao link", ex.t)}${chip("Agent link", ex.agent)}</div></div>`;
     return `<section class="tk-card" aria-label="Link Converter">${pasteField("lc", "Weidian, Taobao, 1688 or agent link", "Paste a Weidian, Taobao, 1688 or agent link", `<span class="tk-kbd" aria-hidden="true"><kbd>Enter</kbd> to convert</span>`)}${platSeg("lp", false)}
 <div class="tk-out" id="out" data-state="empty">${empty}</div></section>${recentBox("Recent")}
-<script>(function(){${EXTRACT}${TK_JS}${AGENT_JS}${PASTE_JS}
+<script>(function(){${EXTRACT}${TK_JS}${AGENT_JS}${LINK_JS}${PASTE_JS}
 var EMPTY=${JSON.stringify(empty)},inp=$("lc"),clr=$("lc-clr"),pw=$("lpw"),pick=null,chg=null,cur=null,L=[],rq=TK.recent("pc.link.recent",6),same=${sameItem};
 function nodet(){pw.hidden=true;$("lpd").hidden=true;$("lph").hidden=true;}
 function det(r,p,ov,v){var known=!!r.platform&&r.source!=="guess",sw=!known||chg===v,gh=!known&&!ov;pw.hidden=!sw;if(sw)seg.set(p);$("lpd").hidden=!known||sw;if(known)$("lpdt").textContent="Detected: "+PL[r.platform];$("lph").hidden=!gh;if(gh)$("lph").textContent="We guessed "+PL[r.platform]+" from the ID length. Pick the right marketplace if it is wrong.";}
@@ -800,17 +817,20 @@ var keep=TK.debounce(function(d){if(cur&&cur.id===d.id){rq.add({p:d.p,id:d.id,t:
 function recent(){drawRecent(rq,cur,function(){return '<span class="tk-ic">'+I.link+'</span>';});}
 function run(now){var v=inp.value.trim();clr.hidden=!v;pbSync("lc-paste",v);if(!v){nodet();cur=null;said="";setOut("empty",EMPTY);TK.qs.set({u:null});recent();return;}
 var r=pcDetect(v,PCCAT.look);
+if(isShop(v)){nodet();cur=null;sayOnce("That is a shop link");setOut("error",alertH("That Is A Shop Link","This link opens a seller's whole shop, not one item. Open the item you want in the shop, then copy that link."));return;}
 if(r.pending){nodet();setOut("loading",'<div class="tk-res" aria-hidden="true"><span class="tk-skel line"></span><span class="tk-skel big"></span></div>');PCCAT.load(function(){if(inp.value.trim()===v)run(true);});return;}
-if(!r.id){nodet();cur=null;sayOnce(r.short?"That is a share link":"No item ID found");setOut("error",r.short?alertH("That Is A Share Link","Open it in your browser first, then copy the full product link from the address bar."):alertH("No Item ID Found","Paste the full product or agent link."));return;}
+var su=!r.id&&shortOf(v);if(su){nodet();cur=null;setOut("loading",'<div class="tk-res"><p class="tk-res-k">Opening the share link</p><span class="tk-skel big" aria-hidden="true"></span></div>');resolveShort(su,function(d){if(inp.value.trim()!==v)return;if(d){inp.value=d.url;TK.say("Share link opened");run(true);}else{sayOnce("Share link not opened");setOut("error",alertH("We Could Not Open That Share Link","Open it in your browser or the Taobao app, then copy the full product link from the address bar."));}});return;}
+if(!r.id){nodet();cur=null;sayOnce(r.short?"That is a share link":"No item ID found");setOut("error",r.short?alertH("That Is A Share Link","Open it in your browser first, then copy the full product link from the address bar."):alertH("No Item ID Found","Paste the full product or agent link, or just the item ID."));return;}
 var ov=pick&&pick.id===r.id&&pick.v===v?pick.p:"",p=ov||r.platform,g=r.source==="guess"&&!ov;det(r,p,!!ov,v);
 cur={p:p,id:r.id};L=ag(p,r.id);var o=orig(p,r.id),me=L[0];sayOnce(L.length+" agent links ready for "+PL[p]+" "+r.id);
 var opt=function(a){return '<div class="tk-opt"><div class="tk-opt-main">'+esc(a.name)+'</div><div class="tk-opt-act"><a class="btn sm" href="'+esc(a.url)+'" data-agent="'+a.id+'" target="_blank" rel="sponsored nofollow noopener" aria-label="Open in '+esc(a.name)+'">Open</a>'+cpBtn("Copy",'data-copy="'+esc(a.url)+'" aria-label="Copy the '+esc(a.name)+' link"')+'</div></div>';};
 setOut("success",'<div class="tk-res"><div class="tk-res-top"><p class="tk-res-k">'+esc(PL[p]+" · "+r.id)+(g?' <span class="tk-badge">Guessed</span>':'')+'</p>'+cpBtn("Copy Item Link",'data-copy="'+esc(o)+'" data-msg="Item link copied"')+'</div>'+
-'<div class="tk-buy"><a class="btn primary lg" href="'+esc(me.url)+'" data-agent="'+me.id+'" target="_blank" rel="sponsored nofollow noopener">Buy On '+esc(me.name)+'</a>'+(me.mine?'<span class="tk-badge">Your Agent</span>':'')+'</div>'+
+'<div id="fnd" data-k="pc.find.'+esc(p+"."+r.id)+'" hidden></div>'+
+'<div class="tk-buy"><a class="btn primary lg" href="'+esc(me.url)+'" data-agent="'+me.id+'" target="_blank" rel="sponsored nofollow noopener">Buy On '+esc(me.name)+'</a>'+cpBtn("Copy",'data-copy="'+esc(me.url)+'" data-msg="'+esc(me.name)+' link copied" aria-label="Copy the '+esc(me.name)+' link"')+(me.mine?'<span class="tk-badge">Your Agent</span>':'')+'</div>'+
 '<p class="tk-sub">Other agents</p>'+L.slice(1).map(opt).join("")+
 '<div class="tk-actions"><a class="btn" href="/tools/qc-checker?u='+encodeURIComponent(v.slice(0,500))+'">Check QC Photos</a><a class="btn" id="opc" href="/product/'+esc(r.pid||r.id)+'" hidden>Open On Puro Classico</a>'+cpBtn("Copy All Links",'data-copy="*" data-msg="All links copied"')+'</div>'+
 '<details class="tk-more"><summary>Show All Links</summary><p>'+L.map(function(a){return esc(a.name)+': <a href="'+esc(a.url)+'" data-agent="'+a.id+'" target="_blank" rel="sponsored nofollow noopener">'+esc(a.url)+'</a>';}).join("<br>")+'</p></details></div>');
-TK.qs.set({u:v.length<=500?v:o});opcCheck(r.id,r.pid);keep(cur);recent();}
+TK.qs.set({u:v.length<=500?v:o});findCheck(p,r.id,r.pid);keep(cur);recent();}
 $("lpdc").addEventListener("click",function(){if(!cur)return;chg=inp.value.trim();run(true);var b=$("lp").querySelector('[aria-checked="true"]');if(b)b.focus();});
 var live=TK.debounce(function(){run();},200);
 inp.addEventListener("input",live);inp.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();run(true);}});
@@ -828,7 +848,7 @@ var q=TK.qs.get("u");if(q){inp.value=q.slice(0,2000);run(true);}else recent();})
 <div class="tk-out" id="out" data-state="empty">${empty}</div></section>${recentBox("Recent Checks")}
 <dialog class="tk-lightbox" id="lb" aria-label="QC photo viewer"><div class="tk-lb-fig" id="lbf"><img id="lbi" alt=""><button type="button" class="tk-lb-nav prev" id="lbp" aria-label="Previous photo">${TK_I.prev}</button><button type="button" class="tk-lb-nav next" id="lbn" aria-label="Next photo">${TK_I.next}</button></div>
 <div class="tk-lb-bar"><span id="lbc" aria-live="polite"></span><div class="tk-actions"><a class="btn sm" id="lbo" href="#" target="_blank" rel="noopener">${TK_I.ext}Open Original</a><button type="button" class="btn sm" id="lbx">Close</button></div></div></dialog>
-<script>(function(){${EXTRACT}${TK_JS}${AGENT_JS}${PASTE_JS}
+<script>(function(){${EXTRACT}${TK_JS}${AGENT_JS}${LINK_JS}${PASTE_JS}
 var EMPTY=${JSON.stringify(empty)},inp=$("qi"),go=$("go"),clr=$("qi-clr"),pw=$("qpw"),busy=false,again=false,cur=null,lastK="",skT=0,qpick=null,chg=null,rq=TK.recent("pc.qc.recent",6),same=${sameItem};
 var seg=TK.seg($("qp"),function(v){if(cur){qpick={id:cur.id,p:v,v:inp.value.trim()};run(true);}});
 function det(r){if(!r||!r.id||r.pending){pw.hidden=true;$("qpd").hidden=true;$("qph").hidden=true;return;}var v=inp.value.trim(),known=!!r.platform&&r.source!=="guess",sw=!known||chg===v,ov=qpick&&qpick.id===r.id&&qpick.v===v,gh=!known&&!ov;
@@ -839,23 +859,26 @@ function parse(v){return pcDetect(v,PCCAT.look);}
 function sync(){var v=inp.value.trim(),r=v?parse(v):{};clr.hidden=!v;pbSync("qi-paste",v);det(r);}
 function recent(){drawRecent(rq,cur,function(x){return x.th?'<img src="'+esc(x.th)+'" alt="" loading="lazy" onerror="this.style.visibility=\\'hidden\\'">':'<span class="tk-ic">'+I.image+'</span>';});}
 function cnt(n){return n+" QC Photo"+(n===1?"":"s");}
+function thumb(u){u=String(u);var o="https://www.puroclassico.com",k=u.indexOf(o+"/api/img?");return k===0?o+"/cdn-cgi/image/width=400,quality=75,format=auto"+u.slice(o.length):u;}
 function idle(){busy=false;go.disabled=false;go.removeAttribute("aria-busy");go.querySelector(".l").textContent="Find QC Photos";$("out").removeAttribute("aria-busy");}
 function skel(d){var h='<div class="tk-res" aria-hidden="true"><p class="tk-res-k">'+esc(PL[d.p]+" · "+d.id)+'</p><span class="tk-skel big"></span><div class="tk-gal">';for(var i=0;i<5;i++)h+='<span class="tk-skel"></span>';return h+'</div></div>';}
 function show(d){var who=esc(PL[d.p]+" · "+d.id)+(d.g?' <span class="tk-badge">Guessed</span>':'');
 if(d.s==="ok"){primary(false);TK.say(cnt(d.t.length)+" found");var a=ag(d.p,d.id)[0];
-setOut("success",'<div class="tk-res"><p class="tk-res-k">'+who+'</p><p class="tk-big" id="qn">'+cnt(d.t.length)+'</p>'+(d.n?'<p class="tk-res-sub">'+esc(d.n)+'</p>':'')+
-'<div class="tk-gal" id="gal">'+d.t.map(function(u,i){return '<button type="button" data-u="'+esc(u)+'" aria-label="Open QC photo '+(i+1)+'"><img src="'+esc(u)+'" alt="QC photo '+(i+1)+'" loading="lazy" decoding="async"></button>';}).join("")+'</div>'+
+setOut("success",'<div class="tk-res"><p class="tk-res-k">'+who+'</p><p class="tk-big" id="qn">'+cnt(d.t.length)+'</p>'+(d.c>d.t.length?'<p class="tk-res-sub">Showing '+d.t.length+' of '+esc(d.c)+' QC photos on record</p>':'')+(d.n?'<p class="tk-res-sub">'+esc(d.n)+'</p>':'')+
+'<div class="tk-gal" id="gal">'+d.t.map(function(u,i){return '<button type="button" data-u="'+esc(u)+'" aria-label="Open QC photo '+(i+1)+'"><img src="'+esc(thumb(u))+'" data-o="'+esc(u)+'" alt="QC photo '+(i+1)+'" loading="'+(i<5?"eager":"lazy")+'" decoding="async"></button>';}).join("")+'</div>'+'<div id="fnd" data-k="pc.find.'+esc(d.p+"."+d.id)+'" hidden></div>'+
 '<div class="tk-actions"><a class="btn primary" href="'+esc(a.url)+'" data-agent="'+a.id+'" target="_blank" rel="sponsored nofollow noopener">Buy On '+esc(a.name)+'</a><a class="btn" id="opc" href="/product/'+esc(d.id)+'" hidden>Open On Puro Classico</a>'+cpBtn("Copy Link",'data-copy="share"')+'</div></div>');
-[].forEach.call($("gal").querySelectorAll("img"),function(im){im.addEventListener("error",function(){var b=im.parentNode;if(b&&b.parentNode)b.parentNode.removeChild(b);var n=$("gal").children.length,q=$("qn");if(q)q.textContent=cnt(n);});});
-opcCheck(d.id,cur&&cur.id===d.id?cur.pid:null);rq.add({p:d.p,id:d.id,th:d.t[0]||"",t:Date.now()},same);recent();return;}
+[].forEach.call($("gal").querySelectorAll("img"),function(im){im.addEventListener("error",function(){if(im.getAttribute("data-o")&&im.src!==im.getAttribute("data-o")){im.src=im.getAttribute("data-o");im.removeAttribute("data-o");return;}var b=im.parentNode;if(b&&b.parentNode)b.parentNode.removeChild(b);var n=$("gal").children.length,q=$("qn");if(q)q.textContent=cnt(n);});});
+findCheck(d.p,d.id,cur&&cur.id===d.id?cur.pid:null);rq.add({p:d.p,id:d.id,th:d.t[0]||"",t:Date.now()},same);recent();return;}
 primary(true);
-if(d.s==="none"){TK.say("No QC photos yet");setOut("none",alertH("No QC Photos Yet",who+'<br>Photos only exist once someone has bought this item through an agent.','<a class="btn sm" href="/tools/link-converter?u='+encodeURIComponent(orig(d.p,d.id))+'">Get Buy Links</a><a class="btn sm ghost" href="/guides/how-to-qc">How To Read QC</a>'));recent();return;}
+if(d.s==="none"){TK.say("No QC photos yet");setOut("none",alertH("No QC Photos Yet",who+'<br>Photos only exist once someone has bought this item through an agent. When you order, your agent takes QC photos of your own item before it ships, so you can still check it then.','<a class="btn sm" href="/tools/link-converter?u='+encodeURIComponent(orig(d.p,d.id))+'">Get Buy Links</a><a class="btn sm ghost" href="/guides/how-to-qc">How To Read QC</a>')+'<div id="fnd" data-k="pc.find.'+esc(d.p+"."+d.id)+'" hidden></div>');findCheck(d.p,d.id,null);recent();return;}
 if(d.s==="busy")setOut("error",alertH("Too Many Checks Right Now","Try again in about 10 minutes.","",1));
 else if(d.s==="bad")setOut("error",alertH("That ID Does Not Look Right","Paste the full product link instead.","",1));
 else setOut("error",alertH("QC Service Not Reachable","Try again in a moment.",'<button type="button" class="btn sm" id="again">Try Again</button>',1));
 lastK="";}
 function run(force){if(busy){again=true;return;}var v=inp.value.trim();sync();if(!v){cur=null;lastK="";primary(true);setOut("empty",EMPTY);TK.qs.set({u:null});recent();return;}
+if(isShop(v)){cur=null;lastK="";det(null);primary(true);setOut("error",alertH("That Is A Shop Link","This link opens a seller's whole shop, not one item. Open the item you want, then paste that link.","",1));return;}
 var r=parse(v);if(r.pending){det(null);clearTimeout(skT);setOut("loading",'<div class="tk-res" aria-hidden="true"><span class="tk-skel line"></span><span class="tk-skel big"></span></div>');PCCAT.load(function(){if(inp.value.trim()===v)run(true);});return;}
+var su=!r.id&&shortOf(v);if(su){cur=null;lastK="";det(null);setOut("loading",'<div class="tk-res"><p class="tk-res-k">Opening the share link</p><span class="tk-skel big" aria-hidden="true"></span></div>');resolveShort(su,function(d){if(inp.value.trim()!==v)return;if(d){inp.value=d.url;TK.say("Share link opened");run(true);}else setOut("error",alertH("We Could Not Open That Share Link","Open it in your browser or the Taobao app, then copy the full product link from the address bar.","",1));});return;}
 if(!r.id){cur=null;lastK="";primary(true);setOut("error",r.short?alertH("That Is A Share Link","Open it in your browser first, then copy the full product link from the address bar.","",1):alertH("No Item ID Found","Paste the full product link, or the item ID on its own.","",1));return;}
 var ov=qpick&&qpick.id===r.id&&qpick.v===v?qpick.p:"",known=!!r.platform&&r.source!=="guess",g=0,p;if(known)p=chg===v&&ov?ov:r.platform;else{p=ov||r.platform;g=ov?0:1;}det(r);
 var k="pc.qc."+p+"."+r.id;if(k===lastK&&!force)return;lastK=k;cur={p:p,id:r.id,pid:r.pid||null};TK.qs.set({u:v.length<=500?v:orig(p,r.id)});
@@ -864,7 +887,7 @@ busy=true;go.disabled=true;go.setAttribute("aria-busy","true");go.querySelector(
 clearTimeout(skT);skT=setTimeout(function(){setOut("loading",skel(cur));},150);
 var ctl=null;try{ctl=new AbortController();}catch(e){}var to=setTimeout(function(){if(ctl)ctl.abort();},10000);
 fetch("/api/qc?storefront="+p+"&id="+encodeURIComponent(r.id),ctl?{signal:ctl.signal}:{}).then(function(res){
-if(res.status===200)return res.json().then(function(d){var t=(d&&d.thumbnails)||[];return{s:t.length?"ok":"none",t:t.slice(0,12),n:d&&typeof d.name==="string"?d.name.slice(0,200):""};},function(){return{s:"down"};});
+if(res.status===200)return res.json().then(function(d){var t=(d&&d.thumbnails)||[];return{s:t.length?"ok":"none",t:t.slice(0,12),c:d&&+d.qc_count>0?Math.round(+d.qc_count):0,n:d&&typeof d.name==="string"?d.name.slice(0,200):""};},function(){return{s:"down"};});
 return{s:res.status===404?"none":res.status===429?"busy":res.status===400?"bad":"down"};},function(){return{s:"down"};}).then(function(d){
 clearTimeout(to);clearTimeout(skT);idle();d.p=p;d.id=r.id;if(again){again=false;var nv=parse(inp.value.trim());if(!inp.value.trim()||(nv.id&&nv.id!==r.id)){if(d.s==="ok"||d.s==="none"){d.t=d.t||[];TK.sess.set(k,d);}run(true);return;}}if(d.s==="ok"||d.s==="none"){d.t=d.t||[];TK.sess.set(k,d);}d.g=g;if(cur&&cur.id===r.id&&cur.p===p)show(d);});}
 var auto=TK.debounce(function(){var v=inp.value.trim(),r=parse(v);if(r.id&&!/^\\d+$/.test(v))run();},300);
