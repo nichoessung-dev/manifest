@@ -4,6 +4,7 @@
 import { renderProduct, PRODUCT_TPL } from "../_lib/pages.js";
 import { notFound, ensureStats, BUILT } from "../_lib/site.js";
 import { countView } from "../_lib/views.js";
+import { reportedIds } from "../_lib/reported.js";
 
 const PAGE_TTL = 60 * 60 * 24;     // 1 day
 const QC_MISS_TTL = 60 * 15;       // 15 min when the QC lookup failed
@@ -17,14 +18,16 @@ export async function onRequestGet(context) {
   if (!/^[0-9A-Za-z_-]{1,40}$/.test(id)) return notFound(url.pathname);
   // Edge-cache the rendered page (per catalogue build and per page-template version) so crawls don't trigger a live
   // /api/qc lookup on every render. BUILT stays the same until the catalogue data changes; PRODUCT_TPL covers the rest.
+  // Removed after member reports (data/reported.json): its own cached copy ("-r"), with the notice instead of the buy box.
+  const rep = (await reportedIds(context.env, url.origin)).has(id);
   const cache = caches.default;
-  const key = new Request(`https://ssr-cache.internal/product/${BUILT}-${PRODUCT_TPL}/${encodeURIComponent(id)}`, { method: "GET" });
+  const key = new Request(`https://ssr-cache.internal/product/${BUILT}-${PRODUCT_TPL}${rep ? "-r" : ""}/${encodeURIComponent(id)}`, { method: "GET" });
   const hit = await cache.match(key);
   // Page view counter (functions/_lib/views.js): people only, GET only, written after the response in waitUntil, never
   // blocks or breaks the page. Counted here, before the cached copy is returned, so cached pages count too.
   if (hit) { countView(context, id); const r = new Response(hit.body, hit); r.headers.set("cache-control", BROWSER_CC); r.headers.set("x-ssr-cache", "HIT"); return r; }
   await ensureStats(url.origin);
-  const res = await renderProduct(id, url.origin);
+  const res = await renderProduct(id, url.origin, { reported: rep });
   if (!res) return notFound(url.pathname);
   if (res.status === 200) countView(context, id);                  // a real find (unknown ids 404 above and are not counted)
   const ttl = res.headers.get("x-qc-miss") ? QC_MISS_TTL : PAGE_TTL;   // a render without its QC photos is retried soon
