@@ -358,7 +358,30 @@ var LR_KEY = "pc.feed.lr";
 var LR = LS.get(LR_KEY, null);
 if (!LR || LR.v !== 1) LR = { v: 1, w: {}, n: {}, b: -0.6, k: 0 };
 var SW = {};                              // session weights
-function xf(p) { if (p._x) return p._x; var f = feats(p).slice(); f.push("x:" + (p.brand || "?") + "|" + p._t); return (p._x = f); }
+/* model features: everything feats() has, plus crosses that let the model learn combinations: brand x type ("Stone Island
+   jackets"), colour x type ("black jackets"), price x category ("cheap shoes"), the marketplace, and whether it has QC photos */
+function xf(p) {
+  if (p._x) return p._x;
+  var f = feats(p).slice(), b = band(p.price);
+  f.push("x:" + (p.brand || "?") + "|" + p._t);
+  if (p._k) f.push("kt:" + p._k + "|" + p._t);
+  f.push("pc:" + b + "|" + (p.cat || "?"), "pl:" + (p.platform || "?"), "q:" + (p.qc > 20 ? "many" : p.qc > 0 ? "some" : "none"));
+  return (p._x = f);
+}
+/* measuring: every swipe records what the model predicted before it and what the visitor did, so accuracy can be shown */
+var MET_KEY = "pc.feed.metrics", MET = LS.get(MET_KEY, null);
+if (!MET || !Array.isArray(MET.h)) MET = { h: [], n: 0, likes: 0, ll: 0 };
+function measure(pr, y) {
+  MET.n++; MET.likes += y; MET.ll += -(y ? Math.log(Math.max(1e-6, pr)) : Math.log(Math.max(1e-6, 1 - pr)));
+  MET.h.push([Math.round(pr * 1000) / 1000, y]); if (MET.h.length > 400) MET.h.shift();
+  LS.set(MET_KEY, MET);
+}
+function auc(h) {   /* chance the model ranks a random liked find above a random passed one (0.5 = guessing, 1 = perfect) */
+  var pos = h.filter(function (x) { return x[1]; }), neg = h.filter(function (x) { return !x[1]; }), w = 0;
+  if (!pos.length || !neg.length) return null;
+  pos.forEach(function (a) { neg.forEach(function (b) { w += a[0] > b[0] ? 1 : a[0] === b[0] ? 0.5 : 0; }); });
+  return w / (pos.length * neg.length);
+}
 function lrz(p) { var f = xf(p), z = LR.b; for (var i = 0; i < f.length; i++) z += (LR.w[f[i]] || 0) + (SW[f[i]] || 0); return z; }
 function lrp(p) { return 1 / (1 + Math.exp(-lrz(p))); }
 function lrUnc(p) { var f = xf(p), u = 0; for (var i = 0; i < f.length; i++) u += 1 / (1 + (LR.n[f[i]] || 0)); return u / f.length; }
@@ -684,6 +707,7 @@ function loadQC(c) {
 function decide(dir, how) {
   if (!topC) return;
   var c = topC, p = c.p, ms = Date.now() - t0 - hiddenMs;
+  measure(lrp(p), dir > 0 ? 1 : 0);
   if (dir > 0) { if (!FAVES.has(p.id)) setFav(p, true); else learn(p, 1.5); skips = 0; }
   else {
     // a pass after a long look or after flicking through the QC photos is a softer no than an instant one
@@ -908,14 +932,34 @@ function moreSheet(c) {
     '<button class="mi" type="button" data-m="nb"><svg><use href="#i-x"/></svg>Show less ' + esc(p.brand || "of this brand") + "</button>" +
     '<a class="mi" href="/product/' + encodeURIComponent(p.id) + '#qc"><svg><use href="#i-cam"/></svg>All QC photos and agents</a>' +
     (p.brand ? '<a class="mi" href="/brand/' + encodeURIComponent(slug(p.brand)) + '"><svg><use href="#i-grid"/></svg>All ' + esc(p.brand) + " finds</a>" : "") +
-    '<button class="mi" type="button" data-m="liked"><svg><use href="#i-heart"/></svg>Your favourites (' + FAVES.size + ")</button>");
+    '<button class="mi" type="button" data-m="liked"><svg><use href="#i-heart"/></svg>Your favourites (' + FAVES.size + ")</button>" +
+    '<button class="mi" type="button" data-m="stats"><svg><use href="#i-grid"/></svg>What the feed has learned</button>');
   sheet.onclick = function (e) {
     var b = e.target.closest("[data-m]"); if (!b) return;
     var m = b.dataset.m;
     if (m === "ni") { M.ni.push("b:" + (p.brand || "?") + "|t:" + p._t); if (M.ni.length > 200) M.ni.shift(); NI = new Set(M.ni); learn(p, -2); closeSheet(); toast("Got it. Fewer like this."); decide(-1); }
     else if (m === "nb") { var f = "b:" + (p.brand || "?"); M.w[f] = (M.w[f] || 0) - 8; S.w[f] = (S.w[f] || 0) - 8; persist(); closeSheet(); toast("Showing less " + (p.brand || "")); decide(-1); }
     else if (m === "liked") likedSheet();
+    else if (m === "stats") statsSheet();
   };
+}
+function statsSheet() {
+  var h = MET.h, rate = function (a) { return a.length ? Math.round(100 * a.reduce(function (s, x) { return s + x[1]; }, 0) / a.length) + "%" : "-"; };
+  var A = auc(h), A50 = auc(h.slice(-50));
+  function top(prefix, n) {
+    var out = [];
+    for (var k in LR.w) if (k.indexOf(prefix) === 0) out.push([k.slice(prefix.length), LR.w[k] + (SW[k] || 0)]);
+    out.sort(function (a, b) { return b[1] - a[1]; });
+    return out.filter(function (x) { return x[1] > 0.05; }).slice(0, n).map(function (x) { return esc(x[0]); }).join(", ") || "not sure yet";
+  }
+  openSheet('<h2 id="sheet-h">What the feed has learned</h2><p>All of this stays in your browser.</p>' +
+    '<div class="sec">Your swipes</div><p>' + MET.n + " swipes, " + MET.likes + " favourited. Right-swipe rate: first 20 " + rate(h.slice(0, 20)) + ", last 20 " + rate(h.slice(-20)) + ".</p>" +
+    '<div class="sec">How well it predicts you</div><p>' + (A == null ? "Swipe a few more finds both ways to measure this." : "Accuracy " + Math.round(A * 100) + "%" + (A50 != null ? " (last 50 swipes: " + Math.round(A50 * 100) + "%)" : "") + ". 50% would be guessing.") + "</p>" +
+    '<div class="sec">Brands you like</div><p>' + top("b:", 6) + "</p>" +
+    '<div class="sec">Types</div><p>' + top("t:", 6) + "</p>" +
+    '<div class="sec">Colours</div><p>' + top("k:", 6) + "</p>" +
+    '<div class="sec">Combinations</div><p>' + top("kt:", 4).replace(/\|/g, " ") + "</p>");
+  sheet.onclick = null;
 }
 function likedSheet() {
   var ids = Array.from(FAVES).reverse(), html = "";
