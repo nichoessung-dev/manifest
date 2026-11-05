@@ -132,7 +132,9 @@ function ringAfter(key, list, p, k, skip = [], ok = () => true) {
   return out;
 }
 
-export async function renderProduct(id, origin) {
+// opt.reported: the find was removed after member reports (data/reported.json, functions/product/[id].js): the page says so
+// instead of the buy box, has no buy bar and is noindex,follow.
+export async function renderProduct(id, origin, opt = {}) {
   const { byId, byBrand, byCat } = idx();
   const p = byId.get(id);
   if (!p) return null;
@@ -157,7 +159,10 @@ export async function renderProduct(id, origin) {
   const g = gone(p), checked = LINKS_CHECKED ? new Date(LINKS_CHECKED + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "";
   const goneNote = !g ? "" : `<p class="buy-gone">${ic("alert", "sm")}${g === "dead" ? "This listing was no longer online" : "This listing was sold out"} at our link check${checked ? ` on ${checked}` : ""}. ` +
     `${g === "dead" ? "The buttons still open it in case the seller puts it back" : "The buttons still open it, since sellers often restock"}; similar finds are below.</p>`;
-  const buyBox = goneNote + `<div class="buybox"><div class="buy-split"><div class="buy-main">${buyLink(ag[0], true)}</div>` +
+  const rep = !!(opt && opt.reported);
+  const repNote = `<p class="buy-gone">${ic("alert", "sm")}This find was removed after several members reported it (a dead link, the wrong item or a scam seller). ` +
+    `Its buy links are switched off; similar finds are below.</p>`;
+  const buyBox = rep ? repNote : goneNote + `<div class="buybox"><div class="buy-split"><div class="buy-main">${buyLink(ag[0], true)}</div>` +
     `<details class="buy-more"><summary aria-label="Other agents">${CHEVRON}</summary><div class="buy-menu"><p class="buy-or">Or buy via</p><div class="buy-alt">${ag.slice(1).map(x => buyLink(x, false)).join("")}</div></div></details></div>` +
     // affiliate label under the buy button removed (owner, 30 Oct 2026); the disclosure stays in the footer, FAQ and /terms
     `<a class="buy-hint" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">${ic("gift", "sm")}<span>New to MyCNBox? Sign up with our link for up to $500 in new-user coupons</span>${ARROW}</a>` +
@@ -166,7 +171,7 @@ export async function renderProduct(id, origin) {
     // the menu); the coupon line only goes with MyCNBox. The menu closes on Escape or a click outside it.
     `<script>(function(){var x=document.currentScript.previousElementSibling;try{var a=String((JSON.parse(localStorage.getItem("manifest.state")||"{}")||{}).agent||"").replace(/[^a-z0-9]/g,""),m=x.querySelector(".buy-main a"),e=a&&x.querySelector('.buy-alt a[data-agent="'+a+'"]');if(e&&m){var n=e.nextSibling,q=e.parentNode;m.parentNode.replaceChild(e,m);q.insertBefore(m,n);e.className="first";m.className="";x.querySelector(".buy-hint").hidden=true;}}catch(_){}` +
     `try{var d=x.querySelector(".buy-more");document.addEventListener("click",function(ev){if(d.open&&!d.contains(ev.target))d.open=false});document.addEventListener("keydown",function(ev){if(ev.key==="Escape"&&d.open){d.open=false;d.querySelector("summary").focus()}})}catch(_){}})();</script>`;
-  const buyBar = `<div class="buybar" aria-hidden="true"><div class="bb-price">${money(p.cny)}${isPH(p.cny) ? "" : `<small>¥${p.cny}</small>`}</div><a class="bb-buy" href="${esc(ag[0][1].build(p))}" target="_blank" rel="sponsored nofollow noopener" tabindex="-1">Buy via ${ag[0][1].name}</a></div>` +
+  const buyBar = rep ? "" : `<div class="buybar" aria-hidden="true"><div class="bb-price">${money(p.cny)}${isPH(p.cny) ? "" : `<small>¥${p.cny}</small>`}</div><a class="bb-buy" href="${esc(ag[0][1].build(p))}" target="_blank" rel="sponsored nofollow noopener" tabindex="-1">Buy via ${ag[0][1].name}</a></div>` +
     `<script>(function(){var b=document.querySelector(".buybar"),m=document.querySelector(".buy-main a");if(!b||!m||!window.IntersectionObserver)return;var l=b.querySelector("a");l.href=m.href;l.setAttribute("data-agent",m.getAttribute("data-agent"));l.textContent=m.firstChild.nodeValue;document.body.classList.add("has-buybar");new IntersectionObserver(function(es){var on=!es[0].isIntersecting;b.classList.toggle("on",on);b.setAttribute("aria-hidden",on?"false":"true");l.tabIndex=on?0:-1;}).observe(m);})();</script>`;
   const plat = { weidian: "Weidian", taobao: "Taobao", "1688": "1688" }[p.platform] || p.platform;
   const realSeller = p.seller && !/marketplace/i.test(p.seller) && p.seller.trim().toLowerCase() !== plat.toLowerCase() ? p.seller : "";   // "Weidian" as seller is just the platform
@@ -230,7 +235,7 @@ ${buyBar}`;
   const tMid = p.qc ? "Price, QC & Agent Links" : "Price & Where to Buy";
   const title = [`${tName} Rep: ${tMid} | Puro Classico`, `${tName} Rep: ${tMid}`, `${tName} Rep | Puro Classico`].find(x => x.length <= 65) || `${tName} Rep`;
   const res = page({ title, desc, path: productUrl(p), body,
-    jsonld: [bc.data, pageLd], image: src || undefined, robots: indexable(p) ? "index,follow,max-image-preview:large" : "noindex,follow" });
+    jsonld: [bc.data, pageLd], image: src || undefined, robots: indexable(p) && !rep ? "index,follow,max-image-preview:large" : "noindex,follow" });
   if (qcr.failed) res.headers.set("x-qc-miss", "1");   // the QC cache read failed or timed out: product/[id].js keeps this render only briefly
   return res;
 }
@@ -1053,8 +1058,8 @@ export function sitemapPages() {
     ...Object.keys(GUIDES).map(s => "/guides/" + s), "/best", ...models().map(m => "/best/" + m.slug), "/tools", ...Object.keys(TOOLS).map(s => "/tools/" + s), "/terms", "/privacy"];
   return xml(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `<url><loc>${SITE}${u}</loc></url>`).join("\n")}\n</urlset>`);
 }
-export function sitemapProducts() {
-  const rows = P.filter(indexable).map(p => {
+export function sitemapProducts(skip) {   // skip: ids removed after reports (their pages are noindex)
+  const rows = P.filter(p => indexable(p) && !(skip && skip.has(String(p.id)))).map(p => {
     const src = imgSrc(p);
     return `<url><loc>${SITE}${productUrl(p)}</loc>${src ? `<image:image><image:loc>${esc(src)}</image:loc></image:image>` : ""}</url>`;
   });
