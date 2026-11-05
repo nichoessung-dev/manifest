@@ -76,10 +76,14 @@ const CATALOG_PARTS = 3;
 const etagOf = r => (r.headers.get("etag") || "x").replace(/[^A-Za-z0-9]/g, "").slice(0, 32);
 const catalogTags = ver => `<script>window.PC_CATALOG_WANT=${CATALOG_PARTS}</script>` +
   Array.from({ length: CATALOG_PARTS }, (_, i) => `<script src="/catalog.js?v=${ver}&amp;p=${i}"></script>`).join("");
-const slimHtml = (res, ver, cards = "") => new HTMLRewriter()
+// The same parts as a Link preload header (perf, 5 Nov 2026): the browser starts them with the page instead of when its
+// parser reaches the tags, about 1 s into a slow phone's load. Low priority keeps the page and its first photos ahead of them.
+const catalogLink = ver => Array.from({ length: CATALOG_PARTS }, (_, i) => `</catalog.js?v=${ver}&p=${i}>; rel=preload; as=script; fetchpriority=low`).join(", ");
+const withCatalogLink = (res, ver) => { const r = new Response(res.body, res); r.headers.append("link", catalogLink(ver)); return r; };
+const slimHtml = (res, ver, cards = "") => withCatalogLink(new HTMLRewriter()
   .on("script#pc-catalog", { element(e) { e.replace(catalogTags(ver), { html: true }); } })
   .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
-  .transform(res);
+  .transform(res), ver);
 
 // data/link_health.json (the weekly link check): when it last ran and which Weidian listings are dead. Kept for 10 minutes.
 let _lh = null, _lhAt = 0;
@@ -277,7 +281,7 @@ async function route(ctx) {
   if (path === "/feed" && out.status === 200 && ct.includes("text/html")) {
     let ver = "x";
     try { ver = etagOf(await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "HEAD" }))); } catch (e) {}
-    return new HTMLRewriter().on("script#pc-catalog-load", { element(e) { e.replace(catalogTags(ver), { html: true }); } }).transform(out);
+    return withCatalogLink(new HTMLRewriter().on("script#pc-catalog-load", { element(e) { e.replace(catalogTags(ver), { html: true }); } }).transform(out), ver);
   }
   if (out.status === 200 && ct.includes("text/html") && !STATIC_HTML.has(path) && !/^\/google[0-9a-f]+\.html$/.test(path)) return notFound(path);
   return out;
@@ -344,6 +348,6 @@ async function hubApp(ctx, url, spec) {
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
     .on("footer", { element(e) { e.before(seo, { html: true }); } })
     .transform(asset);
-  const res = new Response(out.body, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=3600" } });
+  const res = new Response(out.body, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=3600", link: catalogLink(etagOf(asset)) } });
   return res;
 }
