@@ -600,7 +600,6 @@ function toast(t) { var el = $("#toast"); el.textContent = t; el.classList.add("
 var FAVES = new Set(LS.get("manifest.faves", []) || []);
 function saveFaves() { LS.set("manifest.faves", Array.from(FAVES)); }
 function slug(s) { return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
-function platName(p) { return p.platform === "1688" ? "1688" : (p.platform || "").charAt(0).toUpperCase() + (p.platform || "").slice(1); }
 
 var lastLabel = -99;
 var topC = null, underC = null;      // {el, p, i, photos: [url], k: photo index, qc: loaded}
@@ -624,7 +623,7 @@ function cardEl(p) {
         '<span class="price">' + esc(priceText(p.price)) + "</span></div>" +
       '<p class="title">' + esc(p.title) + "</p>" +
       '<div class="meta">' + (p.qc > 0 ? '<button class="chip" type="button" data-act="qc">' + p.qc + " QC photo" + (p.qc > 1 ? "s" : "") + "</button>" : "") +
-        (nv > 1 ? '<span class="chip">' + nv + " options</span>" : "") + '<span class="chip">' + esc(platName(p)) + "</span></div></div>";
+        (nv > 1 ? '<span class="chip">' + nv + " options</span>" : "") + "</div></div>";
   var im = el.querySelector(".ph img");
   im.onload = function () { im.classList.add("ok"); };
   im.onerror = function () { if (!im.dataset.r && p.img) { im.dataset.r = 1; im.src = p.img; } };
