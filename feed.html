@@ -41,14 +41,15 @@ a{color:inherit}
 .card{position:absolute;inset:0;border-radius:22px;overflow:hidden;background:#15181c;box-shadow:0 8px 24px rgba(0,0,0,.4);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;transform:translate3d(0,0,0);backface-visibility:hidden;contain:layout paint}
 .card.top{will-change:transform}
 .card.drag{cursor:grabbing}
-.card.under{transform:translate3d(0,10px,0) scale(.95);pointer-events:none;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
-.card.under::after{content:"";position:absolute;inset:0;background:#000;opacity:.3;pointer-events:none;transition:opacity .3s ease}
-.card.drag~.card,.deck.dragging .card.under{transition:none}
+.card.under{transform:translate3d(0,10px,0) scale(.95);pointer-events:none;transition:transform .3s cubic-bezier(.2,.8,.2,1);will-change:transform}
+/* the dim on the card underneath lifts with the drag (--p = drag progress), so nothing pops when it comes to the top */
+.card::after{content:"";position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .3s ease}
+.card.under::after{opacity:calc(.3 - .3 * var(--p,0));will-change:opacity}
+.card.drag~.card,.deck.dragging .card.under,.deck.dragging .card.under::after{transition:none}
 .card.in{opacity:0}
 .card.top{z-index:2;transition:none}
 .card{transition:opacity .2s ease}
 .card.fly{transition:transform .38s cubic-bezier(.25,.6,.3,1),opacity .38s ease;pointer-events:none}
-.card.back{transition:transform .42s cubic-bezier(.18,1.25,.4,1)}
 .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--photo)}
 .ph.qc{background:#0d0f12}
 .ph img{width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;pointer-events:none;opacity:0;transition:opacity .2s var(--ease)}
@@ -79,6 +80,8 @@ button.chip{cursor:pointer}
 .deck{touch-action:none}
 .card{-webkit-touch-callout:none}
 .stamp{transform-origin:center;}
+.card.drag .stamp{will-change:opacity,transform;transition:transform .12s var(--ease)}
+.card.drag .glow{will-change:opacity}
 .stamp{position:absolute;top:56px;z-index:5;padding:6px 12px;border:4px solid;border-radius:10px;font-weight:700;font-size:34px;letter-spacing:.04em;opacity:0;pointer-events:none}
 .stamp.yes{left:20px;color:var(--yes);transform:rotate(-14deg)}
 .stamp.no{right:20px;color:var(--nope);transform:rotate(14deg)}
@@ -656,7 +659,7 @@ function addUnder() {
   if (im.decode) im.decode().then(show, show); else show();
 }
 function settle(delay) {
-  if (topC) { topC.el.classList.remove("under"); topC.el.classList.add("top"); topC.el.style.transform = ""; }
+  if (topC) { topC.el.classList.remove("under"); topC.el.classList.add("top"); topC.el.style.transform = ""; topC.el.style.removeProperty("--p"); }
   if (!underC && !underT) { if (delay) underT = setTimeout(addUnder, delay); else addUnder(); }
   if (!topC) { if (!underT) endCard(); $("#buyrow").innerHTML = ""; return; }
   $("#buyrow").innerHTML = buyHtml(topC.p);
@@ -719,26 +722,22 @@ function decide(dir, how) {
     XV++;
   }
   hist.push({ c: c, dir: dir }); if (hist.length > 20) hist.shift();
-  /* the card leaves at the speed it was flicked (a button press throws it at a steady pace), along its own path */
-  var w = Math.max(window.innerWidth, 480), el = c.el, tilt = (how && how.tilt) || 1;
-  var x0 = how ? how.dx || 0 : 0, y0 = how ? (how.dy || 0) * 0.35 : 0, r0 = how ? (x0 / 16) * tilt : 0;
-  var tx = dir * w * 1.3, sp = Math.max(1.2, Math.abs((how && how.v) || 0)), dur = Math.round(Math.max(180, Math.min(400, Math.abs(tx - x0) / sp)));
-  var ty = y0 + (how ? ((how.vy || 0) * dur * 0.35) : -20), tr = dir * 30 * tilt;
+  /* the card leaves at exactly the speed it was flicked (a button press throws it from rest), along its own path */
+  var el = c.el, btn = !how;
+  if (drag) { drag = null; deck.classList.remove("dragging"); el.classList.remove("drag"); if (dragRaf) { cancelAnimationFrame(dragRaf); dragRaf = 0; } }
+  var st = catchCard(c);      // a press while the card is still springing back throws it from where it is
+  if (!how && st) how = { dx: st.x, dy: st.y / 0.35, s: st.s, tilt: st.tilt, btn: 1 };
   el.classList.remove("top"); el.style.pointerEvents = "none";
-  el.querySelector(dir > 0 ? ".stamp.yes" : ".stamp.no").style.opacity = 1;
-  el.querySelector(dir > 0 ? ".glow.yes" : ".glow.no").style.opacity = .9;
-  var from = "translate3d(" + x0 + "px," + y0 + "px,0) rotate(" + r0 + "deg)", to = "translate3d(" + tx + "px," + ty + "px,0) rotate(" + tr + "deg)";
-  el.style.transform = to;
-  if (el.animate) {
-    var kf = how ? [{ transform: from }, { transform: to }] : [{ transform: from }, { transform: "translate3d(" + (dir * 24) + "px,-8px,0) rotate(" + (dir * 3) + "deg)", offset: .22 }, { transform: to }];
-    el.animate(kf, { duration: how ? dur : 380, easing: how ? "cubic-bezier(.2,.6,.4,1)" : "cubic-bezier(.5,0,.75,.4)" });
-  }
+  likeB.style.transform = nopeB.style.transform = "";
+  var dur = flyOut(el, dir, how);
   buzz(dir > 0 ? 14 : 8);
-  if (!how) pop($(dir > 0 ? "#like" : "#nope"));
+  if (btn) pop($(dir > 0 ? "#like" : "#nope"));
+  if (!underC) { if (underT) { clearTimeout(underT); underT = 0; } addUnder(); }      // swiping faster than the next card was due
+  var p0 = how && !how.btn && underC ? underC.prog || 0 : 0;
   topC = underC; underC = null;
-  if (topC) riseIn(topC.el);
-  setTimeout(function () { el.remove(); }, (how ? dur : 380) + 40);
-  settle((how ? dur : 380) + 60);
+  if (topC) riseIn(topC, p0);
+  setTimeout(function () { el.remove(); }, dur + 40);
+  settle(60);      // the next card is built while this one is still flying (on the compositor), not when the visitor reaches for it
   hideHint();
 }
 function undo() {
@@ -747,88 +746,197 @@ function undo() {
   var c = h.c, p = c.p;
   if (h.dir > 0) { if (FAVES.has(p.id)) setFav(p, false, true); } else learn(p, 1.8);   // take the decision back
   if (underC) { underC.el.remove(); queue.unshift(underC.p); shown = shown.filter(function (q) { return q !== underC.p; }); delete TITLES[underC.p._n]; }
-  underC = topC; if (underC) { underC.el.classList.remove("top"); underC.el.classList.add("under"); }
+  drag = null; deck.classList.remove("dragging");
+  underC = topC; if (underC) { catchCard(underC); underC.el.classList.remove("top", "drag"); underC.el.classList.add("under"); underC.el.style.transform = ""; underC.el.style.removeProperty("--p"); }
   topC = c;
-  c.el.querySelectorAll(".stamp,.glow").forEach(function (s) { s.style.opacity = 0; }); c.el.style.pointerEvents = "";
-  if (c.el.getAnimations) c.el.getAnimations().forEach(function (an) { an.cancel(); });
-  c.el.style.transform = "translate(" + (h.dir * window.innerWidth) + "px,0) rotate(" + (h.dir * 24) + "deg)";
+  c.el.querySelectorAll(".stamp,.glow").forEach(function (s) { s.style.opacity = 0; s.style.transform = ""; }); c.el.style.pointerEvents = ""; c.el.style.opacity = "";
+  if (c.el.getAnimations) c.el.getAnimations({ subtree: true }).forEach(function (an) { an.cancel(); });
   deck.appendChild(c.el);
-  requestAnimationFrame(function () { c.el.classList.add("back"); c.el.style.transform = ""; setTimeout(function () { c.el.classList.remove("back"); }, 260); });
+  comeBack(c, h.dir);
   settle();
 }
 
-/* ---------- dragging the card ---------- */
-var drag = null;
-deck.addEventListener("pointerdown", function (e) {
-  var el = e.target.closest(".card.top"); if (!el || !topC || e.button > 0) return;
-  if (e.target.closest("a,button")) return;
-  drag = { x: e.clientX, y: e.clientY, t: Date.now(), dx: 0, dy: 0, moved: false, id: e.pointerId };
-  try { el.setPointerCapture(e.pointerId); } catch (x) {}
-});
-/* smooth drag (5 Nov 2026): the pointer is read on every event but the card is moved once per frame, with GPU-only
-   transforms and the nodes looked up once; the card tilts around the point where it was grabbed, like a real card */
-var dragRaf = 0;
+/* ---------- dragging the card ----------
+   Motion (6 Nov 2026). The finger's speed is measured over the last 100 ms at release (least squares over every
+   coalesced pointer sample), so a pause before letting go is not a flick. A thrown card starts at exactly that speed;
+   a card that does not make it goes back on a damped spring that keeps the release speed (about 1% overshoot, no
+   wobble). Every animation is sampled from a known curve and plays on the compositor, and a card caught mid-flight is
+   picked up exactly where it is. Only transform and opacity change per frame. */
+var drag = null, dragRaf = 0, likeB = $("#like"), nopeB = $("#nope");
+var TH = 110;      // px a slow drag has to travel to count
+var deckR = null; window.addEventListener("resize", function () { deckR = null; });      // the deck's box, read at a grab, not per frame
+var RM = window.matchMedia ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+function still() { return !!(RM && RM.matches); }
+function tfm(x, y, r, s) { return "translate3d(" + x.toFixed(1) + "px," + y.toFixed(1) + "px,0) rotate(" + r.toFixed(2) + "deg) scale(" + (s == null ? 1 : s).toFixed(4) + ")"; }
+function utf(o) { return "translate3d(0," + (10 - 10 * o).toFixed(2) + "px,0) scale(" + (0.95 + 0.05 * o).toFixed(4) + ")"; }      // the card underneath at drag progress o
+function prog(x) { return Math.max(0, Math.min(1, (Math.abs(x) - 12) / (TH - 12))); }      // 0..1, a small wobble shows nothing
+/* a damped spring: offset x0 (px) moving at v0 (px/ms), w in rad/ms; returns the offset at t ms */
+function spring(x0, v0, w, z) {
+  if (z >= 1) return function (t) { return (x0 + (v0 + w * x0) * t) * Math.exp(-w * t); };
+  var wd = w * Math.sqrt(1 - z * z), B = (v0 + z * w * x0) / wd;
+  return function (t) { return Math.exp(-z * w * t) * (x0 * Math.cos(wd * t) + B * Math.sin(wd * t)); };
+}
+/* stop whatever the card is doing and say where it is right now (read from the curve, no layout read) */
+function catchCard(c) {
+  var m = c && c.mo; if (!m) return null; c.mo = null;
+  var a = m.anims[0], t = a && a.currentTime != null ? a.currentTime : performance.now() - m.t0;
+  var st = t < m.dur ? m.at(Math.max(0, t)) : null;
+  m.anims.forEach(function (an) { try { an.cancel(); } catch (e) {} });
+  return st;
+}
+function nodes(el) { return [el.querySelector(".stamp.yes"), el.querySelector(".stamp.no"), el.querySelector(".glow.yes"), el.querySelector(".glow.no")]; }
+function fadeTo(n, v, ms) { var a = +(n.style.opacity || 0); n.style.opacity = v; if (n.animate && a !== v && !still()) n.animate([{ opacity: a }, { opacity: v }], { duration: ms, easing: "ease-out" }); }
 function paintDrag() {
   dragRaf = 0; if (!drag || !topC) return;
-  var el = topC.el, dx = drag.dx, o = Math.min(1, Math.abs(dx) / 110);
-  el.style.transform = "translate3d(" + dx + "px," + drag.dy * 0.35 + "px,0) rotate(" + (dx / 16) * drag.tilt + "deg)";
-  var over = Math.abs(dx) > 110, sc = over ? "scale(1.12)" : "scale(" + (0.85 + 0.15 * o) + ")";
+  var el = topC.el, dx = drag.dx, o = prog(dx), s = 1;
+  if (drag.s0 < 1) {      // caught while still growing into place: finish growing under the finger
+    s = 1 - (1 - drag.s0) * Math.exp(-(performance.now() - drag.t1) / 80);
+    if (s > 0.999) { s = 1; drag.s0 = 1; } else dragRaf = requestAnimationFrame(paintDrag);
+  }
+  drag.s = s;
+  el.style.transform = tfm(dx, drag.dy * 0.35, (dx / 16) * drag.tilt, s);
+  var over = Math.abs(dx) > TH, sc = over ? "scale(1.12)" : "scale(" + (0.85 + 0.15 * o).toFixed(3) + ")";
   drag.yes.style.opacity = dx > 0 ? o : 0; drag.no.style.opacity = dx < 0 ? o : 0;
   drag.yes.style.transform = "rotate(-14deg) " + sc; drag.no.style.transform = "rotate(14deg) " + sc;
   drag.gy.style.opacity = dx > 0 ? o * 0.9 : 0; drag.gn.style.opacity = dx < 0 ? o * 0.9 : 0;
+  likeB.style.transform = dx > 0 && o ? "scale(" + (1 + 0.12 * o).toFixed(3) + ")" : "";
+  nopeB.style.transform = dx < 0 && o ? "scale(" + (1 + 0.12 * o).toFixed(3) + ")" : "";
   if (over !== drag.over) { drag.over = over; if (over) buzz(8); }      // a small tick when the swipe locks in
-  if (underC) underC.el.style.transform = "translate3d(0," + (10 - 10 * o) + "px,0) scale(" + (0.95 + 0.05 * o) + ")";
+  if (underC) { underC.prog = o; underC.el.style.transform = utf(o); underC.el.style.setProperty("--p", o.toFixed(3)); }
 }
 function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
-/* a damped spring from the card's current offset back to rest: keyframes sampled from x(t) = e^(-5.5t) cos(11t) */
-function springBack(el, dx, dy, rot, done) {
-  if (!el.animate) { el.style.transform = ""; if (done) done(); return; }
-  var kf = [];
-  for (var i = 0; i <= 24; i++) { var t = i / 24, f = Math.exp(-5.5 * t) * Math.cos(11 * t);
-    kf.push({ transform: "translate3d(" + (dx * f).toFixed(1) + "px," + (dy * f).toFixed(1) + "px,0) rotate(" + (rot * f).toFixed(2) + "deg)" }); }
-  kf[24].transform = "translate3d(0,0,0) rotate(0deg)";
-  el.style.transform = "";
-  var a = el.animate(kf, { duration: 560, easing: "linear" }); a.onfinish = function () { if (done) done(); };
+/* keyframes sampled every 16 ms from at(t) -> {x, y, s}, for the card, its stamps and glows and the card underneath */
+function playSampled(c, at, dur, tilt, under) {
+  var el = c.el, n = Math.max(2, Math.ceil(dur / 16)), K = [], Y = [], N = [], GY = [], GN = [], U = [];
+  for (var i = 0; i <= n; i++) {
+    var q = i === n ? { x: 0, y: 0, s: 1 } : at(dur * i / n), o = prog(q.x);
+    K.push({ transform: tfm(q.x, q.y, (q.x / 16) * tilt, q.s) });
+    Y.push({ opacity: q.x > 0 ? o : 0 }); N.push({ opacity: q.x < 0 ? o : 0 });
+    GY.push({ opacity: q.x > 0 ? o * 0.9 : 0 }); GN.push({ opacity: q.x < 0 ? o * 0.9 : 0 });
+    U.push({ transform: utf(o) });
+  }
+  var ns = nodes(el), opt = { duration: dur, easing: "linear" };
+  el.style.transform = ""; ns.forEach(function (s) { s.style.opacity = 0; });
+  var anims = [el.animate(K, opt), ns[0].animate(Y, opt), ns[1].animate(N, opt), ns[2].animate(GY, opt), ns[3].animate(GN, opt)];
+  if (under) { under.prog = 0; under.el.style.transform = ""; under.el.style.removeProperty("--p"); anims.push(under.el.animate(U, opt)); }
+  c.mo = { at: at, dur: dur, t0: performance.now(), anims: anims };
 }
-/* the next card rises into place with a little overshoot */
-function riseIn(el) {
-  if (!el || !el.animate) return;
-  el.animate([{ transform: "translate3d(0,10px,0) scale(.95)" }, { transform: "translate3d(0,-3px,0) scale(1.012)", offset: .6 }, { transform: "translate3d(0,0,0) scale(1)" }],
-    { duration: 380, easing: "cubic-bezier(.2,.7,.3,1)" });
+/* back to rest: a damped spring that keeps the speed of the release */
+function springBack(c, d) {
+  var el = c.el, tilt = d.tilt || 1, x0 = d.dx, y0 = d.dy * 0.35, s0 = d.s || 1, rm = still();
+  nodes(el).forEach(function (s) { s.style.transform = ""; });
+  if (!el.animate) { el.style.transform = ""; nodes(el).forEach(function (s) { s.style.opacity = 0; }); if (underC) { underC.el.style.transform = ""; underC.el.style.removeProperty("--p"); } return; }
+  var w = rm ? 0.03 : 0.0165, z = rm ? 1 : 0.82, v = rm ? 0 : d.v || 0, vy = rm ? 0 : (d.vy || 0) * 0.35;
+  var fx = spring(x0, v, w, z), fy = spring(y0, vy, w, z), fs = spring(s0 - 1, 0, w, z);
+  var A = Math.abs(x0) + Math.abs(y0) + 80 * (Math.abs(v) + Math.abs(vy)) + 1;
+  var dur = Math.round(Math.max(200, Math.min(900, Math.log(A / 0.3) / (Math.min(z, 1) * w))));
+  playSampled(c, function (t) { return { x: fx(t), y: fy(t), s: 1 + fs(t), tilt: tilt }; }, dur, tilt, underC);
 }
-function pop(btn) { if (btn && btn.animate) btn.animate([{ transform: "scale(1)" }, { transform: "scale(1.22)", offset: .35 }, { transform: "scale(.94)", offset: .7 }, { transform: "scale(1)" }], { duration: 360, easing: "ease-out" }); }
+/* the next card grows into place from wherever the drag left it, no overshoot */
+function riseIn(c, p0) {
+  var el = c.el; c.prog = 0;
+  if (!el.animate || still()) return;
+  var w = 0.022, dur = 300, n = Math.ceil(dur / 16), kf = [];
+  var at = function (t) { var e = 1 - (1 + w * t) * Math.exp(-w * t), p = p0 + (1 - p0) * e; return { x: 0, y: 10 - 10 * p, s: 0.95 + 0.05 * p, tilt: 1 }; };
+  for (var i = 0; i <= n; i++) { var q = i === n ? { y: 0, s: 1 } : at(dur * i / n); kf.push({ transform: tfm(0, q.y, 0, q.s) }); }
+  c.mo = { at: at, dur: dur, t0: performance.now(), anims: [el.animate(kf, { duration: dur, easing: "linear" })] };
+}
+/* throw the card off the screen. The curve starts at the release speed: k is the start slope of the easing (1 = steady
+   speed, below 1 speeds up, above 1 slows a little), so there is no jump in speed the moment the finger lets go */
+function flyOut(el, dir, how) {
+  var h = how || {}, tilt = h.tilt || 1, x0 = h.dx || 0, y0 = (h.dy || 0) * 0.35, s0 = h.s || 1, r0 = (x0 / 16) * tilt;
+  var ns = nodes(el), stamp = ns[dir > 0 ? 0 : 1], glow = ns[dir > 0 ? 2 : 3];
+  ns[dir > 0 ? 1 : 0].style.opacity = 0; ns[dir > 0 ? 3 : 2].style.opacity = 0;
+  if (still() || !el.animate) {      // reduced motion: a short fade where it is, no throw
+    stamp.style.opacity = 1; glow.style.opacity = 0.9; el.style.opacity = 0;
+    if (el.animate) el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: "ease-out" });
+    return 160;
+  }
+  var rc = deckR || (deckR = deck.getBoundingClientRect()), W = window.innerWidth;
+  var tx = dir > 0 ? W - rc.left + rc.height * 0.3 : -(rc.right + rc.height * 0.3), L = Math.max(60, Math.abs(tx - x0));
+  var v0 = Math.max(0, (h.v || 0) * dir), dur = Math.round(Math.max(170, Math.min(330, L / Math.max(v0, 1.4))));
+  var k = Math.max(0, Math.min(2, v0 * dur / L));
+  var ty = how && !h.btn ? y0 + Math.max(-140, Math.min(140, (h.vy || 0) * 0.35 * dur)) : y0 - 24;
+  var tr = Math.max(-32, Math.min(32, (tx / 16) * tilt));
+  el.style.transform = tfm(tx, ty, tr, s0);
+  el.animate([{ transform: tfm(x0, y0, r0, s0) }, { transform: tfm(tx, ty, tr, s0) }],
+    { duration: dur, easing: "cubic-bezier(.333," + (k / 3).toFixed(3) + ",.667," + ((1 + k) / 3).toFixed(3) + ")" });
+  fadeTo(stamp, 1, 110); fadeTo(glow, 0.9, 110);
+  return dur;
+}
+/* undo: the card comes back in from the side it left on, on the same spring */
+function comeBack(c, dir) {
+  var el = c.el; el.style.transform = "";
+  if (!el.animate || still()) return;
+  var x0 = dir * Math.max(window.innerWidth, 360), fx = spring(x0, -dir * 1.6, 0.015, 0.86);
+  var dur = Math.round(Math.min(900, Math.log((Math.abs(x0) + 130) / 0.3) / (0.86 * 0.015)));
+  playSampled(c, function (t) { return { x: fx(t), y: 0, s: 1, tilt: 1 }; }, dur, 1, null);
+}
+function pop(btn) { if (btn && btn.animate && !still()) btn.animate([{ transform: "scale(1)" }, { transform: "scale(1.18)", offset: .35 }, { transform: "scale(.96)", offset: .7 }, { transform: "scale(1)" }], { duration: 340, easing: "ease-out" }); }
+function startMove() {
+  drag.moved = true; topC.el.classList.add("drag"); deck.classList.add("dragging");
+  var ns = nodes(topC.el); drag.yes = ns[0]; drag.no = ns[1]; drag.gy = ns[2]; drag.gn = ns[3]; drag.over = Math.abs(drag.dx) > TH;
+}
+deck.addEventListener("pointerdown", function (e) {
+  if (drag || e.isPrimary === false) return;      // one finger drives the card; a second one is ignored
+  var el = e.target.closest(".card.top"); if (!el || !topC || e.button > 0) return;
+  if (e.target.closest("a,button")) return;
+  var st = catchCard(topC), r = deckR = deck.getBoundingClientRect();
+  drag = { x: e.clientX, y: e.clientY, t: Date.now(), t1: performance.now(), dx: 0, dy: 0, ox: 0, oy: 0, s0: 1, s: 1, moved: false, id: e.pointerId,
+    tilt: e.clientY < r.top + r.height * 0.6 ? 1 : -1 };      // grabbed low, the card tilts the other way, like a real card
+  if (st) {      // caught mid-flight: carry on from exactly there
+    drag.ox = drag.dx = st.x; drag.oy = drag.dy = st.y / 0.35; drag.s0 = drag.s = st.s;
+    if (Math.abs(st.x) > 1) drag.tilt = st.tilt;
+  }
+  drag.sm = [[e.timeStamp, drag.dx, drag.dy]];
+  try { el.setPointerCapture(e.pointerId); } catch (x) {}
+  if (st) { startMove(); paintDrag(); }
+});
 deck.addEventListener("pointermove", function (e) {
   if (!drag || e.pointerId !== drag.id || !topC) return;
-  drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
-  var now = performance.now(), sm = drag.sm || (drag.sm = []);      // speed over the last 90 ms, so one jittery event does not decide
-  sm.push([now, drag.dx, drag.dy]); while (sm.length > 2 && now - sm[0][0] > 90) sm.shift();
-  var a0 = sm[0], dt = Math.max(8, now - a0[0]); drag.v = (drag.dx - a0[1]) / dt; drag.vy = (drag.dy - a0[2]) / dt;
-  if (!drag.moved) {
-    if (Math.abs(drag.dx) + Math.abs(drag.dy) < 6) return;
-    drag.moved = true; topC.el.classList.add("drag"); deck.classList.add("dragging");
-    drag.yes = topC.el.querySelector(".stamp.yes"); drag.no = topC.el.querySelector(".stamp.no");
-    drag.gy = topC.el.querySelector(".glow.yes"); drag.gn = topC.el.querySelector(".glow.no"); drag.over = false;
-    var r = topC.el.getBoundingClientRect(); drag.tilt = drag.y < r.top + r.height * 0.6 ? 1 : -1;
-  }
+  var list = e.getCoalescedEvents ? e.getCoalescedEvents() : null, sm = drag.sm;
+  if (!list || !list.length) list = [e];
+  for (var i = 0; i < list.length; i++) sm.push([list[i].timeStamp, drag.ox + list[i].clientX - drag.x, drag.oy + list[i].clientY - drag.y]);
+  while (sm.length > 2 && sm[sm.length - 1][0] - sm[0][0] > 120) sm.shift();
+  drag.dx = drag.ox + e.clientX - drag.x; drag.dy = drag.oy + e.clientY - drag.y;
+  if (!drag.moved) { if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) < 6) return; startMove(); }
   if (!dragRaf) dragRaf = requestAnimationFrame(paintDrag);
-});
-function endDrag(e) {
-  if (!drag || (e && e.pointerId !== drag.id) || !topC) { drag = null; return; }
-  var d = drag, el = topC.el; drag = null; el.classList.remove("drag");
+}, { passive: true });
+/* px per ms over the last 100 ms before t, a least-squares fit so one jittery sample does not decide */
+function relVel(sm, t) {
+  var n = 0, St = 0, Sx = 0, Sy = 0, Stt = 0, Stx = 0, Sty = 0, lo = 0;
+  for (var i = 0; i < sm.length; i++) {
+    var u = sm[i][0] - t; if (u < -100) continue;
+    if (!n) lo = u; n++; St += u; Sx += sm[i][1]; Sy += sm[i][2]; Stt += u * u; Stx += u * sm[i][1]; Sty += u * sm[i][2];
+  }
+  var den = n * Stt - St * St;
+  if (n < 2 || -lo < 10 || den <= 0) return [0, 0];
+  var cl = function (v) { return Math.max(-8, Math.min(8, v)); };
+  return [cl((n * Stx - St * Sx) / den), cl((n * Sty - St * Sy) / den)];
+}
+function endDrag(e, cancel) {
+  if (!drag || (e && e.pointerId !== drag.id)) return;
+  var d = drag, c = topC; drag = null;
+  if (dragRaf) { cancelAnimationFrame(dragRaf); dragRaf = 0; }
+  if (!c) return;
+  var el = c.el; el.classList.remove("drag"); deck.classList.remove("dragging");
   if (!d.moved) {      // a tap: right side = next photo, left side = previous photo
+    if (cancel) return;
     var r = el.getBoundingClientRect(), x = (e ? e.clientX : r.left) - r.left;
     showPhoto(topC, topC.k + (x > r.width * 0.4 ? 1 : -1));
     return;
   }
-  deck.classList.remove("dragging"); if (dragRaf) { cancelAnimationFrame(dragRaf); dragRaf = 0; }
-  var v = d.v || 0;      // speed at release (px/ms): a quick flick counts even when the card did not travel far
-  if (Math.abs(d.dx) > 110 || (Math.abs(d.dx) > 35 && Math.abs(v) > 0.5 && (v > 0) === (d.dx > 0))) { decide(d.dx > 0 ? 1 : -1, { dy: d.dy, dx: d.dx, v: v, vy: d.vy || 0, tilt: d.tilt }); return; }
-  springBack(el, d.dx, d.dy * 0.35, (d.dx / 16) * (d.tilt || 1));
-  el.querySelectorAll(".stamp,.glow").forEach(function (s) { s.style.opacity = 0; });
-  if (underC) underC.el.style.transform = "";
+  likeB.style.transform = nopeB.style.transform = "";
+  if (e && !cancel) { d.dx = d.ox + e.clientX - d.x; d.dy = d.oy + e.clientY - d.y; d.sm.push([e.timeStamp, d.dx, d.dy]); }
+  var vv = relVel(d.sm, e && !cancel ? e.timeStamp : performance.now()); d.v = vv[0]; d.vy = vv[1];
+  /* a slow drag counts past TH px (unless it is being flung back); a flick counts sooner, by where it is heading */
+  var ad = Math.abs(d.dx), sg = d.dx > 0 ? 1 : -1, vs = d.v * sg;
+  var go = !cancel && (ad > TH ? vs > -0.35 : ad > 20 && vs > 0.3 && ad + vs * 160 > TH);
+  if (go) { decide(sg, { dy: d.dy, dx: d.dx, v: d.v, vy: d.vy, tilt: d.tilt, s: d.s }); return; }
+  springBack(c, d);
 }
-deck.addEventListener("pointerup", endDrag);
-deck.addEventListener("pointercancel", function () { if (drag && topC) { drag.moved = true; drag.dx = 0; } endDrag(); });
+deck.addEventListener("pointerup", function (e) { endDrag(e); });
+deck.addEventListener("pointercancel", function (e) { endDrag(e, true); });      // the system took the touch: go back from where it is
 deck.addEventListener("dragstart", function (e) { e.preventDefault(); });
 
 /* ---------- buttons and keys ---------- */
