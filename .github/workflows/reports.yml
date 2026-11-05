@@ -1,0 +1,41 @@
+name: Reports
+# Every 2 hours: decide from member reports (Supabase table product_reports, written by functions/api/report.js) which
+# finds are removed, and write data/reported.json (read by the app, Swipe Finds, the server cards, product pages and
+# /admin). Also runs when the owner edits data/report_overrides.json. Counts only, no personal data in the file.
+on:
+  schedule:
+    - cron: '41 */2 * * *'
+  push:
+    branches: [main]
+    paths: ['data/report_overrides.json']
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: reports
+  cancel-in-progress: false
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python scripts/test_bake_reports.py
+      - run: python scripts/bake_reports.py
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      - name: Commit if changed
+        run: |
+          git add data/reported.json
+          if git diff --cached --quiet; then
+            echo "no change"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore: refresh reported finds"
+            git pull --rebase
+            git push
+          fi
