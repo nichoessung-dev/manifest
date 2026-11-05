@@ -10,6 +10,8 @@
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="/favicon.png">
 <link rel="manifest" href="/manifest.webmanifest">
+<script>/* perf (5 Nov 2026): the view stats, the dead-link check and the reported list start loading here, alongside the catalogue parts, instead of after them; the app takes these promises (window.PC_PRE) and never fetches the files twice. Each resolves to the parsed file, or null when it failed. */
+(function(){var P=window.PC_PRE={};["stats","link_health","reported"].forEach(function(k){try{P[k]=fetch("/data/"+k+".json",{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}catch(e){}});})();</script>
 <link rel="preload" href="/fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 @font-face{font-family:"Instrument Sans";src:url(/fonts/instrument-sans-latin.woff2) format("woff2");font-weight:400 700;font-display:swap}
@@ -566,6 +568,17 @@ function nextTr() {
   var inFeed = {};
   for (var i = 0; i < shown.length; i++) inFeed[shown[i].id] = 1;
   var recent = shown.slice(-3);
+  if (!TREND) {
+    /* a fresh mix on every open: popular finds still lead, but random noise reshuffles them, and finds seen in the
+       last 3 days sink, so Trending is never the same list twice */
+    var now = Date.now(), key = {};
+    TREND = ALL.filter(function (p) { return p._img; });
+    TREND.forEach(function (p) {
+      var seenAt = M.seen[p.id], g = -Math.log(-Math.log(Math.random() * 0.999 + 0.0005));
+      key[p.id] = 1.3 * Math.log1p(POP7[p.id] || 0) + 0.5 * Math.log1p(popOf(p)) + 1.2 * g - (seenAt && now - seenAt < 3 * 864e5 ? 3 : 0);
+    });
+    TREND.sort(function (a, b) { return key[b.id] - key[a.id]; });
+  }
   for (var tries = 0; trIdx < TREND.length && tries < 400; tries++) {
     // look a few places ahead for one that isn't the same brand as the last ones
     for (var j = trIdx; j < Math.min(TREND.length, trIdx + 8); j++) {
@@ -1117,11 +1130,11 @@ $("#tune").onclick = function () {
 });
 function reset(first) {
   shown = []; queue = []; trIdx = 0; TITLES = {}; lastBurst = -9; skips = 0; hist = [];
-  TREND = ALL.filter(function (p) { return p._img; }).sort(function (a, b) { return (POP7[b.id] || 0) - (POP7[a.id] || 0) || popOf(b) - popOf(a); });
+  TREND = null;   /* sorted on first use (nextTr): the For you tab never needs it */
   deck.innerHTML = ""; topC = underC = null;
   if (first) queue = first.slice();
   topC = newCard(); if (topC) deck.appendChild(topC.el);
-  settle();
+  settle(40);   /* perf (5 Nov 2026): the top card paints before the card under it is picked (each pick scores the whole catalogue) */
 }
 var hintOn = false;
 function hideHint() { if (!hintOn) return; hintOn = false; $("#hint").classList.add("off"); LS.set("pc.feed.hint", 1); }
@@ -1137,7 +1150,8 @@ function loadCatalog() {
   });
 }
 function getJSON(u) { return fetch(u).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
-Promise.all([loadCatalog(), getJSON("/data/stats.json"), getJSON("/data/link_health.json"), getJSON("/data/reported.json")]).then(function (r) {
+var PRE = window.PC_PRE || {};   /* started in the head (perf, 5 Nov 2026) */
+Promise.all([loadCatalog(), PRE.stats || getJSON("/data/stats.json"), PRE.link_health || getJSON("/data/link_health.json"), PRE.reported || getJSON("/data/reported.json")]).then(function (r) {
   var cat = r[0] || [], st = r[1], lh = r[2], rp = r[3];
   if (st && st.p) for (var id in st.p) { var v = st.p[id]; POP[id] = (v[1] || 0) + (v[2] || 0) + 3 * (v[3] || 0); POP7[id] = v[2] || 0; if (POP[id] > maxPop) maxPop = POP[id]; }
   if (lh && lh.dead) lh.dead.forEach(function (id) { DEAD[String(id)] = 1; });

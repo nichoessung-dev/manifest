@@ -52,6 +52,8 @@
 </script>
 <link rel="preconnect" href="https://uptpghuduqjqmrxwatbm.supabase.co" crossorigin>
 <link rel="dns-prefetch" href="https://uptpghuduqjqmrxwatbm.supabase.co">
+<script>/* perf (5 Nov 2026): the view stats, the dead-link check and the reported list start loading here, alongside the catalogue parts, instead of after them; the app takes these promises (window.PC_PRE) and never fetches the files twice. Each resolves to the parsed file, or null when it failed. */
+(function(){var P=window.PC_PRE={};["stats","link_health","reported"].forEach(function(k){try{P[k]=fetch("/data/"+k+".json",{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}catch(e){}});})();</script>
 <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin><style>@font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/inter-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"Inter Fallback";src:local("Arial"),local("Helvetica Neue"),local("Helvetica");size-adjust:107%;ascent-override:90.5%;descent-override:22.5%;line-gap-override:0%}</style>
 <style>
 :root{--maxw:1280px;--danger:#C0392B}
@@ -4061,7 +4063,8 @@ function qMatcher(raw){
   return p=>{ const k=pSearchKey(p); if(toks.every(a=>a.some(w=>k.includes(" "+w)))) return true; return comp.length>=6&&p._skc.includes(comp); };
 }
 function pSearchKey(p){ if(p._sk==null){ p._sk=" "+foldQ(`${p.title} ${p.brand||""} ${p.cat} ${p.seller}`); p._skc=p._sk.replace(/ /g,""); } return p._sk; }
-(window.requestIdleCallback||((f)=>setTimeout(f,1500)))(()=>{ try{ ALL.forEach(pSearchKey); }catch(e){} });
+{ const ric=window.requestIdleCallback||(f=>setTimeout(()=>f({timeRemaining:()=>50}),1500)); let i=0;   /* in idle slices of a few ms, so a tap is never kept waiting */
+  const step=dl=>{ try{ const a=ALL; while(i<a.length&&dl.timeRemaining()>1){ for(const e=Math.min(a.length,i+150);i<e;i++) pSearchKey(a[i]); } if(i<a.length) ric(step); }catch(e){} }; ric(step); }
 /* v9 search core: GROUP A end */
 /* keep ?q= in the URL in step with the search box (on /product/ pages, update the URL the drawer returns to instead) */
 function syncQParam(){ try{ const onP=location.pathname.indexOf("/product/")===0; const u=new URL(onP?(window.__pcBase||"/"):(location.pathname+location.search+location.hash),location.origin); if(state.q) u.searchParams.set("q",state.q); else u.searchParams.delete("q"); const n=u.pathname+u.search+u.hash; if(onP){ window.__pcBase=n; } else if(n!==location.pathname+location.search+location.hash){ history.replaceState(history.state,"",n); } }catch(e){} }
@@ -4222,11 +4225,11 @@ function render(){
     $$("#grid [data-sc]").forEach(e=>{e.textContent=fmtStar(e.getAttribute("data-sc"));});
   } else {
     /* r6: the grid keeps its height while the list swaps (no jump of what sits below), released after the new cards land */
-    const _h0=grid.offsetHeight; if(_h0&&_shownSig){ grid.style.minHeight=_h0+"px"; clearTimeout(grid.__mh); grid.__mh=setTimeout(()=>{ grid.style.minHeight=""; },260); }
+    const _first=!_shownSig, _h0=_first?0:grid.offsetHeight; if(_h0){ grid.style.minHeight=_h0+"px"; clearTimeout(grid.__mh); grid.__mh=setTimeout(()=>{ grid.style.minHeight=""; },260); }
     _shownSig=sig; grid.innerHTML="";
     _rlist=list; _rn=0; _renderChunk();
     /* scrolled past the top of the (now shorter) grid: jump back to its start instead of clamping onto the footer */
-    const gt=grid.getBoundingClientRect().top; if(gt<0){ const d=document.querySelector(".deck"); window.scrollTo(0,Math.max(0,window.scrollY+gt-((d&&d.offsetHeight)||0)-12)); }
+    const gt=_first?0:grid.getBoundingClientRect().top; if(gt<0){ const d=document.querySelector(".deck"); window.scrollTo(0,Math.max(0,window.scrollY+gt-((d&&d.offsetHeight)||0)-12)); }
   }
   _ensureSentinelObserver();
   if(list.length===0){
@@ -4934,9 +4937,10 @@ var SOLD=new Set();   /* sold out at the last link check: left out of the simila
 /* removed after member reports (data/reported.json, scripts/bake_reports.py every 2 hours): hidden like dead listings */
 var REPORTED=new Set();
 /* link_health.json and stats.json both change the grid: redraw once, when both have answered (was one full redraw each) */
-let _bgLeft=2, _bgDirty=false; const _bgDone=()=>{ if(--_bgLeft===0&&_bgDirty){ try{ softRender(); }catch(e){} } };
+let _bgLeft=2, _bgDirty=false; const _bgDone=()=>{ if(--_bgLeft===0&&_bgDirty){ setTimeout(()=>{ try{ softRender(); }catch(e){} },0); } };   /* own task (perf, 5 Nov 2026) */
 const _gj=u=>fetch(u,{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null);
-Promise.all([_gj("/data/link_health.json"),_gj("/data/reported.json")]).then(([h,rp])=>{
+const _pre=window.PC_PRE||{};   /* started in the head (perf, 5 Nov 2026) */
+Promise.all([_pre.link_health||_gj("/data/link_health.json"),_pre.reported||_gj("/data/reported.json")]).then(([h,rp])=>{
   if(h&&Array.isArray(h.sold_out)) SOLD=new Set(h.sold_out.map(String));
   if(rp&&Array.isArray(rp.hidden)) REPORTED=new Set(rp.hidden.map(String));
   try{ if(drawer.__pid!=null&&REPORTED.has(String(drawer.__pid))) markRemoved(); }catch(e){}
@@ -5021,7 +5025,7 @@ function pcForYou(list){
 /* real popularity: aggregated product views + favourites (data/stats.json, refreshed every 6h by the Stats workflow) */
 function popScore(p){ return (p.views||0) + (p.views7||0); }   /* views in the last 30 days, last 7 days count double */
 let STATS = null;
-fetch("/data/stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(s=>{
+(window.PC_PRE&&PC_PRE.stats||fetch("/data/stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)).then(s=>{
   if(!s||!s.p) return; STATS=s;
   ALL.forEach(p=>{ const v=s.p[p.id]; if(!v) return; p.viewsAll=v[0]||0; p.views=v[1]||0; p.views7=v[2]||0; p.favs=v[3]||0; });
   _bgDirty=true;
@@ -5220,7 +5224,7 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
     const show=()=>{ if(done||!slot.isConnected) return; stop();
       /* take exactly our button's box, so swapping the two does not move anything */
       const h=b.offsetHeight, mb=getComputedStyle(b).marginBottom;
-      slot.style.height=""; slot.style.overflow=""; slot.style.minHeight=(h||40)+"px"; slot.style.alignItems="center"; slot.style.marginBottom=mb;
+      slot.style.height=Math.max(h||40,44)+"px"; slot.style.overflow="hidden"; slot.style.alignItems="center"; slot.style.marginBottom=mb;   /* fixed box: Google draws its frame taller for a moment, which moved the whole card */
       const had=document.activeElement===b; b.__gisHid=1; b.style.display="none";
       if(had){ const f=slot.querySelector("iframe"); try{ (f||slot).focus({preventScroll:true}); }catch(e){} } };
     try{ google.accounts.id.renderButton(slot,{type:"standard",theme:L.dark?"filled_black":"outline",size:"large",shape:"pill",
@@ -5873,12 +5877,13 @@ function wirePPFilters(){
       ((b.best || 0) - (a.best || 0)) || ((b.ft || 0) - (a.ft || 0)) || ((a._rnd || 0) - (b._rnd || 0));
   }
   function sold(p) { try { return SOLD && SOLD.has(String(p.id)); } catch (e) { return false; } }
-  function pick(cat, skip) {
+  /* pool: every find with a photo that is not sold out, most popular first (sorted once for all rows, 5 Nov 2026) */
+  function pick(pool, cat, skip) {
     var seen = {}, out = [];
-    var pool = list().filter(function (p) { return p && p.img && (!cat || p.cat === cat) && !skip[p.id] && !sold(p); }).sort(byPop);
     for (var i = 0; i < pool.length && out.length < PER; i++) {
-      var k = (pool[i].brand || "") + "|" + (pool[i].title || "");
-      if (seen[k]) continue; seen[k] = 1; out.push(pool[i]);
+      var p = pool[i]; if ((cat && p.cat !== cat) || skip[p.id]) continue;
+      var k = (p.brand || "") + "|" + (p.title || "");
+      if (seen[k]) continue; seen[k] = 1; out.push(p);
     }
     return out;
   }
@@ -5907,21 +5912,26 @@ function wirePPFilters(){
     if (!(typeof card === "function")) return;
     if (blocked()) { pending = true; return; }
     pending = false;
-    var skip = {};
-    [].forEach.call(home.querySelectorAll("section[data-row]"), function (sec) {
+    var skip = {}, secs = [].slice.call(home.querySelectorAll("section[data-row]"));
+    /* perf (5 Nov 2026): one sort for all rows (was one per row), every scroll position read before any row is rebuilt and
+       the arrows set after, so the rows cost one layout instead of one per row */
+    var pool = list().filter(function (p) { return p && p.img && !sold(p); }).sort(byPop);
+    var sl = secs.map(function (sec) { var rail = sec.querySelector(".v9-rail"); return rail ? rail.scrollLeft : 0; });
+    secs.forEach(function (sec, n) {
       var rail = sec.querySelector(".v9-rail"); if (!rail) return;
       wireRow(sec);
-      var c = sec.getAttribute("data-row"), items = pick(c === "pop" ? "" : c, skip);
+      var c = sec.getAttribute("data-row"), items = pick(pool, c === "pop" ? "" : c, skip);
       items.forEach(function (p) { skip[p.id] = 1; });
       /* a row the visitor has scrolled keeps its cards when only the background data changed */
-      if (!force && built && rail.scrollLeft > 4) return;
+      if (!force && built && sl[n] > 4) return;
       var frag = d.createDocumentFragment();
       items.forEach(function (p, i) { guard(function () { frag.appendChild(card(p, 8 + i)); }); });   /* index 8+: lazy images, the hero h1 stays the LCP */
       rail.textContent = ""; rail.appendChild(frag);
       sec.hidden = !items.length;
-      rail.scrollLeft = 0;
-      arrows(sec);
+      if (sl[n]) rail.scrollLeft = 0;
     });
+    /* the arrows read the rails' widths: in the next frame, with the layout the browser makes for it anyway */
+    if (w.requestAnimationFrame) requestAnimationFrame(function () { secs.forEach(arrows); }); else secs.forEach(arrows);
     built = true;
   }
 
@@ -5969,7 +5979,8 @@ function wirePPFilters(){
     /* prices and labels changed: rebuild every row; only the data changed: rows the visitor scrolled stay put */
     guard(function () { buildRows(!prev[0] || prev[0] !== cur[0] || prev[1] !== cur[1] || prev[2] !== cur[2]); });
   }
-  guard(refresh);
+  /* perf (5 Nov 2026): the first build runs in its own task after the first paint, not inside the start-up task */
+  if (w.requestAnimationFrame) requestAnimationFrame(function () { setTimeout(function () { guard(refresh); }, 0); }); else guard(refresh);
   guard(function () {
     var grid = $("grid"); if (!grid || !w.MutationObserver) return;
     var tm = 0;
@@ -6567,4 +6578,4 @@ try{var AC=null,AH=matchMedia("(hover: hover)"),afp=function(l){var p=l.querySel
 </script>
 <script id="pc-search" src="/pcs.js?v=dd943831"></script>
 <script src="/track.js?v=3" defer></script>
-<script src="/chat.js?v=1" defer></script>
+<script src="/chat.js?v=2" defer></script>

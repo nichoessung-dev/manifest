@@ -1,9 +1,14 @@
-/* Puro Classico shopping assistant widget (Nov 2026). Included on every page as <script src="/chat.js?v=1" defer>.
+/* Puro Classico shopping assistant widget (Nov 2026, v2). Included on every page as <script src="/chat.js?v=2" defer>.
    A round "Ask" button bottom right opens a chat panel (a full-screen sheet on phones, 380 px on desktop) that talks to
    POST /api/chat (functions/api/chat.js, newline-delimited JSON). No libraries. The conversation lives in sessionStorage
    only ("pc.chat.v1") and is gone when the tab closes. Hidden on /feed and /admin, and when /api/chat answers 503
    (no API key set). Colours come from the page's own tokens (ds.css on server pages, the app's in index.html), so light,
-   dark and system follow html[data-theme] and prefers-color-scheme. */
+   dark and system follow html[data-theme] and prefers-color-scheme.
+   v2: the panel eases in and out (transform + opacity, interruptible, plain fade with reduced motion); answers stream in
+   paragraph by paragraph, painted once per frame, and the log follows only while the reader is at the bottom; cards for
+   the finds appear as soon as the search returns, with the price in the visitor's currency (manifest.state.cur) and a
+   Buy button for their agent (manifest.state.agent); Stop while it writes, Try again after an error; the sheet follows
+   the on-screen keyboard (visualViewport). The request carries the visitor's currency, agent and the find on screen. */
 (function () {
   "use strict";
   var D = document, W = window;
@@ -15,53 +20,100 @@
              set: function (k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} } };
   var state = { msgs: [], open: false };
   try { var saved = JSON.parse(ss.get(KEY) || "null"); if (saved && Array.isArray(saved.msgs)) state = { msgs: saved.msgs.slice(-MAXKEEP), open: !!saved.open }; } catch (e) {}
+  // An answer that was still being written when the page changed stays as far as it got.
+  state.msgs.forEach(function (m) { if (m.pending) { delete m.pending; m.retry = true; if (m.content) m.note = "Stopped"; else { m.content = "Stopped."; m.err = true; } } });
   var save = function () { ss.set(KEY, JSON.stringify({ msgs: state.msgs.slice(-MAXKEEP), open: state.open })); };
 
-  var SUGGEST = ["Ralph Lauren knit under $40", "How do I order with MyCNBox?", "What are QC photos?", "Do Chinese sizes run small?"];
-  var ICON_CHAT = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/></svg>';
-  var ICON_X = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"/></svg>';
-  var ICON_SEND = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
-  var ICON_NEW = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>';
+  // The visitor's settings from the app (same key the app and the server pages read), and the find on screen.
+  function prefs() {
+    var s = {}; try { s = JSON.parse(localStorage.getItem("manifest.state") || "{}") || {}; } catch (e) {}
+    var m = /^\/product\/([^/?#]+)/.exec(location.pathname), pid = "";
+    if (m) try { pid = decodeURIComponent(m[1]); } catch (e) {}
+    return { cur: String(s.cur || "USD"), agent: String(s.agent || "mycnbox").replace(/[^a-z0-9]/gi, "").toLowerCase(), pid: pid };
+  }
+  // Prices in the visitor's currency: the same rates as the app's CUR table and CUR_JS in functions/_lib/site.js.
+  var CUR = { USD: ["$", .14], EUR: ["€", .13], NOK: ["kr ", 1.45], SEK: ["kr ", 1.47], DKK: ["kr ", .97], GBP: ["£", .11], CHF: ["CHF ", .125],
+    PLN: ["zł ", .55], CAD: ["C$", .19], AUD: ["A$", .21], JPY: ["JP¥", 21], CNY: ["¥", 1] };
+  function money(f) {
+    var c = CUR[prefs().cur] || CUR.USD;
+    if (f.cny > 0) return c[0] + Math.max(1, Math.round(f.cny * c[1])).toLocaleString("en-US");
+    return f.price ? "$" + f.price : "Ask seller";
+  }
 
+  var SUGGEST = ["Ralph Lauren knit under $40", "How do I order with an agent?", "What are QC photos?", "Do Chinese sizes run small?"];
+  var SUGGEST_PRODUCT = ["Is this a good find?", "What size should I get?", "Similar finds for less", "How do I order this?"];
+  var SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">';
+  var ICON_CHAT = SVG + '<path d="M4 5h16v11H9l-5 4Z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/></svg>';
+  var ICON_X = SVG + '<path d="M18 6 6 18M6 6l12 12"/></svg>';
+  var ICON_SEND = SVG.replace('stroke-width="1.75"', 'stroke-width="2"').replace(/20/g, "18") + '<path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+  var ICON_STOP = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="5" y="5" width="14" height="14" rx="2.5"/></svg>';
+  var ICON_NEW = SVG.replace(/20/g, "18") + '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>';
+  var ICON_DOWN = SVG.replace(/20/g, "18") + '<path d="M12 5v14M5 12l7 7 7-7"/></svg>';
+  var ICON_CAM = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8h3l2-3h6l2 3h3v11H4Z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+
+  var EASE = "cubic-bezier(.22,1,.36,1)";
   var CSS =
     ".pcc{--pc-bg:var(--surface,var(--bg,#fff));--pc-ink:var(--ink,#0a0a0a);--pc-mut:var(--muted,#6b6b6b);--pc-line:var(--line,#e5e5e5);--pc-s2:var(--surface-2,var(--well,#f5f5f5));--pc-fill:var(--fill,#171717);--pc-fink:var(--fill-ink,#fafafa);" +
     "font-family:var(--f-body,var(--font,\"Instrument Sans\",Inter,-apple-system,BlinkMacSystemFont,\"Segoe UI\",system-ui,sans-serif));font-size:15px;line-height:1.5;color:var(--pc-ink);-webkit-font-smoothing:antialiased}" +
     ".pcc *,.pcc *::before,.pcc *::after{box-sizing:border-box}" +
-    ".pcc-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:70;display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 18px 0 15px;border:1px solid var(--pc-line);border-radius:999px;background:var(--pc-fill);color:var(--pc-fink);font-family:inherit;font-size:15px;font-weight:600;line-height:1;cursor:pointer;box-shadow:0 10px 15px -3px rgba(0,0,0,.15),0 4px 6px -4px rgba(0,0,0,.15);transition:transform .15s,bottom .25s cubic-bezier(.22,1,.36,1);-webkit-tap-highlight-color:transparent;touch-action:manipulation}" +
+    ".pcc button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}" +
+    // the round button
+    ".pcc-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:70;display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 18px 0 15px;border:1px solid var(--pc-line);border-radius:999px;background:var(--pc-fill);color:var(--pc-fink);font-family:inherit;font-size:15px;font-weight:600;line-height:1;cursor:pointer;box-shadow:0 10px 15px -3px rgba(0,0,0,.15),0 4px 6px -4px rgba(0,0,0,.15);transition:transform .2s " + EASE + ",opacity .15s ease-out,bottom .25s " + EASE + "}" +
     ".pcc-fab:active{transform:scale(.96)}.pcc-fab:focus-visible{outline:2px solid var(--pc-ink);outline-offset:3px}" +
     "@media (max-width:900px){body.has-buybar .pcc-fab,body:has(.buybar.on) .pcc-fab{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}" +
     "@media (max-width:859px){body:has(.drawer.open .d-buybar.on) .pcc-fab{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}" +
-    ".pcc-open .pcc-fab{visibility:hidden}" +
-    ".pcc-panel{position:fixed;right:16px;bottom:16px;z-index:1001;display:flex;flex-direction:column;width:380px;height:min(640px,calc(100vh - 32px));height:min(640px,calc(100dvh - 32px));background:var(--pc-bg);color:var(--pc-ink);border:1px solid var(--pc-line);border-radius:16px;box-shadow:0 20px 40px -8px rgba(0,0,0,.25);overflow:hidden}" +
-    ".pcc-panel[hidden]{display:none}" +
-    "@media (max-width:640px){.pcc-panel{inset:0;width:auto;height:100%;border:0;border-radius:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}}" +
-    "@media (prefers-reduced-motion:no-preference){.pcc-panel{animation:pcc-in .22s cubic-bezier(.22,1,.36,1)}@keyframes pcc-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}}" +
-    ".pcc-hd{display:flex;align-items:center;gap:8px;padding:12px 12px 12px 18px;border-bottom:1px solid var(--pc-line)}" +
+    ".pcc-open .pcc-fab{opacity:0;transform:scale(.9);pointer-events:none}" +
+    // the panel: always in the page, eased in and out with transform + opacity (CSS transitions, so a quick re-click reverses mid-way)
+    ".pcc-panel{position:fixed;right:16px;bottom:16px;z-index:1001;display:flex;flex-direction:column;width:380px;height:min(640px,calc(100vh - 32px));height:min(640px,calc(100dvh - 32px));background:var(--pc-bg);color:var(--pc-ink);border:1px solid var(--pc-line);border-radius:16px;box-shadow:0 20px 40px -8px rgba(0,0,0,.25);overflow:hidden;" +
+    "transform-origin:calc(100% - 40px) calc(100% - 24px);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(14px) scale(.97);transition:opacity .16s ease-out,transform .2s " + EASE + ",visibility 0s linear .2s}" +
+    ".pcc-open .pcc-panel{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition:opacity .2s ease-out,transform .32s " + EASE + ",visibility 0s}" +
+    "@media (max-width:640px){.pcc-panel{top:0;left:0;right:0;bottom:auto;width:auto;height:100%;border:0;border-radius:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px);transform:translateY(28px)}}" +
+    "@media (prefers-reduced-motion:reduce){.pcc-panel,.pcc-open .pcc-panel{transform:none!important;transition-property:opacity,visibility}.pcc-fab{transition:opacity .15s}}" +
+    ".pcc-still .pcc-panel,.pcc-still .pcc-fab{transition:none!important}" +
+    ".pcc-hd{display:flex;align-items:center;gap:4px;padding:10px 8px 10px 18px;border-bottom:1px solid var(--pc-line)}" +
     ".pcc-ttl{flex:1;min-width:0}.pcc-ttl b{display:block;font-size:16px;font-weight:600;letter-spacing:-.01em}.pcc-ttl span{display:block;font-size:12.5px;color:var(--pc-mut)}" +
-    ".pcc-ib{display:inline-grid;place-items:center;width:40px;height:40px;border:0;border-radius:999px;background:transparent;color:var(--pc-ink);cursor:pointer}.pcc-ib:hover{background:var(--pc-s2)}.pcc-ib:focus-visible{outline:2px solid var(--pc-ink);outline-offset:1px}" +
-    ".pcc-log{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:16px;display:flex;flex-direction:column;gap:12px}" +
+    ".pcc-ib{display:inline-grid;place-items:center;width:40px;height:40px;border:0;border-radius:999px;background:transparent;color:var(--pc-ink);cursor:pointer;transition:background-color .15s}@media (hover:hover){.pcc-ib:hover{background:var(--pc-s2)}}.pcc-ib:focus-visible{outline:2px solid var(--pc-ink);outline-offset:1px}" +
+    ".pcc-body{position:relative;flex:1;min-height:0;display:flex}" +
+    ".pcc-log{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:16px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}" +
+    ".pcc-turn{flex-shrink:0;display:flex;flex-direction:column;gap:8px}" +
     ".pcc-m{flex-shrink:0;max-width:88%;padding:10px 14px;border-radius:18px;overflow-wrap:anywhere;white-space:normal}" +
-    ".pcc-m.u{align-self:flex-end;background:var(--pc-fill);color:var(--pc-fink);border-bottom-right-radius:6px}" +
+    ".pcc-m.u{align-self:flex-end;background:var(--pc-fill);color:var(--pc-fink);border-bottom-right-radius:6px;white-space:pre-wrap}" +
     ".pcc-m.a{align-self:flex-start;background:var(--pc-s2);border-bottom-left-radius:6px}" +
     ".pcc-m.err{background:transparent;border:1px solid var(--pc-line);color:var(--pc-mut)}" +
-    ".pcc-m a{color:inherit;text-decoration:underline;text-underline-offset:3px;font-weight:500}" +
-    ".pcc-m p{margin:0}.pcc-m p+p{margin-top:8px}" +
-    ".pcc-dots{display:inline-flex;gap:4px;padding:4px 0}.pcc-dots i{width:6px;height:6px;border-radius:50%;background:var(--pc-mut);opacity:.4;animation:pcc-b 1s infinite}.pcc-dots i:nth-child(2){animation-delay:.15s}.pcc-dots i:nth-child(3){animation-delay:.3s}@keyframes pcc-b{50%{opacity:1}}" +
-    ".pcc-cards{flex-shrink:0;display:flex;gap:8px;overflow-x:auto;align-self:stretch;padding:2px 0 4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}" +
-    ".pcc-card{flex:0 0 132px;scroll-snap-align:start;display:flex;flex-direction:column;border:1px solid var(--pc-line);border-radius:12px;overflow:hidden;background:var(--pc-bg);color:var(--pc-ink);text-decoration:none}" +
-    ".pcc-card:hover{border-color:var(--pc-mut)}.pcc-card:focus-visible{outline:2px solid var(--pc-ink);outline-offset:1px}" +
-    ".pcc-card img{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:var(--pc-s2)}" +
-    ".pcc-card span{display:block;padding:8px 10px 10px;font-size:12.5px;line-height:1.35}" +
-    ".pcc-card em{font-style:normal;color:var(--pc-mut);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
-    ".pcc-card strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:500;margin:1px 0 4px}" +
-    ".pcc-card small{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}.pcc-card small i{font-style:normal;font-weight:400;color:var(--pc-mut);margin-left:6px}" +
-    ".pcc-sug{flex-shrink:0;display:flex;flex-wrap:wrap;gap:8px}.pcc-sug button{border:1px solid var(--pc-line);background:var(--pc-bg);color:var(--pc-ink);border-radius:999px;padding:8px 14px;font:inherit;font-size:13.5px;cursor:pointer;text-align:left}.pcc-sug button:hover{background:var(--pc-s2)}" +
+    ".pcc-m a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;font-weight:500}" +
+    ".pcc-m p{margin:0}.pcc-m p+p{margin-top:8px}.pcc-m p:empty{display:none}" +
+    ".pcc-m .pcc-stop{display:block;margin-top:6px;font-size:12.5px;color:var(--pc-mut)}" +
+    ".pcc-retry{margin-top:8px;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--pc-line);border-radius:999px;background:var(--pc-bg);color:var(--pc-ink);font:inherit;font-size:13.5px;font-weight:500;cursor:pointer}@media (hover:hover){.pcc-retry:hover{background:var(--pc-s2)}}" +
+    ".pcc-dots{display:inline-flex;align-items:center;gap:4px;padding:5px 0;min-height:24px}.pcc-dots i{width:6px;height:6px;border-radius:50%;background:var(--pc-mut);opacity:.35;animation:pcc-b 1.1s ease-in-out infinite}.pcc-dots i:nth-child(2){animation-delay:.15s}.pcc-dots i:nth-child(3){animation-delay:.3s}" +
+    ".pcc-dots span{margin-left:6px;font-size:13px;color:var(--pc-mut)}@keyframes pcc-b{40%{opacity:1;transform:translateY(-2px)}}" +
+    "@keyframes pcc-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}@keyframes pcc-fade{from{opacity:0}to{opacity:1}}" +
+    "@media (prefers-reduced-motion:no-preference){.pcc-new{animation:pcc-up .24s " + EASE + " both}.pcc-card.pcc-new{animation-duration:.3s}}" +
+    "@media (prefers-reduced-motion:reduce){.pcc-dots i{animation:none;opacity:.6}}" +
+    // cards
+    ".pcc-cards{flex-shrink:0;display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:2px 16px 6px;scroll-padding:0 16px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}.pcc-cards::-webkit-scrollbar{display:none}" +
+    ".pcc-card{position:relative;flex:0 0 144px;scroll-snap-align:start;display:flex;flex-direction:column;border:1px solid var(--pc-line);border-radius:12px;overflow:hidden;background:var(--pc-bg);color:var(--pc-ink);transition:border-color .15s}" +
+    "@media (hover:hover){.pcc-card:hover{border-color:var(--pc-mut)}}" +
+    ".pcc-ph{display:block;width:100%;aspect-ratio:1;background:var(--pc-s2);overflow:hidden}.pcc-ph img{display:block;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .25s ease-out}.pcc-ph img.in{opacity:1}" +
+    ".pcc-ci{display:flex;flex-direction:column;flex:1;padding:8px 10px 10px;font-size:12.5px;line-height:1.35}" +
+    ".pcc-ci em{font-style:normal;color:var(--pc-mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+    ".pcc-cl{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:500;margin:1px 0 6px;color:inherit;text-decoration:none}" +
+    ".pcc-cl::after{content:\"\";position:absolute;inset:0;border-radius:12px}.pcc-cl:focus-visible{outline:none}.pcc-cl:focus-visible::after{outline:2px solid var(--pc-ink);outline-offset:-2px}" +
+    ".pcc-cr{margin-top:auto;display:flex;align-items:center;gap:6px}" +
+    ".pcc-cr b{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}" +
+    ".pcc-qc{display:inline-flex;align-items:center;gap:3px;color:var(--pc-mut);font-size:11.5px;font-variant-numeric:tabular-nums;white-space:nowrap}" +
+    ".pcc-buy{position:relative;z-index:1;margin-left:auto;display:inline-grid;place-items:center;height:26px;padding:0 10px;border-radius:999px;background:var(--pc-fill);color:var(--pc-fink);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}" +
+    ".pcc-buy:focus-visible{outline:2px solid var(--pc-ink);outline-offset:2px}" +
+    // suggestion chips
+    ".pcc-sug{flex-shrink:0;display:flex;flex-wrap:wrap;gap:8px}.pcc-sug button{border:1px solid var(--pc-line);background:var(--pc-bg);color:var(--pc-ink);border-radius:999px;padding:8px 14px;font:inherit;font-size:13.5px;cursor:pointer;text-align:left;transition:background-color .15s,transform .15s}@media (hover:hover){.pcc-sug button:hover{background:var(--pc-s2)}}.pcc-sug button:active{transform:scale(.97)}" +
+    ".pcc-jump{position:absolute;left:50%;bottom:10px;z-index:2;display:inline-grid;place-items:center;width:36px;height:36px;margin-left:-18px;border:1px solid var(--pc-line);border-radius:999px;background:var(--pc-bg);color:var(--pc-ink);box-shadow:0 4px 12px -2px rgba(0,0,0,.18);cursor:pointer;opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .15s ease-out,transform .2s " + EASE + "}" +
+    ".pcc-jump.on{opacity:1;transform:none;pointer-events:auto}" +
+    // composer
     ".pcc-ft{border-top:1px solid var(--pc-line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px))}" +
-    ".pcc-form{display:flex;align-items:flex-end;gap:8px;border:1px solid var(--pc-line);border-radius:24px;padding:5px 5px 5px 16px;background:var(--pc-bg)}" +
+    ".pcc-form{display:flex;align-items:flex-end;gap:8px;border:1px solid var(--pc-line);border-radius:24px;padding:5px 5px 5px 16px;background:var(--pc-bg);transition:border-color .15s}" +
     ".pcc-form:focus-within{border-color:var(--pc-mut)}" +
-    ".pcc-in{flex:1;min-width:0;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;color:var(--pc-ink);font:inherit;font-size:16px;line-height:1.4;padding:7px 0!important;resize:none;max-height:120px;border-radius:0}" +
-    ".pcc-send{flex:0 0 auto;display:inline-grid;place-items:center;width:36px;height:36px;border:0;border-radius:999px;background:var(--pc-fill);color:var(--pc-fink);cursor:pointer}.pcc-send:disabled{opacity:.35;cursor:default}.pcc-send:focus-visible{outline:2px solid var(--pc-ink);outline-offset:2px}" +
-    ".pcc-note{margin:8px 4px 0;font-size:11.5px;line-height:1.4;color:var(--pc-mut)}.pcc-note a{color:inherit}" +
+    ".pcc-in{flex:1;min-width:0;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;color:var(--pc-ink);font:inherit;font-size:16px;line-height:1.4;padding:7px 0!important;margin:0;resize:none;height:36px;max-height:120px;overflow-y:hidden;border-radius:0}" +
+    ".pcc-in::placeholder{color:var(--pc-mut);opacity:1}" +
+    ".pcc-send{flex:0 0 auto;display:inline-grid;place-items:center;width:36px;height:36px;border:0;border-radius:999px;background:var(--pc-fill);color:var(--pc-fink);cursor:pointer;transition:opacity .15s,transform .15s}.pcc-send:active{transform:scale(.92)}.pcc-send:disabled{opacity:.35;cursor:default;transform:none}.pcc-send:focus-visible{outline:2px solid var(--pc-ink);outline-offset:2px}" +
     ".pcc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}" +
     "html.pcc-lock,html.pcc-lock body{overflow:hidden}";
 
@@ -79,128 +131,254 @@
     if (own) u = u.replace(/^https?:\/\/(www\.)?puroclassico\.com/i, "") || "/";
     return '<a href="' + esc(u) + '"' + (own ? "" : ' target="_blank" rel="noopener nofollow"') + ">" + text + "</a>";
   }
-  function md(src) {
-    var h = esc(src);
-    var slots = [];
+  // One paragraph -> the inside of its <p>. While the answer is still streaming, a link or bold that is not closed yet is
+  // shown as its plain words, so raw "[title](https://..." never flashes on screen.
+  function mdPara(src, live) {
+    if (live) {
+      var m = /\[([^\]\n]*)(\]\(?[^)\s]*)?$/.exec(src);
+      if (m) src = src.slice(0, m.index) + m[1];
+      if ((src.match(/\*\*/g) || []).length % 2) src = src.replace(/\*\*(?![\s\S]*\*\*)/, "");
+    }
+    var h = esc(src), slots = [];
     h = h.replace(/\[([^\]\n]{1,200})\]\(([^)\s]{1,500})\)/g, function (_, t, u) { slots.push(link(t, u)); return "\u0000" + (slots.length - 1) + "\u0000"; });
     h = h.replace(/(^|[\s(])(https?:\/\/[^\s<)]+[^\s<).,!?:;'"])/g, function (_, pre, u) { slots.push(link(u.replace(/^https?:\/\/(www\.)?/i, ""), u)); return pre + "\u0000" + (slots.length - 1) + "\u0000"; });
     h = h.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
     h = h.replace(/\u0000(\d+)\u0000/g, function (_, i) { return slots[+i]; });
-    return h.split(/\n{2,}/).map(function (p) {
-      return "<p>" + p.split("\n").map(function (l) { return l.replace(/^\s*[-*]\s+/, "• ").replace(/^#{1,4}\s+/, ""); }).join("<br>") + "</p>";
-    }).join("");
+    return h.split("\n").map(function (l) { return l.replace(/^\s*[-*]\s+/, "• ").replace(/^#{1,4}\s+/, ""); }).join("<br>");
   }
+  var paras = function (s) { return String(s || "").replace(/^\s+/, "").split(/\n{2,}/); };
 
   // ---------------------------------------------------------------- DOM
-  var root, fab, panel, log, input, send, busy = false, lastFocus = null;
+  var root, fab, panel, log, input, send, jump, busy = false, ctl = null, lastFocus = null, pinned = true;
+  var phone = W.matchMedia ? W.matchMedia("(max-width:640px)") : { matches: false };
+  var fine = W.matchMedia ? W.matchMedia("(hover:hover) and (pointer:fine)") : { matches: true };
   function el(tag, cls, html) { var e = D.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function listen(mq, fn) { if (mq.addEventListener) mq.addEventListener("change", fn); else if (mq.addListener) mq.addListener(fn); }
 
   function build() {
     var st = el("style"); st.textContent = CSS; D.head.appendChild(st);
-    root = el("div", "pcc");
+    root = el("div", "pcc pcc-still");
     fab = el("button", "pcc-fab", ICON_CHAT + "<span>Ask</span>");
     fab.type = "button"; fab.setAttribute("aria-label", "Ask the shopping assistant"); fab.setAttribute("aria-haspopup", "dialog"); fab.setAttribute("aria-expanded", "false"); fab.setAttribute("aria-controls", "pcc-panel");
-    panel = el("div", "pcc-panel"); panel.id = "pcc-panel"; panel.hidden = true;
+    panel = el("div", "pcc-panel"); panel.id = "pcc-panel"; panel.inert = true; panel.setAttribute("aria-hidden", "true");
     panel.setAttribute("role", "dialog"); panel.setAttribute("aria-modal", "true"); panel.setAttribute("aria-labelledby", "pcc-title");
     panel.innerHTML =
       '<div class="pcc-hd"><div class="pcc-ttl"><b id="pcc-title">Ask Puro Classico</b><span>AI shopping assistant</span></div>' +
       '<button type="button" class="pcc-ib" data-new aria-label="Start a new chat" title="New chat">' + ICON_NEW + '</button>' +
       '<button type="button" class="pcc-ib" data-close aria-label="Close chat">' + ICON_X + '</button></div>' +
-      '<div class="pcc-log" role="log" aria-live="polite" aria-relevant="additions" tabindex="-1"></div>' +
+      '<div class="pcc-body"><div class="pcc-log" role="log" aria-live="polite" aria-relevant="additions" tabindex="-1"></div>' +
+      '<button type="button" class="pcc-jump" aria-label="Scroll to the latest message" tabindex="-1">' + ICON_DOWN + '</button></div>' +
       '<div class="pcc-ft"><form class="pcc-form"><label class="pcc-sr" for="pcc-in">Your message</label>' +
       '<textarea class="pcc-in" id="pcc-in" rows="1" maxlength="' + MAXLEN + '" placeholder="Ask about a find, sizing, shipping..." enterkeyhint="send" autocomplete="off"></textarea>' +
-      '<button type="submit" class="pcc-send" aria-label="Send" disabled>' + ICON_SEND + '</button></form>' +
-      '<p class="pcc-note">AI answers can be wrong; check the product page before you buy. Messages go to Anthropic to write the answer and are not stored by us. <a href="/privacy">Privacy</a></p></div>';
+      '<button type="submit" class="pcc-send" aria-label="Send" disabled>' + ICON_SEND + '</button></form></div>';
     root.appendChild(fab); root.appendChild(panel); D.body.appendChild(root);
-    log = panel.querySelector(".pcc-log"); input = panel.querySelector(".pcc-in"); send = panel.querySelector(".pcc-send");
+    log = panel.querySelector(".pcc-log"); input = panel.querySelector(".pcc-in"); send = panel.querySelector(".pcc-send"); jump = panel.querySelector(".pcc-jump");
 
     fab.addEventListener("click", function () { setOpen(true); });
     panel.querySelector("[data-close]").addEventListener("click", function () { setOpen(false); });
-    panel.querySelector("[data-new]").addEventListener("click", function () { if (busy) return; state.msgs = []; save(); render(); input.focus(); });
-    panel.querySelector("form").addEventListener("submit", function (e) { e.preventDefault(); ask(input.value); });
-    input.addEventListener("input", function () { grow(); send.disabled = busy || !input.value.trim(); });
-    input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(input.value); } });
+    panel.querySelector("[data-new]").addEventListener("click", function () {
+      if (busy) { stop(true); busy = false; ctl = null; log.setAttribute("aria-busy", "false"); sendState(); }
+      state.msgs = []; save(); render(); if (fine.matches) input.focus();
+    });
+    panel.querySelector("form").addEventListener("submit", function (e) { e.preventDefault(); if (busy) stop(); else ask(input.value); });
+    input.addEventListener("input", function () { grow(); sendState(); });
+    input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); if (!busy) ask(input.value); } });
+    log.addEventListener("scroll", function () { pinned = log.scrollHeight - log.scrollTop - log.clientHeight < 40; if (pinned) jump.classList.remove("on"); }, { passive: true });
+    jump.addEventListener("click", function () { pinned = true; jump.classList.remove("on"); toBottom(true); });
     panel.addEventListener("keydown", function (e) {
       if (e.key === "Escape") { e.stopPropagation(); setOpen(false); return; }
       if (e.key !== "Tab") return;
-      var f = [].filter.call(panel.querySelectorAll("button,textarea,a[href]"), function (x) { return !x.disabled && x.offsetParent !== null; });
+      var f = [].filter.call(panel.querySelectorAll("button:not([tabindex='-1']),textarea,a[href]"), function (x) { return !x.disabled && x.offsetParent !== null; });
       if (!f.length) return;
       var first = f[0], last = f[f.length - 1];
       if (e.shiftKey && D.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && D.activeElement === last) { e.preventDefault(); first.focus(); }
     });
-    W.matchMedia && W.matchMedia("(max-width:640px)").addEventListener && W.matchMedia("(max-width:640px)").addEventListener("change", lock);
+    listen(phone, function () { lock(); fit(); });
+    if (W.visualViewport) { W.visualViewport.addEventListener("resize", fit); W.visualViewport.addEventListener("scroll", fit); }
+    W.addEventListener("pagehide", function () { save(); });
     render();
     if (state.open) setOpen(true, true);
+    // transitions on from the next frame, so a panel restored open does not animate in on every page
+    setTimeout(function () { root.classList.remove("pcc-still"); }, 80);
   }
-  function grow() { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 120) + "px"; }
-  function lock() { D.documentElement.classList.toggle("pcc-lock", state.open && W.matchMedia && W.matchMedia("(max-width:640px)").matches); }
+  function frame(fn) { (W.requestAnimationFrame || function (f) { return setTimeout(f, 16); })(fn); }
+  function grow() { input.style.height = "auto"; var h = Math.min(input.scrollHeight, 120); input.style.height = h + "px"; input.style.overflowY = input.scrollHeight > 120 ? "auto" : "hidden"; }
+  function sendState() {
+    if (busy) { send.disabled = false; send.innerHTML = ICON_STOP; send.setAttribute("aria-label", "Stop"); }
+    else { send.innerHTML = ICON_SEND; send.setAttribute("aria-label", "Send"); send.disabled = !input.value.trim(); }
+  }
+  function lock() { D.documentElement.classList.toggle("pcc-lock", state.open && phone.matches); }
+  // Phones: keep the sheet inside the visible area when the on-screen keyboard is up.
+  function fit() {
+    var v = W.visualViewport;
+    if (!v || !phone.matches || !state.open) { panel.style.height = ""; panel.style.top = ""; return; }
+    panel.style.height = Math.round(v.height) + "px"; panel.style.top = Math.round(v.offsetTop) + "px";
+    if (pinned) toBottom();
+  }
   function setOpen(on, quiet) {
     state.open = on; save();
-    panel.hidden = !on; fab.setAttribute("aria-expanded", on ? "true" : "false");
-    root.classList.toggle("pcc-open", on); lock();
-    if (on) { lastFocus = quiet ? null : D.activeElement; scroll(); if (!quiet || !W.matchMedia("(max-width:640px)").matches) setTimeout(function () { input.focus(); }, 30); }
-    else if (!quiet) (lastFocus && lastFocus.focus ? lastFocus : fab).focus();
+    root.classList.toggle("pcc-open", on);
+    panel.inert = !on; panel.setAttribute("aria-hidden", on ? "false" : "true");
+    fab.setAttribute("aria-expanded", on ? "true" : "false"); fab.tabIndex = on ? -1 : 0;
+    lock(); fit();
+    if (on) {
+      lastFocus = quiet ? null : D.activeElement;
+      pinned = true; toBottom();
+      // no automatic focus on touch screens: the keyboard would cover the chips and the answer
+      if (fine.matches && !quiet) setTimeout(function () { input.focus({ preventScroll: true }); }, 40);
+    } else if (!quiet) (lastFocus && lastFocus.focus && lastFocus !== D.body ? lastFocus : fab).focus({ preventScroll: true });
   }
-  function scroll() { log.scrollTop = log.scrollHeight; }
+  function toBottom(smooth) {
+    if (smooth && log.scrollTo && !(W.matchMedia && W.matchMedia("(prefers-reduced-motion:reduce)").matches)) log.scrollTo({ top: log.scrollHeight, behavior: "smooth" });
+    else log.scrollTop = log.scrollHeight;
+  }
+  // After new content: follow it only while the reader is at the bottom; otherwise offer the jump button.
+  function follow() { if (pinned) toBottom(); else jump.classList.add("on"); }
 
-  function bubble(m) {
-    var b = el("div", "pcc-m " + (m.role === "user" ? "u" : "a") + (m.err ? " err" : ""));
-    if (m.role === "user") b.textContent = m.content; else b.innerHTML = m.content ? md(m.content) : '<span class="pcc-dots" aria-label="Writing"><i></i><i></i><i></i></span>';
-    return b;
+  // ---------------------------------------------------------------- views
+  // A turn = the bubble plus, for answers, a row of cards. Answers are painted per paragraph: finished paragraphs once,
+  // only the last one again on each frame.
+  function userTurn(m) { var t = el("div", "pcc-turn"), b = el("div", "pcc-m u"); b.textContent = m.content; t.appendChild(b); return t; }
+  function answerView(m) {
+    var v = { m: m, turn: el("div", "pcc-turn"), bubble: el("div", "pcc-m a"), ps: [], cards: null, status: "" };
+    v.turn.appendChild(v.bubble);
+    paint(v, false);
+    if (m.finds && m.finds.length) setCards(v, m.finds, false);
+    return v;
   }
-  function cards(list) {
-    var row = el("div", "pcc-cards"); row.setAttribute("role", "list"); row.setAttribute("aria-label", "Finds");
-    list.forEach(function (f) {
-      var a = el("a", "pcc-card"); a.href = safeUrl(f.url) || "/"; a.setAttribute("role", "listitem");
-      var price = f.price ? "$" + f.price : "Ask seller";
-      a.innerHTML = (f.img ? '<img src="' + esc(f.img) + '" alt="" loading="lazy" decoding="async" width="132" height="132">' : "") +
-        "<span><em>" + esc(f.brand || "") + "</em><strong>" + esc(f.title) + "</strong><small>" + esc(price) + (f.qc ? "<i>" + esc(f.qc) + " QC</i>" : "") + "</small></span>";
-      var img = a.querySelector("img"); if (img) img.addEventListener("error", function () { img.remove(); });
-      a.setAttribute("aria-label", f.title + ", " + price + (f.qc ? ", " + f.qc + " QC photos" : ""));
-      row.appendChild(a);
+  function paint(v, live) {
+    var m = v.m, b = v.bubble;
+    b.classList.toggle("err", !!m.err);
+    if (!m.content) {
+      if (!b.querySelector(".pcc-dots")) { b.innerHTML = '<span class="pcc-dots" role="status"><i></i><i></i><i></i><span class="pcc-sr">Writing</span></span>'; v.ps = []; }
+      var lab = b.querySelector(".pcc-dots > span");
+      var want = v.status === "search" ? "Searching finds" : "";
+      if (lab.textContent !== (want || "Writing")) { lab.textContent = want || "Writing"; lab.className = want ? "" : "pcc-sr"; }
+      return;
+    }
+    if (b.querySelector(".pcc-dots")) { b.innerHTML = ""; v.ps = []; }
+    var list = paras(m.content);
+    for (var i = 0; i < list.length; i++) {
+      var p = v.ps[i];
+      if (!p) { p = D.createElement("p"); b.appendChild(p); v.ps[i] = p; p._src = null; }
+      var isLast = i === list.length - 1, key = list[i] + (live && isLast ? "\u0001" : "");
+      if (p._src !== key) { p.innerHTML = mdPara(list[i], live && isLast); p._src = key; }
+    }
+    while (v.ps.length > list.length) b.removeChild(v.ps.pop());
+    var extra = b.querySelector(".pcc-stop, .pcc-retry");
+    if (extra) extra.remove();
+    if (m.note) b.appendChild(el("span", "pcc-stop", esc(m.note)));
+    if (m.retry && !busy) {
+      var r = el("button", "pcc-retry", "Try again"); r.type = "button";
+      r.addEventListener("click", function () { retry(m); });
+      b.appendChild(r);
+    }
+  }
+  var imgIn = function () { this.classList.add("in"); };
+  function card(f, i) {
+    var c = el("div", "pcc-card pcc-new"); c.setAttribute("role", "listitem"); c._id = f.id;
+    c.addEventListener("animationend", function () { c.classList.remove("pcc-new"); c.style.animationDelay = ""; });
+    c.style.animationDelay = Math.min(i, 6) * 45 + "ms";
+    var href = safeUrl(f.url) || "/", price = money(f), buy = safeUrl(f.buy);
+    c.innerHTML = '<span class="pcc-ph">' + (f.img ? '<img src="' + esc(f.img) + '" alt="" loading="lazy" decoding="async" width="144" height="144">' : "") + "</span>" +
+      '<span class="pcc-ci"><em>' + esc(f.brand || " ") + '</em><a class="pcc-cl" href="' + esc(href) + '">' + esc(f.title) + "</a>" +
+      '<span class="pcc-cr"><b>' + esc(price) + "</b>" + (f.qc ? '<span class="pcc-qc" title="QC photos">' + ICON_CAM + esc(f.qc) + "</span>" : "") +
+      (buy && /^https:\/\//.test(buy) ? '<a class="pcc-buy" href="' + esc(buy) + '" target="_blank" rel="sponsored nofollow noopener">Buy</a>' : "") + "</span></span>";
+    c.querySelector(".pcc-cl").setAttribute("aria-label", f.title + ", " + price + (f.qc ? ", " + f.qc + " QC photos" : ""));
+    var b = c.querySelector(".pcc-buy"); if (b) b.setAttribute("aria-label", "Buy " + f.title + " via " + (f.agent || "your agent"));
+    var img = c.querySelector("img");
+    if (img) { img.addEventListener("load", imgIn); img.addEventListener("error", function () { img.remove(); }); if (img.complete && img.naturalWidth) img.classList.add("in"); }
+    return c;
+  }
+  // Cards keyed by find id: an update moves the cards it keeps (no image reload), adds new ones and drops the rest.
+  function setCards(v, list, animate) {
+    list = (list || []).filter(function (f) { return f && f.id && f.title; });
+    if (!list.length) { if (v.cards) { v.cards.remove(); v.cards = null; } return; }
+    if (!v.cards) { v.cards = el("div", "pcc-cards"); v.cards.setAttribute("role", "list"); v.cards.setAttribute("aria-label", "Finds"); v.turn.appendChild(v.cards); }
+    var have = {}; [].forEach.call(v.cards.children, function (c) { have[c._id] = c; });
+    var keep = {}, moved = false;
+    list.forEach(function (f, i) {
+      var c = have[f.id];
+      if (c) c.classList.remove("pcc-new");                 // a moved node would replay its entrance animation
+      else { c = card(f, i); if (!animate) c.classList.remove("pcc-new"); }
+      keep[f.id] = 1;
+      if (v.cards.children[i] !== c) { if (c.parentNode) moved = true; v.cards.insertBefore(c, v.cards.children[i] || null); }
     });
-    return row;
+    [].slice.call(v.cards.children).forEach(function (c) { if (!keep[c._id]) c.remove(); });
+    if (moved) v.cards.scrollLeft = 0;                       // the first card is the one the answer names first
   }
   function render() {
     log.innerHTML = "";
     if (!state.msgs.length) {
-      log.appendChild(bubble({ role: "assistant", content: "Hi! I can find reps in the catalogue and explain ordering through an agent, QC photos, sizing and shipping. What are you looking for?" }));
+      var hi = el("div", "pcc-turn"), b = el("div", "pcc-m a");
+      b.innerHTML = "<p>" + (prefs().pid ? "Hi! Ask me about this find, or anything else: sizing, QC photos, ordering through an agent, shipping." : "Hi! I can find reps in the catalogue and explain ordering through an agent, QC photos, sizing and shipping. What are you looking for?") + "</p>";
+      hi.appendChild(b); log.appendChild(hi);
       var sug = el("div", "pcc-sug");
-      SUGGEST.forEach(function (s) { var b = el("button"); b.type = "button"; b.textContent = s; b.addEventListener("click", function () { ask(s); }); sug.appendChild(b); });
+      (prefs().pid ? SUGGEST_PRODUCT : SUGGEST).forEach(function (s) { var x = el("button"); x.type = "button"; x.textContent = s; x.addEventListener("click", function () { ask(s); }); sug.appendChild(x); });
       log.appendChild(sug);
     }
-    state.msgs.forEach(function (m) { log.appendChild(bubble(m)); if (m.finds && m.finds.length) log.appendChild(cards(m.finds)); });
-    scroll();
+    state.msgs.forEach(function (m) { log.appendChild(m.role === "user" ? userTurn(m) : answerView(m).turn); });
+    pinned = true; toBottom();
   }
 
   // ---------------------------------------------------------------- talking to /api/chat
   function hide() { ss.set(OKKEY, "0"); if (root) { D.documentElement.classList.remove("pcc-lock"); root.remove(); } }
+  function stop(silent) { if (ctl) { ctl.silent = !!silent; try { ctl.abort(); } catch (e) {} } }
+  function retry(m) {
+    if (busy) return;
+    var i = state.msgs.indexOf(m), u = i > 0 ? state.msgs[i - 1] : null;
+    if (!u || u.role !== "user") return;
+    state.msgs.splice(i - 1, 2); save(); render(); ask(u.content);
+  }
   function ask(text) {
     text = String(text || "").trim().slice(0, MAXLEN);
     if (!text || busy) return;
-    busy = true; send.disabled = true; input.value = ""; grow();
+    busy = true; input.value = ""; grow(); sendState();
     var history = state.msgs.filter(function (m) { return !m.err && m.content; }).map(function (m) { return { role: m.role, content: m.content.slice(0, MAXLEN) }; });
     history.push({ role: "user", content: text });
-    state.msgs.push({ role: "user", content: text });
-    var me = { role: "assistant", content: "" };
-    state.msgs.push(me); render(); save();
+    var me = { role: "assistant", content: "", pending: true }, um = { role: "user", content: text };
+    if (!state.msgs.length) log.innerHTML = "";   // the greeting and the suggestion chips go with the first message
+    state.msgs.push(um, me);
+    var ut = userTurn(um), v = answerView(me);
+    ut.classList.add("pcc-new"); v.turn.classList.add("pcc-new");
+    log.appendChild(ut); log.appendChild(v.turn);
+    pinned = true; jump.classList.remove("on"); toBottom(); save();
     log.setAttribute("aria-busy", "true");
-    var node = log.lastChild;
-    var paint = function () { var n = bubble(me); log.replaceChild(n, node); node = n; scroll(); };
-    var fail = function (msg) { me.content = msg || "Sorry, something went wrong. Please try again."; me.err = true; paint(); };
-    var finish = function () { busy = false; send.disabled = !input.value.trim(); log.setAttribute("aria-busy", "false"); if (!me.content) fail(); save(); };
-    fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: history.slice(-10) }), credentials: "same-origin" })
+
+    // Paint at most once per frame (and on a timer, for when frames are throttled in a hidden tab).
+    var due = false, tick = function () { if (!due) return; due = false; paint(v, true); follow(); };
+    var later = function () { if (due) return; due = true; frame(tick); setTimeout(tick, 150); };
+    var failed = false;
+    // An error after part of the answer keeps that part, with a note and Try again.
+    var fail = function (msg, canRetry) {
+      failed = true; me.retry = !!canRetry;
+      if (me.content && !me.err) me.note = "The answer was cut off.";
+      else { me.content = msg || "Sorry, something went wrong. Please try again."; me.err = true; }
+    };
+    var my = ctl = W.AbortController ? new AbortController() : null;
+    var finish = function () {
+      delete me.pending;
+      if (my && my.silent) return;                          // "New chat" while it was writing: this answer is gone
+      var aborted = my && my.signal.aborted;
+      busy = false; ctl = null; log.setAttribute("aria-busy", "false");
+      if (aborted && !failed) { if (me.content) me.note = "Stopped"; else { me.content = "Stopped."; me.err = true; } me.retry = true; }
+      else if (!me.content) fail("Sorry, no answer came back. Please try again.", true);
+      due = false; paint(v, false); sendState(); follow(); save();
+    };
+    fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, credentials: "same-origin", signal: my ? my.signal : undefined,
+      body: JSON.stringify({ messages: history.slice(-10), ctx: prefs(), v: 2 }) })
       .then(function (r) {
         if (r.status === 503) { hide(); return; }
-        if (!r.ok || !r.body || !r.body.getReader) return r.json().then(function (j) { fail(j && j.error); }, function () { fail(); });
+        if (!r.ok || !r.body || !r.body.getReader) return r.json().then(function (j) { fail(j && j.error, r.status !== 429 && r.status !== 413); }, function () { fail(null, true); });
         var reader = r.body.getReader(), dec = new TextDecoder(), buf = "";
         var line = function (s) {
           if (!s.trim()) return;
           var o; try { o = JSON.parse(s); } catch (e) { return; }
-          if (o.t === "text") { me.content += o.v; paint(); }
-          else if (o.t === "finds" && Array.isArray(o.v)) { me.finds = o.v.slice(0, 6); log.appendChild(cards(me.finds)); scroll(); }
-          else if (o.t === "error") { fail(o.v); }
+          if (o.t === "text" && typeof o.v === "string") { me.content += o.v; later(); }
+          else if (o.t === "status") { v.status = o.v; if (!me.content) paint(v, true); }
+          else if (o.t === "finds" && Array.isArray(o.v)) { me.finds = o.v.slice(0, 8); setCards(v, me.finds, true); follow(); }
+          else if (o.t === "error") { fail(o.v, true); }
         };
         var pump = function () {
           return reader.read().then(function (x) {
@@ -212,7 +390,7 @@
         };
         return pump();
       })
-      .catch(function () { fail("The connection dropped. Please try again."); })
+      .catch(function () { if (!(my && my.signal.aborted)) fail("The connection dropped. Please try again.", true); })
       .then(finish, finish);
   }
 
