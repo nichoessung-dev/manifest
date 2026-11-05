@@ -401,7 +401,7 @@ case"ALL":return ALL;case"state":return state;case"render":return render;case"sy
 case"updatePriceUI":return updatePriceUI;case"openDetail":return openDetail;case"closeDetail":return closeDetail;
 case"t":return t;case"T":return T;case"pprice":return pprice;case"thumbOf":return thumbOf;case"catName":return catName;
 case"pcExtract":return pcExtract;case"Q_SYN":return Q_SYN;case"productColors":return productColors;case"isPH":return isPH;
-case"SOLD":return SOLD;case"STATS":return STATS;case"popScore":return popScore;
+case"SOLD":return SOLD;case"STATS":return STATS;case"popScore":return popScore;case"pcForYou":return pcForYou;
 }
 }catch(e){}
 return undefined;
@@ -415,18 +415,18 @@ function kind(){var p=location.pathname;return p==="/"?"home":/^\/product\//.tes
 function log(f){try{f(w.pcSearch);}catch(_){}}
 var EN_L={};
 try{
-var KEYS=["pcs_ph","pcs_ph_n","pcs_recent","pcs_clear","pcs_remove","pcs_popular","pcs_cats","pcs_brands","pcs_products","pcs_finds","pcs_dym","pcs_all","pcs_none","pcs_closest","pcs_try","pcs_open_find","pcs_qc_link","pcs_live","pcs_close","pcs_list","pcs_dym_g","pcs_ai_g","pcs_qc_g"];
+var KEYS=["pcs_ph","pcs_ph_n","pcs_recent","pcs_clear","pcs_remove","pcs_popular","pcs_cats","pcs_brands","pcs_products","pcs_finds","pcs_dym","pcs_all","pcs_none","pcs_closest","pcs_try","pcs_open_find","pcs_qc_link","pcs_live","pcs_close","pcs_list","pcs_dym_g","pcs_ai_g","pcs_qc_g","pcs_trend","pcs_pbrands","pcs_foryou","pcs_hot"];
 var L={
-en:["Search finds","Search {n} finds","Recent","Clear","Remove {q} from recent searches","Popular","Categories","Brands","Products","{n} finds","Did you mean {q}?","Search all {n} results for “{q}”","No exact matches for “{q}”","Closest matches","Try “{q}”","Open this find","Check QC photos for this link","{s} suggestions, {n} finds","Close search","Search suggestions","Did you mean","AI suggestion","QC photos"],
-no:["Søk i funn","Søk i {n} funn","Nylige","Tøm","Fjern {q} fra nylige søk","Populære","Kategorier","Merker","Produkter","{n} funn","Mente du {q}?","Se alle {n} treff for “{q}”","Ingen eksakte treff for “{q}”","Nærmeste treff","Prøv “{q}”","Åpne dette funnet","Sjekk QC-bilder for denne lenken","{s} forslag, {n} funn","Lukk søk","Søkeforslag","Mente du","AI-forslag","QC-bilder"],
-sv:["Sök fynd","Sök bland {n} fynd","Senaste","Rensa","Ta bort {q} från senaste sökningar","Populära","Kategorier","Märken","Produkter","{n} fynd","Menade du {q}?","Visa alla {n} träffar för “{q}”","Inga exakta träffar för “{q}”","Närmaste träffar","Prova “{q}”","Öppna det här fyndet","Kolla QC-bilder för länken","{s} förslag, {n} fynd","Stäng sökningen","Sökförslag","Menade du","AI-förslag","QC-bilder"],
-da:["Søg i fund","Søg i {n} fund","Seneste","Ryd","Fjern {q} fra seneste søgninger","Populære","Kategorier","Mærker","Produkter","{n} fund","Mente du {q}?","Se alle {n} resultater for “{q}”","Ingen præcise resultater for “{q}”","Nærmeste resultater","Prøv “{q}”","Åbn dette fund","Tjek QC-billeder for linket","{s} forslag, {n} fund","Luk søgning","Søgeforslag","Mente du","AI-forslag","QC-billeder"],
-de:["Funde durchsuchen","{n} Funde durchsuchen","Zuletzt gesucht","Löschen","{q} aus den letzten Suchen entfernen","Beliebt","Kategorien","Marken","Produkte","{n} Funde","Meintest du {q}?","Alle {n} Ergebnisse für „{q}“","Keine genauen Treffer für „{q}“","Ähnliche Treffer","„{q}“ versuchen","Diesen Fund öffnen","QC-Fotos für diesen Link prüfen","{s} Vorschläge, {n} Funde","Suche schließen","Suchvorschläge","Meintest du","KI-Vorschlag","QC-Fotos"],
-nl:["Zoek vondsten","Zoek in {n} vondsten","Recent","Wissen","{q} uit recente zoekopdrachten verwijderen","Populair","Categorieën","Merken","Producten","{n} vondsten","Bedoelde je {q}?","Alle {n} resultaten voor “{q}”","Geen exacte resultaten voor “{q}”","Beste overeenkomsten","Probeer “{q}”","Open deze vondst","QC-foto’s voor deze link bekijken","{s} suggesties, {n} vondsten","Zoeken sluiten","Zoeksuggesties","Bedoelde je","AI-suggestie","QC-foto’s"],
-fr:["Rechercher des trouvailles","Rechercher parmi {n} trouvailles","Récentes","Effacer","Retirer {q} des recherches récentes","Populaires","Catégories","Marques","Produits","{n} trouvailles","Vouliez-vous dire {q} ?","Voir les {n} résultats pour « {q} »","Aucun résultat exact pour « {q} »","Résultats proches","Essayer « {q} »","Ouvrir cette trouvaille","Voir les photos QC de ce lien","{s} suggestions, {n} trouvailles","Fermer la recherche","Suggestions de recherche","Vouliez-vous dire","Suggestion IA","Photos QC"],
-it:["Cerca nei find","Cerca tra {n} find","Recenti","Cancella","Rimuovi {q} dalle ricerche recenti","Popolari","Categorie","Marchi","Prodotti","{n} find","Forse cercavi {q}?","Tutti i {n} risultati per “{q}”","Nessun risultato esatto per “{q}”","Risultati simili","Prova “{q}”","Apri questo find","Vedi le foto QC di questo link","{s} suggerimenti, {n} find","Chiudi la ricerca","Suggerimenti di ricerca","Forse cercavi","Suggerimento IA","Foto QC"],
-es:["Buscar hallazgos","Buscar entre {n} hallazgos","Recientes","Borrar","Quitar {q} de las búsquedas recientes","Populares","Categorías","Marcas","Productos","{n} hallazgos","¿Quisiste decir {q}?","Ver los {n} resultados de “{q}”","Sin resultados exactos para “{q}”","Resultados parecidos","Prueba “{q}”","Abrir este hallazgo","Ver fotos QC de este enlace","{s} sugerencias, {n} hallazgos","Cerrar búsqueda","Sugerencias de búsqueda","Quisiste decir","Sugerencia de IA","Fotos QC"],
-zh:["搜索好物","搜索 {n} 件好物","最近搜索","清除","从最近搜索中删除 {q}","热门","分类","品牌","商品","{n} 件","你是不是要找 {q}？","查看“{q}”的全部 {n} 个结果","没有与“{q}”完全匹配的结果","相近结果","试试“{q}”","打开这件好物","查看此链接的 QC 照片","{s} 条建议，{n} 件好物","关闭搜索","搜索建议","你是不是要找","AI 建议","QC 照片"]
+en:["Search finds","Search {n} finds","Recent","Clear","Remove {q} from recent searches","Popular","Categories","Brands","Products","{n} finds","Did you mean {q}?","Search all {n} results for “{q}”","No exact matches for “{q}”","Closest matches","Try “{q}”","Open this find","Check QC photos for this link","{s} suggestions, {n} finds","Close search","Search suggestions","Did you mean","AI suggestion","QC photos","Trending searches","Popular brands","For you","Trending now"],
+no:["Søk i funn","Søk i {n} funn","Nylige","Tøm","Fjern {q} fra nylige søk","Populære","Kategorier","Merker","Produkter","{n} funn","Mente du {q}?","Se alle {n} treff for “{q}”","Ingen eksakte treff for “{q}”","Nærmeste treff","Prøv “{q}”","Åpne dette funnet","Sjekk QC-bilder for denne lenken","{s} forslag, {n} funn","Lukk søk","Søkeforslag","Mente du","AI-forslag","QC-bilder","Populære søk","Populære merker","For deg","Populært nå"],
+sv:["Sök fynd","Sök bland {n} fynd","Senaste","Rensa","Ta bort {q} från senaste sökningar","Populära","Kategorier","Märken","Produkter","{n} fynd","Menade du {q}?","Visa alla {n} träffar för “{q}”","Inga exakta träffar för “{q}”","Närmaste träffar","Prova “{q}”","Öppna det här fyndet","Kolla QC-bilder för länken","{s} förslag, {n} fynd","Stäng sökningen","Sökförslag","Menade du","AI-förslag","QC-bilder","Populära sökningar","Populära märken","För dig","Populärt nu"],
+da:["Søg i fund","Søg i {n} fund","Seneste","Ryd","Fjern {q} fra seneste søgninger","Populære","Kategorier","Mærker","Produkter","{n} fund","Mente du {q}?","Se alle {n} resultater for “{q}”","Ingen præcise resultater for “{q}”","Nærmeste resultater","Prøv “{q}”","Åbn dette fund","Tjek QC-billeder for linket","{s} forslag, {n} fund","Luk søgning","Søgeforslag","Mente du","AI-forslag","QC-billeder","Populære søgninger","Populære mærker","Til dig","Populært nu"],
+de:["Funde durchsuchen","{n} Funde durchsuchen","Zuletzt gesucht","Löschen","{q} aus den letzten Suchen entfernen","Beliebt","Kategorien","Marken","Produkte","{n} Funde","Meintest du {q}?","Alle {n} Ergebnisse für „{q}“","Keine genauen Treffer für „{q}“","Ähnliche Treffer","„{q}“ versuchen","Diesen Fund öffnen","QC-Fotos für diesen Link prüfen","{s} Vorschläge, {n} Funde","Suche schließen","Suchvorschläge","Meintest du","KI-Vorschlag","QC-Fotos","Beliebte Suchen","Beliebte Marken","Für dich","Gerade beliebt"],
+nl:["Zoek vondsten","Zoek in {n} vondsten","Recent","Wissen","{q} uit recente zoekopdrachten verwijderen","Populair","Categorieën","Merken","Producten","{n} vondsten","Bedoelde je {q}?","Alle {n} resultaten voor “{q}”","Geen exacte resultaten voor “{q}”","Beste overeenkomsten","Probeer “{q}”","Open deze vondst","QC-foto’s voor deze link bekijken","{s} suggesties, {n} vondsten","Zoeken sluiten","Zoeksuggesties","Bedoelde je","AI-suggestie","QC-foto’s","Populaire zoekopdrachten","Populaire merken","Voor jou","Nu populair"],
+fr:["Rechercher des trouvailles","Rechercher parmi {n} trouvailles","Récentes","Effacer","Retirer {q} des recherches récentes","Populaires","Catégories","Marques","Produits","{n} trouvailles","Vouliez-vous dire {q} ?","Voir les {n} résultats pour « {q} »","Aucun résultat exact pour « {q} »","Résultats proches","Essayer « {q} »","Ouvrir cette trouvaille","Voir les photos QC de ce lien","{s} suggestions, {n} trouvailles","Fermer la recherche","Suggestions de recherche","Vouliez-vous dire","Suggestion IA","Photos QC","Recherches populaires","Marques populaires","Pour vous","Tendances"],
+it:["Cerca nei find","Cerca tra {n} find","Recenti","Cancella","Rimuovi {q} dalle ricerche recenti","Popolari","Categorie","Marchi","Prodotti","{n} find","Forse cercavi {q}?","Tutti i {n} risultati per “{q}”","Nessun risultato esatto per “{q}”","Risultati simili","Prova “{q}”","Apri questo find","Vedi le foto QC di questo link","{s} suggerimenti, {n} find","Chiudi la ricerca","Suggerimenti di ricerca","Forse cercavi","Suggerimento IA","Foto QC","Ricerche popolari","Marchi popolari","Per te","Di tendenza"],
+es:["Buscar hallazgos","Buscar entre {n} hallazgos","Recientes","Borrar","Quitar {q} de las búsquedas recientes","Populares","Categorías","Marcas","Productos","{n} hallazgos","¿Quisiste decir {q}?","Ver los {n} resultados de “{q}”","Sin resultados exactos para “{q}”","Resultados parecidos","Prueba “{q}”","Abrir este hallazgo","Ver fotos QC de este enlace","{s} sugerencias, {n} hallazgos","Cerrar búsqueda","Sugerencias de búsqueda","Quisiste decir","Sugerencia de IA","Fotos QC","Búsquedas populares","Marcas populares","Para ti","Tendencias"],
+zh:["搜索好物","搜索 {n} 件好物","最近搜索","清除","从最近搜索中删除 {q}","热门","分类","品牌","商品","{n} 件","你是不是要找 {q}？","查看“{q}”的全部 {n} 个结果","没有与“{q}”完全匹配的结果","相近结果","试试“{q}”","打开这件好物","查看此链接的 QC 照片","{s} 条建议，{n} 件好物","关闭搜索","搜索建议","你是不是要找","AI 建议","QC 照片","热门搜索","热门品牌","为你推荐","当下热门"]
 };
 KEYS.forEach(function(k,i){EN_L[k]=L.en[i];});
 var TT=G("T");
@@ -475,8 +475,19 @@ q=String(q||"").trim().replace(/\s+/g," ").slice(0,60);var f=A.fold(q);
 if(!f||/^\d{6,}$/.test(f)||/[\/.]/.test(q)&&/\d{6,}/.test(q)||/https?:|www\./i.test(q))return;
 setRecent([q].concat(recent().filter(function(x){return A.fold(x)!==f;})));
 }
-function delRecent(q){var f=A.fold(q);setRecent(recent().filter(function(x){return A.fold(x)!==f;}));}
-var POP=null,popLoading=false,popWait=[],idxWait=[];
+function delRecent(q){var f=A.fold(q);setRecent(recent().filter(function(x){return A.fold(x)!==f;}));tasteDrop(f);}
+/* the menu's Recent rows (Nov 2026): the searches run from this box first, then the visitor's other searches from the
+   taste log (track.js: localStorage "pc.taste".q = [[query, time]], newest last). Removing one, or Clear, forgets it in both. */
+function tasteRW(fn){try{var t=JSON.parse(localStorage.getItem("pc.taste")||"{}")||{};if(fn(t)!==false)localStorage.setItem("pc.taste",JSON.stringify(t));}catch(e){}}
+function tasteDrop(f){tasteRW(function(t){if(!Array.isArray(t.q))return false;var n=t.q.filter(function(e){return!(Array.isArray(e)&&(f==null||A.fold(e[0])===f));});if(n.length===t.q.length)return false;t.q=n;});}
+function recentAll(){
+var out=[],seen={},push=function(q){q=String(q||"").trim();var f=A.fold(q);if(!f||seen[f]||out.length>=4)return;seen[f]=1;out.push(q);};
+recent().forEach(push);
+var tq=[];tasteRW(function(t){tq=Array.isArray(t.q)?t.q:[];return false;});
+for(var i=tq.length-1;i>=0&&out.length<4;i--)if(Array.isArray(tq[i]))push(tq[i][0]);
+return out;
+}
+var POP=null,PB=[],popLoading=false,popWait=[],idxWait=[];
 function whenIdx(f){if(SA&&!SA.ALL&&!SA.failed)idxWait.push(f);else f();}
 function loadPop(){
 if(POP||popLoading)return;popLoading=true;
@@ -489,14 +500,17 @@ var a=all()||[],ps=G("popScore"),sc={};
 a.forEach(function(p){if(p.brand)sc[p.brand]=(sc[p.brand]||0)+(typeof ps==="function"?ps(p):0);});
 Object.keys(sc).filter(function(b){return sc[b]>0;}).sort(function(x,y){return sc[y]-sc[x];}).slice(0,8).forEach(push);
 }catch(e){}
-POP=out;popLoading=false;if(open)paint();
+var pb=[],pf={},pushB=function(b){b=String(b||"").trim();var f=A.fold(b);if(!f||pf[f]||pb.length>=8)return;pf[f]=1;pb.push(b);};
+try{((dash&&dash.top_brands_7d)||[]).forEach(function(r){pushB(r[0]);});}catch(e){}
+if(pb.length<3)try{var a2=all()||[],ps2=G("popScore"),sc2={};a2.forEach(function(p){if(p.brand)sc2[p.brand]=(sc2[p.brand]||0)+1+(typeof ps2==="function"?ps2(p)||0:0);});Object.keys(sc2).sort(function(x,y){return sc2[y]-sc2[x];}).slice(0,8).forEach(pushB);}catch(e){}
+PB=pb;POP=out;popLoading=false;if(open)paint();
 var pw=popWait;popWait=[];pw.forEach(function(f){try{f(out.slice(0,8));}catch(e){}});
 };
 var later=function(dash){whenIdx(function(){done(dash);});};
 try{fetch("/data/dashboard.json",{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;}).then(later,function(){later(null);});}catch(e){later(null);}
 }
 var panel,list,live,ov,dlg,oi,oclr,back,open=false,mode="",host=null,trigger=null,opts=[],act=-1,kb=false,rafId=0,logT=0,liveT=0,lastN=0,lastQ="",res=null;
-var R={rec:[],pop:[],cat:[],br:[],ct:[],pr:[],cl:[]};
+var R={rec:[],pop:[],pb:[],fy:[],cat:[],br:[],ct:[],pr:[],cl:[]};
 function row(cls,inner,tag){var e=d.createElement(tag||"div");e.className="pcs-row "+(cls||"");e.setAttribute("role","option");e.setAttribute("aria-selected","false");if(tag==="a")e.tabIndex=-1;e.innerHTML=inner;return e;}
 function sec(id,head,extra){var s=d.createElement("div");s.className="pcs-sec";s.id="pcs-g-"+id;s.setAttribute("role","group");if(head){s.setAttribute("aria-labelledby","pcs-h-"+id);s.innerHTML='<div class="pcs-h"><span id="pcs-h-'+id+'"></span>'+(extra||"")+"</div>";}var b=d.createElement("div");b.className="pcs-b";s.appendChild(b);list.appendChild(s);return s;}
 function prodRow(){
@@ -513,8 +527,11 @@ s=sec("rec",1,'<button type="button" class="pcs-clr" tabindex="-1" data-a="clr">
 for(i=0;i<6;i++){R.rec.push(s.lastChild.appendChild(row("pcs-rr",ic("clock")+'<span class="pcs-t"></span><button type="button" class="pcs-x" tabindex="-1" aria-hidden="true" data-a="del">'+ic("x")+"</button>")));}
 s=sec("pop",1);s.lastChild.className="pcs-b pcs-chips";
 for(i=0;i<8;i++){var c=row("pcs-chip","");c.className="pcs-chip";R.pop.push(s.lastChild.appendChild(c));}
-s=sec("cat",1);s.lastChild.className="pcs-b pcs-tiles";
-CATS.forEach(function(c,k){var e=row("pcs-tile",'<span class="pcs-cph"><img src="'+esc(c[1])+'" alt="" width="40" height="40" decoding="async" loading="lazy"></span><span class="pcs-tw"><span class="pcs-tl"></span><span class="pcs-tn"></span></span>');e.className="pcs-tile";e.dataset.cat=c[0];R.cat.push(s.lastChild.appendChild(e));});
+s=sec("pb",1);for(i=0;i<3;i++)R.pb.push(s.lastChild.appendChild(row("pcs-pbr",'<span class="pcs-bt">'+ic("tag")+'</span><span class="pcs-t"></span><span class="pcs-n"></span>',"a")));
+s=sec("fy",1);for(i=0;i<3;i++)R.fy.push(s.lastChild.appendChild(prodRow()));
+s=sec("cat",1);s.lastChild.className="pcs-b pcs-chips";
+/* category chips: the spreadsheet filtered to the category (in place on the homepage, /?cat=...#v9-all elsewhere) */
+CATS.forEach(function(c){var e=row("",'<span class="pcs-cph"><img src="'+esc(c[1])+'" alt="" width="24" height="24" decoding="async" loading="lazy"></span><span class="pcs-tl"></span>',"a");e.className="pcs-chip pcs-cc";e.dataset.cat=c[0];e.href="/?cat="+encodeURIComponent(c[0])+"#v9-all";R.cat.push(s.lastChild.appendChild(e));});
 s=sec("dym",0);s.setAttribute("aria-label",tr("pcs_dym_g"));R.dym=s.lastChild.appendChild(row("",ic("search")+'<span class="pcs-t"></span>'));
 s=sec("none",0);s.setAttribute("role","presentation");s.lastChild.className="pcs-b pcs-none";
 s=sec("open",1);
@@ -630,7 +647,46 @@ var pp=G("pprice"),pe=e.querySelector(".pcs-pp");if(SA)pe.innerHTML=SA.priceH(p)
 e.querySelector(".pcs-qc").hidden=!((p.qc||0)>=1);
 }
 function catLabel(c){var cn=G("catName");return typeof cn==="function"?cn(c):c;}
-function catCount(){var by={};(all()||[]).forEach(function(p){by[p.cat]=(by[p.cat]||0)+1;});return by;}
+/* Popular brands rows: PB (loadPop) matched to the catalogue's brands and their find counts; returns the folded names shown */
+var BC=null,bcLen=-1;
+function brandCounts(){var a=all();if(!a)return null;if(bcLen!==a.length){BC={};a.forEach(function(p){if(!p.brand)return;var f=A.fold(p.brand),e=BC[f];if(!e)e=BC[f]={name:p.brand,n:0};e.n++;});bcLen=a.length;}return BC;}
+function bSlug(b){return String(b).toLowerCase().replace(/&/g," and ").replace(/['’]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}/* = site.js slug() */
+function pbPaint(){
+var bc=brandCounts(),out=[];
+if(bc)PB.forEach(function(b){var e=bc[A.fold(b)];if(e&&out.length<3)out.push(e);});
+sh("pb",out.length>0);$("pcs-h-pb").textContent=tr("pcs_pbrands");
+R.pb.forEach(function(x,i){var b=out[i];x.hidden=!b;if(b){x.dataset.b=b.name;x.href=SA?(SA.brandSlug[b.name]?"/brand/"+SA.brandSlug[b.name]:"/?q="+encodeURIComponent(b.name)):"/brand/"+bSlug(b.name);x.querySelector(".pcs-t").textContent=b.name;x.querySelector(".pcs-n").textContent=tr("pcs_finds").replace("{n}",nf(b.n));}});
+return out.map(function(b){return A.fold(b.name);});
+}
+/* For you rows: the app's pcForYou() over the 1,200 most viewed finds when this visitor has taste signals, else the most
+   viewed ("Trending now"); three brands, no sold, ask-seller or just-opened finds. Kept 30 s so the rows hold still. */
+var FY=null;
+function sigs(){var t={},n=0;try{t=JSON.parse(localStorage.getItem("pc.taste")||"{}")||{};}catch(e){}
+["v","b","c","f","q"].forEach(function(k){if(Array.isArray(t[k]))n+=t[k].length;});
+try{var lr=JSON.parse(localStorage.getItem("pc.feed.lr")||"null");if(lr&&lr.w&&Object.keys(lr.w).length)n++;}catch(e){}
+try{var fv=JSON.parse(localStorage.getItem("manifest.faves")||"[]");if(Array.isArray(fv))n+=fv.length;}catch(e){}
+return{n:n,v:Array.isArray(t.v)?t.v:[]};}
+function fyPick(){
+var a=all();if(!a||!a.length)return null;
+var now=Date.now();if(FY&&FY.len===a.length&&now-FY.at<30000)return FY;
+var so=G("SOLD"),ph=G("isPH"),ps=G("popScore"),sg=sigs(),skip={},c=[],i;
+sg.v.slice(-40).forEach(function(e){if(Array.isArray(e))skip[String(e[0])]=1;});
+for(i=0;i<a.length;i++){var p=a[i];if(!p.img||skip[String(p.id)]||(so&&so.has&&so.has(String(p.id)))||(typeof ph==="function"&&ph(p.price)))continue;c.push({p:p,s:typeof ps==="function"?ps(p)||0:0});}
+c.sort(function(x,y){return y.s-x.s;});c=c.slice(0,1200).map(function(x){return x.p;});
+var fy=G("pcForYou"),sc=null;
+if(sg.n&&typeof fy==="function")try{sc=fy(c);}catch(e){sc=null;}
+if(sc&&sc.get)c.sort(function(x,y){return(sc.get(y)||0)-(sc.get(x)||0);});else sc=null;
+var pick=[],bs={};
+for(i=0;i<c.length&&pick.length<3;i++){var b=c[i].brand||"";if(bs[b])continue;bs[b]=1;pick.push(c[i]);}
+FY={at:now,len:a.length,list:pick,me:!!sc};
+return FY;
+}
+function fyPaint(){
+var r=null;try{r=fyPick();}catch(e){}
+sh("fy",!!(r&&r.list.length));if(!r)return;
+$("pcs-h-fy").textContent=tr(r.me?"pcs_foryou":"pcs_hot");
+R.fy.forEach(function(x,i){var p=r.list[i];x.hidden=!p;if(p)fillProd(x,p,[]);});
+}
 function idFind(raw){
 var f=A.fold(raw),ex=/^\d{6,}$/.test(f)?{id:f}:(/[\/.]/.test(raw)&&/\d{6,}/.test(raw)?(function(){try{var x=G("pcExtract");return x?x(raw):null;}catch(e){return null;}})():null);
 if(!ex||!ex.id)return null;
@@ -642,15 +698,15 @@ if(!open||!panel)return;
 var raw=host?host.value:"",f=A.fold(raw),e=f?ensure():null;if(f&&SA&&!SA.ALL&&!SA.failed)f="";/* index still loading: show Recent / Popular / Categories */
 var H=function(id,k,fb,rep){var h=$("pcs-h-"+id);if(h)h.textContent=rep?rep(tr(k,fb)):tr(k,fb);};
 try{list.setAttribute("aria-label",tr("pcs_list"));[["dym","pcs_dym_g"],["ai","pcs_ai_g"],["qc","pcs_qc_g"]].forEach(function(g){var x=$("pcs-g-"+g[0]);if(x)x.setAttribute("aria-label",tr(g[1]));});}catch(_){}
-var secs=["rec","pop","cat","dym","none","open","br","ct","pr","cl","ai","qc"];secs.forEach(function(s){sh(s,false);});
+var secs=["rec","pop","pb","fy","cat","dym","none","open","br","ct","pr","cl","ai","qc"];secs.forEach(function(s){sh(s,false);});
 R.all.hidden=true;lastN=0;lastQ=raw.trim();res=null;
 if(!f){
-var rc=recent();
+var rc=recentAll();
 if(rc.length){sh("rec",1);H("rec","pcs_recent","Recent");var cb=R.secs.rec.querySelector(".pcs-clr");cb.textContent=tr("pcs_clear");
 R.rec.forEach(function(r,i){r.hidden=i>=rc.length;if(i<rc.length){r.querySelector(".pcs-t").textContent=rc[i];r.dataset.q=rc[i];r.querySelector(".pcs-x").setAttribute("aria-label",tr("pcs_remove").replace("{q}",rc[i]));}});}
-popPaint();place("pop","cat");
-sh("cat",1);H("cat","pcs_cats","Categories");var by=catCount();
-R.cat.forEach(function(t){var c=t.dataset.cat;t.querySelector(".pcs-tl").textContent=catLabel(c);t.querySelector(".pcs-tn").textContent=all()?nf(by[c]||0):"";});
+popPaint(pbPaint().concat(rc.map(A.fold)));place("pop","pb");fyPaint();
+sh("cat",1);H("cat","pcs_cats","Categories");
+R.cat.forEach(function(t){t.querySelector(".pcs-tl").textContent=catLabel(t.dataset.cat);});
 }else{
 var idr=idFind(raw);
 if(idr){
@@ -689,11 +745,12 @@ act=-1;
 }
 function none(raw){sh("none",1);R.secs.none.lastChild.textContent=tr("pcs_none").replace("{q}",raw.trim());}
 function place(id,before){var s=R.secs[id],b=before==="all"?R.all:R.secs[before];if(s&&b&&s.nextSibling!==b)list.insertBefore(s,b);}
-function popPaint(){
-var s=R.secs.pop;$("pcs-h-pop").textContent=tr("pcs_popular");
+function popPaint(ex){
+var s=R.secs.pop;$("pcs-h-pop").textContent=tr(ex?"pcs_trend":"pcs_popular");
 if(!POP){sh("pop",1);R.pop.forEach(function(c,i){c.hidden=i>=4;c.className="pcs-chip pcs-sk";c.textContent="";c.setAttribute("role","presentation");});return;}
-sh("pop",POP.length>0);
-R.pop.forEach(function(c,i){var q=POP[i];c.hidden=!q;c.className="pcs-chip";c.setAttribute("role","option");if(q){c.textContent=q;c.dataset.q=q;}});
+var P2=ex?POP.filter(function(x){var f=A.fold(x);return!ex.some(function(b){return b===f||b.lastIndexOf(f+" ",0)===0;});}).slice(0,6):POP;
+sh("pop",P2.length>0);
+R.pop.forEach(function(c,i){var q=P2[i];c.hidden=!q;c.className="pcs-chip";c.setAttribute("role","option");if(q){c.textContent=q;c.dataset.q=q;}});
 }
 function setAct(i){
 if(opts[act]){opts[act].classList.remove("is-act","is-kb");opts[act].setAttribute("aria-selected","false");}
@@ -716,11 +773,13 @@ if(!s){location.href="/?q="+encodeURIComponent(v);return;}
 reset(s);s.q=v;setQ(v);rerender();toAll();
 if(mq("(pointer: coarse)"))try{d.activeElement&&d.activeElement.blur();}catch(e){}
 }
+function runQ(q){var e=null,r=null,k=kind();try{e=ensure();r=e&&e.search(q);}catch(x){}if(host)host.value=q;if(r)log(function(s){s&&s.q(q,r.total,k);});commit(q);}
 function fill(v){if(!host)return;host.value=v;if(host===oi)oclr.hidden=!v;try{host.setSelectionRange(v.length,v.length);}catch(e){}paint();}
 function choose(o,ev){
 if(!o)return;var s=app(),typed=host&&A.fold(host.value)?host.value:"";
 if(o===R.all)return commit();
-if(o===R.dym||o===R.ai||o.classList.contains("pcs-rr")||(o.classList.contains("pcs-chip")&&o.dataset.q))return fill(o.dataset.q);
+if(o.classList.contains("pcs-rr"))return runQ(o.dataset.q);
+if(o===R.dym||o===R.ai||(o.classList.contains("pcs-chip")&&o.dataset.q))return fill(o.dataset.q);
 if(o===R.qc){log(function(p){p&&p.commit();});close(false);location.href=o.href;return;}
 if(o.__p){
 if(ev&&(ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.button===1))return;
@@ -735,17 +794,17 @@ var cat=o.dataset.cat,br=o.dataset.b;
 if(cat||br){
 if(typed)addRecent(typed);
 log(function(p){p&&p.commit();});close(false);
-if(!s){location.href=SA?(br?(SA.brandSlug[br]?"/brand/"+SA.brandSlug[br]:"/?q="+encodeURIComponent(br)):(SA.catSlug[cat]?"/category/"+SA.catSlug[cat]:"/?q="+encodeURIComponent(cat))):"/?q="+encodeURIComponent(br||cat);return;}
+if(!s){location.href=o.classList.contains("pcs-cc")?o.href:SA?(br?(SA.brandSlug[br]?"/brand/"+SA.brandSlug[br]:"/?q="+encodeURIComponent(br)):(SA.catSlug[cat]?"/category/"+SA.catSlug[cat]:"/?q="+encodeURIComponent(cat))):"/?q="+encodeURIComponent(br||cat);return;}
 if(br){reset(s);s.brand=br;}else{s.cats=[cat];s.cat="all";s.saved=false;}
 s.q="";setQ("");rerender();toAll();
 }
 }
 function onClick(e){
 var a=e.target.closest&&e.target.closest("[data-a]");
-if(a&&a.dataset.a==="clr"){setRecent([]);paint();return;}
+if(a&&a.dataset.a==="clr"){setRecent([]);tasteDrop(null);paint();return;}
 if(a&&a.dataset.a==="del"){e.preventDefault();e.stopPropagation();var r=a.closest(".pcs-rr");if(r)delRecent(r.dataset.q);paint();return;}
 var o=e.target.closest&&e.target.closest('[role="option"]');
-if(o&&opts.indexOf(o)>=0){if(o.tagName==="A"&&!o.__p&&o!==R.qc)e.preventDefault();if(o===R.qc)e.preventDefault();choose(o,e);}
+if(o&&opts.indexOf(o)>=0){if(o.tagName==="A"&&!o.__p&&(e.metaKey||e.ctrlKey||e.shiftKey||e.button===1))return;if(o.tagName==="A"&&!o.__p&&o!==R.qc)e.preventDefault();if(o===R.qc)e.preventDefault();choose(o,e);}
 }
 var aiT=0,aiCtl=null,aiMemo={},aiCalls=0;
 function aiOff(){try{return sessionStorage.getItem("pcs.ai.off")==="1";}catch(e){return false;}}
@@ -781,6 +840,7 @@ if(!inp||inp.__pcs)return;inp.__pcs=1;
 inp.setAttribute("role","combobox");inp.setAttribute("aria-autocomplete","list");inp.setAttribute("aria-expanded","false");inp.setAttribute("aria-controls","pcs-list");inp.setAttribute("aria-activedescendant","");
 inp.addEventListener("input",function(){if(inp===oi)oclr.hidden=!oi.value;if(!open||host!==inp){if(!start(inp))return;}schedule();});
 inp.addEventListener("focus",function(){if(inp!==oi&&!(open&&host===inp))start(inp);});
+inp.addEventListener("click",function(){if(inp!==oi&&!(open&&host===inp))start(inp);});
 inp.addEventListener("keydown",function(e){
 if(e.isComposing||e.keyCode===229)return;
 var k=e.key;
@@ -803,7 +863,7 @@ if(inp===heroIn&&sheetish())return false;
 openAt(inp,"inline");return true;
 }
 function launch(from){
-if(hdIn&&hdIn.offsetParent!==null&&hdIn.getBoundingClientRect().width>0){hdIn.focus();return;}
+if(hdIn&&hdIn.offsetParent!==null&&hdIn.getBoundingClientRect().width>0){hdIn.focus();if(!(open&&host===hdIn))start(hdIn);return;}
 if(open&&mode!=="inline"){oi.focus();return;}
 if(open)close(false);
 openOv(sheetish()?"sheet":"pal",from);
@@ -813,6 +873,11 @@ wire(heroIn);wire(hdIn);
 if(heroIn)heroIn.addEventListener("click",function(){if(sheetish()&&!(open&&mode==="sheet")){heroIn.blur();openOv("sheet",heroIn);}});
 if(hb)hb.addEventListener("click",function(){launch(hb);});
 var hf=hdIn&&hdIn.form;if(hf)hf.addEventListener("submit",function(e){if(app()){e.preventDefault();host=hdIn;commit(hdIn.value);}});
+/* a press anywhere on the pill (the icon, the key hint) is a press on the field */
+if(hf)hf.addEventListener("mousedown",function(e){if(e.target===hdIn||e.button)return;e.preventDefault();hdIn.focus();if(!(open&&host===hdIn))start(hdIn);});
+/* the menu's data on the way to the box (pointer over it, a touch), so the first frame already has it */
+var pre=function(){loadPop();idle(function(){try{fyPick();}catch(e){}});};
+[$("pcs-hd"),heroIn].forEach(function(x){if(x){x.addEventListener("pointerenter",pre);x.addEventListener("touchstart",pre,{passive:true});}});
 try{var kbd=d.querySelector("#pcs-hd .pcs-kbd");if(kbd)kbd.textContent=/Mac|iPhone|iPad|iPod/.test(navigator.platform||navigator.userAgent)?"⌘K":"Ctrl K";}catch(e){}
 d.addEventListener("keydown",function(e){
 if((e.key==="k"||e.key==="K")&&(e.metaKey||e.ctrlKey)&&!e.altKey){e.preventDefault();launch(d.activeElement);return;}
@@ -822,7 +887,7 @@ if(tg==="INPUT"||tg==="TEXTAREA"||tg==="SELECT"||(a&&a.isContentEditable))return
 e.preventDefault();launch(a);
 }
 });
-d.addEventListener("pointerdown",function(e){if(open&&mode==="inline"&&panel&&!panel.contains(e.target)&&e.target!==host)close(false);},true);
+d.addEventListener("pointerdown",function(e){if(open&&mode==="inline"&&panel&&!panel.contains(e.target)&&e.target!==host&&!(host===hdIn&&e.target.closest&&e.target.closest(".pcs-hf")))close(false);},true);
 w.addEventListener("resize",function(){if(open&&mode==="inline"&&host){if(host.offsetParent===null)close(false);else if(host===heroIn)posHero();}});
 try{
 var u=new URL(location.href);
@@ -856,6 +921,7 @@ var got=function(j){var x=A.decode(j);SA.ALL=x.items;SA.brandSlug=x.brandSlug;SA
 fin=function(){var q=idxWait;idxWait=[];q.forEach(function(f){try{f();}catch(e){}});if(open)paint();};
 (B.idx||(w.fetch?fetch("/search-index.json").then(function(r){if(!r.ok)throw 0;return r.json();}):Promise.reject()))
 .then(function(j){got(j);warm();fin();},function(){SA.failed=true;fin();});
+loadPop();/* the menu's Trending searches and Popular brands, fetched with the index */
 /* first paint waits for pcs.css; then the action that loaded us (Cmd/Ctrl+K, "/", the phone button) or the focused field */
 (B.css||Promise.resolve()).then(function(){
 PCS.ready=true;var wnt=B.want;B.want=null;
