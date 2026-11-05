@@ -3,7 +3,8 @@ on:
   schedule:
     # every 15 min (was every 4h, 21 Oct 2026): the sign-up window promises the coupons by email, so the welcome with the
     # coupon link should arrive while the new member is still on the site. welcome -> (1 min) ordering guide -> (1 day)
-    # MyCNBox account nudge (opted-in members only).
+    # MyCNBox account nudge (opted-in members only). The ordering guide matches the agent the member picked (profiles.agent);
+    # members who picked another agent get no MyCNBox nudge.
     - cron: '*/15 * * * *'
   # GitHub's own timer is unreliable here (the 4-hourly schedule ran 3 times a day), but the Finds carousel workflow is
   # started every 15 minutes by the owner's Supabase timer: start with it too. The schedule above stays as a backup.
@@ -20,6 +21,10 @@ on:
         description: 'Which test email: welcome, ordering or mycnbox'
         required: false
         default: 'mycnbox'
+      test_agent:
+        description: 'For test_type ordering: the agent version (empty = no agent picked, mycnbox, kakobuy, lovegobuy, oopbuy, sugargoo, or all = one of each)'
+        required: false
+        default: ''
 # One run at a time: two overlapping runs could both read a new member as not yet welcomed and send twice.
 concurrency:
   group: welcome-emails
@@ -42,6 +47,7 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
           TEST_EMAIL: ${{ github.event.inputs.test_email }}
+          TEST_AGENT: ${{ github.event.inputs.test_agent }}
 
       # --- normal scheduled sequence ---
       - name: Welcome new signups
