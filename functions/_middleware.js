@@ -4,6 +4,7 @@ import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INV
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
   sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL } from "./_lib/pages.js";
 import { imgSrc, navKey } from "./_lib/site.js";
+import { reportedIds } from "./_lib/reported.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
@@ -90,13 +91,14 @@ async function linkHealth(ctx, origin) {
   } catch (e) { if (!_lh) _lh = { checked: null, dead: new Set() }; }
   return _lh;
 }
-// The app's first cards as HTML (see appCards in pages.js), dead listings left out like the app does. Only once the view
+// The app's first cards as HTML (see appCards in pages.js), dead listings and finds removed after reports
+// (data/reported.json) left out like the app does. Only once the view
 // stats are read, so the order is the app's; without them the grid stays empty and the app fills it as before.
 async function serverCards(ctx, origin, spec) {
   if (!statsLoaded()) return { cards: "", more: "" };
-  const { list, base } = hubList(spec), { dead } = await linkHealth(ctx, origin);
+  const { list, base } = hubList(spec), { dead } = await linkHealth(ctx, origin), rep = await reportedIds(ctx.env, origin);
   const live = [];
-  for (const p of list) { if (!dead.has(String(p.id))) live.push(p); if (live.length >= APP_CARDS) break; }
+  for (const p of list) { if (!dead.has(String(p.id)) && !rep.has(String(p.id))) live.push(p); if (live.length >= APP_CARDS) break; }
   return { cards: appCards(live, 1, spec && spec.preset.agent, spec ? 0 : 8), more: spec ? appPager(base, list.length) : "", top: live[0] || null };
 }
 
@@ -224,7 +226,7 @@ async function route(ctx) {
   if (usesStats) await ensureStats(url.origin);
   if (path === "/sitemap.xml") return sitemapIndex();
   if (path === "/sitemap-pages.xml") return sitemapPages();
-  if (path === "/sitemap-products.xml") return sitemapProducts();
+  if (path === "/sitemap-products.xml") return sitemapProducts(await reportedIds(ctx.env, url.origin));   // removed finds are noindex
   const spec = hubSpec(path);
   if (spec) return keep(await hubApp(ctx, url, spec));
   if (path === "/brands") res = renderBrands();
