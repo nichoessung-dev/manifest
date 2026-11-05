@@ -4605,7 +4605,7 @@ document.addEventListener("click",e=>{ if(e.target.id!=="set-save")return;
   state.username=$("#set-username").value.trim(); state.agent=$("#set-agent").value;
   state.cur=$("#set-cur").value; state.lang=$("#set-lang").value; window.__curTouched=1;
   if(!CUR[state.cur])state.cur="USD"; if(!T[state.lang])state.lang="en";
-  save(); applyStatic(); buildFilters(); render(); try{window.pcFreightRun&&window.pcFreightRun();}catch(e){}
+  save(); pcAgentSave(1); applyStatic(); buildFilters(); render(); try{window.pcFreightRun&&window.pcFreightRun();}catch(e){}
   if(sb&&ME&&state.username){ try{ sb.from("profiles").update({username:state.username}).eq("id",ME.id).then(()=>{},()=>{}); }catch(e){} }
   closeSettings(); updateAuthUI();   /* closes and returns focus to the account button, like Cancel and Escape */
 });
@@ -4719,6 +4719,26 @@ async function renderAffiliate(){
 }
 /* sign-in work runs once per user per page load. supabase-js also sends INITIAL_SESSION, a SIGNED_IN every time the tab
    becomes visible again and TOKEN_REFRESHED every hour; repeating the merge then re-uploaded this tab's stale saves. */
+/* The picked agent on the member's profile (profiles.agent, 5 Nov 2026), so the ordering email can match it
+   (scripts/newsletter.py). Called on every pick (header select, settings, the product page agent menu, the welcome flow)
+   and once after sign-in. Fire and forget, only when it changed (pc.agent.saved = "<user id>:<agent>"); pc.agent.picked
+   marks a real pick in this browser, so the untouched default (MyCNBox) never overwrites a pick made on another device.
+   Until the column exists the update fails and is ignored (pc.agent.fail stops retries for this session). */
+let _pcAgentTry="";
+function pcAgentSave(picked){
+  try{ if(picked) localStorage.setItem("pc.agent.picked","1"); }catch(e){}
+  try{
+    if(!sb||!ME||!AGENTS[state.agent]) return;
+    const id=ME.id, ag=state.agent, k=id+":"+ag; let last=null, own=false, fail=null;
+    try{ last=localStorage.getItem("pc.agent.saved"); own=localStorage.getItem("pc.agent.picked")==="1"; fail=sessionStorage.getItem("pc.agent.fail"); }catch(e){}
+    if((!own&&ag==="mycnbox")||last===k||fail===k||_pcAgentTry===k) return;
+    _pcAgentTry=k;
+    /* after syncProfile(): a brand-new member's row is made by its upsert */
+    Promise.resolve(window.__pcProfileP).catch(()=>{}).then(()=>sb.from("profiles").update({agent:ag}).eq("id",id).select("id")).then(r=>{
+      try{ if(r&&!r.error&&r.data&&r.data.length) localStorage.setItem("pc.agent.saved",k); else sessionStorage.setItem("pc.agent.fail",k); }catch(e){}
+    },()=>{});
+  }catch(e){}
+}
 let _authUid=null;
 async function onUser(u){
   ME=u||null;
@@ -4726,7 +4746,7 @@ async function onUser(u){
     _authUid=ME.id; gateSignedIn();
     let merged=null; try{ merged=localStorage.getItem("pc.fav.merged"); }catch(e){}
     if(merged!==ME.id){ await mergeLocalToServer(); try{ localStorage.setItem("pc.fav.merged",ME.id); }catch(e){} }   /* local saves go up once, at sign-in */
-    await loadServerFaves(); syncProfile(); restoreReturnHash(); updateAuthUI(); softRender();
+    await loadServerFaves(); syncProfile(); pcAgentSave(); restoreReturnHash(); updateAuthUI(); softRender();
   } else if(!ME&&_authUid!==null){
     _authUid=null; try{ localStorage.removeItem("pc.fav.merged"); }catch(e){} loadLocalFaves(); updateAuthUI(); softRender();
   } else updateAuthUI();
@@ -4759,7 +4779,7 @@ $("#pc-fbtn")&&$("#pc-fbtn").addEventListener("click",e=>{ e.stopPropagation(); 
 try{ pcAInit(); }catch(e){}
 $("#lang").addEventListener("change",e=>{state.lang=e.target.value;save();applyStatic();buildFilters();render();});
 $("#cur").addEventListener("change",e=>{window.__curTouched=1;state.cur=e.target.value;save();buildFilters();render();try{window.pcFreightRun&&window.pcFreightRun();}catch(_){}if(drawer.classList.contains("open")&&drawer.__pid&&BY_ID[drawer.__pid])openDetail(BY_ID[drawer.__pid],true);});
-$("#agent")&&$("#agent").addEventListener("change",e=>{state.agent=e.target.value;save();render();if(drawer.classList.contains("open")&&drawer.__pid&&BY_ID[drawer.__pid])openDetail(BY_ID[drawer.__pid],true);});
+$("#agent")&&$("#agent").addEventListener("change",e=>{state.agent=e.target.value;save();pcAgentSave(1);render();if(drawer.classList.contains("open")&&drawer.__pid&&BY_ID[drawer.__pid])openDetail(BY_ID[drawer.__pid],true);});
 $("#auth-btn").addEventListener("click",()=>{ if(ME) toggleMenu(); else openAuth(); });
 /* the server pages' "Sign in" link is /?signin=1 and their globe popover links /?prefs=1 (5 Nov 2026): open the same thing
    here, then drop the parameter so a reload or a shared link does not open it again */
@@ -5603,7 +5623,7 @@ function enhanceDrawer(p){
     menu.querySelectorAll(".buy-dd-item").forEach(it=>it.addEventListener("click",e=>{
       e.stopPropagation();
       const k=it.getAttribute("data-agent"); menu.hidden=true; caret.setAttribute("aria-expanded","false");
-      if(k&&AGENTS[k]&&k!==state.agent){ state.agent=k; save(); const ag=$("#agent"); if(ag){ ag.value=k; buildCsel(ag,"mast"); }
+      if(k&&AGENTS[k]&&k!==state.agent){ state.agent=k; save(); pcAgentSave(1); const ag=$("#agent"); if(ag){ ag.value=k; buildCsel(ag,"mast"); }
         setTimeout(()=>{ const host=drawer.querySelector(".buy-block .agents"); if(host){ host.innerHTML=agentRow(p); wireBuy(); wireBuyBar(); } },0); }
     }));
   })();
@@ -6318,6 +6338,7 @@ function wirePPFilters(){
     [].forEach.call(ov.querySelectorAll("#pcwf-s1 [role=radio]"),function(b){ var on=b.getAttribute("data-k")===k; b.setAttribute("aria-checked",String(on)); b.classList.toggle("is-sel",on); });
     $("pcwf-feat").classList.toggle("is-sel",k==="mycnbox"); rove("#pcwf-s1 [role=radio]");
     if(!setSel("agent",k)){ try{ state.agent=k; save(); }catch(e){} }
+    try{ if(typeof pcAgentSave==="function") pcAgentSave(1); }catch(e){}
     $("pcwf-b").disabled=false;
   }
   function pickCur(c){

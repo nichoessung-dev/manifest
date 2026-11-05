@@ -996,11 +996,28 @@ function markFavs() {}
 /* the signed-in account, through the same Supabase client and session as the main site */
 var sb = null, ME = null, LOCAL_NEW = new Set();
 var SUPABASE_URL = "https://uptpghuduqjqmrxwatbm.supabase.co", SUPABASE_KEY = "sb_publishable_qFcO570Cpl0_VWS6e_sAUg_noD-2XmY";
+/* The picked agent on the member's profile (profiles.agent), same rules and keys as pcAgentSave() in index.html:
+   fire and forget, only when it changed; the untouched default is not sent; a missing column is ignored. */
+var agentTry = "";
+function agentSave(picked) {
+  try { if (picked) localStorage.setItem("pc.agent.picked", "1"); } catch (e) {}
+  try {
+    if (!sb || !ME || !AGENTS[agentKey]) return;
+    var id = ME.id, ag = agentKey, k = id + ":" + ag, last = null, own = false, fail = null;
+    try { last = localStorage.getItem("pc.agent.saved"); own = localStorage.getItem("pc.agent.picked") === "1"; fail = sessionStorage.getItem("pc.agent.fail"); } catch (e) {}
+    if ((!own && ag === "mycnbox") || last === k || fail === k || agentTry === k) return;
+    agentTry = k;
+    sb.from("profiles").update({ agent: ag }).eq("id", id).select("id").then(function (r) {
+      try { if (r && !r.error && r.data && r.data.length) localStorage.setItem("pc.agent.saved", k); else sessionStorage.setItem("pc.agent.fail", k); } catch (e) {}
+    }, function () {});
+  } catch (e) {}
+}
 window.__sbReady = function () {
   try { if (sb || !window.supabase || !window.supabase.createClient) return; sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) { return; }
   sb.auth.getSession().then(function (r) {
     ME = r && r.data && r.data.session ? r.data.session.user : null;
     if (!ME) return;
+    agentSave(false);
     return sb.from("favorites").select("product_id").then(function (q) {
       if (q && q.data && !q.error) {
         var mine = new Set(q.data.map(function (row) { return String(row.product_id); }));
@@ -1028,6 +1045,7 @@ function agentSheet() {
     var b = e.target.closest("[data-ag]"); if (!b) return;
     agentKey = b.dataset.ag;
     var st = LS.get("manifest.state", {}) || {}; st.agent = agentKey; LS.set("manifest.state", st);
+    agentSave(true);
     if (topC) $("#buyrow").innerHTML = buyHtml(topC.p);
     closeSheet(); toast("Buying with " + AGENTS[agentKey].name);
   };
