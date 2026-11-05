@@ -38,12 +38,17 @@ a{color:inherit}
 
 /* the card stack */
 .deck{position:relative;flex:1;min-height:0;margin:4px 12px 0}
-.card{position:absolute;inset:0;border-radius:22px;overflow:hidden;background:#15181c;box-shadow:0 12px 40px rgba(0,0,0,.45);touch-action:none;user-select:none;-webkit-user-select:none;will-change:transform;cursor:grab}
+.card{position:absolute;inset:0;border-radius:22px;overflow:hidden;background:#15181c;box-shadow:0 8px 24px rgba(0,0,0,.4);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;transform:translate3d(0,0,0);backface-visibility:hidden;contain:layout paint}
+.card.top{will-change:transform}
 .card.drag{cursor:grabbing}
-.card.under{transform:scale(.95) translateY(10px);filter:brightness(.7);pointer-events:none;transition:transform .25s var(--ease),filter .25s var(--ease)}
-.card.top{z-index:2}
-.card.fly{transition:transform .32s var(--ease),opacity .32s var(--ease)}
-.card.back{transition:transform .25s var(--ease)}
+.card.under{transform:translate3d(0,10px,0) scale(.95);pointer-events:none;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.card.under::after{content:"";position:absolute;inset:0;background:#000;opacity:.3;pointer-events:none;transition:opacity .3s ease}
+.card.drag~.card,.deck.dragging .card.under{transition:none}
+.card.in{opacity:0}
+.card.top{z-index:2;transition:none}
+.card{transition:opacity .2s ease}
+.card.fly{transition:transform .38s cubic-bezier(.25,.6,.3,1),opacity .38s ease;pointer-events:none}
+.card.back{transition:transform .42s cubic-bezier(.18,1.25,.4,1)}
 .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--photo)}
 .ph.qc{background:#0d0f12}
 .ph img{width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;pointer-events:none;opacity:0;transition:opacity .2s var(--ease)}
@@ -324,6 +329,7 @@ function learn(p, r, implicit) {
     S.w[f[i]] = (S.w[f[i]] || 0) + x * 1.6;
   }
   S.n++;
+  lrTrain(p, r > 0 ? 1 : 0, Math.min(2, Math.abs(r) / 1.5));
   if (r >= 2.5) burst(p);                 // a strong yes: show something close to it soon
   persist();
 }
@@ -334,6 +340,43 @@ function expose(p) {
 }
 /* affinity of the visitor for one feature, in about -1..1 */
 function aff(f) { return Math.tanh((M.w[f] || 0) / 4) * 0.7 + Math.tanh((S.w[f] || 0) / 3); }
+
+/* ---------- the main model (5 Nov 2026): online logistic regression ----------
+   Every swipe is a clean yes or no, so the feed fits P(swipe right | find) directly: one weight per feature (brand,
+   type, category, price band, colour, style words, and brand x type, so "Stone Island jackets" can differ from "Stone
+   Island tees"), updated after each swipe by one gradient step. A long-term set of weights is kept between visits; a
+   session set learns faster and fades, so the feed follows the mood of this visit. Uncertainty (how little a find's
+   features have been seen) earns an exploration bonus that shrinks as the model learns. Searches, opened finds and
+   favourites from the rest of the site train it too, each positive with one random popular find as a soft negative. */
+var LR_KEY = "pc.feed.lr";
+var LR = LS.get(LR_KEY, null);
+if (!LR || LR.v !== 1) LR = { v: 1, w: {}, n: {}, b: -0.6, k: 0 };
+var SW = {};                              // session weights
+function xf(p) { if (p._x) return p._x; var f = feats(p).slice(); f.push("x:" + (p.brand || "?") + "|" + p._t); return (p._x = f); }
+function lrz(p) { var f = xf(p), z = LR.b; for (var i = 0; i < f.length; i++) z += (LR.w[f[i]] || 0) + (SW[f[i]] || 0); return z; }
+function lrp(p) { return 1 / (1 + Math.exp(-lrz(p))); }
+function lrUnc(p) { var f = xf(p), u = 0; for (var i = 0; i < f.length; i++) u += 1 / (1 + (LR.n[f[i]] || 0)); return u / f.length; }
+var lrSave = 0;
+function lrTrain(p, y, wgt) {
+  var f = xf(p), g = (y - lrp(p)) * wgt, step = 0.45 / Math.sqrt(1 + LR.k / 200);
+  for (var k in SW) SW[k] *= 0.93;
+  for (var i = 0; i < f.length; i++) {
+    var w = (LR.w[f[i]] || 0);
+    LR.w[f[i]] = Math.max(-6, Math.min(6, w + step * g - 0.003 * w));      // a little L2 so old habits fade
+    LR.n[f[i]] = (LR.n[f[i]] || 0) + wgt;
+    SW[f[i]] = (SW[f[i]] || 0) + 0.7 * g;
+  }
+  LR.b += 0.04 * g; LR.k++;
+  clearTimeout(lrSave); lrSave = setTimeout(function () {
+    var ks = Object.keys(LR.w);
+    if (ks.length > 3000) ks.forEach(function (k) { if (Math.abs(LR.w[k]) < 0.02 && (LR.n[k] || 0) < 2) { delete LR.w[k]; delete LR.n[k]; } });
+    LS.set(LR_KEY, LR);
+  }, 500);
+}
+function negSample() {   /* a random popular find as a soft "no" next to a site positive (implicit feedback has no real no's) */
+  for (var t = 0; t < 8; t++) { var q = ALL[(Math.random() * ALL.length) | 0]; if (q && q._img && popOf(q) > 0) return q; }
+  return null;
+}
 
 /* ---------- what the visitor did on the rest of the site ----------
    pc.taste (written by track.js, only in this browser): the searches they made and the finds they opened. Favourites
@@ -351,10 +394,12 @@ function absorb(p, r, sess) {
     if (sess) S.w[f[i]] = (S.w[f[i]] || 0) + x;
   }
   M.ex = Math.min(40, (M.ex || 0) + 1);
+  lrTrain(p, 1, r >= 2.5 ? 1 : 0.5);
+  var n = negSample(); if (n && n !== p) lrTrain(n, 0, 0.3);
 }
 function anchor(p, w, k) {
-  for (var i = 0; i < ANCH.length; i++) if (ANCH[i].p === p) { ANCH[i].w = Math.max(ANCH[i].w, w); ANCH[i].k = k; return; }
-  ANCH.push({ p: p, w: w, k: k }); if (ANCH.length > 24) ANCH.shift();
+  for (var i = 0; i < ANCH.length; i++) if (ANCH[i].p === p) { ANCH[i].w = Math.max(ANCH[i].w, w); ANCH[i].k = k; XV++; return; }
+  ANCH.push({ p: p, w: w, k: k }); if (ANCH.length > 24) ANCH.shift(); XV++;
 }
 function ingestTaste(now) {
   var T = LS.get("pc.taste", {}) || {}, since = M.tv || 0, v = Array.isArray(T.v) ? T.v : [], q = Array.isArray(T.q) ? T.q : [];
@@ -372,6 +417,7 @@ function ingestTaste(now) {
     var age = (now - e[1]) / DAY;
     Q.push({ t: toks, w: age < 0.05 ? 1.6 : 1 / (1 + age / 4), raw: raw });
   });
+  XV++;
 }
 function ingestFavs() {
   if (!ALL.length) return;
@@ -389,11 +435,13 @@ function sim(a, b) {
   return s;
 }
 function qMatch(p, q) { var n = 0; for (var i = 0; i < q.t.length; i++) if (p._s.indexOf(" " + q.t[i]) >= 0) n++; return n / q.t.length; }
+var XV = 0;                // bumped whenever anchors or searches change, so extras() can be cached per find
 function extras(p) {   /* anchor and search boosts for one find, and which one helped most */
+  if (p._xv === XV) return p._xr;
   var an = 0, ak = null, qb = 0, qq = null;
   for (var i = 0; i < ANCH.length; i++) { var v = sim(ANCH[i].p, p) * ANCH[i].w; if (v > an) { an = v; ak = ANCH[i]; } }
   for (var j = 0; j < Q.length; j++) { var m = qMatch(p, Q[j]), b = m === 1 ? Q[j].w : m >= 0.5 ? 0.35 * Q[j].w : 0; if (b > qb) { qb = b; qq = Q[j]; } }
-  return { an: an, ak: ak, qb: qb, qq: qq };
+  p._xv = XV; return (p._xr = { an: an, ak: ak, qb: qb, qq: qq });
 }
 
 /* ---------- data ---------- */
@@ -440,21 +488,14 @@ function score(p, recent, conf, now) {
   }
   var seenAt = M.seen[p.id], stale = seenAt ? (now - seenAt < 3 * DAY ? 5 : 1) : 0;
   var T = 0.35 * (1 - 0.6 * conf) + (skips >= 4 ? 0.3 : 0);
-  var x = extras(p);
-  var s = a * (0.6 + conf) + pop * (1.15 - 0.55 * conf) + qc + explore - fat - stale + 0.9 * x.an + 1.1 * x.qb + gumbel() * T;
+  var x = extras(p), m = lrp(p), unc = lrUnc(p);
+  var s = 3.2 * m + 0.3 * a + 0.9 * unc * (1.1 - conf) + pop * (1.05 - 0.6 * conf) + qc + 0.6 * explore - fat - stale + 0.8 * x.an + 1.1 * x.qb + gumbel() * T;
   return { s: s, topF: topF, top: top, explore: explore, pop: pop, x: x };
 }
 function reasonFor(r, p) {
   var x = r.x || {};
   if (x.qb * 1.1 > 0.5 && x.qb * 1.1 >= x.an * 0.9 && x.qb * 1.1 >= r.top) return "Because you searched \u201c" + x.qq.raw.slice(0, 24) + "\u201d";
-  if (x.an * 0.9 > 0.45 && x.an * 0.9 >= r.top) return x.ak.k === "f" ? "Like one you favourited" : "Like one you looked at";
-  if (r.top > 0.25 && r.topF) {
-    var v = r.topF.slice(2);
-    return r.topF.charAt(0) === "b" ? "Because you like " + v : "More " + v + (/s$/.test(v) ? "" : "s") + " for you";
-  }
-  if (r.pop > 0.6) return "Trending now";
-  if (r.explore > 0.3 && M.ev > 12) return "Something new";
-  return "";
+  return "";               // other reasons are not shown (owner, 5 Nov 2026: the label popped up too often)
 }
 function nextFy() {
   var now = Date.now(), inFeed = {};
@@ -477,7 +518,7 @@ function nextFy() {
     } else r = score(p, recent, conf, now);
     if (r.s > bs) { bs = r.s; best = p; bestR = r; }
   }
-  if (best) why[best.id] = exploreSlot ? "Something new" : reasonFor(bestR, best);
+  if (best) why[best.id] = exploreSlot ? "" : reasonFor(bestR, best);
   return best;
 }
 var trIdx = 0;
@@ -491,7 +532,7 @@ function nextTr() {
       var p = TREND[j];
       if (inFeed[p.id] || !eligible(p)) { if (j === trIdx) trIdx++; continue; }
       if (recent.some(function (q) { return q.brand === p.brand; }) && j < trIdx + 7) continue;
-      TREND.splice(j, 1); why[p.id] = "#" + (shown.length + 1) + " trending"; return p;
+      TREND.splice(j, 1); why[p.id] = ""; return p;
     }
     trIdx++;
   }
@@ -510,7 +551,7 @@ function burst(p) {
     var s = (q._t === p._t ? 2 : 0) + (q.brand === p.brand ? 1.2 : 0) + (band(q.price) === band(p.price) ? 0.5 : 0) + (q.qc > 0 ? 0.3 : 0) + Math.random() * 1.2;
     if (s > bs) { bs = s; best = q; }
   }
-  if (best && bs >= 2.5) { queue.push(best); lastBurst = shown.length; why[best.id] = "Similar to one you liked"; }
+  if (best && bs >= 2.5) { queue.push(best); lastBurst = shown.length; why[best.id] = ""; }
 }
 
 /* ---------- cards ---------- */
@@ -521,12 +562,14 @@ function saveFaves() { LS.set("manifest.faves", Array.from(FAVES)); }
 function slug(s) { return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
 function platName(p) { return p.platform === "1688" ? "1688" : (p.platform || "").charAt(0).toUpperCase() + (p.platform || "").slice(1); }
 
+var lastLabel = -99;
 var topC = null, underC = null;      // {el, p, i, photos: [url], k: photo index, qc: loaded}
 var hist = [];                       // the last decisions, for undo: {c, dir}
 var t0 = 0, hiddenAt = 0, hiddenMs = 0, skips = 0;
 
 function cardEl(p) {
   var w = why[p.id] || "", nv = (p.variants || []).length;
+  if (w && shown.length - lastLabel < 8) w = ""; else if (w) lastLabel = shown.length;      // a label at most once every 8 cards
   var el = document.createElement("article");
   el.className = "card"; el.setAttribute("aria-label", (p.brand ? p.brand + ", " : "") + p.title + ", " + priceText(p.price));
   el.innerHTML =
@@ -565,10 +608,19 @@ function buyHtml(p) {
     '<button class="agsw" type="button" data-act="agent" aria-label="Change agent"><svg><use href="#i-down"/></svg></button>';
 }
 /* the card on top changed: put the next one under it, refresh the buy button, the address and the timers */
-function settle() {
+var underT = 0;
+function addUnder() {
+  underT = 0; if (underC) return;
+  underC = newCard(); if (!underC) { if (!topC) endCard(); return; }
+  var el = underC.el; el.classList.add("under", "in"); deck.insertBefore(el, deck.firstChild);
+  var im = el.querySelector(".ph img");
+  var show = function () { requestAnimationFrame(function () { el.classList.remove("in"); }); };
+  if (im.decode) im.decode().then(show, show); else show();
+}
+function settle(delay) {
   if (topC) { topC.el.classList.remove("under"); topC.el.classList.add("top"); topC.el.style.transform = ""; }
-  if (!underC) { underC = newCard(); if (underC) { underC.el.classList.add("under"); deck.insertBefore(underC.el, deck.firstChild); } }
-  if (!topC) { endCard(); $("#buyrow").innerHTML = ""; return; }
+  if (!underC && !underT) { if (delay) underT = setTimeout(addUnder, delay); else addUnder(); }
+  if (!topC) { if (!underT) endCard(); $("#buyrow").innerHTML = ""; return; }
   $("#buyrow").innerHTML = buyHtml(topC.p);
   $("#undo").disabled = !hist.length;
   t0 = Date.now(); hiddenMs = 0;
@@ -625,19 +677,22 @@ function decide(dir, how) {
     var x = extras(p);
     if (x.qq && x.qb >= x.qq.w * 0.99) x.qq.w *= 0.6;
     if (x.ak && x.an > 0.3) x.ak.w *= 0.7;
+    XV++;
   }
   hist.push({ c: c, dir: dir }); if (hist.length > 20) hist.shift();
-  deck.classList.add("busy");
-  var w = Math.max(window.innerWidth, 480);
-  c.el.classList.add("fly"); c.el.style.transform = "translate(" + (dir * w * 1.2) + "px," + (how && how.dy ? how.dy : 0) + "px) rotate(" + (dir * 24) + "deg)";
+  var w = Math.max(window.innerWidth, 480), dy = how && how.dy ? how.dy * 0.35 : 0, sp = Math.max(1, Math.abs((how && how.v) || 0));
+  var dur = Math.round(Math.max(220, Math.min(420, 420 / sp)));      // a fast flick leaves fast
+  c.el.classList.remove("top"); c.el.classList.add("fly"); c.el.style.transitionDuration = dur + "ms";
+  c.el.style.transform = "translate3d(" + (dir * w * 1.25) + "px," + (dy + (how ? dy * 0.6 : 0)) + "px,0) rotate(" + (dir * 28 * ((how && how.tilt) || 1)) + "deg)";
   c.el.querySelector(dir > 0 ? ".stamp.yes" : ".stamp.no").style.opacity = 1;
   topC = underC; underC = null;
-  setTimeout(function () { c.el.remove(); c.el.classList.remove("fly"); deck.classList.remove("busy"); }, 330);
-  settle();
+  setTimeout(function () { c.el.remove(); }, dur + 40);
+  settle(dur + 60);
   hideHint();
 }
 function undo() {
-  var h = hist.pop(); if (!h || deck.classList.contains("busy")) return;
+  var h = hist.pop(); if (!h) return;
+  if (underT) { clearTimeout(underT); underT = 0; }
   var c = h.c, p = c.p;
   if (h.dir > 0) { if (FAVES.has(p.id)) setFav(p, false, true); } else learn(p, 1.8);   // take the decision back
   if (underC) { underC.el.remove(); queue.unshift(underC.p); shown = shown.filter(function (q) { return q !== underC.p; }); delete TITLES[underC.p._n]; }
@@ -658,17 +713,27 @@ deck.addEventListener("pointerdown", function (e) {
   drag = { x: e.clientX, y: e.clientY, t: Date.now(), dx: 0, dy: 0, moved: false, id: e.pointerId };
   try { el.setPointerCapture(e.pointerId); } catch (x) {}
 });
+/* smooth drag (5 Nov 2026): the pointer is read on every event but the card is moved once per frame, with GPU-only
+   transforms and the nodes looked up once; the card tilts around the point where it was grabbed, like a real card */
+var dragRaf = 0;
+function paintDrag() {
+  dragRaf = 0; if (!drag || !topC) return;
+  var el = topC.el, dx = drag.dx, o = Math.min(1, Math.abs(dx) / 110);
+  el.style.transform = "translate3d(" + dx + "px," + drag.dy * 0.35 + "px,0) rotate(" + (dx / 16) * drag.tilt + "deg)";
+  drag.yes.style.opacity = dx > 0 ? o : 0; drag.no.style.opacity = dx < 0 ? o : 0;
+  if (underC) underC.el.style.transform = "translate3d(0," + (10 - 10 * o) + "px,0) scale(" + (0.95 + 0.05 * o) + ")";
+}
 deck.addEventListener("pointermove", function (e) {
   if (!drag || e.pointerId !== drag.id || !topC) return;
   drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
-  if (!drag.moved && Math.abs(drag.dx) + Math.abs(drag.dy) < 6) return;
-  drag.moved = true;
-  var el = topC.el; el.classList.add("drag");
-  el.style.transform = "translate(" + drag.dx + "px," + drag.dy * 0.35 + "px) rotate(" + drag.dx / 18 + "deg)";
-  var o = Math.min(1, Math.abs(drag.dx) / 110);
-  el.querySelector(".stamp.yes").style.opacity = drag.dx > 0 ? o : 0;
-  el.querySelector(".stamp.no").style.opacity = drag.dx < 0 ? o : 0;
-  if (underC) underC.el.style.transform = "scale(" + (0.95 + 0.05 * o) + ") translateY(" + (10 - 10 * o) + "px)";
+  var now = performance.now(); drag.v = drag.dx - (drag.lx || 0) ? (drag.dx - (drag.lx || 0)) / Math.max(1, now - (drag.lt || now - 16)) : drag.v || 0; drag.lx = drag.dx; drag.lt = now;
+  if (!drag.moved) {
+    if (Math.abs(drag.dx) + Math.abs(drag.dy) < 6) return;
+    drag.moved = true; topC.el.classList.add("drag"); deck.classList.add("dragging");
+    drag.yes = topC.el.querySelector(".stamp.yes"); drag.no = topC.el.querySelector(".stamp.no");
+    var r = topC.el.getBoundingClientRect(); drag.tilt = drag.y < r.top + r.height * 0.6 ? 1 : -1;
+  }
+  if (!dragRaf) dragRaf = requestAnimationFrame(paintDrag);
 });
 function endDrag(e) {
   if (!drag || (e && e.pointerId !== drag.id) || !topC) { drag = null; return; }
@@ -678,8 +743,9 @@ function endDrag(e) {
     showPhoto(topC, topC.k + (x > r.width * 0.4 ? 1 : -1));
     return;
   }
-  var v = d.dx / Math.max(1, Date.now() - d.t);
-  if (Math.abs(d.dx) > 110 || (Math.abs(d.dx) > 40 && Math.abs(v) > 0.6)) { decide(d.dx > 0 ? 1 : -1, { dy: d.dy }); return; }
+  deck.classList.remove("dragging"); if (dragRaf) { cancelAnimationFrame(dragRaf); dragRaf = 0; }
+  var v = d.v || 0;      // speed at release (px/ms): a quick flick counts even when the card did not travel far
+  if (Math.abs(d.dx) > 110 || (Math.abs(d.dx) > 35 && Math.abs(v) > 0.5 && (v > 0) === (d.dx > 0))) { decide(d.dx > 0 ? 1 : -1, { dy: d.dy, dx: d.dx, v: v, tilt: d.tilt }); return; }
   el.classList.add("back"); el.style.transform = "";
   el.querySelectorAll(".stamp").forEach(function (s) { s.style.opacity = 0; });
   if (underC) underC.el.style.transform = "";
@@ -733,7 +799,7 @@ function setFav(p, on, quiet) {
   if (on) { FAVES.add(p.id); LOCAL_NEW.add(p.id); } else { FAVES.delete(p.id); LOCAL_NEW.delete(p.id); }
   saveFaves();
   if (on) { learn(p, 3); anchor(p, 1.2, "f"); M.fl = (M.fl || []).concat(p.id).slice(-800); }
-  else { learn(p, -2.5); ANCH = ANCH.filter(function (q) { return q.p !== p; }); }
+  else { learn(p, -2.5); ANCH = ANCH.filter(function (q) { return q.p !== p; }); XV++; }
   if (sb && ME) {
     var q = on ? sb.from("favorites").insert({ user_id: ME.id, product_id: p.id, platform: p.platform })
                : sb.from("favorites").delete().eq("user_id", ME.id).eq("product_id", p.id);
