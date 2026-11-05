@@ -66,7 +66,19 @@ jobs:
         run: |
           pip install pillow
           if [ "${{ inputs.step }}" = "label" ]; then pip install anthropic; fi
-          if [ "${{ inputs.step }}" = "photos" ]; then pip install "rembg[cpu]>=2.0.59,<3"; fi
+          if [ "${{ inputs.step }}" = "photos" ]; then
+            pip install "rembg[cpu]>=2.0.59,<3" numpy && pip install torch --index-url https://download.pytorch.org/whl/cpu
+          fi
+      # Real-ESRGAN for photos under 900 px (scripts/restore.py, same files and hashes as finds.yml); without them the
+      # cleaner falls back to Lanczos
+      - name: Upscale model
+        if: inputs.step == 'photos'
+        run: |
+          mkdir -p scripts/models && cd scripts/models
+          u=https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0
+          curl -sfL -o realesr-general-x4v3.pth $u/realesr-general-x4v3.pth || true
+          curl -sfL -o realesr-general-wdn-x4v3.pth $u/realesr-general-wdn-x4v3.pth || true
+          printf '%s  %s\n' 8dc7edb9ac80ccdc30c3a5dca6616509367f05fbc184ad95b731f05bece96292 realesr-general-x4v3.pth 1641f8c4464b9f097c9fdda5589273713f67cf59f3d909e0bd688f0cee269dca realesr-general-wdn-x4v3.pth | sha256sum -c - || rm -f *.pth
       - name: Cache background-removal model
         if: inputs.step == 'photos'
         uses: actions/cache@v4
