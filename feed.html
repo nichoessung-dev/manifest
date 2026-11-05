@@ -185,7 +185,7 @@ button.chip{cursor:pointer}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script id="pc-catalog-load"></script>
-<script src="/track.js?v=2" defer></script>
+<script src="/track.js?v=3" defer></script>
 <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js" onload="window.__sbReady&&window.__sbReady()"></script>
 <script>
 (function () {
@@ -385,7 +385,7 @@ function negSample() {   /* a random popular find as a soft "no" next to a site 
    2. "anchors": the latest finds they looked at or favourited; finds close to an anchor rank higher ("more like this");
    3. recent searches: finds that match a search rank higher, most for the newest searches.
    Anchors and searches fade with age and get weaker each time the visitor skips what they brought. */
-var Q = [], ANCH = [];
+var Q = [], ANCH = [], BSLUG = {};
 function absorb(p, r, sess) {
   var f = feats(p);
   for (var i = 0; i < f.length; i++) {
@@ -403,7 +403,15 @@ function anchor(p, w, k) {
 }
 function ingestTaste(now) {
   var T = LS.get("pc.taste", {}) || {}, since = M.tv || 0, v = Array.isArray(T.v) ? T.v : [], q = Array.isArray(T.q) ? T.q : [];
-  v.forEach(function (e) { var p = BY[String(e[0])]; if (p && e[1] > since) absorb(p, 1.6, now - e[1] < 2 * 36e5); });
+  // opened finds teach more the longer they were looked at (seconds in e[2], filled in when the visitor leaves the find)
+  v.forEach(function (e) { var p = BY[String(e[0])]; if (p && e[1] > since) absorb(p, 0.8 + Math.min(2.2, (e[2] || 0) / 15), now - e[1] < 2 * 36e5); });
+  (Array.isArray(T.b) ? T.b : []).forEach(function (e) { var p = BY[String(e[0])]; if (p && e[1] > since) { absorb(p, 3, now - e[1] < 2 * 36e5); anchor(p, 1.1, "f"); } });   // buy clicks
+  (Array.isArray(T.c) ? T.c : []).forEach(function (e) { var p = BY[String(e[0])]; if (p && e[1] > since) absorb(p, 1, false); });    // looked at its QC photos
+  (Array.isArray(T.f) ? T.f : []).forEach(function (e) {                                                                            // category and brand clicks
+    if (e[1] <= since) return; var x = String(e[0] || "");
+    if (x.indexOf("cat:") === 0) { M.w["c:" + x.slice(4)] = (M.w["c:" + x.slice(4)] || 0) + 0.5; LR.w["c:" + x.slice(4)] = (LR.w["c:" + x.slice(4)] || 0) + 0.15; }
+    else if (x.indexOf("brand:") === 0) { var b = BSLUG[x.slice(6)]; if (b) { M.w["b:" + b] = (M.w["b:" + b] || 0) + 0.8; LR.w["b:" + b] = (LR.w["b:" + b] || 0) + 0.25; } }
+  });
   M.tv = now;
   var got = {};
   v.slice(-40).reverse().forEach(function (e) {
@@ -923,6 +931,7 @@ Promise.all([loadCatalog(), getJSON("/data/stats.json"), getJSON("/data/link_hea
   cat.forEach(function (p) { p.id = String(p.id); p._img = imgOf(p); p._t = typeOf(p); p._k = colOf(p); p._n = (p.title || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); BY[p.id] = p; });
   ALL = cat;
   buildVocab();
+  ALL.forEach(function (p) { if (p.brand) BSLUG[slug(p.brand)] = p.brand; });
   if (!M.fl) M.fl = M.seeded ? Array.from(FAVES) : [];   // favourites taught by the old start-up step count as learned
   ingestTaste(Date.now()); ingestFavs();
   var q = new URLSearchParams(location.search), first = [];

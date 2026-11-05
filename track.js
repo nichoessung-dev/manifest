@@ -118,22 +118,44 @@
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") sSend(); });
   window.addEventListener("pagehide", sSend);
 
-  /* Taste log (4 Nov 2026) for the Swipe Finds feed (/feed): the visitor's last searches and the finds they opened, kept
-     only in this browser (localStorage "pc.taste") and never sent anywhere. The feed reads it to rank finds for them.
-     q = [[query, time], ...] (last 40), v = [[product id, time], ...] (last 150). */
+  /* Taste log (4 Nov 2026, widened 5 Nov 2026) for the Swipe Finds feed (/feed) and the "For you" sort: what this visitor
+     does, kept only in this browser (localStorage "pc.taste") and never sent anywhere.
+     q = searches [[query, time]] (last 40); v = finds opened [[id, time, seconds looked at]] (last 150; the time counts only
+     while the tab is visible, capped at 10 minutes); b = buy clicks [[id, time]] (last 60); c = QC photos looked at
+     [[id, time]] (last 100); f = category and brand clicks [["cat:Shoes" or "brand:stone-island", time]] (last 60). */
+  var CAP = { v: 150, q: 40, b: 60, c: 100, f: 60 };
+  function tasteRW(fn) {
+    try { var t = JSON.parse(localStorage.getItem("pc.taste") || "{}") || {}; if (fn(t) !== false) localStorage.setItem("pc.taste", JSON.stringify(t)); } catch (e) {}
+  }
   function taste(kind, val) {
-    try {
-      var t = JSON.parse(localStorage.getItem("pc.taste") || "{}") || {}, a = Array.isArray(t[kind]) ? t[kind] : [];
-      if (a.length && a[a.length - 1][0] === val) return;
-      a.push([val, Date.now()]); t[kind] = a.slice(kind === "v" ? -150 : -40);
-      localStorage.setItem("pc.taste", JSON.stringify(t));
-    } catch (e) {}
+    if (!val) return;
+    tasteRW(function (t) {
+      var a = Array.isArray(t[kind]) ? t[kind] : [], last = a[a.length - 1];
+      if (last && last[0] === val && Date.now() - last[1] < (kind === "v" ? 2000 : 60000)) return false;   // the same thing twice in a row
+      a.push(kind === "v" ? [val, Date.now(), 0] : [val, Date.now()]); t[kind] = a.slice(-(CAP[kind] || 60));
+    });
+  }
+  /* how long a find is looked at: from opening it until the address leaves it, the tab hides or the page closes */
+  var open = null;                                               // { id, t0 (visible since), ms (visible time before) }
+  function closeView() {
+    if (!open) return;
+    var ms = open.ms + (open.t0 ? Date.now() - open.t0 : 0), id = open.id; open = null;
+    var sec = Math.min(600, Math.round(ms / 1000));
+    if (sec < 1) return;
+    tasteRW(function (t) {
+      var a = Array.isArray(t.v) ? t.v : [];
+      for (var i = a.length - 1; i >= 0 && i >= a.length - 5; i--) if (a[i][0] === id) { a[i][2] = Math.max(a[i][2] || 0, sec); return; }
+      return false;
+    });
   }
   function seen(path) {
-    var m = /^\/product\/([^\/?#]+)/.exec(path || ""); if (!m) return;
-    var id = m[1]; try { id = decodeURIComponent(id); } catch (e) {}
-    if (/^[A-Za-z0-9_-]{4,40}$/.test(id)) taste("v", id);
+    var m = /^\/product\/([^\/?#]+)/.exec(path || ""), id = "";
+    if (m) { id = m[1]; try { id = decodeURIComponent(id); } catch (e) {} if (!/^[A-Za-z0-9_-]{4,40}$/.test(id)) id = ""; }
+    if (open && open.id === id) return;
+    closeView();
+    if (id) { taste("v", id); open = { id: id, t0: document.hidden ? 0 : Date.now(), ms: 0 }; }
   }
+  function curId() { return open ? open.id : ""; }
   seen(location.pathname);                                       // a product page, or the app opened on one
   ["pushState", "replaceState"].forEach(function (k) {           // the app opens a find by putting /product/<id> in the address bar
     var orig = history[k]; if (typeof orig !== "function") return;
@@ -143,4 +165,25 @@
       return r;
     };
   });
+  window.addEventListener("popstate", function () { seen(location.pathname); });
+  document.addEventListener("visibilitychange", function () {
+    if (!open) return;
+    if (document.hidden) { if (open.t0) { open.ms += Date.now() - open.t0; open.t0 = 0; } }
+    else open.t0 = Date.now();
+  });
+  window.addEventListener("pagehide", closeView);
+  /* buy clicks, QC photos, category and brand clicks */
+  document.addEventListener("click", function (ev) {
+    var el = ev.target && ev.target.closest ? ev.target : null; if (!el) return;
+    var a = el.closest("a[href]");
+    if (a && agentOf(a.hostname)) { taste("b", curId() || itemOf(a.href || "")); return; }
+    var qc = el.closest('.qc-pill,.qcb,#qc-btns,#qc-chip,.qc-thumbs,#qc-thumbs,.qcs,[data-act="qc"],a[href$="#qc"],a[href*="#qc"]');
+    if (qc) {
+      var m = /\/product\/([^\/?#]+)/.exec((qc.getAttribute && qc.getAttribute("href")) || "");
+      taste("c", m ? m[1] : curId()); return;
+    }
+    var c = el.closest("[data-cat]"), cat = c && c.getAttribute("data-cat");
+    if (cat) { taste("f", "cat:" + cat); return; }
+    if (a) { var bm = /^\/brand\/([a-z0-9-]+)/.exec(a.getAttribute("href") || ""); if (bm) taste("f", "brand:" + bm[1]); }
+  }, true);
 })();
