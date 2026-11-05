@@ -444,6 +444,44 @@ def site_row(fid):
     return None
 
 
+AI_OUT = [False]      # set when every image service is out of credit: the run then lays product cut-outs on the rug itself
+CUT = {}              # pop:<id> -> the transparent product cut-out, for that fallback
+
+
+def pop_check(pid):
+    """What check() would say about a popular find, from the catalogue itself (no API call)."""
+    r = site_row(pid[4:]) or [pid[4:], "", "", "", "", "", 0]
+    cat = r[3]; g = "shoes" if cat == "Shoes" else "bags" if cat == "Bags" else "jackets" if cat == "Outerwear" else "small"
+    name = re.sub(r"\b(black|white|grey|gray|navy|blue|light|dark|red|green|brown|beige|cream|tan|pink|purple|yellow|orange|khaki|silver|gold|olive|multicolou?r)\b", "", r[1], flags=re.I)
+    name = re.sub(r"\s+", " ", name).strip().lower()
+    while len(name) > 26 and " " in name: name = name.rsplit(" ", 1)[0]     # cut at a word, never "snea"
+    return {"fits": True, "clear": True, "group": g, "item": g, "brand": r[2], "name": name}
+
+
+def composite(sl, rnd):
+    """No-AI slide (5 Nov 2026, when Gemini and OpenAI were both out of credit): the items' own transparent product photos laid
+    on the owner's rug photo with a soft contact shadow and a small random turn, so the drafts keep coming. PNG bytes."""
+    W, H = 1080, 1920
+    base = ImageOps.fit(Image.open(RUG).convert("RGB"), (W, H), Image.LANCZOS)
+    n = len(sl)
+    slots = [(.5, .46, .64)] if n == 1 else [(.47, .37, .56), (.54, .55, .56)] if n == 2 else [(.5, .29, .4), (.31, .46, .36), (.69, .52, .34)]
+    for p, (fx, fy, fw) in zip(sl, slots):
+        im = CUT.get(p["qc"])
+        if im is None: continue
+        im = im.convert("RGBA"); bb = im.split()[-1].getbbox()
+        if bb: im = im.crop(bb)
+        side = int(W * fw); sc = side / float(max(im.width, im.height)); im = im.resize((max(1, int(im.width * sc)), max(1, int(im.height * sc))), Image.LANCZOS)
+        im = im.rotate(rnd.uniform(-8, 8), expand=True, resample=Image.BICUBIC)
+        x, y = int(W * fx - im.width / 2), int(H * fy - im.height / 2)
+        a = im.split()[-1]
+        sh = Image.new("L", (im.width + 120, im.height + 120), 0); sh.paste(a, (60, 60)); sh = sh.filter(ImageFilter.GaussianBlur(22)).point(lambda v: int(v * .45))
+        base.paste(Image.new("RGB", sh.size, (20, 16, 12)), (x - 60 + 12, y - 60 + 22), sh)         # soft shadow, light from the top left
+        contact = Image.new("L", (im.width, max(8, im.height // 6)), 0); ImageDraw.Draw(contact).ellipse((im.width * .1, 0, im.width * .9, contact.height), fill=110)
+        contact = contact.filter(ImageFilter.GaussianBlur(14)); base.paste(Image.new("RGB", contact.size, (15, 12, 10)), (x, y + im.height - contact.height // 2), contact)
+        base.paste(im, (x, y), im)
+    b = io.BytesIO(); base.save(b, "PNG"); return b.getvalue()
+
+
 def owner(pid):
     """Same rule as make_finds.owner: which TikTok account a photo belongs to, so the accounts never share one."""
     return 2 if int(hashlib.md5(pid.encode()).hexdigest(), 16) % 3 == 0 else 1
@@ -504,36 +542,48 @@ def main():
         except Exception as e: return c, None, "download: %s" % e
         if pid.startswith(("site:", "pop:")):                 # one photo, not two stacked like the Drive exports
             if qc.mode in ("RGBA", "LA", "P"):                 # the product photos are cut-outs: put them on white
-                qc = qc.convert("RGBA"); bg = Image.new("RGB", qc.size, (255, 255, 255)); bg.paste(qc, mask=qc.split()[-1]); qc = bg
+                qc = qc.convert("RGBA"); CUT[pid] = qc.copy(); bg = Image.new("RGB", qc.size, (255, 255, 255)); bg.paste(qc, mask=qc.split()[-1]); qc = bg
             else: qc = qc.convert("RGB")
+        if AI_OUT[0] and pid.startswith("pop:"): return c, qc, pop_check(pid)
         try: return c, qc, check(qc if pid.startswith(("site:", "pop:")) else top_shot(qc))      # only the shot the image model gets: the lower one is often another item
         except Exception as e: return c, qc, "check: %s" % str(e)[:300]
     want, cap = (a.n * 2 + 2, a.n) if MULTI_ON else (a.n + 3, max(2, a.n // 3))
     t_pick = time.time()
-    for b in range(0, len(cands), 6):
-        if len(picks) >= want or time.time() - t_pick > 8 * 60: break      # spares for the judge; never more than 8 minutes of checking
-        with ThreadPoolExecutor(6) as ex: seen = list(ex.map(look, cands[b:b + 6]))
-        for (pid, t), qc, c in seen:
-            if isinstance(c, str):
-                print(" ", c); fails += 1
-                if "insufficient_quota" in c or "billing" in c: sys.exit("the AI account is out of credit or over its spending limit")
-                if fails >= 12: sys.exit("the item check keeps failing: stopping (the next run tries again)")
-                continue
-            fails = 0
-            if len(picks) >= want: break
-            g = c.get("group") if c.get("group") in ANGLES else group(t)
-            if pid not in picked_ids and not (c.get("fits") and c.get("clear")):      # the owner's picks are never skipped
-                print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
-            if groups.get(g, 0) >= cap: continue                                # a mix: not all bags
-            fid = site_find(pid)[1] if pid.startswith("site:") else pid[4:] if pid.startswith("pop:") else ""
-            if fid and any(p.get("find") == fid for p in picks): continue      # one photo per find in a post
-            groups[g] = groups.get(g, 0) + 1
-            name = re.sub(r"[^a-z0-9 '&.-]", "", unicodedata.normalize("NFKD", str(c.get("name") or c.get("item") or t)).encode("ascii", "ignore").decode().lower()).strip()[:28]      # "pérignon" -> "perignon", not "prignon"
-            print("  picked", name, "(%.0fs)" % (time.time() - t_pick))
-            row = site_row(fid) if fid else None
-            usd = int(round(row[6])) if row and isinstance(row[6], (int, float)) and row[6] > 0 else price(c.get("brand"), c.get("item") or t, g)   # a site photo: its find's own price
-            picks.append({"qc": pid, "img": qc, "name": name, "usd": usd, "group": g, "brand": c.get("brand"), "find": fid, "single": bool(fid),
-                          "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g])})
+    def pick_from(cl):
+        nonlocal fails
+        for b in range(0, len(cl), 6):
+            if len(picks) >= want or time.time() - t_pick > 8 * 60: break      # spares for the judge; never more than 8 minutes of checking
+            with ThreadPoolExecutor(6) as ex: seen = list(ex.map(look, cl[b:b + 6]))
+            for (pid, t), qc, c in seen:
+                if isinstance(c, str):
+                    print(" ", c); fails += 1
+                    if "insufficient_quota" in c or "billing" in c or "credit" in c.lower():
+                        if AI_OUT[0]: continue
+                        AI_OUT[0] = True; print("  NO IMAGE CREDIT LEFT (Gemini and OpenAI): laying product photos on the rug without AI this run"); return
+                    if fails >= 12: sys.exit("the item check keeps failing: stopping (the next run tries again)")
+                    continue
+                fails = 0
+                if len(picks) >= want: break
+                g = c.get("group") if c.get("group") in ANGLES else group(t)
+                if pid not in picked_ids and not (c.get("fits") and c.get("clear")):      # the owner's picks are never skipped
+                    print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
+                if groups.get(g, 0) >= cap: continue                                # a mix: not all bags
+                fid = site_find(pid)[1] if pid.startswith("site:") else pid[4:] if pid.startswith("pop:") else ""
+                if fid and any(p.get("find") == fid for p in picks): continue      # one photo per find in a post
+                groups[g] = groups.get(g, 0) + 1
+                name = re.sub(r"[^a-z0-9 '&.-]", "", unicodedata.normalize("NFKD", str(c.get("name") or c.get("item") or t)).encode("ascii", "ignore").decode().lower()).strip()[:28]      # "pérignon" -> "perignon", not "prignon"
+                print("  picked", name, "(%.0fs)" % (time.time() - t_pick))
+                row = site_row(fid) if fid else None
+                usd = int(round(row[6])) if row and isinstance(row[6], (int, float)) and row[6] > 0 else price(c.get("brand"), c.get("item") or t, g)   # a site photo: its find's own price
+                picks.append({"qc": pid, "img": qc, "name": name, "usd": usd, "group": g, "brand": c.get("brand"), "find": fid, "single": bool(fid),
+                              "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g])})
+
+    pick_from(cands)
+    if AI_OUT[0]:                                              # only the popular finds' cut-outs can be laid on the rug without AI
+        picks[:] = [p for p in picks if p["qc"] in CUT]; groups.clear()
+        for p in picks: groups[p["group"]] = groups.get(p["group"], 0) + 1
+        pool = [c for c in cands if c[0].startswith("pop:")] or pop_cands(no); rnd.shuffle(pool); fails = 0
+        pick_from(pool)
     rug = jpeg(Image.open(RUG), 1536)
     t0 = time.time(); budget = float(os.environ.get("RUG_BUDGET_MIN", "15")) * 60
 
@@ -548,6 +598,7 @@ def main():
     def make(sl):                                              # 3. the images, three at a time; each one judged, one retry, then the slide is dropped
         shots = [p["img"] if p.get("single") else top_shot(p["img"]) for p in sl]; label = " + ".join(p["name"] for p in sl)
         angle = rnd.choice(ANGLES["several"]) if len(sl) > 1 else sl[0]["angle"]
+        if AI_OUT[0]: return sl, composite(sl, rnd), "rug collage (no AI credit)", {}
         for attempt in range(2):
             if time.time() - t0 > budget: print("  out of time, skipping", label); break
             print("  making", label, "try", attempt + 1, "%.0fs in" % (time.time() - t0))
