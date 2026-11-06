@@ -3993,6 +3993,7 @@ function pcPeekInit(){ const g=document.getElementById("grid"); if(!g||g.__pk) r
 /* ---- after every render: counts, open pickers, the price popover, the sheet, the badge, the empty-state extras ---- */
 function pcAfterRender(list){
   try{ msRefreshOpen(); }catch(e){}
+  try{ pcTasteFilters(); }catch(e){}   /* filter and sort picks teach For you and the feed (browser only) */
   try{ const pop=document.getElementById("price-pop"); if(pop&&!pop.hidden){ _phist(); _plive(); } }catch(e){}
   try{ fsRefresh(); }catch(e){}
   try{ const n=pcFcount(), bd=document.getElementById("pc-fbadge"); if(bd){ bd.hidden=!n; bd.textContent=String(n); }
@@ -4949,9 +4950,11 @@ Promise.all([_pre.link_health||_gj("/data/link_health.json"),_pre.reported||_gj(
   ALL=ALL.filter(p=>!dead.has(String(p.id)));
   if(ALL.length!==n) _bgDirty=true;
 }).catch(()=>{}).finally(()=>{ window.__lhDone=1; try{ window.__pcNumbers&&window.__pcNumbers(); }catch(e){} _bgDone(); });
-/* "For you" sort (5 Nov 2026): ranks the whole sheet for this visitor from everything this browser knows about them:
-   the Swipe Finds model (pc.feed.lr: weights for brand, type, category, price band, colour, brand x type), the finds they
-   opened and the searches they made (pc.taste, written by track.js), and their saved finds. All local; nothing is sent.
+/* "For you" sort (5 Nov 2026, one taste brain with the feed 6 Nov 2026): ranks the whole sheet for this visitor from
+   everything this browser knows about them: the Swipe Finds model (pc.feed.lr, all its features), the shared taste log
+   (pc.taste, written by track.js on every page and by the feed: finds opened and for how long, buy clicks, QC looks,
+   hovers, searches, filter and sort picks, the feed's swipes both ways, "Not interested", "Show less", unsaved finds,
+   finds scrolled past without opening) and their saved finds. All local; nothing is sent.
    With no history at all it falls back to the most popular order. */
 var FY_TYPES = [
   ["zip hoodie", /zip.?up hood|zip hood|full zip|half.?zip|quarter.?zip|1\/4 zip/i], ["hoodie", /hood/i],
@@ -4987,36 +4990,147 @@ function fyCol(p) {
   return "";
 }
 function fyBand(cny) { return !(cny >= 5 && cny < 99999) ? "x" : cny < 80 ? "1" : cny < 150 ? "2" : cny < 300 ? "3" : cny < 600 ? "4" : "5"; }
-function pcForYou(list){
+/* One taste brain (6 Nov 2026): the For you sort scores a find with the same features as the Swipe feed (feed.html xf()):
+   brand, garment type, category, price band, colour, style words (title words a few finds share), and the crosses brand x
+   type, colour x type, price x category, the marketplace and whether it has QC photos. */
+var FY_FW={b:1,t:.9,c:.45,p:.35,k:.2,w:.3,x:.8,kt:.5,pc:.4,pl:.15,q:.1};
+var FY_STOP=new Set("the and with for from new set men mens women womens unisex size sizes edition style version full half quarter long short sleeve pair rep reps best cheap".split(" "));
+var FY_VOC=null;
+function fyVocab(){   /* style words: title words that 6 to 500 finds share, not brand names, colours or filler (as the feed) */
+  if(FY_VOC) return FY_VOC;
+  var df={}, bw=new Set(), V={};
+  ALL.forEach(function(p){ String(p.brand||"").toLowerCase().split(/[^a-z0-9]+/).forEach(function(w){ if(w) bw.add(w); }); });
+  ALL.forEach(function(p){ var one={}; fyNorm(p).split(" ").forEach(function(w){ if(w.length<3||/^\d+$/.test(w)||one[w]) return; one[w]=1; df[w]=(df[w]||0)+1; }); });
+  for(var w in df) if(df[w]>=6&&df[w]<=500&&!bw.has(w)&&!FY_STOP.has(w)&&FY_COLS.indexOf(w)<0) V[w]=1;
+  return (FY_VOC=V);
+}
+function fyNorm(p){ return p._fyN!=null?p._fyN:(p._fyN=String(p.title||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim()); }
+function fyKeys(p){
+  if(p._fy) return p._fy;
+  var V=fyVocab(), t=fyType(p), c=fyCol(p), b=fyBand(p.price), br=p.brand||"?", k=["b:"+br,"t:"+t,"c:"+(p.cat||"?"),"p:"+b], seen={}, n=0;
+  if(c) k.push("k:"+c);
+  fyNorm(p).split(" ").forEach(function(w){ if(n<3&&V[w]&&!seen[w]){ seen[w]=1; n++; k.push("w:"+w); } });
+  k.push("x:"+br+"|"+t); if(c) k.push("kt:"+c+"|"+t);
+  k.push("pc:"+b+"|"+(p.cat||"?"),"pl:"+(p.platform||"?"),"q:"+(p.qc>20?"many":p.qc>0?"some":"none"));
+  p._fyT=t; return (p._fy=k);
+}
+/* the same slug as the server's brand pages (functions/_lib/site.js slug): apostrophes dropped, so Arc'teryx is "arcteryx" */
+function fySlug(s){ return String(s).toLowerCase().replace(/&/g," and ").replace(/['\u2019]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,""); }
+var FY_SLUGB=null;
+function fySlugs(){   /* brand page slug -> brand: the server's slug, and the older spellings */
+  if(FY_SLUGB) return FY_SLUGB; var slugB=FY_SLUGB={};
+  var seen={}; ALL.forEach(function(p){ var b=p.brand; if(!b||seen[b]) return; seen[b]=1;
+    slugB[fySlug(b)]=b; slugB[fySlug(String(b).normalize("NFD").replace(/[\u0300-\u036f]/g,""))]=b; slugB[fySlug(String(b).replace(/['\u2019]/g," "))]=b; });
+  return slugB;
+}
+function fyColName(v){ v=String(v||"").toLowerCase(); for(var i=0;i<FY_COLS.length;i++) if(v.indexOf(FY_COLS[i])>=0) return FY_COLS[i]==="gray"?"grey":FY_COLS[i]; return ""; }
+/* filter and sort choices teach the taste log too (pc.taste "f", browser only): a colour, brand, category, price range,
+   marketplace or price sort the visitor picks. Only picks made on this page count, not the preset of a hub page. */
+var FY_FSIG=null;
+function pcTasteFilters(){
+  var cur=[];
+  (state.cats||[]).forEach(function(c){ cur.push("cat:"+c); });
+  (Array.isArray(state.brand)?state.brand:[]).forEach(function(b){ cur.push("brand:"+fySlug(b)); });
+  (Array.isArray(state.color)?state.color:[]).forEach(function(c){ var k=fyColName(c); if(k) cur.push("col:"+k); });
+  if(state.pmin!=null||state.pmax!=null) cur.push("pr:"+Math.round(state.pmin||0)+"-"+(state.pmax!=null?Math.round(state.pmax):""));
+  if(state.plat&&state.plat!=="all") cur.push("plat:"+state.plat);
+  if(state.sort==="low"||state.sort==="high") cur.push("sort:"+state.sort);
+  window.pcTasteCtx=cur.length||state.q||state.saved||(state.gender&&state.gender!=="all")||state.qc?1:0;   /* finds scrolled past in a narrowed list say less (track.js) */
+  if(FY_FSIG===null){ FY_FSIG=new Set(cur); return; }
+  var fresh=cur.filter(function(v){ return !FY_FSIG.has(v); }); FY_FSIG=new Set(cur);
+  if(fresh.length&&window.pcTaste) fresh.forEach(function(v){ pcTaste.add("f",v); });
+}
+/* The model: a logistic regression over those features, P(this visitor wants the find), fitted here on every example in
+   the taste log (a yes or a no, with a weight that fades with age), starting from the feed's own weights. A plain sum of
+   likes and dislikes per feature would punish a colour the visitor filtered for every time they scroll past one; the
+   fit learns which features tell their yes from their no. */
+function fyNeighbours(yes){ return {}; }   /* extension point for item-to-item neighbours (window.pcAlso), see fyModel */
+function fyModel(){
   var LR=null, T={}, fav=[]; try{ LR=JSON.parse(localStorage.getItem("pc.feed.lr")||"null"); }catch(e){} try{ T=JSON.parse(localStorage.getItem("pc.taste")||"{}")||{}; }catch(e){} try{ fav=JSON.parse(localStorage.getItem("manifest.faves")||"[]")||[]; }catch(e){}
-  var now=Date.now(), DAY=864e5, prof={}, byId={};
+  var favS=new Set((Array.isArray(fav)?fav:[]).map(String));
+  var now=Date.now(), DAY=864e5, byId={}, item={}, ex=[], W={}, B=-1, pos=0, A=function(k){ return Array.isArray(T[k])?T[k]:[]; };
   ALL.forEach(function(p){ byId[p.id]=p; });
-  function keys(p){ if(p._fy) return p._fy; var t=fyType(p), c=fyCol(p), k=["b:"+(p.brand||"?"),"t:"+t,"c:"+(p.cat||"?"),"p:"+fyBand(p.price),"x:"+(p.brand||"?")+"|"+t]; if(c) k.push("k:"+c); return (p._fy=k); }
-  var W={b:1,t:.9,c:.45,p:.35,k:.2,x:.8};
-  function add(p,w){ keys(p).forEach(function(k){ prof[k]=(prof[k]||0)+w*W[k.charAt(0)]; }); }
   function rec(e){ return 1/(1+(now-e[1])/(7*DAY)); }
-  /* opened finds count more the longer they were looked at (a quick peek about half, a long look up to three times) */
-  (Array.isArray(T.v)?T.v:[]).forEach(function(e){ var p=byId[String(e[0])]; if(p) add(p,rec(e)*(0.5+Math.min(2.5,(e[2]||0)/15))); });
-  (Array.isArray(T.b)?T.b:[]).forEach(function(e){ var p=byId[String(e[0])]; if(p) add(p,3*rec(e)); });       /* buy clicks: the strongest yes */
-  (Array.isArray(T.c)?T.c:[]).forEach(function(e){ var p=byId[String(e[0])]; if(p) add(p,1*rec(e)); });       /* looked at its QC photos */
-  var slugB={}; ALL.forEach(function(p){ if(p.brand) slugB[String(p.brand).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/&/g," and ").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")]=p.brand; });
-  (Array.isArray(T.f)?T.f:[]).forEach(function(e){ var v=String(e[0]||""), r=rec(e);   /* category and brand clicks */
-    if(v.indexOf("cat:")===0) prof["c:"+v.slice(4)]=(prof["c:"+v.slice(4)]||0)+0.6*r;
-    else if(v.indexOf("brand:")===0&&slugB[v.slice(6)]) prof["b:"+slugB[v.slice(6)]]=(prof["b:"+slugB[v.slice(6)]]||0)+0.8*r; });
-  fav.forEach(function(id){ var p=byId[String(id)]; if(p) add(p,2); });
-  var Q=(Array.isArray(T.q)?T.q:[]).slice(-15).map(function(e){ var age=(now-e[1])/DAY; return { t:String(e[0]||"").toLowerCase().split(/[^a-z0-9]+/).filter(function(w){ return w.length>=2; }), w:1/(1+age/4) }; }).filter(function(q){ return q.t.length; });
-  var hasLR=LR&&LR.w&&Object.keys(LR.w).length>0, has=hasLR||Object.keys(prof).length||Q.length;
-  var maxPop=1; list.forEach(function(p){ var v=popScore(p); if(v>maxPop) maxPop=v; });
+  function yes(id,w){ var p=byId[String(id)]; if(p&&w>0){ ex.push([p,1,w]); pos+=w; } }
+  function no(id,w){ var p=byId[String(id)]; if(p&&w>0) ex.push([p,0,w]); }
+  function itm(id,v){ item[id]=(item[id]||0)+v; }
+  function nudge(k,v){ W[k]=(W[k]||0)+v; }
+  var acted={};   /* finds the visitor did something with: being on screen earlier was not a no */
+  ["v","b","c","h","s"].forEach(function(k){ A(k).forEach(function(e){ acted[e[0]]=1; }); }); favS.forEach(function(id){ acted[id]=1; });
+  /* opened finds count more the longer they were looked at (a peek of a few seconds is nearly nothing) */
+  A("v").forEach(function(e){ var sec=e[2]||0; yes(e[0],rec(e)*(sec&&sec<6?0.15:0.5+Math.min(2.5,sec/15))); });
+  A("b").forEach(function(e){ yes(e[0],3*rec(e)); });          /* buy clicks: the strongest yes */
+  A("c").forEach(function(e){ yes(e[0],rec(e)); });            /* looked at its QC photos */
+  A("h").forEach(function(e){ yes(e[0],0.4*rec(e)); });        /* rested the mouse on it */
+  favS.forEach(function(id){ yes(id,2); });
+  /* Swipe feed decisions [id, time, 1 yes / 0 no, seconds, QC photos looked at]: a no after a long look or a QC flick is a
+     softer no; a passed find also sinks itself */
+  A("s").forEach(function(e){ var r=rec(e); if(e[2]) yes(e[0],2*r); else { no(e[0],(1-((e[3]||0)>5?0.35:0)-(e[4]?0.3:0))*r); itm(String(e[0]),-1.5); } });
+  /* on screen and not opened: a weak no, and the find itself drifts down so the sheet keeps showing new things */
+  var imp={}; A("i").forEach(function(e){ var id=String(e[0]); if(acted[id]||!byId[id]) return; imp[id]=(imp[id]||0)+1; if(imp[id]<=2&&!e[2]) no(id,0.25*rec(e)); });   /* in a filtered or searched list only the find itself drifts */
+  for(var id in imp) itm(id,-0.2*Math.min(3,imp[id]));
+  var NI=new Set(), NB=new Set();
+  A("n").forEach(function(e){ var v=String(e[0]||"");          /* "Not interested", "Show less <brand>", unsaved finds */
+    if(v.indexOf("ni:")===0) NI.add(v.slice(3)); else if(v.indexOf("nb:")===0) NB.add(v.slice(3));
+    else if(v.indexOf("uf:")===0&&!favS.has(v.slice(3))){ no(v.slice(3),1.5*rec(e)); itm(v.slice(3),-2); } });
+  /* start from the feed's model (its swipes from before they were logged here, and what the log has forgotten) */
+  if(LR&&LR.w){ for(var k0 in LR.w) W[k0]=LR.w[k0]; if(typeof LR.b==="number") B=LR.b; }
+  var slugB=fySlugs();
+  A("f").forEach(function(e){ var v=String(e[0]||""), r=rec(e), i=v.indexOf(":"), k=v.slice(0,i), x=v.slice(i+1);   /* clicks, filters, sorts */
+    if(k==="cat") nudge("c:"+x,0.3*r);
+    else if(k==="brand"&&slugB[x]) nudge("b:"+slugB[x],0.5*r);
+    else if(k==="col") nudge("k:"+x,0.5*r);
+    else if(k==="plat") nudge("pl:"+x,0.15*r);
+    else if(k==="pr"){ var lo=+x.split("-")[0]||0, hi=x.split("-")[1]===""?1e9:+x.split("-")[1]; [[5,80],[80,150],[150,300],[300,600],[600,1e9]].forEach(function(b,j){ if(b[0]<hi&&b[1]>lo) nudge("p:"+(j+1),0.35*r); }); }
+    else if(k==="sort") (x==="low"?["1","2"]:["4","5"]).forEach(function(b){ nudge("p:"+b,0.15*r); }); });
+  /* the rest of the catalogue as a soft background no (as the feed does), so the fit learns what sets their yes apart */
+  if(pos>0){ var step=Math.max(1,Math.floor(ALL.length/80)), bw=Math.min(0.3,pos/80); for(var j=(Math.floor(now/DAY)%step);j<ALL.length;j+=step) if(!acted[ALL[j].id]) ex.push([ALL[j],0,bw]); }
+  var P0={}, SUP={}; for(var k1 in W) P0[k1]=W[k1];
+  if(LR&&LR.n) for(var k2 in LR.n) SUP[k2]=LR.n[k2];
+  ex.forEach(function(e){ fyKeys(e[0]).forEach(function(k){ SUP[k]=(SUP[k]||0)+Math.min(1,e[2]); }); });
+  for(var ep=0;ep<6;ep++){ var lr=0.35/(1+ep*0.5);
+    for(var n=0;n<ex.length;n++){ var e=ex[n], f=fyKeys(e[0]), z=B; for(var a=0;a<f.length;a++) z+=W[f[a]]||0;
+      var g=(e[1]-1/(1+Math.exp(-z)))*e[2]*lr;
+      for(var b2=0;b2<f.length;b2++){ var w0=W[f[b2]]||0; W[f[b2]]=Math.max(-6,Math.min(6,w0+g-0.01*(w0-(P0[f[b2]]||0)))); }
+      B+=0.05*g; } }
+  /* room for item-to-item neighbours ("also liked", a separate step): fyNeighbours gets the visitor's yes finds with their
+     weights and returns {id: boost}; it adds nothing until that data exists */
+  var NBR=fyNeighbours(ex.filter(function(e){ return e[1]===1; }).map(function(e){ return [e[0].id,e[2]]; }));
+  var Q=A("q").slice(-15).map(function(e){ var age=(now-e[1])/DAY; return { t:String(e[0]||"").toLowerCase().split(/[^a-z0-9]+/).filter(function(w){ return w.length>=2&&!FY_STOP.has(w); }), w:1/(1+age/4) }; }).filter(function(q){ return q.t.length; });
+  /* a feature seen in one example only counts a third: one stray click should not lift everything that shares it */
+  function zOf(f){ var z=B; for(var i=0;i<f.length;i++){ var w=W[f[i]]; if(w){ var n=SUP[f[i]]||0; z+=w*n/(n+2); } } return z; }
+  var z0=1/(1+Math.exp(-B));
+  /* and "more like what they liked": a profile of the yes finds alone, which works from the first few (the fit needs more) */
+  var prof={}; ex.forEach(function(e){ if(e[1]!==1||e[0]._bg) return; fyKeys(e[0]).forEach(function(k){ prof[k]=(prof[k]||0)+e[2]*FY_FW[k.slice(0,k.indexOf(":"))]; }); });
+  var nW=Object.keys(W).length, has=nW>0||ex.length>0||Q.length||NB.size||NI.size;
+  /* how much is known: with little history popularity still leads, with a lot the taste does */
+  var conf=Math.min(1,(pos+ex.length*0.05+(LR&&LR.k?LR.k*0.6:0))/30);
+  var PW=0.8;
+  return { has:has, conf:conf, part:function(p){
+    var k=fyKeys(p), z=zOf(k), s=3.2*(1/(1+Math.exp(-z))-z0)+0.15*Math.max(-8,z-B);   /* P(yes) above the visitor's base rate, on the same scale as the feed's
+       ranking, plus a little of the raw score so finds far from their taste still sort among themselves */
+    for(var j=0;j<k.length;j++) if(prof[k[j]]) s+=Math.tanh(prof[k[j]]/3)*PW;
+    if(item[p.id]) s+=item[p.id];
+    if(NBR[p.id]) s+=NBR[p.id];
+    if(NB.has(p.brand||"?")) s-=3;
+    if(NI.has((p.brand||"?")+"|"+p._fyT)) s-=2.5;
+    if(Q.length){ var hay=" "+((p.brand||"")+" "+(p.title||"")).toLowerCase().replace(/[^a-z0-9]+/g," ")+" ", qb=0;
+      Q.forEach(function(q){ var n=0; q.t.forEach(function(w){ if(hay.indexOf(" "+w)>=0) n++; }); var m=n/q.t.length; var v=m===1?q.w*1.6:m>=.5?q.w*.5:0; if(v>qb) qb=v; }); s+=qb; }
+    if(favS.has(p.id)) s-=0.4;   /* already saved: still shown, a little lower, so new finds come first */
+    return s;
+  } };
+}
+/* the fitted model is kept until the taste log, the feed's model or the saved list change (a filter change re-sorts only) */
+var FY_MEMO={k:null,m:null};
+function pcForYou(list){
+  var raw=""; try{ raw=(localStorage.getItem("pc.taste")||"")+"\u0001"+(localStorage.getItem("pc.feed.lr")||"")+"\u0001"+(localStorage.getItem("manifest.faves")||""); }catch(e){}
+  var hr=Math.floor(Date.now()/36e5);   /* and refitted every hour, as recent things count more */
+  if(FY_MEMO.k!==raw+hr||FY_MEMO.n!==ALL.length){ FY_MEMO={k:raw+hr,n:ALL.length,m:fyModel()}; }
+  var M=FY_MEMO.m, maxPop=1; list.forEach(function(p){ var v=popScore(p); if(v>maxPop) maxPop=v; });
   var out=new Map();
   list.forEach(function(p){
-    var pop=Math.log1p(popScore(p))/Math.log1p(maxPop), s=pop*(has?0.6:1)+(p.qc>0?0.1:0);
-    if(has){
-      var k=keys(p);
-      for(var i=0;i<k.length;i++){ if(hasLR) s+=(LR.w[k[i]]||0)*0.8; if(prof[k[i]]) s+=Math.tanh(prof[k[i]]/3)*1.2; }
-      if(Q.length){ var hay=" "+((p.brand||"")+" "+(p.title||"")).toLowerCase().replace(/[^a-z0-9]+/g," ")+" ", qb=0;
-        Q.forEach(function(q){ var n=0; q.t.forEach(function(w){ if(hay.indexOf(" "+w)>=0) n++; }); var m=n/q.t.length; var v=m===1?q.w*1.6:m>=.5?q.w*.5:0; if(v>qb) qb=v; }); s+=qb; }
-      if(fav.indexOf(p.id)>=0) s-=0.4;   /* already saved: still shown, a little lower, so new finds come first */
-    }
+    var pop=Math.log1p(popScore(p))/Math.log1p(maxPop), s=pop*(M.has?1-0.75*M.conf:1)+(p.qc>0?0.1:0);
+    if(M.has) s+=M.part(p);
     s+=((p._rnd||0)-.5)*.08;           /* a touch of variety between finds that score the same */
     out.set(p,s);
   });
@@ -6577,5 +6691,5 @@ function wirePPFilters(){
 try{var AC=null,AH=matchMedia("(hover: hover)"),afp=function(l){var p=l.querySelector(".aff-pop");if(!p)return;l.classList.remove("up");var r=p.getBoundingClientRect(),t=l.getBoundingClientRect().top;if(r.bottom>innerHeight-8&&t>r.height+16)l.classList.add("up")},afs=function(l,o){var b=l&&l.querySelector(".aff-btn");if(!b)return;if(o){if(AC&&AC!==l)afs(AC,false);AC=l;l.classList.remove("shut");l.classList.add("open");afp(l)}else{l.classList.remove("open");if(AC===l)AC=null}b.setAttribute("aria-expanded",o?"true":"false")};document.addEventListener("click",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b){var l=b.closest(".aff-lb");e.preventDefault();afs(l,AH.matches?true:!l.classList.contains("open"));return}if(AC&&!AC.contains(e.target))afs(AC,false)});document.addEventListener("mouseover",function(e){if(!AH.matches)return;var l=e.target&&e.target.closest&&e.target.closest(".aff-lb");if(l&&!l.classList.contains("open")&&!l.classList.contains("shut"))afs(l,true)});document.addEventListener("mouseout",function(e){if(!AH.matches)return;var l=e.target&&e.target.closest&&e.target.closest(".aff-lb");if(l&&!l.contains(e.relatedTarget)){l.classList.remove("shut");if(!l.contains(document.activeElement))afs(l,false)}});document.addEventListener("focusin",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b&&b.matches(":focus-visible"))afs(b.closest(".aff-lb"),true)});document.addEventListener("focusout",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b){var l=b.closest(".aff-lb");if(!l.matches(":hover"))afs(l,false)}});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&AC){var l=AC;e.stopPropagation();afs(l,false);l.classList.add("shut")}},true)}catch(e){}})();
 </script>
 <script id="pc-search" src="/pcs.js?v=dd943831"></script>
-<script src="/track.js?v=3" defer></script>
+<script src="/track.js?v=4" defer></script>
 <script src="/chat.js?v=2" defer></script>

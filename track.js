@@ -118,23 +118,30 @@
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") sSend(); });
   window.addEventListener("pagehide", sSend);
 
-  /* Taste log (4 Nov 2026, widened 5 Nov 2026) for the Swipe Finds feed (/feed) and the "For you" sort: what this visitor
-     does, kept only in this browser (localStorage "pc.taste") and never sent anywhere.
+  /* Taste log (4 Nov 2026, widened 5 and 6 Nov 2026): the one taste memory that the Swipe Finds feed (/feed) and the
+     spreadsheet's "For you" sort both learn from. Kept only in this browser (localStorage "pc.taste"), never sent anywhere.
      q = searches [[query, time]] (last 40); v = finds opened [[id, time, seconds looked at]] (last 150; the time counts only
      while the tab is visible, capped at 10 minutes); b = buy clicks [[id, time]] (last 60); c = QC photos looked at
-     [[id, time]] (last 100); f = category and brand clicks [["cat:Shoes" or "brand:stone-island", time]] (last 60). */
-  var CAP = { v: 150, q: 40, b: 60, c: 100, f: 60 };
+     [[id, time]] (last 100); f = category and brand clicks, and filter and sort picks on the spreadsheet [["cat:Shoes",
+     "brand:stone-island", "col:black", "pr:0-150" (CNY), "plat:taobao", "sort:low", time]] (last 80);
+     h = finds the mouse rested on for over a second [[id, time]] (last 80); i = finds that were on screen for a second or
+     more and not opened [[id, time, 1 if the list was filtered or searched]] (last 300; a weak "not for me"); n = no's [["uf:<id>" a find unsaved, "ni:Brand|type"
+     "Not interested" and "nb:Brand" "Show less" in the feed, time, 1 when the feed wrote it]] (last 100);
+     s = the feed's swipes [[id, time, 1 yes or 0 no, seconds on the card, 1 if its QC photos were looked at]] (last 300,
+     written by feed.html). v: 2 marks this layout; readers skip what they do not know. */
+  var CAP = { v: 150, q: 40, b: 60, c: 100, f: 80, h: 80, i: 300, n: 100, s: 300 };
   function tasteRW(fn) {
-    try { var t = JSON.parse(localStorage.getItem("pc.taste") || "{}") || {}; if (fn(t) !== false) localStorage.setItem("pc.taste", JSON.stringify(t)); } catch (e) {}
+    try { var t = JSON.parse(localStorage.getItem("pc.taste") || "{}") || {}; if (fn(t) !== false) { t.ver = 2; localStorage.setItem("pc.taste", JSON.stringify(t)); } } catch (e) {}
   }
   function taste(kind, val) {
-    if (!val) return;
+    if (!val || !CAP[kind] || kind === "s") return;
     tasteRW(function (t) {
       var a = Array.isArray(t[kind]) ? t[kind] : [], last = a[a.length - 1];
       if (last && last[0] === val && Date.now() - last[1] < (kind === "v" ? 2000 : 60000)) return false;   // the same thing twice in a row
-      a.push(kind === "v" ? [val, Date.now(), 0] : [val, Date.now()]); t[kind] = a.slice(-(CAP[kind] || 60));
+      a.push(kind === "v" ? [val, Date.now(), 0] : [val, Date.now()]); t[kind] = a.slice(-CAP[kind]);
     });
   }
+  window.pcTaste = { add: taste };                               // for the spreadsheet's filter and sort picks
   /* how long a find is looked at: from opening it until the address leaves it, the tab hides or the page closes */
   var open = null;                                               // { id, t0 (visible since), ms (visible time before) }
   function closeView() {
@@ -182,8 +189,50 @@
       var m = /\/product\/([^\/?#]+)/.exec((qc.getAttribute && qc.getAttribute("href")) || "");
       taste("c", m ? m[1] : curId()); return;
     }
+    var fv = el.closest("[data-fav]");                           // a heart: unsaving is a no (saving is already in the saved list)
+    if (fv) { if (fv.getAttribute("aria-pressed") === "true") taste("n", "uf:" + fv.getAttribute("data-fav")); return; }
     var c = el.closest("[data-cat]"), cat = c && c.getAttribute("data-cat");
     if (cat) { taste("f", "cat:" + cat); return; }
     if (a) { var bm = /^\/brand\/([a-z0-9-]+)/.exec(a.getAttribute("href") || ""); if (bm) taste("f", "brand:" + bm[1]); }
   }, true);
+  /* finds on screen (the spreadsheet's cards and the server pages' cards, which all carry a heart with data-fav): one that
+     stays at least 60% visible for a second and is not opened was looked at and passed over. Kept in memory and written
+     every few seconds, at most once per find per page, and never while a find is open on top. */
+  function cardId(el) { var f = el && el.querySelector && el.querySelector("[data-fav]"); return f ? f.getAttribute("data-fav") || "" : ""; }
+  var IMP = [], impDone = {}, impT = {}, io = null, watched = typeof WeakSet === "function" ? new WeakSet() : null;
+  function impFlush() {
+    if (!IMP.length) return;
+    var add = IMP; IMP = [];
+    tasteRW(function (t) { var a = Array.isArray(t.i) ? t.i : []; t.i = a.concat(add).slice(-CAP.i); });
+  }
+  /* the third field is 1 when the list was already narrowed to the visitor's pick (a filter, a search, a brand or category
+     page): every find there shares what they picked, so passing one says little about its brand or colour */
+  function impCtx() { var c = window.pcTasteCtx; return c != null ? (c ? 1 : 0) : location.pathname === "/" ? 0 : 1; }
+  function impSeen(id) { if (!id || impDone[id] || curId()) return; impDone[id] = 1; IMP.push([id, Date.now(), impCtx()]); }   // not while a find is open over the grid
+  if (window.IntersectionObserver && watched) {
+    io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        var id = cardId(e.target); if (!id) return;
+        if (e.isIntersecting && e.intersectionRatio >= 0.6 && !document.hidden) { if (!impT[id]) impT[id] = setTimeout(function () { impT[id] = 0; impSeen(id); }, 1000); }
+        else if (impT[id]) { clearTimeout(impT[id]); impT[id] = 0; }
+      });
+    }, { threshold: [0, 0.6] });
+    setInterval(function () {
+      if (document.hidden) return;
+      var cs = document.querySelectorAll(".card");
+      for (var i = 0; i < cs.length; i++) if (!watched.has(cs[i]) && cardId(cs[i])) { watched.add(cs[i]); io.observe(cs[i]); }
+      impFlush();
+    }, 2500);
+  }
+  window.addEventListener("pagehide", impFlush);
+  document.addEventListener("visibilitychange", function () { if (document.hidden) impFlush(); });
+  /* the mouse resting on a find for over a second (desktop only; a touch is a tap, not a hover) */
+  var hov = { el: null, t: 0 };
+  document.addEventListener("pointerover", function (e) {
+    if (e.pointerType !== "mouse") return;
+    var c = e.target && e.target.closest ? e.target.closest(".card") : null;
+    if (c === hov.el) return;
+    clearTimeout(hov.t); hov.el = c;
+    if (c) hov.t = setTimeout(function () { if (hov.el === c) taste("h", cardId(c)); }, 1200);
+  }, { passive: true });
 })();

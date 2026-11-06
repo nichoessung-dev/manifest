@@ -196,7 +196,7 @@ button.chip{cursor:pointer}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script id="pc-catalog-load"></script>
-<script src="/track.js?v=3" defer></script>
+<script src="/track.js?v=4" defer></script>
 <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js" onload="window.__sbReady&&window.__sbReady()"></script>
 <script>
 (function () {
@@ -205,7 +205,8 @@ button.chip{cursor:pointer}
    One card at a time: swipe right (or the heart) to favourite, left (or the X) to pass. Tap the right or left side of the
    photo for the next or previous picture (seller photo first, then QC photos). The ranking and the taste profile are the
    same as before: every swipe teaches it, plus the visitor's searches, opened finds and favourites from the rest of the
-   site (pc.taste, written by track.js). Everything it learns stays in this browser (localStorage "pc.feed.v1"). */
+   site (pc.taste, written by track.js). Everything it learns stays in this browser (localStorage "pc.feed.v1"). The swipes
+   go into pc.taste too (6 Nov 2026), so the spreadsheet's For you sort learns from them as well: one taste brain. */
 var $ = function (s, r) { return (r || document).querySelector(s); };
 var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
 var LS = {
@@ -314,6 +315,7 @@ var M = LS.get(MODEL_KEY, null);
 if (!M || M.v !== 1) M = { v: 1, w: {}, n: {}, N: 0, ev: 0, seen: {}, ni: [], liked: [], seeded: 0 };
 var S = { w: {}, n: 0 };                 // session profile
 var NI = new Set(M.ni);                  // "not interested" brand+type pairs
+var NB = new Set(M.nb || []);            // "show less" brands
 var saveT = 0;
 function persist() { clearTimeout(saveT); saveT = setTimeout(function () {
   var ids = Object.keys(M.seen);           // keep the 4,000 most recent "seen" entries
@@ -413,14 +415,16 @@ function negSample() {   /* a random popular find as a soft "no" next to a site 
 }
 
 /* ---------- what the visitor did on the rest of the site ----------
-   pc.taste (written by track.js, only in this browser): the searches they made and the finds they opened. Favourites
-   come from the saved list (the account's list when signed in). Three ways they shape the feed:
+   pc.taste (written by track.js, only in this browser): the searches they made, the finds they opened (and for how long),
+   bought, checked the QC photos of or rested the mouse on, filter and sort picks, finds unsaved, and finds that were on
+   screen and not opened (a weak no). Favourites come from the saved list (the account's list when signed in). Three ways
+   they shape the feed:
    1. every opened or favourited find teaches the taste profile once (brand, type, price, style words);
    2. "anchors": the latest finds they looked at or favourited; finds close to an anchor rank higher ("more like this");
    3. recent searches: finds that match a search rank higher, most for the newest searches.
    Anchors and searches fade with age and get weaker each time the visitor skips what they brought. */
 var Q = [], ANCH = [], BSLUG = {};
-function absorb(p, r, sess) {
+function absorb(p, r, sess, lw) {
   var f = feats(p);
   for (var i = 0; i < f.length; i++) {
     var x = r * FW[f[i].charAt(0)];
@@ -428,9 +432,16 @@ function absorb(p, r, sess) {
     if (sess) S.w[f[i]] = (S.w[f[i]] || 0) + x;
   }
   M.ex = Math.min(40, (M.ex || 0) + 1);
-  lrTrain(p, 1, r >= 2.5 ? 1 : 0.5);
+  lrTrain(p, 1, lw || (r >= 2.5 ? 1 : 0.5));
   var n = negSample(); if (n && n !== p) lrTrain(n, 0, 0.3);
 }
+/* a no from the rest of the site (a find unsaved, or scrolled past): the profile and the model learn it, softly */
+function absorbNo(p, r, lw) {
+  var f = feats(p);
+  for (var i = 0; i < f.length; i++) M.w[f[i]] = Math.max(-12, Math.min(12, (M.w[f[i]] || 0) - r * FW[f[i].charAt(0)]));
+  lrTrain(p, 0, lw);
+}
+function nudge(f, m, l) { M.w[f] = (M.w[f] || 0) + m; LR.w[f] = Math.max(-6, Math.min(6, (LR.w[f] || 0) + l)); }
 function anchor(p, w, k) {
   for (var i = 0; i < ANCH.length; i++) if (ANCH[i].p === p) { ANCH[i].w = Math.max(ANCH[i].w, w); ANCH[i].k = k; XV++; return; }
   ANCH.push({ p: p, w: w, k: k }); if (ANCH.length > 24) ANCH.shift(); XV++;
@@ -441,10 +452,30 @@ function ingestTaste(now) {
   v.forEach(function (e) { var p = BY[String(e[0])]; if (p && e[1] > since) absorb(p, 0.8 + Math.min(2.2, (e[2] || 0) / 15), now - e[1] < 2 * 36e5); });
   (Array.isArray(T.b) ? T.b : []).forEach(function (e) { var p = BY[String(e[0])]; if (p && e[1] > since) { absorb(p, 3, now - e[1] < 2 * 36e5); anchor(p, 1.1, "f"); } });   // buy clicks
   (Array.isArray(T.c) ? T.c : []).forEach(function (e) { var p = BY[String(e[0])]; if (p && e[1] > since) absorb(p, 1, false); });    // looked at its QC photos
-  (Array.isArray(T.f) ? T.f : []).forEach(function (e) {                                                                            // category and brand clicks
-    if (e[1] <= since) return; var x = String(e[0] || "");
-    if (x.indexOf("cat:") === 0) { M.w["c:" + x.slice(4)] = (M.w["c:" + x.slice(4)] || 0) + 0.5; LR.w["c:" + x.slice(4)] = (LR.w["c:" + x.slice(4)] || 0) + 0.15; }
-    else if (x.indexOf("brand:") === 0) { var b = BSLUG[x.slice(6)]; if (b) { M.w["b:" + b] = (M.w["b:" + b] || 0) + 0.8; LR.w["b:" + b] = (LR.w["b:" + b] || 0) + 0.25; } }
+  (Array.isArray(T.h) ? T.h : []).forEach(function (e) { var p = BY[String(e[0])]; if (p && e[1] > since) absorb(p, 0.4, false, 0.25); });   // the mouse rested on it
+  (Array.isArray(T.f) ? T.f : []).forEach(function (e) {                                                       // clicks, filter and sort picks
+    if (e[1] <= since) return; var x = String(e[0] || ""), i = x.indexOf(":"), k = x.slice(0, i), v = x.slice(i + 1);
+    if (k === "cat") nudge("c:" + v, 0.5, 0.15);
+    else if (k === "brand") { var b = BSLUG[v]; if (b) nudge("b:" + b, 0.8, 0.25); }
+    else if (k === "col") nudge("k:" + v, 0.6, 0.2);
+    else if (k === "plat") nudge("pl:" + v, 0.3, 0.08);
+    else if (k === "pr") { var lo = +v.split("-")[0] || 0, hi = v.split("-")[1] === "" ? 1e9 : +v.split("-")[1];
+      [[5, 80], [80, 150], [150, 300], [300, 600], [600, 1e9]].forEach(function (r, j) { if (r[0] < hi && r[1] > lo) nudge("p:" + (j + 1), 0.4, 0.12); }); }
+    else if (k === "sort") (v === "low" ? ["1", "2"] : ["4", "5"]).forEach(function (b2) { nudge("p:" + b2, 0.25, 0.06); });
+  });
+  var acted = {};   // finds the visitor did something with: being on screen earlier was not a no
+  ["v", "b", "c", "h", "s"].forEach(function (k) { (Array.isArray(T[k]) ? T[k] : []).forEach(function (e) { acted[e[0]] = 1; }); });
+  FAVES.forEach(function (id) { acted[id] = 1; });
+  var imp = {};
+  (Array.isArray(T.i) ? T.i : []).forEach(function (e) {                                                       // on screen, not opened
+    var id = String(e[0]), p = BY[id]; if (!p || e[2] || e[1] <= since || acted[id] || (imp[id] = (imp[id] || 0) + 1) > 2) return;   // not in a filtered list
+    absorbNo(p, 0.12, 0.2);
+  });
+  (Array.isArray(T.n) ? T.n : []).forEach(function (e) {                                                       // unsaved finds (the feed's own no's are known)
+    if (e[1] <= since || e[2] === 1) return; var x = String(e[0] || "");
+    if (x.indexOf("uf:") === 0) { var p = BY[x.slice(3)]; if (p && !FAVES.has(p.id)) absorbNo(p, 1.5, 0.8); }
+    else if (x.indexOf("nb:") === 0) lessBrand(x.slice(3));
+    else if (x.indexOf("ni:") === 0 && M.ni.indexOf("b:" + x.slice(3).replace("|", "|t:")) < 0) { M.ni.push("b:" + x.slice(3).replace("|", "|t:")); NI = new Set(M.ni); }
   });
   M.tv = now;
   var got = {};
@@ -460,6 +491,23 @@ function ingestTaste(now) {
     Q.push({ t: toks, w: age < 0.05 ? 1.6 : 1 / (1 + age / 4), raw: raw });
   });
   XV++;
+}
+/* the feed's own decisions go into the shared taste log (pc.taste, browser only), so the spreadsheet's For you sort
+   learns from them too: s = [id, time, 1 yes / 0 no, seconds on the card, 1 if its QC photos were looked at] (last 300),
+   n = ["ni:Brand|type" or "nb:Brand", time, 1] (last 100; the 1 says the feed wrote it, so the feed does not learn it twice) */
+function tlog(kind, row, cap, drop) {
+  try {
+    var T = JSON.parse(localStorage.getItem("pc.taste") || "{}") || {}, a = Array.isArray(T[kind]) ? T[kind] : [];
+    if (drop) { for (var i = a.length - 1; i >= 0; i--) if (a[i][0] === row[0]) { a.splice(i, 1); break; } }
+    else a.push(row);
+    T[kind] = a.slice(-cap); T.ver = 2; localStorage.setItem("pc.taste", JSON.stringify(T));
+  } catch (e) {}
+}
+/* "Show less <brand>": the profile, the main model and a standing penalty all hear it */
+function lessBrand(b) {
+  if (!b || NB.has(b)) return;
+  var f = "b:" + b; M.w[f] = (M.w[f] || 0) - 8; S.w[f] = (S.w[f] || 0) - 8; LR.w[f] = Math.max(-6, (LR.w[f] || 0) - 1.5);
+  M.nb = (M.nb || []).concat(b).slice(-50); NB = new Set(M.nb); persist();
 }
 function ingestFavs() {
   if (!ALL.length) return;
@@ -517,6 +565,7 @@ function score(p, recent, conf, now) {
     a += v; if (v > top && (kind === "b" || kind === "t")) { top = v; topF = f[i]; }
   }
   if (NI.has("b:" + (p.brand || "?") + "|t:" + p._t)) a -= 3;
+  if (NB.has(p.brand || "?")) a -= 4;
   var pop = maxPop > 1 ? Math.log1p(popOf(p)) / Math.log1p(maxPop) : 0;
   var qc = p.qc > 0 ? 0.12 + 0.12 * Math.min(1, Math.log1p(p.qc) / 6) : 0;
   // exploration: brands this visitor has hardly seen get a bonus that shrinks as they see more (UCB)
@@ -723,6 +772,7 @@ function decide(dir, how) {
   if (!topC) return;
   var c = topC, p = c.p, ms = Date.now() - t0 - hiddenMs;
   measure(lrp(p), dir > 0 ? 1 : 0);
+  tlog("s", [p.id, Date.now(), dir > 0 ? 1 : 0, Math.min(600, Math.round(ms / 1000)), c.photosSeen ? 1 : 0], 300);
   if (dir > 0) { if (!FAVES.has(p.id)) setFav(p, true); else learn(p, 1.5); skips = 0; }
   else {
     // a pass after a long look or after flicking through the QC photos is a softer no than an instant one
@@ -757,6 +807,7 @@ function undo() {
   if (underT) { clearTimeout(underT); underT = 0; }
   var c = h.c, p = c.p;
   if (h.dir > 0) { if (FAVES.has(p.id)) setFav(p, false, true); } else learn(p, 1.8);   // take the decision back
+  tlog("s", [p.id], 300, true);
   if (underC) { underC.el.remove(); queue.unshift(underC.p); shown = shown.filter(function (q) { return q !== underC.p; }); delete TITLES[underC.p._n]; }
   drag = null; deck.classList.remove("dragging");
   underC = topC; if (underC) { catchCard(underC); underC.el.classList.remove("top", "drag"); underC.el.classList.add("under"); underC.el.style.transform = ""; underC.el.style.removeProperty("--p"); }
@@ -1075,8 +1126,8 @@ function moreSheet(c) {
   sheet.onclick = function (e) {
     var b = e.target.closest("[data-m]"); if (!b) return;
     var m = b.dataset.m;
-    if (m === "ni") { M.ni.push("b:" + (p.brand || "?") + "|t:" + p._t); if (M.ni.length > 200) M.ni.shift(); NI = new Set(M.ni); learn(p, -2); closeSheet(); toast("Got it. Fewer like this."); decide(-1); }
-    else if (m === "nb") { var f = "b:" + (p.brand || "?"); M.w[f] = (M.w[f] || 0) - 8; S.w[f] = (S.w[f] || 0) - 8; persist(); closeSheet(); toast("Showing less " + (p.brand || "")); decide(-1); }
+    if (m === "ni") { M.ni.push("b:" + (p.brand || "?") + "|t:" + p._t); if (M.ni.length > 200) M.ni.shift(); NI = new Set(M.ni); tlog("n", ["ni:" + (p.brand || "?") + "|" + p._t, Date.now(), 1], 100); learn(p, -2); closeSheet(); toast("Got it. Fewer like this."); decide(-1); }
+    else if (m === "nb") { lessBrand(p.brand || "?"); tlog("n", ["nb:" + (p.brand || "?"), Date.now(), 1], 100); closeSheet(); toast("Showing less " + (p.brand || "")); decide(-1); }
     else if (m === "liked") likedSheet();
     else if (m === "stats") statsSheet();
   };
@@ -1092,12 +1143,18 @@ function statsSheet() {
   }
   openSheet('<h2 id="sheet-h">What the feed has learned</h2><p>All of this stays in your browser.</p>' +
     '<div class="sec">Your swipes</div><p>' + MET.n + " swipes, " + MET.likes + " favourited. Right-swipe rate: first 20 " + rate(h.slice(0, 20)) + ", last 20 " + rate(h.slice(-20)) + ".</p>" +
+    '<div class="sec">From the rest of the site</div><p>' + siteLine() + "</p>" +
     '<div class="sec">How well it predicts you</div><p>' + (A == null ? "Swipe a few more finds both ways to measure this." : "Accuracy " + Math.round(A * 100) + "%" + (A50 != null ? " (last 50 swipes: " + Math.round(A50 * 100) + "%)" : "") + ". 50% would be guessing.") + "</p>" +
     '<div class="sec">Brands you like</div><p>' + top("b:", 6) + "</p>" +
     '<div class="sec">Types</div><p>' + top("t:", 6) + "</p>" +
     '<div class="sec">Colours</div><p>' + top("k:", 6) + "</p>" +
     '<div class="sec">Combinations</div><p>' + top("kt:", 4).replace(/\|/g, " ") + "</p>");
   sheet.onclick = null;
+}
+function siteLine() {   /* what the shared taste log holds (the spreadsheet's For you sort learns from the same log) */
+  var T = LS.get("pc.taste", {}) || {}, n = function (k) { return Array.isArray(T[k]) ? T[k].length : 0; }, parts = [];
+  [["v", "find opened", "finds opened"], ["q", "search", "searches"], ["f", "filter or click", "filters and clicks"], ["h", "find hovered", "finds hovered"], ["i", "scrolled past", "scrolled past"], ["b", "buy click", "buy clicks"]].forEach(function (x) { var k = n(x[0]); if (k) parts.push(k + " " + (k === 1 ? x[1] : x[2])); });
+  return parts.length ? parts.join(", ") + ". The spreadsheet's For you sort uses the same memory, swipes included." : "Nothing yet. Browse the spreadsheet and the feed learns from that too.";
 }
 function likedSheet() {
   var ids = Array.from(FAVES).reverse(), html = "";
@@ -1116,7 +1173,11 @@ $("#tune").onclick = function () {
     var b = e.target.closest("button"); if (!b) return;
     if (b.dataset.c) { var k = c.indexOf(b.dataset.c); if (k >= 0) c.splice(k, 1); else c.push(b.dataset.c); b.setAttribute("aria-pressed", k < 0); }
     else if (b.hasAttribute("data-g")) { g = b.dataset.g; [].forEach.call(sheet.querySelectorAll("[data-g]"), function (x) { x.setAttribute("aria-pressed", x.dataset.g === g); }); }
-    else if (b.dataset.r === "reset") { M = { v: 1, w: {}, n: {}, N: 0, ev: 0, seen: {}, ni: [], liked: [], seeded: 1, fl: Array.from(FAVES) }; S = { w: {}, n: 0 }; NI = new Set(); LS.set(MODEL_KEY, M); closeSheet(); toast("Fresh start"); reset(); }
+    else if (b.dataset.r === "reset") {   // the feed and For you share one memory, so a fresh start clears it for both (favourites stay)
+      M = { v: 1, w: {}, n: {}, N: 0, ev: 0, seen: {}, ni: [], nb: [], liked: [], seeded: 1, fl: Array.from(FAVES), tv: Date.now() }; S = { w: {}, n: 0 }; NI = new Set(); NB = new Set();
+      LR = { v: 1, w: {}, n: {}, b: -0.6, k: 0 }; SW = {}; ANCH = []; Q = []; XV++;
+      LS.set(MODEL_KEY, M); LS.set(LR_KEY, LR); try { localStorage.removeItem("pc.taste"); } catch (x) {}
+      closeSheet(); toast("Fresh start"); reset(); }
     else if (b.dataset.r === "go") { FILT = { cats: c, pr: g }; LS.set("pc.feed.filter", FILT); closeSheet(); reset(); }
   };
 };
@@ -1159,7 +1220,7 @@ Promise.all([loadCatalog(), PRE.stats || getJSON("/data/stats.json"), PRE.link_h
   cat.forEach(function (p) { p.id = String(p.id); p._img = imgOf(p); p._t = typeOf(p); p._k = colOf(p); p._n = (p.title || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); BY[p.id] = p; });
   ALL = cat;
   buildVocab();
-  ALL.forEach(function (p) { if (p.brand) BSLUG[slug(p.brand)] = p.brand; });
+  ALL.forEach(function (p) { if (p.brand) { BSLUG[slug(p.brand)] = p.brand; BSLUG[slug(p.brand.replace(/['\u2019]/g, ""))] = p.brand; } });   // brand pages drop apostrophes (arcteryx)
   if (!M.fl) M.fl = M.seeded ? Array.from(FAVES) : [];   // favourites taught by the old start-up step count as learned
   ingestTaste(Date.now()); ingestFavs();
   var q = new URLSearchParams(location.search), first = [];
