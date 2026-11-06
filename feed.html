@@ -197,6 +197,7 @@ button.chip{cursor:pointer}
 
 <script id="pc-catalog-load"></script>
 <script src="/track.js?v=4" defer></script>
+<script src="/also.js?v=1" defer></script>
 <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js" onload="window.__sbReady&&window.__sbReady()"></script>
 <script>
 (function () {
@@ -524,12 +525,21 @@ function sim(a, b) {
   for (var i = 0; i < (a._w || []).length; i++) if (b._w && b._w.indexOf(a._w[i]) >= 0) s += 0.15;
   return s;
 }
+/* other members' co-likes (/also.js, data/also.json): the finds that people who liked an anchor also liked count as
+   close to it, at most as close as the same type and brand, so a like also pulls in what it tends to go with */
+var NBC = {};
+function nbOf(id) {
+  var m = NBC[id];
+  if (!m) { if (!window.pcAlso || !pcAlso.ok) return {}; m = NBC[id] = {}; pcAlso.get(id).forEach(function (e) { m[e[0]] = e[1] * (e[2] ? 1.15 : 1); }); }
+  return m;
+}
+window.addEventListener("pc:also", function () { NBC = {}; XV++; });
 function qMatch(p, q) { var n = 0; for (var i = 0; i < q.t.length; i++) if (p._s.indexOf(" " + q.t[i]) >= 0) n++; return n / q.t.length; }
 var XV = 0;                // bumped whenever anchors or searches change, so extras() can be cached per find
 function extras(p) {   /* anchor and search boosts for one find, and which one helped most */
   if (p._xv === XV) return p._xr;
   var an = 0, ak = null, qb = 0, qq = null;
-  for (var i = 0; i < ANCH.length; i++) { var v = sim(ANCH[i].p, p) * ANCH[i].w; if (v > an) { an = v; ak = ANCH[i]; } }
+  for (var i = 0; i < ANCH.length; i++) { var v = Math.max(sim(ANCH[i].p, p), 1.4 * (nbOf(ANCH[i].p.id)[p.id] || 0)) * ANCH[i].w; if (v > an) { an = v; ak = ANCH[i]; } }
   for (var j = 0; j < Q.length; j++) { var m = qMatch(p, Q[j]), b = m === 1 ? Q[j].w : m >= 0.5 ? 0.35 * Q[j].w : 0; if (b > qb) { qb = b; qq = Q[j]; } }
   p._xv = XV; return (p._xr = { an: an, ak: ak, qb: qb, qq: qq });
 }
@@ -644,13 +654,13 @@ function nextTr() {
 var lastBurst = -9;
 function burst(p) {
   if (mode !== "fy" || queue.length || shown.length - lastBurst < 3) return;
-  var inFeed = {}, best = null, bs = -1, recent = shown.slice(-3);
+  var inFeed = {}, best = null, bs = -1, recent = shown.slice(-3), nb = nbOf(p.id);
   for (var i = 0; i < shown.length; i++) inFeed[shown[i].id] = 1;
   for (var k = 0; k < ALL.length; k++) {
     var q = ALL[k];
     if (inFeed[q.id] || q.id === p.id || !eligible(q) || M.seen[q.id] || TITLES[q._n] || q._n === p._n) continue;
     if (recent.some(function (x) { return x.brand === q.brand; })) continue;
-    var s = (q._t === p._t ? 2 : 0) + (q.brand === p.brand ? 1.2 : 0) + (band(q.price) === band(p.price) ? 0.5 : 0) + (q.qc > 0 ? 0.3 : 0) + Math.random() * 1.2;
+    var s = (q._t === p._t ? 2 : 0) + (q.brand === p.brand ? 1.2 : 0) + (band(q.price) === band(p.price) ? 0.5 : 0) + (q.qc > 0 ? 0.3 : 0) + 3 * (nb[q.id] || 0) + Math.random() * 1.2;
     if (s > bs) { bs = s; best = q; }
   }
   if (best && bs >= 2.5) { queue.push(best); lastBurst = shown.length; why[best.id] = ""; }

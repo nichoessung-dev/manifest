@@ -40,6 +40,13 @@
 /track.js
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
+# related finds (scripts/bake_also.py, every 6 hours): /also.js is linked as /also.js?v=N; the data may be an hour old
+/also.js
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/data/also.json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
 # web app manifest (round 5): a day, so a changed name or icon reaches installs soon
 /manifest.webmanifest
   Content-Type: application/manifest+json

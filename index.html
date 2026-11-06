@@ -5044,7 +5044,16 @@ function pcTasteFilters(){
    the taste log (a yes or a no, with a weight that fades with age), starting from the feed's own weights. A plain sum of
    likes and dislikes per feature would punish a colour the visitor filtered for every time they scroll past one; the
    fit learns which features tell their yes from their no. */
-function fyNeighbours(yes){ return {}; }   /* extension point for item-to-item neighbours (window.pcAlso), see fyModel */
+/* item-to-item neighbours: finds that other members who liked the visitor's yes finds also liked (/also.js, data/also.json,
+   pairs held by 3+ members, blended with content similarity). The strongest 60 yes finds are the anchors; a find next to
+   several of them adds up, softly capped. {} until the file is in (it loads after idle; pc:also below re-sorts). */
+function fyNeighbours(yes){
+  if(!window.pcAlso||!pcAlso.ok||!yes.length) return {};
+  var raw=pcAlso.scoreFor(yes.slice().sort(function(a,b){ return b[1]-a[1]; }).slice(0,60)), out={};
+  for(var id in raw) out[id]=Math.tanh(raw[id]/2)*1.1;
+  return out;
+}
+window.addEventListener("pc:also",function(){ FY_MEMO={k:null,m:null}; try{ if(state.sort==="foryou") render(); }catch(e){} });
 function fyModel(){
   var LR=null, T={}, fav=[]; try{ LR=JSON.parse(localStorage.getItem("pc.feed.lr")||"null"); }catch(e){} try{ T=JSON.parse(localStorage.getItem("pc.taste")||"{}")||{}; }catch(e){} try{ fav=JSON.parse(localStorage.getItem("manifest.faves")||"[]")||[]; }catch(e){}
   var favS=new Set((Array.isArray(fav)?fav:[]).map(String));
@@ -5634,8 +5643,10 @@ function renderSimilar(p){
   const t1=p.brand?ALL.filter(x=>x.brand===p.brand&&x.cat===p.cat&&ok(x)).sort(rank):[];
   const t2=ALL.filter(x=>x.cat===p.cat&&x.brand!==p.brand&&(pr==null||(!isPH(x.price)&&x.price>=pr*0.6&&x.price<=pr*1.4))&&ok(x)).sort(rank);
   const t3=p.brand?ALL.filter(x=>x.brand===p.brand&&x.cat!==p.cat&&ok(x)).sort(rank):[];
+  /* first: what people who liked this find also liked (/also.js), then the rules above */
+  const al=window.pcAlso&&pcAlso.ok?pcAlso.get(p.id).map(e=>BY_ID[e[0]]).filter(x=>x&&ok(x)):[];
   const seen={}, seenT={}; let pool=[];
-  for(const x of t1.slice(0,6).concat(t2,t3)){ if(pool.length>=10) break; if(seen[x.id]||seenT[tk(x)]) continue; seen[x.id]=seenT[tk(x)]=1; pool.push(x); }
+  for(const x of al.concat(t1.slice(0,6),t2,t3)){ if(pool.length>=10) break; if(seen[x.id]||seenT[tk(x)]) continue; seen[x.id]=seenT[tk(x)]=1; pool.push(x); }
   if(!pool.length){ wrap.innerHTML=""; return; }
   wrap.innerHTML='<h2 class="sec-label">'+t("similar")+'</h2><div class="similar-row">'+pool.map(x=>
     '<button class="sim-card" data-sim="'+x.id+'"><span class="sim-thumb">'+(x.img?'<img src="'+esc(thumbOf(x.img))+'" alt="" loading="lazy">':'<canvas aria-hidden="true"></canvas>')+colourBadge(x)+'</span><span class="sim-t">'+esc(x.title)+'</span><span class="sim-p">'+pprice(x.price)+'</span></button>'
@@ -6692,4 +6703,5 @@ try{var AC=null,AH=matchMedia("(hover: hover)"),afp=function(l){var p=l.querySel
 </script>
 <script id="pc-search" src="/pcs.js?v=dd943831"></script>
 <script src="/track.js?v=4" defer></script>
+<script src="/also.js?v=1" defer></script>
 <script src="/chat.js?v=2" defer></script>
