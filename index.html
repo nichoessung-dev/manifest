@@ -2938,16 +2938,100 @@ html .fav,html .card .fav,html .drawer .fav{background:rgba(255,255,255,.92)!imp
   </div>
 </div>
 
+<style>
+/* Settings dialog (Nov 2026): agent cards with logos, currency chips, styled language select, sticky footer.
+   Scoped to #settings-modal; uses the v9 tokens so light, dark and system themes follow the page. */
+#settings-modal{opacity:0;transition:opacity 200ms var(--ease-out)}
+#settings-modal.set-open{opacity:1}
+#settings-modal:not(.set-open){pointer-events:none;transition-duration:160ms}
+#settings-modal .set-sheet{display:flex;flex-direction:column;width:min(480px,100%);max-height:calc(100dvh - 40px);padding:0!important;border-radius:20px!important;overflow:hidden;text-align:left;
+  opacity:0;transform:translateY(10px) scale(.97);transition:opacity 180ms var(--ease-out),transform 240ms var(--ease-out)}
+#settings-modal.set-open .set-sheet{opacity:1;transform:none}
+#settings-modal:not(.set-open) .set-sheet{transition-duration:140ms,160ms}
+#settings-modal .set-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 24px 2px}
+#settings-modal .set-head h3{margin:0;font-size:20px;line-height:1.2}
+#settings-modal .set-x{position:relative;flex:none;display:grid;place-items:center;width:40px;height:40px;margin:-8px -10px -8px 0;padding:0;border:0;border-radius:999px;background:transparent;color:var(--muted);cursor:pointer;transition:background-color .15s,color .15s}
+#settings-modal .set-x::after{content:"";position:absolute;inset:-2px}
+@media (hover:hover){#settings-modal .set-x:hover{background:var(--surface-2);color:var(--ink)}}
+#settings-modal .set-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:20px;padding:16px 24px 6px}
+#settings-modal .set-row{margin:0;gap:8px}
+#settings-modal .set-lrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+#settings-modal .set-label{font-family:var(--f-body);font-size:13px;font-weight:500;color:var(--ink)}
+#settings-modal .set-count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+#settings-modal .set-row input,#settings-modal .set-sel select{margin:0!important;border-radius:12px!important}
+#settings-modal select[hidden]{display:none!important}
+/* agent cards: radiogroup, logo + name + one line, check on the right */
+#settings-modal .set-agents{display:flex;flex-direction:column;gap:6px}
+#settings-modal .set-ag{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;margin:0;padding:7px 14px 7px 7px;border:1px solid var(--line-2);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;
+  transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease,transform .12s var(--ease-out)}
+@media (hover:hover){#settings-modal .set-ag:hover{background:var(--surface-2)}}
+#settings-modal .set-ag:active{transform:scale(.985)}
+#settings-modal .set-ag img{flex:none;width:36px;height:36px;border-radius:8px;object-fit:cover;outline:1px solid var(--photo-edge);outline-offset:-1px;background:var(--surface-2)}
+#settings-modal .set-ag-t{display:flex;flex-direction:column;flex:1;min-width:0}
+#settings-modal .set-ag-n{font-size:15px;font-weight:600;line-height:1.25}
+#settings-modal .set-ag-s{font-size:12.5px;line-height:1.35;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#settings-modal .set-ck{flex:none;display:grid;place-items:center;width:22px;height:22px;border:1.5px solid var(--line-2);border-radius:999px;color:var(--fill-ink);transition:background-color .15s ease,border-color .15s ease}
+#settings-modal .set-ck svg{opacity:0;transform:scale(.6);transition:opacity .15s ease,transform .2s var(--ease-out)}
+#settings-modal .set-ag[aria-checked="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);background:color-mix(in srgb,var(--ink) 3%,var(--surface))}
+#settings-modal .set-ag[aria-checked="true"] .set-ck{background:var(--fill);border-color:var(--fill)}
+#settings-modal .set-ag[aria-checked="true"] .set-ck svg{opacity:1;transform:none}
+/* currency chips: radiogroup, every option visible */
+#settings-modal .set-curs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+#settings-modal .set-cu{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;margin:0;padding:0 4px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px;white-space:nowrap;cursor:pointer;
+  transition:background-color .15s ease,border-color .15s ease,color .15s ease,transform .12s var(--ease-out)}
+#settings-modal .set-cu b{font-weight:600}
+#settings-modal .set-cu span{font-size:12px;color:var(--muted)}
+@media (hover:hover){#settings-modal .set-cu:not([aria-checked="true"]):hover{background:var(--surface-2)}}
+#settings-modal .set-cu:active{transform:scale(.96)}
+#settings-modal .set-cu[aria-checked="true"]{background:var(--fill);border-color:var(--fill);color:var(--fill-ink)}
+#settings-modal .set-cu[aria-checked="true"] span{color:inherit;opacity:.7}
+/* language: native select (native picker on phones) with a globe and a chevron */
+#settings-modal .set-sel{position:relative}
+#settings-modal .set-sel>svg{position:absolute;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+#settings-modal .set-sel .set-globe{left:14px}
+#settings-modal .set-sel .set-chev{right:14px}
+#settings-modal .set-sel select{-webkit-appearance:none;appearance:none;padding:0 40px 0 42px!important;cursor:pointer}
+/* footer stays put while the body scrolls */
+#settings-modal .set-foot{flex:none;display:flex;flex-direction:column;gap:10px;padding:18px 24px 24px;background:var(--surface)}
+#settings-modal .set-sheet.set-scrolls .set-foot{border-top:1px solid var(--line);padding-top:14px}
+#settings-modal #set-status{margin:0}
+#settings-modal #set-status:empty{display:none}
+#settings-modal .set-btns{display:flex;flex-direction:row-reverse;gap:10px}
+#settings-modal .set-btns .btn{flex:1 1 0;min-height:46px;margin:0}
+#settings-modal .set-btns .btn.ghost{background:var(--surface-2)!important;border-color:var(--surface-2)!important}
+@media (hover:hover){#settings-modal .set-btns .btn.ghost:hover{background:color-mix(in srgb,var(--ink) 9%,var(--surface))!important;border-color:transparent!important}}
+/* phones: a bottom sheet with 16px gutters, buttons stacked, Save on top */
+@media (max-width:560px){
+  #settings-modal{place-items:end center;padding:0!important}
+  #settings-modal .set-sheet{width:100%;max-height:calc(100dvh - 24px);border-radius:20px 20px 0 0!important;border-bottom:0!important;opacity:1;transform:translateY(100%);transition:transform 340ms cubic-bezier(.32,.72,0,1)}
+  #settings-modal:not(.set-open) .set-sheet{transition-duration:220ms}
+  #settings-modal .set-head{padding:18px 16px 2px}
+  #settings-modal .set-body{padding:16px 16px 6px;gap:20px}
+  #settings-modal .set-foot{padding:14px 16px max(16px,env(safe-area-inset-bottom))}
+  #settings-modal .set-curs{grid-template-columns:repeat(4,minmax(0,1fr))}
+  #settings-modal .set-btns{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+  #settings-modal .set-sheet{transform:none!important;transition:opacity 150ms linear!important}
+  #settings-modal .set-ag,#settings-modal .set-cu,#settings-modal .set-ck svg{transition:none}
+}
+</style>
 <div class="modal" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="set-title" hidden>
-  <div class="sheet">
-    <h3 id="set-title" data-i18n="settings">Settings</h3>
-    <div class="set-row"><label for="set-username" data-i18n="username">Username</label><input id="set-username" type="text" placeholder="Your display name" maxlength="24" autocomplete="off"></div>
-    <div class="set-row"><label for="set-agent" data-i18n="default_agent">Default agent</label><select id="set-agent"><option value="mycnbox">MyCNBox</option></select></div>
-    <div class="set-row"><label for="set-cur" data-i18n="currency">Currency</label><select id="set-cur"></select></div>
-    <div class="set-row"><label for="set-lang" data-i18n="language">Language</label><select id="set-lang"></select></div>
-    <button class="btn" id="set-save" style="width:100%;margin-top:4px" data-i18n="save_btn">Save</button>
-    <p class="auth-status" id="set-status"></p>
-    <button class="btn ghost" id="set-cancel" style="width:100%;margin-top:8px" data-i18n="cancel">Cancel</button>
+  <div class="sheet set-sheet">
+    <div class="set-head">
+      <h3 id="set-title" data-i18n="settings">Settings</h3>
+      <button type="button" class="set-x" id="set-x" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="set-body">
+      <div class="set-row"><div class="set-lrow"><label for="set-username" data-i18n="username">Username</label><span class="set-count" id="set-ucount" aria-hidden="true"></span></div><input id="set-username" type="text" placeholder="Your display name" maxlength="24" autocomplete="off"></div>
+      <div class="set-row"><span class="set-label" id="set-agent-l" data-i18n="default_agent">Default agent</span><div class="set-agents" id="set-agents" role="radiogroup" aria-labelledby="set-agent-l"></div><select id="set-agent" hidden aria-hidden="true" tabindex="-1"><option value="mycnbox">MyCNBox</option></select></div>
+      <div class="set-row"><span class="set-label" id="set-cur-l" data-i18n="currency">Currency</span><div class="set-curs" id="set-curs" role="radiogroup" aria-labelledby="set-cur-l"></div><select id="set-cur" hidden aria-hidden="true" tabindex="-1"></select></div>
+      <div class="set-row"><label for="set-lang" data-i18n="language">Language</label><div class="set-sel"><svg class="set-globe" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></g></svg><select id="set-lang"></select><svg class="set-chev" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+    </div>
+    <div class="set-foot">
+      <p class="auth-status" id="set-status"></p>
+      <div class="set-btns"><button class="btn" id="set-save" type="button" data-i18n="save_btn">Save</button><button class="btn ghost" id="set-cancel" type="button" data-i18n="cancel">Cancel</button></div>
+    </div>
   </div>
 </div>
 
@@ -4595,16 +4679,48 @@ function hideGate(){ const g=$("#gate"); if(!g||g.hidden)return; g.hidden=true; 
   try{ window.dispatchEvent(new Event("pc:gate-closed")); }catch(e){} }   /* r6: the welcome flow opens right after the gate (only fires when the gate was visible) */
 /* signed in (session restored, OAuth/magic-link return): the entry gate has nothing left to ask */
 function gateSignedIn(){ try{ localStorage.setItem("pc.gate","1"); }catch(e){} hideGate(); }
+/* Settings dialog: the agent cards and currency chips are radiogroups (roving tabindex, arrow keys, Home/End) that write
+   into the hidden #set-agent / #set-cur selects, so the Save handler below reads exactly the values it always has. */
+const SET_AG_SUB={ mycnbox:"Up to $500 in new-user coupons" };   /* same offer the gate and the welcome flow already show */
+const SET_CK='<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function setRadios(box,sel,html){
+  if(!box||!sel)return; box.innerHTML=html;
+  const opts=[...box.querySelectorAll('[role="radio"]')];
+  const pick=(b,focus)=>{ opts.forEach(o=>{ const on=o===b; o.setAttribute("aria-checked",on?"true":"false"); o.tabIndex=on?0:-1; }); sel.value=b.dataset.v; if(focus) try{ b.focus(); }catch(e){} };
+  const cur=opts.find(o=>o.dataset.v===sel.value)||opts[0]; if(cur) pick(cur,false);
+  box.onclick=e=>{ const b=e.target.closest('[role="radio"]'); if(b&&box.contains(b)) pick(b,false); };
+  box.onkeydown=e=>{ const i=opts.indexOf(document.activeElement); if(i<0)return; let j=-1;
+    if(e.key==="ArrowRight"||e.key==="ArrowDown") j=(i+1)%opts.length; else if(e.key==="ArrowLeft"||e.key==="ArrowUp") j=(i-1+opts.length)%opts.length;
+    else if(e.key==="Home") j=0; else if(e.key==="End") j=opts.length-1;
+    if(j>=0){ e.preventDefault(); pick(opts[j],true); } };
+}
+function setUCount(){ const i=$("#set-username"), c=$("#set-ucount"); if(i&&c) c.textContent=i.value.length+"/"+(i.maxLength>0?i.maxLength:24); }
+function setFit(){ const m=$("#settings-modal"); if(!m||m.hidden)return; const sh=m.querySelector(".set-sheet"), bd=m.querySelector(".set-body"); if(sh&&bd) sh.classList.toggle("set-scrolls",bd.scrollHeight>bd.clientHeight+1); }
 function openSettings(){
   const m=$("#settings-modal"); if(!m)return;
   $("#set-username").value=state.username||""; { const sa=$("#set-agent"); if(sa){ sa.innerHTML=Object.entries(AGENTS).map(([k,a])=>`<option value="${k}">${a.name}</option>`).join(""); sa.value=state.agent||"mycnbox"; } }
   const sc=$("#set-cur"); sc.innerHTML=Object.keys(CUR).map(k=>`<option value="${k}">${CUR[k].sym.trim()} ${k}</option>`).join(""); sc.value=state.cur;
   const sl=$("#set-lang"); sl.innerHTML=Object.entries(LANGS).map(([k,v])=>`<option value="${k}">${v}</option>`).join(""); sl.value=state.lang;
-  $("#set-status").textContent=""; m.hidden=false; try{ $("#set-username").focus({preventScroll:true}); }catch(e){}
+  setRadios($("#set-agents"),$("#set-agent"),Object.entries(AGENTS).map(([k,a])=>`<button type="button" role="radio" class="set-ag" data-v="${k}" data-set-ag="${k}"><img src="${a.logo}" alt="" width="36" height="36" decoding="async"><span class="set-ag-t"><span class="set-ag-n">${a.name}</span><span class="set-ag-s">${SET_AG_SUB[k]||a.domain}</span></span><span class="set-ck" aria-hidden="true">${SET_CK}</span></button>`).join(""));
+  setRadios($("#set-curs"),sc,Object.keys(CUR).map(k=>{ const y=CUR[k].sym.trim(); return `<button type="button" role="radio" class="set-cu" data-v="${k}" aria-label="${k}"><b>${k}</b>${y&&y!==k?`<span aria-hidden="true">${y}</span>`:""}</button>`; }).join(""));
+  { const x=$("#set-x"), c=t("close"); if(x) x.setAttribute("aria-label",c&&c!=="close"?c:"Close"); }
+  setUCount();
+  $("#set-status").textContent=""; clearTimeout(m.__setT); m.hidden=false; void m.offsetWidth; m.classList.add("set-open"); setFit();
+  try{ $("#set-username").focus({preventScroll:true}); }catch(e){}
 }
-function closeSettings(){ const m=$("#settings-modal"); if(!m||m.hidden)return; m.hidden=true; const b=$("#auth-btn"); if(b) try{ b.focus({preventScroll:true}); }catch(e){} }
-document.addEventListener("click",e=>{ if(e.target.id==="set-cancel"||e.target.id==="settings-modal") closeSettings(); });
+/* close animates out (transform+opacity), then hides; reopening mid-close cancels the hide */
+function closeSettings(){ const m=$("#settings-modal"); if(!m||m.hidden||!m.classList.contains("set-open"))return; m.classList.remove("set-open"); clearTimeout(m.__setT);
+  m.__setT=setTimeout(()=>{ if(!m.classList.contains("set-open")) m.hidden=true; },matchMedia("(prefers-reduced-motion: reduce)").matches?160:300);
+  const b=$("#auth-btn"); if(b) try{ b.focus({preventScroll:true}); }catch(e){} }
+document.addEventListener("click",e=>{ if(e.target.id==="set-cancel"||e.target.id==="settings-modal"||(e.target.closest&&e.target.closest("#set-x"))) closeSettings(); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeSettings(); });
+/* keep Tab inside the open dialog */
+document.addEventListener("keydown",e=>{ if(e.key!=="Tab")return; const m=$("#settings-modal"); if(!m||m.hidden||!m.classList.contains("set-open"))return;
+  const f=[...m.querySelectorAll("button,input,select")].filter(x=>!x.disabled&&x.tabIndex>=0&&x.offsetParent!==null); if(!f.length)return;
+  const a=f[0], z=f[f.length-1], ae=document.activeElement;
+  if(!m.contains(ae)){ e.preventDefault(); a.focus(); } else if(e.shiftKey&&ae===a){ e.preventDefault(); z.focus(); } else if(!e.shiftKey&&ae===z){ e.preventDefault(); a.focus(); } });
+document.addEventListener("input",e=>{ if(e.target.id==="set-username") setUCount(); });
+window.addEventListener("resize",setFit);
 document.addEventListener("click",e=>{ if(e.target.id!=="set-save")return;
   state.username=$("#set-username").value.trim(); state.agent=$("#set-agent").value;
   state.cur=$("#set-cur").value; state.lang=$("#set-lang").value; window.__curTouched=1;
