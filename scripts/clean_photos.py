@@ -12,22 +12,32 @@ seller photo. Per find:
   4b. small photos (short side under 900 px): enlarged with Real-ESRGAN (scripts/restore.py) behind a shrink-back
      judge, or Lanczos when the model is missing or the judge says no
   5. compose: crop to the item, scale so its long side is --fill of the canvas, centre, soft contact shadow,
-     on #f2f5fa (the site's photo card; --bg ffffff for white), 1200x1200 WebP
+     1200x1200 WebP. Default --bg none: a transparent cut-out with the shadow in the alpha, like the photos the site
+     shows today (no photo wells since r6: light pages put them on white with multiply, dark pages on the dark card);
+     --bg f2f5fa / ffffff give an opaque square instead
   6. fidelity check: the item pixels in the result must match the original (mean difference under a few levels)
 Uploads to Supabase storage products/pc2/<id>.webp (default; needs SUPABASE_SERVICE_KEY) or writes img/p2/<id>.webp with --store git, records each
 result in data/catalog_ai.json under "photos", and saves before/after contact sheets to --sheets for review.
 The original photos are never touched; the site switch is reversible (see PLAN.md).
 
-  python scripts/clean_photos.py [--ids 1,2 | --ids-file f | --from-labels not_clean|all] [--limit 50]
-                                 [--store supabase|git|none] [--bg f2f5fa] [--fill 0.84] [--recut] [--rembg-model isnet-general-use]
-                                 [--keep-main-view] [--sheets photo-sheets] [--dry-run] [--redo]
+  python scripts/clean_photos.py [--ids 1,2 | --ids-file f | --from-labels not_clean|all|random] [--issues hanger_or_rack,...]
+                                 [--order catalog|best] [--limit 50] [--store supabase|git|none] [--bg none] [--fill 0.86]
+                                 [--recut] [--rembg-model isnet-general-use] [--keep-main-view]
+                                 [--skip-issues worn_by_person,collage_or_grid,packaging_or_box,hand_in_photo]
+                                 [--sheets photo-sheets] [--dry-run] [--redo]
+
+  --skip-issues  finds whose labels say the photo has one of these are not touched (recorded as skipped, "needs a new
+                 photo"): a mask cannot take a person, a hand, a box or a collage out without drawing, so the original
+                 stays. --recut runs rembg on the photo AND keeps the photo's own transparency: the new mask can only
+                 remove pixels (tissue paper, a box edge), never add any. On the current catalogue (already cut-outs)
+                 it changed almost nothing in a test (isnet and birefnet-general-lite alike), so it is off by default.
 """
-import argparse, io, json, os, random, sys, time, urllib.request
+import argparse, io, json, os, random, re, sys, time, urllib.request
 from datetime import datetime, timezone
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from catalog_common import ROOT, UA, load_catalog, img_url, fetch, load_json, save_json  # noqa: E402
+from catalog_common import ROOT, UA, load_catalog, img_url, source_url, fetch, load_json, save_json  # noqa: E402
 from photo_metrics import mask_stats  # noqa: E402
 
 SIZE = 1200
@@ -51,13 +61,17 @@ def rembg_mask(im, model):
 
 
 def get_mask(im, a):
-    if "A" in im.getbands() and not a.recut:
-        al = im.getchannel("A")
-        if al.getextrema()[0] < 250:
-            return al, "alpha"
+    al = im.getchannel("A") if "A" in im.getbands() else None
+    has_alpha = al is not None and al.getextrema()[0] < 250
+    if has_alpha and not a.recut:
+        return al, "alpha"
     on_white = Image.new("RGBA", im.size, (255, 255, 255, 255))
     on_white.alpha_composite(im.convert("RGBA"))
-    return rembg_mask(on_white, a.rembg_model), "rembg:" + a.rembg_model
+    m = rembg_mask(on_white, a.rembg_model)
+    if has_alpha:
+        # recut of a photo that is already a cut-out: the model may only take pixels away, never put any back
+        return ImageChops.darker(m, al), "alpha+rembg:" + a.rembg_model
+    return m, "rembg:" + a.rembg_model
 
 
 def label(mask):
@@ -113,8 +127,10 @@ def upscale(im, alpha, a):
     return out, big_a, note
 
 
-def tidy(alpha, cat, keep_main):
-    """Remove specks (and, for garments, a thin hook above the collar). Returns (alpha, notes)."""
+def tidy(alpha, cat, keep_main, single=False):
+    """Remove specks (and, for garments, a thin hook above the collar). Returns (alpha, notes).
+    keep_main: drop extra views / a box / an inset (pieces under 60% of the main piece). single: keep ONE piece only
+    (front + back views of one garment: the largest piece, the left one when two are about the same size)."""
     notes = []
     w, h = alpha.size
     sc = 300 / max(w, h)
@@ -127,6 +143,11 @@ def tidy(alpha, cat, keep_main):
     # (two shoes of a pair, two halves of a set), so a small inset view or a box drops out
     floor = 0.6 if keep_main else 0.02
     keep_ids = {i for i in range(1, len(areas)) if areas[i] >= floor * big}
+    if single and len(keep_ids) > 1:
+        near = [i for i in keep_ids if areas[i] >= 0.85 * big]
+        main = min(near, key=lambda i: boxes[i][0])                # about the same size: the left one is the front
+        keep_ids = {main}
+        notes.append("kept the main view only")
     # a small piece INSIDE or right next to the main item is part of it (a logo whose white surround was cut away):
     # keep it. Only pieces out on their own (hanger bits, rack poles, dust) are dropped.
     m = round(0.015 * max(sm.size))
@@ -180,13 +201,18 @@ def _hook_rows(m, thin=0.07, longest=0.15):
     return 0
 
 
-def gate(alpha, a):
+def gate(alpha, a, several=False):
+    """several: the find is a set or a pair (two garments, two shoes): two big pieces are right, not a broken mask."""
     st = mask_stats(alpha)
     bad = []
+    box = alpha.point(lambda v: 255 if v >= 24 else 0).getbbox()
+    if box and (box[0] <= 1 or box[1] <= 1 or box[2] >= alpha.width - 1 or box[3] >= alpha.height - 1):
+        bad.append("item cut off at the photo edge")                # re-framing would show the cut as a hard line
     if st["cover"] < 0.03: bad.append("item too small / mask nearly empty")
     if st["solidity"] > 0.97 and st["fill"] > 0.97: bad.append("no background removed")
     if st["parts"] > a.max_parts: bad.append("%d separate pieces" % st["parts"])
-    if st["largest_share"] < 0.55 and st["parts"] > 1: bad.append("main piece only %.0f%%" % (100 * st["largest_share"]))
+    if st["largest_share"] < 0.55 and st["parts"] > 1 and not several:
+        bad.append("main piece only %.0f%%" % (100 * st["largest_share"]))
     if st["soft"] > 0.22: bad.append("hazy mask (%.0f%% half-transparent)" % (100 * st["soft"]))
     return bad, st
 
@@ -199,8 +225,9 @@ def compose(im, alpha, a):
     s = target / max(item.size)
     nw, nh = max(1, round(item.width * s)), max(1, round(item.height * s))
     item = item.resize((nw, nh), Image.LANCZOS)
-    bg = tuple(int(a.bg[i:i + 2], 16) for i in (0, 2, 4))
-    canvas = Image.new("RGBA", (SIZE, SIZE), bg + (255,))
+    clear = a.bg in ("none", "transparent", "")
+    bg = (0, 0, 0) if clear else tuple(int(a.bg[i:i + 2], 16) for i in (0, 2, 4))
+    canvas = Image.new("RGBA", (SIZE, SIZE), bg + (0 if clear else 255,))
     x = (SIZE - nw) // 2
     y = (SIZE - nh) // 2
     if a.shadow:
@@ -219,13 +246,13 @@ def compose(im, alpha, a):
         layer.alpha_composite(d2, (x, min(SIZE - nh, y + 10)))
         canvas.alpha_composite(layer)
     canvas.alpha_composite(item, (x, y))
-    return canvas.convert("RGB"), (x, y, nw, nh), item
+    return (canvas if clear else canvas.convert("RGB")), (x, y, nw, nh), item
 
 
 def fidelity(item, out, xy):
     """Mean absolute difference between the item's own opaque pixels and the same pixels in the result (0 = identical)."""
     x, y, nw, nh = xy
-    region = out.crop((x, y, x + nw, y + nh))
+    region = out.crop((x, y, x + nw, y + nh)).convert("RGB")
     solid = item.getchannel("A").point(lambda v: 255 if v >= 250 else 0)
     if not solid.getbbox():
         return 0.0
@@ -243,7 +270,7 @@ def upload_supabase(name, data):
     urllib.request.urlopen(req, timeout=60).read()
 
 
-def sheet(pairs, path, bg_before=(242, 245, 250)):
+def sheet(pairs, path, bg_before=(255, 255, 255)):
     """pairs: (id, before RGBA/RGB, after RGB or None, label). 3 pairs per row, 280 px tiles."""
     T, cols = 280, 3
     rows = (len(pairs) + cols - 1) // cols
@@ -254,7 +281,8 @@ def sheet(pairs, path, bg_before=(242, 245, 250)):
         b = Image.new("RGBA", before.size, bg_before + (255,)); b.alpha_composite(before.convert("RGBA")); b = b.convert("RGB")
         b.thumbnail((T, T)); sh.paste(b, (cx + 4, cy + 4))
         if after is not None:
-            af = after.copy(); af.thumbnail((T, T)); sh.paste(af, (cx + T + 8, cy + 4))
+            af = Image.new("RGBA", after.size, (255, 255, 255, 255)); af.alpha_composite(after.convert("RGBA"))
+            af = af.convert("RGB"); af.thumbnail((T, T)); sh.paste(af, (cx + T + 8, cy + 4))
             d.rectangle((cx + T + 8, cy + 4, cx + 2 * T + 8, cy + T + 4), outline=(210, 214, 222))
         else:
             d.rectangle((cx + T + 8, cy + 4, cx + 2 * T + 8, cy + T + 4), fill=(255, 236, 236))
@@ -273,10 +301,17 @@ def select(items, store, a):
         pool = [p for p in items if p["id"] in want]
     elif a.from_labels == "not_clean":
         pool = [p for p in items if labels.get(p["id"]) and not labels[p["id"]].get("error") and not labels[p["id"]].get("is_clean_product_photo")]
+        if a.issues:
+            want_i = set(a.issues.replace(" ", "").split(",")) - {""}
+            pool = [p for p in pool if want_i & set(labels[p["id"]].get("photo_issues") or [])]
     elif a.from_labels == "random":
         pool = random.Random(a.seed).sample(items, min(len(items), max(a.limit, 1) * 3))
     else:
         pool = list(items)
+    if a.order == "best" and not (a.ids or a.ids_file):       # most viewed first (data/stats.json): the fixes people see
+        st = load_json(os.path.join(ROOT, "data", "stats.json"), {}).get("p", {})
+        v = lambda p: sum((st.get(p["id"]) or [0, 0, 0])[1:3]) if isinstance(st.get(p["id"]), list) else 0
+        pool.sort(key=lambda p: -v(p))
     out = []
     for p in pool:
         if not a.redo and p["id"] in photos and photos[p["id"]].get("status") in ("ok", "skipped"):
@@ -293,12 +328,16 @@ def main():
     ap.add_argument("--ids", default="")
     ap.add_argument("--ids-file", default="")
     ap.add_argument("--from-labels", default="all", choices=["all", "not_clean", "random"])
+    ap.add_argument("--issues", default="", help="with --from-labels not_clean: only photos with one of these issues")
+    ap.add_argument("--skip-issues", default="worn_by_person,collage_or_grid,packaging_or_box,hand_in_photo",
+                    help="never touch photos with these issues (they need a new photo); '' = off")
+    ap.add_argument("--order", default="catalog", choices=["catalog", "best"])
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--limit", type=int, default=50)
     ap.add_argument("--store", default="supabase", choices=["supabase", "git", "none"])
     ap.add_argument("--outdir", default=os.path.join(ROOT, "img", "p2"))
-    ap.add_argument("--bg", default="f2f5fa", help="background hex; f2f5fa = the site's photo card")
-    ap.add_argument("--fill", type=float, default=0.84)
+    ap.add_argument("--bg", default="none", help="none = transparent (default, like the site's cut-outs); or a hex colour")
+    ap.add_argument("--fill", type=float, default=0.86, help="long side of the item / canvas (the current photos sit at ~0.90)")
     ap.add_argument("--shadow", type=float, default=0.16, help="shadow strength 0..1 (0 = none)")
     ap.add_argument("--recut", action="store_true", help="run rembg even when the photo already has transparency")
     ap.add_argument("--rembg-model", default="isnet-general-use")
@@ -321,24 +360,35 @@ def main():
     if a.store == "supabase" and not a.dry_run and not os.environ.get("SUPABASE_SERVICE_KEY"):
         sys.exit("SUPABASE_SERVICE_KEY is not set")
     pairs, n_ok, n_skip, n_err, n_sheet = [], 0, 0, 0, 0
+    skip = set(a.skip_issues.replace(" ", "").split(",")) - {""}
     t0 = time.time()
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M")
     for k, p in enumerate(todo):
         if a.max_minutes and time.time() - t0 > a.max_minutes * 60:
             print("time limit reached; the rest waits for the next run"); break
         pid = p["id"]
-        rec = {"date": now(), "src": img_url(p)}
+        src = source_url(p, store["photos"])
+        rec = {"date": now(), "src": src}
         try:
-            im = ImageOps.exif_transpose(Image.open(io.BytesIO(fetch(img_url(p)))))
+            im = ImageOps.exif_transpose(Image.open(io.BytesIO(fetch(src))))
             im.load()
-            alpha, how = get_mask(im, a)
             lab = labels.get(pid) or {}
-            multi = bool(set(lab.get("photo_issues") or []) & {"multiple_views", "collage_or_grid"}) or lab.get("is_collage")
+            issues = set(lab.get("photo_issues") or [])
+            no_go = sorted(issues & skip)
+            if no_go:
+                rec.update({"status": "skipped", "why": ["needs a new photo: " + ", ".join(no_go)]}); n_skip += 1
+                pairs.append((pid, im, None, "SKIP (new photo): " + ", ".join(no_go)))
+                if not a.dry_run: store["photos"][pid] = rec
+                continue
+            alpha, how = get_mask(im, a)
+            multi = bool(issues & {"multiple_views", "collage_or_grid", "multiple_items"}) or lab.get("is_collage")
             keep_main = a.keep_main_view and multi and not lab.get("is_set")
-            alpha, notes = tidy(alpha, p.get("cat"), keep_main)
+            set_title = re.search(r"(?i)\b(sets?|tracksuits?|pairs?)\b", p.get("title") or "")
+            single = keep_main and p.get("cat") not in ("Shoes",) and not set_title and "multiple_views" in issues
+            alpha, notes = tidy(alpha, p.get("cat"), keep_main, single)
             im, alpha, up = upscale(im, alpha, a)
             if up: notes.append(up)
-            bad, st = gate(alpha, a)
+            bad, st = gate(alpha, a, bool(set_title or lab.get("is_set")))
             bad += [n[9:] for n in notes if n.startswith("DAMAGED: ")]       # a broken old cut-out: needs a new photo
             rec.update({"mask": how, "notes": notes, "stats": st})
             if bad:
@@ -370,7 +420,7 @@ def main():
             store["photos"][pid] = rec
             if (k + 1) % 20 == 0:
                 save_json(a.labels, store)
-        if len(pairs) == 24:
+        if len(pairs) >= 24:
             n_sheet += 1; sheet(pairs, os.path.join(a.sheets, "sheet-%s-%03d.jpg" % (stamp, n_sheet))); pairs = []
     if pairs:
         n_sheet += 1; sheet(pairs, os.path.join(a.sheets, "sheet-%s-%03d.jpg" % (stamp, n_sheet)))

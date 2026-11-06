@@ -31,7 +31,7 @@ import argparse, base64, concurrent.futures as cf, io, json, os, random, re, sys
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from catalog_common import ROOT, CATS, COLOURS, load_catalog, img_url, fetch, load_json, save_json, no_dash  # noqa: E402
+from catalog_common import ROOT, CATS, COLOURS, load_catalog, img_url, source_url, fetch, load_json, save_json, no_dash  # noqa: E402
 
 GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent"
 OPENAI = "https://api.openai.com/v1/chat/completions"
@@ -92,9 +92,12 @@ Return JSON only, with these fields:
   Rules: no colour words in title_base, no sizes, no years, no "Men's"/"Women's", no seller words (rep, replica (except the Margiela model), 1:1, batch, top quality, new, hot),
   no dashes as punctuation (hyphens inside a model name like "Gel-Kayano" are fine), no words you cannot see or do not know for sure.
   Keep useful words from the current title (model names, prints, materials like "Suede" or "Leather" when true).
+  Do not add a word that only guesses the use ("Swim" for plain nylon shorts, "Slides" or "Sandals" for a Foam Runner);
+  do not repeat the brand ("Air Jordan 1", not "Jordan Air Jordan 1").
 - colour: the colour of the item. The current title's colour comes from the seller's listing and is usually right:
   repeat it as written unless the photo clearly shows a different colour (not a shade: navy vs blue or white vs grey
-  is the same colour). You may add a clear second colour ("Navy" -> "Navy White"). Plain English (Black, White, Grey, Navy, Blue, Light Blue, Red, Burgundy, Pink, Purple, Green, Olive, Khaki,
+  is the same colour; very dark navy often looks black on a photo). You may add a clear second colour ("Navy" -> "Navy White")
+  only when it covers a large part of the item (a sole, panels, stripes), never for a small logo or tag. Plain English (Black, White, Grey, Navy, Blue, Light Blue, Red, Burgundy, Pink, Purple, Green, Olive, Khaki,
   Yellow, Orange, Brown, Tan, Beige, Cream, Silver, Gold, Multicolour), two words at most ("Black White" for a two-tone shoe), "" if unclear.
 - colour_confidence: 0 to 1, how sure you are of colour. Use 0.95+ only when the photo leaves no doubt.
 - is_set: true when the find is clearly sold as two or more different garments together (tee + shorts, hoodie + pants).
@@ -213,6 +216,8 @@ def call_claude(model, text, jpg):
     kw = {}
     if model.startswith("claude-haiku-5"):
         kw["thinking"] = {"type": "disabled"}          # Haiku 5.5 allows it at effort high or below; labels need no thinking
+    elif model.startswith("claude-sonnet-5-5"):
+        kw["thinking"] = {"type": "between_tools"}     # Sonnet 5.5 rejects "disabled"; between_tools = no thinking here (no tools)
     try:
         msg = _claude.messages.create(
             model=model, max_tokens=1024,
@@ -386,12 +391,20 @@ def main():
                 if a.mock:
                     r, ti, to = mock_answer(p)
                 else:
-                    jpg = photo_jpeg(fetch(img_url(p)))
+                    jpg = photo_jpeg(fetch(source_url(p, store.get("photos"))))
                     fn = {"claude": call_claude, "gemini": call_gemini, "openai": call_openai}[a.engine]
                     r, ti, to = fn(a.model, prompt_for(p), jpg)
                 res = clean_answer(r, p)
                 res.update({"model": a.model, "date": now(), "was": {"cat": p.get("cat"), "title": p.get("title")}})
                 with lock:
+                    old = store["items"].get(p["id"]) or {}
+                    if old and not old.get("error") and old.get("model") != a.model:
+                        # a re-label by another model: keep the earlier answer as a second opinion for apply_catalog_ai.py
+                        res["prev"] = {k: old.get(k) for k in ("model", "date", "cat", "cat_confidence", "title_base", "model_name",
+                                                               "model_source", "title_confidence", "colour", "colour_confidence",
+                                                               "is_clean_product_photo", "photo_issues")}
+                    elif old.get("prev"):
+                        res["prev"] = old["prev"]
                     store["items"][p["id"]] = res; stats["ok"] += 1; stats["tin"] += ti; stats["tout"] += to
                 return
             except OutOfCredit as e:

@@ -38,6 +38,17 @@ def img_url(p):
     return u
 
 
+def source_url(p, photos=None):
+    """The ORIGINAL photo of a find. Once apply_catalog_ai.py --photos has pointed "img" at the cleaned copy
+    (products/pc2/<id>.webp), the original URL is the "src" that clean_photos.py recorded for it."""
+    u = img_url(p)
+    if "/products/pc2/" in u:
+        src = ((photos or {}).get(p["id"]) or {}).get("src")
+        if src:
+            return src
+    return u
+
+
 def fetch(url, timeout=30, tries=3):
     last = None
     for k in range(tries):
