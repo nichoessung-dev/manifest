@@ -2,8 +2,16 @@ name: Catalog AI
 # Better categories, titles and photos for the catalogue, in batches (see PLAN.md).
 #   audit   numbers only (no API calls); report + photo sample in the run's artifacts
 #   label   vision labels for the next <limit> finds -> data/catalog_ai.json (resumable; reruns skip done finds)
-#   photos  clean product shots on the site's #f2f5fa card colour for the next <limit> finds -> Supabase products/pc2/<id>.webp
-#           + before/after contact sheets in the run's artifacts
+#   photos  clean product shots (transparent cut-out, soft shadow, same framing) for the next <limit> finds
+#           -> Supabase products/pc2/<id>.webp + before/after contact sheets in the run's artifacts.
+#           Photos of a person, a hand, a box or a collage are never touched (they need a new photo).
+# options (free text, space separated, per step):
+#   photos  select=not_clean   only photos the labels call not clean      issues=hanger_or_rack,busy_background  only these
+#           recut=yes          rembg on top of the photo's own cut-out (can only remove pixels)
+#           rembg=isnet-general-use | birefnet-general-lite              order=best  most viewed first
+#           redo=yes           clean again photos that were already done (a new version, ?v=n+1)
+#   label   relabel=yes        label the given ids again (ids or ids=@file); the earlier label is kept as a second opinion
+# ids: comma separated, or @path/to/file.txt (one id per line, in the repo)
 # apply=yes changes index.html, and only through scripts/apply_catalog_ai.py (confident, rule-passing changes;
 # old values logged in data/catalog_ai_applied.json for a revert). Without it index.html is never touched.
 on:
@@ -18,7 +26,10 @@ on:
         description: 'Finds this run (batches of 500 are safe; 0 = do nothing new, only apply)'
         default: '50'
       ids:
-        description: 'Only these ids (comma separated, optional)'
+        description: 'Only these ids (comma separated, or @data/file.txt; optional)'
+        default: ''
+      options:
+        description: 'Step options, e.g. photos: select=not_clean issues=hanger_or_rack order=best redo=yes; label: relabel=yes'
         default: ''
       model:
         description: 'Vision model for label: claude-haiku-5-5 (default), claude-sonnet-5-5 (recheck), gemini-2.5-flash, gpt-4o-mini'
@@ -37,9 +48,9 @@ on:
         options: ['no', 'yes']
         default: 'no'
       apply_what:
-        description: 'With apply=yes: cats, titles, both, or photos (adds the p2 marker)'
+        description: 'With apply=yes: cats, titles, titles_order (titles + colour moved to the end), both, or photos (site shows the cleaned photo)'
         type: choice
-        options: [cats, titles, both, photos]
+        options: [cats, titles, titles_order, both, photos]
         default: cats
       max_usd:
         description: 'Stop the label run when it has spent this much (USD)'
@@ -57,8 +68,27 @@ jobs:
       LIMIT: ${{ inputs.limit }}
       IDS: ${{ inputs.ids }}
       MODEL: ${{ inputs.model }}
+      OPTIONS: ${{ inputs.options }}
     steps:
       - uses: actions/checkout@v4
+      - name: Read options
+        id: opt
+        run: |
+          # options -> step outputs (only known keys, only safe characters)
+          for kv in $OPTIONS; do
+            k="${kv%%=*}"; v="${kv#*=}"
+            case "$k" in select|issues|recut|rembg|order|relabel|redo) ;; *) echo "::error::unknown option $k"; exit 1;; esac
+            [[ "$v" =~ ^[A-Za-z0-9_,.-]+$ ]] || { echo "::error::bad value for $k"; exit 1; }
+            echo "$k=$v" >> "$GITHUB_OUTPUT"
+          done
+          # ids: a list or @file
+          if [[ "$IDS" == @* ]]; then
+            f="${IDS#@}"; [[ "$f" =~ ^[A-Za-z0-9_./-]+$ && -f "$f" ]] || { echo "::error::ids file $f not found"; exit 1; }
+            echo "ids_args=--ids-file $f" >> "$GITHUB_OUTPUT"
+          elif [ -n "$IDS" ]; then
+            [[ "$IDS" =~ ^[0-9A-Za-z_,\ -]+$ ]] || { echo "::error::bad ids"; exit 1; }
+            echo "ids_args=--ids ${IDS// /}" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -84,7 +114,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.u2net
-          key: u2net-isnet-general-use-v1
+          key: u2net-${{ steps.opt.outputs.rembg || 'isnet-general-use' }}-v1
 
       - name: Audit
         if: inputs.step == 'audit'
@@ -99,8 +129,8 @@ jobs:
         run: |
           # engine follows the model name: claude-* -> Anthropic (default), gemini-* -> Gemini, gpt-* -> OpenAI.
           # Exit code 3 = the account is out of credit: good labels are kept and committed by the Commit step.
-          python -u scripts/catalog_ai.py --model "$MODEL" --limit "$LIMIT" ${IDS:+--ids "$IDS"} \
-            --recheck-below "${{ inputs.recheck_below }}" \
+          python -u scripts/catalog_ai.py --model "$MODEL" --limit "$LIMIT" ${{ steps.opt.outputs.ids_args }} \
+            --recheck-below "${{ inputs.recheck_below }}" ${{ steps.opt.outputs.relabel == 'yes' && '--redo' || '' }} \
             --order best --workers 6 --max-minutes 80 --max-usd "${{ inputs.max_usd }}"
 
       - name: Clean photos
@@ -108,17 +138,22 @@ jobs:
         env:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
-          python -u scripts/clean_photos.py --limit "$LIMIT" ${IDS:+--ids "$IDS"} --store "${{ inputs.photo_store }}" --bg f2f5fa --keep-main-view \
-            --sheets out/photo-sheets --max-minutes 80
+          python -u scripts/clean_photos.py --limit "$LIMIT" ${{ steps.opt.outputs.ids_args }} --store "${{ inputs.photo_store }}" --bg none --keep-main-view \
+            --from-labels "${{ steps.opt.outputs.select || 'all' }}" ${{ steps.opt.outputs.issues && format('--issues {0}', steps.opt.outputs.issues) || '' }} \
+            ${{ steps.opt.outputs.recut == 'yes' && '--recut' || '' }} ${{ steps.opt.outputs.redo == 'yes' && '--redo' || '' }} --rembg-model "${{ steps.opt.outputs.rembg || 'isnet-general-use' }}" \
+            --order "${{ steps.opt.outputs.order || 'catalog' }}" --sheets out/photo-sheets --max-minutes 80
 
       - name: Apply to index.html (only with apply=yes)
         id: apply
         if: inputs.apply == 'yes' && inputs.step != 'audit'
         run: |
           case "${{ inputs.apply_what }}" in
-            cats) F="--cats";; titles) F="--titles";; both) F="--cats --titles";; photos) F="--photos";;
+            cats) F="--cats";; titles) F="--titles";; titles_order) F="--titles --reorder-colour";; both) F="--cats --titles";;
+            photos) F="--photos --verify";;
           esac
-          python scripts/apply_catalog_ai.py $F ${IDS:+--ids "$IDS"} --write --report out/catalog_ai_apply.md
+          IDA="${{ steps.opt.outputs.ids_args }}"
+          if [[ "$IDA" == --ids-file* ]]; then IDA="--ids $(tr -s '[:space:]' ',' < "${IDA#--ids-file }")"; fi
+          python scripts/apply_catalog_ai.py $F $IDA --write --report out/catalog_ai_apply.md --csv out/catalog_ai_apply.csv
           # pushes made with the workflow token do not start other workflows, so regenerate the derived files here
           # (what catalog-sync.yml would do)
           python scripts/gen_catalog.py
