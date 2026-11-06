@@ -11,6 +11,7 @@ import { itemTypeOf, typeGrams, boxedGrams, fmtGrams } from "./weights.js";
 const TOOLS = Object.fromEntries(Object.entries(Object.assign({}, TOOLS0, TOOLS9)).filter(([k]) => k !== "weight-estimator"));
 import { MODELS3, GUIDES3, MODEL_TERM as MODEL_TERM3 } from "./content3.js";
 import { MODELS4, MODEL_TERM4 } from "./content4.js";
+import { ensureAlso, alsoOf } from "./also.js";
 const MODELS = MODELS2.concat(MODELS3, MODELS4);
 const MODEL_TERM = Object.assign({}, MODEL_TERM3, MODEL_TERM4);
 const BRAND_INTRO = Object.assign({}, BRAND_INTRO2, BRAND_INTRO1);
@@ -73,7 +74,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w48";   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
+export const PRODUCT_TPL = "w49";   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -138,7 +139,7 @@ export async function renderProduct(id, origin, opt = {}) {
   const { byId, byBrand, byCat } = idx();
   const p = byId.get(id);
   if (!p) return null;
-  const qcr = await qcThumbs(origin, p), qcs = qcr.list;
+  const [qcr] = await Promise.all([qcThumbs(origin, p), ensureAlso(origin)]), qcs = qcr.list;
   const bUrl = brandUrl(p.brand), cUrl = catUrl(p.cat), cat = CATS[p.cat] || { name: p.cat };
   const trail = [["Home", "/"]];
   if (cUrl) trail.push([cat.name, cUrl]);
@@ -189,6 +190,19 @@ export async function renderProduct(id, origin, opt = {}) {
   const sameBrand = bUrl ? topBrand.concat(ringAfter("b:" + p.brand, byBrand.get(p.brand) || [], p, 4, topBrand)) : [];
   const topCat = (byCat.get(p.cat) || []).filter(x => x.id !== p.id && x.brand !== p.brand).slice(0, 4);
   const sameCat = topCat.concat(ringAfter("c:" + p.cat, byCat.get(p.cat) || [], p, 4, topCat, x => x.brand !== p.brand));
+  // "People also liked" (data/also.json, scripts/bake_also.py): finds that members who saved or opened this one also
+  // saved or opened (pairs held by 3+ members only), blended with the closest finds by type, brand, model, colour and price.
+  // Finds already in the brand and category rows are skipped, so those rows (and the links they guarantee) stay as they
+  // were. The row needs 4 finds; it says "People also liked" only when at least 3 of them come from members' co-likes.
+  const shownIds = new Set([p.id, ...sameBrand.map(x => x.id), ...sameCat.map(x => x.id)]), alsoList = [];
+  let alsoCo = 0;
+  for (const [aid, , co] of alsoOf(p.id)) {
+    const x = byId.get(aid);
+    if (!x || shownIds.has(x.id) || gone(x) === "dead") continue;
+    shownIds.add(x.id); alsoList.push(x); if (co) alsoCo++;
+    if (alsoList.length >= 8) break;
+  }
+  const alsoRow = alsoList.length >= 4 ? `<div class="sh"><h2>${alsoCo >= 3 ? "People also liked" : "You might also like"}</h2></div>${grid(alsoList)}` : "";
   const about1 = `<p>The <strong>${esc(p.title)}</strong> is listed on ${plat}${realSeller ? ` by ${esc(realSeller)}` : ""}, in our ${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(cat.name || p.cat)} section${p.brand ? ` (${esc(p.brand)} style)` : ""}.` +
     (isPH(p.cny) ? ` The seller shows a placeholder price (¥${p.cny}), so ask them for the real price before ordering.` : ` The listed price is ¥${p.cny} (about ${money(p.cny)}) before shipping.`) +
     (opts.length ? ` Listed option${opts.length > 1 ? "s" : ""}: ${esc(opts.slice(0, 8).join(", "))}${opts.length > 8 ? "…" : ""}.` : "") + `</p>`;
@@ -226,6 +240,7 @@ export async function renderProduct(id, origin, opt = {}) {
 <h2>About this find</h2>${aboutFacts}<div class="prose">${about1}</div>${more("Read more", `<div class="prose">${aboutMore}</div>`)}
 <h2>How to buy it</h2>${icSteps([["cart", "Tap Buy"], ["ruler", "Pick size, pay"], ["camera", "Check QC, ship"]])}${more("Step by step", `<ol class="steps prose"><li>Tap <strong>Buy via MyCNBox</strong> (or your agent). The listing opens pre-filled.</li><li>Pick your size and colour, check our <a href="/guides/sizing">sizing guide</a>, and pay for the item plus delivery to the warehouse.</li><li>Check the QC photos (<a href="/guides/how-to-qc">what to look for</a>), then combine items into one parcel and ship. <a href="/how-to-order">Watch the 1:47 video</a>.</li></ol>`)}
 ${model ? `<div class="note" style="margin-top:22px">${ic("award", "sm")}Comparing batches? See all <a href="/best/${model.slug}">${model.list.length} ${esc(model.name)} rep listings</a> ranked by views.</div>` : ""}
+${alsoRow}
 ${sameBrand.length ? `<div class="sh"><h2>More ${esc(p.brand)} finds</h2><a class="vm" href="${bUrl}">All ${byBrand.get(p.brand).length.toLocaleString("en-US")} ${esc(p.brand)} reps on the spreadsheet${ic("arrow-right", "sm")}</a></div>${grid(sameBrand)}` : ""}
 ${sameCat.length ? `<div class="sh"><h2>Similar ${esc((cat.name || p.cat).toLowerCase())}</h2>${cUrl ? `<a class="vm" href="${cUrl}">All ${esc((cat.name || p.cat).toLowerCase())}${ic("arrow-right", "sm")}</a>` : ""}</div>${grid(sameCat)}` : ""}
 ${buyBar}`;
