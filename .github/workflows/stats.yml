@@ -1,6 +1,8 @@
 name: Stats
 # Every 6 hours: aggregate real product views + favourites into data/stats.json
 # (drives the "Most popular" sort and the /admin dashboard). Aggregates only, no personal data.
+# Then "people who liked this also liked" for every find into data/also.json (scripts/bake_also.py: co-likes counted
+# only for pairs held by 3+ members, blended with content similarity), with its offline evaluation in the log.
 on:
   schedule:
     - cron: '23 */6 * * *'
@@ -13,7 +15,7 @@ concurrency:
 jobs:
   bake:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,16 +27,22 @@ jobs:
       # Which product pages may be indexed besides those with QC photos, and which the link check found gone
       # (functions/_lib/signals.js, see scripts/gen_signals.py).
       - run: python scripts/gen_signals.py
+      # Related finds for the product pages, the app and the feed. Its own step that may fail: the stats above still go out.
+      - run: python scripts/bake_also.py
+        continue-on-error: true
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       - name: Commit if changed
         run: |
           git add functions/_lib/signals.js
           git add data/stats.json data/dashboard.json 2>/dev/null || git add data/stats.json
+          git add data/also.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "no change"
           else
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git commit -m "chore: refresh view/favourite stats"
+            git commit -m "chore: refresh view/favourite stats and related finds"
             git pull --rebase
             git push
           fi
