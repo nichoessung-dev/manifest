@@ -382,6 +382,16 @@ def set_field(obj, key, old, new):
     return obj.replace(a, b)
 
 
+def mirrored(url):
+    """True when scripts/mirror_photos.py already copied this photo into the site (no request to Supabase needed)."""
+    try:
+        from mirror_photos import mirror_path
+    except ImportError:
+        return False
+    p = mirror_path(url)
+    return bool(p) and os.path.isfile(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), p.lstrip("/")))
+
+
 def head_ok(url):
     try:
         req = urllib.request.Request(url, method="HEAD", headers=UA)
@@ -469,7 +479,7 @@ def main():
                 if not p or ph.get("status") != "ok" or ph.get("store") != "supabase": continue
                 url = SUPA_PUBLIC + i + ".webp?v=%d" % int(ph.get("v") or 1)
                 if p.get("img") == url: continue
-                if a.verify and not head_ok(url):
+                if a.verify and not (mirrored(url) or head_ok(url)):
                     bad += 1; continue
                 changes.append((i, "img", p.get("img"), url, "pc2 v%s" % ph.get("v")))
             whys["photos"] = {"cleaned file missing (not switched)": bad} if bad else {}
