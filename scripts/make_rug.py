@@ -412,7 +412,7 @@ def site_cands(no):
 POP_N = int(os.environ.get("RUG_POP_N", "300"))
 
 
-def pop_cands(no):
+def pop_cands(no, n=None):
     """Product photos of the site's most popular finds (owner, 5 Nov 2026: "randomly of the most popular ones"), as
     candidates "pop:<id>". Popularity = views in the last 30 days + views in the last 7 + 3 x favourites (data/stats.json)."""
     try: st = json.load(open(os.path.join(ROOT, "data", "stats.json"))).get("p") or {}
@@ -421,7 +421,7 @@ def pop_cands(no):
     rows = [r for r in _ROWS if r[11] and r[3] in ("Shoes", "Outerwear", "Bags", "Accessories", "Headwear")]   # the kinds that fit the rug
     sc = lambda r: (lambda v: (v[1] or 0) + (v[2] or 0) + 3 * (v[3] or 0))(st.get(r[0]) or [0, 0, 0, 0])
     rows.sort(key=sc, reverse=True)
-    return [("pop:" + r[0], "other") for r in rows[:POP_N] if sc(r) > 0 and ("pop:" + r[0]) not in no]
+    return [("pop:" + r[0], "other") for r in rows[:n or POP_N] if sc(r) > 0 and ("pop:" + r[0]) not in no]
 
 
 def pop_url(sid):
@@ -455,31 +455,251 @@ def pop_check(pid):
     name = re.sub(r"\b(black|white|grey|gray|navy|blue|light|dark|red|green|brown|beige|cream|tan|pink|purple|yellow|orange|khaki|silver|gold|olive|multicolou?r)\b", "", r[1], flags=re.I)
     name = re.sub(r"\s+", " ", name).strip().lower()
     while len(name) > 26 and " " in name: name = name.rsplit(" ", 1)[0]     # cut at a word, never "snea"
-    return {"fits": True, "clear": True, "group": g, "item": g, "brand": r[2], "name": name}
+    item = (ai_label(pid[4:]).get("item") or "").lower()
+    if re.search(r"suitcase|luggage|trolley|carry.?on", (ai_label(pid[4:]).get("title_base") or "") + " " + r[1], re.I): item = "suitcase"   # labelled "bag", but 60 cm
+    if item in FLAT_CM: g = group_of(item)                    # the vision labels' kind: a watch is small, a vest is a jacket
+    return {"fits": True, "clear": True, "group": g, "item": item or g, "brand": r[2], "name": name, "label": flat_label(pid, r)}
+
+
+# ---- The no-AI fallback: a flat-lay of the items' own product photos on the rug photo (rebuilt 6 Nov 2026) ----
+# The first version (5 Nov) pasted the cut-outs flat and too big over the rug ("looks insanely bad", owner). Now:
+#  - only clean product photos: the vision labels in data/catalog_ai.json (is_clean_product_photo and no hand, person,
+#    box, collage, extra views, cropped item or damaged cut-out) plus a check of the cut-out itself (one item, no haze,
+#    not touching the photo edge, a front view for jackets), and only kinds that lie well on a rug, each with a real size;
+#  - real sizes (a watch is about 21 cm, a jacket about 74 cm) at the rug's own scale, and the camera "a step closer"
+#    for small things, so one slide shows one jacket, two pairs of shoes or bags, or three small things;
+#  - no item overlaps another or leaves the rug; a small natural turn, the rug camera's slight tilt (the far edge a
+#    little narrower and shorter), a contact shadow and a softer cast shadow, the room's colour and light, the photo's
+#    softness and a little grain;
+#  - captions like the cover: white TikTok Sans bold with a black outline, Title Case "Brand Item $price", in the clear
+#    band under the items.
+# The Gemini path above is unchanged: when the image credit is back, the real re-shot look returns by itself.
+RUG_BOX = (28, 437, 930, 1222)        # the rug in rug.jpg (930x1692): left, top, right (it runs off the photo), bottom
+RUG_PX_CM = 8.0                       # rug.jpg pixels per centimetre in the middle of the rug (the rug is about 1.1 m wide)
+FLAT_BAD = {"hand_in_photo", "worn_by_person", "multiple_items", "packaging_or_box", "collage_or_grid", "item_cropped",
+            "cut_out_damage", "multiple_views", "text_or_watermark", "blurry_or_low_res", "hanger_or_rack", "busy_background"}
+FLAT_CM = {                           # the long side of the item as the product photo shows it, in cm (catalog_ai "item")
+    "watch": 21, "bracelet": 9, "necklace": 16, "card holder": 10, "wallet": 11, "sunglasses": 15, "glasses": 15,
+    "belt": 14, "beanie": 24, "cap": 27, "trucker cap": 27, "bucket hat": 30, "perfume": 13, "pouch": 24,
+    "bag": 34, "crossbody bag": 26, "shoulder bag": 30, "belt bag": 30, "messenger bag": 32, "clutch": 26, "tote bag": 40,
+    "backpack": 44, "duffle bag": 56, "briefcase": 40, "bucket bag": 28, "suitcase": 62,
+    "sneakers": 31, "shoes": 30, "boots": 31, "loafers": 29, "slides": 28, "sandals": 28, "clogs": 29,
+    "jacket": 74, "puffer jacket": 76, "down jacket": 76, "windbreaker": 74, "varsity jacket": 72, "bomber jacket": 70,
+    "denim jacket": 70, "fleece": 70, "overshirt": 74, "zip hoodie": 72, "track jacket": 70, "coat": 96, "vest": 64,
+}
+FLAT_ZOOM = {"small": 2.1, "shoes": 1.6, "bags": 1.35, "jackets": 1.1}      # how much closer the camera is, per kind of slide
+_AI = None
+PAIRS = set()         # pop:<id> whose photo shows a pair (two shoes): a little wider on the rug
+
+
+def ai_label(fid):
+    """The find's vision labels (data/catalog_ai.json "items"), {} when it has none."""
+    global _AI
+    if _AI is None:
+        try: _AI = json.load(open(os.path.join(ROOT, "data", "catalog_ai.json"))).get("items") or {}
+        except Exception: _AI = {}
+    return _AI.get(fid) or {}
+
+
+def flat_ok(pid):
+    """Can this popular find go on the rug without AI? (ok, why). Only the labels, no download."""
+    a = ai_label(pid[4:])
+    if not a: return False, "no photo labels"
+    if not a.get("is_clean_product_photo"): return False, "not a clean product photo"
+    bad = set(a.get("photo_issues") or []) & FLAT_BAD
+    if bad: return False, ", ".join(sorted(bad))
+    if (a.get("item") or "").lower() not in FLAT_CM: return False, "a %s does not lie on a rug" % (a.get("item") or "?")
+    return True, ""
+
+
+def flat_label(pid, row):
+    """The caption name in Title Case, brand first ("Moncler Puffer Jacket"): the labels' clean title, else brand + item."""
+    a = ai_label(pid[4:]); brand = (row[2] if row else "") or ""; item = a.get("item") or ""
+    t = re.sub(r"\s+", " ", (a.get("title_base") or "").replace("\u2014", "-").replace("\u2013", "-")).strip() or (brand + " " + item).strip()     # never an em dash (owner)
+    if len(t) > 26 and brand and item and len(brand + " " + item) <= 30: t = brand + " " + item          # "Christian Louboutin Sneakers"
+    while len(t) > 30 and " " in t: t = t.rsplit(" ", 1)[0]
+    return " ".join(w if (w[:1].isupper() or any(ch.isdigit() for ch in w) or not w[:1].isalpha()) else w[:1].upper() + w[1:] for w in t.split())
+
+
+def cut_clean(im, pid):
+    """The product cut-out made ready for the rug, or (None, why): one item, a clean edge, nothing cropped."""
+    if "A" not in im.getbands(): return None, "no transparency"
+    im = im.convert("RGBA"); al = im.getchannel("A")
+    if al.getextrema()[0] > 250: return None, "no background removed"
+    cat = (site_row(pid[4:]) or [None] * 4)[3]
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from clean_photos import tidy                          # the site photo clean-up: loose specks, hanger hooks, rack poles
+        from photo_metrics import mask_stats
+        al, notes = tidy(al, cat, False)
+        if any(n.startswith("DAMAGED") for n in notes): return None, notes[-1]
+        st = mask_stats(al)
+    except Exception as e: return None, "mask check: %s" % str(e)[:60]
+    item = (ai_label(pid[4:]).get("item") or "").lower()
+    if st["touches"]: return None, "item cut off at the photo edge"
+    if st["soft"] > 0.16: return None, "hazy edge (%.0f%% half-transparent)" % (100 * st["soft"])
+    if st["cover"] < 0.03: return None, "almost empty"
+    if st["parts"] > (2 if item in ("sneakers", "shoes", "boots", "loafers", "slides", "sandals", "clogs", "sunglasses", "glasses") else 1):
+        return None, "%d separate pieces" % st["parts"]
+    if st["largest_share"] < 0.4: return None, "pieces of equal size"
+    im.putalpha(al); im = im.crop(al.point(lambda v: 255 if v >= 24 else 0).getbbox())
+    import numpy as np
+    a = np.asarray(im).astype(np.float32); A = a[..., 3] / 255.0
+    if group_of(item) == "jackets":                          # a front view (symmetric), not a side or worn three-quarter view
+        m = A > .5; sym = (m & m[:, ::-1]).sum() / max(1, (m | m[:, ::-1]).sum())
+        if sym < 0.78: return None, "not a front view (%.2f)" % sym
+    if item == "belt" and max(im.size) > 3.2 * min(im.size): return None, "a belt laid out straight"
+    # the edge: pixels the cut-out left half-transparent carry the old (white) background, so they take the colour of the
+    # solid item next to them (colour decontamination); then the edge is pulled in a little and softened by half a pixel
+    solid = A > 0.97
+    if solid.sum() < 50: return None, "no solid item"
+    wimg = Image.fromarray((solid * 255).astype(np.uint8)); rgb = a[..., :3] * solid[..., None]
+    out = a[..., :3].copy(); done = solid.copy()
+    for r in (2, 5, 12):
+        wsum = np.asarray(wimg.filter(ImageFilter.GaussianBlur(r))).astype(np.float32) / 255.0
+        csum = np.stack([np.asarray(Image.fromarray(np.clip(rgb[..., c], 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(r))).astype(np.float32) for c in range(3)], -1)
+        sel = (A > 0.02) & ~done & (wsum > 0.02)
+        out[sel] = (csum / np.maximum(wsum[..., None], 1e-3))[sel]; done |= sel
+    a[..., :3] = out
+    a3 = Image.fromarray((A * 255).astype(np.uint8)).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.6))
+    a[..., 3] = np.asarray(a3).astype(np.float32)
+    if st["parts"] == 2: PAIRS.add(pid)
+    out = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
+    return out, "ok"
+
+
+def group_of(item):
+    item = (item or "").lower()
+    if item in ("sneakers", "shoes", "boots", "loafers", "slides", "sandals", "clogs"): return "shoes"
+    if FLAT_CM.get(item, 0) >= 60: return "jackets"
+    if item in ("bag", "crossbody bag", "shoulder bag", "belt bag", "messenger bag", "clutch", "tote bag", "backpack", "duffle bag", "briefcase", "bucket bag"): return "bags"
+    return "small"
+
+
+def _persp(dst, src):
+    """Coefficients for Image.transform(PERSPECTIVE) that map the dst quad onto the src quad."""
+    import numpy as np
+    m = []
+    for (x, y), (u, v) in zip(dst, src):
+        m.append([x, y, 1, 0, 0, 0, -u * x, -u * y]); m.append([0, 0, 0, x, y, 1, -v * x, -v * y])
+    return np.linalg.solve(np.array(m, float), np.array([c for p in src for c in p], float)).tolist()
 
 
 def composite(sl, rnd):
-    """No-AI slide (5 Nov 2026, when Gemini and OpenAI were both out of credit): the items' own transparent product photos laid
-    on the owner's rug photo with a soft contact shadow and a small random turn, so the drafts keep coming. PNG bytes."""
+    """No-AI slide: the items' clean product cut-outs laid on the rug photo like a flat-lay (see the notes above).
+    Returns PNG bytes; puts the slide's item boxes in sl[0]["boxes"] so the caption goes in the clear band."""
+    import numpy as np
     W, H = 1080, 1920
-    base = ImageOps.fit(Image.open(RUG).convert("RGB"), (W, H), Image.LANCZOS)
-    n = len(sl)
-    slots = [(.5, .46, .64)] if n == 1 else [(.47, .37, .56), (.54, .55, .56)] if n == 2 else [(.5, .29, .4), (.31, .46, .36), (.69, .52, .34)]
-    for p, (fx, fy, fw) in zip(sl, slots):
+    src = Image.open(RUG).convert("RGB"); sw, sh = src.size
+    z = min([FLAT_ZOOM.get(group_of(p.get("item")), 1.0) for p in sl] or [1.0])     # the biggest item decides
+    cw = sw / z; ch = cw * H / W
+    if ch > sh: ch = sh; cw = ch * W / H
+    cx = sw * 0.5 + (sw * 0.03 if z > 1.05 else 0); cy = (RUG_BOX[1] + RUG_BOX[3]) / 2 - 40     # the middle of the rug, a little of the room above
+    x0 = min(max(0, cx - cw / 2), sw - cw); y0 = min(max(0, cy - ch / 2), sh - ch)
+    base = src.resize((W, H), Image.LANCZOS, box=(x0, y0, x0 + cw, y0 + ch)); u = W / cw          # output px per rug.jpg px
+    B = np.asarray(base).astype(np.float32) / 255.0
+    to_out = lambda x, y: ((x - x0) * u, (y - y0) * u)
+    rl, rt = to_out(RUG_BOX[0], RUG_BOX[1]); rr, rb = to_out(RUG_BOX[2], RUG_BOX[3])
+    rug_px = B[int(max(0, rt)) + 10:int(min(H, rb)) - 10, int(max(0, rl)) + 10:int(min(W, rr)) - 10].reshape(-1, 3)
+    white = np.percentile(rug_px, 90, axis=0)                 # the rug's cream under the room light
+    lum = B.mean(-1); light = np.asarray(Image.fromarray((lum * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(70))).astype(np.float32) / 255.0
+    light = light / max(1e-3, float(np.median(light[int(max(0, rt)):int(min(H, rb)), :])))
+    block = int(64 * 1.25 * (len(sl) - 1)) + 90; cap_y = int(H * 0.72 - block / 2)     # the caption sits at the same height on every slide
+    reg = (max(rl, 0) + 34, max(rt + 30, H * 0.17), min(rr, W) - 34, min(rb - 24, cap_y - 44))   # where items may lie
+    # 1. each item at its real size, turned a little, tilted like the rug, toned to the room
+    prepared = []
+    for p in sl:
         im = CUT.get(p["qc"])
         if im is None: continue
-        im = im.convert("RGBA"); bb = im.split()[-1].getbbox()
-        if bb: im = im.crop(bb)
-        side = int(W * fw); sc = side / float(max(im.width, im.height)); im = im.resize((max(1, int(im.width * sc)), max(1, int(im.height * sc))), Image.LANCZOS)
-        im = im.rotate(rnd.uniform(-8, 8), expand=True, resample=Image.BICUBIC)
-        x, y = int(W * fx - im.width / 2), int(H * fy - im.height / 2)
-        a = im.split()[-1]
-        sh = Image.new("L", (im.width + 120, im.height + 120), 0); sh.paste(a, (60, 60)); sh = sh.filter(ImageFilter.GaussianBlur(22)).point(lambda v: int(v * .45))
-        base.paste(Image.new("RGB", sh.size, (20, 16, 12)), (x - 60 + 12, y - 60 + 22), sh)         # soft shadow, light from the top left
-        contact = Image.new("L", (im.width, max(8, im.height // 6)), 0); ImageDraw.Draw(contact).ellipse((im.width * .1, 0, im.width * .9, contact.height), fill=110)
-        contact = contact.filter(ImageFilter.GaussianBlur(14)); base.paste(Image.new("RGB", contact.size, (15, 12, 10)), (x, y + im.height - contact.height // 2), contact)
-        base.paste(im, (x, y), im)
-    b = io.BytesIO(); base.save(b, "PNG"); return b.getvalue()
+        cm = FLAT_CM.get((p.get("item") or "").lower(), 30)
+        if p["qc"] in PAIRS: cm *= 1.12
+        prepared.append([p, im, cm])
+    prepared.sort(key=lambda q: -q[2])
+    anchors = {1: [(.5, .5)], 2: [(.3, .3), (.7, .72)], 3: [(.27, .27), (.73, .34), (.45, .76)]}.get(len(prepared), [(.5, .5)] * len(prepared))
+    if rnd.random() < .5: anchors = [(1 - ax, ay) for ax, ay in anchors]
+    def shape(im, cm, ycen, k):
+        ysrc = ycen / u + y0
+        s = RUG_PX_CM * cm * u * (1 + 0.00013 * (ysrc - 830)) * k / max(im.size)
+        it = im.resize((max(1, int(im.width * s / u)), max(1, int(im.height * s / u))), Image.LANCZOS)     # the rug photo's own detail
+        it = it.resize((max(1, int(im.width * s)), max(1, int(im.height * s))), Image.BICUBIC)
+        return it
+    for shrink in (1.0, 0.92, 0.85, 0.78, 0.72):
+        boxes, layers, ok = [], [], True
+        for (p, im, cm), (ax, ay) in zip(prepared, anchors):
+            g = group_of(p.get("item")); ang = rnd.uniform(-1, 1) * (4 if g == "jackets" else 9 if g == "shoes" else 7)
+            it = shape(im, cm, (reg[1] + reg[3]) / 2, shrink)
+            it = it.rotate(ang, expand=True, resample=Image.BICUBIC)
+            w, h = it.size; k = 0.035; sq = 0.95                # the far edge a little narrower, the depth a little shorter
+            h2 = max(1, int(h * sq))
+            it = it.transform((w, h2), Image.PERSPECTIVE, _persp([(w * k / 2, 0), (w - w * k / 2, 0), (w, h2), (0, h2)], [(0, 0), (w, 0), (w, h), (0, h)]), Image.BICUBIC)
+            bb = it.getchannel("A").point(lambda v: 255 if v > 20 else 0).getbbox()
+            if bb: it = it.crop(bb)
+            w, h = it.size
+            if w > reg[2] - reg[0] or h > reg[3] - reg[1]: ok = False; break
+            best = None
+            for t in range(500):
+                x = rnd.uniform(reg[0], reg[2] - w); y = rnd.uniform(reg[1], reg[3] - h)
+                r = (x - 30, y - 30, x + w + 30, y + h + 30)
+                if any(r[0] < b[2] and b[0] < r[2] and r[1] < b[3] and b[1] < r[3] for b in boxes): continue
+                tx = reg[0] + ax * (reg[2] - reg[0]); ty = reg[1] + ay * (reg[3] - reg[1])
+                d = (x + w / 2 - tx) ** 2 + (y + h / 2 - ty) ** 2
+                if best is None or d < best[0]: best = (d, x, y)
+            if best is None: ok = False; break
+            x, y = int(best[1]), int(best[2]); boxes.append((x, y, x + w, y + h)); layers.append((p, it, x, y)); p["_box"] = (x, y, x + w, y + h)
+        if ok and layers: break
+    if not ok or not layers: return None
+    # 2. shadows first (the rug darkens under and beside each item), then the items
+    S = np.zeros((H, W), np.float32)
+    for p, it, x, y in layers:
+        a = it.getchannel("A"); pad = int(40 * u)
+        big = Image.new("L", (it.width + 2 * pad, it.height + 2 * pad), 0); big.paste(a, (pad, pad))
+        ao = np.asarray(big.filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(3.5 * u))).astype(np.float32) / 255.0 * 0.62
+        cast = np.asarray(big.filter(ImageFilter.GaussianBlur(15 * u))).astype(np.float32) / 255.0 * 0.32
+        sets = [(ao, 1 * u, 2.5 * u), (cast, 6 * u, 11 * u)]
+        if group_of(p.get("item")) in ("shoes", "bags"):       # standing things: a darker shadow where the sole or the base meets the rug
+            foot = big.copy(); ImageDraw.Draw(foot).rectangle((0, 0, foot.width, pad + int(it.height * 0.78)), fill=0)
+            sets.append((np.asarray(foot.filter(ImageFilter.GaussianBlur(5 * u))).astype(np.float32) / 255.0 * 0.7, 2 * u, 5 * u))
+        for arr, dx, dy in sets:
+            X, Y = int(x - pad + dx), int(y - pad + dy)
+            xa, ya, xb, yb = max(0, X), max(0, Y), min(W, X + arr.shape[1]), min(H, Y + arr.shape[0])
+            if xb > xa and yb > ya: S[ya:yb, xa:xb] = 1 - (1 - S[ya:yb, xa:xb]) * (1 - arr[ya - Y:yb - Y, xa - X:xb - X])
+    tint = np.array([0.32, 0.27, 0.23], np.float32)            # a warm brown shadow, like the floor's
+    B = B * (1 - S[..., None] * (1 - tint))
+    for p, it, x, y in layers:
+        a = np.asarray(it).astype(np.float32) / 255.0; A = a[..., 3:4]; c = a[..., :3]
+        L = c.mean(-1, keepdims=True); c = L + (c - L) * 0.9            # a little less saturated than the studio shot
+        m = float((c.mean(-1) * A[..., 0]).sum() / max(1e-3, A.sum())); c = m + (c - m) * 0.9      # and less contrast
+        c = c * (0.55 + 0.45 * white / max(1e-3, white.max()))           # the room's warm light
+        hi = np.percentile(c.mean(-1)[A[..., 0] > .5], 99) if (A > .5).any() else 1
+        c = c * min(1.0, float(white.mean()) * 1.02 / max(1e-3, hi))       # no item brighter than the lit rug
+        c = c * light[y:y + it.height, x:x + it.width, None]                # the same light falloff as the room
+        reg_b = B[y:y + it.height, x:x + it.width]
+        B[y:y + it.height, x:x + it.width] = reg_b * (1 - A) + np.clip(c, 0, 1) * A
+    # 3. one camera: a little grain over everything
+    g = np.random.default_rng(rnd.randrange(1 << 30))
+    noise = g.normal(0, 1, (H, W)).astype(np.float32)
+    noise = np.asarray(Image.fromarray(np.clip(noise * 40 + 128, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.7))).astype(np.float32) / 255.0 - 0.5
+    B = B + noise[..., None] * 0.07 + g.normal(0, 0.006, (H, W, 3)).astype(np.float32)
+    out = Image.fromarray(np.clip(B * 255, 0, 255).astype(np.uint8))
+    sl[0]["boxes"] = boxes + [("cap_y", cap_y)]
+    b = io.BytesIO(); out.save(b, "PNG"); return b.getvalue()
+
+
+def flat_caption(im, names, usds, boxes):
+    """The cover's text style for the item slides: white TikTok Sans bold, black outline, soft shadow; one line per item
+    ("Moncler Puffer Jacket $35"), centred, in the clear band under the items (above them when there is no room)."""
+    im = im.convert("RGBA"); W, H = im.size
+    texts = [n + (" $%d" % u if u else "") for n, u in zip(names, usds)]
+    size = 64
+    while size > 44 and max(outlined(t, size).width for t in texts) > W * 0.88: size -= 2
+    layers = [outlined(t, size) for t in texts]; lh = int(size * 1.25)
+    block = lh * (len(layers) - 1) + max(l.height for l in layers)
+    lo, hi = int(H * 0.13), int(H * 0.79) - block
+    fixed = [b[1] for b in boxes if b[0] == "cap_y"]; boxes = [b for b in boxes if b[0] != "cap_y"]
+    bottom = max(b[3] for b in boxes) if boxes else int(H * 0.6); top = min(b[1] for b in boxes) if boxes else int(H * 0.3)
+    y = fixed[0] if fixed and fixed[0] >= bottom + 20 else bottom + 48 if bottom + 48 <= hi else top - 48 - block if top - 48 - block >= lo else hi
+    for k, l in enumerate(layers): im.alpha_composite(l, ((W - l.width) // 2, y + k * lh))
+    return im.convert("RGB")
 
 
 def owner(pid):
@@ -537,6 +757,10 @@ def main():
     from concurrent.futures import ThreadPoolExecutor
     def look(c):
         pid, t = c
+        if AI_OUT[0] and not pid.startswith("pop:"): return c, None, "flat-lay: no image credit for this photo"
+        if AI_OUT[0]:
+            ok, why = flat_ok(pid)
+            if not ok: return c, None, "flat-lay: skip %s (%s)" % (pid, why)
         url = SITE_QC % site_find(pid) if pid.startswith("site:") else pop_url(pid) if pid.startswith("pop:") else "https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % pid
         try: qc = Image.open(io.BytesIO(fetch(url))); qc.load()
         except Exception as e: return c, None, "download: %s" % e
@@ -544,7 +768,10 @@ def main():
             if qc.mode in ("RGBA", "LA", "P"):                 # the product photos are cut-outs: put them on white
                 qc = qc.convert("RGBA"); CUT[pid] = qc.copy(); bg = Image.new("RGB", qc.size, (255, 255, 255)); bg.paste(qc, mask=qc.split()[-1]); qc = bg
             else: qc = qc.convert("RGB")
-        if AI_OUT[0] and pid.startswith("pop:"): return c, qc, pop_check(pid)
+        if AI_OUT[0] and pid.startswith("pop:"):
+            cut, why = cut_clean(CUT[pid], pid) if pid in CUT else (None, "not a cut-out")
+            if cut is None: CUT.pop(pid, None); return c, None, "flat-lay: skip %s (%s)" % (pid, why)
+            CUT[pid] = cut; return c, qc, pop_check(pid)
         try: return c, qc, check(qc if pid.startswith(("site:", "pop:")) else top_shot(qc))      # only the shot the image model gets: the lower one is often another item
         except Exception as e: return c, qc, "check: %s" % str(e)[:300]
     want, cap = (a.n * 2 + 2, a.n) if MULTI_ON else (a.n + 3, max(2, a.n // 3))
@@ -555,6 +782,7 @@ def main():
             if len(picks) >= want or time.time() - t_pick > 8 * 60: break      # spares for the judge; never more than 8 minutes of checking
             with ThreadPoolExecutor(6) as ex: seen = list(ex.map(look, cl[b:b + 6]))
             for (pid, t), qc, c in seen:
+                if isinstance(c, str) and c.startswith("flat-lay"): print(" ", c); continue     # not a failure: a photo that does not suit the flat-lay
                 if isinstance(c, str):
                     print(" ", c); fails += 1
                     if "insufficient_quota" in c or "billing" in c or "credit" in c.lower():
@@ -576,13 +804,20 @@ def main():
                 row = site_row(fid) if fid else None
                 usd = int(round(row[6])) if row and isinstance(row[6], (int, float)) and row[6] > 0 else price(c.get("brand"), c.get("item") or t, g)   # a site photo: its find's own price
                 picks.append({"qc": pid, "img": qc, "name": name, "usd": usd, "group": g, "brand": c.get("brand"), "find": fid, "single": bool(fid),
-                              "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g])})
+                              "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g]), "label": c.get("label")})
 
     pick_from(cands)
     if AI_OUT[0]:                                              # only the popular finds' cut-outs can be laid on the rug without AI
-        picks[:] = [p for p in picks if p["qc"] in CUT]; groups.clear()
-        for p in picks: groups[p["group"]] = groups.get(p["group"], 0) + 1
-        pool = [c for c in cands if c[0].startswith("pop:")] or pop_cands(no); rnd.shuffle(pool); fails = 0
+        picks[:] = []; groups.clear()                         # picked before the credit ran out: not checked for the flat-lay, so pick again
+        pool =[c for c in pop_cands(no, POP_N * 3) if flat_ok(c[0])[0]]      # only clean photos of kinds that lie well on a rug
+        rnd.shuffle(pool); pool.sort(key=lambda c: rc.get(c[0], 0)); fails = 0
+        kinds = {}                                             # kinds take turns in slide-sized groups (three small things, two pairs, one jacket, two bags),
+        for c in pool: kinds.setdefault(group_of(ai_label(c[0][4:]).get("item")), []).append(c)     # so small things are never left alone on a slide
+        pool = []
+        while any(kinds.values()):
+            for g in ("small", "shoes", "jackets", "bags"):
+                pool += kinds.get(g, [])[:MULTI[g]]; kinds[g] = kinds.get(g, [])[MULTI[g]:]
+        print("flat-lay candidates (clean product photos):", len(pool))
         pick_from(pool)
     rug = jpeg(Image.open(RUG), 1536)
     t0 = time.time(); budget = float(os.environ.get("RUG_BUDGET_MIN", "15")) * 60
@@ -590,6 +825,7 @@ def main():
     by = {}                                                    # 2. slides: several of a kind together (MULTI), kinds taking turns
     for p in picks: by.setdefault(p["group"], []).append(p)
     chunks = {g: [ps[k:k + (MULTI.get(g, 1) if MULTI_ON else 1)] for k in range(0, len(ps), MULTI.get(g, 1) if MULTI_ON else 1)] for g, ps in by.items()}
+    if AI_OUT[0]: chunks["small"] = [c for c in chunks.get("small", []) if len(c) > 1]     # one bracelet alone on the rug looks empty
     slides = []
     while any(chunks.values()) and len(slides) < a.n + 1:
         for g in ["small", "shoes", "jackets", "bags"]:
@@ -598,7 +834,7 @@ def main():
     def make(sl):                                              # 3. the images, three at a time; each one judged, one retry, then the slide is dropped
         shots = [p["img"] if p.get("single") else top_shot(p["img"]) for p in sl]; label = " + ".join(p["name"] for p in sl)
         angle = rnd.choice(ANGLES["several"]) if len(sl) > 1 else sl[0]["angle"]
-        if AI_OUT[0]: return sl, composite(sl, rnd), "rug collage (no AI credit)", {}
+        if AI_OUT[0]: return sl, composite(sl, random.Random("%s %s" % (a.seed, label))), "rug flat-lay (no AI credit)", {}     # its own dice: the slides are made side by side
         for attempt in range(2):
             if time.time() - t0 > budget: print("  out of time, skipping", label); break
             print("  making", label, "try", attempt + 1, "%.0fs in" % (time.time() - t0))
@@ -616,6 +852,9 @@ def main():
         ImageOps.fit(Image.open(io.BytesIO(png)).convert("RGB"), (1080, 1920), Image.LANCZOS).save(os.path.join(a.out, fn + "-raw.jpg"), quality=94)
         log.append({"file": fn + ".jpg", "qc": [p["qc"] for p in sl], "name": [p["name"] for p in sl], "usd": [p["usd"] for p in sl],
                     "group": sl[0]["group"], "model": model, "usage": use})
+        if sl[0].get("boxes") is not None:                     # a flat-lay slide: caption lines in the items' order from top to bottom
+            order = sorted(range(len(sl)), key=lambda k: (sl[k].get("_box") or (0, 1e9))[1])
+            log[-1].update(label=[sl[k].get("label") or sl[k]["name"].title() for k in order], usd=[sl[k]["usd"] for k in order], boxes=sl[0]["boxes"])
         print("made", fn, "with", model)
     if state_path and a.commit_state: used["rug_skip"] = sorted(rejected)
     if len(log) < min(a.n, 5):                                 # never post a thin carousel
@@ -624,7 +863,8 @@ def main():
     cv, k, kg = cover(rnd, used.get("rug_cover")); cover_path = os.path.join(a.out, "00-cover.jpg"); cv.save(cover_path, quality=94)
     images = [cover_path]
     for x in log:
-        p = os.path.join(a.out, x["file"]); item_slide(Image.open(p[:-4] + "-raw.jpg"), x["name"], x["usd"]).save(p, quality=94); images.append(p)
+        p = os.path.join(a.out, x["file"]); raw = Image.open(p[:-4] + "-raw.jpg")
+        (flat_caption(raw, x["label"], x["usd"], x["boxes"]) if x.get("boxes") is not None else item_slide(raw, x["name"], x["usd"])).save(p, quality=94); images.append(p)
     caption = "%dkg haul unboxing\n\n%s" % (kg, RUG_TAGS)       # the title line is the same weight as on the cover
     meta = {"format": "finds", "images": images, "ids": [], "caption": caption, "seconds": 0, "voiceover": False,
             "file": os.path.join(a.out, "none.mp4"), "product_url": "https://www.puroclassico.com/"}
