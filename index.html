@@ -4188,7 +4188,8 @@ function filtered(noBrand){   /* noBrand: unsorted list matching every filter ex
   if(s==="low")list.sort((a,b)=>isPH(a.price)-isPH(b.price)||a.price-b.price);
   else if(s==="high")list.sort((a,b)=>isPH(a.price)-isPH(b.price)||b.price-a.price);
   else if(s==="qc")list.sort((a,b)=>b.qc-a.qc);
-  else if(s==="pop")list.sort((a,b)=>popScore(b)-popScore(a)||(b.favs||0)-(a.favs||0)||(b.viewsAll||0)-(a.viewsAll||0)||(b.best||0)-(a.best||0)||(b.ft||0)-(a.ft||0)||((a._rnd||0)-(b._rnd||0)));
+  else if(s==="pop"){ if(window.__pcStatsIn) return pcSmartPop(list, !state.q&&!state.saved);   /* r9 ranker, below popScore */
+    list.sort((a,b)=>popScore(b)-popScore(a)||(b.favs||0)-(a.favs||0)||(b.viewsAll||0)-(a.viewsAll||0)||(b.best||0)-(a.best||0)||(b.ft||0)-(a.ft||0)||((a._rnd||0)-(b._rnd||0))); }
   else if(s==="views7")list.sort((a,b)=>(b.views7||0)-(a.views7||0)||(b.views||0)-(a.views||0));
   else if(s==="views30")list.sort((a,b)=>(b.views||0)-(a.views||0)||(b.viewsAll||0)-(a.viewsAll||0));
   else if(s==="viewsAll")list.sort((a,b)=>(b.viewsAll||0)-(a.viewsAll||0));
@@ -5257,15 +5258,61 @@ function pcForYou(list){
     var pop=Math.log1p(popScore(p))/Math.log1p(maxPop), s=pop*(M.has?1-0.75*M.conf:1)+(p.qc>0?0.1:0);
     if(M.has) s+=M.part(p);
     s+=((p._rnd||0)-.5)*.08;           /* a touch of variety between finds that score the same */
+    if(SOLD.has(String(p.id))) s-=2;   /* sold out at the last link check */
     out.set(p,s);
   });
   return out;
 }
 /* real popularity: aggregated product views + favourites (data/stats.json, refreshed every 6h by the Stats workflow) */
 function popScore(p){ return (p.views||0) + (p.views7||0); }   /* views in the last 30 days, last 7 days count double */
+/* r9 ranker for "Most popular" (7 Nov 2026; offline check: scripts/rank_eval.py, numbers in its header).
+   What the data says (data/stats.json, the last week held out): a find's own recent views predict next week's views far
+   better than anything else we have. Brand averages, QC photo counts and save rates all made that prediction worse, so
+   the score stays popularity (saves and all-time views break ties). What plain popularity gets wrong is fixed around it:
+     - sold-out listings (last link check) sink instead of sitting at the top;
+     - variety: the first 200 are re-picked one by one, a brand costing more the more it appeared in the last 6, the same
+       item type in the last 3, and a near-duplicate (same brand, type and colour) in the last 24, so the top is no longer
+       one brand's listings from different sellers;
+     - exploration: without views a new find never reaches the top, so it never gets views. On the full sheet (no search,
+       not Saved), 8 places (24th, 36th, ... 108th) go to new finds without a single view, from brands people look at,
+       a different set every day (the same all day, so back and forth keeps the order);
+     - ties between equal finds shuffle once a day, not on every load.
+   Only aggregate numbers from the file everyone gets are used; nothing is tracked or sent. */
+function rkH(s){ var h=0x811c9dc5; s=String(s); for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h/4294967296; }
+var RK_MEMO={k:null};
+function rkPrep(){   /* per stats load: base score per find and how much people look at each brand */
+  var day=Math.floor(Date.now()/864e5), key=(STATS&&STATS.generated||"")+"|"+ALL.length+"|"+day+"|"+(SOLD?SOLD.size:0);
+  if(RK_MEMO.k===key) return RK_MEMO;
+  var bs={}, bn={}, tot=0, n=0, base=new Map(), bp={};
+  ALL.forEach(function(p){ var h=(p.views||0)+0.05*Math.max(0,(p.viewsAll||0)-(p.views||0)), b=p.brand||"?"; bs[b]=(bs[b]||0)+h; bn[b]=(bn[b]||0)+1; tot+=h; n++;
+    var s=Math.log1p(popScore(p))+0.02*Math.log1p(p.favs||0)+0.01*Math.log1p(p.viewsAll||0)+0.001*(p.best||0)+0.0005*(p.ft||0)+(rkH(p.id+"|"+day)-.5)*0.02;
+    if(SOLD.has(String(p.id))) s-=2;
+    base.set(p,s); });
+  var mu=n?tot/n:0; for(var b in bs) bp[b]=(bs[b]+6*mu)/(bn[b]+6);
+  RK_MEMO={k:key,day:day,base:base,bp:bp}; return RK_MEMO;
+}
+function pcSmartPop(list, explore){
+  var R=rkPrep(), S=R.base, sc=function(p){ var v=S.get(p); return v==null?-9:v; };
+  list.sort(function(a,b){ return sc(b)-sc(a); });
+  var head=list.slice(0,200), tail=list.slice(200), out=[], dk=function(p){ return p._rkD||(p._rkD=(p.brand||"?")+"|"+fyType(p)+"|"+fyCol(p)); }, ty=function(p){ return p._rkT||(p._rkT=fyType(p)); };
+  while(head.length){ var bi=0, bv=-1e9, rb={}, rt={}, rd={};
+    for(var j=Math.max(0,out.length-24);j<out.length;j++){ var q=out[j]; rd[dk(q)]=1; if(j>=out.length-6) rb[q.brand||"?"]=(rb[q.brand||"?"]||0)+1; if(j>=out.length-3) rt[ty(q)]=(rt[ty(q)]||0)+1; }
+    for(var i=0;i<Math.min(head.length,40);i++){ var p=head[i], v=sc(p)-0.2*(rb[p.brand||"?"]||0)-0.05*(rt[ty(p)]||0)-(rd[dk(p)]?0.3:0); if(v>bv){ bv=v; bi=i; } }
+    out.push(head.splice(bi,1)[0]); }
+  out=out.concat(tail);
+  if(explore&&out.length>=120){
+    var cold=out.filter(function(p){ return !(p.viewsAll>0)&&p.img&&!SOLD.has(String(p.id)); });
+    if(cold.length>=8){
+      var ps=cold.map(function(p){ return R.bp[p.brand||"?"]||0; }).sort(function(a,b){ return a-b; }), thr=ps[Math.floor(ps.length*0.6)];
+      var pick=cold.filter(function(p){ return (R.bp[p.brand||"?"]||0)>=thr; }).sort(function(a,b){ return rkH(a.id+"#"+R.day)-rkH(b.id+"#"+R.day); }).slice(0,8);
+      if(pick.length){ var ps2=new Set(pick); out=out.filter(function(p){ return !ps2.has(p); }); pick.forEach(function(p,k){ out.splice(23+k*12,0,p); }); }
+    }
+  }
+  return out;
+}
 let STATS = null;
 (window.PC_PRE&&PC_PRE.stats||fetch("/data/stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)).then(s=>{
-  if(!s||!s.p) return; STATS=s;
+  if(!s||!s.p) return; STATS=s; window.__pcStatsIn=1;
   ALL.forEach(p=>{ const v=s.p[p.id]; if(!v) return; p.viewsAll=v[0]||0; p.views=v[1]||0; p.views7=v[2]||0; p.favs=v[3]||0; });
   _bgDirty=true;
   try{ buildFilters(); }catch(e){}   /* re-rank the type menu by the real view counts */
@@ -5757,12 +5804,18 @@ function renderSimilar(p){
   const pr=isPH(p.price)?null:p.price;
   /* cheap field tests first: ok() lower-cases two titles per call and ran on all ~9,200 finds three times per opened find */
   const t1=p.brand?ALL.filter(x=>x.brand===p.brand&&x.cat===p.cat&&ok(x)).sort(rank):[];
-  const t2=ALL.filter(x=>x.cat===p.cat&&x.brand!==p.brand&&(pr==null||(!isPH(x.price)&&x.price>=pr*0.6&&x.price<=pr*1.4))&&ok(x)).sort(rank);
+  /* r9: other brands ranked by how close they are (same garment type, colour, price), then popularity, not popularity alone */
+  const _pt=fyType(p), _pc=fyCol(p), near=x=>(fyType(x)===_pt?2:0)+(_pc&&fyCol(x)===_pc?0.5:0)-(pr&&!isPH(x.price)?Math.abs(Math.log(x.price/pr)):0)+0.3*Math.log1p(popScore(x));
+  const t2=ALL.filter(x=>x.cat===p.cat&&x.brand!==p.brand&&(pr==null||(!isPH(x.price)&&x.price>=pr*0.6&&x.price<=pr*1.4))&&ok(x)).map(x=>[x,near(x)]).sort((a,b)=>b[1]-a[1]).map(a=>a[0]);
   const t3=p.brand?ALL.filter(x=>x.brand===p.brand&&x.cat!==p.cat&&ok(x)).sort(rank):[];
   /* first: what people who liked this find also liked (/also.js), then the rules above */
   const al=window.pcAlso&&pcAlso.ok?pcAlso.get(p.id).map(e=>BY_ID[e[0]]).filter(x=>x&&ok(x)):[];
+  /* r9: "also liked" finds of the same category lead; ones from other categories (a watch next to a suitcase) get at most
+     the last 2 places, after the same-type finds, so the row stays similar */
+  const alS=al.filter(x=>x.cat===p.cat), alO=al.filter(x=>x.cat!==p.cat);
   const seen={}, seenT={}; let pool=[];
-  for(const x of al.concat(t1.slice(0,6),t2,t3)){ if(pool.length>=10) break; if(seen[x.id]||seenT[tk(x)]) continue; seen[x.id]=seenT[tk(x)]=1; pool.push(x); }
+  const add=(arr,max)=>{ for(const x of arr){ if(pool.length>=max) break; if(seen[x.id]||seenT[tk(x)]) continue; seen[x.id]=seenT[tk(x)]=1; pool.push(x); } };
+  add(alS.concat(t1.slice(0,6),t2),8); add(alO,10); add(t2.concat(t3),10);
   if(!pool.length){ wrap.innerHTML=""; return; }
   wrap.innerHTML='<h2 class="sec-label">'+t("similar")+'</h2><div class="similar-row">'+pool.map(x=>
     '<button class="sim-card" data-sim="'+x.id+'"><span class="sim-thumb">'+(x.img?'<img src="'+esc(thumbOf(x.img))+'" alt="" loading="lazy">':'<canvas aria-hidden="true"></canvas>')+colourBadge(x)+'</span><span class="sim-t">'+esc(x.title)+'</span><span class="sim-p">'+pprice(x.price)+'</span></button>'
