@@ -1,0 +1,70 @@
+name: Reddit KB
+# Weekly: community tips for the chat assistant from public rep subreddits (scripts/reddit_kb.py).
+# Reads public posts only (Reddit's Atom feeds, the Arctic Shift archive as fallback), no login, nothing is posted.
+# Claude turns them into short tips in our own words; the result is data/reddit_kb.json, read by functions/_lib/reddit_kb.js.
+# The commit has no [skip ci] so Cloudflare Pages deploys the new file. Cost: a few cents per run (Haiku 5.5).
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      subs:
+        description: 'Subreddits, comma separated (empty = the list in scripts/reddit_kb.py)'
+        default: ''
+      posts:
+        description: 'Top posts per subreddit'
+        default: '12'
+      dry_run:
+        description: 'yes = only fetch and upload the raw posts as an artifact (no Claude, no commit)'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+permissions:
+  contents: write
+concurrency:
+  group: reddit-kb
+  cancel-in-progress: false
+jobs:
+  kb:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --quiet anthropic==1.14.0
+      - run: python scripts/reddit_kb.py --test
+      - name: Fetch and distil
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUBS: ${{ inputs.subs }}
+          POSTS: ${{ inputs.posts || '12' }}
+          DRY: ${{ inputs.dry_run || 'no' }}
+        run: |
+          ARGS="--posts $POSTS"
+          if [ -n "$SUBS" ]; then ARGS="$ARGS --subs $SUBS"; fi
+          if [ "$DRY" = "yes" ]; then ARGS="$ARGS --dry-run"; fi
+          python -u scripts/reddit_kb.py $ARGS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reddit-kb
+          path: |
+            out/reddit_raw.json
+            data/reddit_kb.json
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Commit if changed
+        if: inputs.dry_run != 'yes'
+        run: |
+          git add data/reddit_kb.json
+          if git diff --cached --quiet; then echo "no change"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "chore: community tips for the chat assistant"
+          for i in 1 2 3; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q origin HEAD:"$GITHUB_REF_NAME"; then exit 0; fi
+            sleep 10
+          done
+          exit 1
