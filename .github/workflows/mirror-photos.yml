@@ -1,0 +1,48 @@
+name: Mirror photos
+# Copies the catalogue's Supabase photos into the site (img/m/..., scripts/mirror_photos.py). /api/img serves those
+# copies, so product photos load from Cloudflare and Supabase is only asked for photos that have no copy yet.
+# Runs every two hours; a run with nothing missing finishes in about a minute. No [skip ci] in the commit message:
+# Cloudflare Pages must deploy the new files.
+on:
+  schedule:
+    - cron: '41 */2 * * *'
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Most new copies this run'
+        default: '1500'
+      ready_cleaned:
+        description: 'Also copy cleaned photos that are not switched on yet (run just before applying them)'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+permissions:
+  contents: write
+concurrency: mirror-photos
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - name: Copy missing photos
+        run: |
+          RC=""; [ "${{ inputs.ready_cleaned }}" = "yes" ] && RC="--ready-cleaned"
+          python -u scripts/mirror_photos.py --limit "${{ inputs.limit || '1500' }}" --max-minutes 40 --workers 4 $RC
+      - name: Save the copies
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A img/m
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "chore: mirror product photos ($(git diff --cached --name-only | wc -l) files)"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::the photo copies could not be saved"; exit 1
