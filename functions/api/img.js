@@ -7,7 +7,20 @@
 const ALLOW = ["si.geilicdn.com", "geilicdn.com", "img.alicdn.com", "alicdn.com", "cdn.qualit.ly"];
 const SUPABASE = ["uptpghuduqjqmrxwatbm.supabase.co", "uiiegkpjqtgrkazccinf.supabase.co", "ckiynlgfmlvlyaozuduc.supabase.co"];
 
-export async function onRequestGet({ request }) {
+// Supabase product, cleaned and QC photos that scripts/mirror_photos.py has copied into the site (img/m/...) are served
+// from the site's own static files, so Supabase is only asked for photos that have no copy yet. Same rule as
+// mirror_path() in mirror_photos.py: products/<pc|pc2|qc>/<name>.webp?v=<n>  ->  /img/m/<dir>/<name>[.v<n>].webp
+function mirrorPath(t) {
+  if (t.hostname !== "uptpghuduqjqmrxwatbm.supabase.co") return "";
+  const m = /^\/storage\/v1\/object\/public\/products\/(pc|pc2|qc)\/([A-Za-z0-9_-]{1,80})\.webp$/.exec(t.pathname);
+  if (!m) return "";
+  for (const k of t.searchParams.keys()) if (k !== "v") return "";
+  const v = t.searchParams.get("v") || "";
+  if (v && !/^[A-Za-z0-9_-]{1,20}$/.test(v)) return "";
+  return "/img/m/" + m[1] + "/" + m[2] + (v ? ".v" + v : "") + ".webp";
+}
+
+export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const u = url.searchParams.get("u");
   if (!u) return new Response("missing u", { status: 400 });
@@ -24,6 +37,25 @@ export async function onRequestGet({ request }) {
   const ckey = new Request(url.toString(), { method: "GET" });
   const hit = await cache.match(ckey);
   if (hit) return hit;
+
+  const mp = mirrorPath(t);
+  if (mp && env && env.ASSETS) {
+    try {
+      const a = await env.ASSETS.fetch(new Request(new URL(mp, url.origin).toString()));
+      const act = a.headers.get("content-type") || "";
+      if (a.ok && act.startsWith("image/")) {
+        const own = new Response(a.body, { status: 200, headers: {
+          "content-type": act,
+          "cache-control": "public, max-age=604800, s-maxage=2592000",
+          "access-control-allow-origin": "*",
+          "x-content-type-options": "nosniff",
+          "x-pc-photo": "site"
+        } });
+        try { await cache.put(ckey, own.clone()); } catch (e) {}
+        return own;
+      }
+    } catch (e) {}
+  }
 
   const headers = { "Accept": "image/avif,image/webp,image/apng,image/*,*/*" };
   if (!isSupabase) {
