@@ -1,4 +1,4 @@
-/* Puro Classico shopping assistant widget (Nov 2026, v2). Included on every page as <script src="/chat.js?v=2" defer>.
+/* Puro Classico shopping assistant widget (Nov 2026, v3). Included on every page as <script src="/chat.js?v=3" defer>.
    A round "Ask" button bottom right opens a chat panel (a full-screen sheet on phones, 380 px on desktop) that talks to
    POST /api/chat (functions/api/chat.js, newline-delimited JSON). No libraries. The conversation lives in sessionStorage
    only ("pc.chat.v1") and is gone when the tab closes. Hidden on /feed and /admin, and when /api/chat answers 503
@@ -8,7 +8,11 @@
    paragraph by paragraph, painted once per frame, and the log follows only while the reader is at the bottom; cards for
    the finds appear as soon as the search returns, with the price in the visitor's currency (manifest.state.cur) and a
    Buy button for their agent (manifest.state.agent); Stop while it writes, Try again after an error; the sheet follows
-   the on-screen keyboard (visualViewport). The request carries the visitor's currency, agent and the find on screen. */
+   the on-screen keyboard (visualViewport). The request carries the visitor's currency, agent and the find on screen.
+   v3: messenger look (logo and status line in the header, a "Today" divider, the greeting as stacked bubbles, suggestions
+   as right-aligned outline pills, a grey pill input with a round send button). On the app (index.html: openDetail and
+   BY_ID) a find in the chat opens the app's own product view; the chat steps aside and comes back when that view closes.
+   Everywhere else, and with cmd/ctrl/shift/middle click, the links stay ordinary links. */
 (function () {
   "use strict";
   var D = document, W = window;
@@ -51,6 +55,7 @@
   var ICON_DOWN = SVG.replace(/20/g, "18") + '<path d="M12 5v14M5 12l7 7 7-7"/></svg>';
   var ICON_CAM = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8h3l2-3h6l2 3h3v11H4Z"/><circle cx="12" cy="13" r="3.5"/></svg>';
 
+  var LOGO = /(^|\.)puroclassico\.com$/.test(location.hostname) ? "/cdn-cgi/image/width=120,format=auto/logo-mark.png" : "/logo-mark.png";
   var EASE = "cubic-bezier(.22,1,.36,1)";
   var CSS =
     ".pcc{--pc-bg:var(--surface,var(--bg,#fff));--pc-ink:var(--ink,#0a0a0a);--pc-mut:var(--muted,#6b6b6b);--pc-line:var(--line,#e5e5e5);--pc-s2:var(--surface-2,var(--well,#f5f5f5));--pc-fill:var(--fill,#171717);--pc-fink:var(--fill-ink,#fafafa);" +
@@ -64,21 +69,28 @@
     "@media (max-width:859px){body:has(.drawer.open .d-buybar.on) .pcc-fab{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}" +
     ".pcc-open .pcc-fab{opacity:0;transform:scale(.9);pointer-events:none}" +
     // the panel: always in the page, eased in and out with transform + opacity (CSS transitions, so a quick re-click reverses mid-way)
-    ".pcc-panel{position:fixed;right:16px;bottom:16px;z-index:1001;display:flex;flex-direction:column;width:380px;height:min(640px,calc(100vh - 32px));height:min(640px,calc(100dvh - 32px));background:var(--pc-bg);color:var(--pc-ink);border:1px solid var(--pc-line);border-radius:16px;box-shadow:0 20px 40px -8px rgba(0,0,0,.25);overflow:hidden;" +
+    ".pcc-panel{position:fixed;right:16px;bottom:16px;z-index:1001;display:flex;flex-direction:column;width:380px;height:min(660px,calc(100vh - 32px));height:min(660px,calc(100dvh - 32px));background:var(--pc-bg);color:var(--pc-ink);border:1px solid var(--pc-line);border-radius:24px;box-shadow:0 20px 40px -8px rgba(0,0,0,.25);overflow:hidden;" +
     "transform-origin:calc(100% - 40px) calc(100% - 24px);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(14px) scale(.97);transition:opacity .16s ease-out,transform .2s " + EASE + ",visibility 0s linear .2s}" +
     ".pcc-open .pcc-panel{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition:opacity .2s ease-out,transform .32s " + EASE + ",visibility 0s}" +
     "@media (max-width:640px){.pcc-panel{top:0;left:0;right:0;bottom:auto;width:auto;height:100%;border:0;border-radius:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px);transform:translateY(28px)}}" +
     "@media (prefers-reduced-motion:reduce){.pcc-panel,.pcc-open .pcc-panel{transform:none!important;transition-property:opacity,visibility}.pcc-fab{transition:opacity .15s}}" +
     ".pcc-still .pcc-panel,.pcc-still .pcc-fab{transition:none!important}" +
-    ".pcc-hd{display:flex;align-items:center;gap:4px;padding:10px 8px 10px 18px;border-bottom:1px solid var(--pc-line)}" +
-    ".pcc-ttl{flex:1;min-width:0}.pcc-ttl b{display:block;font-size:16px;font-weight:600;letter-spacing:-.01em}.pcc-ttl span{display:block;font-size:12.5px;color:var(--pc-mut)}" +
+    // header: new chat left, logo and status line in the middle, close right
+    ".pcc-hd{display:grid;grid-template-columns:40px minmax(0,1fr) 40px;align-items:center;gap:8px;padding:12px 12px 12px;border-bottom:1px solid var(--pc-line)}" +
+    ".pcc-ttl{min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}" +
+    ".pcc-logo{display:block;width:46px;height:44px;background-color:var(--pc-ink);-webkit-mask:url(" + LOGO + ") center/contain no-repeat;mask:url(" + LOGO + ") center/contain no-repeat}" +
+    ".pcc-ttl span{display:block;font-size:12.5px;line-height:1.2;color:var(--pc-mut)}" +
     ".pcc-ib{display:inline-grid;place-items:center;width:40px;height:40px;border:0;border-radius:999px;background:transparent;color:var(--pc-ink);cursor:pointer;transition:background-color .15s}@media (hover:hover){.pcc-ib:hover{background:var(--pc-s2)}}.pcc-ib:focus-visible{outline:2px solid var(--pc-ink);outline-offset:1px}" +
     ".pcc-body{position:relative;flex:1;min-height:0;display:flex}" +
     ".pcc-log{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:16px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}" +
+    ".pcc-log>:first-child{margin-top:auto}" +           // a short chat sits at the bottom, by the input, like a messenger
+    ".pcc-day{flex-shrink:0;align-self:center;padding:2px 0;font-size:12.5px;color:var(--pc-mut)}" +
+    ".pcc-hi{gap:4px}.pcc-hi .pcc-m{max-width:85%}" +
     ".pcc-turn{flex-shrink:0;display:flex;flex-direction:column;gap:8px}" +
-    ".pcc-m{flex-shrink:0;max-width:88%;padding:10px 14px;border-radius:18px;overflow-wrap:anywhere;white-space:normal}" +
-    ".pcc-m.u{align-self:flex-end;background:var(--pc-fill);color:var(--pc-fink);border-bottom-right-radius:6px;white-space:pre-wrap}" +
-    ".pcc-m.a{align-self:flex-start;background:var(--pc-s2);border-bottom-left-radius:6px}" +
+    ".pcc-m{flex-shrink:0;max-width:88%;padding:10px 14px;border-radius:20px;overflow-wrap:anywhere;white-space:normal}" +
+    ".pcc-m.u{align-self:flex-end;background:var(--pc-fill);color:var(--pc-fink);white-space:pre-wrap}" +
+    ".pcc-m.a{align-self:flex-start;background:var(--pc-s2)}" +
+    ".pcc-m strong{font-weight:600}" +
     ".pcc-m.err{background:transparent;border:1px solid var(--pc-line);color:var(--pc-mut)}" +
     ".pcc-m a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;font-weight:500}" +
     ".pcc-m p{margin:0}.pcc-m p+p{margin-top:8px}.pcc-m p:empty{display:none}" +
@@ -104,16 +116,19 @@
     ".pcc-buy{position:relative;z-index:1;margin-left:auto;display:inline-grid;place-items:center;height:26px;padding:0 10px;border-radius:999px;background:var(--pc-fill);color:var(--pc-fink);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}" +
     ".pcc-buy:focus-visible{outline:2px solid var(--pc-ink);outline-offset:2px}" +
     // suggestion chips
-    ".pcc-sug{flex-shrink:0;display:flex;flex-wrap:wrap;gap:8px}.pcc-sug button{border:1px solid var(--pc-line);background:var(--pc-bg);color:var(--pc-ink);border-radius:999px;padding:8px 14px;font:inherit;font-size:13.5px;cursor:pointer;text-align:left;transition:background-color .15s,transform .15s}@media (hover:hover){.pcc-sug button:hover{background:var(--pc-s2)}}.pcc-sug button:active{transform:scale(.97)}" +
+    ".pcc-sug{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-top:6px}" +
+    ".pcc-sug button{max-width:88%;min-height:40px;border:1px solid var(--pc-ink);background:transparent;color:var(--pc-ink);border-radius:999px;padding:8px 16px;font:inherit;font-size:14px;font-weight:500;line-height:1.35;cursor:pointer;text-align:left;transition:background-color .15s,transform .15s " + EASE + "}" +
+    "@media (hover:hover){.pcc-sug button:hover{background:var(--pc-s2)}}.pcc-sug button:active{transform:scale(.96)}.pcc-sug button:focus-visible{outline:2px solid var(--pc-ink);outline-offset:2px}" +
     ".pcc-jump{position:absolute;left:50%;bottom:10px;z-index:2;display:inline-grid;place-items:center;width:36px;height:36px;margin-left:-18px;border:1px solid var(--pc-line);border-radius:999px;background:var(--pc-bg);color:var(--pc-ink);box-shadow:0 4px 12px -2px rgba(0,0,0,.18);cursor:pointer;opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .15s ease-out,transform .2s " + EASE + "}" +
     ".pcc-jump.on{opacity:1;transform:none;pointer-events:auto}" +
     // composer
-    ".pcc-ft{border-top:1px solid var(--pc-line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px))}" +
-    ".pcc-form{display:flex;align-items:flex-end;gap:8px;border:1px solid var(--pc-line);border-radius:24px;padding:5px 5px 5px 16px;background:var(--pc-bg);transition:border-color .15s}" +
-    ".pcc-form:focus-within{border-color:var(--pc-mut)}" +
-    ".pcc-in{flex:1;min-width:0;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;color:var(--pc-ink);font:inherit;font-size:16px;line-height:1.4;padding:7px 0!important;margin:0;resize:none;height:36px;max-height:120px;overflow-y:hidden;border-radius:0}" +
+    ".pcc-ft{padding:8px 12px calc(14px + env(safe-area-inset-bottom,0px))}" +
+    ".pcc-form{display:flex;align-items:flex-end;gap:8px}" +
+    ".pcc-field{flex:1;min-width:0;display:flex;border:1px solid transparent;border-radius:24px;padding:4px 18px;background:var(--pc-s2);transition:border-color .15s}" +
+    ".pcc-field:focus-within{border-color:var(--pc-line)}" +
+    ".pcc-in{flex:1;min-width:0;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;color:var(--pc-ink);font:inherit;font-size:16px;line-height:1.4;padding:8px 0!important;margin:0;resize:none;height:38px;max-height:120px;overflow-y:hidden;border-radius:0}" +
     ".pcc-in::placeholder{color:var(--pc-mut);opacity:1}" +
-    ".pcc-send{flex:0 0 auto;display:inline-grid;place-items:center;width:36px;height:36px;border:0;border-radius:999px;background:var(--pc-fill);color:var(--pc-fink);cursor:pointer;transition:opacity .15s,transform .15s}.pcc-send:active{transform:scale(.92)}.pcc-send:disabled{opacity:.35;cursor:default;transform:none}.pcc-send:focus-visible{outline:2px solid var(--pc-ink);outline-offset:2px}" +
+    ".pcc-send{flex:0 0 auto;display:inline-grid;place-items:center;width:48px;height:48px;border:0;border-radius:999px;background:var(--pc-fill);color:var(--pc-fink);cursor:pointer;transition:opacity .15s,transform .15s " + EASE + "}.pcc-send:active{transform:scale(.96)}.pcc-send:disabled{opacity:.3;cursor:default;transform:none}.pcc-send:focus-visible{outline:2px solid var(--pc-ink);outline-offset:2px}" +
     ".pcc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}" +
     "html.pcc-lock,html.pcc-lock body{overflow:hidden}";
 
@@ -163,13 +178,13 @@
     panel = el("div", "pcc-panel"); panel.id = "pcc-panel"; panel.inert = true; panel.setAttribute("aria-hidden", "true");
     panel.setAttribute("role", "dialog"); panel.setAttribute("aria-modal", "true"); panel.setAttribute("aria-labelledby", "pcc-title");
     panel.innerHTML =
-      '<div class="pcc-hd"><div class="pcc-ttl"><b id="pcc-title">Ask Puro Classico</b><span>AI shopping assistant</span></div>' +
-      '<button type="button" class="pcc-ib" data-new aria-label="Start a new chat" title="New chat">' + ICON_NEW + '</button>' +
+      '<div class="pcc-hd"><button type="button" class="pcc-ib" data-new aria-label="Start a new chat" title="New chat">' + ICON_NEW + '</button>' +
+      '<div class="pcc-ttl"><b id="pcc-title" class="pcc-sr">Ask Puro Classico</b><i class="pcc-logo" aria-hidden="true"></i><span>Replies right away</span></div>' +
       '<button type="button" class="pcc-ib" data-close aria-label="Close chat">' + ICON_X + '</button></div>' +
       '<div class="pcc-body"><div class="pcc-log" role="log" aria-live="polite" aria-relevant="additions" tabindex="-1"></div>' +
       '<button type="button" class="pcc-jump" aria-label="Scroll to the latest message" tabindex="-1">' + ICON_DOWN + '</button></div>' +
       '<div class="pcc-ft"><form class="pcc-form"><label class="pcc-sr" for="pcc-in">Your message</label>' +
-      '<textarea class="pcc-in" id="pcc-in" rows="1" maxlength="' + MAXLEN + '" placeholder="Ask about a find, sizing, shipping..." enterkeyhint="send" autocomplete="off"></textarea>' +
+      '<span class="pcc-field"><textarea class="pcc-in" id="pcc-in" rows="1" maxlength="' + MAXLEN + '" placeholder="Ask a question..." enterkeyhint="send" autocomplete="off"></textarea></span>' +
       '<button type="submit" class="pcc-send" aria-label="Send" disabled>' + ICON_SEND + '</button></form></div>';
     root.appendChild(fab); root.appendChild(panel); D.body.appendChild(root);
     log = panel.querySelector(".pcc-log"); input = panel.querySelector(".pcc-in"); send = panel.querySelector(".pcc-send"); jump = panel.querySelector(".pcc-jump");
@@ -182,6 +197,8 @@
     });
     panel.querySelector("form").addEventListener("submit", function (e) { e.preventDefault(); if (busy) stop(); else ask(input.value); });
     input.addEventListener("input", function () { grow(); sendState(); });
+    panel.querySelector(".pcc-field").addEventListener("mousedown", function (e) { if (e.target !== input) { e.preventDefault(); input.focus(); } });
+    log.addEventListener("click", openFind);
     input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); if (!busy) ask(input.value); } });
     log.addEventListener("scroll", function () { pinned = log.scrollHeight - log.scrollTop - log.clientHeight < 40; if (pinned) jump.classList.remove("on"); }, { passive: true });
     jump.addEventListener("click", function () { pinned = true; jump.classList.remove("on"); toBottom(true); });
@@ -308,18 +325,56 @@
     [].slice.call(v.cards.children).forEach(function (c) { if (!keep[c._id]) c.remove(); });
     if (moved) v.cards.scrollLeft = 0;                       // the first card is the one the answer names first
   }
+  function greeting() {
+    var hi = el("div", "pcc-turn pcc-hi"), lines = ["<strong>Hi! \ud83d\udc4b</strong>", "I'm the Puro Classico assistant.",
+      prefs().pid ? "Ask me about this find, or about sizing, QC photos and shipping." : "What are you looking for today?"];
+    lines.forEach(function (t) { hi.appendChild(el("div", "pcc-m a", "<p>" + t + "</p>")); });
+    return hi;
+  }
   function render() {
     log.innerHTML = "";
+    log.appendChild(el("div", "pcc-day", "Today"));
+    log.appendChild(greeting());
     if (!state.msgs.length) {
-      var hi = el("div", "pcc-turn"), b = el("div", "pcc-m a");
-      b.innerHTML = "<p>" + (prefs().pid ? "Hi! Ask me about this find, or anything else: sizing, QC photos, ordering through an agent, shipping." : "Hi! I can find reps in the catalogue and explain ordering through an agent, QC photos, sizing and shipping. What are you looking for?") + "</p>";
-      hi.appendChild(b); log.appendChild(hi);
       var sug = el("div", "pcc-sug");
       (prefs().pid ? SUGGEST_PRODUCT : SUGGEST).forEach(function (s) { var x = el("button"); x.type = "button"; x.textContent = s; x.addEventListener("click", function () { ask(s); }); sug.appendChild(x); });
       log.appendChild(sug);
     }
     state.msgs.forEach(function (m) { log.appendChild(m.role === "user" ? userTurn(m) : answerView(m).turn); });
     pinned = true; toBottom();
+  }
+
+  // ---------------------------------------------------------------- finds open in the app's product view
+  // On the app (index.html defines openDetail and BY_ID), a card or a /product/<id> link in an answer opens the same product
+  // view as a card in the grid. The chat closes for it and opens again when that view closes. Pages without the app, the
+  // Buy button and cmd/ctrl/shift/middle clicks keep the ordinary link.
+  var reopen = false;
+  function findOf(a) {
+    var m = /^\/product\/([^/?#]+)\/?$/.exec(a.getAttribute("href") || ""), id = "";
+    if (!m) return null;
+    try { id = decodeURIComponent(m[1]); } catch (e) { return null; }
+    try { return typeof openDetail === "function" && typeof BY_ID !== "undefined" && BY_ID ? BY_ID[id] || null : null; } catch (e) { return null; }
+  }
+  function watchDrawer() {
+    var dr = D.getElementById("drawer");
+    if (!dr || dr.__pccObs || !W.MutationObserver) return;
+    dr.__pccObs = new MutationObserver(function () {
+      if (!reopen || dr.classList.contains("open")) return;
+      reopen = false;
+      // after the app has put focus back on the page, so the chat keeps it
+      setTimeout(function () { if (state.open) return; setOpen(true); if (!fine.matches) log.focus({ preventScroll: true }); }, 60);
+    });
+    dr.__pccObs.observe(dr, { attributes: true, attributeFilter: ["class"] });
+  }
+  function openFind(e) {
+    var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+    if (!a || !log.contains(a) || a.classList.contains("pcc-buy")) return;
+    if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var p = findOf(a); if (!p) return;
+    e.preventDefault();
+    watchDrawer(); reopen = true;
+    setOpen(false, true);
+    try { openDetail(p); } catch (x) { reopen = false; location.href = a.href; }
   }
 
   // ---------------------------------------------------------------- talking to /api/chat
@@ -338,7 +393,7 @@
     var history = state.msgs.filter(function (m) { return !m.err && m.content; }).map(function (m) { return { role: m.role, content: m.content.slice(0, MAXLEN) }; });
     history.push({ role: "user", content: text });
     var me = { role: "assistant", content: "", pending: true }, um = { role: "user", content: text };
-    if (!state.msgs.length) log.innerHTML = "";   // the greeting and the suggestion chips go with the first message
+    var sg = log.querySelector(".pcc-sug"); if (sg) sg.remove();   // the suggestions go with the first message; the greeting stays
     state.msgs.push(um, me);
     var ut = userTurn(um), v = answerView(me);
     ut.classList.add("pcc-new"); v.turn.classList.add("pcc-new");
