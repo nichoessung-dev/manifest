@@ -100,19 +100,20 @@ export async function onRequestGet({ request, env }) {
   qcs.forEach(x => content.push({ type: "image", source: { type: "base64", ...x } }));
   content.push({ type: "text", text: (listing ? "" : "There is no listing photo; image 1 is a QC photo too. ") + PROMPT(clean(p.title, 120)) });
 
-  let v = null; const model = env.QC_CHECK_MODEL || DEFAULT_MODEL;
+  let v = null, raw = ""; const model = env.QC_CHECK_MODEL || DEFAULT_MODEL;
   try {
     const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 45000);
     const r = await fetch(API, { method: "POST", signal: ctl.signal,
       headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model, max_tokens: 700, messages: [{ role: "user", content }] }) });
+      body: JSON.stringify({ model, max_tokens: 1200, messages: [{ role: "user", content }] }) });
     clearTimeout(timer);
     if (!r.ok) { let why = ""; try { why = ((await r.json()).error || {}).message || ""; } catch (e) {} return json(503, { error: "The check is busy. Try again in a moment.", status: r.status, why: String(why).slice(0, 160) }); }
     const out = await r.json();
     const text = ((out.content || []).find(c => c.type === "text") || {}).text || "";
-    const m = /\{[\s\S]*\}/.exec(text); v = m ? JSON.parse(m[0]) : null;
+    raw = text.slice(0, 300) + " | stop:" + (out.stop_reason || "");
+    const m = /\{[\s\S]*\}/.exec(text); try { v = m ? JSON.parse(m[0]) : null; } catch (e) { v = null; }
   } catch (e) { return json(503, { error: "The check is busy. Try again in a moment.", why: String(e && e.message || e).slice(0, 160) }); }
-  if (!v || !Array.isArray(v.checks)) return json(503, { error: "The check gave no answer. Try again." });
+  if (!v || !Array.isArray(v.checks)) return json(503, { error: "The check gave no answer. Try again.", why: raw });
 
   const AREAS = new Set(["logo", "stitching", "colour", "shape", "materials", "hardware", "tag", "other"]);
   const checks = v.checks.slice(0, 6).map(c => ({
