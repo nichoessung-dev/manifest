@@ -329,6 +329,20 @@ dl.kv .lchips a{display:inline-flex;align-items:center;min-height:28px;padding:0
 @media (hover:hover){dl.kv .lchips a:hover{background:var(--line)}}
 @media (max-width:480px){dl.kv{grid-template-columns:1fr}dl.kv dt{padding-bottom:0}dl.kv dd{border-top:0;padding-top:2px}}
 .pd-info p.more{margin:14px 0 0}
+/* product page like the app's product view (owner, 8 Nov 2026: "this product page looks terrible"): a muted brand line,
+   the price and the buy box first, the Details folded (still in the page for search engines) */
+.pd-brand{display:inline-block;margin:0 0 6px;font-size:14px;font-weight:500;color:var(--muted);text-decoration:none}
+@media (hover:hover){a.pd-brand:hover{color:var(--ink)}}
+.pd-info h1{margin-bottom:6px}
+.pd-info .price{font-size:30px;margin:14px 0 18px}
+details.dmore{padding:0 18px;box-shadow:none}
+details.dmore > summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;cursor:pointer;list-style:none;-webkit-tap-highlight-color:transparent}
+details.dmore > summary::-webkit-details-marker{display:none}
+details.dmore > summary h2{margin:0;font-size:15px;font-weight:600}
+details.dmore > summary svg{width:16px;height:16px;color:var(--muted);transition:transform .2s var(--ease)}
+details.dmore[open] > summary svg{transform:rotate(180deg)}
+details.dmore[open]{padding-bottom:6px}
+details.dmore dl.kv dt:first-of-type,details.dmore dl.kv dt:first-of-type + dd{border-top:1px solid var(--line)}
 @media (pointer:coarse){.pd-info p.more a,dl.kv dd > a{display:inline-flex;align-items:center;min-height:44px}}
 
 /* ---------------------------------------------------------------- steps, FAQ */
