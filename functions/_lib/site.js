@@ -304,7 +304,7 @@ export function card(p, lazy = true) {
   const src = imgSrc(p), u = productUrl(p), ag = AGENTS.mycnbox;
   return `<div class="c"><a class="cl" href="${u}">` +
     `<span class="ci">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(p.title)}" width="300" height="300"${lazy ? ' loading="lazy"' : ""} decoding="async" ${IMG_FALLBACK}>` : ""}${colourBadge(p)}</span>` +
-    `<span class="cb">${p.brand ? `<span class="cbr">${esc(p.brand)}</span>` : ""}<span class="ct">${esc(p.title)}</span><span class="cp">${money(p.cny)}${isPH(p.cny) ? "" : ` <small>¥${p.cny}</small>`}</span></span></a>` +
+    `<span class="cb">${p.brand ? `<span class="cbr">${esc(p.brand)}</span>` : ""}<span class="ct">${esc(p.title)}</span><span class="cp">${money(p.cny)}</span></span></a>` +
     `<span class="ca">${p.qc >= 1 ? `<a class="cq" href="${u}#qc" aria-label="QC photos: ${esc(p.title)}">${QC_ICON}QC</a>` : ""}` +
     `<a class="cbuy" href="${esc(ag.build(p))}" data-agent="mycnbox" data-pl="${esc(p.platform)}" data-iid="${esc(p.itemId || p.id)}" target="_blank" rel="sponsored nofollow noopener" aria-label="Buy ${esc(p.title)} via ${ag.name}">Buy</a></span></div>`;
 }
