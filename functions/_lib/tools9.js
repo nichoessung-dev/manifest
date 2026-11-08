@@ -87,13 +87,15 @@ export function parcelOf(counts) {
 export const chargeable = (kg, litres) => LINE_INFO.map(([, div]) => div && litres > 0 ? Math.max(kg, litres * 1000 / div) : kg);
 export const SHIP_ZONES = ZONES;
 
-// Size maths (same as the live estimator). Returns {x: EU/US index, a: Asian label index, top: true when past the chart}.
+// Size maths (same as the live estimator and the homepage card). Returns {x: EU/US index, a: Asian label index, top: true when past the chart}.
+// 8 Nov 2026: height counts for length (0.45) next to weight for width (0.55); before, height moved the size at most 0.75,
+// so a 2 m, 60 kg person got S. 180/75 still gives M (EU/US), 165/60 S, 200/60 L, 195/110 XXL.
 const SIZE_L = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL"], SIZE_EU = [44, 46, 48, 50, 52, 54, 56, 58], SIZE_WA = [28, 30, 32, 34, 36, 38, 40, 42];
 const GADJ = { tops: 0, hoodies: 0.25, jackets: 0.5, pants: 0 };
 // Common men's / unisex sneaker chart: [foot length cm, US men, EU]
 const SHOES = [[24, 6, 38.5], [24.5, 6.5, 39], [25, 7, 40], [25.5, 7.5, 40.5], [26, 8, 41], [26.5, 8.5, 42], [27, 9, 42.5], [27.5, 9.5, 43], [28, 10, 44],
   [28.5, 10.5, 44.5], [29, 11, 45], [29.5, 11.5, 45.5], [30, 12, 46], [30.5, 12.5, 47], [31, 13, 47.5]];
-const SIZE_FN = `function sizeFor(g,h,w,fit){var s=(w-50)/10+Math.max(-0.75,Math.min(0.75,(h-175)/40))+fit+(G[g]||0),x=Math.max(0,Math.min(7,Math.floor(s)));return{x:x,a:Math.min(7,x+1),top:x>=7,f:s-Math.floor(s)};}
+const SIZE_FN = `function sizeFor(g,h,w,fit){var s=0.55*(w-50)/10+0.45*(h-160)/8+0.25+fit+(G[g]||0),x=Math.max(0,Math.min(7,Math.floor(s)));return{x:x,a:Math.min(7,x+1),top:x>=7,f:s-Math.floor(s)};}
 function shoeFor(f){if(f<SH[0][0]-0.25)return{r:SH[0],top:false,low:true};for(var i=0;i<SH.length;i++)if(SH[i][0]>=f-0.05)return{r:SH[i],top:false};return{r:SH[SH.length-1],top:true};}`;
 // Brand fit notes, only what the site's own brand and model pages say about the cut: [key, name, clothes note, sneaker note].
 const BRAND_FIT = [["arcteryx", "Arc'teryx", "Arc'teryx runs trim. Pick Relaxed if you want room for layers.", ""],
@@ -373,6 +375,7 @@ var rg=z.top?"":z.f>=0.8&&z.a<7?"You are between sizes: "+L[z.a]+", or "+L[z.a+1
 var who=imp?esc($("hf").value||0)+"'"+esc($("hn").value||0)+'" and '+esc(Math.round(num("wg")))+" lb":esc(Math.round(x.h))+" cm and "+esc(Math.round(x.w))+" kg";
 if(ready)sayD("Look for "+big);var txt=GN[st.g]+", "+FN[st.fit]+": look for "+(z.top?"4XL or bigger":L[z.a])+" ("+west+")"+(rg?". "+rg:"");
 o.setAttribute("data-state","success");
+if(!ready&&/[?&]h=/.test(location.search))setTimeout(function(){try{var R=o.getBoundingClientRect();if(R.top>innerHeight*0.6)o.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"});}catch(e){}},60);
 o.innerHTML='<div class="tk-res"><p class="tk-res-k">Look for this size on the seller\'s chart</p><p class="tk-big">'+esc(big)+'</p><p class="tk-res-sub">'+esc(sub)+"</p>"+(rg?'<p class="tk-foot">'+esc(rg)+"</p>":"")+scale(z.x,z.a)+bnote()+acts(txt)+
 '<p class="tk-next"><button type="button" class="tk-link" id="tochart">Compare with the seller\'s chart</button></p>'+
 '<details class="tk-more"><summary>How We Work This Out</summary><p>At '+who+" a "+esc(FN[st.fit])+(st.g==="jackets"?" with room for layers":"")+" is usually "+esc(L[z.x])+" in EU/US sizing. Many Weidian and Taobao sellers use Asian sizing that runs about one size small, so the label to look for is "+esc(z.top?"4XL or bigger":L[z.a])+". A rough starting point: confirm it with the seller's chart in cm.</p></details></div>";}
