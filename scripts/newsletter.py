@@ -2,7 +2,7 @@
 """
 Puro Classico automated email job. Run modes:
   python newsletter.py welcome     -> one-time welcome (+Discord) to new signups not yet welcomed
-  python newsletter.py newsletter  -> 2x/week: the most viewed and saved finds, weighted by each member's taste
+  python newsletter.py newsletter  -> daily, one of 3+ fixed member groups each day (about 2x/week per member): the most viewed and saved finds, weighted by each member's taste
   python newsletter.py saved       -> weekly: "you saved this" for members who starred something in the last week
   python newsletter.py sync        -> mirror members into Brevo contacts
 
@@ -671,9 +671,18 @@ def run_newsletter(profiles):
         fav = bool(u and u["favs"])
         return 0 if act and fav else 1 if act else 2 if fav else 3
     queue = [pr for pr in profiles if pr.get("email") and not welcomed_lately(pr)]
-    queue.sort(key=lambda pr: (tier(pr), hashlib.sha256((pr["id"] + day).encode()).hexdigest()))   # a different order each day within a tier
     cap = slots("newsletter")
-    print("newsletter queue: %d members (%d welcomed in the last 48 h left out)" % (len(queue), len(profiles) - len(queue)))
+    # Daily rotation (owner, 8 Nov 2026): the free Brevo plan allows ~300 emails a day, and sending only on Tuesday and
+    # Friday left ~400 members out of every send. Now the job runs every day and each member belongs to one fixed group
+    # (a hash of their id); one group gets the newsletter each day, so everyone gets one about every 3 days. When a group
+    # would not fit in a day's budget the list is split into more groups. No per-member state is needed.
+    groups = max(3, math.ceil(len(queue) / max(cap, 1))) if cap > 0 else 3
+    today_n = (datetime.now(timezone.utc).date() - datetime(2026, 1, 1).date()).days
+    total = len(queue)
+    queue = [pr for pr in queue if int(hashlib.sha256(pr["id"].encode()).hexdigest(), 16) % groups == today_n % groups]
+    print("rotation: %d groups, today's group %d: %d of %d members" % (groups, today_n % groups, len(queue), total))
+    queue.sort(key=lambda pr: (tier(pr), hashlib.sha256((pr["id"] + day).encode()).hexdigest()))   # a different order each day within a tier
+    print("newsletter queue: %d members (%d welcomed in the last 48 h left out)" % (len(queue), len(profiles) - total))
     sent = fails = 0
     for pr in queue:
         if sent >= cap: print("::warning::newsletter: %d members not sent today to stay under the Brevo daily cap" % (len(queue) - sent)); break
