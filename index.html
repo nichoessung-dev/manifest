@@ -1299,6 +1299,11 @@ html body .drawer,html body .drawer.open,html body .overlay,html body .overlay.o
 /* a browser back/forward that already animates the view (html.v8-instant) gets no phone slide on top of it */
 html.v8-instant body .drawer.open,html.v8-instant body .overlay.open{transition:none}
 html .gmain .pimg.inst{animation:none}
+/* 8 Nov 2026 (owner: "when you click on items its not so smooth"): the instant open snapped the view in over the grid in one
+   frame. Wider screens get a short fade and 8 px rise (160 ms, ease-out, compositor only); phones keep their sheet slide,
+   reduced motion and browser back/forward stay instant. */
+@keyframes pcViewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (min-width:561px) and (prefers-reduced-motion:no-preference){html:not(.v8-instant) body .drawer.open{animation:pcViewIn .16s cubic-bezier(.22,1,.36,1)}}
 /* a closed view skips style and layout for its content (the next open or pointerdown build clears pc-cv), so closing
    does not restyle the whole product view and its browse grid on the way out */
 .drawer.pc-cv:not(.open){content-visibility:hidden}
@@ -7074,4 +7079,4 @@ try{var AC=null,AH=matchMedia("(hover: hover)"),afp=function(l){var p=l.querySel
 <script id="pc-search" src="/pcs.js?v=5f23e99c"></script>
 <script src="/track.js?v=4" defer></script>
 <script src="/also.js?v=1" defer></script>
-<script src="/chat.js?v=4" defer></script>
+<script src="/chat.js?v=5" defer></script>

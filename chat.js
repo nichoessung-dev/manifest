@@ -94,6 +94,7 @@
     ".pcc-m.err{background:transparent;border:1px solid var(--pc-line);color:var(--pc-mut)}" +
     ".pcc-m a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;font-weight:500}" +
     ".pcc-m p{margin:0}.pcc-m p+p{margin-top:8px}.pcc-m p:empty{display:none}" +
+    ".pcc-li{position:relative;display:block;padding-left:16px}.pcc-li.n{padding-left:22px}.pcc-li+.pcc-li{margin-top:4px}.pcc-li>i{position:absolute;left:0;top:0;font-style:normal;color:var(--pc-mut);font-variant-numeric:tabular-nums}" +
     ".pcc-m .pcc-stop{display:block;margin-top:6px;font-size:12.5px;color:var(--pc-mut)}" +
     ".pcc-retry{margin-top:8px;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--pc-line);border-radius:999px;background:var(--pc-bg);color:var(--pc-ink);font:inherit;font-size:13.5px;font-weight:500;cursor:pointer}@media (hover:hover){.pcc-retry:hover{background:var(--pc-s2)}}" +
     ".pcc-dots{display:inline-flex;align-items:center;gap:4px;padding:5px 0;min-height:24px}.pcc-dots i{width:6px;height:6px;border-radius:50%;background:var(--pc-mut);opacity:.35;animation:pcc-b 1.1s ease-in-out infinite}.pcc-dots i:nth-child(2){animation-delay:.15s}.pcc-dots i:nth-child(3){animation-delay:.3s}" +
@@ -136,7 +137,7 @@
   function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
   function safeUrl(u) {
     u = String(u || "").replace(/&amp;/g, "&");
-    if (/^\/(?!\/)/.test(u)) return u;
+    if (/^\/(?![\/\\])/.test(u)) return u;               // a site path; "//x" and "/\x" would leave the site
     if (/^https?:\/\//i.test(u)) return u;
     return "";
   }
@@ -157,9 +158,18 @@
     var h = esc(src), slots = [];
     h = h.replace(/\[([^\]\n]{1,200})\]\(([^)\s]{1,500})\)/g, function (_, t, u) { slots.push(link(t, u)); return "\u0000" + (slots.length - 1) + "\u0000"; });
     h = h.replace(/(^|[\s(])(https?:\/\/[^\s<)]+[^\s<).,!?:;'"])/g, function (_, pre, u) { slots.push(link(u.replace(/^https?:\/\/(www\.)?/i, ""), u)); return pre + "\u0000" + (slots.length - 1) + "\u0000"; });
+    h = h.replace(/(^|[\s(])((?:www\.)?puroclassico\.com\/[^\s<)]*[^\s<).,!?:;'"])/gi, function (_, pre, u) { slots.push(link(u.replace(/^www\./i, ""), "https://" + u)); return pre + "\u0000" + (slots.length - 1) + "\u0000"; });
     h = h.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
     h = h.replace(/\u0000(\d+)\u0000/g, function (_, i) { return slots[+i]; });
-    return h.split("\n").map(function (l) { return l.replace(/^\s*[-*]\s+/, "• ").replace(/^#{1,4}\s+/, ""); }).join("<br>");
+    // "- item", "* item", "1. item": a block line with a hanging indent, so wrapped bullets line up
+    var out = "", prevLi = false;
+    h.split("\n").forEach(function (l) {
+      l = l.replace(/^#{1,4}\s+/, "");
+      var b = /^\s*(?:[-*\u2022]|(\d{1,2})[.)])\s+/.exec(l);
+      if (b) { out += '<span class="pcc-li' + (b[1] ? " n" : "") + '"><i' + (b[1] ? ">" + b[1] + "." : ' aria-hidden="true">\u2022') + "</i>" + l.slice(b[0].length) + "</span>"; prevLi = true; }
+      else { if (out && !prevLi) out += "<br>"; out += l; prevLi = false; }
+    });
+    return out;
   }
   var paras = function (s) { return String(s || "").replace(/^\s+/, "").split(/\n{2,}/); };
 
