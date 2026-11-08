@@ -2,7 +2,7 @@
  * Cloudflare Pages Function: AI notes on a find's buyer QC photos (owner, 8 Nov 2026: BETA, the owner tests it before launch).
  * Route: GET /api/qc-check?storefront=weidian&id=123&pid=<find id>&beta=1
  *   -> 200 {"checks":[{"area":"logo","status":"good|watch|cant_tell","note":"..."}],"summary":"...","n":5,"model":"..."}
- * The photos are the ones the site already shows (QC bank or edge cache via /api/qc?cached=1, so no qualit.ly quota) plus
+ * The photos are the QC bank's stored photos (data/qc_bank.json, the ones the site shows; no qualit.ly quota) plus
  * the listing photo for colour and shape. Claude only describes what it can see; it never says real or fake and never
  * promises quality. One answer per find, cached at the edge for 30 days. 10 new checks per IP per 10 minutes.
  * Env: ANTHROPIC_API_KEY (set for the chat), QC_CHECK_MODEL (optional, default below).
@@ -39,17 +39,38 @@ function b64(buf) {
   return btoa(s);
 }
 
-async function photo(origin, url) {
-  // through the site's own image proxy (edge cached, site copies first), shrunk by Cloudflare to keep the request small
-  const u = /^https?:\/\//.test(url) ? origin + "/api/img?u=" + encodeURIComponent(url) : origin + url;
-  for (const src of [origin + "/cdn-cgi/image/width=1024,quality=85,format=jpeg" + u.slice(origin.length), u]) {
+// A photo as base64: the site's own copy (img/m, scripts/mirror_photos.py) through ASSETS when there is one, else the
+// stored file itself. Never a fetch to our own domain: Cloudflare refuses a Function calling its own site (502).
+const SB = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/";
+function mirrorOf(u) {
+  const m = /^https:\/\/uptpghuduqjqmrxwatbm\.supabase\.co\/storage\/v1\/object\/public\/products\/(pc|pc2|qc)\/([A-Za-z0-9_-]{1,80})\.webp(?:\?v=([A-Za-z0-9_-]{1,20}))?$/.exec(u || "");
+  return m ? "/img/m/" + m[1] + "/" + m[2] + (m[3] ? ".v" + m[3] : "") + ".webp" : "";
+}
+async function photo(env, origin, url) {
+  let u = String(url || "");
+  const prox = /\/api\/img\?u=([^&]+)/.exec(u); if (prox) { try { u = decodeURIComponent(prox[1]); } catch (e) {} }
+  const tries = [];
+  const mp = mirrorOf(u); if (mp) tries.push(() => env.ASSETS.fetch(new Request(origin + mp)));
+  if (/^\/img\//.test(u)) tries.push(() => env.ASSETS.fetch(new Request(origin + u)));
+  if (/^https:\/\//.test(u)) tries.push(() => fetch(u, { cf: { cacheEverything: true, cacheTtl: 2592000 } }));
+  for (const t of tries) {
     try {
-      const r = await fetch(src, { cf: { cacheEverything: true } });
+      const r = await t();
       const ct = (r.headers.get("content-type") || "").split(";")[0];
       if (r.ok && /^image\/(jpeg|png|webp|gif)$/.test(ct)) { const b = await r.arrayBuffer(); if (b.byteLength > 500 && b.byteLength < 4.5e6) return { media_type: ct, data: b64(b) }; }
     } catch (e) {}
   }
   return null;
+}
+let bank = null, bankAt = 0;
+async function bankThumbs(env, origin, sf, id) {
+  if (!bank || Date.now() - bankAt > 600000) {
+    try { const r = await env.ASSETS.fetch(new Request(origin + "/data/qc_bank.json")); bank = r.ok ? ((await r.json()).items || {}) : {}; } catch (e) { bank = {}; }
+    bankAt = Date.now();
+  }
+  const e = bank[sf + "/" + id]; const out = [];
+  for (let k = 0; e && k < Math.min(MAX_PHOTOS, +e[1] || 0); k++) out.push(SB + "qc/" + sf + "-" + id + "-" + k + ".webp");
+  return out;
 }
 
 const clean = (s, n) => String(s == null ? "" : s).replace(/[–—]/g, ",").replace(/\s+/g, " ").trim().slice(0, n);
@@ -68,12 +89,10 @@ export async function onRequestGet({ request, env }) {
   if (hit && !url.searchParams.get("fresh")) return hit;
   if (await limited(request.headers.get("cf-connecting-ip") || "")) return json(429, { error: "Too many checks. Try again in a few minutes." });
 
-  let d = null;
-  try { const r = await fetch(url.origin + "/api/qc?storefront=" + sf + "&id=" + id + "&cached=1"); if (r.ok) d = await r.json(); } catch (e) {}
-  const thumbs = ((d && (d.thumbnails || d.qc_preview)) || []).filter(u => typeof u === "string").slice(0, MAX_PHOTOS);
+  const thumbs = await bankThumbs(env, url.origin, sf, id);   // only finds whose QC photos are stored (the ones the site shows)
   if (!thumbs.length) return json(404, { error: "No QC photos stored for this find yet." });
 
-  const imgs = (await Promise.all([p.img ? photo(url.origin, p.img) : null, ...thumbs.map(t => photo(url.origin, t))]));
+  const imgs = (await Promise.all([p.img ? photo(env, url.origin, p.img) : null, ...thumbs.map(t => photo(env, url.origin, t))]));
   const listing = imgs[0], qcs = imgs.slice(1).filter(Boolean);
   if (!qcs.length) return json(502, { error: "Could not load the QC photos." });
   const content = [];
