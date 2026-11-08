@@ -9,6 +9,11 @@ on:
         description: 'How many carousels (1-8)'
         required: false
         default: '1'
+      send:
+        description: 'Send to TikTok as drafts ("no" = only build them and put the pictures on the rug-previews branch)'
+        type: choice
+        options: ['yes', 'no']
+        default: 'yes'
 permissions:
   contents: write
 concurrency: rug-now                 # its own queue: in the shared "shorts" queue a newer finds run cancelled it while it waited
@@ -35,11 +40,16 @@ jobs:
           TIKTOK_METHOD: UPLOAD
           TIKTOK_AUTO_MUSIC: 'no'
           COUNT: ${{ inputs.count || '1' }}
+          SEND: ${{ inputs.send || 'yes' }}
         run: |
           case "$COUNT" in [1-8]) ;; *) COUNT=1;; esac
           made=0
           for k in $(seq 1 "$COUNT"); do
             echo "::group::carousel $k of $COUNT"
+            if [ "$SEND" = "no" ]; then
+              python scripts/make_rug.py --n 6 --own 0 --state slides_used.json --avoid scripts/slides_exclude.json --out "out/rug-now-$k" && made=$((made + 1))
+              echo "::endgroup::"; continue
+            fi
             if python scripts/make_rug.py --n 6 --own 0 --state slides_used.json --commit-state --avoid scripts/slides_exclude.json --out "out/rug-now-$k" &&
                SCHEDULE_AT="$(date -u -d "+$((3 + 2 * k)) min" +%Y-%m-%dT%H:%M:00.000Z)" python scripts/post_short.py "out/rug-now-$k/rug.json"; then
               made=$((made + 1))
@@ -50,8 +60,17 @@ jobs:
           done
           echo "sent $made of $COUNT"; echo "### Rug carousels sent: $made of $COUNT" >> "$GITHUB_STEP_SUMMARY"
           [ "$made" -gt 0 ]
+      - name: Publish the pictures (branch "rug-previews", replaced each run)
+        if: always() && inputs.send == 'no'
+        run: |
+          mkdir -p prev && for d in out/rug-now-*; do [ -d "$d" ] && mkdir -p "prev/$(basename "$d")" && cp "$d"/0*.jpg "$d"/log.txt "prev/$(basename "$d")/" 2>/dev/null; done
+          rm -f prev/*/*-raw.jpg prev/*/*-qc*.jpg
+          cd prev && git init -q -b rug-previews && touch .keep
+          git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "rug previews [skip ci]"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" rug-previews
       - name: Save state
-        if: always()
+        if: always() && inputs.send != 'no'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
