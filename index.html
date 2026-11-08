@@ -1557,6 +1557,12 @@ main{padding-block:20px 64px}
 @media (hover:hover){.btn.ghost:hover,.btn.oauth:hover{background:var(--surface-2)!important;border-color:var(--line-2)!important}}
 .btn:active{transform:scale(.98)}
 .sheet input,.set-row input,.set-row select,.tool-in,.gate-email input{height:44px;padding:0 14px!important;border:1px solid var(--input)!important;border-radius:10px!important;background:var(--surface)!important;color:var(--ink)!important;font-family:var(--f-body)!important;font-size:15px!important;box-shadow:none!important}
+/* sign-up box (owner, 8 Nov 2026: "make the email me text and box smaller"): the email row as slim as the sign-in buttons */
+.gate-email{gap:8px!important;margin-top:0!important}
+.gate-email input{height:40px!important;font-size:14px!important;padding:0 14px!important;border-radius:999px!important}
+.gate-email .btn{height:40px!important;padding:0 16px!important;font-size:13.5px!important;font-weight:600!important;border-radius:999px!important}
+.gate-email-status:empty{min-height:0!important;margin:4px 0 0!important}
+@media (max-width:560px){.gate-email input{font-size:16px!important}}
 .sheet input:focus,.set-row input:focus,.set-row select:focus,.tool-in:focus,.gate-email input:focus{outline:none;border-color:var(--ring)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 35%,transparent)!important}
 .gate-email input.err{border-color:var(--danger)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--danger) 20%,transparent)!important}
 .gate-email-status.err{color:var(--danger)!important}
@@ -2119,6 +2125,16 @@ html .toolbar .deck,html .toolbar .subdeck{background:var(--ground)!important;-w
 html .toolbar .deck{position:sticky!important;top:0!important;z-index:32;padding-top:calc(10px + env(safe-area-inset-top))!important;padding-bottom:10px!important;border-bottom:0!important}
 html .toolbar .deck .wrap{display:flex;align-items:center;gap:8px}
 html .toolbar .deck .search{flex:1 1 auto;min-width:0}
+/* photo search (8 Nov 2026): camera button in the search field */
+.search{position:relative}
+.pc-cam{flex:none;display:inline-grid;place-items:center;width:40px;height:40px;margin-right:4px;padding:0;border:0;border-radius:999px;background:transparent;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s,color .15s,transform .1s cubic-bezier(.22,1,.36,1)}
+@media (hover:hover){.pc-cam:hover{background:var(--hover,rgba(127,127,127,.12));color:var(--ink)}}
+.pc-cam:active{transform:scale(.96)}
+.pc-cam .ic{width:20px;height:20px}
+.pc-cam.busy{pointer-events:none;color:var(--ink)}
+.pc-cam.busy .ic{animation:pcCamPulse 1s ease-in-out infinite}
+@keyframes pcCamPulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.pc-cam.busy .ic{animation:none}}
 html .toolbar .subdeck{z-index:31;border-bottom:1px solid var(--line)!important}
 @media (min-width:561px){html .toolbar .subdeck{position:sticky!important;top:var(--deck-h,64px)!important}}
 html .toolbar .subdeck::before{content:none!important}
@@ -2872,7 +2888,9 @@ html:not(.qcb-ready) a.qcb,html:not(.qcb-ready) a.qc-pill{visibility:hidden}
     <label class="search">
       <svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>
       <input id="q" type="search" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search products">
+      <button type="button" class="pc-cam" id="pc-cam" aria-label="Search with a photo" title="Search with a photo"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg></button>
     </label>
+    <input type="file" id="pc-cam-file" accept="image/*" hidden>
     <button type="button" class="pc-fbtn" id="pc-fbtn" aria-haspopup="dialog" aria-controls="pc-fsheet" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-sliders"/></svg><span class="pc-vh" data-i18n="filters">Filters</span><span class="pc-fbadge" id="pc-fbadge" aria-hidden="true" hidden>0</span></button>
   </div>
 </div>
@@ -4231,7 +4249,7 @@ function card(p,i){
   el.innerHTML=`
     <div class="thumb">
       <canvas aria-hidden="true"></canvas>
-      ${p.img?`<img class="pimg" src="${esc(thumbOf(p.img))}" alt="${esc(altOf(p))}" loading="${top<8?"eager":"lazy"}"${top<4?' fetchpriority="high"':""} decoding="async" onerror="this.remove()">`:""}
+      ${p.img?`<img class="pimg" src="${esc(thumbOf(p.img))}"${thumbSet(p.img)?` srcset="${esc(thumbSet(p.img))}" sizes="(max-width:640px) 48vw, (max-width:1100px) 31vw, 290px"`:""} alt="${esc(altOf(p))}" loading="${top<8?"eager":"lazy"}"${top<4?' fetchpriority="high"':""} decoding="async" onerror="this.remove()">`:""}
       <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save ${esc(p.title)}">${HEART}</button><span class="tbadges">${colourBadge(p)}${hasQC?`<a class="cbadge qcb" href="/product/${encodeURIComponent(p.id)}#qc" aria-label="${esc(t("qc_of").replace("{t}",p.title))}">${ICON("camera")}</a>`:""}</span>
     </div>
     <div class="body">
@@ -4510,7 +4528,7 @@ const _warmed=new Set();
 function pcWarm(p,build){
   if(!p) return;
   try{ if(!_warmed.has(p.id)){ _warmed.add(p.id);
-    if(p.img){ const im=new Image(); im.decoding="async"; im.src=p.img; }
+    if(p.img){ const im=new Image(); im.decoding="async"; im.src=bigOf(p.img); }
     if(p.qc>0) qcFetch(p); } }catch(e){}
   if(build&&!drawer.classList.contains("open")&&!(drawer.__pre===p&&drawer.__preSig===_detailSig(p))){ try{ _detailBuild(p); }catch(e){ drawer.__pre=null; } }
 }
@@ -4588,10 +4606,10 @@ function openDetail(p,fromHash){
     const nq=gc.querySelector(".pc-noqc"); if(nq) nq.remove();
     if(isqc && QCIMG.arr && active>=QCIMG.arr.length) active=0;
     QCIMG.idx=active;
-    const mainUrl=isqc?(QCIMG.arr&&QCIMG.arr[active]):(mode.m==="listing"?p.img:null);
+    const mainUrl=isqc?(QCIMG.arr&&QCIMG.arr[active]):(mode.m==="listing"?bigOf(p.img):null);
     /* same photo already showing (QC data arrived for the listing view): keep it, so it doesn't fade in a second time.
        r7: the card's photo shown at open counts as the same; the full-size one replaces it once it has loaded and decoded */
-    const lo=!!(oldi&&!isqc&&mainUrl&&mainUrl===p.img&&oldi.dataset.lo==="1");
+    const lo=!!(oldi&&!isqc&&mainUrl&&mainUrl===bigOf(p.img)&&oldi.dataset.lo==="1");
     const same=!!(mainUrl&&oldi&&(oldi.getAttribute("src")===mainUrl||lo));
     if(oldi&&!same) oldi.remove();
     if(same){ gm.style.display="none";
@@ -4602,6 +4620,7 @@ function openDetail(p,fromHash){
       gm.style.display="none";
       const im=document.createElement("img"); im.className="pimg"+(dir?" from-"+dir:""); im.decoding="async"; im.loading="eager"; try{im.fetchPriority="high";}catch(e){} im.src=mainUrl; im.alt=isqc?("QC photo "+(active+1)+": "+p.title):altOf(p);
       im.onerror=()=>{
+        if(!isqc&&p.img&&im.src!==p.img&&!im.__orig){ im.__orig=1; im.src=p.img; return; }   /* the Cloudflare copy failed: the stored original */
         im.remove();
         if(!live()) return;
         if(isqc){
@@ -4929,6 +4948,38 @@ wirePriceSlider();
 $("#saved-chip").addEventListener("click",()=>{state.saved=!state.saved;render();});
 ["#empty-clear","#clear-chip"].forEach(id=>{ const b=$(id); if(b)b.addEventListener("click",clearFilters); });
 let qt;$("#q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{state.q=e.target.value.trim();syncQParam();render();try{window.pcSearch&&pcSearch.q(state.q,_rlist.length,location.pathname==="/"?"home":/^\/product\//.test(location.pathname)?"product":"hub");}catch(_){}},110);});   /* search-log hook A (29 Oct 2026, track.js pcSearch) */
+/* photo search: the photo is shrunk to 768 px here, Claude names the item (functions/api/image-search.js) and its words go
+   into the search box, so the results are the normal search results. Drop or paste a photo on the search box works too. */
+(function(){
+  const btn=document.getElementById("pc-cam"), file=document.getElementById("pc-cam-file"), q=document.getElementById("q"), box=q&&q.closest(".search");
+  if(!btn||!file||!q) return;
+  const shrink=f=>new Promise((ok,no)=>{ const u=URL.createObjectURL(f), im=new Image();
+    im.onload=()=>{ const k=Math.min(1,768/Math.max(im.naturalWidth,im.naturalHeight)), c=document.createElement("canvas");
+      c.width=Math.max(1,Math.round(im.naturalWidth*k)); c.height=Math.max(1,Math.round(im.naturalHeight*k));
+      const x=c.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height); x.drawImage(im,0,0,c.width,c.height); URL.revokeObjectURL(u); ok(c.toDataURL("image/jpeg",.82)); };
+    im.onerror=()=>{ URL.revokeObjectURL(u); no(new Error("img")); }; im.src=u; });
+  async function go(f){
+    if(!f||!/^image\//.test(f.type||"")) return;
+    btn.classList.add("busy"); const ph=q.placeholder; q.placeholder="Looking at your photo\u2026"; q.value="";
+    try{
+      const img=await shrink(f);
+      const r=await fetch("/api/image-search",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({img})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok){ toast(d.error||"Photo search is not available right now."); return; }
+      if(d.none){ toast("No clothing, shoes or bag found in that photo."); return; }
+      if(!d.query){ toast((d.label?d.label+": ":"")+"nothing like it on the sheet yet."); return; }
+      q.value=d.query; q.dispatchEvent(new Event("input",{bubbles:true}));
+      toast(d.label?("Photo: "+d.label):"Showing finds like your photo");
+      try{ window.pcSearch&&pcSearch.commit(); }catch(_){}
+    }catch(e){ toast("Could not read that photo. Try a JPG or PNG."); }
+    finally{ btn.classList.remove("busy"); q.placeholder=ph; file.value=""; }
+  }
+  btn.addEventListener("click",e=>{ e.preventDefault(); e.stopPropagation(); file.click(); });
+  file.addEventListener("change",()=>go(file.files&&file.files[0]));
+  if(box){ box.addEventListener("dragover",e=>{ if(e.dataTransfer&&[...e.dataTransfer.types].includes("Files")) e.preventDefault(); });
+    box.addEventListener("drop",e=>{ const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f&&/^image\//.test(f.type)){ e.preventDefault(); go(f); } }); }
+  q.addEventListener("paste",e=>{ const it=[...((e.clipboardData&&e.clipboardData.items)||[])].find(i=>i.kind==="file"&&/^image\//.test(i.type)); if(it){ e.preventDefault(); go(it.getAsFile()); } });
+})();
 $("#q").addEventListener("keydown",e=>{ if(e.key==="Enter"){ try{window.pcSearch&&pcSearch.commit();}catch(_){} } }); $("#q").addEventListener("blur",()=>{ try{window.pcSearch&&pcSearch.commit();}catch(_){} });   /* search-log hook B */
 $("#q").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.isComposing&&window.matchMedia&&matchMedia("(pointer: coarse)").matches){ e.preventDefault(); e.target.blur(); } });   /* touch screens: the Search key closes the keyboard so the results show */
 $("#sort").addEventListener("change",e=>{state.sort=e.target.value;render();});
@@ -5041,6 +5092,12 @@ function renderFeatured(){
    A failed copy falls back to the original through the retry in the card's error handler and imgFallback. */
 function thumbOf(u){ if(!u||!/(^|\.)puroclassico\.com$/.test(location.hostname)) return u; const o=location.origin, path=u.indexOf(o+"/")===0?u.slice(o.length):u;
   return /^\/(img\/|api\/img\?)/.test(path)?o+"/cdn-cgi/image/width=400,quality=75,format=auto"+path:u; }
+/* 8 Nov 2026, sharper photos: a 720 px copy for retina screens next to the 400 px one (the browser picks), and the product
+   view's photo as a 1400 px AVIF/WebP from Cloudflare (smaller and faster than the stored original, never upscaled) */
+function cdnOf(u,w,q){ if(!u||!/(^|\.)puroclassico\.com$/.test(location.hostname)) return u; const o=location.origin, path=u.indexOf(o+"/")===0?u.slice(o.length):u;
+  return /^\/(img\/|api\/img\?)/.test(path)?o+"/cdn-cgi/image/width="+w+",quality="+q+",format=auto"+path:u; }
+function thumbSet(u){ const a=thumbOf(u), b=cdnOf(u,720,80); return a===b?"":a+" 400w, "+b+" 720w"; }
+function bigOf(u){ return cdnOf(u,1400,85); }
 function imgFallback(im,p,seed){
   if(!im.dataset.r){ im.dataset.r="1"; const u=p.img||im.getAttribute("src")||"";  /* the full-size original when the resized copy failed */ if(u){ setTimeout(()=>{ if(im.isConnected) im.src=u+(u.indexOf("?")<0?"?":"&")+"r=1"; },700); return; } }
   if(!im.isConnected) return;
@@ -6275,7 +6332,7 @@ function wirePPFilters(){
     /* r11 (31 Oct 2026): finds and QC counts are rounded down to the hundred with a "+", and only written once the dead-link
        check has answered (window.__lhDone), so the number no longer jumps (9,202 then 9,159) while the page loads */
     var ok = a.length && window.__lhDone, h = function (n) { return nf(Math.floor(n / 100) * 100) + "+"; };
-    var v = { finds: h(a.length), qc: h(qc), markets: "3", agents: String(ag) };
+    var v = { finds: h(a.length), qc: qc >= 1000 ? h(qc) : (qc >= 100 ? h(qc) : nf(qc)), markets: "3", agents: String(ag) };   /* QC: finds with stored photos only (8 Nov 2026), exact while under 100 */
     [].forEach.call(home.querySelectorAll("[data-num]"), function (el) { var k = el.getAttribute("data-num"); if (v[k] != null && ok) el.textContent = v[k]; });
     var s = st(), on = s && s.cats && s.cats.length === 1 ? s.cats[0] : "";
     [].forEach.call(home.querySelectorAll(".v9-cat[data-cat]"), function (el) {
