@@ -26,6 +26,7 @@ SITE_ON = os.environ.get("RUG_SITE", "1") == "1"
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
 ENGINE = os.environ.get("RUG_ENGINE", "gemini" if os.environ.get("GEMINI_API_KEY") else "openai")     # "gemini" (Google, about $0.04 an image) or "openai"
 MODELS = [m for m in os.environ.get("RUG_MODELS", "gemini-2.5-flash-image" if ENGINE == "gemini" else "gpt-image-2,gpt-image-1.5,gpt-image-1").split(",") if m]
+SOURCE = os.environ.get("RUG_SOURCE", "pop")     # "pop": only the site's most popular finds (owner, 8 Nov 2026: "the most popular items from the spreadsheet"); "mix": owner's picks, QC photos and Drive
 MULTI_ON = os.environ.get("RUG_MULTI", "1") == "1"     # several items on one slide (owner, 22 Oct 2026); "0" = one item per slide
 GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent"
 
@@ -51,15 +52,17 @@ def group(t):
 MULTI = {"small": 3, "shoes": 2, "bags": 2, "jackets": 1}       # items per slide (owner, 22 Oct 2026: several accessories or shoes together; one jacket fills the rug)
 
 
-def prompt(items, angle):
-    """items: the item words of one slide, in the order of their photos (images 2, 3, ...)."""
+def prompt(items, angle, product=False):
+    """items: the item words of one slide, in the order of their photos (images 2, 3, ...). product: shop photos, not QC photos."""
+    src1 = "shop product photo on a plain background" if product else "quality-check photo on a green mat"
+    srcn = "shop product photos on a plain background" if product else "quality-check photos on a green mat"
     n = len(items); shoes = sum(1 for t in items if re.search(r"sneaker|shoe|loafer|boot|slide", t))
     if n == 1:
-        what = "Image 2 is a quality-check photo of one %s on a green mat. Edit image 1: put that exact %s on the rug, %s. " % (items[0], items[0], angle)
+        what = "Image 2 is a %s of one %s. Edit image 1: put that exact %s on the rug, %s. " % (src1, items[0], items[0], angle)
         count = "Exactly one item; for shoes exactly one pair, two shoes, never three. "
     else:
-        what = ("Images 2 to %d are quality-check photos on a green mat of %d different items: %s. Edit image 1: lay all %d items on the rug together like a haul I am showing off, "
-                "side by side with a little space between them so each one is fully visible, %s. " % (n + 1, n, ", ".join("image %d: %s" % (k + 2, t) for k, t in enumerate(items)), n, angle))
+        what = ("Images 2 to %d are %s of %d different items: %s. Edit image 1: lay all %d items on the rug together like a haul I am showing off, "
+                "side by side with a little space between them so each one is fully visible, %s. " % (n + 1, srcn, n, ", ".join("image %d: %s" % (k + 2, t) for k, t in enumerate(items)), n, angle))
         count = "Exactly these %d items, each exactly once%s, nothing else. " % (n, "; shoes come as pairs, so exactly %d shoes in total" % (2 * shoes) if shoes else "")
     return ("Image 1 is a photo of my cream Maison Margiela rug (black numbers 0 to 23, 'Maison Margiela PARIS') on the wooden floor of my room, taken standing up with my iPhone. "
             + what + "Keep everything else of image 1: the same camera position, height and angle, the same room, light and colours. "
@@ -459,7 +462,11 @@ def pop_check(pid):
     item = (ai_label(pid[4:]).get("item") or "").lower()
     if re.search(r"suitcase|luggage|trolley|carry.?on", (ai_label(pid[4:]).get("title_base") or "") + " " + r[1], re.I): item = "suitcase"   # labelled "bag", but 60 cm
     if item in FLAT_CM: g = group_of(item)                    # the vision labels' kind: a watch is small, a vest is a jacket
-    return {"fits": True, "clear": True, "group": g, "item": item or g, "brand": r[2], "name": name, "label": flat_label(pid, r)}
+    lab = flat_label(pid, r)
+    if SOURCE == "pop" and lab:                               # "christian louboutin sneakers", not "christian louboutin" (a title cut short)
+        name = lab.lower()
+        while len(name) > 28 and " " in name: name = name.rsplit(" ", 1)[0]
+    return {"fits": True, "clear": True, "group": g, "item": item or g, "brand": r[2], "name": name, "label": lab}
 
 
 # ---- The no-AI fallback: a flat-lay of the items' own product photos on the rug photo (rebuilt 6 Nov 2026) ----
@@ -743,8 +750,18 @@ def main():
     if fresh:                                                  # only picks until every pick has been on the rug once, then the normal pool again
         rnd.shuffle(fresh); cands = [(pid, (items.get(pid + ":0") or {}).get("i", "other")) for pid in fresh]
         print("using the owner's picks: %d not posted yet" % len(fresh))
+    if SOURCE == "pop":                                        # only the most popular finds with a clean shop photo, kinds taking turns
+        fresh = []; pool = [c for c in pop_cands(no) if flat_ok(c[0])[0]]
+        rnd.shuffle(pool); pool.sort(key=lambda c: rc.get(c[0], 0))     # random, least used on the rug first
+        kinds = {}
+        for c in pool: kinds.setdefault(group_of(ai_label(c[0][4:]).get("item")), []).append(c)
+        cands = []
+        while any(kinds.values()):
+            for g in ("small", "shoes", "jackets", "bags"):
+                cands += kinds.get(g, [])[:MULTI[g]]; kinds[g] = kinds.get(g, [])[MULTI[g]:]
+        print("popular finds with a clean photo:", len(cands))
     picked_ids = set(fresh)
-    if SITE_ON and not fresh:                                  # the site's QC photos take turns with the Drive photos, least used first
+    if SITE_ON and not fresh and SOURCE != "pop":                                  # the site's QC photos take turns with the Drive photos, least used first
         site = site_cands(no); rnd.shuffle(site); site.sort(key=lambda c: rc.get(c[0], 0))
         pop = pop_cands(no); rnd.shuffle(pop); pop.sort(key=lambda c: rc.get(c[0], 0))     # random among the popular ones, least used first
         mix = []
@@ -769,6 +786,7 @@ def main():
             if qc.mode in ("RGBA", "LA", "P"):                 # the product photos are cut-outs: put them on white
                 qc = qc.convert("RGBA"); CUT[pid] = qc.copy(); bg = Image.new("RGB", qc.size, (255, 255, 255)); bg.paste(qc, mask=qc.split()[-1]); qc = bg
             else: qc = qc.convert("RGB")
+        if SOURCE == "pop" and pid.startswith("pop:") and not AI_OUT[0]: return c, qc, pop_check(pid)     # facts from the catalogue: no green-mat check
         if AI_OUT[0] and pid.startswith("pop:"):
             cut, why = cut_clean(CUT[pid], pid) if pid in CUT else (None, "not a cut-out")
             if cut is None: CUT.pop(pid, None); return c, None, "flat-lay: skip %s (%s)" % (pid, why)
@@ -840,7 +858,7 @@ def main():
         for attempt in range(2):
             if time.time() - t0 > budget: print("  out of time, skipping", label); break
             print("  making", label, "try", attempt + 1, "%.0fs in" % (time.time() - t0))
-            png, model, use = generate([rug] + [jpeg(x) for x in shots], prompt([p["item"] for p in sl], angle))
+            png, model, use = generate([rug] + [jpeg(x) for x in shots], prompt([p["item"] for p in sl], angle, all(p["qc"].startswith("pop:") for p in sl)))
             if not png: break
             ok, why = judge(shots, png); print("  %s, try %d: %s %s" % (label, attempt + 1, "OK" if ok else "REJECTED", why))
             if ok: return sl, png, model, use
