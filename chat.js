@@ -233,6 +233,8 @@
     panel.style.height = Math.round(v.height) + "px"; panel.style.top = Math.round(v.offsetTop) + "px";
     if (pinned) toBottom();
   }
+  // "Ask about this item" box on product pages (8 Nov 2026, beta): opens the panel and asks the question in one go.
+  W.pcChatAsk = function (text) { if (!panel) return false; if (!state.open) setOpen(true, true); ask(text); return true; };
   function setOpen(on, quiet) {
     state.open = on; save();
     root.classList.toggle("pcc-open", on);

@@ -2693,6 +2693,23 @@ html #drawer .buy-block{margin-top:20px}
 html #drawer .buy-block>.sec-label{font-size:13px!important;font-weight:500!important;color:var(--muted)!important;letter-spacing:0!important;margin:0 0 10px!important}
 html #drawer .buy-block>.sec-label .ic{display:none}
 html #drawer .report-row{margin-top:14px!important}
+html #drawer .pc-beta{margin-top:18px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+html #drawer .pcb-h{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px}
+html #drawer .pcb-tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
+html #drawer .pcb-sub{margin:-4px 0 10px;font-size:13px;color:var(--muted)}
+html #drawer .pcb-chips{display:flex;flex-wrap:wrap;gap:6px}
+html #drawer .pcb-chip,html #drawer .pcb-run{appearance:none;min-height:34px;padding:0 13px;border:1px solid var(--line-2);border-radius:999px;background:transparent;color:var(--ink);font:inherit;font-size:13px;cursor:pointer;transition:background-color .15s,transform .1s cubic-bezier(.22,1,.36,1)}
+@media (hover:hover){html #drawer .pcb-chip:hover,html #drawer .pcb-run:hover{background:var(--surface-2)}}
+html #drawer .pcb-chip:active,html #drawer .pcb-run:active{transform:scale(.96)}
+html #drawer .pcb-run:disabled{opacity:.6;cursor:default}
+html #drawer .pcb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:13.5px;line-height:1.45}
+html #drawer .pcb-list li{display:flex;gap:9px;align-items:flex-start}
+html #drawer .pcb-list i{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;font:700 12px/1 var(--f-body);font-style:normal;margin-top:1px;background:var(--surface-2);color:var(--muted)}
+html #drawer .pcb-list .st-good i{background:color-mix(in srgb,#16a34a 16%,transparent);color:#16a34a}
+html #drawer .pcb-list .st-watch i{background:color-mix(in srgb,#d97706 18%,transparent);color:#d97706}
+html #drawer .pcb-list b{font-weight:600;margin-right:2px}
+html #drawer .pcb-sum{margin:12px 0 0;font-size:13.5px}
+html #drawer .pcb-fine{margin:10px 0 0;font-size:12px;color:var(--muted);line-height:1.45}
 @media (max-width:480px){html #drawer .agent-badge{display:none!important}html #drawer .d-price .p{font-size:28px!important}}
 /* settings menu (owner, 8 Nov 2026: "fix the UI here"): a labelled list, label left and control right */
 html .masthead.set-open .v9-prefs{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch!important;gap:0!important;width:320px!important;padding:6px!important}
@@ -3431,7 +3448,9 @@ const PLAT = {weidian:{label:"Weidian"},taobao:{label:"Taobao"},"1688":{label:"1
    VIEW_COUNTS is baked from the Supabase product_views table at deploy time (re-baked periodically).
    Counts are NOT shown to visitors: flip SHOW_VIEWS to true to display the view badge on cards + product pages. */
 const ADMIN = (()=>{ try{ const q=new URLSearchParams(location.search).get("admin"); if(q==="1") localStorage.setItem("pc.admin","1"); if(q==="0") localStorage.removeItem("pc.admin"); return localStorage.getItem("pc.admin")==="1"; }catch(e){ return false; } })();
-const SHOW_VIEWS = ADMIN;   /* views/favourites are only shown in admin mode */
+const SHOW_VIEWS = ADMIN;
+/* test switch for features the owner tries before launch (8 Nov 2026): ?beta=1 turns it on in this browser, ?beta=0 off */
+const BETA = (()=>{ try{ const q=new URLSearchParams(location.search).get("beta"); if(q==="1") localStorage.setItem("pc.beta","1"); if(q==="0") localStorage.removeItem("pc.beta"); return localStorage.getItem("pc.beta")==="1"; }catch(e){ return false; } })();   /* views/favourites are only shown in admin mode */
 /* ---- Public favourite counts ----
    The "★ N" badge is the PUBLIC aggregate of how many users favourited a product.
    Hidden from visitors (each user's own saves still work); view counts are shown instead. */
@@ -4572,6 +4591,31 @@ function pcWarm(p,build){
     if(p.img){ const im=new Image(); im.decoding="async"; im.src=bigOf(p.img); }
     if(p.qc>0) qcFetch(p); } }catch(e){}
   if(build&&!drawer.classList.contains("open")&&!(drawer.__pre===p&&drawer.__preSig===_detailSig(p))){ try{ _detailBuild(p); }catch(e){ drawer.__pre=null; } }
+}
+/* ---- BETA (owner tests before launch, 8 Nov 2026): "Ask about this item" and "AI QC check" on the product view ---- */
+function pcBetaBox(id,html){ const bb=drawer.querySelector(".buy-block"); if(!bb) return null; let el=drawer.querySelector("#"+id); if(!el){ el=document.createElement("section"); el.id=id; el.className="pc-beta"; bb.insertAdjacentElement("afterend",el); } el.innerHTML=html; return el; }
+function pcBetaAsk(p){
+  const qs=["What size should I get?","Is the quality good for the price?","Show me similar finds for less"];
+  const el=pcBetaBox("pc-ask",`<div class="pcb-h"><span>Ask about this item</span><span class="pcb-tag">Beta</span></div><div class="pcb-chips">${qs.map(q=>`<button type="button" class="pcb-chip">${esc(q)}</button>`).join("")}</div>`);
+  if(!el) return;
+  el.addEventListener("click",e=>{ const b=e.target.closest(".pcb-chip"); if(!b) return; if(!(window.pcChatAsk&&window.pcChatAsk(b.textContent))) toast("The assistant is not available right now."); });
+}
+function pcBetaQc(p){
+  const tok=drawer.__tok;
+  const el=pcBetaBox("pc-aiqc",`<div class="pcb-h"><span>AI QC check</span><span class="pcb-tag">Beta</span></div><p class="pcb-sub">AI reads the buyer QC photos and notes what to look at.</p><button type="button" class="pcb-run">Check the QC photos</button>`);
+  if(!el) return;
+  const ICO={good:"\u2713",watch:"!",cant_tell:"?"}, LAB={good:"Looks right",watch:"Look closer",cant_tell:"Can't tell"};
+  const draw=d=>{ el.innerHTML=`<div class="pcb-h"><span>AI QC check</span><span class="pcb-tag">Beta</span></div>`+
+    `<ul class="pcb-list">${(d.checks||[]).map(c=>`<li class="st-${esc(c.status)}"><i aria-hidden="true">${ICO[c.status]||"?"}</i><span><b>${esc(c.area.charAt(0).toUpperCase()+c.area.slice(1))}</b> ${esc(c.note)}<em class="pc-vh"> (${esc(LAB[c.status]||"")})</em></span></li>`).join("")}</ul>`+
+    (d.summary?`<p class="pcb-sum">${esc(d.summary)}</p>`:"")+
+    `<p class="pcb-fine">AI notes from ${esc(d.n)} buyer photo${d.n===1?"":"s"}${d.listing?" and the listing photo":""}. Not a guarantee: ask your agent for more photos if anything matters to you.</p>`; };
+  el.addEventListener("click",async e=>{ const b=e.target.closest(".pcb-run"); if(!b) return;
+    b.disabled=true; b.textContent="Checking the photos\u2026";
+    try{ const r=await fetch(`/api/qc-check?storefront=${encodeURIComponent(p.platform)}&id=${encodeURIComponent(p.itemId||p.id)}&pid=${encodeURIComponent(p.id)}`,{headers:{"x-pc-beta":"1"}});
+      const d=await r.json().catch(()=>({})); if(drawer.__tok!==tok) return;
+      if(!r.ok){ b.disabled=false; b.textContent="Try again"; toast(d.error||"The check is busy. Try again."); return; }
+      draw(d);
+    }catch(err){ if(drawer.__tok===tok){ b.disabled=false; b.textContent="Try again"; } } });
 }
 /* hover QC (owner, 8 Nov 2026): on a mouse hover the card photo fades to the find's first buyer QC photo. Only photos the
    site already has (QC bank or edge cache, qcFetch without "live") are used, so hovering never spends the qualit.ly quota. */
@@ -6055,6 +6099,7 @@ function enhanceDrawer(p){
       b.classList.add("sel"); rw.classList.add("busy"); rb.disabled=true;
       reportFind(p,b.getAttribute("data-r")).then(ok=>{ setTimeout(()=>{ rwSet(false); if(rs)rs.textContent=ok?"\u2713 "+t("report_thanks"):t("report_failed"); },260); }); });
   }
+  if(BETA) pcBetaAsk(p);
   wireDrawerSearch();
   const _tk=drawer.__tok;   /* r7: similar finds, the QC check and the browse grid wait for the first paint (and an idle moment) */
   _idle(()=>{ if(drawer.__tok===_tk) renderSimilar(p); });
@@ -6086,7 +6131,8 @@ function enhanceDrawer(p){
       const hasListing=!!p.img&&!drawer.__listingBroken;
       const arr=(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails
                :((d&&Array.isArray(d.qc_preview)&&d.qc_preview.length)?d.qc_preview:null);
-      const hasQC=!!(arr&&arr.length), onRecord=false;   /* 8 Nov 2026: no QC tab without stored photos (owner); scripts/qc_bank.py collects them */
+      const hasQC=!!(arr&&arr.length), onRecord=false;
+      if(BETA&&hasQC) pcBetaQc(p);   /* 8 Nov 2026: no QC tab without stored photos (owner); scripts/qc_bank.py collects them */
       if(!hasListing&&!hasQC&&!onRecord){ if(media)media.style.display="none"; if(grid)grid.classList.add("no-media"); return; }
       if(hasQC||onRecord){
         if(qcTab){ qcTab.style.display=""; qcTab.textContent=t("qc")+(hasQC?" "+arr.length:(p.qc>=2?" "+p.qc:"")); }
@@ -7019,4 +7065,4 @@ try{var AC=null,AH=matchMedia("(hover: hover)"),afp=function(l){var p=l.querySel
 <script id="pc-search" src="/pcs.js?v=5f23e99c"></script>
 <script src="/track.js?v=4" defer></script>
 <script src="/also.js?v=1" defer></script>
-<script src="/chat.js?v=3" defer></script>
+<script src="/chat.js?v=4" defer></script>
