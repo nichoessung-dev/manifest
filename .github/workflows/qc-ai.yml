@@ -1,0 +1,53 @@
+name: QC AI notes
+# AI notes on buyer QC photos for every find with stored QC photos (scripts/qc_ai.py), kept for good in data/qc_ai.json and
+# served by functions/api/qc-check.js. Runs after the QC photo bank (03:17 UTC); a find is done again only when its stored
+# photos change. Cost: about 3 cents per find, once. Shown on the site only with ?beta=1 until the owner launches it.
+on:
+  schedule:
+    - cron: '47 4 * * *'
+  workflow_dispatch:
+    inputs:
+      max:
+        description: 'Most finds this run'
+        default: '40'
+      pid:
+        description: 'Only this find id (redoes it)'
+        default: ''
+permissions:
+  contents: write
+concurrency:
+  group: qc-ai
+  cancel-in-progress: false
+jobs:
+  notes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --quiet anthropic==1.14.0
+      - name: Check QC photos
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MAX: ${{ inputs.max || '40' }}
+          PID: ${{ inputs.pid }}
+        run: |
+          ARGS="--max $MAX"
+          if [ -n "$PID" ]; then ARGS="$ARGS --pid $PID"; fi
+          python -u scripts/qc_ai.py $ARGS
+      - name: Commit if changed
+        if: always()
+        run: |
+          [ -f data/qc_ai.json ] || exit 0
+          git add data/qc_ai.json
+          if git diff --cached --quiet; then echo "no change"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "chore: AI notes on QC photos"
+          for i in 1 2 3; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q origin HEAD:"$GITHUB_REF_NAME"; then exit 0; fi
+            sleep 10
+          done
+          exit 1
