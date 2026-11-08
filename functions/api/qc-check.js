@@ -1,6 +1,6 @@
 /**
  * Cloudflare Pages Function: AI notes on a find's buyer QC photos (owner, 8 Nov 2026: BETA, the owner tests it before launch).
- * Route: GET /api/qc-check?storefront=weidian&id=123&pid=<find id>   (header x-pc-beta: 1, same origin)
+ * Route: GET /api/qc-check?storefront=weidian&id=123&pid=<find id>&beta=1
  *   -> 200 {"checks":[{"area":"logo","status":"good|watch|cant_tell","note":"..."}],"summary":"...","n":5,"model":"..."}
  * The photos are the ones the site already shows (QC bank or edge cache via /api/qc?cached=1, so no qualit.ly quota) plus
  * the listing photo for colour and shape. Claude only describes what it can see; it never says real or fake and never
@@ -57,7 +57,7 @@ const clean = (s, n) => String(s == null ? "" : s).replace(/[–—]/g, ",").rep
 export async function onRequestGet({ request, env }) {
   if (!env || !env.ANTHROPIC_API_KEY) return json(503, { error: "Not available right now." });
   const url = new URL(request.url);
-  if (request.headers.get("x-pc-beta") !== "1") return json(404, { error: "not found" });
+  if (url.searchParams.get("beta") !== "1" && request.headers.get("x-pc-beta") !== "1") return json(404, { error: "not found" });   // beta only (the middleware drops custom headers)
   const sf = url.searchParams.get("storefront") || "", id = url.searchParams.get("id") || "", pid = url.searchParams.get("pid") || "";
   if (!/^(weidian|taobao|1688)$/.test(sf) || !/^[1-9][0-9]{5,19}$/.test(id) || !/^[0-9A-Za-z_-]{1,40}$/.test(pid)) return json(400, { error: "bad request" });
   const p = P.find(x => String(x.id) === pid);
