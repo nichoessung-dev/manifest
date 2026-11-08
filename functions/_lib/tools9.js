@@ -522,7 +522,13 @@ function trackUI() {
 ${TRACK_JS}</script>`;
 }
 
-export const TOOL_UI9 = { "shipping-calculator": shipUI, "size-estimator": sizeUI, "parcel-tracker": trackUI };
+// 8 Nov 2026 (owner: "make the UI way nicer"): on wide screens the size answer sits next to the form and updates as you type,
+// instead of below it where you had to scroll; phones keep the single column.
+const SIZE_WIDE = `<style>@media (min-width:1000px){.tk-page[data-tool="size-estimator"]{max-width:1080px;margin-inline:auto}
+#pb{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:32px;align-items:start}
+#pb>*{grid-column:1}#pb>.tk-out{grid-column:2;grid-row:1/span 30;position:sticky;top:88px;margin-top:0}
+#pb>.tk-clear{grid-column:1}}</style>`;
+export const TOOL_UI9 = { "shipping-calculator": shipUI, "size-estimator": () => SIZE_WIDE + sizeUI(), "parcel-tracker": trackUI };
 
 // ------------------------------------------------------------------ page shell (spec 1.2 and 1.6)
 const TRUST = { "shipping-calculator": ["Free", "No sign-up", "Runs in your browser"], "size-estimator": ["Free", "No sign-up", "Runs in your browser"],
