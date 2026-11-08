@@ -450,17 +450,22 @@ select.mini,.theme-btn,.auth-btn,.fsel select,.saved-chip,.btn,.sheet input,.chi
 .report-link:hover{color:var(--danger)}
 .report-link:disabled{opacity:.5;cursor:default;text-decoration:none}
 .report-status{font-size:12.5px;color:var(--accent)}
-.report-why{flex-basis:100%;display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-top:2px}
-.report-why[hidden],.report-row[hidden]{display:none}
-.report-why .rw-q{margin:0;font-size:12.5px;color:var(--muted)}
-.report-why .rw-opts{display:flex;flex-wrap:wrap;gap:6px}
-.report-why label{position:relative;display:inline-flex}
-.report-why input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
-.report-why label span{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border:1px solid var(--line-2);border-radius:999px;font-size:12.5px;color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s,color .15s}
-.report-why input:checked+span{background:var(--fill);color:var(--fill-ink);border-color:var(--fill)}
-.report-why input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
-.report-why .rw-send{min-height:32px;padding:0 14px;border:0;border-radius:999px;background:var(--fill);color:var(--fill-ink);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
-.report-why .rw-send:disabled{opacity:.45;cursor:default}
+/* report box (8 Nov 2026): slides open, one tap on a reason sends the report */
+.report-why{flex-basis:100%;display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .28s cubic-bezier(.22,1,.36,1),opacity .2s ease-out}
+.report-why.on{grid-template-rows:1fr;opacity:1}
+.report-why .rw-in{min-height:0;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.report-why .rw-q{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.report-why .rw-opts{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0 4px}
+.report-why .rw-opt{appearance:none;display:inline-flex;align-items:center;min-height:34px;padding:0 13px;border:1px solid var(--line-2);border-radius:999px;background:transparent;color:var(--ink);font:inherit;font-size:12.5px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s,border-color .15s,color .15s,opacity .2s,transform .1s cubic-bezier(.22,1,.36,1)}
+@media (hover:hover){.report-why .rw-opt:hover{background:var(--hover,rgba(127,127,127,.12))}}
+.report-why .rw-opt:active{transform:scale(.96)}
+.report-why .rw-opt.sel{background:var(--fill);color:var(--fill-ink);border-color:var(--fill)}
+.report-why.busy .rw-opt:not(.sel){opacity:.35}
+.report-why.busy .rw-opt{pointer-events:none}
+.report-status{transition:opacity .2s}
+.report-status:empty{opacity:0}
+@media (pointer:coarse){.report-why .rw-opt{min-height:40px}}
+@media (prefers-reduced-motion:reduce){.report-why,.report-why .rw-opt{transition:none}}
 .report-gone{display:flex;gap:6px;align-items:flex-start;margin:0 0 10px;font-size:13px;line-height:1.45;color:var(--muted)}
 /* ---- toast ---- */
 .pc-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(12px);background:var(--fill);color:var(--fill-ink);padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999}
@@ -2595,6 +2600,12 @@ html .fav,html .card .fav,html .drawer .fav{background:rgba(255,255,255,.92)!imp
 /* r10 (31 Oct 2026): the card's QC link is a camera badge beside the colour badge (owner); Buy takes the whole row */
 .thumb .tbadges{position:absolute;top:12px;left:8px;z-index:3;display:flex;gap:6px;pointer-events:none}
 .thumb .tbadges:empty{display:none}
+html:not(.qcb-ready) a.qcb,html:not(.qcb-ready) a.qc-pill{visibility:hidden}
+.thumb img.qch{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;opacity:0;pointer-events:none;transition:opacity .22s cubic-bezier(.22,1,.36,1)}
+.thumb.qc-on img.qch{opacity:1}
+.thumb::after{content:"QC photo";position:absolute;left:8px;bottom:8px;z-index:3;padding:3px 8px;border-radius:999px;background:rgba(10,10,10,.72);color:#fff;font:500 11.5px/1.3 var(--font,inherit);opacity:0;transform:translateY(4px);pointer-events:none;transition:opacity .2s,transform .2s cubic-bezier(.22,1,.36,1)}
+.thumb.qc-on::after{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.thumb img.qch,.thumb::after{transition:none}}
 .tbadges .cbadge{position:static}
 .tbadges .qcb{position:relative;top:0;left:0;width:24px;padding:0;justify-content:center;pointer-events:auto;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s var(--ease),transform .15s var(--ease)}
 .tbadges .qcb:active{transform:scale(.96)}
@@ -3394,6 +3405,18 @@ ALL.forEach(p=>{
   p.ft = (POPULAR.has(p.id)?6:0) + ((p.qc||0)>0 ? 3 : 0) + (POP_BRANDS.has(p.brand) ? 2 : 0) + Math.min(p.views,3);
 });
 const BY_ID = Object.fromEntries(ALL.map(p=>[p.id,p]));
+/* QC only where photos are stored (owner, 8 Nov 2026): the catalogue's qc flag says buyers took QC photos somewhere, but
+   only finds in the QC bank (data/qc_bank.json, filled daily by scripts/qc_bank.py, most viewed first) have photos we can
+   show. Finds without stored photos lose the QC badge, pill and tab; the daily job keeps collecting in the background. */
+function pcQcKey(p){ return p.platform+"/"+String(p.itemId||p.id).replace(/^0+/,""); }
+function pcQcReady(){ document.documentElement.classList.add("qcb-ready"); }
+fetch("/data/qc_bank.json").then(r=>r.ok?r.json():null).then(j=>{
+  if(!j||!j.items) return;
+  const B=new Set(Object.entries(j.items).filter(([k,v])=>Array.isArray(v)&&+v[1]>0).map(([k])=>k));
+  ALL.forEach(p=>{ if(p.qc>0&&!B.has(pcQcKey(p))){ p.qcAll=p.qc; p.qc=0; } });
+  document.querySelectorAll('a.qcb[href*="/product/"],a.qc-pill[href*="/product/"]').forEach(a=>{
+    const m=(a.getAttribute("href")||"").match(/\/product\/([^#?]+)/), q=m&&BY_ID[decodeURIComponent(m[1])]; if(q&&!(q.qc>0)) a.remove(); });
+}).catch(()=>{}).then(pcQcReady,pcQcReady);
 let state = { plat:"all", cat:"all", cats:[], brand:"all", color:"all", price:"all", gender:"all", pmin:null, pmax:null, q:"", sort:"pop", lang:"en", cur:"USD", saved:false, username:"", agent:"mycnbox" };
 /* country code -> currency (shared by the locale guess below and geoDetect) */
 const EURO=["AT","BE","CY","DE","EE","ES","FI","FR","GR","HR","IE","IT","LT","LU","LV","MT","NL","PT","SI","SK"];
@@ -4448,7 +4471,7 @@ function _detailBuild(p){
             <span class="tag">${ICON(CAT_ICON[p.cat]||"grid","sm")}${esc(catName(p.cat))}</span>${vReal.length>1?`<span class="tag">${vReal.length} ${t("variants").toLowerCase()}</span>`:""}<span class="tag" data-sc="${p.id}">${fmtStar(p.id)}</span>
           </div>
           <div class="buy-block"><h2 class="sec-label">${ICON("cart","sm")}${t("buy_head")}</h2><div class="agents">${agentRow(p)}</div>
-            <div class="report-row" style="margin-top:11px"><button type="button" class="report-link" id="report-link" aria-expanded="false" aria-controls="report-why">${ICON("alert","sm")}${t("report_link")}</button><span class="report-status" id="report-status" role="status"></span><div class="report-why" id="report-why" hidden><p class="rw-q" id="rw-q">${t("rep_q")}</p><div class="rw-opts" role="radiogroup" aria-labelledby="rw-q">${["dead","wrong","scam","other"].map(r=>`<label><input type="radio" name="rw" value="${r}"><span>${t("rep_"+r)}</span></label>`).join("")}</div><button type="button" class="rw-send" id="rw-send" disabled>${t("rep_send")}</button></div></div>
+            <div class="report-row" style="margin-top:11px"><button type="button" class="report-link" id="report-link" aria-expanded="false" aria-controls="report-why">${ICON("alert","sm")}${t("report_link")}</button><span class="report-status" id="report-status" role="status"></span><div class="report-why" id="report-why" inert><div class="rw-in"><p class="rw-q" id="rw-q">${t("rep_q")}</p><div class="rw-opts" role="group" aria-labelledby="rw-q">${["dead","wrong","scam","other"].map(r=>`<button type="button" class="rw-opt" data-r="${r}">${t("rep_"+r)}</button>`).join("")}</div></div></div></div>
             </div>
           ${vReal.length?`<div><h2 class="sec-label">${ICON("tag","sm")}${t("variants")}</h2>
             <div class="variants">${vReal.map(v=>`<span class="variant"><span class="sw" style="background:${swatch(v[0])}"></span>${esc(v[0])}</span>`).join("")}</div></div>`:""}
@@ -4491,10 +4514,25 @@ function pcWarm(p,build){
     if(p.qc>0) qcFetch(p); } }catch(e){}
   if(build&&!drawer.classList.contains("open")&&!(drawer.__pre===p&&drawer.__preSig===_detailSig(p))){ try{ _detailBuild(p); }catch(e){ drawer.__pre=null; } }
 }
+/* hover QC (owner, 8 Nov 2026): on a mouse hover the card photo fades to the find's first buyer QC photo. Only photos the
+   site already has (QC bank or edge cache, qcFetch without "live") are used, so hovering never spends the qualit.ly quota. */
+function pcQcHover(el,p){
+  if(!(p.qc>0)) return;
+  qcFetch(p).then(d=>{ if(!el.__hov) return;
+    const a=(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails:((d&&Array.isArray(d.qc_preview))?d.qc_preview:[]);
+    let u=a.find(x=>typeof x==="string"&&/^https?:\/\//.test(x)); if(!u) return;
+    if(SB_IMG.test(u)) u=location.origin+"/api/img?u="+encodeURIComponent(u);
+    const th=el.querySelector(".thumb"); if(!th) return;
+    let q=th.querySelector("img.qch");
+    if(!q){ q=document.createElement("img"); q.className="qch"; q.alt=""; q.decoding="async"; q.setAttribute("aria-hidden","true");
+      q.onload=()=>{ q.__ok=1; if(el.__hov) th.classList.add("qc-on"); }; q.onerror=()=>q.remove(); th.appendChild(q); q.src=u; }
+    else if(q.__ok) th.classList.add("qc-on");
+  });
+}
 function _warmHooks(el,p){
-  let ht=0;
-  el.addEventListener("pointerenter",e=>{ if(e.pointerType==="mouse"){ clearTimeout(ht); ht=setTimeout(()=>pcWarm(p,false),90); } });
-  el.addEventListener("pointerleave",()=>clearTimeout(ht));
+  let ht=0, qt=0;
+  el.addEventListener("pointerenter",e=>{ if(e.pointerType==="mouse"){ el.__hov=1; clearTimeout(ht); ht=setTimeout(()=>pcWarm(p,false),90); clearTimeout(qt); qt=setTimeout(()=>pcQcHover(el,p),220); } });
+  el.addEventListener("pointerleave",()=>{ clearTimeout(ht); clearTimeout(qt); el.__hov=0; const th=el.querySelector(".thumb.qc-on"); if(th) th.classList.remove("qc-on"); });
   el.addEventListener("pointerdown",e=>{ if(e.button>0||(e.target.closest&&e.target.closest(".fav,.buy-pill"))) return; clearTimeout(ht); pcWarm(p,true); });
 }
 function openDetail(p,fromHash){
@@ -5898,16 +5936,15 @@ function enhanceDrawer(p){
     if(!(await pcCopy(url))) return;
     sh.classList.add("ok"); toast(t("copied")); setTimeout(()=>sh.classList.remove("ok"),1400);
   });
-  const rb=$("#report-link",drawer), rs=$("#report-status",drawer), rw=$("#report-why",drawer), rsend=$("#rw-send",drawer);
+  const rb=$("#report-link",drawer), rs=$("#report-status",drawer), rw=$("#report-why",drawer);
   if(REPORTED.has(String(p.id))) markRemoved();
   else if(rb){
     if(isReported(p.id)){ if(rs)rs.textContent=t("report_thanks"); rb.disabled=true; }
-    rb.addEventListener("click",()=>{ if(!rw) return; const open=rw.hidden; rw.hidden=!open; rb.setAttribute("aria-expanded",String(open)); if(open){ const f=rw.querySelector("input"); if(f) f.focus(); } });
-    if(rw&&rsend){
-      rw.addEventListener("change",()=>{ rsend.disabled=!rw.querySelector("input:checked"); });
-      rsend.addEventListener("click",()=>{ const c=rw.querySelector("input:checked"); if(!c) return; rsend.disabled=true; rb.disabled=true;
-        reportFind(p,c.value).then(ok=>{ rw.hidden=true; rb.setAttribute("aria-expanded","false"); if(rs)rs.textContent=ok?t("report_thanks"):t("report_failed"); }); });
-    }
+    const rwSet=open=>{ if(!rw) return; rw.classList.toggle("on",open); rw.inert=!open; rb.setAttribute("aria-expanded",String(open)); };
+    rb.addEventListener("click",()=>{ if(!rw) return; const open=!rw.classList.contains("on"); rwSet(open); if(open){ const f=rw.querySelector(".rw-opt"); if(f) try{ f.focus({preventScroll:true}); }catch(_){} } });
+    if(rw) rw.addEventListener("click",e=>{ const b=e.target.closest(".rw-opt"); if(!b||rw.classList.contains("busy")) return;
+      b.classList.add("sel"); rw.classList.add("busy"); rb.disabled=true;
+      reportFind(p,b.getAttribute("data-r")).then(ok=>{ setTimeout(()=>{ rwSet(false); if(rs)rs.textContent=ok?"\u2713 "+t("report_thanks"):t("report_failed"); },260); }); });
   }
   wireDrawerSearch();
   const _tk=drawer.__tok;   /* r7: similar finds, the QC check and the browse grid wait for the first paint (and an idle moment) */
@@ -5940,7 +5977,7 @@ function enhanceDrawer(p){
       const hasListing=!!p.img&&!drawer.__listingBroken;
       const arr=(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails
                :((d&&Array.isArray(d.qc_preview)&&d.qc_preview.length)?d.qc_preview:null);
-      const hasQC=!!(arr&&arr.length), onRecord=!hasQC&&p.qc>0;   /* on record, not cached: the QC tab offers "Show QC photos" */
+      const hasQC=!!(arr&&arr.length), onRecord=false;   /* 8 Nov 2026: no QC tab without stored photos (owner); scripts/qc_bank.py collects them */
       if(!hasListing&&!hasQC&&!onRecord){ if(media)media.style.display="none"; if(grid)grid.classList.add("no-media"); return; }
       if(hasQC||onRecord){
         if(qcTab){ qcTab.style.display=""; qcTab.textContent=t("qc")+(hasQC?" "+arr.length:(p.qc>=2?" "+p.qc:"")); }
