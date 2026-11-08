@@ -104,6 +104,10 @@
     "@media (prefers-reduced-motion:reduce){.pcc-dots i{animation:none;opacity:.6}}" +
     // cards
     ".pcc-cards{flex-shrink:0;display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:2px 16px 6px;scroll-padding:0 16px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}.pcc-cards::-webkit-scrollbar{display:none}" +
+    ".pcc-cwrap{position:relative;flex-shrink:0}" +
+    ".pcc-arr{position:absolute;top:calc(50% - 16px);z-index:2;display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid var(--pc-line);border-radius:50%;background:var(--pc-bg);color:var(--pc-ink);box-shadow:0 2px 10px rgba(0,0,0,.22);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .15s,transform .1s}" +
+    ".pcc-arr svg{width:16px;height:16px}.pcc-arr.l{left:-6px}.pcc-arr.r{right:-6px}.pcc-arr:active{transform:scale(.94)}" +
+    "@media (hover:hover){.pcc-cwrap:hover .pcc-arr.on{opacity:1;pointer-events:auto}}" +
     ".pcc-card{position:relative;flex:0 0 144px;scroll-snap-align:start;display:flex;flex-direction:column;border:1px solid var(--pc-line);border-radius:12px;overflow:hidden;background:var(--pc-bg);color:var(--pc-ink);transition:border-color .15s}" +
     "@media (hover:hover){.pcc-card:hover{border-color:var(--pc-mut)}}" +
     ".pcc-ph{display:block;width:100%;aspect-ratio:1;background:var(--pc-s2);overflow:hidden}.pcc-ph img{display:block;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .25s ease-out}.pcc-ph img.in{opacity:1}" +
@@ -320,11 +324,34 @@
     if (img) { img.addEventListener("load", imgIn); img.addEventListener("error", function () { img.remove(); }); if (img.complete && img.naturalWidth) img.classList.add("in"); }
     return c;
   }
+  // The card row scrolls sideways (owner, 8 Nov 2026: "make it possible to scroll here"): a mouse wheel or trackpad moves it
+  // while it can still move (then the chat scrolls as usual), and on mouse devices round arrows show at the row's ends.
+  function scroller(wrap, row) {
+    var ARR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+    var l = el("button", "pcc-arr l", ARR), r = el("button", "pcc-arr r", ARR);
+    r.querySelector("svg").style.transform = "scaleX(-1)";
+    l.type = r.type = "button"; l.setAttribute("aria-label", "Previous finds"); r.setAttribute("aria-label", "Next finds");
+    l.tabIndex = r.tabIndex = -1; wrap.appendChild(l); wrap.appendChild(r);
+    var upd = function () { var max = row.scrollWidth - row.clientWidth - 2; l.classList.toggle("on", row.scrollLeft > 2); r.classList.toggle("on", max > 0 && row.scrollLeft < max); };
+    var go = function (d) { var rm = W.matchMedia && W.matchMedia("(prefers-reduced-motion: reduce)").matches; row.scrollBy({ left: d * Math.max(150, row.clientWidth * 0.8), behavior: rm ? "auto" : "smooth" }); };
+    l.addEventListener("click", function () { go(-1); }); r.addEventListener("click", function () { go(1); });
+    row.addEventListener("scroll", upd, { passive: true });
+    row.addEventListener("wheel", function (e) {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || row.scrollWidth <= row.clientWidth) return;
+      var before = row.scrollLeft; row.scrollLeft += e.deltaY;
+      if (row.scrollLeft !== before) e.preventDefault();
+    }, { passive: false });
+    wrap._upd = upd; setTimeout(upd, 0); setTimeout(upd, 400);
+  }
   // Cards keyed by find id: an update moves the cards it keeps (no image reload), adds new ones and drops the rest.
   function setCards(v, list, animate) {
     list = (list || []).filter(function (f) { return f && f.id && f.title; });
-    if (!list.length) { if (v.cards) { v.cards.remove(); v.cards = null; } return; }
-    if (!v.cards) { v.cards = el("div", "pcc-cards"); v.cards.setAttribute("role", "list"); v.cards.setAttribute("aria-label", "Finds"); v.turn.appendChild(v.cards); }
+    if (!list.length) { if (v.cards) { (v.cwrap || v.cards).remove(); v.cards = null; v.cwrap = null; } return; }
+    if (!v.cards) {
+      v.cards = el("div", "pcc-cards"); v.cards.setAttribute("role", "list"); v.cards.setAttribute("aria-label", "Finds");
+      v.cwrap = el("div", "pcc-cwrap"); v.cwrap.appendChild(v.cards); v.turn.appendChild(v.cwrap); scroller(v.cwrap, v.cards);
+    }
+    if (v.cwrap && v.cwrap._upd) setTimeout(v.cwrap._upd, 60);
     var have = {}; [].forEach.call(v.cards.children, function (c) { have[c._id] = c; });
     var keep = {}, moved = false;
     list.forEach(function (f, i) {
