@@ -2535,6 +2535,12 @@ html .card .thumb img,html .card .thumb .pimg,html .gmain img,html .gmain .pimg,
 html .thumbs .qcthumb-btn{outline:0!important}
 html .thumbs .qcthumb-btn.on{outline:2px solid var(--ink)!important;outline-offset:2px!important}
 html .fav,html .card .fav,html .drawer .fav{background:rgba(255,255,255,.92)!important;color:#0A0A0A!important;box-shadow:0 0 0 1px rgba(10,10,10,.08)!important}
+/* owner 8 Nov: card stars much more subtle (faint chip, brighter on hover, solid once saved) */
+html .card .fav{width:28px!important;height:28px!important;background:color-mix(in srgb,var(--surface) 45%,transparent)!important;color:var(--ink)!important;border:0!important;box-shadow:none!important;opacity:.4;transition:opacity .15s ease,background-color .15s ease}
+html .card .fav svg{width:14px;height:14px;stroke-width:1.75}
+@media (hover:hover){html .card:hover .fav{opacity:.85}html .card .fav:hover{opacity:1;background:color-mix(in srgb,var(--surface) 85%,transparent)!important}}
+@media (hover:none){html .card .fav{opacity:.6}}
+html .card .fav[aria-pressed="true"]{opacity:1}
 :root[data-theme="dark"] :is(.card .thumb,.gmain,.sim-thumb,.ftile,.thumbs .qcthumb-btn) img{mix-blend-mode:normal!important;border-radius:12px!important}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(.card .thumb,.gmain,.sim-thumb,.ftile,.thumbs .qcthumb-btn) img{mix-blend-mode:normal!important;border-radius:12px!important}}
 :root[data-theme="dark"] .thumbs .qcthumb-btn img{border-radius:8px!important}
