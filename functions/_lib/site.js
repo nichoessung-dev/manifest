@@ -586,7 +586,7 @@ ${body}
 ${footer()}
 ${PAGE_JS}${SEARCH_BOOT_JS}${body.indexOf('class="cbuy"') >= 0 ? AGENT_SWAP_JS : ""}${CUR_JS}
 <script src="/track.js?v=4" defer></script>
-<script src="/chat.js?v=4" defer></script>
+<script src="/chat.js?v=5" defer></script>
 </body>
 </html>`;
   return new Response(html, { status, headers: { "content-type": "text/html; charset=utf-8",
