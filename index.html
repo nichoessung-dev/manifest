@@ -4611,7 +4611,7 @@ function pcBetaQc(p){
     `<p class="pcb-fine">AI notes from ${esc(d.n)} buyer photo${d.n===1?"":"s"}${d.listing?" and the listing photo":""}. Not a guarantee: ask your agent for more photos if anything matters to you.</p>`; };
   el.addEventListener("click",async e=>{ const b=e.target.closest(".pcb-run"); if(!b) return;
     b.disabled=true; b.textContent="Checking the photos\u2026";
-    try{ const r=await fetch(`/api/qc-check?storefront=${encodeURIComponent(p.platform)}&id=${encodeURIComponent(p.itemId||p.id)}&pid=${encodeURIComponent(p.id)}`,{headers:{"x-pc-beta":"1"}});
+    try{ const r=await fetch(`/api/qc-check?storefront=${encodeURIComponent(p.platform)}&id=${encodeURIComponent(p.itemId||p.id)}&pid=${encodeURIComponent(p.id)}&beta=1`);
       const d=await r.json().catch(()=>({})); if(drawer.__tok!==tok) return;
       if(!r.ok){ b.disabled=false; b.textContent="Try again"; toast(d.error||"The check is busy. Try again."); return; }
       draw(d);
