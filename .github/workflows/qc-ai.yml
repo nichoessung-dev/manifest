@@ -2,9 +2,8 @@ name: QC AI notes
 # AI notes on buyer QC photos for every find with stored QC photos (scripts/qc_ai.py), kept for good in data/qc_ai.json and
 # served by functions/api/qc-check.js. Runs after the QC photo bank (03:17 UTC); a find is done again only when its stored
 # photos change. Cost: about 3 cents per find, once. Shown on the site only with ?beta=1 until the owner launches it.
+# PAUSED (owner, 8 Nov 2026: "dont publish the AI qc notes to the real site yet"): no schedule, manual runs only.
 on:
-  schedule:
-    - cron: '47 4 * * *'
   workflow_dispatch:
     inputs:
       max:
@@ -38,7 +37,7 @@ jobs:
           if [ -n "$PID" ]; then ARGS="$ARGS --pid $PID"; fi
           python -u scripts/qc_ai.py $ARGS
       - name: Commit if changed
-        if: always()
+        if: success()
         run: |
           [ -f data/qc_ai.json ] || exit 0
           git add data/qc_ai.json
