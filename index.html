@@ -2694,6 +2694,11 @@ html #drawer .buy-block{margin-top:20px}
 html #drawer .buy-block>.sec-label{font-size:13px!important;font-weight:500!important;color:var(--muted)!important;letter-spacing:0!important;margin:0 0 10px!important}
 html #drawer .buy-block>.sec-label .ic{display:none}
 html #drawer .report-row{margin-top:14px!important}
+html #drawer .pc-askrow{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;margin-top:16px;padding:4px 0 0;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:14px;font-weight:500;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html #drawer .pc-askic{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--surface-2);color:var(--ink-2);transition:background-color .15s}
+html #drawer .pc-askt{flex:1}
+html #drawer .pc-askrow>.ic{width:16px;height:16px;color:var(--muted);transition:transform .15s cubic-bezier(.22,1,.36,1)}
+@media (hover:hover){html #drawer .pc-askrow:hover .pc-askic{background:color-mix(in srgb,var(--ink) 10%,var(--surface-2))}html #drawer .pc-askrow:hover>.ic{transform:translateX(2px)}}
 html #drawer .pc-beta{margin-top:18px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 html #drawer .pcb-h{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px}
 html #drawer .pcb-tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
@@ -2729,6 +2734,8 @@ html .fselbtn .ic,html .price-btn .ic{width:14px!important;height:14px!important
 html .fselbtn[aria-expanded="true"],html .price-btn[aria-expanded="true"],html .saved-chip[aria-pressed="true"]{background:var(--fill)!important;color:var(--fill-ink)!important}
 html .pc-div{display:none!important}
 .v9-mock-size .v9-chip{transition:background-color .2s ease-out,color .2s ease-out,border-color .2s ease-out}
+/* price filter (owner, 8 Nov 2026: "too much is happening here"): quick ranges, min/max and the button; no chart, no slider */
+html .pp-hist,html .pp-slider{display:none!important}
 html .sort-fsel .fselbtn{background:transparent!important;padding:0 6px 0 10px!important;color:var(--muted)!important}
 @media (hover:hover){html .sort-fsel .fselbtn:hover{background:var(--surface-2)!important;color:var(--ink)!important}}
 html .sort-fsel .fselbtn[aria-expanded="true"]{background:var(--surface-2)!important;color:var(--ink)!important}
@@ -3542,7 +3549,7 @@ const price = (cny)=>{
   catch(e){ return `${CUR[c].sym}${v.toLocaleString("en-US")}`; }
 };
 const pprice = (cny)=> isPH(cny)? t("price_ask") : price(cny);   /* product price: placeholders read "Ask seller" */
-const subprice = (cny)=> (state.cur==="CNY"||isPH(cny))? "" : `${state.cur==="JPY"?"CN¥":"¥"}${cny.toLocaleString("en-US")}`;
+const subprice = (cny)=> "";   /* 8 Nov 2026 (owner: "no need to add the yen"): one price only, in the visitor's currency */
 const esc = (s)=> String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 /* ================= favorites ================= */
@@ -4596,10 +4603,11 @@ function pcWarm(p,build){
 /* ---- BETA (owner tests before launch, 8 Nov 2026): "Ask about this item" and "AI QC check" on the product view ---- */
 function pcBetaBox(id,html){ const bb=drawer.querySelector(".buy-block"); if(!bb) return null; let el=drawer.querySelector("#"+id); if(!el){ el=document.createElement("section"); el.id=id; el.className="pc-beta"; bb.insertAdjacentElement("afterend",el); } el.innerHTML=html; return el; }
 function pcBetaAsk(p){
-  const qs=["What size should I get?","Is the quality good for the price?","Show me similar finds for less"];
-  const el=pcBetaBox("pc-ask",`<div class="pcb-h"><span>Ask about this item</span><span class="pcb-tag">Beta</span></div><div class="pcb-chips">${qs.map(q=>`<button type="button" class="pcb-chip">${esc(q)}</button>`).join("")}</div>`);
-  if(!el) return;
-  el.addEventListener("click",e=>{ const b=e.target.closest(".pcb-chip"); if(!b) return; if(!(window.pcChatAsk&&window.pcChatAsk(b.textContent))) toast("The assistant is not available right now."); });
+  /* owner, 8 Nov 2026: "just have a subtle 'ask AI about this item'": one quiet row that opens the chat on this find */
+  const SPARK='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9.4l-4.7 1.8L12 16l-1.8-4.8L5.5 9.4l4.7-1.8z"/><path d="M19 15l.8 2 .2.2 2 .8-2 .8-.2.2-.8 2-.8-2-.2-.2-2-.8 2-.8.2-.2z"/></svg>';
+  const bb=drawer.querySelector(".buy-block"); if(!bb||drawer.querySelector("#pc-ask")) return;
+  bb.insertAdjacentHTML("afterend",`<button type="button" id="pc-ask" class="pc-askrow"><span class="pc-askic">${SPARK}</span><span class="pc-askt">Ask AI about this item</span>${ICON("chevron-right","sm")}</button>`);
+  drawer.querySelector("#pc-ask").addEventListener("click",()=>{ if(!(window.pcChatAsk&&window.pcChatAsk(""))) toast("The assistant is not available right now."); });
 }
 function pcBetaQc(p){
   const tok=drawer.__tok;
@@ -6133,7 +6141,7 @@ function enhanceDrawer(p){
       const arr=(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails
                :((d&&Array.isArray(d.qc_preview)&&d.qc_preview.length)?d.qc_preview:null);
       const hasQC=!!(arr&&arr.length), onRecord=false;
-      if(BETA&&hasQC) pcBetaQc(p);   /* 8 Nov 2026: no QC tab without stored photos (owner); scripts/qc_bank.py collects them */
+      /* AI QC notes: paused by the owner (8 Nov 2026), pcBetaQc stays for later */   /* 8 Nov 2026: no QC tab without stored photos (owner); scripts/qc_bank.py collects them */
       if(!hasListing&&!hasQC&&!onRecord){ if(media)media.style.display="none"; if(grid)grid.classList.add("no-media"); return; }
       if(hasQC||onRecord){
         if(qcTab){ qcTab.style.display=""; qcTab.textContent=t("qc")+(hasQC?" "+arr.length:(p.qc>=2?" "+p.qc:"")); }
