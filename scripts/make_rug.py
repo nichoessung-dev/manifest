@@ -137,7 +137,7 @@ def to_openai(why):
     global ENGINE, MODELS
     if not os.environ.get("OPENAI_API_KEY"): return False
     if ENGINE == "gemini":                                   # several checks run at once: only the first one switches
-        print("  GEMINI OUT OF CREDIT (%s): using OpenAI for this run" % why[:80])
+        print("  GEMINI OUT OF CREDIT (%s): using OpenAI for this run" % re.sub(r"\s+", " ", why)[:300])
         ENGINE = "openai"; MODELS = [m for m in os.environ.get("RUG_FALLBACK_MODELS", "gpt-image-2,gpt-image-1.5,gpt-image-1").split(",") if m]
     return True
 
@@ -444,6 +444,7 @@ def site_row(fid):
     return None
 
 
+FLATLAY_ON = os.environ.get("RUG_FLATLAY", "0") == "1"   # the no-AI flat-lay: off (owner, 8 Nov 2026: it looks bad); no credit = no post that run
 AI_OUT = [False]      # set when every image service is out of credit: the run then lays product cut-outs on the rug itself
 CUT = {}              # pop:<id> -> the transparent product cut-out, for that fallback
 
@@ -787,6 +788,7 @@ def main():
                     print(" ", c); fails += 1
                     if "insufficient_quota" in c or "billing" in c or "credit" in c.lower():
                         if AI_OUT[0]: continue
+                        if not FLATLAY_ON: sys.exit("NO IMAGE CREDIT LEFT (Gemini and OpenAI): no post this run, the next run tries again (%s)" % c[:200])
                         AI_OUT[0] = True; print("  NO IMAGE CREDIT LEFT (Gemini and OpenAI): laying product photos on the rug without AI this run"); return
                     if fails >= 12: sys.exit("the item check keeps failing: stopping (the next run tries again)")
                     continue
