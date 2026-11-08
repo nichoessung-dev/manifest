@@ -94,7 +94,7 @@ export async function onRequestGet({ request, env }) {
 
   const imgs = (await Promise.all([p.img ? photo(env, url.origin, p.img) : null, ...thumbs.map(t => photo(env, url.origin, t))]));
   const listing = imgs[0], qcs = imgs.slice(1).filter(Boolean);
-  if (!qcs.length) return json(502, { error: "Could not load the QC photos." });
+  if (!qcs.length) return json(503, { error: "Could not load the QC photos." });
   const content = [];
   if (listing) content.push({ type: "image", source: { type: "base64", ...listing } });
   qcs.forEach(x => content.push({ type: "image", source: { type: "base64", ...x } }));
@@ -107,12 +107,12 @@ export async function onRequestGet({ request, env }) {
       headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({ model, max_tokens: 700, messages: [{ role: "user", content }] }) });
     clearTimeout(timer);
-    if (!r.ok) return json(502, { error: "The check is busy. Try again in a moment.", status: r.status });
+    if (!r.ok) { let why = ""; try { why = ((await r.json()).error || {}).message || ""; } catch (e) {} return json(503, { error: "The check is busy. Try again in a moment.", status: r.status, why: String(why).slice(0, 160) }); }
     const out = await r.json();
     const text = ((out.content || []).find(c => c.type === "text") || {}).text || "";
     const m = /\{[\s\S]*\}/.exec(text); v = m ? JSON.parse(m[0]) : null;
-  } catch (e) { return json(502, { error: "The check is busy. Try again in a moment." }); }
-  if (!v || !Array.isArray(v.checks)) return json(502, { error: "The check gave no answer. Try again." });
+  } catch (e) { return json(503, { error: "The check is busy. Try again in a moment.", why: String(e && e.message || e).slice(0, 160) }); }
+  if (!v || !Array.isArray(v.checks)) return json(503, { error: "The check gave no answer. Try again." });
 
   const AREAS = new Set(["logo", "stitching", "colour", "shape", "materials", "hardware", "tag", "other"]);
   const checks = v.checks.slice(0, 6).map(c => ({
