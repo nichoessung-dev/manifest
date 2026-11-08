@@ -17,7 +17,7 @@ var PCS_ALIAS=
 "addidas,adiddas>adidas;lacost>lacoste;hokka>hoka;goyarde>goyard;essentails>essentials;carhart>carhartt;salomons>salomon;"+
 "af1>air force 1;aj1,j1>jordan 1;aj4,j4>jordan 4;aj3,j3>jordan 3;aj11,j11>jordan 11;tn,tns>air max plus;"+
 "am95>air max 95;am90>air max 90;tech>tech fleece;nuptse,1996>nuptse;ts,triple s>triple s;350>yeezy 350;"+
-"foam>foam runner;2002>2002r;gat>replica;"+
+"foam>foam runner;2002>2002r;gat,gats,german army trainer,german army trainers>replica;audemars,audemars piguet>royal oak;"+
 "dunjakke,boblejakke,dunjacka,dynejakke,daunenjacke,pufferjacke,doudoune,plumifero,anorak>puffer;"+
 "skjorte,skjorta,hemd,chemise,camisa>shirt;t-skjorte,tskjorte>t shirt;lue,mössa,hue,mütze,bonnet,gorro>beanie;"+
 "caps,keps,kappe>cap;sekk,ryggsekk,ryggsäck,rygsæk,rucksack,sac a dos,mochila>backpack;"+
@@ -77,7 +77,7 @@ function create(opts){
 opts=opts||{};
 var E={stats:{buildMs:0,lastMs:0,maxMs:0,n:0},ready:false,items:null};
 var N=0,IT=[],keys,keysC,titleF,brandOf,catOf,pop,popRaw,base,P,words,byLen,ALIAS,maxPh=1;
-var mb,sb,bc,brands,brandByFold,cats,catCount,catWords,tmp=[],tot,hit,bigC,bigStart,memo=new Map(),predMemo=null;
+var mb,sb,bc,bcw,brands,brandByFold,cats,catCount,catWords,tmp=[],tot,hit,bigC,bigStart,memo=new Map(),predMemo=null;
 function aliasMap(){
 var m=new Map(),add=function(k,s,w){
 var a=m.get(k);if(!a)m.set(k,a=[]);
@@ -135,6 +135,10 @@ byLen=new Map();
 var voc=words.concat(Array.from(ALIAS.keys()).filter(function(k){return k.indexOf(" ")<0&&!P.has(k);}));
 voc.forEach(function(w){if(/\d/.test(w)||w.length<4)return;var l=w.length,b=byLen.get(l);if(!b)byLen.set(l,b=[]);b.push(w);});
 brandByFold=new Map();brands.forEach(function(b,i){if(b.f)brandByFold.set(b.f,i);});
+/* 8 Nov 2026: brand and category words (4+ letters) that a 1-letter typo may be fixed to when a search finds fewer than 3 */
+bcw=new Map();var bcs=new Set();
+brands.forEach(function(b){if(b.f)b.f.split(" ").forEach(function(x){bcs.add(x);});});cats.forEach(function(c){fold(c).split(" ").forEach(function(x){bcs.add(x);});});TYPES.split(" ").forEach(function(x){bcs.add(x);});
+bcs.forEach(function(w){if(w.length<4||/\d/.test(w)||!P.has(w))return;var b=bcw.get(w.length);if(!b)bcw.set(w.length,b=[]);b.push(w);});
 catWords=new Map();
 var addCW=function(w,ci,q){if(!w||w.length<2)return;var a=catWords.get(w);if(!a)catWords.set(w,a=[]);for(var i=0;i<a.length;i++)if(a[i].c===ci){if(q>a[i].q)a[i].q=q;return;}a.push({c:ci,q:q});};
 cats.forEach(function(c,ci){
@@ -199,7 +203,9 @@ var n=evalWord(tok,last,out,1);
 if(tok.length>3&&/s$/.test(tok)&&!/ss$/.test(tok))n+=evalWord(tok.slice(0,-1),last,out,0.95);
 if(/(ch|sh|ss|x)es$/.test(tok))n+=evalWord(tok.slice(0,-2),last,out,0.95);
 var al=ALIAS.get(tok);
+if(!al&&tok.length>3&&/s$/.test(tok)&&!/ss$/.test(tok))al=ALIAS.get(tok.slice(0,-1));/* plural of an alias ("gats" -> gat) */
 if(al)for(var a=0;a<al.length;a++)n+=evalPhrase(al[a].s,out,al[a].w,last)?1:0;
+if(n&&ctx.loose&&!al&&!depth&&tok.length>=4&&!/\d/.test(tok)&&!CJK.test(tok))return n+near(tok,out,ctx);
 if(n||al||depth||/\d/.test(tok)||tok.length<4||CJK.test(tok))return n;
 var k=tok.length>=8?2:1,best=null,bd=k+1,bc=-1;
 for(var L=tok.length-k;L<=tok.length+k;L++){
@@ -216,6 +222,17 @@ var t2=arr(9);
 evalToken(best,false,t2,ctx,1);
 var sc=bd===1?0.6:0.4,m=0;
 for(var i=0;i<N;i++)if(t2[i]>0){var v=t2[i]*sc;if(v>out[i])out[i]=v;m++;}
+return m;
+}
+/* loose pass: the token matched some words but the search found fewer than 3 finds; a brand or category word 1 letter
+   away (the one with the most finds) also counts, at the typo weight ("prado" -> prada) */
+function near(tok,out,ctx){
+var best=null,bc2=0;
+for(var L=tok.length-1;L<=tok.length+1;L++){var b=bcw.get(L);if(!b)continue;
+for(var j=0;j<b.length;j++){var w=b[j];if(w===tok||w.lastIndexOf(tok,0)===0)continue;if(dl(tok,w,1)>1)continue;var c=P.get(w).length;if(c>bc2){bc2=c;best=w;}}}
+if(!best)return 0;
+ctx.fix[tok]=best;var t2=arr(9);evalToken(best,false,t2,ctx,1);var m=0;
+for(var i=0;i<N;i++)if(t2[i]>0){var v=t2[i]*0.6;if(v>out[i])out[i]=v;m++;}
 return m;
 }
 function parse(f){
@@ -237,8 +254,8 @@ if(!done){g.push({toks:[toks[i]],key:toks[i],exp:ALIAS.get(toks[i])||null,last:i
 }
 return g;
 }
-function run(f){
-var ctx={fix:{}},G=parse(f),g,i,j;
+function run(f,loose){
+var ctx={fix:{},loose:!!loose},G=parse(f),g,i,j;
 tot.fill(0);hit.fill(0);
 for(j=0;j<G.length;j++){
 g=G[j];var out=arr(0);
@@ -278,6 +295,7 @@ score[j]=100*(t+bo)+base[i];
 }
 return{G:G,m:m,n:n,score:score,fix:ctx.fix,fixed:fixed,cover:cover};
 }
+function run2(f){var r=run(f);if(r.n>=3)return r;var r2=run(f,true);return r2.n>r.n?r2:run(f);}/* fewer than 3: try the loose pass */
 function order(r,lim){
 var m=r.m,sc=r.score,n=r.n,ix=[],j;
 var cmp=function(a,b){return(sc[b]-sc[a])||(popRaw[m[b]]-popRaw[m[a]])||(m[a]-m[b]);};
@@ -334,7 +352,7 @@ var t0=now(),f=fold(raw);
 if(!f)return{f:"",total:0,top:[],brands:[],cats:[],dym:"",closest:[],terms:[]};
 var mk=f+"|"+(lim||6),c=memo.get(mk);if(c)return c;
 if(/^\d{6,}$/.test(f)){c={f:f,id:f,total:0,top:[],brands:[],cats:[],dym:"",closest:[],terms:[]};memo.set(mk,c);return c;}
-var r=run(f),top=order(r,lim||6),closest=[];
+var r=run2(f),top=order(r,lim||6),closest=[];
 if(!r.n&&r.G.length>=2){
 var need=Math.ceil(r.G.length/2),cand=[],sc2=[];
 for(var i=0;i<N;i++)if(hit[i]>=need){cand.push(i);sc2.push(100*tot[i]/r.G.length+base[i]);}
@@ -352,7 +370,7 @@ E.predicate=function(raw){
 if(B)E.finish();
 var f=fold(raw);if(!f)return null;
 if(predMemo&&predMemo.f===f)return predMemo.fn;
-var t0=now(),r=run(f),set=new Set(),sc=new Map();
+var t0=now(),r=run2(f),set=new Set(),sc=new Map();
 for(var j=0;j<r.n;j++){var p=IT[r.m[j]];set.add(p);sc.set(p,r.score[j]);}
 var fn=function(p){return set.has(p);};fn.score=sc;fn.total=set.size;
 predMemo={f:f,fn:fn};
@@ -388,7 +406,7 @@ var d=document,w=window,A=w.PCS_ENGINE;
 if(!A)return;
 function $(id){return d.getElementById(id);}
 /* PCS-SA-DATA-BEGIN (generated by V/r6/tools/gen_pcs_sa.py from index.html Q_SYN, T cat_* and site.js ICONS) */
-var SA_SYN={"fog":["fear of god","essentials"],"ggdb":["golden goose"],"gat":["replica"],"tn":["air max plus"],"tns":["air max plus"],"j1":["jordan 1"],"j4":["jordan 4"],"spider":["sp5der"],"bodywarmer":["gilet","vest"],"jewelry":["necklace","bracelet","ring","earring","pendant"],"jewellery":["necklace","bracelet","ring","earring","pendant"],"lv":["louis vuitton"],"rl":["ralph lauren"],"tnf":["north face"],"cdg":["comme des garcons"],"cg":["canada goose"],"af1":["air force 1","air force"],"aj1":["jordan 1"],"aj4":["jordan 4"],"aj11":["jordan 11"],"yzy":["yeezy"],"nb":["new balance"],"ysl":["saint laurent","ysl"],"ald":["aime leon dore"],"hettegenser":["hoodie"],"hettejakke":["hoodie","zip"],"genser":["sweater","crewneck","knit","hoodie"],"jakke":["jacket","outerwear"],"jakker":["jacket","outerwear"],"sko":["shoe","sneaker","trainer"],"joggesko":["sneaker","trainer"],"belte":["belt"],"bukse":["pants","trousers","jeans"],"bukser":["pants","trousers","jeans"],"shortsen":["shorts"],"caps":["cap"],"lue":["beanie","hat","headwear"],"veske":["bag"],"sekk":["backpack"],"ryggsekk":["backpack"],"lommebok":["wallet"],"klokke":["watch"],"skjorte":["shirt"],"tskjorte":["t shirt","tee"],"troja":["sweater","sweatshirt","hoodie"],"trøja":["sweater","sweatshirt","hoodie"],"jacka":["jacket","outerwear"],"byxor":["pants","trousers","jeans"],"skor":["shoe","sneaker"],"balte":["belt"],"väska":["bag"],"vaska":["bag"],"mossa":["beanie","hat"],"trøje":["sweater","sweatshirt","hoodie"],"troje":["sweater","sweatshirt","hoodie"],"taske":["bag"],"baelte":["belt"],"kapuzenpullover":["hoodie"],"pullover":["sweater","hoodie"],"jacke":["jacket","outerwear"],"hose":["pants","trousers"],"schuhe":["shoe","sneaker"],"gurtel":["belt"],"tasche":["bag"],"mutze":["beanie","hat"],"sudadera":["hoodie","sweatshirt"],"chaqueta":["jacket","outerwear"],"pantalon":["pants","trousers"],"pantalones":["pants","trousers"],"zapatillas":["sneaker","trainer","shoe"],"zapatos":["shoe"],"cinturon":["belt"],"bolso":["bag"],"gorra":["cap"],"camiseta":["t shirt","tee"],"sweat":["sweatshirt","hoodie"],"veste":["jacket","outerwear"],"baskets":["sneaker","trainer"],"chaussures":["shoe","sneaker"],"ceinture":["belt"],"sac":["bag"],"casquette":["cap"],"felpa":["hoodie","sweatshirt"],"giacca":["jacket","outerwear"],"pantaloni":["pants","trousers"],"scarpe":["shoe","sneaker"],"cintura":["belt"],"borsa":["bag"],"cappello":["cap","hat"],"trui":["sweater","hoodie"],"jas":["jacket","outerwear"],"broek":["pants","trousers"],"schoenen":["shoe","sneaker"],"riem":["belt"],"tas":["bag"],"pet":["cap"],"卫衣":["hoodie","sweatshirt"],"外套":["jacket","outerwear"],"夹克":["jacket"],"裤子":["pants","trousers"],"工装裤":["cargo"],"球鞋":["sneaker"],"鞋":["shoe","sneaker"],"鞋子":["shoe","sneaker"],"腰带":["belt"],"皮带":["belt"],"包":["bag"],"帽子":["cap","hat","beanie"],"短裤":["shorts"],"t恤":["t shirt","tee"]};
+var SA_SYN={"fog":["fear of god","essentials"],"ggdb":["golden goose"],"gat":["replica"],"tn":["air max plus"],"tns":["air max plus"],"j1":["jordan 1"],"j4":["jordan 4"],"spider":["sp5der"],"bodywarmer":["gilet","vest"],"jewelry":["necklace","bracelet","ring","earring","pendant"],"jewellery":["necklace","bracelet","ring","earring","pendant"],"lv":["louis vuitton"],"rl":["ralph lauren"],"tnf":["north face"],"cdg":["comme des garcons"],"cg":["canada goose"],"af1":["air force 1","air force"],"aj1":["jordan 1"],"aj4":["jordan 4"],"aj11":["jordan 11"],"yzy":["yeezy"],"nb":["new balance"],"ysl":["saint laurent","ysl"],"ald":["aime leon dore"],"hettegenser":["hoodie"],"hettejakke":["hoodie","zip"],"genser":["sweater","crewneck","knit","hoodie"],"jakke":["jacket","outerwear"],"jakker":["jacket","outerwear"],"sko":["shoe","sneaker","trainer"],"joggesko":["sneaker","trainer"],"belte":["belt"],"bukse":["pants","trousers","jeans"],"bukser":["pants","trousers","jeans"],"shortsen":["shorts"],"caps":["cap"],"lue":["beanie","hat","headwear"],"veske":["bag"],"sekk":["backpack"],"ryggsekk":["backpack"],"lommebok":["wallet"],"klokke":["watch"],"skjorte":["shirt"],"tskjorte":["t shirt","tee"],"troja":["sweater","sweatshirt","hoodie"],"trøja":["sweater","sweatshirt","hoodie"],"jacka":["jacket","outerwear"],"byxor":["pants","trousers","jeans"],"skor":["shoe","sneaker"],"balte":["belt"],"väska":["bag"],"vaska":["bag"],"mossa":["beanie","hat"],"trøje":["sweater","sweatshirt","hoodie"],"troje":["sweater","sweatshirt","hoodie"],"taske":["bag"],"baelte":["belt"],"gats":["replica","hat"],"apple":["airpods","iphone"],"cologne":["perfume","parfum"],"jorts":["denim shorts","jorts"],"sokker":["socks"],"strømper":["socks"],"strumpor":["socks"],"sockor":["socks"],"undertøy":["boxer","briefs","underwear"],"underkläder":["boxer","briefs","underwear"],"kalsonger":["boxer","briefs"],"badebukse":["swim shorts"],"badeshorts":["swim shorts"],"badbyxor":["swim shorts"],"badshorts":["swim shorts"],"smykker":["necklace","bracelet","ring","earring","pendant"],"smycken":["necklace","bracelet","ring","earring","pendant"],"øredobber":["earring"],"øreringer":["earring"],"örhängen":["earring"],"parfyme":["perfume","parfum"],"parfym":["perfume","parfum"],"tøfler":["slippers","slides"],"tofflor":["slippers","slides"],"kjole":["dress"],"klänning":["dress"],"skjørt":["skirt"],"kjol":["skirt"],"hansker":["gloves"],"handskar":["gloves"],"votter":["gloves"],"vantar":["gloves"],"regnjakke":["rain jacket","shell","windbreaker"],"regnjacka":["rain jacket","shell","windbreaker"],"skalljakke":["shell","windbreaker"],"skaljacka":["shell","windbreaker"],"vindjakke":["windbreaker"],"vindjacka":["windbreaker"],"kortholder":["cardholder","card holder"],"korthållare":["cardholder","card holder"],"nøkkelring":["keychain"],"nyckelring":["keychain"],"dressjakke":["blazer"],"kavaj":["blazer"],"treningsklær":["tracksuit","sweatpants"],"träningskläder":["tracksuit","sweatpants"],"singlet":["tank top"],"linne":["tank top"],"kapuzenpullover":["hoodie"],"pullover":["sweater","hoodie"],"jacke":["jacket","outerwear"],"hose":["pants","trousers"],"schuhe":["shoe","sneaker"],"gurtel":["belt"],"tasche":["bag"],"mutze":["beanie","hat"],"sudadera":["hoodie","sweatshirt"],"chaqueta":["jacket","outerwear"],"pantalon":["pants","trousers"],"pantalones":["pants","trousers"],"zapatillas":["sneaker","trainer","shoe"],"zapatos":["shoe"],"cinturon":["belt"],"bolso":["bag"],"gorra":["cap"],"camiseta":["t shirt","tee"],"sweat":["sweatshirt","hoodie"],"veste":["jacket","outerwear"],"baskets":["sneaker","trainer"],"chaussures":["shoe","sneaker"],"ceinture":["belt"],"sac":["bag"],"casquette":["cap"],"felpa":["hoodie","sweatshirt"],"giacca":["jacket","outerwear"],"pantaloni":["pants","trousers"],"scarpe":["shoe","sneaker"],"cintura":["belt"],"borsa":["bag"],"cappello":["cap","hat"],"trui":["sweater","hoodie"],"jas":["jacket","outerwear"],"broek":["pants","trousers"],"schoenen":["shoe","sneaker"],"riem":["belt"],"tas":["bag"],"pet":["cap"],"卫衣":["hoodie","sweatshirt"],"外套":["jacket","outerwear"],"夹克":["jacket"],"裤子":["pants","trousers"],"工装裤":["cargo"],"球鞋":["sneaker"],"鞋":["shoe","sneaker"],"鞋子":["shoe","sneaker"],"腰带":["belt"],"皮带":["belt"],"包":["bag"],"帽子":["cap","hat","beanie"],"短裤":["shorts"],"t恤":["t shirt","tee"]};
 var SA_CATN={"Shoes":["Shoes","Sko","鞋子","Calzado","Schuhe","Skor","Chaussures","Scarpe","Schoenen"],"Tops":["Tops","Overdeler","上衣","Oberteile","Överdelar","Overdele","Hauts","Top"],"Outerwear":["Outerwear","Yttertøy","外套","Abrigos","Jacken & Mäntel","Ytterkläder","Overtøj","Vestes & manteaux","Capispalla","Jassen"],"Pants":["Pants","Bukser","裤子","Pantalones","Hosen","Byxor","Pantalons","Pantaloni","Broeken"],"Shorts":["Shorts","短裤","Pantalones cortos"],"Bags":["Bags","Vesker","包袋","Bolsos","Taschen","Väskor","Tasker","Sacs","Borse","Tassen"],"Accessories":["Accessories","Tilbehør","配饰","Accesorios","Accessoires","Accessoarer","Accessori"],"Headwear":["Headwear","Hodeplagg","帽子","Gorras y sombreros","Kopfbedeckungen","Huvudbonader","Hovedbeklædning","Couvre-chefs","Cappelli","Hoofddeksels"],"Toys":["Toys","Leker","玩具","Juguetes","Spielzeug","Leksaker","Legetøj","Jouets","Giocattoli","Speelgoed"]};
 var SA_ICONS={"search":"<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m21 21-4.3-4.3\"/>","clock":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>","x":"<path d=\"M18 6 6 18M6 6l12 12\"/>","tag":"<path d=\"M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9Z\"/><circle cx=\"7.5\" cy=\"7.5\" r=\"1.5\"/>","camera":"<path d=\"M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z\"/><circle cx=\"12\" cy=\"13.5\" r=\"3.5\"/>","arrow-right":"<path d=\"M5 12h14\"/><path d=\"m13 6 6 6-6 6\"/>","chevron-left":"<path d=\"m15 6-6 6 6 6\"/>","zap":"<path d=\"M13 2.5 4.5 13.5H12l-1 8 8.5-11H12Z\"/>"};
 /* PCS-SA-DATA-END */
