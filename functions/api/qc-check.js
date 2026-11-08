@@ -4,7 +4,8 @@
  *   -> 200 {"checks":[{"area":"logo","status":"good|watch|cant_tell","note":"..."}],"summary":"...","n":5,"model":"..."}
  * The photos are the QC bank's stored photos (data/qc_bank.json, the ones the site shows; no qualit.ly quota) plus
  * the listing photo for colour and shape. Claude only describes what it can see; it never says real or fake and never
- * promises quality. One answer per find, cached at the edge for 30 days. 10 new checks per IP per 10 minutes.
+ * promises quality. Answers kept for good in data/qc_ai.json (scripts/qc_ai.py) are served first; a find not done yet is
+ * checked live and cached at the edge. 10 new checks per IP per 10 minutes.
  * Env: ANTHROPIC_API_KEY (set for the chat), QC_CHECK_MODEL (optional, default below).
  */
 import { P } from "../_lib/site.js";
@@ -62,7 +63,7 @@ async function photo(env, origin, url) {
   }
   return null;
 }
-let bank = null, bankAt = 0;
+let bank = null, bankAt = 0, stored = null, storedAt = 0;
 async function bankThumbs(env, origin, sf, id) {
   if (!bank || Date.now() - bankAt > 600000) {
     try { const r = await env.ASSETS.fetch(new Request(origin + "/data/qc_bank.json")); bank = r.ok ? ((await r.json()).items || {}) : {}; } catch (e) { bank = {}; }
@@ -84,6 +85,13 @@ export async function onRequestGet({ request, env }) {
   const p = P.find(x => String(x.id) === pid);
   if (!p) return json(404, { error: "Find not on the sheet." });
 
+  // Kept for good: data/qc_ai.json (scripts/qc_ai.py, daily) answers every find it has done, at no cost per visitor.
+  if (!url.searchParams.get("fresh")) {
+    try {
+      if (!stored || Date.now() - storedAt > 600000) { const r = await env.ASSETS.fetch(new Request(url.origin + "/data/qc_ai.json")); stored = r.ok ? ((await r.json()).items || {}) : {}; storedAt = Date.now(); }
+      const s = stored[pid]; if (s && Array.isArray(s.checks)) return json(200, { ...s, stored: true }, "public, max-age=3600");
+    } catch (e) {}
+  }
   const cache = caches.default, key = new Request("https://qc-check.internal/v1/" + sf + "/" + id);
   const hit = await cache.match(key);
   if (hit && !url.searchParams.get("fresh")) return hit;
