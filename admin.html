@@ -212,6 +212,19 @@
   .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:12px;margin-bottom:22px}.two>div{min-width:0}
   #views,#search{margin:0 0 22px}
   #reported{margin:0 0 22px}
+  #aiqc .aq{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;padding:16px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface);margin-bottom:10px}
+  @media (max-width:760px){#aiqc .aq{grid-template-columns:1fr}}
+  #aiqc .ph{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0}
+  #aiqc .ph img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:var(--surface-2);cursor:zoom-in}
+  #aiqc .ph img.big{grid-column:1/-1;aspect-ratio:auto;max-height:520px;object-fit:contain;cursor:zoom-out}
+  #aiqc .t{font-weight:600;font-size:14px}#aiqc .t a{color:var(--ink);text-decoration:none}
+  #aiqc ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13.5px;line-height:1.45}
+  #aiqc li{display:flex;gap:8px}#aiqc li i{flex:none;font-style:normal;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--surface-2);color:var(--muted)}
+  #aiqc li.good i{color:#16a34a}#aiqc li.watch i{color:#d97706}
+  #aiqc .sum{margin:10px 0 0;font-size:13px;color:var(--ink-2)}
+  #aiqc .rv{display:flex;gap:6px;margin-top:12px}#aiqc .rv button{min-height:32px;padding:0 12px;border:1px solid var(--line-2);border-radius:999px;background:transparent;color:var(--ink);font:inherit;font-size:12.5px;cursor:pointer}
+  #aiqc .rv button.on{background:var(--fill);color:var(--fill-ink);border-color:var(--fill)}
+  #aiqc .bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
   #reported h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
   #reported .tw{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg)}
   #reported .why{color:var(--muted);font-size:12.5px}
@@ -267,6 +280,7 @@
   <div id="views" hidden></div>
   <div id="search" hidden></div>
   <div id="reported" hidden></div>
+  <div id="aiqc" hidden></div>
   <div class="toolbar">
     <div class="seg" id="tabs" role="group" aria-label="Table">
       <button type="button" data-k="7" class="on">Most Viewed · 7 Days</button><button type="button" data-k="30">Most Viewed · 30 Days</button><button type="button" data-k="all">Most Viewed · All Time</button><button type="button" data-k="fav">Most Favourited</button><button type="button" data-k="brand">Brands</button>
@@ -308,6 +322,28 @@ try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",tc)}cat
       (R.held?`<p class="muted fine">${e(R.held)} more finds reached the limit in one run and were held back (at most ${e((R.rule||{}).max_new_per_run||25)} new removals per run). They stay on the watch list; check them for a coordinated attack.</p>`:"")+
       (watch.length?`<h3 class="sub-h" style="margin-top:20px!important">Watching · Reported, Not Removed</h3>${tbl(watch,"Last report")}`:"")+
       `<p class="muted fine">A find is removed when its reports reach the score needed (3 plus more for finds with many views) from at least ${e((R.rule||{}).min_people||3)} people on ${e((R.rule||{}).min_nets||2)}+ networks. Signed-in members count 1, guests 0.3 (all guests together at most ${e((R.rule||{}).anon_cap||1.5)}), accounts younger than an hour 0. To put a find back, add its ID under "keep" in data/report_overrides.json with today's date: older reports then stop counting. To remove one yourself, add its ID under "hide". ${ud&&!isNaN(ud)?"Updated "+e(ud.toLocaleString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}))+".":""}</p>`;
+  }).catch(()=>{});
+  // AI QC notes review (beta, 8 Nov 2026): every saved note next to its QC photos, so the owner can test them before
+  // launch. "Right" / "Wrong" marks stay in this browser only (localStorage), as a private checklist.
+  fetch("/data/qc_ai.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(A=>{
+    const items=A&&A.items?Object.entries(A.items):[]; if(!items.length) return;
+    const e=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    let marks={}; try{ marks=JSON.parse(localStorage.getItem("pc.aiqc.marks")||"{}")||{}; }catch(_){}
+    const SB="https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/qc/", ICO={good:"\u2713",watch:"!",cant_tell:"?"};
+    const el=document.getElementById("aiqc"); el.hidden=false;
+    const count=()=>{ const v=Object.values(marks); return `${v.filter(x=>x==="ok").length} right, ${v.filter(x=>x==="bad").length} wrong, ${items.length-v.length} not reviewed`; };
+    el.innerHTML=`<h3 class="sec-h">AI QC Notes · Beta Review</h3><div class="bar"><span class="muted" id="aq-count">${count()}</span><span class="muted">Visitors don't see these yet. Mark each one; marks stay in this browser.</span></div>`+
+      items.map(([id,v])=>{ const p=(prods||{})[id]||{}; const n=Math.min(5,+v.n||0); const ph=[];
+        for(let k=0;k<n;k++) ph.push(`/api/img?u=${encodeURIComponent(SB+(p.platform||"weidian")+"-"+id.replace(/^0+/,"")+"-"+k+".webp")}`);
+        return `<div class="aq" data-id="${e(id)}"><div class="ph">${p.img?`<img src="${e(p.img)}" alt="Listing photo" loading="lazy">`:""}${ph.map(u=>`<img src="${e(u)}" alt="QC photo" loading="lazy">`).join("")}</div>`+
+          `<div><div class="t"><a href="/product/${encodeURIComponent(id)}" target="_blank">${e(p.title||id)}</a></div><div class="muted">${e(p.brand||"")} · ${e(id)} · ${e(v.n)} QC photos · ${e(v.at||"")}</div>`+
+          `<ul>${(v.checks||[]).map(c=>`<li class="${e(c.status)}"><i>${ICO[c.status]||"?"}</i><span><b>${e(c.area)}</b> ${e(c.note)}</span></li>`).join("")}</ul>`+
+          (v.summary?`<p class="sum">${e(v.summary)}</p>`:"")+
+          `<div class="rv"><button type="button" data-m="ok"${marks[id]==="ok"?' class="on"':""}>Right</button><button type="button" data-m="bad"${marks[id]==="bad"?' class="on"':""}>Wrong</button></div></div></div>`; }).join("");
+    el.addEventListener("click",ev=>{ const im=ev.target.closest(".ph img"); if(im){ im.classList.toggle("big"); return; }
+      const b=ev.target.closest(".rv button"); if(!b) return; const id=b.closest(".aq").dataset.id, m=b.dataset.m;
+      if(marks[id]===m) delete marks[id]; else marks[id]=m; try{ localStorage.setItem("pc.aiqc.marks",JSON.stringify(marks)); }catch(_){}
+      b.parentElement.querySelectorAll("button").forEach(x=>x.classList.toggle("on",marks[id]===x.dataset.m)); document.getElementById("aq-count").textContent=count(); });
   }).catch(()=>{});
   if(!stats){ $("#gen").textContent="No stats yet, run the Stats workflow in GitHub Actions."; $("#cards").innerHTML=""; $("#chart").classList.remove("sk"); $("#tbl").innerHTML='<div class="empty">No stats yet</div>'; return; }
   const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
