@@ -4633,11 +4633,14 @@ function pcBetaQc(p){
 }
 /* hover QC (owner, 8 Nov 2026): on a mouse hover the card photo fades to the find's first buyer QC photo. Only photos the
    site already has (QC bank or edge cache, qcFetch without "live") are used, so hovering never spends the qualit.ly quota. */
+/* the best QC photo per find (data/qc_best.json, scripts/qc_best.py: the one that shows the whole item), loaded once */
+let _qcBest=null;
+function pcQcBest(){ return _qcBest||(_qcBest=fetch("/data/qc_best.json").then(r=>r.ok?r.json():null).then(j=>(j&&j.items)||{}).catch(()=>({}))); }
 function pcQcHover(el,p){
   if(!(p.qc>0)) return;
-  qcFetch(p).then(d=>{ if(!el.__hov) return;
-    const a=(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails:((d&&Array.isArray(d.qc_preview))?d.qc_preview:[]);
-    let u=a.find(x=>typeof x==="string"&&/^https?:\/\//.test(x)); if(!u) return;
+  Promise.all([qcFetch(p),pcQcBest()]).then(([d,best])=>{ if(!el.__hov) return;
+    const a=((d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails:((d&&Array.isArray(d.qc_preview))?d.qc_preview:[])).filter(x=>typeof x==="string"&&/^https?:\/\//.test(x));
+    const bi=best&&best[p.id]; let u=(Number.isInteger(bi)&&a[bi])||a[0]; if(!u) return;
     if(SB_IMG.test(u)) u=location.origin+"/api/img?u="+encodeURIComponent(u);
     const th=el.querySelector(".thumb"); if(!th) return;
     let q=th.querySelector("img.qch");
