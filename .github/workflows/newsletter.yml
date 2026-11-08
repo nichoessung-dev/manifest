@@ -1,7 +1,7 @@
 name: Newsletter
 on:
   schedule:
-    - cron: '0 15 * * 2,5'   # Tue & Fri 15:00 UTC: popular finds
+    - cron: '0 15 * * *'     # daily 15:00 UTC: popular finds, one member group a day (about 2x/week per member)
     - cron: '0 16 * * 0'     # Sun 16:00 UTC: "you saved this"
   workflow_dispatch:
     inputs:
