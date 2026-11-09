@@ -11,6 +11,9 @@ on:
       limit:
         description: 'Most new copies this run'
         default: '1500'
+      upgrade:
+        description: 'Old 900 px copies to fetch again at full size (straight from Supabase, so keep it small)'
+        default: '300'
       ready_cleaned:
         description: 'Also copy cleaned photos that are not switched on yet (run just before applying them)'
         type: choice
@@ -32,7 +35,7 @@ jobs:
       - name: Copy missing photos
         run: |
           RC=""; [ "${{ inputs.ready_cleaned }}" = "yes" ] && RC="--ready-cleaned"
-          python -u scripts/mirror_photos.py --limit "${{ inputs.limit || '1500' }}" --max-minutes 40 --workers 4 $RC
+          python -u scripts/mirror_photos.py --limit "${{ inputs.limit || '1500' }}" --upgrade "${{ inputs.upgrade || '300' }}" --max-minutes 40 --workers 4 $RC
       - name: Save the copies
         if: always()
         run: |
