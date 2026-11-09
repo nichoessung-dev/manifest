@@ -53,7 +53,7 @@
 <link rel="preconnect" href="https://uptpghuduqjqmrxwatbm.supabase.co" crossorigin>
 <link rel="dns-prefetch" href="https://uptpghuduqjqmrxwatbm.supabase.co">
 <script>/* perf (5 Nov 2026): the view stats, the dead-link check and the reported list start loading here, alongside the catalogue parts, instead of after them; the app takes these promises (window.PC_PRE) and never fetches the files twice. Each resolves to the parsed file, or null when it failed. */
-(function(){var P=window.PC_PRE={};["stats","link_health","reported"].forEach(function(k){try{P[k]=fetch("/data/"+k+".json",{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}catch(e){}});})();</script>
+(function(){var P=window.PC_PRE={};["stats","link_health","reported","photo_quality"].forEach(function(k){try{P[k]=fetch("/data/"+k+".json",{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}catch(e){}});})();</script>
 <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin><style>@font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/inter-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"Inter Fallback";src:local("Arial"),local("Helvetica Neue"),local("Helvetica");size-adjust:107%;ascent-override:90.5%;descent-override:22.5%;line-gap-override:0%}</style>
 <style data-split="css">
 :root{--maxw:1280px;--danger:#C0392B}
@@ -5334,7 +5334,8 @@ var REPORTED=new Set();
 let _bgLeft=2, _bgDirty=false; const _bgDone=()=>{ if(--_bgLeft===0&&_bgDirty){ setTimeout(()=>{ try{ softRender(); }catch(e){} },0); } };   /* own task (perf, 5 Nov 2026) */
 const _gj=u=>fetch(u,{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null);
 const _pre=window.PC_PRE||{};   /* started in the head (perf, 5 Nov 2026) */
-Promise.all([_pre.link_health||_gj("/data/link_health.json"),_pre.reported||_gj("/data/reported.json")]).then(([h,rp])=>{
+Promise.all([_pre.link_health||_gj("/data/link_health.json"),_pre.reported||_gj("/data/reported.json"),_pre.photo_quality||_gj("/data/photo_quality.json")]).then(([h,rp,pq])=>{
+  if(pq&&pq.bad){ ALL.forEach(p=>{ const q=pq.bad[p.id]; if(q) p.pq=q; }); try{ RK_MEMO.k=""; }catch(_){} _bgDirty=true; }
   if(h&&Array.isArray(h.sold_out)) SOLD=new Set(h.sold_out.map(String));
   if(rp&&Array.isArray(rp.hidden)) REPORTED=new Set(rp.hidden.map(String));
   try{ if(drawer.__pid!=null&&REPORTED.has(String(drawer.__pid))) markRemoved(); }catch(e){}
@@ -5540,7 +5541,7 @@ function pcForYou(list){
   return out;
 }
 /* real popularity: aggregated product views + favourites (data/stats.json, refreshed every 6h by the Stats workflow) */
-function popScore(p){ return (p.views||0) + (p.views7||0); }   /* views in the last 30 days, last 7 days count double */
+function popScore(p){ return ((p.views||0) + (p.views7||0)) * (1 - 0.6 * (p.pq||0)); }   /* p.pq: how bad the main photo is (data/photo_quality.json, owner 10 Nov 2026: bad photos rank lower) */   /* views in the last 30 days, last 7 days count double */
 /* r9 ranker for "Most popular" (7 Nov 2026; offline check: scripts/rank_eval.py, numbers in its header).
    What the data says (data/stats.json, the last week held out): a find's own recent views predict next week's views far
    better than anything else we have. Brand averages, QC photo counts and save rates all made that prediction worse, so
