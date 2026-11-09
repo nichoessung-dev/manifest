@@ -2,7 +2,7 @@
 // "200 + homepage" for unknown paths into a real 404, so Google doesn't see soft-404 duplicates.
 import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
-  sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL } from "./_lib/pages.js";
+  sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL, renderPlat, fitTitle } from "./_lib/pages.js";
 import { imgSrc, navKey } from "./_lib/site.js";
 import { reportedIds } from "./_lib/reported.js";
 
@@ -191,7 +191,7 @@ async function route(ctx) {
   if (/^\/api(\/|$)/.test(path)) return json404();
   // One 301 hop: strip the trailing slash and, for hub URLs (/brand/Fendi, /Best/X ...), lowercase.
   let to = path.length > 1 ? path.replace(/\/+$/, "") || "/" : path;
-  if (/^\/(brand|category|brands|old-money|guides|best|tools)\b|^\/[a-z]+-spreadsheet/i.test(to)) to = to.toLowerCase();
+  if (/^\/(brand|category|brands|old-money|guides|best|tools)\b|^\/[a-z0-9]+-spreadsheet/i.test(to)) to = to.toLowerCase();
   // v9: the weight estimator moved into the shipping calculator; one hop even from /tools/weight-estimator/.
   if (to === "/tools/weight-estimator") return Response.redirect(url.origin + "/tools/shipping-calculator", 301);
   if (to !== path) return Response.redirect(url.origin + to + url.search, 301);
@@ -199,7 +199,7 @@ async function route(ctx) {
   // Edge cache for the hub and list pages (20 Oct 2026): building one takes 0.3-0.6 s (catalogue index + view stats), a
   // cached copy ~0.05 s. The key holds the catalogue build, the page template version and the homepage's ETag, so a
   // new deploy or a new catalogue never serves an old copy. The query string (utm tags) doesn't change the page.
-  const pageCache = request.method === "GET" && (path === "/" || /^\/(brand|category|brands|old-money|guides|best|tools)(\/|$)|^\/[a-z]+-spreadsheet(\/|$)/.test(path));
+  const pageCache = request.method === "GET" && (path === "/" || /^\/(brand|category|brands|old-money|guides|best|tools)(\/|$)|^\/[a-z0-9]+-spreadsheet(\/|$)/.test(path));
   let ckey = null;
   if (pageCache) {
     try {
@@ -226,7 +226,7 @@ async function route(ctx) {
     }
     return r;
   };
-  const usesStats = /^\/(brand|category|brands|old-money|guides|best)|^\/[a-z]+-spreadsheet/.test(path);
+  const usesStats = /^\/(brand|category|brands|old-money|guides|best)|^\/[a-z0-9]+-spreadsheet/.test(path);
   if (usesStats) await ensureStats(url.origin);
   if (path === "/sitemap.xml") return sitemapIndex();
   if (path === "/sitemap-pages.xml") return sitemapPages();
@@ -261,6 +261,8 @@ async function route(ctx) {
   else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet\/([a-z][a-z0-9-]*)(?:\/(\d+))?$/))) { const k = m[1], b = m[2];
     res = retired(n => renderAgentBrand(k, b, n), m[3], url.origin + `/${k}-spreadsheet/${b}`, n => url.origin + `/brand/${b}/${n}`); }
   else if ((m = path.match(/^\/old-money(?:\/(\d+))?$/))) res = paged((_, n) => renderOldMoney(n), null, m[1], url.origin + "/old-money");
+  // Pages 2+ of the marketplace spreadsheets (9 Nov 2026); page 1 is the app (hubSpec above), /1 and /02 get one 301.
+  else if ((m = path.match(/^\/(weidian|taobao|1688)-spreadsheet(?:\/(\d+))?$/))) res = paged(renderPlat, m[1], m[2], url.origin + `/${m[1]}-spreadsheet`);
   if (res !== undefined) {
     if (!res) return notFound(path);
     // Rendered before any view stats could be read (a failed read on a fresh server instance): the finds are in a
@@ -305,16 +307,18 @@ async function hubApp(ctx, url, spec) {
   try {
     const lh = await linkHealth(ctx, url.origin);
     const d = new Date(lh.checked);
+    // The link check covers Weidian listings only, so a hub of Taobao or 1688 finds (spec.linkCheck === false) says nothing about it.
+    const checks = spec.linkCheck !== false;
     if (lh.checked && !isNaN(d)) {
-      spec = { ...spec, sub: `${spec.sub} Links checked ${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}.` };
-      fresh = '<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage", name: spec.h, url: canon, dateModified: d.toISOString(), primaryImageOfPage: img ? { "@type": "ImageObject", contentUrl: img } : undefined }).replace(/</g, "\\u003c") + "</script>";
+      if (checks) spec = { ...spec, sub: `${spec.sub} Links checked ${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}.` };
+      fresh = '<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage", name: spec.h, url: canon, dateModified: checks ? d.toISOString() : undefined, primaryImageOfPage: img ? { "@type": "ImageObject", contentUrl: img } : undefined }).replace(/</g, "\\u003c") + "</script>";
     }
   } catch (e) {}
   const { crumbHtml, seo, head } = hubParts(spec, more);
   const content = v => ({ element(e) { e.setAttribute("content", v); } });
   // Same rule as page() in site.js: Google shows about 60 characters of a title, so a longer one drops the site name
-  // (Google prints the site name above every result anyway).
-  const title = spec.title.length > 60 ? spec.title.replace(/ [|·] Puro Classico$/, "") : spec.title;
+  // (Google prints the site name above every result anyway), then "Compared" and the year (fitTitle in pages.js).
+  const title = fitTitle(spec.title);
   // Header (round 4): index.html marks Finds as the current section; a hub in another section (/brand/x -> Brands) gets
   // the mark moved here, before the first paint, so the active pill never jumps. Same map as the server pages (navKey).
   const navHref = { finds: "/", brands: "/brands", tools: "/tools", guides: "/guides", how: "/how-to-order" }[navKey(spec.path)] || "";
