@@ -6498,7 +6498,9 @@ function wirePPFilters(){
   var ONE_BRAND = { "Acne Studios": 1 };
   /* owner's own picks for a category row, shuffled every 30 minutes like Popular Now (owner, 9 Nov 2026) */
   var ROW_PICKS = { Tops: ["7630051831","7774498099","760438413422","829815347538","7231806587","1023952915683","891428294916",
-    "997515775709","7746528290","740333013030","976896164628"] };
+    "997515775709","7746528290","740333013030","976896164628"],
+    /* owner, 9 Nov 2026: "on outerwear just make it show these" */
+    Outerwear: ["837655077198","893315757292","7663734281","1003749286954","7728738210"] };
   function rotPicks(ids, caps) {
     var B = {}; try { B = BY_ID || {}; } catch (e) {}
     var left = shuffled(ids, Math.floor(Date.now() / 1800000)).map(function (id) { return B[id]; })
