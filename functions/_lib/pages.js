@@ -44,6 +44,18 @@ export function modelFor(p) { return models().find(m => m.list.some(x => x.id ==
 const PER_PAGE = 60;
 // The catalogue date as people write it ("8 Oct 2026"), the format the guides and the hub FAQs already use.
 const BUILT_DAY = (d => isNaN(d) ? BUILT : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }))(new Date(BUILT + "T00:00:00Z"));
+// Titles (9 Nov 2026): Google shows about 60 characters, and 49 server-rendered titles were longer. A longer title loses, in
+// this order, the site name (Google prints it above every result anyway), "Compared", then the year, so the main keyword
+// stays first. page() (site.js) and hubApp (functions/_middleware.js) get titles that already fit.
+export function fitTitle(t, max = 60) {
+  for (const cut of [s => s.replace(/ [·|] Puro Classico$/, ""), s => s.replace(/ Compared\b/, ""), s => s.replace(/ \(2026\)| 2026\b/, "")]) { if (t.length <= max) break; t = cut(t); }
+  return t;
+}
+// "8 Nov 2026" from "2026-11-08"; the latest of several YYYY-MM-DD dates (sitemaps, page copy).
+const dayOf = d => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+const latestDay = (...d) => d.filter(x => typeof x === "string" && ISO_DAY.test(x)).sort().pop() || null;
+const andList = a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
 const faqLd = faq => ({ "@context": "https://schema.org", "@type": "FAQPage",
   mainEntity: faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) });
 // ------------------------------------------------------------------ icon pass (29 Oct 2026, icons/SPEC.md)
@@ -62,19 +74,19 @@ const faqHtml = faq => `${hIc("h2", "help", "FAQ")}<div class="faq">${faq.map(([
 const listLd = (name, url, items, count = items.length) => ({ "@context": "https://schema.org", "@type": "CollectionPage", name, url: SITE + url,
   mainEntity: { "@type": "ItemList", numberOfItems: count,
     itemListElement: items.slice(0, 30).map((p, i) => ({ "@type": "ListItem", position: i + 1, url: SITE + productUrl(p), name: p.title })) } });
-const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort((a, b) => a - b); return u.length ? `${money(u[0])}–${money(u[u.length - 1])}` : ""; };
+const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort((a, b) => a - b); return u.length ? `${money(u[0])} to ${money(u[u.length - 1])}` : ""; };
 // The prices for a meta description. A listed price under a third of the list's half-way price is mostly a deposit or a
 // placeholder (the same test as priceDoubt in brandFacts), so the snippet leaves it out and then says "most" (always
 // true: everything from the half-way price up is kept). The page body keeps the full priceRange.
 const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort((a, b) => a - b); if (!u.length) return "";
   const med = u[Math.floor((u.length - 1) / 2)], v = u.filter(x => x * 3 >= med), lo = money(v[0]), hi = money(v[v.length - 1]);
-  return `, ${v.length < u.length ? "most " : ""}listed at ${lo === hi ? lo : `${lo}–${hi}`}`; };
+  return `, ${v.length < u.length ? "most " : ""}listed at ${lo === hi ? lo : `${lo} to ${hi}`}`; };
 
 // ------------------------------------------------------------------ product
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w61";   // w61: "Ask AI about this item" row, chat.js?v=7 (saved chats note), sharper agent logos; w60: no colour-count badge on cards (owner); w59: chat.js?v=6 (scrollable card row); w58: chat.js?v=5 (better answers); w57: no yen price next to the main price (owner); w56: product page like the app view (muted brand, Details folded, QC button only with stored photos); w55: chat.js?v=4 (pcChatAsk hook for the beta Ask box); w54: size answer beside the form on wide screens; w53: size estimator counts height for length, scrolls to the result; w52: pcs.js 5f23e99c (search: zero-result queries from the log, Nordic words, typo pass under 3 finds); w51: QC badge only for finds with stored QC photos (QC_BANKED); w50: chat.js?v=3 (messenger look; finds open in the app view);   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
+export const PRODUCT_TPL = "w62";   // w62: footer links to the Weidian, Taobao and 1688 spreadsheets, price ranges written "¥x to ¥y", titles fitted to 60 characters (fitTitle); w61: "Ask AI about this item" row, chat.js?v=7 (saved chats note), sharper agent logos; w60: no colour-count badge on cards (owner); w59: chat.js?v=6 (scrollable card row); w58: chat.js?v=5 (better answers); w57: no yen price next to the main price (owner); w56: product page like the app view (muted brand, Details folded, QC button only with stored photos); w55: chat.js?v=4 (pcChatAsk hook for the beta Ask box); w54: size answer beside the form on wide screens; w53: size estimator counts height for length, scrolls to the result; w52: pcs.js 5f23e99c (search: zero-result queries from the log, Nordic words, typo pass under 3 finds); w51: QC badge only for finds with stored QC photos (QC_BANKED); w50: chat.js?v=3 (messenger look; finds open in the app view);   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -294,7 +306,7 @@ ${n === 1 ? extra : ""}${n === 1 && faq && faq.length ? faqHtml(faq) : ""}${p2 ?
   // Pages 2+ (28 Oct 2026): the page number goes before the site name ("...: Page 2 · Puro Classico", not "... · Puro
   // Classico: Page 2", which also stopped page() from trimming long titles), and the description names the page, so
   // pages 2..N no longer share one description.
-  return page({ title: n > 1 ? title.replace(/( [·|] Puro Classico)?$/, `: Page ${n}$1`) : title, desc: n > 1 && !/^Page \d/.test(desc) ? `Page ${n}: ${desc}` : desc,
+  return page({ title: fitTitle(n > 1 ? title.replace(/( [·|] Puro Classico)?$/, `: Page ${n}$1`) : title), desc: n > 1 && !/^Page \d/.test(desc) ? `Page ${n}: ${desc}` : desc,
     path: url, body, jsonld: ld, image: slice[0] ? imgSrc(slice[0]) : undefined });
 }
 
@@ -620,7 +632,8 @@ export function renderCategory(s, n) {
 // ------------------------------------------------------------------ agent spreadsheets (+ brand pages per agent)
 // Brand x agent pages (/kakobuy-spreadsheet/ralph-lauren): only for the largest brand hubs and the agents people search
 // together with a brand name, so every page has a real list behind it instead of thousands of near-empty variations.
-export const AGENT_BRAND_AGENTS = ["mycnbox", "kakobuy", "oopbuy", "sugargoo"];
+// LoveGoBuy joined on 9 Nov 2026: it was the one agent hub without brand and style pages.
+export const AGENT_BRAND_AGENTS = ["mycnbox", "kakobuy", "oopbuy", "lovegobuy", "sugargoo"];
 export const AGENT_BRAND_MIN = 40, AGENT_BRAND_MAX = 30;
 // Brands outside the 30 largest that visitors look at a lot (23 Oct 2026, data/stats.json: 200+ views in 30 days, 40+
 // finds): Arc'teryx 295 views, Acne Studios 273, Rolex 246, Patagonia 215. A fixed list, so a page never comes and goes
@@ -673,7 +686,7 @@ export function renderAgentBrand(key, s, n) {
   const intro = `<p class="lead">${N} ${esc(b)} finds from Weidian, Taobao and 1688${range ? `, listed at ${esc(range)}` : ""}. Every find has a one-tap <strong>Buy via ${esc(a.name)}</strong> button.</p>
 <p>This is the <a href="/brand/${s}">${esc(b)} reps spreadsheet</a> with ${esc(a.name)} as your agent: open a find, tap <strong>Buy via ${esc(a.name)}</strong>, pick your size and check the QC photos before you ship. The full catalogue for this agent is on the <a href="/${key}-spreadsheet">${esc(meta.title.replace(/ 2026$/, ""))}</a>.</p>`;
   const faq = [[`How do I buy ${b} reps on ${a.name}?`, `Open one of the ${N} ${b} finds below, tap Buy via ${a.name}, choose your size and pay for the item plus warehouse delivery. ${a.name} sends QC photos when it arrives; check them, then ship.`],
-               [`Are these ${b} finds only for ${a.name}?`, `No. The same finds open on ${others.map(k => AGENTS[k].name).join(", ")} and LoveGoBuy; each product page has a button for every agent.`]];
+               [`Are these ${b} finds only for ${a.name}?`, `No. The same finds open on ${andList(others.map(k => AGENTS[k].name))}; each product page has a button for every agent.`]];
   return hub({ path, n, list, title: `${b} ${a.name} Spreadsheet 2026: ${N} Finds · Puro Classico`,
     desc: `${N} ${b} rep finds with one-tap ${a.name} buy links${range ? `, ${range}` : ""}. Prices and QC photo counts on every find.`,
     h1: `${b} on ${a.name}`, intro, trail: [["Home", "/"], [meta.title, `/${key}-spreadsheet`], [b, path]], faq,
@@ -701,9 +714,9 @@ export function renderBrands() {
   const groups = {};
   for (const b of hubs) { const L = /[a-z]/i.test(b[0]) ? b[0].toUpperCase() : "#"; (groups[L] = groups[L] || []).push(b); }
   const bc = crumbs([["Home", "/"], ["Brands", "/brands"]]);
-  const body = `${bc.html}<h1>Rep brands A–Z</h1><p class="lead">The ${hubs.length} brands with their own page on Puro Classico, with the number of finds for each.</p>
+  const body = `${bc.html}<h1>Rep brands A to Z</h1><p class="lead">The ${hubs.length} brands with their own page on Puro Classico, with the number of finds for each.</p>
 ${Object.keys(groups).sort().map(L => `<h2>${L}</h2><div class="chips">${groups[L].map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)} <span style="color:var(--muted)">${byBrand.get(b).length}</span></a>`).join("")}</div>`).join("")}`;
-  return page({ title: "Rep Brands A–Z: Every Brand on the Spreadsheet · Puro Classico", desc: `Browse ${hubs.length} brands on the Puro Classico rep spreadsheet, from Corteiz and Nike to Ralph Lauren and Moncler.`,
+  return page({ title: "Rep Brands A to Z: Every Brand on the Spreadsheet · Puro Classico", desc: `Browse ${hubs.length} brands on the Puro Classico rep spreadsheet, from Corteiz and Nike to Ralph Lauren and Moncler.`,
     path: "/brands", body, jsonld: [bc.data] });
 }
 
@@ -946,6 +959,11 @@ var q=TK.qs.get("u");if(q){inp.value=q.slice(0,2000);run(true);}else{sync();rece
 };
 const TRUST = { "qc-checker": [TK_TRUST.free, TK_TRUST.nosign], "link-converter": [TK_TRUST.free, TK_TRUST.nosign, TK_TRUST.nostore] };
 const TOOL_H1 = { "qc-checker": "Real QC Photos In One Click", "link-converter": "Any Link To Any Agent" };
+// 9 Nov 2026: the QC checker also targets "QC photo finder" and "QC finder" searches (title, the name in the h1, the
+// meta description); "QC checker" stays in the title, the breadcrumb and the tools lists. Copy in content2.js (TOOLS) is
+// unchanged: these win over it.
+const TOOL_SEO = { "qc-checker": { name: "QC Photo Finder", title: "QC Photo Finder & Checker: Real QC Photos for Any Rep Link",
+  desc: "Free QC photo finder: paste a Weidian, Taobao, 1688 or shopping agent link, or an item ID, to see real buyer QC photos from earlier orders before you buy." } };
 // Hub: the "before you buy" pair is wide and carries a real mini form; the flow strip is navigation only.
 const HUB_FORM = { "qc-checker": ["Check", "Product link or item ID"], "link-converter": ["Convert", "Weidian, Taobao, 1688 or agent link"] };
 const HUB_FLOW = [["Check The QC", "QC Checker", "/tools/qc-checker"], ["Get Your Buy Link", "Link Converter", "/tools/link-converter"],
@@ -972,15 +990,16 @@ export function renderTools() {
 <p class="tk-flow-tip">${ic("ruler", "sm")}Not sure about the size? <a href="/tools/size-estimator">Size Estimator</a></p></div>`;
   const list = { "@context": "https://schema.org", "@type": "ItemList", name: "Free Rep Tools",
     itemListElement: TOOL_LINKS.map(([n, u], i) => ({ "@type": "ListItem", position: i + 1, name: n, url: SITE + u })) };
-  return page({ title: "Free Rep Tools: QC Checker, Link Converter, Size Estimator & Parcel Tracker · Puro Classico", desc: "Free tools for buying reps through agents: QC photo checker, link converter, shipping calculator, size estimator and parcel tracker.", path: "/tools", body, jsonld: [bc.data, list] });
+  return page({ title: "Free Rep Tools: QC Photo Finder, Link Converter & More · Puro Classico", desc: "Free tools for buying reps through agents: QC photo checker, link converter, shipping calculator, size estimator and parcel tracker.", path: "/tools", body, jsonld: [bc.data, list] });
 }
 export function renderTool(s) {
   if (own(TOOL_UI9, s)) return toolPage9(s, TOOL_CSS);
   const t = own(TOOLS, s) && own(TOOL_UI, s) ? TOOLS[s] : null; if (!t) return null;
   const path = "/tools/" + s; const bc = crumbs([["Home", "/"], ["Tools", "/tools"], [t.name, path]]);
   const app = { "@context": "https://schema.org", "@type": "WebApplication", name: t.name + ": Puro Classico", url: SITE + path, applicationCategory: "UtilitiesApplication", operatingSystem: "Any", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, description: t.desc };
-  return toolShell({ slug: s, name: t.name, h1: TOOL_H1[s] || t.name, lead: t.lead, trust: TRUST[s] || [], ui: TOOL_UI[s](), about: t.about,
-    title: t.title, desc: t.desc, jsonld: [bc.data, app], bc: bc.html });
+    const seo = TOOL_SEO[s] || {};
+  return toolShell({ slug: s, name: seo.name || t.name, h1: TOOL_H1[s] || t.name, lead: t.lead, trust: TRUST[s] || [], ui: TOOL_UI[s](), about: t.about,
+    title: fitTitle(seo.title || t.title), desc: seo.desc || t.desc, jsonld: [bc.data, app], bc: bc.html });
 }
 
 // ------------------------------------------------------------------ guides
@@ -1022,6 +1041,16 @@ const iconSteps = html => html.replace(/<ol class="steps">([\s\S]*?)<\/ol>/g, (m
   const lead = (li.match(/^\s*<strong>([\s\S]*?)<\/strong>/) || [])[1]; return `<li>${icTile(firstIcon(STEP_IC, plain(lead || li).slice(0, 80), "list"))}${li}`; })}</ol>`);
 // A callout keeps its text; a tile on the left says what it is (a tip or a note).
 const iconNotes = html => html.replace(/<div class="note">/g, (m, at) => `<div class="note has-ic">${icTile(/^\s*Tip/.test(plain(html.slice(at + m.length, at + m.length + 40))) ? "bulb" : "info")}`);
+// Shorter titles for guides whose own title (content*.js) is over 60 characters and does not fit by dropping the year.
+// Used only while that title is too long, so a shorter title written in content*.js wins.
+const GUIDE_FIT = {
+  "best-shopping-agent": "Best Shopping Agent 2026: MyCNBox, KakoBuy, Oopbuy, Sugargoo",
+  "how-to-buy-from-1688": "How to Buy from 1688 (Factory Prices) with a Shopping Agent",
+  "shipping-lines": "Shipping Lines Explained: Economy, Tax-Free, EMS & Express",
+  "how-we-check": "How We Check the Spreadsheet: Link Checks & Affiliate Links",
+  "mycnbox-coupon-code": "MyCNBox Coupon Code & Invite Code 2026: Up to $500 Coupons",
+  "agent-coupons": "Shopping Agent Coupons & Sign-Up Bonuses 2026",
+};
 export function renderGuide(s) {
   const g = own(GUIDES, s) ? GUIDES[s] : null; if (!g) return null;
   const path = "/guides/" + s; const bc = crumbs([["Home", "/"], ["Guides", "/guides"], [g.h1, path]]);
@@ -1054,17 +1083,24 @@ export function renderGuide(s) {
   const how = s !== "how-we-check" && own(GUIDES, "how-we-check") ? ` · <a href="/guides/how-we-check">${ic("shield", "sm")}How we check</a>` : "";
   const body = `${bc.html}<article class="prose"><span class="eyebrow pill">Guide${updTxt ? ` · ${updTxt}` : ""}</span><h1>${esc(g.h1)}</h1>${(tocHtml ? text.replace("<h2 id=", tocHtml + "<h2 id=") : text).replace(/^(\s*<p class="lead">[\s\S]*?<\/p>)?/, (m) => m + `<p class="byline">By Puro Classico${how}</p>`)}${g.faq ? faqHtml(g.faq) : ""}</article>
 ${(() => { const w = g.finds || {}, l = all.filter(p => (!w.platform || p.platform === w.platform) && (!w.qc || p.qc >= w.qc));
-  return `${hIc("h2", "flame", w.platform ? `Popular ${esc({ weidian: "Weidian", taobao: "Taobao", "1688": "1688" }[w.platform] || w.platform)} finds` : w.qc ? "Popular finds with QC photos" : "Popular finds")}${grid((l.length >= 8 ? l : all).slice(0, 8))}`; })()}
+  return `${hIc("h2", "flame", w.platform ? `Popular ${esc({ weidian: "Weidian", taobao: "Taobao", "1688": "1688" }[w.platform] || w.platform)} finds` : w.qc ? "Popular finds with QC photos" : "Popular finds")}${grid((l.length >= 8 ? l : all).slice(0, 8))}` +
+    (w.platform && PLAT_HUBS[w.platform] ? `<p><a class="btn light" href="/${w.platform}-spreadsheet">See all ${nf(l.length)} ${esc(PLAT_HUBS[w.platform].name)} finds${ic("arrow-right", "sm")}</a></p>` : ""); })()}
 ${hIc("h2", "book", "More guides")}<div class="chips">${GUIDE_LINKS.filter(([, u]) => u !== path).map(([t, u]) => `<a href="${u}">${ic(guideIcon(u), "sm")}${esc(t)}</a>`).join("")}</div>`;
   const art = { "@context": "https://schema.org", "@type": "Article", headline: g.h1, description: g.desc, dateModified: g.updated || undefined, url: SITE + path,
     author: { "@type": "Organization", name: "Puro Classico", url: SITE + "/" }, publisher: { "@type": "Organization", name: "Puro Classico", logo: { "@type": "ImageObject", url: SITE + "/logo-mark.png" } }, publishingPrinciples: own(GUIDES, "how-we-check") ? SITE + "/guides/how-we-check" : undefined };
   const ld = [bc.data, art]; if (g.faq) ld.push(faqLd(g.faq));
-  return page({ title: g.title + " · Puro Classico", desc: g.desc, path, body, jsonld: ld });
+  return page({ title: fitTitle((g.title.length > 60 && GUIDE_FIT[s] ? GUIDE_FIT[s] : g.title) + " · Puro Classico"), desc: g.desc, path, body, jsonld: ld });
 }
 
 // ------------------------------------------------------------------ sitemaps
-// No <lastmod>: the only date the site has is the catalogue build date, which is not the date any one page changed.
-// Add it back only from a real per-page date (a guide's `updated`, a per-find date once the catalogue stores one).
+// <lastmod> (9 Nov 2026), only from dates the page really shows or is built from, never "today":
+//   - a guide: its own `updated` (content*.js); the rep spreadsheet guide also prints catalogue counts and the link check.
+//     The guides hub: the latest guide date. A guide without `updated` gets none.
+//   - catalogue pages (home, hubs, brand, category, best, agent and marketplace spreadsheets): the later of the catalogue
+//     build (BUILT) and the weekly link check (LINKS_CHECKED), the two dates their lists and text come from.
+//   - tools, terms, privacy and the how-to-order video page: none (no date is stored for them).
+//   - a find: the later of the day its QC photos were stored (QC_BANKED) and, for Weidian finds, the link check, whose
+//     result and date the page prints. A Taobao or 1688 find without stored QC photos gets none.
 const xml = body => new Response(`<?xml version="1.0" encoding="UTF-8"?>\n${body}`, { headers: { "content-type": "application/xml; charset=utf-8", "cache-control": "public, max-age=3600" } });
 export function sitemapIndex() {
   return xml(`<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -1077,18 +1113,27 @@ export function sitemapPages() {
   // Pages 2+ of the brand and category hubs (21 Oct 2026): real lists that were linked from nowhere. Agent and agent x brand
   // hubs are left out: their pages 2+ repeat the same finds with other buy buttons.
   const more = (base, n) => Array.from({ length: Math.max(0, Math.ceil(n / PER_PAGE) - 1) }, (_, i) => `${base}/${i + 2}`);
+  const platN = k => P.filter(p => p.platform === k).length;
   const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", "/stockholm-spreadsheet", "/grisch-spreadsheet", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), "/cnfans-spreadsheet", "/qc-spreadsheet",
+    ...PLAT_KEYS.map(k => `/${k}-spreadsheet`), ...PLAT_KEYS.flatMap(k => more(`/${k}-spreadsheet`, platN(k))),
     ...AGENT_BRAND_AGENTS.flatMap(k => agentBrands().map(b => `/${k}-spreadsheet/${brandSlug.get(b)}`)), ...AGENT_BRAND_AGENTS.flatMap(k => Object.keys(AGENT_STYLES).map(x => `/${k}-spreadsheet/${x}`)),
     ...Object.values(CATS).map(c => "/category/" + c.slug), ...[...brandSlug.values()].map(s => "/brand/" + s),
     ...[...brandSlug].flatMap(([b, s]) => more("/brand/" + s, byBrand.get(b).length)),
     ...Object.entries(CATS).flatMap(([c, m]) => more("/category/" + m.slug, (byCat.get(c) || []).length)),
     ...Object.keys(GUIDES).map(s => "/guides/" + s), "/best", ...models().map(m => "/best/" + m.slug), "/tools", ...Object.keys(TOOLS).map(s => "/tools/" + s), "/terms", "/privacy"];
-  return xml(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `<url><loc>${SITE}${u}</loc></url>`).join("\n")}\n</urlset>`);
+  const catDay = latestDay(BUILT, LINKS_CHECKED);
+  const lastmod = u => { const m = u.match(/^\/guides\/([a-z0-9-]+)$/);
+    if (m) return own(GUIDES, m[1]) ? (m[1] === "what-is-a-rep-spreadsheet" ? latestDay(GUIDES[m[1]].updated, catDay) : latestDay(GUIDES[m[1]].updated)) : null;
+    if (u === "/guides") return latestDay(...Object.values(GUIDES).map(g => g.updated));
+    if (/^\/(tools|terms|privacy|how-to-order)(\/|$)/.test(u)) return null;
+    return catDay; };
+  return xml(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => { const d = lastmod(u); return `<url><loc>${SITE}${u}</loc>${d ? `<lastmod>${d}</lastmod>` : ""}</url>`; }).join("\n")}\n</urlset>`);
 }
 export function sitemapProducts(skip) {   // skip: ids removed after reports (their pages are noindex)
   const rows = P.filter(p => indexable(p) && !(skip && skip.has(String(p.id)))).map(p => {
     const src = imgSrc(p);
-    return `<url><loc>${SITE}${productUrl(p)}</loc>${src ? `<image:image><image:loc>${esc(src)}</image:loc></image:image>` : ""}</url>`;
+    const d = latestDay(QC_BANKED[p.id], p.platform === "weidian" ? LINKS_CHECKED : null);
+    return `<url><loc>${SITE}${productUrl(p)}</loc>${d ? `<lastmod>${d}</lastmod>` : ""}${src ? `<image:image><image:loc>${esc(src)}</image:loc></image:image>` : ""}</url>`;
   });
   return xml(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${rows.join("\n")}\n</urlset>`);
 }
@@ -1156,10 +1201,133 @@ const AGENT_STYLES = {
 const AGENT_STYLE_RE = new RegExp(`^/(${AGENT_BRAND_AGENTS.join("|")})-spreadsheet/(${Object.keys(AGENT_STYLES).join("|")})$`);
 const inBudget = (p, max) => !isPH(p.cny) && p.cny <= max;
 
+// ------------------------------------------------------------------ marketplace spreadsheets (9 Nov 2026)
+// /weidian-spreadsheet, /taobao-spreadsheet and /1688-spreadsheet: the finds of one marketplace, most viewed first. An SEO
+// audit found no page of ours in Google's top 20 for "weidian spreadsheet", while the Weidian guide had 2,086 impressions in
+// 28 days, and about nine in ten finds are Weidian listings. Page 1 is the app (preset plat: index.html keeps only that
+// marketplace's finds), pages 2+ are server-rendered lists (renderPlat). Every number is counted from the catalogue when
+// the page renders. Facts only: no fees, delivery times or claims about agents beyond what the guides already say, the
+// agents are never ranked, and MyCNBox stays the default buy button.
+const PLAT_KEYS = ["weidian", "taobao", "1688"];
+function platFacts(key) {
+  const { all, brandSlug } = idx();
+  const list = all.filter(p => p.platform === key), n = list.length;
+  const priced = list.map(p => p.cny).filter(x => !isPH(x)).sort((a, b) => a - b);
+  const count = (get, ok) => { const m = new Map(); for (const p of list) { const k = get(p); if (ok(k)) m.set(k, (m.get(k) || 0) + 1); } return [...m].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]))); };
+  return { key, list, n, total: all.length, pct: all.length ? Math.round(n / all.length * 100) : 0, q1: list.filter(p => p.qc >= 1).length,
+    med: priced.length ? money(priced[Math.floor((priced.length - 1) / 2)]) : "",
+    brands: count(p => p.brand, b => b && brandSlug.has(b)), cats: count(p => p.cat, c => CATS[c] && c !== "Toys"),
+    idLen: count(p => String(p.itemId || p.id).length, () => true)[0] || [0, 0],
+    top: list.find(p => !gone(p)) || list[0] || { id: "" } };
+}
+const STEPS_OL = '<ol style="margin:10px 0 0;padding-left:20px;color:var(--muted);font-size:14.5px;line-height:1.6">';
+const agentLinks = () => andList(Object.keys(AGENT_INTRO).map(k => `<a href="/${k}-spreadsheet">${esc(AGENTS[k].name)}</a>`));
+const platHowTo = (name, pick) => `${STEPS_OL}
+<li><strong>Pick your agent.</strong> The Buy button on every find opens it in MyCNBox. The ${agentLinks()} spreadsheets open the same finds in that agent instead, and each find's own page has a buy button for all five.</li>
+<li><strong>Open the find and tap Buy.</strong> The ${name} listing opens inside the agent, which translates the options. ${pick}</li>
+<li><strong>Pay the agent.</strong> You pay for the item and the seller's delivery to the agent's warehouse in China. International shipping is paid later.</li>
+<li><strong>Check your QC photos.</strong> The agent photographs your item when it arrives. If something is wrong, you can usually ask for a return or exchange before it ships; fees and time limits depend on the agent and the seller.</li>
+<li><strong>Ship your parcel.</strong> Combine your items into one parcel, pick a shipping line and pay the international shipping.</li></ol>
+<p>Prefer video? Watch <a href="/how-to-order">how to order</a>. Not sure which agent to use? Read <a href="/guides/best-shopping-agent">how to choose a shopping agent</a>.</p>`;
+const platLinkTools = name => `The <a href="/tools/link-converter">link converter</a> turns a full ${name} link, or an agent link, into a buy link for every agent, and the <a href="/tools/qc-checker">QC photo finder</a> looks up buyer QC photos for it.`;
+const platQc = (f, name) => `<p>QC photos are real photos of your own item, taken by your agent when it reaches the warehouse in China, before anything ships abroad. Our catalogue marks ${nf(f.q1)} of the ${nf(f.n)} ${name} finds as having buyer QC photos from earlier orders: open a find and tap QC to see them before you buy, or browse only those finds on the <a href="/qc-spreadsheet">QC finder spreadsheet</a>.</p>
+<p>When your own photos arrive, compare the logo's shape, size and placement with retail photos, look for straight, even stitching, check the colour against the listing and make sure the size tag matches your order. Our guide on <a href="/guides/how-to-qc">how to read QC photos</a> goes through each check.</p>`;
+const platSize = name => `<p>Many ${name} sellers use Asian sizing, which often runs about one size smaller than EU or US sizing, but not always. Go by centimetres, not the size letter: lay a garment you own that fits flat, measure it and compare it with the seller's size chart, which your agent translates. If the chart is unclear, ask the warehouse to measure the item in the QC photos. See the <a href="/guides/sizing">rep sizing guide</a> or try the <a href="/tools/size-estimator">size estimator</a>.</p>`;
+const platShip = () => `<p>You pay for delivery twice. First the seller's delivery to your agent's warehouse in China, paid together with the item and often free or a few dollars. Then international shipping, paid when you send your parcel and charged on its weight and box size. Combining several finds into one parcel and leaving out shoe boxes you don't need keeps that cost down. Get a rough figure with the <a href="/tools/shipping-calculator">shipping calculator</a>, compare lines in <a href="/guides/shipping-lines">shipping lines explained</a>, and follow your country's import rules.</p>`;
+function platNumbers(f, name) {
+  const { brandSlug } = idx();
+  return `<p>${nf(f.n)} ${name} finds, ${f.pct}% of the ${nf(f.total)} finds on the spreadsheet, ${nf(f.q1)} of them marked as having buyer QC photos from earlier orders.${f.med ? ` Half are listed at ${f.med} or less: the sellers' listed prices from the catalogue update on ${BUILT_DAY}, before shipping.` : ""}</p>` +
+    (f.cats.length ? `<p>By category: ${andList(f.cats.slice(0, 4).map(([c, k]) => `<a href="/category/${CATS[c].slug}">${esc(CATS[c].name.toLowerCase())}</a> (${nf(k)})`))}.</p>` : "") +
+    (f.brands.length ? `<p>Brands with the most ${name} finds: ${andList(f.brands.slice(0, 8).map(([b, k]) => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a> (${nf(k)})`))}.</p>` : "");
+}
+const AFFILIATE = "Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you.";
+const PLAT_HUBS = {
+  weidian: { name: "Weidian",
+    desc: f => `The Weidian spreadsheet: ${nf(f.n)} rep finds from Weidian sellers, ${nf(f.q1)} marked as having buyer QC photos, with one-tap MyCNBox, KakoBuy and Oopbuy links.`,
+    about: f => [
+      ["What is Weidian?", `<p>Weidian (微店, "micro shop") is a Chinese shop platform, used mostly on phones, where independent sellers run their own small stores. It belongs to a different company from Taobao and 1688, which are part of Alibaba. Listings are in Chinese and most sellers only ship inside China, so buyers abroad order through a shopping agent: the agent buys the item, checks it at its warehouse and ships it on to you.</p>`],
+      ["Why most rep sellers are on Weidian", `<p>Weidian is built for small independent shops run from a phone, and its item links are easy to share in chats and on social media. That suits the way many rep sellers work. On this spreadsheet ${nf(f.n)} of the ${nf(f.total)} finds (${f.pct}%) are Weidian listings; the rest are on <a href="/taobao-spreadsheet">Taobao</a> and <a href="/1688-spreadsheet">1688</a>.</p>`],
+      ["What a Weidian link looks like", `<p>A Weidian listing link looks like <strong>weidian.com/item.html?itemID=${esc(f.top.itemId || f.top.id)}</strong> (the find at the top of this list). The number after itemID= is the item ID: ${nf(f.idLen[1])} of the ${nf(f.n)} Weidian IDs here are ${f.idLen[0]} digits long. Your agent needs the full link or that number.</p>
+<p>Links shared from the Weidian app are often short links (youshop10.com) without the item ID. Open one in your browser first and copy the full weidian.com link it leads to. ${platLinkTools("Weidian")}</p>`],
+      ["How to buy a Weidian find through any agent", platHowTo("Weidian", "Pick your size and colour.")],
+      ["Reading the QC photos of a Weidian find", platQc(f, "Weidian")],
+      ["Sizing on Weidian", platSize("Weidian")],
+      ["Shipping your Weidian finds", platShip()],
+      ["Weidian on the spreadsheet, in numbers", platNumbers(f, "Weidian") + (LINKS_CHECKED ? `<p>We check every Weidian find each week. The last check, on ${dayOf(LINKS_CHECKED)}, found ${nf(GONE_COUNTS.dead)} listings gone, which the spreadsheet hides, and ${nf(GONE_COUNTS.sold)} sold out, which their pages point out.</p>` : "")]],
+    faq: f => [
+      ["What is the Weidian spreadsheet?", `A list of the ${nf(f.n)} Weidian finds on Puro Classico, most viewed first, with the sellers' listed prices, buyer QC photos where our catalogue has them and a one-tap buy link for your shopping agent.`],
+      ["Can I buy from Weidian without an agent?", "Rarely, if you live outside China. Most Weidian sellers only ship inside China, and sign-up and payment are built around Chinese phone numbers and payment apps. A shopping agent buys the item for you, photographs it at its warehouse and ships it abroad."],
+      ["Where is the item ID in a Weidian link?", `It is the number after itemID= in a link like weidian.com/item.html?itemID=..., ${f.idLen[0]} digits long for ${nf(f.idLen[1])} of the ${nf(f.n)} finds here. A short link shared from the Weidian app has to be opened in a browser first to show the full link.`],
+      ["Which agents can buy Weidian items?", `MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo all take Weidian links. The Buy button on each find opens it in MyCNBox, and each find's page has a button for the other four. ${AFFILIATE}`],
+      ["Do Weidian finds have QC photos?", `Our catalogue marks ${nf(f.q1)} of the ${nf(f.n)} Weidian finds as having buyer QC photos from earlier orders. Your agent also photographs your own item at its warehouse before it ships.`],
+      LINKS_CHECKED ? ["Are the Weidian links still working?", `We check every Weidian find each week. The last check, on ${dayOf(LINKS_CHECKED)}, found ${nf(GONE_COUNTS.dead)} listings gone, which the spreadsheet hides, and ${nf(GONE_COUNTS.sold)} sold out, which their pages point out.`]
+        : ["Are the prices live?", `No. They are the sellers' listed prices from the catalogue update on ${BUILT_DAY}. Check the price in your agent before you pay.`]] },
+  taobao: { name: "Taobao",
+    desc: f => `The Taobao spreadsheet: ${nf(f.n)} rep finds from Taobao shops, ${nf(f.q1)} marked as having buyer QC photos, with one-tap links for MyCNBox, KakoBuy, Oopbuy and more.`,
+    about: f => [
+      ["What is Taobao?", `<p>Taobao is China's biggest online marketplace, run by Alibaba, with millions of independent shops. The site and its listings are in Chinese, and most sellers only ship inside China, so buyers abroad use a shopping agent that buys the item, checks it at its warehouse and ships it on to them.</p>`],
+      ["Taobao or Tmall?", `<p>Tmall is Taobao's branded-store side, where brands and large retailers run official stores, while Taobao itself is mostly independent shops. For you the difference is small: agents handle Tmall listings the same way, so a Tmall link opens in your agent just like a Taobao one.</p>`],
+      ["What a Taobao link looks like", `<p>A Taobao listing link looks like <strong>item.taobao.com/item.htm?id=${esc(f.top.itemId || f.top.id)}</strong> (the find at the top of this list), and a Tmall one like <strong>detail.tmall.com/item.htm?id=</strong> followed by the item ID. The number after id= is the item ID: ${nf(f.idLen[1])} of the ${nf(f.n)} Taobao IDs here are ${f.idLen[0]} digits long, a little longer than a Weidian ID.</p>
+<p>Links shared from the Taobao app are often short links (m.tb.cn) without the item ID. Open one in your browser first and copy the full link it leads to. ${platLinkTools("Taobao")}</p>`],
+      ["Taobao, Weidian or 1688?", (() => { const w = platFacts("weidian").n, a = platFacts("1688").n;
+        return `<p>Most rep sellers list on Weidian: ${nf(w)} of the ${nf(f.total)} finds here are <a href="/weidian-spreadsheet">Weidian listings</a>, against ${nf(f.n)} on Taobao and ${nf(a)} on <a href="/1688-spreadsheet">1688</a>. Taobao has the biggest range of shops, and quality varies from shop to shop, so check the shop's ratings and recent reviews inside your agent and look for buyer QC photos before you order.</p>`; })()],
+      ["How to buy a Taobao find through any agent", platHowTo("Taobao", "Pick your size and colour.")],
+      ["Reading the QC photos of a Taobao find", platQc(f, "Taobao")],
+      ["Sizing on Taobao", platSize("Taobao")],
+      ["Shipping your Taobao finds", platShip()],
+      ["Taobao on the spreadsheet, in numbers", platNumbers(f, "Taobao")]],
+    faq: f => [
+      ["What is the Taobao spreadsheet?", `A list of the ${nf(f.n)} Taobao finds on Puro Classico, most viewed first, with the sellers' listed prices, buyer QC photos where our catalogue has them and a one-tap buy link for your shopping agent.`],
+      ["Does Taobao ship internationally?", "Some items can be sent abroad through Taobao's own programme, but most sellers only ship inside China, so buyers abroad usually order through a shopping agent."],
+      ["Is Tmall the same as Taobao?", "Tmall is Taobao's branded-store side, run by the same company. Agents handle Tmall and Taobao links the same way."],
+      ["Where is the item ID in a Taobao link?", `It is the number after id= in a link like item.taobao.com/item.htm?id=..., ${f.idLen[0]} digits long for ${nf(f.idLen[1])} of the ${nf(f.n)} finds here. A short link shared from the Taobao app has to be opened in a browser first to show the full link.`],
+      ["Do Taobao finds have QC photos?", `Our catalogue marks ${nf(f.q1)} of the ${nf(f.n)} Taobao finds as having buyer QC photos from earlier orders. Your agent also photographs your own item at its warehouse before it ships.`],
+      ["Which agents can buy Taobao items?", `MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo all take Taobao and Tmall links. The Buy button on each find opens it in MyCNBox, and each find's page has a button for the other four. ${AFFILIATE}`]] },
+  "1688": { name: "1688",
+    desc: f => `The 1688 spreadsheet: ${nf(f.n)} rep finds from 1688 wholesale sellers, ${nf(f.q1)} marked as having buyer QC photos, with one-tap links for MyCNBox, KakoBuy and more.`,
+    about: f => [
+      ["What is 1688?", `<p>1688.com is Alibaba's domestic wholesale marketplace, built for Chinese businesses that buy from factories and wholesalers. Prices are often close to factory prices, but the site is in Chinese and made for buyers inside China, so buyers abroad order through a shopping agent.</p>`],
+      ["Minimum quantities and tiered prices", `<p>Some 1688 listings require several pieces per order, and prices are often tiered: cheaper per piece as the quantity goes up. Many clothing sellers allow single pieces, and your agent shows the minimum before you pay. Listing photos and titles are often plain, so buyer QC photos matter more here: our catalogue marks ${nf(f.q1)} of the ${nf(f.n)} 1688 finds as having them (the <a href="/qc-spreadsheet">QC finder spreadsheet</a> lists every find with QC photos).</p>`],
+      ["What a 1688 link looks like", `<p>A 1688 listing link looks like <strong>detail.1688.com/offer/${esc(f.top.itemId || f.top.id)}.html</strong> (the find at the top of this list). The number after offer/ is the item ID: ${nf(f.idLen[1])} of the ${nf(f.n)} 1688 IDs here are ${f.idLen[0]} digits long. Links shared from the 1688 app (qr.1688.com) are short links: open one in your browser first and copy the full link. ${platLinkTools("1688")}</p>`],
+      ["How to buy a 1688 find through any agent", platHowTo("1688", "Check the minimum quantity, then pick your size and colour.")],
+      ["1688 on the spreadsheet, in numbers", platNumbers(f, "1688")]],
+    faq: f => [
+      ["What is the 1688 spreadsheet?", `A list of the ${nf(f.n)} 1688 finds on Puro Classico, most viewed first, with the sellers' listed prices, buyer QC photos where our catalogue has them and a one-tap buy link for your shopping agent.`],
+      ["Can I buy a single item on 1688?", "Often yes for clothing and accessories, but some listings have a minimum order quantity. Your agent shows it before you pay."],
+      ["Where is the item ID in a 1688 link?", `It is the number after offer/ in a link like detail.1688.com/offer/....html, ${f.idLen[0]} digits long for ${nf(f.idLen[1])} of the ${nf(f.n)} finds here.`],
+      ["Do 1688 finds have QC photos?", `Our catalogue marks ${nf(f.q1)} of the ${nf(f.n)} 1688 finds as having buyer QC photos from earlier orders. Your agent also photographs your own item at its warehouse before it ships.`],
+      ["Which agents can buy 1688 items?", `MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo all take 1688 links. The Buy button on each find opens it in MyCNBox, and each find's page has a button for the other four. ${AFFILIATE}`]] },
+};
+const platOthers = key => PLAT_KEYS.filter(k => k !== key).map(k => [`${PLAT_HUBS[k].name} spreadsheet`, `/${k}-spreadsheet`]);
+const PLAT_CHIPS = ["Spreadsheets by marketplace", PLAT_KEYS.map(k => [`${PLAT_HUBS[k].name} spreadsheet`, `/${k}-spreadsheet`])];
+function platSpec(key) {
+  const h = PLAT_HUBS[key], f = platFacts(key), N = nf(f.n), path = `/${key}-spreadsheet`, { brandSlug } = idx();
+  return { path, preset: { plat: key }, h: `${h.name} Spreadsheet`,
+    sub: `${N} finds from ${h.name}, most viewed first, each with a one-tap buy link for your shopping agent.`, linkCheck: key === "weidian",
+    title: `${h.name} Spreadsheet 2026: ${N} Rep Finds | Puro Classico`, desc: h.desc(f),
+    crumbs: [["Home", "/"], [`${h.name} spreadsheet`, path]],
+    aboutTitle: `About ${h.name} finds`, about: h.about(f),
+    chips: [[`Top brands on ${h.name}`, f.brands.slice(0, 16).map(([b, k]) => [`${b} (${nf(k)})`, `/brand/${brandSlug.get(b)}`])],
+            [`Buy ${h.name} finds with your agent`, Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["How to order", "/how-to-order"], [`How to buy from ${h.name}`, `/guides/how-to-buy-from-${key}`]])],
+            ["Spreadsheets by marketplace", platOthers(key).concat([["QC finder spreadsheet", "/qc-spreadsheet"], ["All finds", "/"]])]],
+    faq: h.faq(f), f };
+}
+// Pages 2+ of a marketplace spreadsheet (page 1 is the app, hubSpec). Same list and order as the app's first page.
+export function renderPlat(key, n) {
+  if (!PLAT_KEYS.includes(key)) return null;
+  const s = platSpec(key), f = s.f, name = PLAT_HUBS[key].name, { brandSlug } = idx(), pr = priceRange(f.list);
+  const chips = `<div class="chips">${f.brands.slice(0, 16).map(([b]) => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}</div>` +
+    `<div class="chips">${platOthers(key).concat([["QC finder spreadsheet", "/qc-spreadsheet"]]).map(([t, u]) => `<a href="${u}">${esc(t)}</a>`).join("")}<a href="/guides/how-to-buy-from-${key}">How to buy from ${esc(name)}</a></div>`;
+  return hub({ path: s.path, n, list: f.list, title: s.title,
+    desc: n > 1 ? `Page ${n} of the ${nf(f.n)} ${name} rep finds on Puro Classico${pr ? `, with prices (${pr})` : ""}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.` : s.desc,
+    h1: s.h, intro: `<p class="lead">${esc(s.sub)}</p>`, trail: s.crumbs, chips, faq: s.faq, idxFirst: true, full: name, ldCount: f.n });
+}
+
 export function hubSpec(path) {
   const { all, slugBrand, byBrand, brandSlug, byCat } = idx();
   const nf = n => n.toLocaleString("en-US");
   let m;
+  if ((m = path.match(/^\/(weidian|taobao|1688)-spreadsheet$/))) { const { f, ...spec } = platSpec(m[1]); return spec; }
   if ((m = path.match(/^\/(stockholm|grisch)-spreadsheet$/))) {
     const st = STYLE_HUBS[m[1]], have = st.brands.filter(b => byBrand.has(b));
     const n = nf(have.reduce((t, b) => t + byBrand.get(b).length, 0));
@@ -1175,17 +1343,19 @@ export function hubSpec(path) {
   // clicks, and no page answered it directly. Finds the catalogue marks as having buyer QC photos, on every agent.
   if (path === "/qc-spreadsheet") {
     const q1 = all.filter(p => p.qc >= 1).length, q2 = all.filter(p => p.qc >= 2).length, n = nf(q1);
-    return { path, preset: { qc: 1 }, h: "QC Photos Spreadsheet",
+    // 9 Nov 2026: also aimed at "QC finder" and "QC photo finder" searches; "QC photos" stays in the title and h1.
+    return { path, preset: { qc: 1 }, h: "QC Finder: Finds With QC Photos",
       sub: `${n} finds with buyer QC photos from earlier orders. Tap QC on a find to see real photos of the item before you buy.`,
-      title: `QC Photos Spreadsheet 2026: ${n} Finds With Real QC Pics | Puro Classico`,
-      desc: `${n} rep finds marked as having buyer QC photos from earlier orders, with prices and one-tap links for MyCNBox, KakoBuy, Oopbuy and Sugargoo.`,
-      crumbs: [["Home", "/"], ["QC photos spreadsheet", path]],
+      title: `QC Finder Spreadsheet 2026: ${n} Finds With QC Photos | Puro Classico`,
+      desc: `QC finder for reps: ${n} finds marked as having buyer QC photos from earlier orders, with prices and one-tap links for MyCNBox, KakoBuy, Oopbuy and more.`,
+      crumbs: [["Home", "/"], ["QC finder spreadsheet", path]],
       chips: [["QC photos on your agent", AGENT_BRAND_AGENTS.map(k => [AGENTS[k].name, `/${k}-spreadsheet/qc`])],
-              ["Check QC photos yourself", [["How to read QC photos", "/guides/how-to-qc"], ["QC checker", "/tools/qc-checker"]]],
-              ["Agent spreadsheets", Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])]],
+              ["Check QC photos yourself", [["How to read QC photos", "/guides/how-to-qc"], ["QC photo finder for any link", "/tools/qc-checker"]]],
+              ["Agent spreadsheets", Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])], PLAT_CHIPS],
       faq: [["What are QC photos?", "QC (quality check) photos are real photos of the exact item a buyer ordered, taken by the shopping agent when it reaches the warehouse in China. They show the stitching, logos, colour and size tag before you pay for international shipping."],
             ["Where do these QC photos come from?", `From earlier buyers' orders of the same listing. Our catalogue marks ${n} finds as having them and stores the photo count for ${nf(q2)} of them. Open a find and tap QC to load them.`],
             ["Will I get QC photos of my own item?", "Yes. Your agent photographs your exact item at its warehouse before it ships, so you can return or exchange it if something is wrong."],
+            ["Can I find QC photos for a link that is not here?", "Yes. Paste a Weidian, Taobao, 1688 or shopping agent link, or just the item ID, into our QC photo finder. It shows buyer QC photos from earlier orders when anyone has bought that listing through an agent."],
             ["What should I check in QC photos?", "Logo shape and placement, stitching, colour against retail photos, the size tag and any measurements. Our guide on how to read QC photos goes through it step by step."],
             ["Is the spreadsheet free?", "Yes. You only pay your agent for what you order and for shipping. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you."]] };
   }
@@ -1198,7 +1368,7 @@ export function hubSpec(path) {
       crumbs: [["Home", "/"], ["CNFans spreadsheet", path]],
       chips: [["Use your old CNFans links", [["Link converter", "/tools/link-converter"], ["Agents that closed or paused", "/guides/pandabuy-alternatives"]]],
               ["Agent spreadsheets that open every find", Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])],
-              ["Spreadsheets by style", [["Grisch spreadsheet", "/grisch-spreadsheet"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Old money spreadsheet", "/old-money"]]]],
+              ["Spreadsheets by style", [["Grisch spreadsheet", "/grisch-spreadsheet"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Old money spreadsheet", "/old-money"]]], PLAT_CHIPS],
       faq: [["Is CNFans down?", `When we checked cnfans.com on ${CNFANS.checked}, it showed a website maintenance notice instead of the shop. We will update this page when that changes.`],
             ["Do my old CNFans links still work?", "Paste an old CNFans product link into our link converter. It reads the Weidian, Taobao or 1688 item from the link and opens the same item in another agent."],
             ["How do I switch from CNFans to another agent?", "Open a find, tap the buy button for the agent you want, create a free account there and pay for the item plus delivery to the warehouse. The seller and the item stay the same; only the agent that buys, checks and ships it changes."],
@@ -1240,7 +1410,7 @@ export function hubSpec(path) {
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, path]],
       chips: [...(AGENT_BRAND_AGENTS.includes(key) ? [[`Browse on ${a.name}`, Object.keys(AGENT_STYLES).map(x => [AGENT_STYLES[x].name, `${path}/${x}`])]] : []),
               [`Popular brands on ${a.name}`, brands.slice(0, 16).map(b => [`${b} (${nf(byBrand.get(b).length)})`, `${path}/${brandSlug.get(b)}`])],
-              ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"], ["QC photos spreadsheet", "/qc-spreadsheet"]])]],
+              ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"], ["QC finder spreadsheet", "/qc-spreadsheet"]])], PLAT_CHIPS],
       faq: [[`What is the ${a.name} spreadsheet?`, `A searchable list of ${N} Weidian, Taobao and 1688 finds. Every find opens directly in ${a.name}, so there is nothing to copy or translate.`],
             [`How do I order with ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the warehouse. Check the QC photos, then ship your parcel.`],
             [`Is this the official ${a.name} spreadsheet?`, `No. Puro Classico is an independent spreadsheet. Ordering, payment, QC photos and shipping all happen on ${a.name}. Our links to ${a.name} are affiliate links: we may earn a commission if you order, at no extra cost to you.`],
@@ -1249,7 +1419,7 @@ export function hubSpec(path) {
             ["Are the prices live?", `No. They are the sellers' listed prices from the last catalogue update on ${day(BUILT)}. Check the price on ${a.name} before you pay.`],
             [`Is it free?`, `Yes. You only pay ${a.name} for what you order and for shipping. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you.`]] };
   }
-  if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|sugargoo)-spreadsheet\/([a-z][a-z0-9-]*)$/))) {
+  if ((m = path.match(new RegExp(`^/(${AGENT_BRAND_AGENTS.join("|")})-spreadsheet/([a-z][a-z0-9-]*)$`)))) {
     const key = m[1], s = m[2], a = AGENTS[key], b = slugBrand.get(s);
     if (!a || !b || !agentBrands().includes(b)) return null;
     const n = nf(byBrand.get(b).length), f = brandFacts(b), range = priceRange(f.list);
@@ -1265,7 +1435,7 @@ export function hubSpec(path) {
       faq: [[`How do I buy ${b} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, choose your size and pay. ${a.name} sends QC photos when it reaches the warehouse; check them, then ship.`],
             ...(range ? [[`How much do ${b} reps cost on ${a.name}?`, `${b} finds here are listed at ${range} before international shipping. These are the sellers' listed prices from the last catalogue update, so check the price on ${a.name} before you pay.`]] : []),
             [`Do these ${b} finds have QC photos?`, f.q1 ? `Our catalogue marks ${nf(f.q1)} of the ${n} as having buyer QC photos from earlier orders. Open a find and tap QC to load them. ${a.name} also photographs your own item at its warehouse before it ships.` : `Our catalogue does not mark any of them as having buyer QC photos yet. ${a.name} photographs your own item at its warehouse before it ships.`],
-            [`Are these ${b} finds only for ${a.name}?`, `No. The same finds open on ${AGENT_BRAND_AGENTS.filter(k => k !== key).map(k => AGENTS[k].name).join(", ")} and LoveGoBuy; each find has a button for every agent.`]] };
+            [`Are these ${b} finds only for ${a.name}?`, `No. The same finds open on ${andList(AGENT_BRAND_AGENTS.filter(k => k !== key).map(k => AGENTS[k].name))}; each find has a button for every agent.`]] };
   }
   if ((m = path.match(/^\/brand\/([a-z0-9-]+)$/))) {
     const s = m[1], b = slugBrand.get(s); if (!b) return null;
@@ -1310,8 +1480,9 @@ export function hubSpec(path) {
 // The HTML pieces the middleware puts into index.html for a hub spec. `more` (the links to pages 2+) opens the block.
 // Icons for the hub-seo block (styles: index.html): h2s by title, about summaries by question.
 const HUB_H2_IC = [[/^About/, "info"], [/Best reps by model/, "award"], [/with your agent|on your agent|agents?\b/i, "users"], [/Related brands|Top brands|Brands in the/, "tag"],
-  [/Other categories/, "grid"], [/Browse page by page/, "layers"], [/More old money|More /, "layers"], [/^FAQ$/, "help"]];
-const HUB_SUM_IC = [[/^What to check/, "camera"], [/in numbers/, "chart"], [/^Buying|^Ordering|order from|step by step/i, "cart"], [/^What is/, "info"]];
+  [/Other categories/, "grid"], [/Browse page by page/, "layers"], [/More old money|More /, "layers"], [/marketplace/i, "store"], [/^FAQ$/, "help"]];
+const HUB_SUM_IC = [[/^What to check/, "camera"], [/in numbers/, "chart"], [/^Buying|^Ordering|order from|step by step/i, "cart"], [/^What is/, "info"],
+  [/link looks like/, "link"], [/^How to buy/, "cart"], [/QC photos/, "camera"], [/^Sizing/, "ruler"], [/^Shipping/, "truck"], [/^Minimum/, "box"], [/^Why|^Taobao or|^Taobao, /, "store"]];
 export function hubParts(spec, more = "") {
   const bc = crumbs(spec.crumbs);
   const crumbHtml = `<nav class="hub-bc" aria-label="Breadcrumb">${spec.crumbs.map((c, i) => i < spec.crumbs.length - 1 ? `<a href="${c[1]}">${esc(c[0])}</a><span aria-hidden="true">›</span>` : `<span aria-current="page">${esc(c[0])}</span>`).join("")}</nav>`;
@@ -1320,7 +1491,7 @@ export function hubParts(spec, more = "") {
   const seo = `<section class="hub-seo">${more}${about}${spec.chips.filter(c => c[1].length).map(([t, links]) => `${h2(t)}<div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${chipIcon(u)}${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `${h2("FAQ")}${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
   const ld = [bc.data]; if (spec.faq.length) ld.push(faqLd(spec.faq));
   const page = { h: spec.h, sub: spec.sub, agent: spec.preset.agent || null, brand: spec.preset.brand || null, cat: spec.preset.cat || null, brands: spec.preset.brands || null,
-    qc: spec.preset.qc || null, pmax: spec.preset.pmax || null };
+    qc: spec.preset.qc || null, pmax: spec.preset.pmax || null, ...(spec.preset.plat ? { plat: spec.preset.plat } : {}) };
   const head = `<script>window.PC_PAGE=${JSON.stringify(page).replace(/</g, "\\u003c")};document.documentElement.classList.add("hub"${page.agent ? ',"agent-lock"' : ""}${page.brand || page.cat ? ',"af-pre"' : ""});</script>` +
     ld.map(o => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, "\\u003c") + "</script>").join("");
   return { crumbHtml, seo, head };
@@ -1338,6 +1509,7 @@ export const APP_CARDS = PER_PAGE;
 export function hubList(spec) {
   const { all, byBrand, byCat, slugBrand } = idx();
   const pr = spec ? spec.preset : {};
+  if (pr.plat) return { list: all.filter(p => p.platform === pr.plat), base: `/${pr.plat}-spreadsheet` };
   if (pr.qc) return { list: all.filter(p => p.qc >= pr.qc), base: null };
   if (pr.pmax) return { list: all.filter(p => inBudget(p, pr.pmax)), base: null };
   if (pr.brands) { const want = new Set(pr.brands); return { list: [...byBrand].filter(([b]) => want.has(slug(b))).flatMap(([, l]) => l).sort((a, b) => score(b) - score(a)), base: null }; }

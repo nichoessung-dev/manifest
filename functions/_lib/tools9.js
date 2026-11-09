@@ -202,7 +202,7 @@ const unitIn = (id, unit, attrs) => `<div class="tk-unitwrap"><input class="tk-i
 // ------------------------------------------------------------------ copy and meta
 export const TOOLS9 = {
   "shipping-calculator": { name: "Shipping Calculator", h1: "Know Your Shipping Cost Before You Pay",
-    title: "Rep Shipping Calculator: Estimate Parcel Weight and Shipping Cost · Puro Classico",
+    title: "Rep Shipping Calculator: Estimate Weight and Shipping Cost · Puro Classico",
     desc: "Add your items or type a weight and get a ballpark shipping cost from China for economy, registered and express lines. Free, no sign-up.",
     lead: "Pick your country, add the items in your haul (or type a weight) and see a ballpark cost for the common line types.",
     about: "<p>Item weights are typical shipped weights with light packaging. Your agent weighs the real parcel, and shoe boxes and puffers take extra space, which can raise the <a href=\"/guides/shipping-lines\">volumetric weight</a>. Prices are estimates only: the real price depends on the agent, line, box size and current promotions, so always check your agent's own estimator before paying.</p>",
@@ -210,7 +210,7 @@ export const TOOLS9 = {
       ["How heavy is a hoodie or a pair of sneakers when shipped?", "As a rough guide a hoodie ships at about 700 g and sneakers at about 900 g without the box or 1.3 kg with it. Your agent weighs the real parcel before you pay for shipping."],
       ["How do I make shipping cheaper?", "Remove shoe boxes you don't need, combine items into one parcel and compare two or three lines for your country in your agent's estimator."]] },
   "size-estimator": { name: "Size Estimator", h1: "Know Your Size Before You Order",
-    title: "Rep Size Estimator: Asian Size to EU/US From Height and Weight · Puro Classico",
+    title: "Rep Size Estimator: Asian to EU/US Size by Height and Weight · Puro Classico",
     desc: "Turn your height, weight and fit preference into a recommended Asian size and the EU/US equivalent for tops, hoodies, jackets, pants and sneakers. Or compare your own garment with the seller's chart.",
     lead: "Enter your height, weight and the fit you like. Get the size label to look for on Weidian and Taobao charts, with the EU/US equivalent.",
     about: "<p>Many Weidian and Taobao sellers use Asian sizing, which tends to run about one size smaller than EU/US, so the estimate shows both. It is a starting point from body size, not a promise: cuts differ between sellers and models. The most reliable check is the second mode, where you compare a garment you own with the seller's chart in centimetres. More in our <a href=\"/guides/sizing\">rep sizing guide</a>.</p>",

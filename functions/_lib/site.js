@@ -148,7 +148,7 @@ export const AGENTS = {
 export const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 export const slug = s => String(s).toLowerCase().replace(/&/g, " and ").replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 // Prices: one source of truth, the CNY listing price × the same USD rate the SPA uses (CUR.USD.rate).
-// Seller placeholder prices (¥1–4 "ask me", ¥99,999+ "not for sale") are not real prices.
+// Seller placeholder prices (¥1 to 4 "ask me", ¥99,999+ "not for sale") are not real prices.
 export const USD_RATE = 0.14;
 // Prices in the visitor's currency (5 Nov 2026): the pages are cached for everyone, so they are rendered in USD with the
 // yuan price in a <small> next to it; this script swaps the dollar amount for the currency picked in the app
@@ -452,7 +452,7 @@ function footer() {
 ${col("Categories", Object.values(CATS).filter(c => c.slug !== "toys").map(c => [c.name, "/category/" + c.slug]))}
 ${col("Brands", topBrands.slice(0, half))}
 ${col("More brands", topBrands.slice(half).concat([["All brands →", "/brands"]]))}
-${col("Spreadsheets", [["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Old money spreadsheet", "/old-money"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Grisch spreadsheet", "/grisch-spreadsheet"]])}
+${col("Spreadsheets", [["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Weidian spreadsheet", "/weidian-spreadsheet"], ["Taobao spreadsheet", "/taobao-spreadsheet"], ["1688 spreadsheet", "/1688-spreadsheet"], ["Old money spreadsheet", "/old-money"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Grisch spreadsheet", "/grisch-spreadsheet"]])}
 ${col("Guides", FOOTER_GUIDES.map(u => GUIDE_LINKS.find(g => g[1] === u)).filter(Boolean).concat([["All guides →", "/guides"]]))}
 ${col("Tools & best reps", TOOL_LINKS.concat([["Best reps by model →", "/best"]]))}
 ${col("Puro Classico", [["Browse all finds", "/"], ["How we check", "/guides/how-we-check"], ["Discord community", "/discord"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
@@ -535,7 +535,7 @@ const SEARCH_BOOT_JS = `<script id="pcs-boot" data-v="${BUILT}">(function(){var 
 // MyCNBox pill once it was used (the app's "pc.mycnbox.cta" key) and shows "@name" for a signed-in visitor.
 // Before the first paint, like the app: no MyCNBox pill once it was used, "@name" for a signed-in visitor (supabase-js
 // keeps the session under sb-<project>-auth-token; the app's sign-in button shows the part of the e-mail before the @).
-const CTA_GONE_JS = `<script>try{if(localStorage.getItem("pc.mycnbox.cta")){var _mb=document.getElementById("pc-mycnbox-btn");_mb.parentNode.removeChild(_mb)}}catch(e){}</script>`;
+const CTA_GONE_JS = ``;
 const AUTH_NAME_JS = `<script>try{var _s=JSON.parse(localStorage.getItem("sb-uptpghuduqjqmrxwatbm-auth-token")||"null"),_u=_s&&(_s.user||(_s.currentSession&&_s.currentSession.user)),_e=_u&&_u.email;if(_e){var _a=document.getElementById("auth-btn");_a.textContent="@"+String(_e).split("@")[0];_a.setAttribute("data-in","1");_a.href="/"}}catch(e){}</script>`;
 export function header(path = "") {
   const on = navKey(path), cur = u => NAV_KEY[u] === on ? ' aria-current="page"' : "";
