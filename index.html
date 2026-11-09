@@ -2713,6 +2713,12 @@ html #drawer .pc-askrow>.ic{width:16px;height:16px;color:var(--muted);transition
 @media (hover:hover){html #drawer .pc-askrow:hover .pc-askic{background:color-mix(in srgb,var(--ink) 10%,var(--surface-2))}html #drawer .pc-askrow:hover>.ic{transform:translateX(2px)}}
 /* owner, 9 Nov 2026: no Sources filter */
 .fsel:has(> #f-source),.fsel:has(> #pp-source){display:none!important}
+/* owner, 9 Nov 2026: "Continue as guest" way smaller and more subtle */
+html .gate-guest{min-height:32px;margin-top:2px;padding:0 10px;font-size:11px;color:var(--muted)!important;opacity:.75;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);text-underline-offset:2px}
+@media (hover:hover){html .gate-guest:hover{opacity:1}}
+/* 9 Nov 2026, layout jumps (CLS 0.26 on phones): row placeholders as tall as the real rows */
+html .v9-rail .sk-card .sk-p{margin-top:21px}
+@media (max-width:560px){html .v9-rail .sk-card .sk-p{margin-top:20px}}
 html #drawer .pc-beta{margin-top:18px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 html #drawer .pcb-h{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px}
 html #drawer .pcb-tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
@@ -2802,7 +2808,7 @@ html .pc-dens{border-color:transparent!important;background:var(--surface-2)!imp
     <div class="pcs-hd" id="pcs-hd"><form class="pcs-hf" action="/" method="get" role="search"><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><input class="pcs-hi" id="pcs-hi" name="q" type="search" placeholder="Search finds" aria-label="Search finds" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search"><kbd class="pcs-kbd" aria-hidden="true">⌘K</kbd></form><button class="pcs-hb" id="pcs-hb" type="button" aria-label="Search finds"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button></div>
     <div class="mast-tools">
       <div class="mast-div" aria-hidden="true"></div>
-      <a id="pc-mycnbox-btn" class="pc-mycnbox-btn" href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" target="_blank" rel="sponsored noopener" data-i18n="mycnbox_cta">Make an account with MyCNBox</a><script>try{if(localStorage.getItem("pc.mycnbox.cta")){var _mb=document.getElementById("pc-mycnbox-btn");_mb.parentNode.removeChild(_mb);}}catch(e){}</script>
+      <!-- owner, 9 Nov 2026: header "Make an account with MyCNBox" button removed -->
       <button class="auth-btn" id="auth-btn" data-in="0">Sign in</button>
       <a class="icon-btn" href="/discord" target="_blank" rel="noopener" aria-label="Discord" title="Join our Discord"><img src="/img/agents/discord.webp" alt="Discord" onerror="this.parentElement.innerHTML='&#128172;'"></a>
       <button class="set-btn" id="set-btn" type="button" aria-expanded="false" aria-label="Language, currency, agent and theme" aria-controls="v9-prefs" title="Language, currency and agent"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-globe"/></svg></button>
@@ -4447,8 +4453,10 @@ function render(){
   } else {
     /* r6: the grid keeps its height while the list swaps (no jump of what sits below), released after the new cards land */
     const _first=!_shownSig, _h0=_first?0:grid.offsetHeight; if(_h0){ grid.style.minHeight=_h0+"px"; clearTimeout(grid.__mh); grid.__mh=setTimeout(()=>{ grid.style.minHeight=""; },260); }
+    const _ssrN=_first?grid.querySelectorAll("[data-ssr]").length:0;   /* cards the server sent */
     _shownSig=sig; grid.innerHTML="";
     _rlist=list; _rn=0; _renderChunk();
+    while(_rn<Math.min(_ssrN,_rlist.length)) _renderChunk();   /* first draw: as many cards as the server sent (no jump) */
     /* scrolled past the top of the (now shorter) grid: jump back to its start instead of clamping onto the footer */
     const gt=_first?0:grid.getBoundingClientRect().top; if(gt<0){ const d=document.querySelector(".deck"); window.scrollTo(0,Math.max(0,window.scrollY+gt-((d&&d.offsetHeight)||0)-12)); }
   }
@@ -6884,6 +6892,7 @@ function wirePPFilters(){
   function mark(k){put(k,"1");}
   function convert(){ mark(CTA); var b=document.getElementById("pc-mycnbox-btn"); if(b&&b.parentNode) b.parentNode.removeChild(b); }
   function mountBtn(){
+    return;   /* owner, 9 Nov 2026: no "Make an account with MyCNBox" button in the header */
     if(has(CTA)) return;
     var ex=document.getElementById("pc-mycnbox-btn");   /* rendered in the HTML (no layout shift); just wire it up */
     if(ex){ if(!ex.__pc){ ex.__pc=1; ex.addEventListener("click",function(){ setTimeout(convert,0); }); } return; }   /* a real link (track.js counts it); removed after the click, since removing a link during its own click cancels it */
@@ -7031,6 +7040,7 @@ function wirePPFilters(){
     requestAnimationFrame(function(){ ov.classList.add("on"); focusIn(); });
   }
   function show(){
+    return;   /* owner, 9 Nov 2026: "remove the make a MyCNBox account popup": it never opens by itself any more */
     if(shown||get(WELCOME)===DONE||window.__hadSavedState) return;   /* r13: a visitor who already has saved preferences (agent, currency) never gets asked again */
     if(busy()){ setTimeout(show,2000); return; }
     open(1);
