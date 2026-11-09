@@ -6455,7 +6455,8 @@ function wirePPFilters(){
     Object.keys(sw).forEach(function (from) {
       var to = B[sw[from]]; if (!to || sold(to)) return;
       var i = -1; items.forEach(function (p, k) { if (String(p.id) === from) i = k; });
-      if (i >= 0 && !items.some(function (p) { return String(p.id) === sw[from]; })) items[i] = to;
+      if (i < 0) return;
+      if (items.some(function (p) { return String(p.id) === sw[from]; })) items.splice(i, 1); else items[i] = to;
     });
     return items;
   }
@@ -6473,7 +6474,8 @@ function wirePPFilters(){
       var rail = sec.querySelector(".v9-rail"); if (!rail) return;
       wireRow(sec);
       var c = sec.getAttribute("data-row"), items;
-      if (c === "pop") { items = popPicks(); if (items.length < 4) { items = pick(pool, "", skip); items.forEach(function (p) { skip[p.id] = 1; }); } }
+      /* the most popular 16 are still set aside first, as before, so the category rows below keep the finds they had */
+      if (c === "pop") { var top = pick(pool, "", skip); top.forEach(function (p) { skip[p.id] = 1; }); items = popPicks(); if (items.length < 4) items = top; }
       else { items = swapIn(pick(pool, c, skip), c); items.forEach(function (p) { skip[p.id] = 1; }); }
       /* a row the visitor has scrolled keeps its cards when only the background data changed */
       if (!force && built && sl[n] > 4) return;
