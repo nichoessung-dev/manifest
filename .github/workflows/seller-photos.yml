@@ -1,0 +1,124 @@
+name: Seller photos
+# Better main photos for Weidian finds, from the seller's OWN listing photos (owner approved, 10 Nov 2026):
+# scripts/seller_photos.py looks each listing up on Weidian's public item API (one request at a time, paced like the
+# weekly link check), keeps seller photos of 900 px or more, lets a vision model choose the clean photo of the same
+# item and colour (it only chooses, it never draws or edits), cuts it out with clean_photos.py's pipeline (no
+# upscaler) and saves img/p2/<id>.webp + data/seller_photos.json. Before/after contact sheets are in the artifacts.
+# The site only changes with apply=yes (scripts/apply_seller_photos.py, revert log data/seller_photos_applied.json).
+# Weekly run: a modest batch, NOT applied, unless the repository variable SELLER_PHOTOS_AUTO_APPLY is set to yes.
+on:
+  schedule:
+    - cron: '23 4 * * 4'   # Thursdays; the link check uses the same Weidian API on Mondays
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Finds this run (0 = only apply what is ready)'
+        default: '50'
+      max_usd:
+        description: 'Hard stop for the picker spend this run (USD)'
+        default: '5'
+      model:
+        description: 'Vision model that picks the photo: claude-haiku-5-5 (default) or claude-sonnet-5-5'
+        default: 'claude-haiku-5-5'
+      ids:
+        description: 'Only these ids (comma separated; optional)'
+        default: ''
+      redo:
+        description: 'Do finds again that are already done (a new file version)'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+      apply:
+        description: 'Show the new photos on the site (writes index.html)'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+permissions:
+  contents: write
+concurrency:
+  group: seller-photos
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    env:
+      LIMIT: ${{ inputs.limit || '150' }}
+      MAX_USD: ${{ inputs.max_usd || '5' }}
+      MODEL: ${{ inputs.model || 'claude-haiku-5-5' }}
+      IDS: ${{ inputs.ids }}
+      REDO: ${{ inputs.redo || 'no' }}
+      APPLY: ${{ github.event_name == 'schedule' && (vars.SELLER_PHOTOS_AUTO_APPLY == 'yes' && 'yes' || 'no') || inputs.apply || 'no' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check inputs
+        run: |
+          [[ "$LIMIT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::limit must be a number"; exit 1; }
+          [[ "$MAX_USD" =~ ^[0-9]{1,4}(\.[0-9]{1,2})?$ ]] || { echo "::error::max_usd must be a number"; exit 1; }
+          [[ "$MODEL" =~ ^claude-[a-z0-9-]{3,40}$ ]] || { echo "::error::model must be a claude-* model"; exit 1; }
+          [[ -z "$IDS" || "$IDS" =~ ^[0-9A-Za-z_,\ -]+$ ]] || { echo "::error::bad ids"; exit 1; }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install pillow anthropic "rembg[cpu]>=2.0.59,<3" numpy
+      - name: Cache background-removal model
+        uses: actions/cache@v4
+        with:
+          path: ~/.u2net
+          key: u2net-isnet-general-use-v1
+
+      - name: Find seller photos
+        if: env.LIMIT != '0'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          # exit code 3 = the Anthropic account is out of credit: what is done is kept and committed below
+          IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
+          RD=""; [ "$REDO" = "yes" ] && RD="--redo"
+          python -u scripts/seller_photos.py --limit "$LIMIT" $IDA $RD --model "$MODEL" --max-usd "$MAX_USD" \
+            --max-minutes 85 --rembg-model isnet-general-use --sheets out/seller-sheets
+
+      - name: Apply to index.html (only with apply=yes)
+        id: apply
+        if: env.APPLY == 'yes'
+        run: |
+          IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
+          python scripts/apply_seller_photos.py $IDA --write --report out/seller_photos_apply.md
+          # pushes made with the workflow token do not start other workflows, so regenerate the derived files here
+          # (what catalog-sync.yml would do)
+          python scripts/gen_catalog.py
+          python scripts/sync_catalog.py --no-thumbs
+
+      - name: Keep contact sheets and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seller-photos-${{ github.run_number }}
+          path: out/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Commit
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          [ -f data/seller_photos.json ] && git add data/seller_photos.json
+          [ -d img/p2 ] && git add img/p2
+          # no [skip ci]: Cloudflare Pages must deploy the new files (they are not shown until applied)
+          MSG="chore: seller photos ($(git diff --cached --name-only -- img/p2 | wc -l) files)"
+          if [ "$APPLY" = "yes" ] && [ "${{ steps.apply.outcome }}" = "success" ]; then
+            git add index.html functions/_lib/catalog.js products.json sitemap.xml
+            [ -f data/seller_photos_applied.json ] && git add data/seller_photos_applied.json
+            MSG="seller photos: apply"
+          fi
+          # never commit anything else (contact sheets and reports live in the artifacts)
+          git diff --cached --quiet && { echo "nothing to commit"; exit 0; }
+          git diff --cached --stat | tail -3
+          git commit -q -m "$MSG"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::could not push the results"; exit 1
