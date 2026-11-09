@@ -2714,6 +2714,12 @@ html #drawer .pc-askrow>.ic{width:16px;height:16px;color:var(--muted);transition
 /* owner, 9 Nov 2026: no Sources filter */
 .fsel:has(> #f-source),.fsel:has(> #pp-source){display:none!important}
 /* owner, 9 Nov 2026: "Continue as guest" way smaller and more subtle */
+/* owner, 9 Nov 2026: "google logo still glitches": our Google button is drawn like Google's own (logo pinned left, centred
+   medium text, 40px pill in a 44px box), so the swap to Google's button cannot be seen */
+html #gate-google,html #auth-google{position:relative;box-sizing:border-box;height:40px;min-height:40px;margin:2px 0 10px!important;padding:0 40px!important;border-radius:999px!important;border:1px solid #dadce0!important;background:#fff!important;color:#1f1f1f!important;font-family:"Google Sans",Roboto,Arial,sans-serif;font-weight:500;font-size:14px;letter-spacing:.25px;gap:0}
+html #gate-google .oi-img,html #auth-google .oi-img{position:absolute;left:12px;top:50%;transform:translateY(-50%);border-radius:0}
+@media (prefers-color-scheme:dark){html:not([data-theme="light"]) #gate-google,html:not([data-theme="light"]) #auth-google{background:#131314!important;color:#e3e3e3!important;border-color:#8e918f!important}}
+html[data-theme="dark"] #gate-google,html[data-theme="dark"] #auth-google{background:#131314!important;color:#e3e3e3!important;border-color:#8e918f!important}
 html .gate-guest{min-height:32px;margin-top:2px;padding:0 10px;font-size:11px;color:var(--muted)!important;opacity:.75;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);text-underline-offset:2px}
 @media (hover:hover){html .gate-guest:hover{opacity:1}}
 /* 9 Nov 2026, layout jumps (CLS 0.26 on phones): row placeholders as tall as the real rows */
@@ -5778,7 +5784,7 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
     const show=()=>{ if(done||!slot.isConnected) return; stop();
       /* take exactly our button's box, so swapping the two does not move anything */
       const h=b.offsetHeight, mb=getComputedStyle(b).marginBottom;
-      slot.style.height=Math.max(h||40,44)+"px"; slot.style.overflow="hidden"; slot.style.alignItems="center"; slot.style.marginBottom=mb;   /* fixed box: Google draws its frame taller for a moment, which moved the whole card */
+      slot.style.height=Math.max((h||40)+4,44)+"px"; slot.style.overflow="hidden"; slot.style.alignItems="center"; slot.style.marginBottom=Math.max(0,(parseFloat(mb)||0)-2)+"px";   /* fixed box: Google draws its frame taller for a moment, which moved the whole card */
       const had=document.activeElement===b; b.__gisHid=1; b.style.display="none";
       if(had){ const f=slot.querySelector("iframe"); try{ (f||slot).focus({preventScroll:true}); }catch(e){} } };
     try{ google.accounts.id.renderButton(slot,{type:"standard",theme:L.dark?"filled_black":"outline",size:"large",shape:"pill",
@@ -5786,7 +5792,8 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
     catch(e){ stop(); slot.remove(); b.__slot=null; return; }
     /* Google's button is an iframe: it counts as rendered once that frame has loaded. The observer sees the frame
        being added before it can load, so a fast (cached) frame is not missed */
-    const hook=()=>{ const f=slot.querySelector("iframe"); if(f&&!f.__gisHook){ f.__gisHook=1; f.addEventListener("load",show); } };
+    const later=()=>setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(show)),180);   /* 9 Nov 2026: let Google's frame paint first (no blank flash) */
+    const hook=()=>{ const f=slot.querySelector("iframe"); if(f&&!f.__gisHook){ f.__gisHook=1; f.addEventListener("load",later); } };
     try{ mo=new MutationObserver(hook); mo.observe(slot,{childList:true,subtree:true}); }catch(e){}
     hook();
     t=setTimeout(()=>{ if(done) return; stop();   /* never rendered: ours stays, and the next opening tries again */
