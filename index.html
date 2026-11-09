@@ -5218,7 +5218,8 @@ function thumbOf(u){ if(!u||!/(^|\.)puroclassico\.com$/.test(location.hostname))
 function cdnOf(u,w,q){ if(!u||!/(^|\.)puroclassico\.com$/.test(location.hostname)) return u; const o=location.origin, path=u.indexOf(o+"/")===0?u.slice(o.length):u;
   return /^\/(img\/|api\/img\?)/.test(path)?o+"/cdn-cgi/image/width="+w+",quality="+q+",format=auto"+path:u; }
 function thumbSet(u){ const a=thumbOf(u), b=cdnOf(u,720,80); return a===b?"":a+" 400w, "+b+" 720w"; }
-function bigOf(u){ return cdnOf(u,1400,85); }
+/* 9 Nov 2026: "&hd=2" gives the product view fresh Cloudflare copies, made from the full-size site photos (1200 px) */
+function bigOf(u){ const b=cdnOf(u,1400,85); return b!==u&&/\/api\/img\?/.test(b)?b+"&hd=2":b; }
 function imgFallback(im,p,seed){
   if(!im.dataset.r){ im.dataset.r="1"; const u=p.img||im.getAttribute("src")||"";  /* the full-size original when the resized copy failed */ if(u){ setTimeout(()=>{ if(im.isConnected) im.src=u+(u.indexOf("?")<0?"?":"&")+"r=1"; },700); return; } }
   if(!im.isConnected) return;
