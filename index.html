@@ -6454,10 +6454,23 @@ function wirePPFilters(){
   function shuffled(a, seed) { a = a.slice(); var x = (seed >>> 0) || 1;
     for (var i = a.length - 1; i > 0; i--) { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; var j = x % (i + 1), t = a[i]; a[i] = a[j]; a[j] = t; }
     return a; }
+  /* owner, 9 Nov 2026: "only have 1 Acne Studios at the time": at most ONE_BRAND[b] cards of brand b, and the same brand
+     never twice within 5 cards in a row (when the picks allow it) */
+  var ONE_BRAND = { "Acne Studios": 1 };
   function popPicks() {
     var B = {}; try { B = BY_ID || {}; } catch (e) {}
-    return shuffled(POP_PICKS, Math.floor(Date.now() / 7200000)).map(function (id) { return B[id]; })
-      .filter(function (p) { return p && p.img && !sold(p); }).slice(0, PER);   /* 16 of the picks per 2-hour window */
+    var left = shuffled(POP_PICKS, Math.floor(Date.now() / 7200000)).map(function (id) { return B[id]; })
+      .filter(function (p) { return p && p.img && !sold(p); });
+    var out = [], used = {};
+    var full = function (b) { return ONE_BRAND[b] && (used[b] || 0) >= ONE_BRAND[b]; };
+    while (out.length < PER && left.length) {
+      var recent = out.slice(-4).map(function (q) { return q.brand || ""; }), k = -1, i;
+      for (i = 0; i < left.length && k < 0; i++) { var b = left[i].brand || ""; if (!full(b) && recent.indexOf(b) < 0) k = i; }
+      for (i = 0; i < left.length && k < 0; i++) { if (!full(left[i].brand || "")) k = i; }
+      if (k < 0) break;
+      var p = left.splice(k, 1)[0]; used[p.brand || ""] = (used[p.brand || ""] || 0) + 1; out.push(p);
+    }
+    return out;   /* 16 of the picks per 2-hour window */
   }
   function swapIn(items, c) {
     var sw = ROW_SWAP[c]; if (!sw) return items; var B = {}; try { B = BY_ID || {}; } catch (e) {}
