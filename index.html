@@ -3892,7 +3892,8 @@ function statRow(p){ const w=weightOf(p), q=p.qc||0, out=[];
    a name counts once (case and spacing ignored); "Standard", sizes and quantities are not colours. Badge only from 2. */
 const NOT_COLOUR=/^(standard|default|as pictures?|same as pictures?|one ?size|os|eu\d+|[smlx]{1,3}|\d+)$/i;
 function colourCount(p){ if(p.__cc!=null)return p.__cc; const seen=new Set(); (p.variants||[]).forEach(v=>{ const n=String(v&&v[0]||"").split("·")[0].trim().replace(/\s+/g," "); if(!n||NOT_COLOUR.test(n)||/×\s*\d/.test(n))return; seen.add(n.toLowerCase().replace(/\bgray\b/g,"grey")); }); return (p.__cc=seen.size); }
-const colourBadge=p=>{ const n=colourCount(p); return n>=2?`<span class="cbadge" role="img" aria-label="${esc(t("colours_n").replace("{n}",n))}">${ICON("palette")}${n}</span>`:""; };
+/* owner, 9 Nov 2026: "remove this color icon": no colour-count badge on cards */
+const colourBadge=p=>"";
 const COLORMAP={navy:"#1f2f57","navy blue":"#1f2f57",white:"#f2f2ef",black:"#1a1a1a",grey:"#8a8f98",gray:"#8a8f98",beige:"#d8c9a8",cream:"#efe7d2",red:"#c0392b",pink:"#e39ac0",green:"#3a7d5b",yellow:"#e3c04a","light blue":"#a9c9e8",blue:"#2e5aa8",brown:"#7a5230",orange:"#e08a3c",purple:"#7a5aa8"};
 /* r6: more colour names for the swatches; "Dark Blue" / "Light Grey" style names reuse the base colour, darker or lighter */
 Object.assign(COLORMAP,{gold:"#c9a227",silver:"#c0c0c0",sand:"#d6c3a0",stone:"#b5ad9e",khaki:"#b9a77c",olive:"#6b6b3a",burgundy:"#6d1f2b",wine:"#6d1f2b",camel:"#c19a6b",charcoal:"#3d3f44",ivory:"#f4f1e6",tan:"#c9a27a",mint:"#a8dcc4",lilac:"#c8a2c8",coffee:"#6f4e37",apricot:"#f3b38a",off:"#efe9dc","off white":"#efe9dc",cyan:"#3fb6c8",teal:"#2e7d7a",maroon:"#6d1f2b",rose:"#e8a3a8",violet:"#7a5aa8",indigo:"#3b3f8f",army:"#5b5e3a"});
@@ -4618,7 +4619,8 @@ function pcBetaAsk(p){
   const SPARK='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9.4l-4.7 1.8L12 16l-1.8-4.8L5.5 9.4l4.7-1.8z"/><path d="M19 15l.8 2 .2.2 2 .8-2 .8-.2.2-.8 2-.8-2-.2-.2-2-.8 2-.8.2-.2z"/></svg>';
   const bb=drawer.querySelector(".buy-block"); if(!bb||drawer.querySelector("#pc-ask")) return;
   bb.insertAdjacentHTML("afterend",`<button type="button" id="pc-ask" class="pc-askrow"><span class="pc-askic">${SPARK}</span><span class="pc-askt">Ask AI about this item</span>${ICON("chevron-right","sm")}</button>`);
-  drawer.querySelector("#pc-ask").addEventListener("click",()=>{ if(!(window.pcChatAsk&&window.pcChatAsk(""))) toast("The assistant is not available right now."); });
+  /* owner, 9 Nov 2026: "when clicking ask ai it should ask straight away" */
+  drawer.querySelector("#pc-ask").addEventListener("click",()=>{ const q=`Tell me about the ${p.title}: is it worth it, and what should I check before I buy?`; if(!(window.pcChatAsk&&window.pcChatAsk(q))) toast("The assistant is not available right now."); });
 }
 function pcBetaQc(p){
   const tok=drawer.__tok;
