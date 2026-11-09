@@ -20,8 +20,17 @@
  * automatic caching covers the conversation, so the tool rounds of one answer and the next message re-read it at 0.1x.
  * When the visitor presses Stop (the response stream is cancelled) the call to Anthropic is aborted too.
  * Env (Cloudflare Pages > Settings > Environment variables): ANTHROPIC_API_KEY (secret, required), CHAT_MODEL (optional).
- * Privacy: messages go to Anthropic to write the answer and are not stored or logged here. The visitor's IP is used only
- * for the rate limit, hashed, in this isolate's memory and in the edge cache for 10 minutes.
+ * Privacy: messages go to Anthropic to write the answer. Since 9 Nov 2026 (owner: "save the AI chats so I can learn from
+ * them") each question and answer is also saved in the Supabase table chat_logs (SQL below), with the conversation's random
+ * id from chat.js, the find on screen, the searches and the finds the answer linked. No IP, no account, no user agent;
+ * email addresses and phone numbers in the question are blanked before saving. Until the owner has made the table the
+ * insert fails and nothing is saved; the answer is never affected. The chat panel and /privacy say chats are saved.
+ *   create table public.chat_logs (id bigint generated always as identity primary key, created_at timestamptz not null
+ *     default now(), sid text, turn int, pid text, question text, answer text, finds jsonb, searches jsonb, agent text,
+ *     cur text, outcome text, ms int, model text);
+ *   alter table public.chat_logs enable row level security;   -- no policies: only the service key reads or writes
+ *   create index chat_logs_created on public.chat_logs (created_at desc);
+ * The visitor's IP is used only for the rate limit, hashed, in this isolate's memory and in the edge cache for 10 minutes.
  * Limits: body <= 20 KB, last 10 messages, 1000 characters each, 20 messages per IP per 10 minutes, same-origin only,
  * obvious bots refused.
  */
@@ -30,6 +39,18 @@ import { loadKb, pickTips, tipsNote } from "../_lib/reddit_kb.js";
 
 const API = "https://api.anthropic.com/v1/messages";
 const DEFAULT_MODEL = "claude-haiku-5-5";
+const SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co";
+
+// ------------------------------------------------------------------ saved chats (owner, 9 Nov 2026)
+const scrub = t => String(t || "")
+  .replace(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g, "[email]")
+  .replace(/\+?\d[\d ()-]{7,}\d/g, "[number]");
+function saveChat(env, row) {
+  if (!env || !env.SUPABASE_SERVICE_KEY) return Promise.resolve();
+  return fetch(`${SUPA}/rest/v1/chat_logs`, { method: "POST",
+    headers: { apikey: env.SUPABASE_SERVICE_KEY, Authorization: "Bearer " + env.SUPABASE_SERVICE_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+    body: JSON.stringify(row) }).catch(() => {});
+}
 const MAX_BODY = 20 * 1024;
 const MAX_MSGS = 10, MAX_CHARS = 1000;
 const MAX_ROUNDS = 3;               // tool rounds; one more call after that answers without tools
@@ -519,10 +540,11 @@ export function tipsFor(kb, messages, ctx) {
   return pickTips(kb, users.join(" "), extra, ag ? ag.name : "");
 }
 
-async function run(env, messages, ctx, v2, write, stop, kb) {
+async function run(env, messages, ctx, v2, write, stop, kb, rec = { searches: [] }) {
   const finds = new Map();   // id -> find, everything search_finds returned this turn (first search first)
   let answer = "", wrote = false, sentCards = false;
-  const onText = t => { const s = noDash(t); answer += s; wrote = true; write({ t: "text", v: s }); };
+  rec.outcome = "ok";
+  const onText = t => { const s = noDash(t); answer += s; rec.answer = answer; wrote = true; write({ t: "text", v: s }); };
   const onToolStart = () => { if (v2) write({ t: "status", v: "search" }); };
   const system = [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }, { type: "text", text: contextNote(ctx, tipsFor(kb || [], messages, ctx), sizeHint(messages, ctx)) }];
   const cardsOf = list => list.slice(0, MAX_CARDS).map(p => forCard(p, ctx.agent));
@@ -531,10 +553,10 @@ async function run(env, messages, ctx, v2, write, stop, kb) {
     if (round && wrote) onText("\n\n");
     wrote = false;
     const r = await callClaude(env, system, convo, round < MAX_ROUNDS, onText, onToolStart, stop);
-    if (r.error === "gone") return;
-    if (r.error) { write({ t: "error", v: r.error === 429 || r.error === 529 || r.error === "timeout" ? MSG.busy : MSG.fail }); return; }
-    if (r.stop === "refusal") { if (!answer.trim()) write({ t: "text", v: MSG.refusal }); break; }
-    if (r.stop === "error") { write({ t: "error", v: MSG.busy }); return; }
+    if (r.error === "gone") { rec.outcome = "stopped"; return; }
+    if (r.error) { rec.outcome = "error " + r.error; write({ t: "error", v: r.error === 429 || r.error === 529 || r.error === "timeout" ? MSG.busy : MSG.fail }); return; }
+    if (r.stop === "refusal") { rec.outcome = "refusal"; if (!answer.trim()) write({ t: "text", v: MSG.refusal }); break; }
+    if (r.stop === "error") { rec.outcome = "error"; write({ t: "error", v: MSG.busy }); return; }
     const uses = r.content.filter(b => b.type === "tool_use");
     if (r.stop !== "tool_use" || !uses.length) break;
     convo.push({ role: "assistant", content: r.content.map(b => { const c = { ...b }; delete c.bad; return c; }) });
@@ -543,6 +565,7 @@ async function run(env, messages, ctx, v2, write, stop, kb) {
       if (u.name !== "search_finds" || u.bad || typeof inp.query !== "string") {
         return { type: "tool_result", tool_use_id: u.id, is_error: true, content: "Invalid input: send {\"query\": \"words\"}." };
       }
+      if (rec.searches.length < 8) rec.searches.push(String(inp.query).slice(0, 120));
       const res = searchFinds(inp, ctx.cur);
       for (const p of res.list) if (!finds.has(String(p.id))) finds.set(String(p.id), p);
       const out = { total_matches: res.total, results: res.list.map(p => forModel(p, ctx.cur, res.partial.has(String(p.id)))) };
@@ -559,6 +582,7 @@ async function run(env, messages, ctx, v2, write, stop, kb) {
   for (const [id, p] of finds) { const i = answer.indexOf("/product/" + encodeURIComponent(id)); if (i >= 0) at.push([i, p]); }
   at.sort((a, b) => a[0] - b[0]);
   const linked = at.map(x => x[1]);
+  rec.linked = linked.slice(0, 10).map(p => String(p.id));
   if (v2) {
     if (linked.length) { const ids = new Set(linked.map(p => String(p.id))); write({ t: "finds", v: cardsOf(linked.concat([...finds.values()].filter(p => !ids.has(String(p.id))))) }); }
     else if (sentCards) write({ t: "finds", v: [] });
@@ -596,7 +620,14 @@ export async function onRequestPost(context) {
   const ts = new TransformStream(), w = ts.writable.getWriter(), enc = new TextEncoder();
   const stop = new AbortController();   // the visitor pressed Stop or left: the stream is cancelled, so stop paying for the answer
   const write = o => { if (stop.signal.aborted) return; w.write(enc.encode(JSON.stringify(o) + "\n")).catch(() => stop.abort()); };
-  const job = run(env, messages, ctx, v2, write, stop.signal, kb).catch(() => write({ t: "error", v: MSG.fail })).finally(() => w.close().catch(() => {}));
+  const rec = { searches: [] }, t0 = Date.now();
+  const sid = typeof b.sid === "string" && /^[a-z0-9]{6,16}$/.test(b.sid) ? b.sid : null;
+  const users = messages.filter(m => m.role === "user");
+  const job = run(env, messages, ctx, v2, write, stop.signal, kb, rec).catch(() => { rec.outcome = "crash"; write({ t: "error", v: MSG.fail }); }).finally(() => w.close().catch(() => {}))
+    .then(() => saveChat(env, { sid, turn: users.length, pid: ctx.pid || null,
+      question: scrub(typeof users[users.length - 1]?.content === "string" ? users[users.length - 1].content : "").slice(0, 1000),
+      answer: String(rec.answer || "").slice(0, 4000), finds: rec.linked || [], searches: rec.searches, agent: ctx.agent || null, cur: ctx.cur || null,
+      outcome: rec.outcome || "ok", ms: Date.now() - t0, model: env.CHAT_MODEL || DEFAULT_MODEL }));
   try { if (request.signal) request.signal.addEventListener("abort", () => stop.abort()); } catch (e) {}
   if (typeof context.waitUntil === "function") context.waitUntil(job);
   return new Response(ts.readable, { headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store" } });
