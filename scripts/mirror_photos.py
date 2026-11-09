@@ -13,11 +13,16 @@ What gets copied, in this order, while the site stays under Cloudflare Pages' 20
      ok). Run that just before apply_catalog_ai.py --photos, so switching does not send a wave of requests to Supabase.
 Copies that nothing uses any more are deleted.
 
+Sharper photos (owner, 9 Nov 2026): copies keep the stored photo's own size up to 1600 px (the stored cut-outs are
+1200 px) and its own bytes when it is already a WebP, so nothing is re-compressed. Older copies were cut to 900 px;
+--upgrade N fetches N of those again, straight from Supabase (the proxy would hand back the 900 px copy), a few at a
+time, in catalogue order. Never enlarged and never touched by an image model: the pixels are the stored photo's.
+
 Photos are fetched through the site's own /api/img proxy (Cloudflare edge cache first, Supabase only on a miss), a
 few at a time, and the run stops early if Supabase keeps failing, so it never adds much load. Run it again until
 "missing 0"; the Mirror photos workflow does that on a schedule.
 
-  python scripts/mirror_photos.py [--limit 1500] [--max-minutes 40] [--workers 4] [--ready-cleaned] [--dry-run]
+  python scripts/mirror_photos.py [--limit 1500] [--upgrade 300] [--max-minutes 40] [--workers 4] [--ready-cleaned] [--dry-run]
 """
 import argparse, io, json, os, re, sys, time, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -31,7 +36,9 @@ HOST = "uptpghuduqjqmrxwatbm.supabase.co"
 PUB = "https://" + HOST + "/storage/v1/object/public/products/"
 UA = {"User-Agent": "Mozilla/5.0 (compatible; PuroClassicoPhotoMirror/1.0; +https://www.puroclassico.com)"}
 MAX_FILES = 19000          # Cloudflare Pages allows 20,000 files per deployment; keep room for the rest of the site
-MAX_SIDE, QUALITY = 900, 80     # ~40 KB a photo; sharp on the product view, grid thumbs are resized by Cloudflare
+MAX_SIDE, QUALITY = 1600, 82    # the stored size (1200 px cut-outs); grid thumbs and the product view are resized by Cloudflare
+OLD_SIDE = 900                  # copies made before 9 Nov 2026 were cut to this; --upgrade replaces them
+KEEP_MAX = 600 * 1024           # a stored WebP up to this size is copied byte for byte
 PATH_RE = re.compile(r"^/storage/v1/object/public/products/(pc|pc2|qc)/([A-Za-z0-9_-]{1,80})\.webp$")
 
 
@@ -103,8 +110,11 @@ def other_files():
 
 
 def shrink(data):
-    """WebP at most MAX_SIDE px, keeping transparency; the original bytes when they are already smaller."""
+    """WebP at most MAX_SIDE px, keeping transparency. A WebP that already fits is kept byte for byte (no second
+    compression); anything else is resized down (never up) and saved as WebP, or kept when that comes out bigger."""
     im = Image.open(io.BytesIO(data))
+    if data[:4] == b"RIFF" and max(im.size) <= MAX_SIDE and len(data) <= KEEP_MAX:
+        return data
     im.load()
     if im.mode not in ("RGB", "RGBA"):
         im = im.convert("RGBA" if "A" in im.getbands() or im.mode == "P" else "RGB")
@@ -118,8 +128,9 @@ def shrink(data):
     return data
 
 
-def fetch(url):
-    u = SITE + "/api/img?u=" + urllib.parse.quote(url, safe="")
+def fetch(url, direct=False):
+    """Through the site's /api/img proxy (edge cache first), or straight from storage with direct=True."""
+    u = url if direct else SITE + "/api/img?u=" + urllib.parse.quote(url, safe="")
     with urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=30) as r:
         ct = r.headers.get("content-type") or ""
         body = r.read()
@@ -131,6 +142,7 @@ def fetch(url):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=1500, help="new copies this run at most")
+    ap.add_argument("--upgrade", type=int, default=0, help="old 900 px copies to fetch again at full size this run")
     ap.add_argument("--max-minutes", type=float, default=40)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--max-fails", type=int, default=60, help="stop after this many failures in a row (Supabase struggling)")
@@ -149,8 +161,18 @@ def main():
     keep = {p for _, p in want}
     drop = sorted(have - keep)
     todo = [(u, p) for u, p in want if p not in have]
-    print("site files outside img/m: %d, room for %d copies; wanted %d, have %d, missing %d, unused %d"
-          % (MAX_FILES - room, room, len(want), len(have & keep), len(todo), len(drop)))
+    old = []                                  # copies still cut to the old 900 px, catalogue order
+    if a.upgrade > 0:
+        for u, p in want:
+            if p in have:
+                try:
+                    with Image.open(os.path.join(ROOT, p.lstrip("/"))) as im:
+                        if max(im.size) == OLD_SIDE:
+                            old.append((u, p))
+                except Exception:  # noqa: BLE001 (unreadable copy: fetch it again)
+                    old.append((u, p))
+    print("site files outside img/m: %d, room for %d copies; wanted %d, have %d, missing %d, unused %d, old 900 px %s"
+          % (MAX_FILES - room, room, len(want), len(have & keep), len(todo), len(drop), len(old) if a.upgrade > 0 else "not checked"))
     if a.dry_run:
         return
 
@@ -161,12 +183,12 @@ def main():
             pass
 
     t0, done, fails, streak, kb_in, kb_out = time.time(), 0, 0, 0, 0, 0
-    todo = todo[:a.limit]
+    todo = [(u, p, False) for u, p in todo[:a.limit]] + [(u, p, True) for u, p in old[:a.upgrade]]
 
     def one(job):
-        u, p = job
+        u, p, direct = job
         try:
-            data = fetch(u)
+            data = fetch(u, direct)
             out = shrink(data)
             dest = os.path.join(ROOT, p.lstrip("/"))
             os.makedirs(os.path.dirname(dest), exist_ok=True)
