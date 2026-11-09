@@ -22,11 +22,14 @@
   var KEY = "pc.chat.v1", OKKEY = "pc.chat.ok", MAXLEN = 1000, MAXKEEP = 30;
   var ss = { get: function (k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
              set: function (k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} } };
-  var state = { msgs: [], open: false };
-  try { var saved = JSON.parse(ss.get(KEY) || "null"); if (saved && Array.isArray(saved.msgs)) state = { msgs: saved.msgs.slice(-MAXKEEP), open: !!saved.open }; } catch (e) {}
+  // sid: a random id for one conversation (a new one with "New chat"), so saved chats can be read as whole conversations.
+  // Not linked to the visitor: no account, no IP.
+  var newSid = function () { var a = ""; try { var u = new Uint8Array(9); crypto.getRandomValues(u); for (var i = 0; i < u.length; i++) a += (u[i] % 36).toString(36); } catch (e) { a = Math.random().toString(36).slice(2, 11); } return a; };
+  var state = { msgs: [], open: false, sid: newSid() };
+  try { var saved = JSON.parse(ss.get(KEY) || "null"); if (saved && Array.isArray(saved.msgs)) state = { msgs: saved.msgs.slice(-MAXKEEP), open: !!saved.open, sid: /^[a-z0-9]{6,16}$/.test(saved.sid || "") ? saved.sid : newSid() }; } catch (e) {}
   // An answer that was still being written when the page changed stays as far as it got.
   state.msgs.forEach(function (m) { if (m.pending) { delete m.pending; m.retry = true; if (m.content) m.note = "Stopped"; else { m.content = "Stopped."; m.err = true; } } });
-  var save = function () { ss.set(KEY, JSON.stringify({ msgs: state.msgs.slice(-MAXKEEP), open: state.open })); };
+  var save = function () { ss.set(KEY, JSON.stringify({ msgs: state.msgs.slice(-MAXKEEP), open: state.open, sid: state.sid })); };
 
   // The visitor's settings from the app (same key the app and the server pages read), and the find on screen.
   function prefs() {
@@ -129,6 +132,7 @@
     // composer
     ".pcc-ft{padding:8px 12px calc(14px + env(safe-area-inset-bottom,0px))}" +
     ".pcc-form{display:flex;align-items:flex-end;gap:8px}" +
+    ".pcc-note{margin:6px 2px 0;font-size:10.5px;line-height:1.3;color:var(--pc-mut);text-align:center}.pcc-note a{color:inherit;text-underline-offset:2px}" +
     ".pcc-field{flex:1;min-width:0;display:flex;border:1px solid transparent;border-radius:24px;padding:4px 18px;background:var(--pc-s2);transition:border-color .15s}" +
     ".pcc-field:focus-within{border-color:var(--pc-line)}" +
     ".pcc-in{flex:1;min-width:0;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;color:var(--pc-ink);font:inherit;font-size:16px;line-height:1.4;padding:8px 0!important;margin:0;resize:none;height:38px;max-height:120px;overflow-y:hidden;border-radius:0}" +
@@ -199,7 +203,8 @@
       '<button type="button" class="pcc-jump" aria-label="Scroll to the latest message" tabindex="-1">' + ICON_DOWN + '</button></div>' +
       '<div class="pcc-ft"><form class="pcc-form"><label class="pcc-sr" for="pcc-in">Your message</label>' +
       '<span class="pcc-field"><textarea class="pcc-in" id="pcc-in" rows="1" maxlength="' + MAXLEN + '" placeholder="Ask a question..." enterkeyhint="send" autocomplete="off"></textarea></span>' +
-      '<button type="submit" class="pcc-send" aria-label="Send" disabled>' + ICON_SEND + '</button></form></div>';
+      '<button type="submit" class="pcc-send" aria-label="Send" disabled>' + ICON_SEND + '</button></form>' +
+      '<p class="pcc-note">Chats are saved to improve answers. Don\'t share personal details. <a href="/privacy#chat">Privacy</a></p></div>';
     root.appendChild(fab); root.appendChild(panel); D.body.appendChild(root);
     log = panel.querySelector(".pcc-log"); input = panel.querySelector(".pcc-in"); send = panel.querySelector(".pcc-send"); jump = panel.querySelector(".pcc-jump");
 
@@ -207,7 +212,7 @@
     panel.querySelector("[data-close]").addEventListener("click", function () { setOpen(false); });
     panel.querySelector("[data-new]").addEventListener("click", function () {
       if (busy) { stop(true); busy = false; ctl = null; log.setAttribute("aria-busy", "false"); sendState(); }
-      state.msgs = []; save(); render(); if (fine.matches) input.focus();
+      state.msgs = []; state.sid = newSid(); save(); render(); if (fine.matches) input.focus();
     });
     panel.querySelector("form").addEventListener("submit", function (e) { e.preventDefault(); if (busy) stop(); else ask(input.value); });
     input.addEventListener("input", function () { grow(); sendState(); });
@@ -461,7 +466,7 @@
       due = false; paint(v, false); sendState(); follow(); save();
     };
     fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, credentials: "same-origin", signal: my ? my.signal : undefined,
-      body: JSON.stringify({ messages: history.slice(-10), ctx: prefs(), v: 2 }) })
+      body: JSON.stringify({ messages: history.slice(-10), ctx: prefs(), v: 2, sid: state.sid }) })
       .then(function (r) {
         if (r.status === 503) { hide(); return; }
         if (!r.ok || !r.body || !r.body.getReader) return r.json().then(function (j) { fail(j && j.error, r.status !== 429 && r.status !== 413); }, function () { fail(null, true); });
@@ -489,12 +494,13 @@
   }
 
   // ---------------------------------------------------------------- start: only when the assistant is set up
+  function ready() { build(); W.pcChatReady = true; try { D.dispatchEvent(new Event("pc-chat-ready")); } catch (e) {} }
   function start() {
     var ok = ss.get(OKKEY);
     if (ok === "0") return;
-    if (ok === "1") return build();
+    if (ok === "1") return ready();
     fetch("/api/chat", { method: "GET", credentials: "same-origin" }).then(function (r) {
-      if (r.ok) { ss.set(OKKEY, "1"); build(); } else if (r.status === 503) ss.set(OKKEY, "0");
+      if (r.ok) { ss.set(OKKEY, "1"); ready(); } else if (r.status === 503) ss.set(OKKEY, "0");
     }).catch(function () {});
   }
   if (D.readyState === "loading") D.addEventListener("DOMContentLoaded", start); else start();
