@@ -34,7 +34,11 @@ export async function onRequestGet({ request, env }) {
   if (!ok) return new Response("forbidden host", { status: 403 });
 
   const cache = caches.default;
-  const ckey = new Request(url.toString(), { method: "GET" });
+  // "c" is the cache generation: bumped 9 Nov 2026 when the site copies went from 900 px to the full stored size, so
+  // the edge stops handing out the old copies. Site copies are kept one day (they are re-read from our own files, never
+  // from Supabase), so a copy that is replaced shows within a day.
+  const ck = new URL(url.toString()); ck.searchParams.set("c", "2");
+  const ckey = new Request(ck.toString(), { method: "GET" });
   const hit = await cache.match(ckey);
   if (hit) return hit;
 
@@ -46,7 +50,7 @@ export async function onRequestGet({ request, env }) {
       if (a.ok && act.startsWith("image/")) {
         const own = new Response(a.body, { status: 200, headers: {
           "content-type": act,
-          "cache-control": "public, max-age=604800, s-maxage=2592000",
+          "cache-control": "public, max-age=86400, s-maxage=86400",
           "access-control-allow-origin": "*",
           "x-content-type-options": "nosniff",
           "x-pc-photo": "site"
