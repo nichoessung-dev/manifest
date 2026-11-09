@@ -5941,7 +5941,10 @@ function wirePriceSlider(){
     /* the pill row scrolls sideways and has a backdrop filter: show the popover fixed on <body>, under the pill */
     if(window.innerWidth>560){ document.body.appendChild(pop); pop.classList.add("pc-port"); pcPlace(pop,el); }
     else { document.body.appendChild(pop); Object.assign(pop.style,{position:"fixed",left:"8px",right:"8px",width:"auto",zIndex:"1000"}); pop.__place(); }
+    if(el!==btn) pop.style.zIndex="1000";   /* above the product view (z 80) */
     updatePriceUI(); _phist(); try{ pop.focus({preventScroll:true}); }catch(_){} };
+  /* the grid to redraw: the main one, and the product view's own grid when the popover was opened there */
+  const prender=()=>{ render(); if(anchor!==btn){ try{ if(drawer.classList.contains("open")) renderPPGrid(); const pl=$("#pp-price-label",drawer); if(pl) pl.textContent=_psum(); anchor.classList.toggle("is-on",state.pmin!=null||state.pmax!=null); save(); }catch(_){} } };
   btn.addEventListener("click",e=>{ e.stopPropagation(); if(pop.hidden) openAt(btn); else closePop(); });
   window.pcOpenPrice=el=>{ if(!pop.hidden&&anchor===el){ closePop(); return; } if(!pop.hidden) closePop(); openAt(el); };
   const _closeBase=closePop;
@@ -5963,7 +5966,7 @@ function wirePriceSlider(){
     a.setAttribute("aria-valuetext",price(lo!=null?lo:PMIN)); b.setAttribute("aria-valuetext",_pmaxLabel(hi!=null?hi:PMAX));
     const lab=$("#price-label"); if(lab) lab.textContent=_psum(); btn.classList.toggle("is-on",lo!=null||hi!=null);
     _plive(); if(!raf) raf=requestAnimationFrame(paint);
-    clearTimeout(rt); if(now) render(); else rt=setTimeout(()=>{ render(); },90);
+    clearTimeout(rt); if(now) prender(); else rt=setTimeout(()=>{ prender(); },90);
   };
   const onIn=()=>{ const pl=Math.min(+a.value,+b.value), ph=Math.max(+a.value,+b.value); setRange(pl<=0?null:_psnap(_pv(pl)), ph>=1000?null:_psnap(_pv(ph))); };
   a.addEventListener("input",onIn); b.addEventListener("input",onIn);
@@ -5988,7 +5991,7 @@ function wirePriceSlider(){
   const pr=$("#pp-presets"); if(pr) pr.addEventListener("click",e=>{ const x=e.target.closest(".pp-pre"); if(!x) return; const L=_ppresets()[+x.getAttribute("data-i")]; if(!L) return;
     if(_peq(state.pmin,L[0])&&_peq(state.pmax,L[1])) setRange(null,null,true); else { state.pmin=L[0]; state.pmax=L[1]; setRange(L[0],L[1],true); } updatePriceUI(); });
   const sh=$("#pp-show"); if(sh) sh.addEventListener("click",()=>{ closePop(); try{ btn.focus({preventScroll:true}); }catch(_){} });
-  if(clr)clr.addEventListener("click",()=>{ if(state.pmin==null&&state.pmax==null) return; state.pmin=null; state.pmax=null; updatePriceUI(); render(); });
+  if(clr)clr.addEventListener("click",()=>{ if(state.pmin==null&&state.pmax==null) return; state.pmin=null; state.pmax=null; updatePriceUI(); prender(); });
   updatePriceUI();
 }
 
