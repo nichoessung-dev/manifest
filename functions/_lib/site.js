@@ -546,7 +546,7 @@ export function header(path = "") {
     : `<a href="${u}"${cur(u)}>${t}</a>`).join("");
   return `<header class="h"><div class="w"><a href="/" aria-label="Puro Classico home"><span class="logo" role="img" aria-label="Puro Classico"></span></a>
 <nav id="pc-nav" aria-label="Main">${items}<span class="nl-pill" aria-hidden="true"></span></nav>
-${SEARCH_SHELL}<div class="hr"><a class="hcta" id="pc-mycnbox-btn" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">Make an account with MyCNBox</a>${CTA_GONE_JS}` +
+${SEARCH_SHELL}<div class="hr">${CTA_GONE_JS}` +
     `<a class="hauth" id="auth-btn" href="/?signin=1">Sign in</a>${AUTH_NAME_JS}` +
     `<button class="ibtn hset" id="set-btn" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="hprefs" aria-label="Theme, language, currency and agent" title="Theme, language, currency and agent">${ICON_GLOBE}</button>` +
     `<div class="hprefs" id="hprefs" hidden><div class="hseg" role="group" aria-label="Theme"><button type="button" data-theme-set="light" aria-pressed="false">Light</button><button type="button" data-theme-set="dark" aria-pressed="false">Dark</button><button type="button" data-theme-set="system" aria-pressed="false">System</button></div>` +
