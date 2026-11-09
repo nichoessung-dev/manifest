@@ -1,11 +1,11 @@
 name: Mirror photos
 # Copies the catalogue's Supabase photos into the site (img/m/..., scripts/mirror_photos.py). /api/img serves those
 # copies, so product photos load from Cloudflare and Supabase is only asked for photos that have no copy yet.
-# Runs every two hours; a run with nothing missing finishes in about a minute. No [skip ci] in the commit message:
+# Runs every hour; a run with nothing missing finishes in about a minute. No [skip ci] in the commit message:
 # Cloudflare Pages must deploy the new files.
 on:
   schedule:
-    - cron: '41 */2 * * *'
+    - cron: '41 * * * *'   # hourly while the old 900 px copies are upgraded (owner, 10 Nov 2026); a run with nothing to do takes about a minute
   workflow_dispatch:
     inputs:
       limit:
@@ -13,7 +13,7 @@ on:
         default: '1500'
       upgrade:
         description: 'Old 900 px copies to fetch again at full size (straight from Supabase, so keep it small)'
-        default: '300'
+        default: '800'
       ready_cleaned:
         description: 'Also copy cleaned photos that are not switched on yet (run just before applying them)'
         type: choice
@@ -35,7 +35,7 @@ jobs:
       - name: Copy missing photos
         run: |
           RC=""; [ "${{ inputs.ready_cleaned }}" = "yes" ] && RC="--ready-cleaned"
-          python -u scripts/mirror_photos.py --limit "${{ inputs.limit || '1500' }}" --upgrade "${{ inputs.upgrade || '300' }}" --max-minutes 40 --workers 4 $RC
+          python -u scripts/mirror_photos.py --limit "${{ inputs.limit || '1500' }}" --upgrade "${{ inputs.upgrade || '800' }}" --max-minutes 40 --workers 4 $RC
       - name: Save the copies
         if: always()
         run: |
