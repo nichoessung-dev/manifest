@@ -2,6 +2,7 @@
 // Everything here is plain HTML + a little CSS so Google sees real content without running JS.
 import { ROWS, PREFIX, BUILT } from "./catalog.js";
 import * as SIG from "./signals.js";
+import { PQ } from "./photo_quality.js";
 const { CHECKED, DEMAND, DEAD, SOLD_OUT } = SIG;
 // QC photo bank results (scripts/gen_signals.py from data/qc_bank.json, 28 Oct 2026), read through the namespace so a
 // signals.js written before these lists existed still loads. QC_BANKED: { id: "YYYY-MM-DD" }, the finds whose QC photos
@@ -56,8 +57,9 @@ export async function ensureStats(origin) {
 // False until a stats file has been read. functions/_middleware.js gives a page rendered in that state a short cache time.
 export const statsLoaded = () => VIEWS_VER > 0;
 // Popularity = views (30 days, last 7 days count double), then favourites, all-time views, curated best-of, QC count.
-export const score = p => { const v = VIEWS[p.id] || [0, 0, 0, 0];
-  return Math.min(v[1] + v[2], 99999) * 1e9 + Math.min(v[3], 999) * 1e6 + Math.min(v[0], 999) * 1e3 + p.best * 500 + Math.min(p.qc, 499); };
+// A bad main photo (photo_quality.js, from the vision labels) ranks lower: views x (1 - 0.6 x score). Owner, 10 Nov 2026.
+export const score = p => { const v = VIEWS[p.id] || [0, 0, 0, 0], q = PQ[p.id] || 0;
+  return Math.min(Math.floor((v[1] + v[2]) * (1 - 0.6 * q)), 99999) * 1e9 + Math.min(v[3], 999) * 1e6 + Math.min(v[0], 999) * 1e3 + p.best * 500 + Math.min(p.qc, 499); };
 // The same numbers for pages that print them (the "top picks" on brand hubs): [views all time, last 30 days, last 7 days, favourites].
 const NO_VIEWS = [0, 0, 0, 0];
 export const views = p => VIEWS[p.id] || NO_VIEWS;
