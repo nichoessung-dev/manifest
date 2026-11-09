@@ -299,7 +299,8 @@ export function colourCount(p) {
 }
 const PALETTE_SM = ic("palette", "sm");
 // The pill markup. icon: the app-style cards (pages.js appCards) pass the app sprite icon so they match index.html byte for byte.
-export const colourBadge = (p, icon = PALETTE_SM) => { const n = colourCount(p); return n >= 2 ? `<span class="cbadge" role="img" aria-label="${n} colours">${icon}${n}</span>` : ""; };
+// owner, 9 Nov 2026: "remove this color icon": no colour-count badge on cards (kept as a function so callers stay the same)
+export const colourBadge = () => "";
 export function card(p, lazy = true) {
   const src = imgSrc(p), u = productUrl(p), ag = AGENTS.mycnbox;
   return `<div class="c"><a class="cl" href="${u}">` +
