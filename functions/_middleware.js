@@ -79,8 +79,42 @@ const catalogTags = ver => `<script>window.PC_CATALOG_WANT=${CATALOG_PARTS}</scr
 // The same parts as a Link preload header (perf, 5 Nov 2026): the browser starts them with the page instead of when its
 // parser reaches the tags, about 1 s into a slow phone's load. Low priority keeps the page and its first photos ahead of them.
 const catalogLink = ver => Array.from({ length: CATALOG_PARTS }, (_, i) => `</catalog.js?v=${ver}&p=${i}>; rel=preload; as=script; fetchpriority=low`).join(", ");
-const withCatalogLink = (res, ver) => { const r = new Response(res.body, res); r.headers.append("link", catalogLink(ver)); return r; };
-const slimHtml = (res, ver, cards = "") => withCatalogLink(new HTMLRewriter()
+const withCatalogLink = (res, ver) => { const r = new Response(res.body, res); r.headers.append("link", catalogLink(ver)); r.headers.append("link", appLink(ver)); return r; };
+
+// Lighter pages (10 Nov 2026, SEO report: hub pages were ~870 KB of HTML, two thirds of it the same app code and styles on
+// every page). index.html keeps them inline (the repo's single source); visitors get them as /app.js and /app.css, cached
+// for a year under index.html's ETag, so every page after the first loads only its own HTML. Same order as inline: the
+// stylesheet takes the first marked <style>'s place (the marked blocks sit next to each other in the head) and the script
+// stays a parser-blocking classic script where the inline one was.
+const appTags = {
+  css: ver => `<link rel="stylesheet" href="/app.css?v=${ver}">`,
+  js: ver => `<script src="/app.js?v=${ver}"></script>`,
+};
+const appLink = ver => `</app.css?v=${ver}>; rel=preload; as=style, </app.js?v=${ver}>; rel=preload; as=script`;
+function appSplit(rw, ver) {
+  let first = true;
+  return rw
+    .on('style[data-split="css"]', { element(e) { if (first) { first = false; e.replace(appTags.css(ver), { html: true }); } else e.remove(); } })
+    .on('script[data-split="js"]', { element(e) { e.replace(appTags.js(ver), { html: true }); } });
+}
+async function appFile(ctx, url, kind) {
+  const type = { "content-type": kind === "css" ? "text/css; charset=utf-8" : "application/javascript; charset=utf-8" };
+  const asset = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "GET" }));
+  if (!asset.ok) return new Response("/* unavailable */", { status: 502, headers: { ...type, "cache-control": "no-store" } });
+  const ver = etagOf(asset);
+  const cc = url.searchParams.get("v") === ver ? "public, max-age=31536000, immutable" : "public, max-age=300";
+  const key = new Request(`https://ssr-cache.internal/app/${ver}/${kind}`, { method: "GET" });
+  const hit = await caches.default.match(key);
+  if (hit) { const r = new Response(hit.body, hit); r.headers.set("cache-control", cc); return r; }
+  const html = await asset.text(), tag = kind === "css" ? "style" : "script", parts = [];
+  const re = new RegExp(`<${tag} data-split="${kind}"[^>]*>`, "g");
+  for (let m; (m = re.exec(html)); ) { const end = html.indexOf(`</${tag}>`, re.lastIndex); if (end < 0) break; parts.push(html.slice(re.lastIndex, end)); re.lastIndex = end; }
+  if (!parts.length) return new Response("/* not found */", { status: 404, headers: { ...type, "cache-control": "no-store" } });
+  const body = parts.join("\n");
+  ctx.waitUntil(caches.default.put(key, new Response(body, { headers: { ...type, "cache-control": "public, max-age=31536000" } })).catch(() => {}));
+  return new Response(body, { headers: { ...type, "cache-control": cc } });
+}
+const slimHtml = (res, ver, cards = "") => withCatalogLink(appSplit(new HTMLRewriter(), ver)
   .on("script#pc-catalog", { element(e) { e.replace(catalogTags(ver), { html: true }); } })
   .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
   .transform(res), ver);
@@ -171,6 +205,8 @@ async function route(ctx) {
   // The old pages.dev address still resolves: send everything to the real domain so traffic and ranking are not split.
   if (url.hostname === PAGES_DEV) return Response.redirect("https://www.puroclassico.com" + path + url.search, 301);
   if (path === "/catalog.js") return catalogJs(ctx, url);
+  if (path === "/app.js") return appFile(ctx, url, "js");
+  if (path === "/app.css") return appFile(ctx, url, "css");
   if (path === "/search-index.json") return searchIndexJson(ctx, url);   // r6 GROUP C: header search index for server pages
   // Search-engine ownership files, answered here so Pages' ".html -> pretty URL" redirect can't get in the way.
   if (VERIFY[path]) return new Response(VERIFY[path], { headers: { "content-type": "text/html; charset=utf-8" } });
@@ -322,7 +358,7 @@ async function hubApp(ctx, url, spec) {
   // Header (round 4): index.html marks Finds as the current section; a hub in another section (/brand/x -> Brands) gets
   // the mark moved here, before the first paint, so the active pill never jumps. Same map as the server pages (navKey).
   const navHref = { finds: "/", brands: "/brands", tools: "/tools", guides: "/guides", how: "/how-to-order" }[navKey(spec.path)] || "";
-  const out = new HTMLRewriter()
+  const out = appSplit(new HTMLRewriter(), etagOf(asset))
     .on("nav.v9-nav a.v9-nl", { element(e) { if (e.getAttribute("href") === navHref) e.setAttribute("aria-current", "page"); else e.removeAttribute("aria-current"); } })
     .on("title", { element(e) { e.setInnerContent(title); } })
     .on('meta[name="description"]', content(spec.desc))
@@ -345,6 +381,9 @@ async function hubApp(ctx, url, spec) {
     // v9 (29 Oct 2026): the homepage sections between the hero and the toolbar, the hero search, the hero buttons and the hero trust row
     // are homepage only. Removed here like the v8 hero parts; home.js no-ops when they are missing.
     .on("div#v9-home", { element(e) { e.remove(); } })
+    // 10 Nov 2026: the app's hidden tool and guide sections (#tutorials, #qc-checker, ...) are homepage only: about 1,200 words
+    // that made every hub page read alike. The app sends those links to the homepage when the section is missing.
+    .on("section.page[hidden]", { element(e) { e.remove(); } })
     .on("form#v9-hero-search", { element(e) { e.remove(); } })
     .on("div.v9-hero-actions", { element(e) { e.remove(); } })
     .on("div.v9-trust", { element(e) { e.remove(); } })
@@ -352,6 +391,6 @@ async function hubApp(ctx, url, spec) {
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
     .on("footer", { element(e) { e.before(seo, { html: true }); } })
     .transform(asset);
-  const res = new Response(out.body, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=3600", link: catalogLink(etagOf(asset)) } });
+  const res = new Response(out.body, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=3600", link: catalogLink(etagOf(asset)) + ", " + appLink(etagOf(asset)) } });
   return res;
 }
