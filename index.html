@@ -2719,6 +2719,18 @@ html .gate-guest{min-height:32px;margin-top:2px;padding:0 10px;font-size:11px;co
 /* 9 Nov 2026, layout jumps (CLS 0.26 on phones): row placeholders as tall as the real rows */
 html .v9-rail .sk-card .sk-p{margin-top:21px}
 @media (max-width:560px){html .v9-rail .sk-card .sk-p{margin-top:20px}}
+/* owner, 9 Nov 2026: the grid under a find looks like the main one: same width, title, bar and card sizes */
+html #drawer .pp-allh{margin:28px 0 4px}
+html #drawer .pp-all-p{margin:0 0 6px}
+html #drawer .pp-filters .spacer{flex:1}
+html #drawer .pp-filters .count{color:var(--muted);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+html #drawer .pp-search .pc-cam{margin-left:auto}
+@media (min-width:761px){html #drawer #pp-browse{width:min(1236px,calc(100vw - 44px));margin-left:calc(50% - min(618px,calc(50vw - 22px)));margin-right:0}}
+@container (min-width:572px){html.grid-compact #pp-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@container (min-width:768px){html.grid-compact #pp-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@container (min-width:964px){html.grid-compact #pp-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
+@container (min-width:1160px){html.grid-compact #pp-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important}}
+@media (max-width:560px){html #drawer .pp-dens,html #drawer .pp-filters .count,html #drawer .pp-filters .spacer{display:none}}
 html #drawer .pc-beta{margin-top:18px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 html #drawer .pcb-h{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px}
 html #drawer .pcb-tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
@@ -4602,17 +4614,21 @@ function _detailBuild(p){
       
       <div id="similar-wrap" class="similar-wrap"></div>
       <div class="d-wide" id="pp-browse">
-        <h2 class="sec-label">${ICON("grid","sm")}<span data-i18n="browse_all">Browse all finds</span></h2>
+        <h2 class="h-ic pp-allh"><span class="ic-tile" aria-hidden="true">${ICON("grid")}</span><span data-i18n="v9_all_h">All Finds</span></h2><p class="v9-lead v9-all-p pp-all-p">${ICON("sliders","sm")}<span data-i18n="v9_all_p">Search, filter and sort every find on the sheet.</span></p>
         <div class="pp-sticky">
-        <label class="search pp-search"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><input id="pp-q" type="search" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search finds"></label>
+        <label class="search pp-search"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><input id="pp-q" type="search" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search finds"><button type="button" class="pc-cam" id="pp-cam" aria-label="Search with a photo" title="Search with a photo"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg></button></label>
         <div class="filters-row pp-filters">
           <div class="fsel"><select id="pp-type"></select><svg class="ic fchev" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></div>
           <div class="fsel"><select id="pp-brand"></select><svg class="ic fchev" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></div>
           <button type="button" class="price-btn pp-price-btn" id="pp-price-btn" aria-expanded="false" aria-haspopup="dialog" aria-controls="price-pop"><span id="pp-price-label">Any price</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button>
           <div class="fsel"><select id="pp-color"></select><svg class="ic fchev" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></div>
           <div class="fsel"><select id="pp-source"></select><svg class="ic fchev" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></div>
+          <button type="button" class="saved-chip" id="pp-qc" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg><span data-i18n="qc_only">QC photos</span></button>
           <button class="saved-chip" id="pp-saved" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-star"/></svg><span data-i18n="saved">Saved</span></button>
           <div class="fsel sort-fsel"><select id="pp-sort"></select><svg class="ic fchev" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></div>
+          <span class="spacer"></span>
+          <div class="pc-dens pp-dens" role="group" aria-label="Card size"><button type="button" data-dens="comfortable" aria-label="Bigger cards" title="Bigger cards"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-grid-lg"/></svg></button><button type="button" data-dens="compact" aria-label="Smaller cards" title="Smaller cards"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-grid"/></svg></button></div>
+          <span class="count" id="pp-count" role="status"></span>
         </div>
         </div>
         <div class="grid" id="pp-grid"></div>
@@ -6281,6 +6297,7 @@ function renderPPGrid(){
   const g=$("#pp-grid",drawer); if(!g)return;
   const cur=drawer.__pid;
   drawer.__pplist=filtered().filter(x=>x.id!==cur); drawer.__ppn=0; g.innerHTML="";
+  { const pc=$("#pp-count",drawer); if(pc) pc.textContent=t("count").replace("{n}",drawer.__pplist.length.toLocaleString(state.lang)).replace("{t}",ALL.length.toLocaleString(state.lang)); }
   if(!drawer.__pplist.length){ const se=state.saved&&![...FAVES].some(id=>id!==cur);
     g.innerHTML=`<div class="empty" style="grid-column:1/-1;padding:40px 20px"><b>${esc(t(se?"saved_empty_t":"nothing_t"))}</b><span>${esc(t(se?"saved_empty_b":"nothing_b"))}</span></div>`; }
   try{ if(window.__ppObs) window.__ppObs.disconnect(); window.__ppObs=new IntersectionObserver(es=>{es.forEach(e=>{ if(e.isIntersecting) ppGridMore(); });},{root:drawer.querySelector(".dbody")||null,rootMargin:"700px"}); }catch(e){}
@@ -6295,6 +6312,11 @@ function wirePPFilters(){
   on("#pp-price-btn","click",e=>{ e.stopPropagation(); try{ window.pcOpenPrice&&window.pcOpenPrice(e.currentTarget); }catch(_){} });   /* the same price slider as the main grid (owner, 9 Nov 2026) */
   on("#pp-sort","change",e=>{state.sort=e.target.value;save();renderPPGrid();});
   const sv=$("#pp-saved",drawer); if(sv)sv.addEventListener("click",()=>{state.saved=!state.saved;sv.setAttribute("aria-pressed",String(state.saved));save();renderPPGrid();});
+  /* owner, 9 Nov 2026: the grid under a find works and looks like the main one (QC photos, photo search, card size, count) */
+  const qc=$("#pp-qc",drawer); if(qc){ qc.setAttribute("aria-pressed",String(!!state.qc)); qc.addEventListener("click",()=>{ state.qc=!state.qc; qc.setAttribute("aria-pressed",String(state.qc)); const m=$("#qc-chip"); if(m) m.setAttribute("aria-pressed",String(state.qc)); save(); renderPPGrid(); }); }
+  const cam=$("#pp-cam",drawer), mcam=$("#pc-cam"); if(cam){ if(!mcam) cam.hidden=true; else cam.addEventListener("click",e=>{ e.preventDefault(); mcam.click(); try{ closeDetail(); }catch(_){} }); }
+  const dn=$(".pp-dens",drawer); if(dn){ const sync=()=>{ const c=document.documentElement.classList.contains("grid-compact"); document.querySelectorAll("[data-dens]").forEach(b=>b.setAttribute("aria-pressed",String((b.getAttribute("data-dens")==="compact")===c))); }; sync();
+    dn.addEventListener("click",e=>{ const b=e.target.closest("[data-dens]"); if(!b) return; const c=b.getAttribute("data-dens")==="compact"; document.documentElement.classList.toggle("grid-compact",c); try{ localStorage.setItem("pc.grid.density",c?"compact":"comfortable"); }catch(_){} sync(); }); }
   let qt; const q=$("#pp-q",drawer); if(q)q.addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{state.q=e.target.value.trim();save();syncQParam();renderPPGrid();try{window.pcSearch&&pcSearch.q(state.q,(drawer.__pplist||[]).length,"product");}catch(_){}},120);});   /* search-log hook D */
   if(q){ q.addEventListener("keydown",e=>{ if(e.key==="Enter"){ try{window.pcSearch&&pcSearch.commit();}catch(_){} } }); q.addEventListener("blur",()=>{ try{window.pcSearch&&pcSearch.commit();}catch(_){} }); }   /* search-log hook E */
 }
@@ -6449,8 +6471,8 @@ function wirePPFilters(){
       });
     });
   }
-  /* owner, 9 Nov 2026: "Popular Now" shows the owner's own picks, in a new random order every 2 hours (the same order for
-     every visitor in that window). Add find ids to POP_PICKS to add them to the rotation. */
+  /* owner, 9 Nov 2026: "Popular Now" shows the owner's own picks, in a new random order every 30 minutes (owner, 9 Nov 2026; the same
+     order for every visitor in that window). Add find ids to POP_PICKS to add them to the rotation. */
   var POP_PICKS = ["7774498099","805059071491","950754050761","935096845323","7563973209","867265954871","7630051831",
     "6716583439","7663734281","7647547734","977682146752","7447925231","891428294916","7731148188","7739786803",
     "893315757292","1023952915683","7231806587","964484272869","1004752923420",
@@ -6467,7 +6489,7 @@ function wirePPFilters(){
   var ONE_BRAND = { "Acne Studios": 1 };
   function popPicks() {
     var B = {}; try { B = BY_ID || {}; } catch (e) {}
-    var left = shuffled(POP_PICKS, Math.floor(Date.now() / 7200000)).map(function (id) { return B[id]; })
+    var left = shuffled(POP_PICKS, Math.floor(Date.now() / 1800000)).map(function (id) { return B[id]; })
       .filter(function (p) { return p && p.img && !sold(p); });
     var out = [], used = {};
     var full = function (b) { return ONE_BRAND[b] && (used[b] || 0) >= ONE_BRAND[b]; };
@@ -6478,7 +6500,7 @@ function wirePPFilters(){
       if (k < 0) break;
       var p = left.splice(k, 1)[0]; used[p.brand || ""] = (used[p.brand || ""] || 0) + 1; out.push(p);
     }
-    return out;   /* 16 of the picks per 2-hour window */
+    return out;   /* 16 of the picks per 30-minute window */
   }
   function swapIn(items, c) {
     var sw = ROW_SWAP[c]; if (!sw) return items; var B = {}; try { B = BY_ID || {}; } catch (e) {}
@@ -7164,7 +7186,7 @@ function wirePPFilters(){
 (function(){try{if(!(window.CSS&&CSS.supports&&CSS.supports("selector(::details-content)"))){var DS="details.v9-more,details.v9-step-d,#seo details.seo-q,.hub-seo details,details.more,details.tk-more,.faq details,details.faq-d",DRM=matchMedia("(prefers-reduced-motion: reduce)");document.addEventListener("click",function(e){var s=e.target&&e.target.closest&&e.target.closest("summary"),d=s&&s.parentElement;if(!d||d.tagName!=="DETAILS"||d.firstElementChild!==s||!d.matches(DS)||DRM.matches||!d.animate)return;e.preventDefault();var h0=d.getBoundingClientRect().height,A=d._pcA,want=A?!d._pcW:!d.open;if(A){A.onfinish=null;A.cancel()}d._pcW=want;d.open=false;var hc=d.getBoundingClientRect().height;d.open=true;var ho=d.getBoundingClientRect().height;d.style.overflow="hidden";d.style.boxSizing="border-box";var a=d.animate({height:[h0+"px",(want?ho:hc)+"px"]},{duration:240,easing:"cubic-bezier(.22,1,.36,1)"});d._pcA=a;if(want)[].forEach.call(d.children,function(c){if(c!==s)try{c.animate({opacity:[0,1]},{duration:220,easing:"ease-out"})}catch(x){}});a.onfinish=function(){d.open=want;d.style.overflow="";d.style.boxSizing="";d._pcA=null}})}}catch(e){}
 try{var AC=null,AH=matchMedia("(hover: hover)"),afp=function(l){var p=l.querySelector(".aff-pop");if(!p)return;l.classList.remove("up");var r=p.getBoundingClientRect(),t=l.getBoundingClientRect().top;if(r.bottom>innerHeight-8&&t>r.height+16)l.classList.add("up")},afs=function(l,o){var b=l&&l.querySelector(".aff-btn");if(!b)return;if(o){if(AC&&AC!==l)afs(AC,false);AC=l;l.classList.remove("shut");l.classList.add("open");afp(l)}else{l.classList.remove("open");if(AC===l)AC=null}b.setAttribute("aria-expanded",o?"true":"false")};document.addEventListener("click",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b){var l=b.closest(".aff-lb");e.preventDefault();afs(l,AH.matches?true:!l.classList.contains("open"));return}if(AC&&!AC.contains(e.target))afs(AC,false)});document.addEventListener("mouseover",function(e){if(!AH.matches)return;var l=e.target&&e.target.closest&&e.target.closest(".aff-lb");if(l&&!l.classList.contains("open")&&!l.classList.contains("shut"))afs(l,true)});document.addEventListener("mouseout",function(e){if(!AH.matches)return;var l=e.target&&e.target.closest&&e.target.closest(".aff-lb");if(l&&!l.contains(e.relatedTarget)){l.classList.remove("shut");if(!l.contains(document.activeElement))afs(l,false)}});document.addEventListener("focusin",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b&&b.matches(":focus-visible"))afs(b.closest(".aff-lb"),true)});document.addEventListener("focusout",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b){var l=b.closest(".aff-lb");if(!l.matches(":hover"))afs(l,false)}});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&AC){var l=AC;e.stopPropagation();afs(l,false);l.classList.add("shut")}},true)}catch(e){}})();
 </script>
-<script id="pc-search" src="/pcs.js?v=5f23e99c"></script>
+<script id="pc-search" src="/pcs.js?v=d65aa9db"></script>
 <script src="/track.js?v=4" defer></script>
 <script src="/also.js?v=1" defer></script>
 <script src="/chat.js?v=7" defer></script>

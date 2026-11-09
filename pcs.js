@@ -507,10 +507,13 @@ return out;
 }
 var POP=null,PB=[],popLoading=false,popWait=[],idxWait=[];
 function whenIdx(f){if(SA&&!SA.ALL&&!SA.failed)idxWait.push(f);else f();}
+/* owner, 9 Nov 2026: "make this also update frequently": the menu shows a new mix from the top lists every 30 minutes
+   (same mix for everyone in that half hour) */
+function rot30(a,n){a=a.slice();var x=(Math.floor(Date.now()/1800000)>>>0)||1;for(var i=a.length-1;i>0;i--){x=(Math.imul(x,1664525)+1013904223)>>>0;var j=x%(i+1),t=a[i];a[i]=a[j];a[j]=t;}return a.slice(0,n);}
 function loadPop(){
 if(POP||popLoading)return;popLoading=true;
 var done=function(dash){
-var out=[],seen={},push=function(q){q=String(q||"").trim();var f=A.fold(q);if(!f||seen[f]||out.length>=8)return;seen[f]=1;out.push(q);};
+var out=[],seen={},push=function(q){q=String(q||"").trim();var f=A.fold(q);if(!f||seen[f]||out.length>=16)return;seen[f]=1;out.push(q);};
 try{((dash&&dash.search&&dash.search.top)||[]).forEach(function(r){var q=String(r[0]||"").trim();if((r[3]||0)>0&&q.length>=2&&q.length<=40&&!/^\d+$/.test(q)&&!/https?:|www\.|\.[a-z]{2,3}\//i.test(q))push(q);});}catch(e){}
 if(out.length<4)try{((dash&&dash.top_brands_7d)||[]).forEach(function(r){push(r[0]);});}catch(e){}
 if(!dash)try{
@@ -518,10 +521,10 @@ var a=all()||[],ps=G("popScore"),sc={};
 a.forEach(function(p){if(p.brand)sc[p.brand]=(sc[p.brand]||0)+(typeof ps==="function"?ps(p):0);});
 Object.keys(sc).filter(function(b){return sc[b]>0;}).sort(function(x,y){return sc[y]-sc[x];}).slice(0,8).forEach(push);
 }catch(e){}
-var pb=[],pf={},pushB=function(b){b=String(b||"").trim();var f=A.fold(b);if(!f||pf[f]||pb.length>=8)return;pf[f]=1;pb.push(b);};
+var pb=[],pf={},pushB=function(b){b=String(b||"").trim();var f=A.fold(b);if(!f||pf[f]||pb.length>=12)return;pf[f]=1;pb.push(b);};
 try{((dash&&dash.top_brands_7d)||[]).forEach(function(r){pushB(r[0]);});}catch(e){}
 if(pb.length<3)try{var a2=all()||[],ps2=G("popScore"),sc2={};a2.forEach(function(p){if(p.brand)sc2[p.brand]=(sc2[p.brand]||0)+1+(typeof ps2==="function"?ps2(p)||0:0);});Object.keys(sc2).sort(function(x,y){return sc2[y]-sc2[x];}).slice(0,8).forEach(pushB);}catch(e){}
-PB=pb;POP=out;popLoading=false;if(open)paint();
+out=rot30(out,8);PB=rot30(pb,8);POP=out;popLoading=false;if(open)paint();
 var pw=popWait;popWait=[];pw.forEach(function(f){try{f(out.slice(0,8));}catch(e){}});
 };
 var later=function(dash){whenIdx(function(){done(dash);});};
@@ -693,7 +696,7 @@ for(i=0;i<a.length;i++){var p=a[i];if(!p.img||skip[String(p.id)]||(so&&so.has&&s
 c.sort(function(x,y){return y.s-x.s;});c=c.slice(0,1200).map(function(x){return x.p;});
 var fy=G("pcForYou"),sc=null;
 if(sg.n&&typeof fy==="function")try{sc=fy(c);}catch(e){sc=null;}
-if(sc&&sc.get)c.sort(function(x,y){return(sc.get(y)||0)-(sc.get(x)||0);});else sc=null;
+if(sc&&sc.get)c.sort(function(x,y){return(sc.get(y)||0)-(sc.get(x)||0);});else{sc=null;c=rot30(c.slice(0,60),60);}   /* trending: a new trio from the 60 most viewed every 30 minutes */
 var pick=[],bs={};
 for(i=0;i<c.length&&pick.length<3;i++){var b=c[i].brand||"";if(bs[b])continue;bs[b]=1;pick.push(c[i]);}
 FY={at:now,len:a.length,list:pick,me:!!sc};
