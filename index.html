@@ -2721,6 +2721,13 @@ html .v9-rail .sk-card .sk-p{margin-top:21px}
 @media (max-width:560px){html .v9-rail .sk-card .sk-p{margin-top:20px}}
 /* owner, 9 Nov 2026: the grid under a find looks like the main one: same width, title, bar and card sizes */
 html #drawer .pp-allh{margin:28px 0 4px}
+@supports (container-type:inline-size){
+  html #drawer #pp-browse{container-type:inline-size}
+  html #pp-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  @container (min-width:768px){html #pp-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+  @container (min-width:964px){html #pp-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+  @container (min-width:1160px){html #pp-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
+}
 html #drawer .pp-all-p{margin:0 0 6px}
 html #drawer .pp-filters .spacer{flex:1}
 html #drawer .pp-filters .count{color:var(--muted);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -6484,15 +6491,18 @@ function wirePPFilters(){
   function shuffled(a, seed) { a = a.slice(); var x = (seed >>> 0) || 1;
     for (var i = a.length - 1; i > 0; i--) { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; var j = x % (i + 1), t = a[i]; a[i] = a[j]; a[j] = t; }
     return a; }
-  /* owner, 9 Nov 2026: "only have 1 Acne Studios at the time": at most ONE_BRAND[b] cards of brand b, and the same brand
-     never twice within 5 cards in a row (when the picks allow it) */
+  /* owner, 9 Nov 2026: "only have 1 Acne Studios at the time": at most ONE_BRAND[b] cards of brand b in Popular Now, and in
+     every picks row the same brand never twice within 5 cards in a row (when the picks allow it) */
   var ONE_BRAND = { "Acne Studios": 1 };
-  function popPicks() {
+  /* owner's own picks for a category row, shuffled every 30 minutes like Popular Now (owner, 9 Nov 2026) */
+  var ROW_PICKS = { Tops: ["7630051831","7774498099","760438413422","829815347538","7231806587","1023952915683","891428294916",
+    "997515775709","7746528290","740333013030","976896164628"] };
+  function rotPicks(ids, caps) {
     var B = {}; try { B = BY_ID || {}; } catch (e) {}
-    var left = shuffled(POP_PICKS, Math.floor(Date.now() / 1800000)).map(function (id) { return B[id]; })
+    var left = shuffled(ids, Math.floor(Date.now() / 1800000)).map(function (id) { return B[id]; })
       .filter(function (p) { return p && p.img && !sold(p); });
     var out = [], used = {};
-    var full = function (b) { return ONE_BRAND[b] && (used[b] || 0) >= ONE_BRAND[b]; };
+    var full = function (b) { return caps[b] && (used[b] || 0) >= caps[b]; };
     while (out.length < PER && left.length) {
       var recent = out.slice(-4).map(function (q) { return q.brand || ""; }), k = -1, i;
       for (i = 0; i < left.length && k < 0; i++) { var b = left[i].brand || ""; if (!full(b) && recent.indexOf(b) < 0) k = i; }
@@ -6502,6 +6512,7 @@ function wirePPFilters(){
     }
     return out;   /* 16 of the picks per 30-minute window */
   }
+  function popPicks() { return rotPicks(POP_PICKS, ONE_BRAND); }
   function swapIn(items, c) {
     var sw = ROW_SWAP[c]; if (!sw) return items; var B = {}; try { B = BY_ID || {}; } catch (e) {}
     Object.keys(sw).forEach(function (from) {
@@ -6528,6 +6539,7 @@ function wirePPFilters(){
       var c = sec.getAttribute("data-row"), items;
       /* the most popular 16 are still set aside first, as before, so the category rows below keep the finds they had */
       if (c === "pop") { var top = pick(pool, "", skip); top.forEach(function (p) { skip[p.id] = 1; }); items = popPicks(); if (items.length < 4) items = top; }
+      else if (ROW_PICKS[c]) { var rp = rotPicks(ROW_PICKS[c], {}); items = rp.length >= 4 ? rp : swapIn(pick(pool, c, skip), c); pick(pool, c, skip).forEach(function (p) { skip[p.id] = 1; }); }
       else { items = swapIn(pick(pool, c, skip), c); items.forEach(function (p) { skip[p.id] = 1; }); }
       /* a row the visitor has scrolled keeps its cards when only the background data changed */
       if (!force && built && sl[n] > 4) return;
