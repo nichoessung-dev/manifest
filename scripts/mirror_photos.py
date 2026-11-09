@@ -16,7 +16,7 @@ Copies that nothing uses any more are deleted.
 Sharper photos (owner, 9 Nov 2026): copies keep the stored photo's own size up to 1600 px (the stored cut-outs are
 1200 px) and its own bytes when it is already a WebP, so nothing is re-compressed. Older copies were cut to 900 px;
 --upgrade N fetches N of those again, straight from Supabase (the proxy would hand back the 900 px copy), a few at a
-time, in catalogue order. Never enlarged and never touched by an image model: the pixels are the stored photo's.
+time (one request at a time with a pause, backing off when Supabase answers 429), in catalogue order. Never enlarged and never touched by an image model: the pixels are the stored photo's.
 
 Photos are fetched through the site's own /api/img proxy (Cloudflare edge cache first, Supabase only on a miss), a
 few at a time, and the run stops early if Supabase keeps failing, so it never adds much load. Run it again until
@@ -183,7 +183,8 @@ def main():
             pass
 
     t0, done, fails, streak, kb_in, kb_out = time.time(), 0, 0, 0, 0, 0
-    todo = [(u, p, False) for u, p in todo[:a.limit]] + [(u, p, True) for u, p in old[:a.upgrade]]
+    todo = [(u, p, False) for u, p in todo[:a.limit]]
+    old = old[:a.upgrade]
 
     def one(job):
         u, p, direct = job
@@ -213,8 +214,23 @@ def main():
                     done += 1; streak = 0; kb_in += n_in // 1024; kb_out += n_out // 1024
             if done and done % 200 < a.workers * 4:
                 print("  %d copied (%.0f KB avg, from %.0f KB), %d failed, %.0f s" % (done, kb_out / done, kb_in / done, fails, time.time() - t0))
-    print("done: %d copied, %d failed, %d unused removed, missing %d; avg %.0f KB (from %.0f KB) in %.0f s"
-          % (done, fails, len(drop), len(want) - len(have & keep) - done, kb_out / max(done, 1), kb_in / max(done, 1), time.time() - t0))
+    # Upgrades come straight from Supabase storage, which answered 429 (too many requests) to 4 parallel workers on
+    # 9 Nov 2026: one at a time, a short pause, a long pause after a 429, and stop after a few 429s (next run goes on).
+    up, up_fail, n429 = 0, 0, 0
+    for u, p in old:
+        if time.time() - t0 > a.max_minutes * 60 or n429 >= 5:
+            print("upgrade stopped early (%s)" % ("time limit" if n429 < 5 else "Supabase busy, 429")); break
+        time.sleep(0.6)
+        n_in, n_out, err = one((u, p, True))
+        if err and "429" in err:
+            n429 += 1; up_fail += 1; time.sleep(20); continue
+        if err:
+            up_fail += 1
+            if up_fail <= 10: print("  upgrade failed", err)
+            continue
+        up += 1; kb_in += n_in // 1024; kb_out += n_out // 1024
+    print("done: %d copied, %d failed, %d unused removed, missing %d; upgraded %d to full size (%d failed, %d old left); avg %.0f KB in %.0f s"
+          % (done, fails, len(drop), max(len(todo) - done, 0), up, up_fail, max(len(old) - up, 0), kb_out / max(done + up, 1), time.time() - t0))
 
 
 if __name__ == "__main__":
