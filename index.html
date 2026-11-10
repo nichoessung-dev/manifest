@@ -5782,7 +5782,7 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
     /* 10 Nov 2026: Google's button sits exactly on top of ours, out of the page flow, and fades in once drawn,
        so the card never moves (it jumped 4px, then 2px) and there is no hard swap */
     const box=b.parentElement; if(box&&getComputedStyle(box).position==="static") box.style.position="relative";
-    slot.style.cssText="position:absolute;display:flex;align-items:center;justify-content:center;margin:0;opacity:0;pointer-events:none;transition:opacity .2s ease-out;z-index:1";
+    slot.style.cssText="position:absolute;display:flex;align-items:center;justify-content:center;margin:0;opacity:0;pointer-events:none;transition:opacity .2s ease-out;z-index:1;color-scheme:light";   /* light: matches Google's frame, so dark mode shows no white box around it */
     const place=()=>{ if(!slot.isConnected) return; slot.style.left=b.offsetLeft+"px"; slot.style.top=b.offsetTop+"px"; slot.style.width=b.offsetWidth+"px"; slot.style.height=b.offsetHeight+"px"; };
     b.after(slot); b.__slot=slot; place();
     let ro=null; try{ ro=new ResizeObserver(place); ro.observe(box); ro.observe(b); }catch(e){}
