@@ -4896,7 +4896,7 @@ function openAuth(){ showGate(); }
 let _gateFocus=null;
 function showGate(){ const g=$("#gate"); if(!g)return; const s=$("#gate-email-status"); if(s){ s.textContent=""; s.classList.remove("err"); }
   if(g.hidden){ _gateFocus=document.activeElement; g.hidden=false; document.documentElement.style.overflow="hidden"; }
-  const f=[$("#gate-google"),$("#gate .gis-slot iframe"),$("#gate-discord")].find(b=>b&&b.offsetParent!==null); if(f){ try{ f.focus({preventScroll:true}); }catch(e){} } }
+  const f=[$("#gate-google"),$("#gate .gis-slot iframe"),$("#gate-discord")].find(b=>b&&b.offsetParent!==null&&getComputedStyle(b).visibility!=="hidden"); if(f){ try{ f.focus({preventScroll:true}); }catch(e){} } }
 function hideGate(){ const g=$("#gate"); if(!g||g.hidden)return; g.hidden=true; document.documentElement.style.overflow="";
   const f=_gateFocus; _gateFocus=null; if(f&&f.focus&&f!==document.body&&document.contains(f)){ try{ f.focus({preventScroll:true}); }catch(e){} }
   try{ window.dispatchEvent(new Event("pc:gate-closed")); }catch(e){} }   /* r6: the welcome flow opens right after the gate (only fires when the gate was visible) */
@@ -5745,8 +5745,8 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
   const hex=a=>Array.from(a,x=>x.toString(16).padStart(2,"0")).join("");
   const say=m=>{ ["#auth-status","#gate-email-status"].forEach(id=>{ const a=$(id); if(a){ a.textContent=m; a.classList.remove("err"); } }); };
   /* back to our own buttons; only undoes what this block hid (the in-app rule's display:none stays) */
-  const off=()=>{ st=-1; document.querySelectorAll(".gis-slot").forEach(s=>s.remove());
-    SLOTS.forEach(([,id])=>{ const b=document.getElementById(id); if(b&&b.__gisHid){ b.__gisHid=0; b.style.display=""; } }); };
+  const off=()=>{ st=-1; document.querySelectorAll(".gis-slot").forEach(s=>{ if(s.__ro) s.__ro.disconnect(); s.remove(); });
+    SLOTS.forEach(([,id])=>{ const b=document.getElementById(id); if(b&&b.__gisHid){ b.__gisHid=0; b.style.visibility=""; } }); };
   const usable=b=>!!b&&!(b.style.display==="none"&&!b.__gisHid);
   /* after the visitor picked an account: a short note, then the classic Google redirect */
   const fallback=()=>{ off(); say("Google sign-in hit a snag, opening the Google page instead."); try{ oauth("google"); }catch(e){} };
@@ -5772,28 +5772,33 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
     return {dark,lang,key:(dark?"d":"l")+lang}; };
   /* drop a Google button and bring ours back (theme or language changed since it was drawn) */
   const unmount=b=>{ const s=b.__slot; b.__slot=null; b.__gis=0;
-    if(s){ if(s.__stop) s.__stop(); s.remove(); }
-    if(b.__gisHid){ b.__gisHid=0; b.style.display=""; } };
+    if(s){ if(s.__stop) s.__stop(); if(s.__ro) s.__ro.disconnect(); s.remove(); }
+    if(b.__gisHid){ b.__gisHid=0; b.style.visibility=""; } };
   function mount(b){
     if(st!==2||!usable(b)||b.__gis) return;
     const w=b.offsetWidth; if(!w) return;   /* layout width: the gate card scales in while it opens */
     b.__gis=1;
     const slot=document.createElement("div"); slot.className="gis-slot";
-    slot.style.cssText="display:flex;justify-content:center;margin:0;height:0;overflow:hidden";   /* invisible, takes no space until rendered */
-    b.after(slot); b.__slot=slot;
+    /* 10 Nov 2026: Google's button sits exactly on top of ours, out of the page flow, and fades in once drawn,
+       so the card never moves (it jumped 4px, then 2px) and there is no hard swap */
+    const box=b.parentElement; if(box&&getComputedStyle(box).position==="static") box.style.position="relative";
+    slot.style.cssText="position:absolute;display:flex;align-items:center;justify-content:center;margin:0;opacity:0;pointer-events:none;transition:opacity .2s ease-out;z-index:1";
+    const place=()=>{ if(!slot.isConnected) return; slot.style.left=b.offsetLeft+"px"; slot.style.top=b.offsetTop+"px"; slot.style.width=b.offsetWidth+"px"; slot.style.height=b.offsetHeight+"px"; };
+    b.after(slot); b.__slot=slot; place();
+    let ro=null; try{ ro=new ResizeObserver(place); ro.observe(box); ro.observe(b); }catch(e){}
+    slot.__ro=ro;
     const L=look(); slot.__key=L.key;
     let done=0, t=0, mo=null;
     const stop=()=>{ done=1; clearTimeout(t); if(mo) mo.disconnect(); };
     slot.__stop=stop;
     const show=()=>{ if(done||!slot.isConnected) return; stop();
-      /* take exactly our button's box, so swapping the two does not move anything */
-      const h=b.offsetHeight, mb=getComputedStyle(b).marginBottom;
-      slot.style.height=Math.max((h||40)+4,44)+"px"; slot.style.overflow="hidden"; slot.style.alignItems="center"; slot.style.marginBottom=Math.max(0,(parseFloat(mb)||0)-2)+"px";   /* fixed box: Google draws its frame taller for a moment, which moved the whole card */
-      const had=document.activeElement===b; b.__gisHid=1; b.style.display="none";
+      place(); slot.style.opacity="1"; slot.style.pointerEvents="auto";
+      const had=document.activeElement===b; b.__gisHid=1;
+      setTimeout(()=>{ if(b.__gisHid&&slot.isConnected) b.style.visibility="hidden"; },220);   /* ours keeps its space, hidden once Google's has faded in */
       if(had){ const f=slot.querySelector("iframe"); try{ (f||slot).focus({preventScroll:true}); }catch(e){} } };
     try{ google.accounts.id.renderButton(slot,{type:"standard",theme:L.dark?"filled_black":"outline",size:"large",shape:"pill",
       text:"continue_with",logo_alignment:"left",width:Math.min(400,Math.max(200,w)),locale:L.lang}); }
-    catch(e){ stop(); slot.remove(); b.__slot=null; return; }
+    catch(e){ stop(); if(ro) ro.disconnect(); slot.remove(); b.__slot=null; return; }
     /* Google's button is an iframe: it counts as rendered once that frame has loaded. The observer sees the frame
        being added before it can load, so a fast (cached) frame is not missed */
     const later=()=>setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(show)),180);   /* 9 Nov 2026: let Google's frame paint first (no blank flash) */
@@ -5801,7 +5806,7 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
     try{ mo=new MutationObserver(hook); mo.observe(slot,{childList:true,subtree:true}); }catch(e){}
     hook();
     t=setTimeout(()=>{ if(done) return; stop();   /* never rendered: ours stays, and the next opening tries again */
-      slot.remove(); if(b.__slot===slot){ b.__slot=null; b.__gis=0; } },8000);
+      if(ro) ro.disconnect(); slot.remove(); if(b.__slot===slot){ b.__slot=null; b.__gis=0; } },8000);
   }
   const mountAll=()=>SLOTS.forEach(([m,id])=>{ const el=document.getElementById(m); if(el&&!el.hidden) mount(document.getElementById(id)); });
   function load(){
