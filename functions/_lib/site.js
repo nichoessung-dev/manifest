@@ -3,6 +3,7 @@
 import { ROWS, PREFIX, BUILT } from "./catalog.js";
 import * as SIG from "./signals.js";
 import { PQ } from "./photo_quality.js";
+import { SWAPS } from "./link_swaps.js";
 const { CHECKED, DEMAND, DEAD, SOLD_OUT } = SIG;
 // QC photo bank results (scripts/gen_signals.py from data/qc_bank.json, 28 Oct 2026), read through the namespace so a
 // signals.js written before these lists existed still loads. QC_BANKED: { id: "YYYY-MM-DD" }, the finds whose QC photos
@@ -33,6 +34,9 @@ function normBrand(p) {
 }
 export const P = ROWS.map(r => normBrand({ id: r[0], title: r[1], brand: r[2], cat: r[3], platform: r[4], seller: r[5], usd: r[6], cny: r[7],
   qc: NO_QC.has(r[0]) ? 0 : r[8], best: r[9], views: r[10], img: r[11], g: r[12], itemId: r[13], variants: r[14] }));
+// Partner link swaps approved on /partner (link_swaps.js, the Swaps workflow): the find keeps its page, title and photo,
+// its Buy buttons go to the partner's item.
+for (const p of P) { const s = SWAPS[p.id]; if (s) { p.platform = s[0]; p.itemId = s[1]; } }
 // Real view stats (data/stats.json, refreshed every 6h by the Stats workflow): { id: [all, 30d, 7d, favourites] }
 // VIEWS_VER counts the different stats files this server instance has loaded (0 = none yet); every cache derived from
 // the numbers (idx(), and the model, brand-facts and related-brands caches in pages.js) is rebuilt when it moves.
