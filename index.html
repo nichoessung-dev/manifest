@@ -4488,6 +4488,7 @@ function pinSsr(list){
   if(SSR_PIN===undefined){
     SSR_PIN=[...document.querySelectorAll("#grid [data-ssr]")].map(e=>e.getAttribute("data-ssr")); SSR_SIG=ssrSig();
     if(SSR_PIN.length&&(state.sort!=="pop"||state.q||state.saved)) SSR_PIN=[];
+    if(Date.now()<Date.UTC(2026,11,11)) SSR_PIN=[];   /* 11 Nov 2026: the 50/50 mix with the new RepLibrary finds (pcSmartPop) starts at the very top, so the server's first cards are not kept in place */
     if(SSR_PIN.length){ const ids=new Set(list.map(p=>p.id)); if(SSR_PIN.filter(id=>ids.has(id)).length<SSR_PIN.length*0.8) SSR_PIN=[]; }
   }
   if(!SSR_PIN.length) return list;
