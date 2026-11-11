@@ -1,0 +1,89 @@
+name: RepLibrary photo cut-outs
+# One-time job (owner, 11 Nov 2026): the RepLibrary photos that sit on a white square (img/rl/<id>.webp) become
+# transparent cut-outs like the rest of the site, in place, with clean_photos.py's pipeline (rembg mask, tidy, quality
+# gate, transparent compose with soft shadow, fidelity check; no upscaling, nothing drawn). Photos that already have
+# transparency are left alone; photos whose mask looks wrong keep the original (reason in data/rl_cutout.json).
+# index.html is not touched: the file names stay the same. Before/after contact sheets are in the run's artifacts.
+# Run by hand: first with limit 20, look at the sheets, then limit 0 until the log says "not done yet 0".
+# Photos the import adds later are handled by a later run. Delete this workflow and scripts/rl_cutout.py when done.
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Photos to look at this run (0 = all; try 20 first)'
+        default: '20'
+      max_minutes:
+        description: 'Minutes of work this run'
+        default: '45'
+      ids:
+        description: 'Only these ids (comma separated; optional)'
+        default: ''
+      retry_kept:
+        description: 'Look again at photos kept earlier'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+      dry_run:
+        description: 'Make the contact sheets only, change nothing'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+permissions:
+  contents: write
+concurrency:
+  group: rl-cutout
+  cancel-in-progress: false
+jobs:
+  cutout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    env:
+      LIMIT: ${{ inputs.limit || '20' }}
+      MAXMIN: ${{ inputs.max_minutes || '45' }}
+      IDS: ${{ inputs.ids }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check inputs
+        run: |
+          [[ "$LIMIT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::limit must be a number"; exit 1; }
+          [[ "$MAXMIN" =~ ^[0-9]{1,3}$ ]] || { echo "::error::max_minutes must be a number"; exit 1; }
+          [[ -z "$IDS" || "$IDS" =~ ^[0-9,\ ]+$ ]] || { echo "::error::bad ids"; exit 1; }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install pillow "rembg[cpu]>=2.0.59,<3" numpy
+      - name: Cache background-removal model
+        uses: actions/cache@v4
+        with:
+          path: ~/.u2net
+          key: u2net-isnet-general-use-v1
+      - name: Cut out
+        run: |
+          IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
+          RK=""; [ "${{ inputs.retry_kept }}" = "yes" ] && RK="--retry-kept"
+          DR=""; [ "${{ inputs.dry_run }}" = "yes" ] && DR="--dry-run"
+          python -u scripts/rl_cutout.py --limit "$LIMIT" --max-minutes "$MAXMIN" $IDA $RK $DR --sheets out/rl-cutout-sheets
+      - name: Keep contact sheets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rl-cutout-${{ github.run_number }}
+          path: out/
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Commit
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          [ -f data/rl_cutout.json ] && git add data/rl_cutout.json
+          [ -d img/rl ] && git add -- "img/rl/*.webp"
+          git diff --cached --quiet && { echo "nothing to commit"; exit 0; }
+          # no [skip ci]: Cloudflare Pages must deploy the new photos
+          git commit -q -m "chore: RepLibrary photo cut-outs ($(git diff --cached --name-only -- img/rl | wc -l) photos)"
+          for n in 1 2 3 4 5 6; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::could not push the results"; exit 1
