@@ -4543,7 +4543,7 @@ function render(){
 
 /* background data (stats/auth/stars) arrived: rebuild the grid only if the user hasn't started browsing, otherwise refresh in place */
 function softRender(){
-  if(!drawer.classList.contains("open") && (state.saved || (_rn<=RPAGE && window.scrollY<window.innerHeight))){ render(); return; }
+  if(!drawer.classList.contains("open") && (state.saved || (_rn<=Math.max(RPAGE,60) && window.scrollY<window.innerHeight))){ render(); return; }   /* 60: the first render shows the server's 60 cards; when the view stats arrive the order (and the 50/50 mix) must still be applied */
   $$("#grid [data-fav]").forEach(b=>b.setAttribute("aria-pressed",String(FAVES.has(b.getAttribute("data-fav")))));
   $$("#grid [data-sc]").forEach(e=>{e.textContent=fmtStar(e.getAttribute("data-sc"));});
 }
