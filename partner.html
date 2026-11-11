@@ -201,42 +201,56 @@
   th,td,.bar .row span,.kpi .delta,.ph .sub,.chart text{font-family:var(--font);letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
   th,.bar .row span{font-weight:500}
   /* partner portal v2 (11 Nov 2026): photo grid, instant swaps, a Swapped tab */
-  main{padding:28px 0 80px}
-  .pp-top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 16px;flex-wrap:wrap;margin:0 0 18px}
-  .pp-top h1{font-size:28px;line-height:1.15;letter-spacing:-.025em;font-weight:700;margin:0}
-  .pp-top .sub{margin:6px 0 0;font-size:13.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  main{padding:20px 0 80px}
+  .pp-top{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin:0 0 14px}
+  .pp-top .ttl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+  .pp-top h1{font-size:22px;line-height:1.2;letter-spacing:-.02em;font-weight:700;margin:0}
+  .pp-top .sub{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .pp-top .right{display:flex;align-items:center;gap:10px}
   .role{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:var(--r-pill);background:var(--surface-2);color:var(--ink);font-size:12px;font-weight:600}
-  .pp-in{width:100%;box-sizing:border-box;min-height:42px;padding:0 14px;border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--surface);color:var(--ink);font:400 14.5px/1.4 var(--font);transition:border-color .15s}
-  .pp-in:focus{outline:none;border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklab,var(--ring) 25%,transparent)}
-  select.pp-in{padding-right:28px;cursor:pointer}
-  .card.login{max-width:440px;margin:40px auto 0;padding:28px;text-align:center}
+  .pp-in{width:100%;box-sizing:border-box;min-height:42px;padding:0 14px;border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--surface);color:var(--ink);font:400 14.5px/1.4 var(--font)}
+  .pp-in:focus{outline:none;border-color:var(--ring)}
+  .card.login{max-width:420px;margin:48px auto 0;padding:28px;text-align:center}
   .card.login h2{margin:0 0 6px;font-size:20px;letter-spacing:-.01em}
   .card.login p{margin:0 0 18px;color:var(--muted);font-size:14px}
   .card.login form{display:flex;flex-direction:column;gap:10px}
-  .card.login .pp-in{text-align:center;letter-spacing:.08em;font-size:16px;min-height:48px}
-  .card.login .btn{min-height:46px;font-size:15px}
-  .bar{position:sticky;top:64px;z-index:5;background:var(--bg);padding:10px 0 12px;margin:0 0 6px;border-bottom:1px solid var(--line)}
-  .tabs{display:inline-flex;background:var(--surface-2);border-radius:var(--r-pill);padding:3px;gap:2px;margin:0 0 10px}
-  .tabs button{appearance:none;border:0;background:transparent;color:var(--muted);font:500 13.5px/1 var(--font);padding:9px 14px;border-radius:var(--r-pill);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .card.login .pp-in{text-align:center;letter-spacing:.08em;font-size:16px;min-height:48px;border-radius:var(--r-pill)}
+  .card.login .btn{min-height:46px;font-size:15px;border-radius:var(--r-pill)}
+  .bar{position:sticky;top:64px;z-index:5;background:var(--bg);padding:8px 0 10px}
+  .search{position:relative}
+  .search svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--muted);pointer-events:none}
+  .search input{width:100%;box-sizing:border-box;height:46px;padding:0 18px 0 44px;border:0;border-radius:var(--r-pill);background:var(--surface-2);color:var(--ink);font:400 15px/1 var(--font)}
+  .search input:focus{outline:2px solid var(--ring);outline-offset:0}
+  .chips{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .chip{position:relative;display:inline-flex}
+  .chip select,.chip input{appearance:none;-webkit-appearance:none;height:34px;border:0;border-radius:var(--r-pill);background:var(--surface-2);color:var(--ink);font:500 13px/1 var(--font);padding:0 30px 0 14px;cursor:pointer}
+  .chip input{width:86px;padding:0 12px;cursor:text}
+  .chip input::placeholder{color:var(--ink);opacity:.75}
+  .chip::after{content:"";position:absolute;right:13px;top:50%;width:6px;height:6px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+  .chip.num::after{display:none}
+  .chip select:focus-visible,.chip input:focus-visible{outline:2px solid var(--ring)}
+  .chips .grow{flex:1}
+  .count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .count b{color:var(--ink);font-weight:600}
+  .tabs{display:inline-flex;background:var(--surface-2);border-radius:var(--r-pill);padding:3px;gap:2px}
+  .tabs button{appearance:none;border:0;background:transparent;color:var(--muted);font:500 13px/1 var(--font);padding:8px 13px;border-radius:var(--r-pill);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
   .tabs button.on{background:var(--seg-on);color:var(--ink);box-shadow:var(--sh-sm)}
-  .tabs .n{font-variant-numeric:tabular-nums;font-size:12px;min-width:18px;height:18px;padding:0 5px;border-radius:var(--r-pill);background:var(--fill);color:var(--fill-ink);display:inline-grid;place-items:center}
-  .filters{display:grid;grid-template-columns:minmax(0,2.2fr) repeat(3,minmax(0,1fr)) 88px 88px;gap:8px}
-  .count{font-size:12.5px;color:var(--muted);margin:10px 0 0;font-variant-numeric:tabular-nums}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px;margin-top:14px}
-  .tile{position:relative;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit;transition:transform .15s var(--ease-out),box-shadow .15s,border-color .15s}
-  @media (hover:hover){.tile:hover{transform:translateY(-2px);box-shadow:var(--sh-md);border-color:var(--line-2)}}
+  .tabs .n{font-variant-numeric:tabular-nums;font-size:11.5px;min-width:18px;height:18px;padding:0 5px;border-radius:var(--r-pill);background:var(--fill);color:var(--fill-ink);display:inline-grid;place-items:center}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-top:8px}
+  .tile{position:relative;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:8px;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:transform .15s var(--ease-out),border-color .15s}
+  @media (hover:hover){.tile:hover{border-color:var(--line-2);transform:translateY(-2px)}}
   .tile:active{transform:scale(.98)}
   .tile:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
-  .tile .ph{aspect-ratio:1/1;background:var(--surface-2);display:grid;place-items:center}
-  .tile .ph img{width:86%;height:86%;object-fit:contain}
-  .tile .tx{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px;min-width:0}
-  .tile .br{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tile .pr{font-size:15px;font-weight:650;margin-top:4px;font-variant-numeric:tabular-nums}
-  .tile .pill{margin-top:8px;display:flex;align-items:center;justify-content:center;height:34px;border-radius:var(--r-pill);background:var(--fill);color:var(--fill-ink);font-weight:600;font-size:13.5px}
+  .tile .ph{aspect-ratio:1/1;border-radius:10px;background:radial-gradient(120% 90% at 50% 20%,var(--surface-2),var(--surface));display:grid;place-items:center;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+  .tile .ph img{width:84%;height:84%;object-fit:contain}
+  .tile .tx{padding:10px 6px 4px;display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+  .tile .br{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tile .tt{font-size:14px;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
+  .tile .mt{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .tile .pr{font-size:16px;font-weight:650;margin-top:auto;padding-top:6px;font-variant-numeric:tabular-nums}
+  .tile .pill{margin:8px 0 0;display:flex;align-items:center;justify-content:center;height:36px;border-radius:var(--r-pill);background:var(--fill);color:var(--fill-ink);font-weight:600;font-size:14px}
   .tile.is-sw .pill{background:var(--surface-2);color:var(--ink)}
-  .tile .tt{font-size:13.5px;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
-  .tile .mt{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .badge{position:absolute;top:8px;left:8px;display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:var(--r-pill);background:var(--ok);color:#fff;font-size:11.5px;font-weight:600;box-shadow:var(--sh-sm)}
+  .badge{position:absolute;top:14px;left:14px;z-index:1;display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:var(--r-pill);background:var(--ok);color:#fff;font-size:11.5px;font-weight:600}
   .more{display:flex;justify-content:center;margin:18px 0 0}
   .empty{display:grid;place-items:center;padding:48px 12px;color:var(--muted);font-size:14px;text-align:center}
   .list{display:flex;flex-direction:column;margin-top:14px;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:var(--surface)}
@@ -275,8 +289,8 @@
   .lp-card p{margin:0 0 18px;color:var(--muted);font-size:14px}
   .lp-card .btn{width:100%;min-height:46px;font-size:16px}
   .lp-card .btn + .btn{margin-top:8px}
-  @media (max-width:760px){.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.filters .q{grid-column:1/-1}.bar{top:56px}}
-  @media (max-width:560px){.w{padding:0 16px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  @media (max-width:760px){.bar{top:56px}.chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:10px -16px 0;padding:0 16px}.chips::-webkit-scrollbar{display:none}.chip{flex:none}}
+  @media (max-width:560px){.w{padding:0 16px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tile{padding:6px}.tile .pill{height:32px;font-size:13px}
     .sheet{grid-template-columns:1fr}.sheet .big{min-height:0;padding:16px}.sheet .big img{max-height:200px;width:auto}
     .row{grid-template-columns:48px minmax(0,1fr)}.row img{width:48px;height:48px}.row .acts{grid-column:1/-1;justify-content:flex-end}}
   @media (prefers-reduced-motion:reduce){.tile,.ov,.sheet,.toast{transition:none}}
@@ -287,8 +301,8 @@
 <nav aria-label="Partner"><a href="/partner" aria-current="page">Partner portal</a></nav>
 <div class="hr"><button class="hcta" type="button" id="lang" aria-label="Language">EN</button><button class="ibtn tbtn" type="button" data-theme-toggle aria-label="Change theme"><svg class="i-sys" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><svg class="i-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="i-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg></button><a class="hcta" href="/"><span><span class="t-long">Back to </span>Site</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div></div></header>
 <main class="w" id="main">
-  <div class="pp-top"><div><h1>Partner portal</h1><div class="sub" id="who"></div></div>
-    <button class="btn" type="button" id="out" hidden>Log out</button></div>
+  <div class="pp-top"><div class="ttl"><h1>Partner portal</h1><div class="sub" id="who"></div></div>
+    <div class="right"><div class="tabs" role="tablist" id="tabs" hidden><button type="button" class="on" data-tab="all" role="tab"><span>All finds</span></button><button type="button" data-tab="swapped" role="tab"><span>Swapped</span> <span class="n" id="n-sw">0</span></button></div><button class="btn" type="button" id="out" hidden>Log out</button></div></div>
   <div class="alert" id="err" hidden></div>
 
   <section class="card login" id="signin" hidden>
@@ -299,16 +313,15 @@
 
   <div id="tool" hidden>
     <div class="bar">
-      <div class="tabs" role="tablist"><button type="button" class="on" data-tab="all" role="tab"><span>All finds</span></button><button type="button" data-tab="swapped" role="tab"><span>Swapped</span> <span class="n" id="n-sw">0</span></button></div>
-      <div class="filters" id="filters">
-        <input class="pp-in q" id="f-q" type="search" placeholder="Search by name, brand or item ID" autocomplete="off">
-        <select class="pp-in" id="f-pl" aria-label="Marketplace"><option value="">All marketplaces</option><option value="weidian">Weidian</option><option value="taobao">Taobao</option><option value="1688">1688</option></select>
-        <select class="pp-in" id="f-cat" aria-label="Category"><option value="">All categories</option></select>
-        <select class="pp-in" id="f-sort" aria-label="Sort"><option value="">Most popular</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option><option value="az">Name A to Z</option></select>
-        <input class="pp-in" id="f-min" type="number" inputmode="numeric" min="0" placeholder="Min ¥" aria-label="Minimum price in yuan">
-        <input class="pp-in" id="f-max" type="number" inputmode="numeric" min="0" placeholder="Max ¥" aria-label="Maximum price in yuan">
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="f-q" type="search" placeholder="Search by name, brand or item ID" autocomplete="off" aria-label="Search"></div>
+      <div class="chips">
+        <span class="chip"><select id="f-pl" aria-label="Marketplace"><option value="">All marketplaces</option><option value="weidian">Weidian</option><option value="taobao">Taobao</option><option value="1688">1688</option></select></span>
+        <span class="chip"><select id="f-cat" aria-label="Category"><option value="">All categories</option></select></span>
+        <span class="chip num"><input id="f-min" type="number" inputmode="numeric" min="0" placeholder="Min ¥" aria-label="Minimum price in yuan"></span>
+        <span class="chip num"><input id="f-max" type="number" inputmode="numeric" min="0" placeholder="Max ¥" aria-label="Maximum price in yuan"></span>
+        <span class="chip"><select id="f-sort" aria-label="Sort"><option value="">Most popular</option><option value="new">Newest</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option><option value="az">Name A to Z</option></select></span>
+        <span class="grow"></span><span class="count" id="count"></span>
       </div>
-      <div class="count" id="count"></div>
     </div>
     <div id="pane-all"><div class="grid" id="grid"></div><div class="more"><button class="btn" type="button" id="more" hidden>Show more</button></div></div>
     <div id="pane-swapped" hidden><div class="list" id="swlist"></div></div>
@@ -327,7 +340,7 @@ const SB="https://uptpghuduqjqmrxwatbm.supabase.co", KEY="sb_publishable_qFcO570
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let LANG="zh", LANG_SET=false; try{ const v=localStorage.getItem("pc.partner.lang"); LANG_SET=v==="en"||v==="zh"; LANG=v==="en"?"en":"zh"; }catch(e){}
-const Z={"Back to": "返回", "Site": "网站", "Partner portal": "合作伙伴门户", "Log out": "退出", "Enter your partner code": "输入你的合作伙伴代码", "You got this code from Puro Classico.": "此代码由 Puro Classico 提供。", "Open": "进入", "Swap a link": "替换链接", "Find the product, paste the link to the same item in your shop, and send it. The Buy buttons for that find go to your item once it is approved.": "找到商品，粘贴你店铺里同款商品的链接并提交。审核通过后，该商品的购买按钮会跳转到你的商品。", "Search finds by name, brand or item ID": "按名称、品牌或商品ID搜索", "Your item link (Weidian, Taobao or 1688)": "你的商品链接（微店、淘宝或1688）", "Note (optional)": "备注（可选）", "For example: same batch, better stitching": "例如：同一批次，做工更好", "Send for approval": "提交审核", "Cancel": "取消", "Waiting for your OK": "等待你审核", "Approved swaps change the Buy buttons in the app at once, and on product pages within about 20 minutes.": "审核通过后，应用内的购买按钮立即更新，商品页面约20分钟内更新。", "Your swaps": "你的替换", "All swaps": "全部替换", "All finds": "全部商品", "Tap a find to swap its link.": "点击商品即可替换链接。", "Filter by name, brand or ID": "按名称、品牌或ID筛选", "All marketplaces": "全部平台", "Weidian": "微店", "Taobao": "淘宝", "All categories": "全部分类", "Min ¥": "最低 ¥", "Max ¥": "最高 ¥", "Most popular": "最热门", "Price: low to high": "价格从低到高", "Price: high to low": "价格从高到低", "Name A to Z": "名称 A到Z", "Show more": "显示更多", "Only the Buy buttons change: the find keeps its title, photo and price. Paste the link to the same product, or it may be turned down.": "只更换购买按钮：商品的标题、图片和价格保持不变。请粘贴同款商品的链接，否则可能会被拒绝。", "No swaps yet": "暂无替换", "No finds match that": "没有匹配的商品", "No finds match these filters": "没有符合筛选条件的商品", "Nothing waiting": "暂无待审核", "View": "查看", "Approve": "通过", "Turn down": "拒绝", "Withdraw": "撤回", "Undo": "撤销", "Waiting": "待审核", "Live": "已生效", "Turned down": "已拒绝", "Undone": "已撤销", "That doesn't look like a Weidian, Taobao or 1688 item link.": "这看起来不是微店、淘宝或1688的商品链接。", "That is the link the find already has.": "该商品已经是这个链接。", "Swap the Buy links on finds to your own shop's items.": "把商品的购买链接换成你自己店铺的商品。", "Owner view": "管理员视图", "Partner: ": "合作伙伴：", "That code doesn't work.": "代码无效。", "The partner portal isn't switched on yet (database setup missing).": "合作伙伴门户尚未开通。", "Couldn't send: ": "提交失败：", "Couldn't load swaps: ": "加载失败：", "Couldn't save: ": "保存失败：", "Couldn't withdraw: ": "撤回失败：", "Couldn't load the finds. Reload the page to try again.": "无法加载商品，请刷新页面重试。", "Now: ": "当前：", "Found: ": "识别到：", "item": "商品", "Search by name, brand or item ID": "按名称、品牌或商品ID搜索", "Swapped": "已替换", "Swap": "替换", "Change": "更换", "Nothing swapped yet": "还没有替换", "Close": "关闭", "Current link": "当前链接", "Swapped to": "已替换为", "Price": "价格", "Your item link": "你的商品链接", "Paste a Weidian, Taobao or 1688 link": "粘贴微店、淘宝或1688链接", "Undo swap": "撤销替换", "Couldn't swap: ": "替换失败：", "Swapped. The Buy buttons now go to your item.": "已替换，购买按钮现在跳转到你的商品。", "Couldn't undo: ": "撤销失败：", "Swap undone": "已撤销替换", "Owner": "管理员", "Partner": "合作伙伴", "You see every swap and can undo any of them.": "你可以看到所有替换，并可撤销任何一个。", "Marketplace": "平台", "Category": "分类", "Sort": "排序", "Minimum price in yuan": "最低价格（元）", "Maximum price in yuan": "最高价格（元）", "Partner code": "合作伙伴代码"};
+const Z={"Back to": "返回", "Site": "网站", "Partner portal": "合作伙伴门户", "Log out": "退出", "Enter your partner code": "输入你的合作伙伴代码", "You got this code from Puro Classico.": "此代码由 Puro Classico 提供。", "Open": "进入", "Swap a link": "替换链接", "Find the product, paste the link to the same item in your shop, and send it. The Buy buttons for that find go to your item once it is approved.": "找到商品，粘贴你店铺里同款商品的链接并提交。审核通过后，该商品的购买按钮会跳转到你的商品。", "Search finds by name, brand or item ID": "按名称、品牌或商品ID搜索", "Your item link (Weidian, Taobao or 1688)": "你的商品链接（微店、淘宝或1688）", "Note (optional)": "备注（可选）", "For example: same batch, better stitching": "例如：同一批次，做工更好", "Send for approval": "提交审核", "Cancel": "取消", "Waiting for your OK": "等待你审核", "Approved swaps change the Buy buttons in the app at once, and on product pages within about 20 minutes.": "审核通过后，应用内的购买按钮立即更新，商品页面约20分钟内更新。", "Your swaps": "你的替换", "All swaps": "全部替换", "All finds": "全部商品", "Tap a find to swap its link.": "点击商品即可替换链接。", "Filter by name, brand or ID": "按名称、品牌或ID筛选", "All marketplaces": "全部平台", "Weidian": "微店", "Taobao": "淘宝", "All categories": "全部分类", "Min ¥": "最低 ¥", "Max ¥": "最高 ¥", "Most popular": "最热门", "Price: low to high": "价格从低到高", "Price: high to low": "价格从高到低", "Name A to Z": "名称 A到Z", "Show more": "显示更多", "Only the Buy buttons change: the find keeps its title, photo and price. Paste the link to the same product, or it may be turned down.": "只更换购买按钮：商品的标题、图片和价格保持不变。请粘贴同款商品的链接，否则可能会被拒绝。", "No swaps yet": "暂无替换", "No finds match that": "没有匹配的商品", "No finds match these filters": "没有符合筛选条件的商品", "Nothing waiting": "暂无待审核", "View": "查看", "Approve": "通过", "Turn down": "拒绝", "Withdraw": "撤回", "Undo": "撤销", "Waiting": "待审核", "Live": "已生效", "Turned down": "已拒绝", "Undone": "已撤销", "That doesn't look like a Weidian, Taobao or 1688 item link.": "这看起来不是微店、淘宝或1688的商品链接。", "That is the link the find already has.": "该商品已经是这个链接。", "Swap the Buy links on finds to your own shop's items.": "把商品的购买链接换成你自己店铺的商品。", "Owner view": "管理员视图", "Partner: ": "合作伙伴：", "That code doesn't work.": "代码无效。", "The partner portal isn't switched on yet (database setup missing).": "合作伙伴门户尚未开通。", "Couldn't send: ": "提交失败：", "Couldn't load swaps: ": "加载失败：", "Couldn't save: ": "保存失败：", "Couldn't withdraw: ": "撤回失败：", "Couldn't load the finds. Reload the page to try again.": "无法加载商品，请刷新页面重试。", "Now: ": "当前：", "Found: ": "识别到：", "item": "商品", "Search by name, brand or item ID": "按名称、品牌或商品ID搜索", "Swapped": "已替换", "Swap": "替换", "Change": "更换", "Nothing swapped yet": "还没有替换", "Close": "关闭", "Current link": "当前链接", "Swapped to": "已替换为", "Price": "价格", "Your item link": "你的商品链接", "Paste a Weidian, Taobao or 1688 link": "粘贴微店、淘宝或1688链接", "Undo swap": "撤销替换", "Couldn't swap: ": "替换失败：", "Swapped. The Buy buttons now go to your item.": "已替换，购买按钮现在跳转到你的商品。", "Couldn't undo: ": "撤销失败：", "Swap undone": "已撤销替换", "Owner": "管理员", "Partner": "合作伙伴", "You see every swap and can undo any of them.": "你可以看到所有替换，并可撤销任何一个。", "Marketplace": "平台", "Category": "分类", "Sort": "排序", "Minimum price in yuan": "最低价格（元）", "Maximum price in yuan": "最高价格（元）", "Partner code": "合作伙伴代码", "Newest": "最新", "Search": "搜索"};
 const tr=s=>LANG==="zh"&&Z[s]!=null?Z[s]:s;
 function applyLang(root){
   if(LANG!=="zh"||!root) return;
@@ -367,7 +380,8 @@ async function loadCatalog(){
   if(CAT) return CAT;
   await new Promise((res,rej)=>{ const s=document.createElement("script"); s.src="/catalog.js"; s.onload=res; s.onerror=()=>rej(new Error("catalogue")); document.head.appendChild(s); });
   CAT=(window.PC_CATALOG||[]).map((p,n)=>({id:String(p.id),t:p.title,b:p.brand||"",pl:p.platform,i:String(p.itemId||p.id),img:p.img||"",price:+p.price||0,cat:p.cat||"",n}));
-  CAT.forEach(p=>{ BYID[p.id]=p; p.k=(p.t+" "+p.b+" "+p.id+" "+p.i).toLowerCase(); });
+  CAT.forEach(p=>{ BYID[p.id]=p; p.k=(p.t+" "+p.b+" "+p.id+" "+p.i).toLowerCase(); p.pop=0; });
+  try{ const st=await (await fetch("/data/stats.json",{cache:"no-cache"})).json(); const S=st&&st.p||{}; CAT.forEach(p=>{ const v=S[p.id]; if(v) p.pop=(v[1]||0)+(v[2]||0)+0.05*(v[0]||0); }); }catch(e){}
   const c=[...new Set(CAT.map(p=>p.cat).filter(Boolean))].sort();
   $("f-cat").innerHTML='<option value="">'+esc(tr("All categories"))+'</option>'+c.map(x=>`<option>${esc(x)}</option>`).join("");
   return CAT;
@@ -396,9 +410,9 @@ function render(reset){
     return;
   }
   LIST=CAT.filter(ok);
-  if(so==="low") LIST.sort((a,b)=>a.price-b.price); else if(so==="high") LIST.sort((a,b)=>b.price-a.price); else if(so==="az") LIST.sort((a,b)=>a.t.localeCompare(b.t)); else LIST.sort((a,b)=>a.n-b.n);
+  if(so==="low") LIST.sort((a,b)=>a.price-b.price); else if(so==="high") LIST.sort((a,b)=>b.price-a.price); else if(so==="az") LIST.sort((a,b)=>a.t.localeCompare(b.t)); else if(so==="new") LIST.sort((a,b)=>b.n-a.n); else LIST.sort((a,b)=>b.pop-a.pop||a.n-b.n);
   $("grid").innerHTML=LIST.slice(0,SHOWN).map(tile).join("")||`<div class="empty" style="grid-column:1/-1">${esc(tr("No finds match these filters"))}</div>`;
-  $("count").textContent=LANG==="zh"?LIST.length.toLocaleString("en-US")+" 个商品":LIST.length.toLocaleString("en-US")+" finds";
+  $("count").innerHTML=LANG==="zh"?"<b>"+LIST.length.toLocaleString("en-US")+"</b> 个商品":"<b>"+LIST.length.toLocaleString("en-US")+"</b> finds";
   $("more").hidden=LIST.length<=SHOWN;
 }
 /* the swap sheet */
@@ -447,7 +461,7 @@ async function start(code){
   if(!me.length){ try{ localStorage.removeItem("pc.partner.code"); }catch(e){} err(tr("That code doesn't work.")); $("signin").hidden=false; return; }
   ME=me[0]; ROLE=ME.role;
   try{ localStorage.setItem("pc.partner.code",CODE); }catch(e){}
-  $("signin").hidden=true; $("out").hidden=false; $("tool").hidden=false;
+  $("signin").hidden=true; $("out").hidden=false; $("tool").hidden=false; $("tabs").hidden=false;
   $("who").innerHTML=`<span class="role">${esc(tr(ROLE==="owner"?"Owner":"Partner"))}</span><span>${esc(ROLE==="owner"?tr("You see every swap and can undo any of them."):ME.name)}</span>`;
   try{ await Promise.all([loadCatalog(),loadSwaps()]); }catch(e){ err(e.message||tr("Couldn't load the finds. Reload the page to try again.")); }
   render(true);
@@ -459,7 +473,7 @@ let ft; ["f-q","f-min","f-max"].forEach(id=>$(id).addEventListener("input",()=>{
 $("more").onclick=()=>{ SHOWN+=120; render(false); };
 $("grid").addEventListener("click",e=>{ const t=e.target.closest(".tile"); if(t) openSheet(t.dataset.id); });
 document.addEventListener("click",e=>{ const u=e.target.closest("[data-undo]"); if(u) undo(+u.dataset.undo); });
-document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{ TAB=b.dataset.tab;
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{ TAB=b.dataset.tab; window.scrollTo({top:0});
   document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
   $("pane-all").hidden=TAB!=="all"; $("pane-swapped").hidden=TAB!=="swapped"; render(true); }));
 document.documentElement.lang=LANG==="zh"?"zh-CN":"en";
