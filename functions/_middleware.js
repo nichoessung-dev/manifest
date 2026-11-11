@@ -1,8 +1,8 @@
 // Routes the server-rendered SEO pages (hubs, guides, sitemaps) and turns the SPA's catch-all
 // "200 + homepage" for unknown paths into a real 404, so Google doesn't see soft-404 duplicates.
-import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT } from "./_lib/site.js";
+import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT, liveCopy, newest, FINDS_PLUS, QC_PLUS, AGENT_NAMES_ALL } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
-  sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL, renderPlat, fitTitle } from "./_lib/pages.js";
+  sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL, renderPlat, fitTitle, renderNew, newFindsHtml, NEW_LINKS, HX_CSS } from "./_lib/pages.js";
 import { imgSrc, navKey } from "./_lib/site.js";
 import { reportedIds } from "./_lib/reported.js";
 
@@ -114,10 +114,25 @@ async function appFile(ctx, url, kind) {
   ctx.waitUntil(caches.default.put(key, new Response(body, { headers: { ...type, "cache-control": "public, max-age=31536000" } })).catch(() => {}));
   return new Response(body, { headers: { ...type, "cache-control": cc } });
 }
-const slimHtml = (res, ver, cards = "") => withCatalogLink(appSplit(new HTMLRewriter(), ver)
+// The homepage's "New finds" block (12 Nov 2026, SEO check) goes before the footer, with the hub styles (HX_CSS) it uses.
+const slimHtml = (res, ver, cards = "", fresh = "") => withCatalogLink(appSplit(new HTMLRewriter(), ver)
   .on("script#pc-catalog", { element(e) { e.replace(catalogTags(ver), { html: true }); } })
   .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
+  .on("meta[charset]", { element(e) { if (fresh) e.after(HX_CSS, { html: true }); } })
+  .on("footer", { element(e) { if (fresh) e.before(`<div class="hx hx-app hx-home">${fresh}</div>`, { html: true }); } })
   .transform(res), ver);
+// Live numbers (12 Nov 2026, SEO check): index.html's fixed "9,000+" and five-agent phrases (title, meta description, og
+// and twitter tags, JSON-LD, the SEO text, the search placeholder) are rewritten here with liveCopy() (site.js LIVE_RULES),
+// so index.html itself is not edited. Applied to the finished homepage and app hub HTML: outside <script> elements and inside
+// JSON-LD only, never in the app's code. Also fills the agent stack's tooltip and the homepage number tiles. The response is
+// read whole for this (about 250 KB), which only happens on an edge cache miss (keep() in route()).
+function liveText(html) {
+  return html.split(/(<script\b[^>]*>[\s\S]*?<\/script>)/).map((part, i) => i % 2 ? (/^<script[^>]*application\/ld\+json/.test(part) ? liveCopy(part) : part) : liveCopy(part)).join("")
+    .replace(/(<div class="v9-ag" title=")[^"]*"/, `$1${AGENT_NAMES_ALL}"`)
+    .replace(/(<dd data-num="finds">)[^<]*(<\/dd>)/, `$1${FINDS_PLUS}$2`)
+    .replace(/(<dd data-num="qc">)[^<]*(<\/dd>)/, `$1${QC_PLUS}$2`);
+}
+const liveHtml = async res => { const h = new Headers(res.headers); h.delete("content-length"); return new Response(liveText(await res.text()), { status: res.status, headers: h }); };
 
 // data/link_health.json (the weekly link check): when it last ran and which Weidian listings are dead. Kept for 10 minutes.
 let _lh = null, _lhAt = 0;
@@ -227,7 +242,7 @@ async function route(ctx) {
   if (/^\/api(\/|$)/.test(path)) return json404();
   // One 301 hop: strip the trailing slash and, for hub URLs (/brand/Fendi, /Best/X ...), lowercase.
   let to = path.length > 1 ? path.replace(/\/+$/, "") || "/" : path;
-  if (/^\/(brand|category|brands|old-money|guides|best|tools)\b|^\/[a-z0-9]+-spreadsheet/i.test(to)) to = to.toLowerCase();
+  if (/^\/(brand|category|brands|old-money|guides|best|tools|new)\b|^\/[a-z0-9]+-spreadsheet/i.test(to)) to = to.toLowerCase();
   // v9: the weight estimator moved into the shipping calculator; one hop even from /tools/weight-estimator/.
   if (to === "/tools/weight-estimator") return Response.redirect(url.origin + "/tools/shipping-calculator", 301);
   if (to !== path) return Response.redirect(url.origin + to + url.search, 301);
@@ -235,7 +250,7 @@ async function route(ctx) {
   // Edge cache for the hub and list pages (20 Oct 2026): building one takes 0.3-0.6 s (catalogue index + view stats), a
   // cached copy ~0.05 s. The key holds the catalogue build, the page template version and the homepage's ETag, so a
   // new deploy or a new catalogue never serves an old copy. The query string (utm tags) doesn't change the page.
-  const pageCache = request.method === "GET" && (path === "/" || /^\/(brand|category|brands|old-money|guides|best|tools)(\/|$)|^\/[a-z0-9]+-spreadsheet(\/|$)/.test(path));
+  const pageCache = request.method === "GET" && (path === "/" || /^\/(brand|category|brands|old-money|guides|best|tools|new)(\/|$)|^\/[a-z0-9]+-spreadsheet(\/|$)/.test(path));
   let ckey = null;
   if (pageCache) {
     try {
@@ -262,7 +277,7 @@ async function route(ctx) {
     }
     return r;
   };
-  const usesStats = /^\/(brand|category|brands|old-money|guides|best)|^\/[a-z0-9]+-spreadsheet/.test(path);
+  const usesStats = /^\/(brand|category|brands|old-money|guides|best|new(\/|$))|^\/[a-z0-9]+-spreadsheet/.test(path);
   if (usesStats) await ensureStats(url.origin);
   if (path === "/sitemap.xml") return sitemapIndex();
   if (path === "/sitemap-pages.xml") return sitemapPages();
@@ -297,6 +312,8 @@ async function route(ctx) {
   else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet\/([a-z][a-z0-9-]*)(?:\/(\d+))?$/))) { const k = m[1], b = m[2];
     res = retired(n => renderAgentBrand(k, b, n), m[3], url.origin + `/${k}-spreadsheet/${b}`, n => url.origin + `/brand/${b}/${n}`); }
   else if ((m = path.match(/^\/old-money(?:\/(\d+))?$/))) res = paged((_, n) => renderOldMoney(n), null, m[1], url.origin + "/old-money");
+  // /new (12 Nov 2026): the newest finds, newest first (renderNew in pages.js).
+  else if ((m = path.match(/^\/new(?:\/(\d+))?$/))) res = paged((_, n) => renderNew(n), null, m[1], url.origin + "/new");
   // Pages 2+ of the marketplace spreadsheets (9 Nov 2026); page 1 is the app (hubSpec above), /1 and /02 get one 301.
   else if ((m = path.match(/^\/(weidian|taobao|1688)-spreadsheet(?:\/(\d+))?$/))) res = paged(renderPlat, m[1], m[2], url.origin + `/${m[1]}-spreadsheet`);
   if (res !== undefined) {
@@ -311,7 +328,8 @@ async function route(ctx) {
   const ct = out.headers.get("content-type") || "";
   if ((path === "/" || path === "/index.html") && out.status === 200 && ct.includes("text/html")) {
     await ensureStats(url.origin);
-    const home = slimHtml(out, etagOf(out), (await serverCards(ctx, url.origin, null)).cards);
+    const fresh = newFindsHtml(newest(NEW_LINKS, null, await reportedIds(ctx.env, url.origin)), "New finds");
+    const home = await liveHtml(slimHtml(out, etagOf(out), (await serverCards(ctx, url.origin, null)).cards, fresh));
     return path === "/" ? keep(home) : home;   // homepage from the same edge cache as the hubs (~0.22 s -> ~0.11 s TTFB)
   }
   // Swipe Finds (/feed, 4 Nov 2026): loads the same catalogue parts as the homepage (same ?v=, so a visitor who came
@@ -350,7 +368,7 @@ async function hubApp(ctx, url, spec) {
       fresh = '<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage", name: spec.h, url: canon, dateModified: checks ? d.toISOString() : undefined, primaryImageOfPage: img ? { "@type": "ImageObject", contentUrl: img } : undefined }).replace(/</g, "\\u003c") + "</script>";
     }
   } catch (e) {}
-  const { crumbHtml, seo, head } = hubParts(spec, more);
+  const { crumbHtml, seo, head, after } = hubParts(spec, more, await reportedIds(ctx.env, url.origin));
   const content = v => ({ element(e) { e.setAttribute("content", v); } });
   // Same rule as page() in site.js: Google shows about 60 characters of a title, so a longer one drops the site name
   // (Google prints the site name above every result anyway), then "Compared" and the year (fitTitle in pages.js).
@@ -388,9 +406,10 @@ async function hubApp(ctx, url, spec) {
     .on("div.v9-hero-actions", { element(e) { e.remove(); } })
     .on("div.v9-trust", { element(e) { e.remove(); } })
     .on("h1.hero-h", { element(e) { e.setInnerContent(spec.h); e.before(crumbHtml, { html: true }); } })
-    .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); } })
+    // v10 (12 Nov 2026): the related-links row and the agent logo row go right under the subtitle (hubParts `after`).
+    .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); if (after) e.after(after, { html: true }); } })
     .on("footer", { element(e) { e.before(seo, { html: true }); } })
     .transform(asset);
-  const res = new Response(out.body, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=3600", link: catalogLink(etagOf(asset)) + ", " + appLink(etagOf(asset)) } });
+  const res = new Response(liveText(await new Response(out.body).text()), { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=3600", link: catalogLink(etagOf(asset)) + ", " + appLink(etagOf(asset)) } });
   return res;
 }
