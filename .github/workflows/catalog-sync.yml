@@ -18,16 +18,19 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     # scripts/gen_rowdays.py reads the history of catalog.js
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Regenerate catalogue files
         run: |
           python scripts/gen_catalog.py
+          python scripts/gen_rowdays.py || echo "::warning::rowdays not regenerated"
           python scripts/sync_catalog.py --no-thumbs
       - name: Commit if changed
         run: |
-          git add functions/_lib/catalog.js products.json sitemap.xml
+          git add functions/_lib/catalog.js functions/_lib/rowdays.js products.json sitemap.xml
           if git diff --cached --quiet; then
             echo "catalogue files already in sync"
           else
