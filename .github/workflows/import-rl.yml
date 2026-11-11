@@ -1,0 +1,46 @@
+name: Import RepLibrary finds
+# One-time import of the RepLibrary finds (shared with written permission, Nov 2026). scripts/import_rl.py copies each
+# photo into img/rl/<id>.webp on GitHub's runner (one at a time, gently) and adds the finds whose photo is in place to
+# index.html. A push made by this workflow does not start Catalog sync, so the derived files are regenerated here too.
+# Run it by hand (Actions > Import RepLibrary finds > Run workflow) until the log says "left 0", then delete this
+# workflow, scripts/import_rl.py and scripts/rl_import.json.
+on:
+  workflow_dispatch:
+    inputs:
+      max_minutes:
+        description: 'Minutes of photo copying this run'
+        default: '40'
+      limit:
+        description: 'Most new photos this run (0 = no limit; try 20 first)'
+        default: '0'
+permissions:
+  contents: write
+concurrency: import-rl
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - name: Copy photos and add finds
+        run: python -u scripts/import_rl.py --max-minutes "${{ inputs.max_minutes || '40' }}" --limit "${{ inputs.limit || '0' }}"
+      - name: Regenerate catalogue files
+        run: |
+          python scripts/gen_catalog.py
+          python scripts/sync_catalog.py --no-thumbs
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A img/rl index.html functions/_lib/catalog.js products.json sitemap.xml
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "feat: import RepLibrary finds ($(git diff --cached --name-only -- img/rl | wc -l) photos)"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::the import could not be saved"; exit 1
