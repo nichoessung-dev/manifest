@@ -2696,6 +2696,35 @@ html .card .thumb img.qch{object-fit:cover!important;mix-blend-mode:normal!impor
   :root details.v9-step-d>:not(summary){padding-left:0}
   .v9-steps-foot{margin-top:10px}
 }
+/* 11 Nov 2026 (owner): the tools block above All Finds takes far less room. The size and parcel teasers go (both tools stay
+   in Free Tools), the QC box is one slim row, tools / steps / numbers become single-line chips. */
+html .v9-teasers{display:none}
+html .v9-sec.v9-qc,html .v9-sec.v9-tools,html .v9-sec.v9-steps,html .v9-sec.v9-nums{padding-top:6px;padding-bottom:6px}
+html .v9-panel.v9-qc-in{padding:12px 16px;gap:8px 24px}
+html .v9-qc-steps{display:none}
+html .v9-qc-copy h2{font-size:19px!important;margin:0}
+html .v9-qc-side{gap:2px}
+html .v9-qc-side details.v9-more{display:none}
+html .v9-qc-note{margin:2px 0 0;font-size:12.5px}
+html .v9-tools .v9-head,html .v9-steps .v9-head{margin-bottom:8px}
+html .v9-tools .v9-head h2,html .v9-steps .v9-head h2{font-size:19px!important}
+html .v9-tools-grid{gap:8px}
+html .v9-tool{display:flex;flex-direction:row;align-items:center;gap:10px;padding:8px 12px}
+html .v9-tool .v9-tool-d{display:none!important}
+html .v9-tool .v9-tool-ic{width:28px;height:28px;margin:0;flex:none}
+html .v9-tool b{font-size:14px;line-height:1.25}
+html .v9-steps-grid{gap:8px}
+html .v9-step{flex-direction:row;align-items:center;gap:10px;padding:6px 12px}
+html .v9-step .ic-tile{width:28px;height:28px;margin:0}
+html .v9-step h3{font-size:14.5px!important}
+html .v9-steps-foot{margin-top:8px}
+html .v9-steps-foot .v9-btn{min-height:34px;padding:0 14px;font-size:13.5px}
+html .v9-nums-grid{gap:8px}
+html .v9-num{flex-direction:row;justify-content:center;align-items:baseline;gap:6px;padding:8px 10px}
+html .v9-num .v9-num-ic{display:none}
+html .v9-num dd{font-size:17px}
+html .v9-num dt{font-size:12.5px}
+@media (max-width:560px){html .v9-nums-grid{grid-template-columns:repeat(2,minmax(0,1fr))}html .v9-tool{display:flex}}
 /* product view polish (owner, 8 Nov 2026: "make the product pages look way better"): calmer labels, a clear price, tighter rhythm */
 html #drawer .d-titlerow{gap:6px}
 html #drawer .pstats{margin-top:10px!important;font-size:14px!important}
@@ -5585,6 +5614,22 @@ function pcSmartPop(list, explore){
     for(var i=0;i<Math.min(head.length,40);i++){ var p=head[i], v=sc(p)-0.2*(rb[p.brand||"?"]||0)-0.05*(rt[ty(p)]||0)-(rd[dk(p)]?0.3:0); if(v>bv){ bv=v; bi=i; } }
     out.push(head.splice(bi,1)[0]); }
   out=out.concat(tail);
+  /* 11 Nov 2026 (owner): the RepLibrary finds (img/rl) share the top of the full sheet for 30 days. The first 1,000 places
+     alternate one popular find and one new one; the new ones are a random 500, picked and ordered again every 5 minutes. Ends by itself on 11 Dec 2026, then the normal ranking takes over. */
+  if(explore&&Date.now()<Date.UTC(2026,11,11)){
+    var isNew=function(p){ return (p.img||"").indexOf("/img/rl/")===0&&!SOLD.has(String(p.id)); };
+    var fresh=out.filter(isNew);
+    if(fresh.length){
+      var slot=Math.floor(Date.now()/3e5);   /* a new random pick and order every 5 minutes */
+      fresh.sort(function(a,b){ return rkH(a.id+"~"+slot)-rkH(b.id+"~"+slot); });
+      var nl=fresh.slice(0,500), fs=new Set(nl), rest=out.filter(function(p){ return !fs.has(p); }), mix=[], oi=0, lastB=null;
+      while(mix.length<1000&&(nl.length||oi<rest.length)){
+        if((mix.length%2===0||!nl.length)&&oi<rest.length){ mix.push(rest[oi++]); continue; }
+        var k=0; for(var j=0;j<Math.min(nl.length,12);j++){ if((nl[j].brand||"?")!==lastB){ k=j; break; } }   /* not the same new brand twice in a row */
+        var q=nl.splice(k,1)[0]; lastB=q.brand||"?"; mix.push(q); }
+      return mix.concat(nl, rest.slice(oi));
+    }
+  }
   if(explore&&out.length>=120){
     var cold=out.filter(function(p){ return !(p.viewsAll>0)&&p.img&&!SOLD.has(String(p.id)); });
     if(cold.length>=8){
