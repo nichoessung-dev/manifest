@@ -5,6 +5,7 @@ import { renderProduct, PRODUCT_TPL } from "../_lib/pages.js";
 import { notFound, ensureStats, BUILT } from "../_lib/site.js";
 import { countView } from "../_lib/views.js";
 import { reportedIds } from "../_lib/reported.js";
+import { SWAPS } from "../_lib/link_swaps.js";
 
 const PAGE_TTL = 60 * 60 * 24;     // 1 day
 const QC_MISS_TTL = 60 * 15;       // 15 min when the QC lookup failed
@@ -21,7 +22,7 @@ export async function onRequestGet(context) {
   // Removed after member reports (data/reported.json): its own cached copy ("-r"), with the notice instead of the buy box.
   const rep = (await reportedIds(context.env, url.origin)).has(id);
   const cache = caches.default;
-  const key = new Request(`https://ssr-cache.internal/product/${BUILT}-${PRODUCT_TPL}${rep ? "-r" : ""}/${encodeURIComponent(id)}`, { method: "GET" });
+  const key = new Request(`https://ssr-cache.internal/product/${BUILT}-${PRODUCT_TPL}${rep ? "-r" : ""}${SWAPS[id] ? "-s" + SWAPS[id][1] : ""}/${encodeURIComponent(id)}`, { method: "GET" });
   const hit = await cache.match(key);
   // Page view counter (functions/_lib/views.js): people only, GET only, written after the response in waitUntil, never
   // blocks or breaks the page. Counted here, before the cached copy is returned, so cached pages count too.
