@@ -1,7 +1,7 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
 import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, thumbSrc, IMG_FALLBACK, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, colourBadge, GUIDE_LINKS, TOOL_LINKS, QC_ICON, origUrl,
-  TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell, ic, icTile, icSteps, more , QC_BANKED} from "./site.js";
+  TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell, ic, icTile, icSteps, more , QC_BANKED, newest, rowDays, AGENT_N, FINDS_PLUS, gone as goneOf} from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, agentBrandCopy, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
 import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS as TOOLS0 } from "./content2.js";
 import { TOOLS9, TOOL_UI9, toolPage9 } from "./tools9.js";
@@ -66,7 +66,6 @@ const CAT_SLUG_IC = Object.fromEntries(Object.entries(CATS).map(([k, v]) => [v.s
 const AGENT_URL = /^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet(\/|$)/;
 // The icon a chip link gets from its URL: best-model pages, categories and agent spreadsheets (brand chips get none).
 const chipIcon = u => /^\/best\//.test(u) ? ic("award", "sm") : /^\/category\//.test(u) ? ic(CAT_SLUG_IC[u.split("/")[2]] || "grid", "sm") : AGENT_URL.test(u) ? ic("users", "sm") : "";
-const chipIcons = html => html.replace(/<a href="([^"]+)"([^>]*)>/g, (m, u) => m + chipIcon(u));
 // A heading with a leading icon tile: <h2 class="h-ic">
 const hIc = (tag, name, html, attrs = "") => `<${tag}${attrs} class="h-ic">${icTile(name)}${html}</${tag}>`;
 const firstIcon = (map, text, dflt) => { for (const [re, n] of map) if (re.test(text)) return n; return dflt; };
@@ -86,7 +85,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w64";   // w64: 16 agents in the buy menu, first 5 + "See more agents" (11 Nov 2026); w63: distinct agent page copy (AGENT_INTRO about/desc/faq, agentBrandCopy); w62: footer links to the Weidian, Taobao and 1688 spreadsheets, price ranges written "¥x to ¥y", titles fitted to 60 characters (fitTitle); w61: "Ask AI about this item" row, chat.js?v=7 (saved chats note), sharper agent logos; w60: no colour-count badge on cards (owner); w59: chat.js?v=6 (scrollable card row); w58: chat.js?v=5 (better answers); w57: no yen price next to the main price (owner); w56: product page like the app view (muted brand, Details folded, QC button only with stored photos); w55: chat.js?v=4 (pcChatAsk hook for the beta Ask box); w54: size answer beside the form on wide screens; w53: size estimator counts height for length, scrolls to the result; w52: pcs.js 5f23e99c (search: zero-result queries from the log, Nordic words, typo pass under 3 finds); w51: QC badge only for finds with stored QC photos (QC_BANKED); w50: chat.js?v=3 (messenger look; finds open in the app view);   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
+export const PRODUCT_TPL = "w65";   // w65: hub layout v10 (compact head, one related-links row, agent logo row, About section under the grid; HX_CSS); w64: 16 agents in the buy menu, first 5 + "See more agents" (11 Nov 2026); w63: distinct agent page copy (AGENT_INTRO about/desc/faq, agentBrandCopy); w62: footer links to the Weidian, Taobao and 1688 spreadsheets, price ranges written "¥x to ¥y", titles fitted to 60 characters (fitTitle); w61: "Ask AI about this item" row, chat.js?v=7 (saved chats note), sharper agent logos; w60: no colour-count badge on cards (owner); w59: chat.js?v=6 (scrollable card row); w58: chat.js?v=5 (better answers); w57: no yen price next to the main price (owner); w56: product page like the app view (muted brand, Details folded, QC button only with stored photos); w55: chat.js?v=4 (pcChatAsk hook for the beta Ask box); w54: size answer beside the form on wide screens; w53: size estimator counts height for length, scrolls to the result; w52: pcs.js 5f23e99c (search: zero-result queries from the log, Nordic words, typo pass under 3 finds); w51: QC badge only for finds with stored QC photos (QC_BANKED); w50: chat.js?v=3 (messenger look; finds open in the app view);   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -281,8 +280,159 @@ function askRow(p) {
     `<script>(function(){var b=document.getElementById("pd-ask");if(!b)return;function on(){b.hidden=false;}if(window.pcChatReady)on();else document.addEventListener("pc-chat-ready",on);b.addEventListener("click",function(){if(window.pcChatAsk)window.pcChatAsk(${q});});})();</script>`;
 }
 
+// ------------------------------------------------------------------ hub layout v10 (12 Nov 2026)
+// Owner (12 Nov 2026, /old-money): "so many ugly pages". Hubs opened on three paragraphs, a facts row and three rows of
+// chips, and no find was on the first screen. Every hub now has one compact head: breadcrumbs, the h1, one short lead
+// sentence and a slim facts line, then ONE row of related links (sideways scroll on phones, "More" on wide screens) and a
+// "Shop this on" row of agent logos, then the finds. The long copy, the link groups and the FAQ are unchanged and still in
+// the HTML, in an "About" section under the grid (hxAbout: two columns from 900px, a 68ch measure, FAQ as <details>).
+// The app hubs (hubParts) use the same pieces. HX_CSS is inlined because the app hubs do not load ds.css; its colours are
+// the shared tokens (the app's --ground stands in for --bg).
+const HX_MORE_AT = 8;   // more related links than this: a "More" button on wide screens (phones scroll the row)
+const AGENT_PATH = /^\/([a-z0-9]+)-spreadsheet(?:\/|$)/;
+const agentOf = u => { const m = String(u).match(AGENT_PATH); return m && AGENTS[m[1]] ? m[1] : null; };
+const hxChip = ([t, u, cls]) => `<a href="${u}"${cls ? ` class="${cls}"` : ""}>${AGENT_URL.test(u) ? "" : chipIcon(u)}${esc(t)}</a>`;
+const HX_MORE_JS = "var r=this.parentNode,o=r.classList.toggle('open');this.setAttribute('aria-expanded',o);this.firstChild.textContent=o?'Less':'More'";
+function hxRow(links, label = "Related pages") {
+  const seen = new Set(), L = (links || []).filter(([, u]) => !seen.has(u) && seen.add(u));
+  if (!L.length) return "";
+  return `<nav class="hx-row" aria-label="${esc(label)}"><div class="hx-chips">${L.map(hxChip).join("")}</div>` +
+    (L.length > HX_MORE_AT ? `<button type="button" class="hx-more" aria-expanded="false" onclick="${HX_MORE_JS}"><span>More</span>${ic("chevron-down", "sm")}</button>` : "") + `</nav>`;
+}
+// Agent links ([text, "/<agent>-spreadsheet..."]) as logo pills, one per agent, the first five then "+N". The link text
+// is the agent's name; the full text ("Old money on KakoBuy") is the aria-label and stays as link text in the About lists.
+function hxShop(links, label = "Shop this on") {
+  const seen = new Set(), L = (links || []).filter(([, u]) => { const k = agentOf(u); return k && !seen.has(k) && seen.add(k); });
+  if (!L.length) return "";
+  const pill = ([t, u]) => { const k = agentOf(u); return `<a href="${u}" aria-label="${esc(t)}"><img src="/img/agents/${k}.webp" width="24" height="24" alt="" decoding="async">${esc(AGENTS[k].name)}</a>`; };
+  const first = L.slice(0, 5), rest = L.slice(5);
+  return `<div class="hx-shop"><span class="hx-shop-l">${esc(label)}</span><div class="hx-shop-r">${first.map(pill).join("")}` +
+    (rest.length ? `<details class="hx-shop-x"><summary>+${rest.length}<span class="vh"> more agents</span></summary><div>${rest.map(pill).join("")}</div></details>` : "") + `</div></div>`;
+}
+const hxFacts = items => `<p class="hx-facts">${items.filter(Boolean).map(x => `<span>${x}</span>`).join("")}</p>`;
+// The About section under the grid. main: HTML copy (left column); faq: [[q, a]] (plain text, <details>); groups:
+// [[title, [[text, url]]]] as link lists (right column).
+function hxAbout({ title, main = "", faq = [], groups = [], tail = "", after = "" }) {
+  const side = groups.filter(g => g && g[1] && g[1].length).map(([t, links]) => `<div class="hx-group"><h3>${esc(t)}</h3><ul class="hx-links${links.length > 7 ? " two" : ""}">${links.map(([x, u]) => `<li><a href="${u}">${esc(x)}</a></li>`).join("")}</ul></div>`).join("") + tail;
+  const fq = faq && faq.length ? `<h2 class="hx-h2">FAQ</h2><div class="hx-faq">${faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div>` : "";
+  if (!main && !fq && !side) return after ? `<section class="hx-about">${after}</section>` : "";
+  return `<section class="hx-about" aria-labelledby="hx-about-h"><h2 id="hx-about-h" class="hx-title">${esc(title)}</h2>` +
+    `<div class="hx-cols${main || fq ? "" : " solo"}">${main || fq ? `<div class="hx-main">${main}${fq}</div>` : ""}${side ? `<div class="hx-side">${side}</div>` : ""}</div>${after}</section>`;
+}
+// "New finds" (12 Nov 2026, SEO check): plain links to the newest finds, in the server HTML of the homepage, every brand
+// hub (that brand's newest) and /new. Before this the homepage HTML linked no RepLibrary find at all, and new finds of a
+// big brand sat on its last pages. Text links only (no photos), so the block costs a few KB and no image requests.
+export const NEW_LINKS = 24;
+export function newFindsHtml(list, title, all = "/new") {
+  if (!list.length) return "";
+  return `<section class="hx-new" aria-labelledby="hx-new-h"><div class="hx-new-top"><h2 id="hx-new-h" class="hx-h2">${esc(title)}</h2><a href="${all}">See all new finds${ic("arrow-right", "sm")}</a></div>` +
+    `<ul class="hx-newl">${list.map(p => `<li><a href="${productUrl(p)}">${p.brand && !p.title.toLowerCase().startsWith(p.brand.toLowerCase()) ? `<span>${esc(p.brand)}</span> ` : ""}${esc(p.title)}</a></li>`).join("")}</ul></section>`;
+}
+export const HX_CSS = `<style id="hx-css">
+.hx{--hx-g:32px;--hx-bg:var(--bg,var(--ground,#fff))}
+.hx-head .bc{margin:0 0 10px}
+.hx-top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.hx-top h1{margin:0;font-size:clamp(24px,1.2vw + 18px,34px);line-height:1.15;letter-spacing:-.025em;text-wrap:balance}
+.hx-top h1 small{color:var(--muted);font-size:.5em;font-weight:500;letter-spacing:0}
+.hx-lead{margin:8px 0 0;max-width:80ch;font-size:16px;line-height:1.5;color:var(--muted);text-wrap:pretty}
+.hx-facts{display:flex;flex-wrap:wrap;margin:8px 0 0;overflow:hidden;font-size:13.5px;line-height:22px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hx-facts span{margin:0 17px 0 -17px;white-space:nowrap}
+.hx-facts span::before{content:"\\00B7";display:inline-block;width:17px;text-align:center;color:var(--muted)}
+.hx-facts b{color:var(--ink);font-weight:600}
+.hx-row{display:flex;align-items:flex-start;gap:8px;margin:16px 0 0}
+.hx-chips{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:8px;max-height:40px;overflow:hidden}
+.hx-row.open .hx-chips{max-height:none}
+.hx-chips a,.hx-more,.hx-shop a,.hx-shop-x summary{flex:none;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border:1px solid var(--line-2);border-radius:999px;background:var(--hx-bg);color:var(--ink);font:inherit;font-size:14px;font-weight:500;line-height:1;white-space:nowrap;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .1s linear,border-color .1s linear,transform .12s cubic-bezier(.22,1,.36,1)}
+.hx-chips a .ic{width:16px;height:16px;color:var(--muted)}
+.hx-chips a.hot{background:var(--fill);border-color:var(--fill);color:var(--fill-ink)}
+.hx-chips a.hot .ic{color:inherit}
+.hx-more .ic{width:16px;height:16px;color:var(--muted);transition:transform .2s cubic-bezier(.22,1,.36,1)}
+.hx-row.open .hx-more .ic{transform:rotate(180deg)}
+.hx-shop{display:flex;align-items:center;gap:12px;margin:12px 0 0}
+.hx-shop-l{flex:none;font-size:13.5px;color:var(--muted)}
+.hx-shop-r{display:flex;align-items:center;gap:8px;min-width:0}
+.hx-shop a{gap:8px;padding:0 14px 0 7px;background:var(--surface-2,var(--hx-bg));border-color:transparent}
+.hx-shop img{flex:none;width:24px;height:24px;border-radius:50%;object-fit:cover;outline:1px solid rgba(0,0,0,.08);outline-offset:-1px}
+.hx-shop-x{position:relative}
+.hx-shop-x summary{list-style:none;padding:0 14px;font-variant-numeric:tabular-nums}
+.hx-shop-x summary::-webkit-details-marker{display:none}
+.hx-shop-x[open]>div{position:absolute;z-index:20;top:46px;left:0;display:grid;gap:4px;min-width:200px;padding:6px;border:1px solid var(--line);border-radius:22px;background:var(--hx-bg);box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.hx-shop-x[open]>div a{justify-content:flex-start;background:transparent}
+@media (hover:hover){.hx-chips a:hover,.hx-more:hover,.hx-shop-x summary:hover{background:var(--surface-2)}.hx-shop a:hover{border-color:var(--line-2)}.hx-chips a.hot:hover{background:var(--fill);opacity:.9}}
+.hx-chips a:active,.hx-more:active,.hx-shop a:active{transform:scale(.97)}
+.hx .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+html.hub .v9-hero-in{align-items:flex-start;text-align:left}
+.hx-hero{align-self:stretch;min-width:0}
+.hx-app>.hx-about{box-sizing:border-box;max-width:1280px;margin:56px auto 0;padding:40px 24px 16px;border:0;box-shadow:inset 0 1px 0 var(--line);background-clip:content-box}
+@media (min-width:1329px){.hx-app>.hx-about{box-shadow:none;border-top:1px solid var(--line);max-width:1232px;padding-inline:0}}
+.hx-hero .hx-row{margin-top:6px}
+.hx-about{margin:56px 0 0;padding:40px 0 16px;border-top:1px solid var(--line)}
+.hx-title{margin:0 0 24px;font-size:24px;line-height:1.25;letter-spacing:-.02em;text-wrap:balance}
+.hx-cols{display:grid;gap:40px}
+@media (min-width:900px){.hx-cols{grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:72px}.hx-cols.solo{grid-template-columns:1fr}.hx-cols.solo .hx-side{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));column-gap:48px}}
+.hx-main{max-width:68ch;min-width:0;color:var(--ink-2);font-size:16px;line-height:1.65}
+.hx-main>:first-child{margin-top:0}
+.hx-main p,.hx-main ul,.hx-main ol{margin:0 0 14px}
+.hx-main h3{margin:32px 0 8px;font-size:18px;line-height:1.35;letter-spacing:-.01em;font-weight:600}
+.hx-main a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,var(--ink) 30%,transparent)}
+.hx-main strong{color:var(--ink);font-weight:600}
+.hx-h2{margin:40px 0 4px;font-size:20px;line-height:1.3;letter-spacing:-.015em}
+.hx-faq details{border-bottom:1px solid var(--line)}
+.hx-faq summary{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:52px;padding:12px 0;font-size:16px;font-weight:500;line-height:1.4;color:var(--ink);cursor:pointer;list-style:none;-webkit-tap-highlight-color:transparent}
+.hx-faq summary::-webkit-details-marker{display:none}
+.hx-faq summary::after{content:"";flex:none;width:16px;height:16px;background:var(--muted);-webkit-mask:var(--hx-chev) center/16px no-repeat;mask:var(--hx-chev) center/16px no-repeat;transition:transform .2s cubic-bezier(.22,1,.36,1)}
+.hx-faq details[open] summary::after{transform:rotate(180deg)}
+.hx-faq p{margin:0 0 16px;color:var(--ink-2)}
+.hx{--hx-chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")}
+.hx-side{display:grid;gap:32px;align-content:start;min-width:0}
+.hx-group h3{margin:0 0 6px;font-size:13.5px;font-weight:600;line-height:1.4;letter-spacing:0;color:var(--muted)}
+.hx-links{margin:0;padding:0;list-style:none}
+.hx-links.two{columns:2;column-gap:20px}
+.hx-links li{break-inside:avoid}
+.hx-links a{display:flex;align-items:center;min-height:38px;padding:4px 0;border-bottom:1px solid var(--line);font-size:14.5px;line-height:1.3;color:var(--ink);text-decoration:none;transition:color .1s linear}
+@media (hover:hover){.hx-links a:hover{color:var(--muted)}}
+.hx-pages{display:flex;flex-wrap:wrap;gap:6px}
+.hx-pages a{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;padding:0 12px;border:1px solid var(--line-2);border-radius:999px;color:var(--ink);font-size:14px;font-weight:500;text-decoration:none;font-variant-numeric:tabular-nums}
+.hx-new{margin:48px 0 0}
+.hx-about .hx-new{margin-top:48px}
+.hx-new-top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0 0 8px}
+.hx-new-top .hx-h2{margin:0}
+.hx-new-top a{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-size:14px;font-weight:500;color:var(--ink);text-decoration:none;white-space:nowrap}
+.hx-new-top a .ic{width:16px;height:16px}
+.hx-newl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));column-gap:24px;margin:0;padding:0;list-style:none}
+.hx-newl a{display:block;padding:10px 0;border-bottom:1px solid var(--line);font-size:14.5px;line-height:1.35;color:var(--ink);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hx-newl a span{color:var(--muted)}
+@media (hover:hover){.hx-newl a:hover,.hx-new-top a:hover{color:var(--muted)}}
+.hx-app.hx-home{box-sizing:border-box;max-width:1280px;margin:0 auto;padding:8px 24px 32px}
+@media (max-width:640px){
+.hx{--hx-g:16px}
+.hx-app.hx-home{padding-inline:16px}
+.hx-newl a{padding:12px 0}
+.hx.hx-hero{--hx-g:var(--_gut,16px)}
+.hx-app>.hx-about{padding-inline:16px}
+.hx-top{flex-direction:column;align-items:stretch;gap:12px}
+.hx-lead{font-size:15px}
+.hx-row,.hx-shop{margin-inline:calc(-1 * var(--hx-g));padding-inline:var(--hx-g)}
+.hx-row{display:block;margin-top:14px;padding-inline:0}
+.hx-chips{flex-wrap:nowrap;max-height:none;overflow-x:auto;padding-inline:var(--hx-g);scroll-padding-inline:var(--hx-g);scrollbar-width:none;overscroll-behavior-x:contain}
+.hx-chips::-webkit-scrollbar,.hx-shop-r::-webkit-scrollbar{display:none}
+.hx-chips a,.hx-shop a,.hx-shop-x summary{height:44px}
+.hx-more{display:none}
+.hx-shop{padding-inline:0}
+.hx-shop-l{display:none}
+.hx-shop-r{overflow-x:auto;padding-inline:var(--hx-g);scrollbar-width:none}
+.hx-shop-x[open]>div{position:fixed;left:16px;right:16px;top:auto;bottom:16px}
+.hx-about{margin-top:40px;padding-top:32px}
+.hx-links a,.hx-pages a{min-height:44px}
+.hx-pages a{height:44px;min-width:44px}
+}
+@media (prefers-reduced-motion:reduce){.hx *{transition:none!important}}
+</style>`;
 // ------------------------------------------------------------------ hubs
-function hub({ path, n, list, title, desc, h1, intro, trail, chips = "", top = "", extra = "", faq = null, total = null, ldCount = undefined, idxFirst = false, factsMore = "", full = "" }) {
+// lead: one short plain-text sentence under the h1. filters: [[text, url, class?]] for the one row of related links.
+// shop: { label, links } for the agent logo row (hxShop). groups: [[title, [[text, url]]]] for the About section's link
+// lists. intro and extra (HTML) and the FAQ are page 1 only, in the About section under the grid.
+function hub({ path, n, list, title, desc, h1, intro = "", lead = "", trail, filters = [], shop = null, groups = [], top = "", extra = "", faq = null, total = null, ldCount = undefined, idxFirst = false, facts = [], full = "", aboutTitle = "" }) {
   const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
   if (n < 1 || n > pages) return null;
   // idxFirst (brand and category hubs, 28 Oct 2026): page 1 is the app with the 60 most viewed. From page 2 on, the finds
@@ -292,25 +442,25 @@ function hub({ path, n, list, title, desc, h1, intro, trail, chips = "", top = "
   const slice = order.slice((n - 1) * PER_PAGE, n * PER_PAGE);
   const url = n === 1 ? path : `${path}/${n}`;
   const bc = crumbs(trail.concat(n > 1 ? [[`Page ${n}`, url]] : []));
-  const qcTotal = list.reduce((s, p) => s + (p.qc || 0), 0);
-  // Brand and category pages 2+ (round 4, 29 Oct 2026) look like page 1, the app hub: a compact head (breadcrumbs, the
-  // h1 with the "Open the full ... spreadsheet" pill next to it), the facts and chips as single scrollable rows, the
-  // same card grid, the pager centred under it (ds.css .hub-p2). Same text, links and order as before.
+  // v10 (12 Nov 2026): every server hub has the app hub's compact head (hxRow, hxShop above) and the same card grid
+  // (ds.css .hub-p2); pages 2+ of brand and category hubs keep the "Open the full ... spreadsheet" pill next to the h1.
   const p2 = idxFirst && n > 1 && full;
-  const h1Html = `<h1>${esc(h1)}${n > 1 ? ` <small style="color:var(--muted);font-size:.5em">page ${n}</small>` : ""}</h1>`;
-  const body = `${p2 ? '<div class="hub-p2">' : ""}${bc.html}${p2 ? `<div class="hub-top">${h1Html}<a class="btn primary hub-full" href="${path}">${ic("sheet", "sm")}Open the full ${esc(full)} spreadsheet${ic("arrow-right", "sm")}</a></div>` : h1Html}
-${n === 1 ? `<div class="prose">${intro}</div>` : ""}
-<div class="facts"><span>${ic("sheet", "sm")}${(total || list.length).toLocaleString("en-US")} finds</span>${factsMore}${idxFirst && n > 1 ? `<span>${ic("camera", "sm")}QC-marked, curated and viewed finds first</span>` : ""}${priceRange(list) ? `<span>${ic("coins", "sm")}${priceRange(list)}</span>` : ""}<span>${ic("clock", "sm")}Catalogue updated ${BUILT_DAY}</span></div>
-${chipIcons(chips)}
+  const h1Html = `<h1>${esc(h1)}${n > 1 ? ` <small>page ${n}</small>` : ""}</h1>`;
+  const pr = priceRange(list);
+  const head = `<header class="hx-head">${bc.html}<div class="hx-top">${h1Html}${p2 ? `<a class="btn primary hub-full" href="${path}">${ic("sheet", "sm")}Open the full ${esc(full)} spreadsheet${ic("arrow-right", "sm")}</a>` : ""}</div>` +
+    `${lead ? `<p class="hx-lead">${esc(lead)}</p>` : ""}${hxFacts([`<b>${nf(total || list.length)}</b> finds`, ...facts, idxFirst && n > 1 ? "QC-marked, curated and viewed finds first" : "", pr, `Catalogue updated ${BUILT_DAY}`])}</header>`;
+  const about = hxAbout({ title: n === 1 ? (aboutTitle || `About ${h1}`) : "Keep browsing", main: n === 1 ? intro + extra : "", faq: n === 1 ? faq : [], groups });
+  const body = `<div class="hub-p2 hx">${head}
+${hxRow(filters)}${shop ? hxShop(shop.links, shop.label) : ""}
 ${n === 1 ? top : ""}${grid(slice, 4)}
 ${pager(path, n, pages)}
-${n === 1 ? extra : ""}${n === 1 && faq && faq.length ? faqHtml(faq) : ""}${p2 ? "</div>" : ""}`;
+${about}</div>`;
   const ld = [bc.data, listLd(h1, url, slice, ldCount)]; if (n === 1 && faq && faq.length) ld.push(faqLd(faq));
   // Pages 2+ (28 Oct 2026): the page number goes before the site name ("...: Page 2 · Puro Classico", not "... · Puro
   // Classico: Page 2", which also stopped page() from trimming long titles), and the description names the page, so
   // pages 2..N no longer share one description.
   return page({ title: fitTitle(n > 1 ? title.replace(/( [·|] Puro Classico)?$/, `: Page ${n}$1`) : title), desc: n > 1 && !/^Page \d/.test(desc) ? `Page ${n}: ${desc}` : desc,
-    path: url, body, jsonld: ld, image: slice[0] ? imgSrc(slice[0]) : undefined });
+    path: url, body, jsonld: ld, image: slice[0] ? imgSrc(slice[0]) : undefined, extraHead: HX_CSS });
 }
 
 // ------------------------------------------------------------------ brand hubs: facts, top picks, related brands
@@ -605,8 +755,10 @@ export function renderBrand(s, n) {
   if (related.length < 4) {   // nothing really similar (a watch or toy brand, say): the largest hubs, under a heading that does not claim more
     related = [...brandSlug.keys()].filter(x => x !== b).sort((x, y) => byBrand.get(y).length - byBrand.get(x).length).slice(0, 10); relTitle = "Other brands"; relNote = "";
   }
-  const extra = `<h2>How to buy ${esc(b)} reps</h2><div class="prose"><p>Open a find, tap <strong>Buy via MyCNBox</strong> (or your agent), pick your size and pay for the item plus delivery to the warehouse. Check the QC photos before shipping, see <a href="/guides/how-to-qc">how to read QC photos</a>, then combine your items into one parcel. New to this? <a href="/how-to-order">Watch the how-to-order video</a>.</p></div>
-<h2>${relTitle}</h2>${relNote}<div class="chips">${related.map(x => `<a href="/brand/${brandSlug.get(x)}">${esc(x)} reps</a>`).join("")}${OLD_MONEY_ALL.has(b) ? `<a href="/old-money">Old money reps</a>` : ""}<a href="/brands">All brands${ic("arrow-right", "sm")}</a></div>`;
+  const extra = `<h3>How to buy ${esc(b)} reps</h3><p>Open a find, tap <strong>Buy via MyCNBox</strong> (or your agent), pick your size and pay for the item plus delivery to the warehouse. Check the QC photos before shipping, see <a href="/guides/how-to-qc">how to read QC photos</a>, then combine your items into one parcel. New to this? <a href="/how-to-order">Watch the how-to-order video</a>.</p>`;
+  const relLinks = related.map(x => [`${x} reps`, `/brand/${brandSlug.get(x)}`]).concat(OLD_MONEY_ALL.has(b) ? [["Old money reps", "/old-money"]] : [], [["All brands", "/brands"]]);
+  const modelLinks = bm.map(m => [`Best ${MODEL_TERM[m.slug] || m.name} reps`, `/best/${m.slug}`]), catLinks = cats.length > 1 ? cats.map(c => [CATS[c].name, catUrl(c)]) : [];
+  const agentLinks = agentBrands().includes(b) ? AGENT_BRAND_AGENTS.map(k => [`${b} on ${AGENTS[k].name}`, `/${k}-spreadsheet/${s}`]) : [];
   // Title and description: catalogue data only (see the rules above), so they are the same whether or not the stats were read.
   const qcBit = f.q1 ? `, ${nf(f.q1)} marked as having QC photos` : "";
   const t0 = f.types[0], share = t0 && !t0[0].startsWith("other") ? t0[1].length / f.n : 0;
@@ -616,7 +768,9 @@ export function renderBrand(s, n) {
     : `${N} ${b} rep find${f.n === 1 ? "" : "s"}${range ? ` with prices${rb}` : ""}${main}${qcBit}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.`;
   return hub({ path: "/brand/" + s, n, list, title: `${n === 1 && best ? "Best " : ""}${b} Reps Spreadsheet 2026: ${N} Finds · Puro Classico`, desc,
     h1: `${b} reps spreadsheet`, intro, trail: [["Home", "/"], ["Brands", "/brands"], [b, "/brand/" + s]],
-    chips: (bm.length ? `<div class="chips">${bm.map(m => `<a href="/best/${m.slug}" class="hot">Best ${esc(MODEL_TERM[m.slug] || m.name)} reps</a>`).join("")}</div>` : "") + (cats.length > 1 ? `<div class="chips">${cats.map(c => `<a href="${catUrl(c)}">${esc(CATS[c].name)}</a>`).join("")}</div>` : ""),
+    lead: `${N} ${b} finds from Weidian, Taobao and 1688, most viewed first.`, aboutTitle: `About ${b} reps`,
+    filters: modelLinks.map(x => [...x, "hot"]).concat(catLinks, relLinks), shop: { links: agentLinks },
+    groups: [["Best reps by model", modelLinks], ["Categories", catLinks], [relTitle, relLinks], [`Buy ${b} with your agent`, agentLinks]],
     top: BRAND_CSS + brandPicksHtml(f, best), extra, faq: brandFaq(f, best), ldCount: f.n, idxFirst: true, full: b });
 }
 
@@ -625,12 +779,17 @@ export function renderCategory(s, n) {
   const { byCat, byBrand, brandSlug } = idx(); const list = byCat.get(c) || [];
   const topBrands = [...new Set(list.map(p => p.brand))].filter(b => brandSlug.has(b)).slice(0, 24);   // was 18: room for the allow-listed hubs without dropping a brand that was linked before
   const meta = CATS[c], q1 = list.filter(p => p.qc >= 1).length;
-  const extra = `<h2>Top brands in ${esc(meta.name.toLowerCase())}</h2><div class="chips">${topBrands.map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}</div>
-<h2>Other categories</h2><div class="chips">${Object.values(CATS).filter(x => x.slug !== s && x.slug !== "toys").map(x => `<a href="/category/${x.slug}">${esc(x.name)}</a>`).join("")}</div>`;
+  const brandLinks = topBrands.map(b => [b, `/brand/${brandSlug.get(b)}`]);
+  const catLinks = Object.values(CATS).filter(x => x.slug !== s && x.slug !== "toys").map(x => [x.name, `/category/${x.slug}`]);
+  // Shoes have their own page on each agent (AGENT_STYLES.shoes).
+  const agentLinks = c === "Shoes" ? AGENT_BRAND_AGENTS.map(k => [`Shoes on ${AGENTS[k].name}`, `/${k}-spreadsheet/shoes`]) : [];
   return hub({ path: "/category/" + s, n, list, title: `Rep ${meta.name} Spreadsheet 2026: ${list.length.toLocaleString("en-US")} Finds · Puro Classico`,
     desc: n > 1 ? `Page ${n} of the ${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds on Puro Classico${priceRange(list) ? `, with prices (${priceRange(list)})` : ""}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.`
       : `${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds with prices and agent links${q1 ? `, ${q1.toLocaleString("en-US")} marked as having buyer QC photos` : ""}, sorted by most viewed.`,
-    h1: meta.h, intro: CAT_INTRO[c] || "", trail: [["Home", "/"], [meta.name, "/category/" + s]], extra, idxFirst: true, full: meta.name });
+    h1: meta.h, intro: CAT_INTRO[c] || "", trail: [["Home", "/"], [meta.name, "/category/" + s]], idxFirst: true, full: meta.name,
+    lead: `${nf(list.length)} ${meta.name.toLowerCase()} finds from Weidian, Taobao and 1688, most viewed first.`, aboutTitle: `About ${meta.name.toLowerCase()} reps`,
+    filters: brandLinks.concat(catLinks), shop: { links: agentLinks },
+    groups: [[`Top brands in ${meta.name.toLowerCase()}`, brandLinks], ["Other categories", catLinks], [`${meta.name} on your agent`, agentLinks]] });
 }
 
 // ------------------------------------------------------------------ agent spreadsheets (+ brand pages per agent)
@@ -671,15 +830,16 @@ export function renderAgent(key, n) {
                [`Can I use the spreadsheet with another agent?`, `Yes. The catalogue is the same for every agent: each product page has buy links for MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo, and the link converter turns any Weidian, Taobao or 1688 link into a link for your agent.`],
                [`How often is the ${a.name} spreadsheet updated?`, `New finds are added to the catalogue regularly; the date of the last catalogue update is shown on this page (${BUILT}).`]];
   const brands = AGENT_BRAND_AGENTS.includes(key) ? agentBrands() : [];
-  const brandBlock = brands.length ? `<h2>Popular brands on the ${a.name} spreadsheet</h2><div class="chips">${brands.map(b => `<a href="${path}/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}<a href="/brands">All brands${ic("arrow-right", "sm")}</a></div>` : "";
+  const brandLinks = brands.map(b => [b, `${path}/${brandSlug.get(b)}`]).concat(brands.length ? [["All brands", "/brands"]] : []);
+  const otherLinks = Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [AGENT_INTRO[k].title.replace(/ 2026$/, ""), `/${k}-spreadsheet`]);
   const coupon = COUPON_GUIDE[key];
   return hub({ path, n, list: all, title: `${meta.title}: ${N} Finds · Puro Classico`,
     desc: `The ${a.name} spreadsheet: ${N} rep finds with prices, QC photo counts and direct ${a.name} links. Updated ${BUILT}.`,
     h1: meta.title, intro: `<p class="lead">${esc(meta.lede)}</p>${meta.body}${key === "mycnbox" ? `<p><a class="btn red" href="${MYCNBOX_INVITE}" target="_blank" rel="sponsored noopener">Claim your MyCNBox new-user coupons</a></p>` : ""}`,
-    trail: [["Home", "/"], [meta.title, path]], faq, chips: brands.length ? `<div class="chips">${brands.slice(0, 12).map(b => `<a href="${path}/${brandSlug.get(b)}">${esc(b)} on ${esc(a.name)}</a>`).join("")}</div>` : "",
-    extra: `<div class="prose">${agentHowTo({ ...a, key })}${coupon ? `<p>Before your first order, check the <a href="${coupon[1]}">${esc(coupon[0])}</a> guide for the current sign-up bonus.</p>` : ""}</div>
-${brandBlock}
-<p><a class="btn light" href="/">Browse all ${N} finds${ic("arrow-right", "sm")}</a></p><h2>Other agent spreadsheets</h2><div class="chips">${Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => `<a href="/${k}-spreadsheet">${esc(AGENT_INTRO[k].title.replace(/ 2026$/, ""))}</a>`).join("")}<a href="/guides/best-shopping-agent">Which agent is best?</a></div>` });
+    trail: [["Home", "/"], [meta.title, path]], faq, lead: `${N} finds, each with a one-tap ${a.name} buy button.`, aboutTitle: `How the ${a.name} spreadsheet works`,
+    filters: brands.slice(0, 12).map(b => [`${b} on ${a.name}`, `${path}/${brandSlug.get(b)}`]), shop: { label: "Other agents", links: otherLinks },
+    groups: [[`Popular brands on the ${a.name} spreadsheet`, brandLinks], ["Other agent spreadsheets", otherLinks.concat([["Which agent is best?", "/guides/best-shopping-agent"], [`Browse all ${N} finds`, "/"]])]],
+    extra: `${agentHowTo({ ...a, key })}${coupon ? `<p>Before your first order, check the <a href="${coupon[1]}">${esc(coupon[0])}</a> guide for the current sign-up bonus.</p>` : ""}` });
 }
 export function renderAgentBrand(key, s, n) {
   const a = AGENTS[key], meta = AGENT_INTRO[key]; if (!a || !meta || !AGENT_BRAND_AGENTS.includes(key)) return null;
@@ -694,22 +854,47 @@ export function renderAgentBrand(key, s, n) {
   return hub({ path, n, list, title: `${b} ${a.name} Spreadsheet 2026: ${N} Finds · Puro Classico`,
     desc: `${N} ${b} rep finds with one-tap ${a.name} buy links${range ? `, ${range}` : ""}. Prices and QC photo counts on every find.`,
     h1: `${b} on ${a.name}`, intro, trail: [["Home", "/"], [meta.title, `/${key}-spreadsheet`], [b, path]], faq,
-    chips: `<div class="chips">${others.map(k => `<a href="/${k}-spreadsheet/${s}">${esc(b)} on ${esc(AGENTS[k].name)}</a>`).join("")}<a href="/brand/${s}">All ${esc(b)} reps</a></div>`,
-    extra: `<div class="prose">${agentHowTo({ ...a, key })}</div><h2>More brands on ${esc(a.name)}</h2><div class="chips">${agentBrands().filter(x => x !== b).slice(0, 16).map(x => `<a href="/${key}-spreadsheet/${brandSlug.get(x)}">${esc(x)}</a>`).join("")}</div>`,
-    ldCount: list.length });
+    lead: `${N} ${b} finds, each with a one-tap ${a.name} buy button.`, aboutTitle: `How to buy ${b} on ${a.name}`,
+    filters: [[`All ${b} reps`, `/brand/${s}`]].concat(agentBrands().filter(x => x !== b).slice(0, 16).map(x => [x, `/${key}-spreadsheet/${brandSlug.get(x)}`])),
+    shop: { label: "Other agents", links: others.map(k => [`${b} on ${AGENTS[k].name}`, `/${k}-spreadsheet/${s}`]) },
+    groups: [[`${b} on other agents`, others.map(k => [`${b} on ${AGENTS[k].name}`, `/${k}-spreadsheet/${s}`]).concat([[`All ${b} reps`, `/brand/${s}`]])],
+             [`More brands on ${a.name}`, agentBrands().filter(x => x !== b).slice(0, 16).map(x => [x, `/${key}-spreadsheet/${brandSlug.get(x)}`])]],
+    extra: agentHowTo({ ...a, key }), ldCount: list.length });
 }
 
 export function renderOldMoney(n) {
   const { all, brandSlug } = idx(); const set = new Set(OLD_MONEY.brands);
   const list = all.filter(p => set.has(p.brand));
   const brands = OLD_MONEY.brands.concat(OLD_MONEY.linked).filter(b => brandSlug.has(b));   // `linked` brands get a chip; their finds are not part of this page's list
+  const brandLinks = brands.map(b => [b, `/brand/${brandSlug.get(b)}`]), agentLinks = AGENT_BRAND_AGENTS.map(k => [`Old money on ${AGENTS[k].name}`, `/${k}-spreadsheet/old-money`]);
   return hub({ path: "/old-money", n, list, title: `Old Money Spreadsheet 2026: ${list.length.toLocaleString("en-US")} Quiet Luxury Rep Finds | Puro Classico`,
     desc: `${list.length.toLocaleString("en-US")} old money and quiet luxury rep finds from Ralph Lauren, Loro Piana, Lacoste, Moncler, Golden Goose and more, each with MyCNBox, KakoBuy and Oopbuy links.`,
     h1: "Old money & quiet luxury reps", intro: OLD_MONEY.intro, trail: [["Home", "/"], ["Old money", "/old-money"]],
-    chips: `<div class="chips">${brands.map(b => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}<a href="/stockholm-spreadsheet">Stockholm style spreadsheet</a><a href="/grisch-spreadsheet">Grisch spreadsheet</a></div>` +
-      `<div class="chips">${AGENT_BRAND_AGENTS.map(k => `<a href="/${k}-spreadsheet/old-money">Old money on ${esc(AGENTS[k].name)}</a>`).join("")}</div>`,
+    lead: "Cashmere knits, polos, loafers and clean sneakers from the quiet luxury brands, most viewed first.", aboutTitle: "About old money reps",
+    filters: [["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Grisch spreadsheet", "/grisch-spreadsheet"]].concat(brandLinks),
+    shop: { links: agentLinks },
+    groups: [["Old money brands", brandLinks], ["Old money styles", [["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Grisch spreadsheet", "/grisch-spreadsheet"]]], ["Old money on your agent", agentLinks]],
     faq: [["What are old money reps?", "Replica finds in the understated 'old money' or quiet-luxury style: knitwear, polos, loafers and clean sneakers from brands like Ralph Lauren, Loro Piana and Brunello Cucinelli, without big logos."],
           ["What should I check in QC for old money pieces?", "Knit texture and ribbing, the density of small chest-logo embroidery, collar shape on polos, and leather grain and stitching on shoes and belts."]] });
+}
+
+// /new (12 Nov 2026, SEO check): the newest finds, newest first, paged like the other hubs and in the sitemap. The last
+// NEW_MAX rows of the catalogue (rows are appended, so that is the order they were added); older finds are on their brand
+// and category hubs. The order does not depend on the view stats, so the page is the same on every server instance.
+export const NEW_MAX = 600;
+export function renderNew(n) {
+  const list = newest(NEW_MAX), { brandSlug } = idx();
+  const bc = new Map(); for (const p of list) if (brandSlug.has(p.brand)) bc.set(p.brand, (bc.get(p.brand) || 0) + 1);
+  const brandLinks = [...bc].sort((x, y) => y[1] - x[1]).slice(0, 16).map(([b]) => [b, `/brand/${brandSlug.get(b)}`]);
+  const catLinks = Object.values(CATS).filter(x => x.slug !== "toys").map(x => [x.name, `/category/${x.slug}`]);
+  const days = list.map(p => (rowDays(p) || {}).added).filter(Boolean).sort();
+  const intro = `<p>Finds join the catalogue as we and the community find them, and new ones are added at the end of the list. This page shows the newest ${nf(list.length)} in that order, newest first${days.length ? `; the newest of them were added on ${dayOf(days[days.length - 1])}` : ""}. Older finds stay on their <a href="/brands">brand pages</a> and category pages.</p>` +
+    `<p>New finds often have no buyer QC photos yet. Check the seller's photos and measurements, and the QC photos your agent takes at its warehouse before you ship: see <a href="/guides/how-to-qc">how to read QC photos</a>.</p>`;
+  return hub({ path: "/new", n, list, title: `New Rep Finds 2026: The Latest ${nf(list.length)} Added | Puro Classico`,
+    desc: `The ${nf(list.length)} newest finds on the Puro Classico rep spreadsheet, newest first, with prices and one-tap links for ${AGENT_N} agents.`,
+    h1: "New finds", lead: "The latest finds added to the spreadsheet, newest first.", intro, aboutTitle: "About new finds",
+    trail: [["Home", "/"], ["New finds", "/new"]], filters: brandLinks.concat(catLinks),
+    groups: [["Brands with new finds", brandLinks], ["Categories", catLinks]], facts: ["Newest first"], ldCount: list.length });
 }
 
 export function renderBrands() {
@@ -739,10 +924,9 @@ export function renderModel(s, n) {
   const m = models().find(x => x.slug === s); if (!m) return null;
   const list = m.list;
   const pr = priceRange(list);
-  // The finds count and price range already lead the .facts row under the intro, so "Ranked by views" joins that row
-  // (factsMore) instead of a second icon row repeating the same numbers.
-  const intro = `<p>${esc(m.intro)}</p>` +
-    more("Read more", `<p>Below are all ${list.length} ${esc(m.name)} listings on Puro Classico, ranked by how often buyers view them. Listed prices: ${pr} before shipping.</p>`) +
+  // The model's short intro is the lead under the h1; the rest of the copy and the QC checklist are in the About section
+  // under the grid (v10). "Ranked by views" joins the facts line next to the count and the price range.
+  const intro = `<p>Below are all ${list.length} ${esc(m.name)} listings on Puro Classico, ranked by how often buyers view them. Listed prices: ${pr} before shipping.</p>` +
     `${hIc("h3", "camera", "What to check in QC")}<ul class="ic-list">${m.qc.map(q => `<li>${ic(firstIcon(QC_ITEM_IC, q, "check-circle"), "sm")}<span>${esc(q)}</span></li>`).join("")}</ul>`;
   const others = models().filter(x => x.slug !== s).slice(0, 14);
   const t = MODEL_TERM[s] || m.name;
@@ -750,15 +934,17 @@ export function renderModel(s, n) {
   const { byBrand, brandSlug } = idx();
   const bn = new Map(); for (const p of list) if (brandSlug.has(p.brand)) bn.set(p.brand, (bn.get(p.brand) || 0) + 1);
   const hubs = [...bn].filter(([, c]) => c >= Math.min(3, list.length)).sort((x, y) => y[1] - x[1]).slice(0, 6).map(x => x[0]);
-  const hubLinks = hubs.length ? `${hIc("h2", "tag", hubs.length === 1 ? `More ${esc(hubs[0])}` : "Brands on this page")}<div class="chips">${hubs.map(x => `<a href="/brand/${brandSlug.get(x)}">All ${byBrand.get(x).length.toLocaleString("en-US")} ${esc(x)} reps</a>`).join("")}</div>` : "";
+  const hubLinks = hubs.map(x => [`All ${byBrand.get(x).length.toLocaleString("en-US")} ${x} reps`, `/brand/${brandSlug.get(x)}`]);
+  const modelLinks = others.map(x => [x.name, `/best/${x.slug}`]).concat([["All models", "/best"]]);
   const faq = [[`Where can I buy ${t} reps?`, `Puro Classico lists ${list.length} ${m.name} listings from Weidian, Taobao and 1688. Each opens directly in MyCNBox, KakoBuy, Oopbuy or another shopping agent.`],
                [`Which ${m.name} listing is best?`, `Start with the most-viewed listings at the top and compare their buyer QC photos. Check ${m.qc.join(", ")}.`]];
   return hub({ path: "/best/" + s, n, list, title: `Best ${t} Reps (2026): ${list.length} Listings Compared · Puro Classico`,
     desc: [`${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}. Check in QC: ${m.qc[0]}, then ${m.qc[1]}.`,
       `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}. Check in QC: ${m.qc[0]}.`,
       `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}, with what to check in QC.`].find(x => x.length <= 160) || `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}.`,
-    h1: `Best ${t} reps`, intro, factsMore: `<span>${ic("eye", "sm")}Ranked by views</span>`, trail: [["Home", "/"], ["Best reps", "/best"], [m.name, "/best/" + s]], faq,
-    extra: `${hubLinks}${hIc("h2", "award", "More models")}<div class="chips">${others.map(x => `<a href="/best/${x.slug}">${esc(x.name)}</a>`).join("")}<a href="/best">All models${ic("arrow-right", "sm")}</a></div>` });
+    h1: `Best ${t} reps`, intro, facts: ["Ranked by views"], trail: [["Home", "/"], ["Best reps", "/best"], [m.name, "/best/" + s]], faq,
+    lead: m.intro, aboutTitle: `About ${m.name} reps`, filters: hubLinks.concat(modelLinks),
+    groups: [[hubs.length === 1 ? `More ${hubs[0]}` : "Brands on this page", hubLinks], ["More models", modelLinks]] });
 }
 
 // ------------------------------------------------------------------ tools
@@ -1113,31 +1299,54 @@ export function sitemapIndex() {
 <sitemap><loc>${SITE}/sitemap-products.xml</loc></sitemap>
 </sitemapindex>`);
 }
+// The finds a sitemap URL lists (its lastmod is the newest change among them), or null when unknown.
+const _ld = new WeakMap();
+function listDay(l) {
+  if (_ld.has(l)) return _ld.get(l);
+  let d = null; for (const p of l) { const r = rowDays(p); if (r && r.changed && (!d || r.changed > d)) d = r.changed; }
+  _ld.set(l, d); return d;
+}
+function listFor(u) {
+  const { byBrand, byCat, slugBrand } = idx(); let m;
+  const base = u.replace(/\/\d+$/, "");
+  if (base === "/new") return newest(NEW_MAX);
+  if (["/", "/brands", "/best", "/cnfans-spreadsheet"].includes(base) || (m = base.match(/^\/([a-z0-9]+)-spreadsheet$/)) && AGENT_INTRO[m[1]]) return P;
+  if ((m = base.match(/^\/brand\/([a-z0-9-]+)$/))) return byBrand.get(slugBrand.get(m[1])) || null;
+  if ((m = base.match(/^\/category\/([a-z0-9-]+)$/))) return own(CAT_BY_SLUG, m[1]) ? byCat.get(CAT_BY_SLUG[m[1]]) || null : null;
+  if ((m = base.match(/^\/best\/([a-z0-9-]+)$/))) { const x = models().find(y => y.slug === m[1]); return x ? x.list : null; }
+  if (base === "/old-money") { const set = new Set(OLD_MONEY.brands); return P.filter(p => set.has(p.brand)); }
+  const spec = hubSpec(base); return spec ? hubList(spec).list : null;
+}
 export function sitemapPages() {
   const { brandSlug, byBrand, byCat } = idx();
   // Pages 2+ of the brand and category hubs (21 Oct 2026): real lists that were linked from nowhere. Agent and agent x brand
   // hubs are left out: their pages 2+ repeat the same finds with other buy buttons.
   const more = (base, n) => Array.from({ length: Math.max(0, Math.ceil(n / PER_PAGE) - 1) }, (_, i) => `${base}/${i + 2}`);
   const platN = k => P.filter(p => p.platform === k).length;
-  const urls = ["/", "/how-to-order", "/brands", "/guides", "/old-money", "/stockholm-spreadsheet", "/grisch-spreadsheet", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), "/cnfans-spreadsheet", "/qc-spreadsheet",
+  const urls = ["/", "/new", ...more("/new", NEW_MAX), "/how-to-order", "/brands", "/guides", "/old-money", "/stockholm-spreadsheet", "/grisch-spreadsheet", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), "/cnfans-spreadsheet", "/qc-spreadsheet",
     ...PLAT_KEYS.map(k => `/${k}-spreadsheet`), ...PLAT_KEYS.flatMap(k => more(`/${k}-spreadsheet`, platN(k))),
     ...AGENT_BRAND_AGENTS.flatMap(k => agentBrands().map(b => `/${k}-spreadsheet/${brandSlug.get(b)}`)), ...AGENT_BRAND_AGENTS.flatMap(k => Object.keys(AGENT_STYLES).map(x => `/${k}-spreadsheet/${x}`)),
     ...Object.values(CATS).map(c => "/category/" + c.slug), ...[...brandSlug.values()].map(s => "/brand/" + s),
     ...[...brandSlug].flatMap(([b, s]) => more("/brand/" + s, byBrand.get(b).length)),
     ...Object.entries(CATS).flatMap(([c, m]) => more("/category/" + m.slug, (byCat.get(c) || []).length)),
     ...Object.keys(GUIDES).map(s => "/guides/" + s), "/best", ...models().map(m => "/best/" + m.slug), "/tools", ...Object.keys(TOOLS).map(s => "/tools/" + s), "/terms", "/privacy"];
-  const catDay = latestDay(BUILT, LINKS_CHECKED);
+  // lastmod (12 Nov 2026, SEO check): 899 of 925 URLs said "today", which teaches Google to ignore the field. A list page now
+  // gives the last day a find on its list was added or changed (rowdays.js); guides their own `updated` day; pages whose
+  // change day is not known (tools, terms, how-to-order, a URL listFor() does not know) give none.
   const lastmod = u => { const m = u.match(/^\/guides\/([a-z0-9-]+)$/);
-    if (m) return own(GUIDES, m[1]) ? (m[1] === "what-is-a-rep-spreadsheet" ? latestDay(GUIDES[m[1]].updated, catDay) : latestDay(GUIDES[m[1]].updated)) : null;
+    if (m) return own(GUIDES, m[1]) ? (m[1] === "what-is-a-rep-spreadsheet" ? latestDay(GUIDES[m[1]].updated, listDay(P)) : latestDay(GUIDES[m[1]].updated)) : null;
     if (u === "/guides") return latestDay(...Object.values(GUIDES).map(g => g.updated));
     if (/^\/(tools|terms|privacy|how-to-order)(\/|$)/.test(u)) return null;
-    return catDay; };
+    const l = listFor(u); return l ? listDay(l) : null; };
   return xml(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => { const d = lastmod(u); return `<url><loc>${SITE}${u}</loc>${d ? `<lastmod>${d}</lastmod>` : ""}</url>`; }).join("\n")}\n</urlset>`);
 }
 export function sitemapProducts(skip) {   // skip: ids removed after reports (their pages are noindex)
   const rows = P.filter(p => indexable(p) && !(skip && skip.has(String(p.id)))).map(p => {
     const src = imgSrc(p);
-    const d = latestDay(QC_BANKED[p.id], p.platform === "weidian" ? LINKS_CHECKED : null);
+    // The day the find's row last changed (rowdays.js) or its QC photos were stored; the link check day only when that
+    // check changed the page (the listing is gone or sold out). No known day: no lastmod.
+    const rd = rowDays(p);
+    const d = latestDay(rd && rd.changed, QC_BANKED[p.id], goneOf(p) ? LINKS_CHECKED : null);
     return `<url><loc>${SITE}${productUrl(p)}</loc>${d ? `<lastmod>${d}</lastmod>` : ""}${src ? `<image:image><image:loc>${esc(src)}</image:loc></image:image>` : ""}</url>`;
   });
   return xml(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${rows.join("\n")}\n</urlset>`);
@@ -1321,11 +1530,12 @@ function platSpec(key) {
 export function renderPlat(key, n) {
   if (!PLAT_KEYS.includes(key)) return null;
   const s = platSpec(key), f = s.f, name = PLAT_HUBS[key].name, { brandSlug } = idx(), pr = priceRange(f.list);
-  const chips = `<div class="chips">${f.brands.slice(0, 16).map(([b]) => `<a href="/brand/${brandSlug.get(b)}">${esc(b)}</a>`).join("")}</div>` +
-    `<div class="chips">${platOthers(key).concat([["QC finder spreadsheet", "/qc-spreadsheet"]]).map(([t, u]) => `<a href="${u}">${esc(t)}</a>`).join("")}<a href="/guides/how-to-buy-from-${key}">How to buy from ${esc(name)}</a></div>`;
+  const filters = f.brands.slice(0, 16).map(([b]) => [b, `/brand/${brandSlug.get(b)}`])
+    .concat(platOthers(key), [["QC finder spreadsheet", "/qc-spreadsheet"], [`How to buy from ${name}`, `/guides/how-to-buy-from-${key}`]]);
   return hub({ path: s.path, n, list: f.list, title: s.title,
     desc: n > 1 ? `Page ${n} of the ${nf(f.n)} ${name} rep finds on Puro Classico${pr ? `, with prices (${pr})` : ""}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.` : s.desc,
-    h1: s.h, intro: `<p class="lead">${esc(s.sub)}</p>`, trail: s.crumbs, chips, faq: s.faq, idxFirst: true, full: name, ldCount: f.n });
+    h1: s.h, lead: s.sub, trail: s.crumbs, filters, faq: s.faq, idxFirst: true, full: name, ldCount: f.n,
+    shop: { links: s.chips[1][1] }, groups: s.chips, aboutTitle: `About ${name} finds` });
 }
 
 export function hubSpec(path) {
@@ -1488,18 +1698,27 @@ const HUB_H2_IC = [[/^About/, "info"], [/Best reps by model/, "award"], [/with y
   [/Other categories/, "grid"], [/Browse page by page/, "layers"], [/More old money|More /, "layers"], [/marketplace/i, "store"], [/^FAQ$/, "help"]];
 const HUB_SUM_IC = [[/^What to check/, "camera"], [/in numbers/, "chart"], [/^Buying|^Ordering|order from|step by step/i, "cart"], [/^What is/, "info"],
   [/link looks like/, "link"], [/^How to buy/, "cart"], [/QC photos/, "camera"], [/^Sizing/, "ruler"], [/^Shipping/, "truck"], [/^Minimum/, "box"], [/^Why|^Taobao or|^Taobao, /, "store"]];
-export function hubParts(spec, more = "") {
+export function hubParts(spec, more = "", skip = null) {
   const bc = crumbs(spec.crumbs);
   const crumbHtml = `<nav class="hub-bc" aria-label="Breadcrumb">${spec.crumbs.map((c, i) => i < spec.crumbs.length - 1 ? `<a href="${c[1]}">${esc(c[0])}</a><span aria-hidden="true">›</span>` : `<span aria-current="page">${esc(c[0])}</span>`).join("")}</nav>`;
-  const h2 = t => hIc("h2", firstIcon(HUB_H2_IC, t, "book"), esc(t));
-  const about = spec.about && spec.about.length ? `${h2(spec.aboutTitle || "About")}${spec.about.map(([q, html]) => `<details><summary>${ic(firstIcon(HUB_SUM_IC, q, "book"), "sm")}${esc(q)}</summary>${html}</details>`).join("")}<div style="height:28px"></div>` : "";
-  const seo = `<section class="hub-seo">${more}${about}${spec.chips.filter(c => c[1].length).map(([t, links]) => `${h2(t)}<div class="hub-chips">${links.map(([n, u]) => `<a href="${u}">${chipIcon(u)}${esc(n)}</a>`).join("")}</div>`).join("")}${spec.faq.length ? `${h2("FAQ")}${spec.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}` : ""}</section>`;
+  // v10 (12 Nov 2026): under the subtitle (`after`), one row of related links and the agent logo row: a link to another
+  // agent's page goes to the logo row (one per agent), every other chip link to the related row (at most 24 there; all of
+  // them stay in the About lists). Before the footer (`seo`), the About section: the about copy open as text, the link
+  // groups as lists, the FAQ as <details>, the links to pages 2+ (`more`, appPager).
+  const me = spec.preset.agent || null, shopL = [], quick = [], seenA = new Set();
+  for (const [, links] of spec.chips) for (const l of links) { const k = agentOf(l[1]); if (k && k !== me && !seenA.has(k)) { seenA.add(k); shopL.push(l); } else quick.push(l); }
+  const after = `<div class="hx hx-app hx-hero">${hxRow(quick.slice(0, 24))}${hxShop(shopL, me ? "Other agents" : "Shop this on")}</div>`;
+  const main = (spec.about || []).filter(([, html]) => html).map(([q, html]) => `<h3>${esc(q)}</h3>${html}`).join("");
+  // Brand hubs: that brand's newest finds as plain links (newFindsHtml), under the About columns.
+  const b = spec.preset.brand && !spec.preset.agent ? idx().slugBrand.get(spec.preset.brand) : null;
+  const fresh = b ? newFindsHtml(newest(NEW_LINKS, b, skip), `New ${b} finds`) : "";
+  const seo = `<div class="hx hx-app">${hxAbout({ title: spec.aboutTitle || `About ${spec.h.split(":")[0]}`, main, faq: spec.faq, groups: spec.chips, tail: more, after: fresh })}</div>`;
   const ld = [bc.data]; if (spec.faq.length) ld.push(faqLd(spec.faq));
   const page = { h: spec.h, sub: spec.sub, agent: spec.preset.agent || null, brand: spec.preset.brand || null, cat: spec.preset.cat || null, brands: spec.preset.brands || null,
     qc: spec.preset.qc || null, pmax: spec.preset.pmax || null, ...(spec.preset.plat ? { plat: spec.preset.plat } : {}) };
   const head = `<script>window.PC_PAGE=${JSON.stringify(page).replace(/</g, "\\u003c")};document.documentElement.classList.add("hub"${page.agent ? ',"agent-lock"' : ""}${page.brand || page.cat ? ',"af-pre"' : ""});</script>` +
-    ld.map(o => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, "\\u003c") + "</script>").join("");
-  return { crumbHtml, seo, head };
+    ld.map(o => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, "\\u003c") + "</script>").join("") + HX_CSS;
+  return { crumbHtml, seo, head, after };
 }
 
 // ------------------------------------------------------------------ server cards on the app pages (21 Oct 2026)
@@ -1550,5 +1769,5 @@ export function appPager(base, n) {
   const pages = Math.ceil(n / PER_PAGE); if (!base || pages < 2) return "";
   const nums = []; for (let k = 2; k <= Math.min(pages, 12); k++) nums.push(k);
   if (pages > 12) nums.push(pages);
-  return `${hIc("h2", "layers", "Browse page by page")}<div class="hub-chips">${nums.map(k => `<a href="${base}/${k}">Page ${k}</a>`).join("")}</div>`;
+  return `<div class="hx-group"><h3>Browse page by page</h3><div class="hx-pages">${nums.map(k => `<a href="${base}/${k}" aria-label="Page ${k}">${k}</a>`).join("")}</div></div>`;
 }

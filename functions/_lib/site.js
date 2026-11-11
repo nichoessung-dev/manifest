@@ -4,6 +4,7 @@ import { ROWS, PREFIX, BUILT } from "./catalog.js";
 import * as SIG from "./signals.js";
 import { PQ } from "./photo_quality.js";
 import { SWAPS } from "./link_swaps.js";
+import * as RD from "./rowdays.js";
 const { CHECKED, DEMAND, DEAD, SOLD_OUT } = SIG;
 // QC photo bank results (scripts/gen_signals.py from data/qc_bank.json, 28 Oct 2026), read through the namespace so a
 // signals.js written before these lists existed still loads. QC_BANKED: { id: "YYYY-MM-DD" }, the finds whose QC photos
@@ -73,7 +74,33 @@ const DEMAND_SET = new Set(DEMAND), GONE = new Map([...DEAD.map(i => [i, "dead"]
 export const gone = p => GONE.get(p.id) || null;               // "dead" | "sold_out" | null
 export const LINKS_CHECKED = CHECKED;                          // date of that link check (YYYY-MM-DD)
 export const GONE_COUNTS = { dead: DEAD.length, sold: SOLD_OUT.length };   // what that check found, for page copy
-export const indexable = p => !GONE.has(p.id) && (p.qc >= 1 || p.best === 1 || DEMAND_SET.has(p.id));
+const baseIndexable = p => !GONE.has(p.id) && (p.qc >= 1 || p.best === 1 || DEMAND_SET.has(p.id));
+// One listing per name group (12 Nov 2026, SEO check): a group is 2 or more finds that share brand and title (idx().titleCount's
+// key; a find with a name of its own is not a group, so the rule does not open thousands of single thin pages). When no
+// listing of a group is indexable by the rule above, its best one is (idx().groupPick): its brand has a hub,
+// its link is not gone, its main photo is not a bad one (photo_quality.js under 0.6), then most views (all time), then the
+// lowest real price, then catalogue order. The other listings stay noindex,follow, canonical unchanged. So a search like
+// "asics gel kayano 14 rep" has one page to land on without opening every near copy.
+export const PICK_PQ_MAX = 0.6;
+export const indexable = p => baseIndexable(p) || idx().groupPick.has(p.id);
+// The days a find's row first appeared in catalog.js and last changed (rowdays.js, scripts/gen_rowdays.py); null when the
+// row is newer than that file.
+const RD_DAYS = RD.DAYS || [], RD_ROW = RD.ROWDAY || {};
+export function rowDays(p) {
+  const v = RD_ROW[p.id]; if (!v) return null;
+  return { added: RD_DAYS[parseInt(v[0], 36)] || null, changed: RD_DAYS[parseInt(v[1], 36)] || null };
+}
+// The newest finds: rows are appended to the catalogue, so the last rows are the newest. Gone listings and finds without a
+// photo are left out; `skip` takes ids removed after reports.
+export function newest(n = Infinity, brand = null, skip = null) {
+  const out = [];
+  for (let i = P.length - 1; i >= 0 && out.length < n; i--) {
+    const p = P[i];
+    if (GONE.has(p.id) || !p.img || (brand && p.brand !== brand) || (skip && skip.has(String(p.id)))) continue;
+    out.push(p);
+  }
+  return out;
+}
 
 let _idx = null, _idxVer = -1;
 export function idx() {
@@ -92,7 +119,22 @@ export function idx() {
   for (const [b, l] of byBrand) if (l.length >= BRAND_MIN || l.length >= (BRAND_ALLOW.get(b) || Infinity)) { const s = slug(b); brandSlug.set(b, s); slugBrand.set(s, b); }
   const titleCount = new Map();   // listings sharing a title get a distinguishing suffix on their product page
   for (const p of P) { const k = ((p.brand || "") + "|" + p.title).toLowerCase(); titleCount.set(k, (titleCount.get(k) || 0) + 1); }
-  _idx = { byId, byBrand, byCat, all, brandSlug, slugBrand, titleCount };
+  // groupPick: see indexable() above. Built here because it reads the view stats, like the rest of idx().
+  const groups = new Map();
+  for (const p of P) { const k = ((p.brand || "") + "|" + p.title).toLowerCase(); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(p); }
+  const groupPick = new Set(), realPrice = p => (p.cny >= 5 && p.cny < 99999 ? p.cny : Infinity);
+  for (const l of groups.values()) {
+    if (l.length < 2 || l.some(baseIndexable)) continue;   // a name shared by 2+ listings, none of them indexable yet
+    let best = null;
+    for (const p of l) {
+      if (GONE.has(p.id) || !p.img || !brandSlug.has(p.brand) || (PQ[p.id] || 0) >= PICK_PQ_MAX) continue;
+      if (!best) { best = p; continue; }
+      const dv = (VIEWS[p.id] || NO_VIEWS)[0] - (VIEWS[best.id] || NO_VIEWS)[0];
+      if (dv > 0 || (dv === 0 && realPrice(p) < realPrice(best))) best = p;
+    }
+    if (best) groupPick.add(best.id);
+  }
+  _idx = { byId, byBrand, byCat, all, brandSlug, slugBrand, titleCount, groupPick };
   return _idx;
 }
 export const BRAND_MIN = 20;   // a brand gets its own hub page from this many finds
@@ -172,6 +214,36 @@ export const AGENTS = {
 // keep AGENTS in AGENT_ORDER even if someone adds an agent above in another place (Object.entries gives this order)
 { const o = {}; AGENT_ORDER.forEach(k => { if (AGENTS[k]) o[k] = AGENTS[k]; }); Object.keys(AGENTS).forEach(k => { if (!o[k]) o[k] = AGENTS[k]; });
   Object.keys(AGENTS).forEach(k => { delete AGENTS[k]; }); Object.assign(AGENTS, o); }
+
+// ------------------------------------------------------------------ live numbers in copy (12 Nov 2026, SEO check)
+// Titles, descriptions and copy said "9,000+" finds and named five agents after the catalogue and the agent list had grown.
+// FINDS_PLUS is the catalogue size rounded down to the thousand ("12,000+"), QC_PLUS the finds marked as having QC photos
+// rounded down to the hundred, AGENT_N the agents in AGENT_ORDER and AGENTS_LINE the first five by name plus "and N more
+// agents". liveCopy() rewrites the old fixed phrases in any HTML or text: page() runs it on every server page and the
+// middleware on the homepage and the app hubs (index.html stays as it is). Each rule is an exact phrase or a number in a
+// fixed context, listed here so a new phrase is added on purpose.
+const plusOf = (n, step) => (Math.floor(n / step) * step).toLocaleString("en-US") + "+";
+export const FINDS_PLUS = plusOf(P.length, 1000);
+export const QC_PLUS = plusOf(P.filter(p => p.qc >= 1).length, 100);
+export const AGENT_N = AGENT_ORDER.length;
+const AGENT_NAMES = AGENT_ORDER.map(k => AGENTS[k] ? AGENTS[k].name : k);
+export const AGENTS_LINE = AGENT_N > 5 ? `${AGENT_NAMES.slice(0, 4).join(", ")}, ${AGENT_NAMES[4]} and ${AGENT_N - 5} more agents` : AGENT_NAMES.join(", ");
+const OTHERS_LINE = AGENT_N > 5 ? `${AGENT_NAMES.slice(1, 5).join(", ")} and ${AGENT_N - 5} more agents` : AGENT_NAMES.slice(1).join(", ");
+export const AGENT_NAMES_ALL = AGENT_NAMES.join(", ");
+export const LIVE_RULES = [
+  // the finds count: 5,000+ to 19,999+, not after a currency sign or a digit (prices such as ¥99,999+ stay)
+  [/(?<![$¥€£\d.,])(?:[5-9]|1\d),\d{3}\+/g, FINDS_PLUS],
+  // the QC count in its two phrasings
+  [/(?<![$¥€£\d.,])\d,\d{3}\+(?= finds our catalogue marks as having buyer QC| with buyer QC photos)/g, QC_PLUS],
+  [/MyCNBox, KakoBuy, Oopbuy, LoveGoBuy, Sugargoo or any shopping agent/g, AGENTS_LINE],
+  // "...were all operating on 10 October 2026" was checked for those five only, so it keeps the five names
+  [/MyCNBox, KakoBuy, Oopbuy, LoveGoBuy (?:or|and) Sugargoo(?! were)/g, AGENTS_LINE],
+  [/also has KakoBuy, Oopbuy, LoveGoBuy and Sugargoo (buttons|links)/g, `also has $1 for ${OTHERS_LINE}`],
+  [/Buy via MyCNBox, KakoBuy, Oopbuy or any agent\./g, `Buy via MyCNBox, KakoBuy, Oopbuy and ${AGENT_N - 3} more agents.`],
+  [/\b(links|buttons) for 5 agents\b/g, `$1 for ${AGENT_N} agents`],
+  [/\bin one tap on \d+ agents\b/g, `in one tap on ${AGENT_N} agents`],
+];
+export const liveCopy = s => { s = String(s); for (const [re, to] of LIVE_RULES) s = s.replace(re, to); return s; };
 
 // ------------------------------------------------------------------ helpers
 export const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
@@ -552,7 +624,7 @@ const NAV_KEY = { "/": "finds", "/feed": "swipe", "/brands": "brands", "/tools":
 // is a plain GET to /?q=..., and the button, Cmd/Ctrl+K and "/" focus the field when it shows, else open /?s=1 (PAGE_JS).
 // The placeholder carries the app's count (index.html numbers(): the catalogue rounded down to the hundred, "9,200+"), so the
 // field reads the same on both sides of a page change.
-const FINDS_N = (Math.floor(P.length / 100) * 100).toLocaleString("en-US") + "+";
+const FINDS_N = FINDS_PLUS;   // the header search placeholder: same rounding as every other finds count (liveCopy above)
 const SEARCH_SHELL = `<div class="pcs-hd" id="pcs-hd"><form class="pcs-hf" action="/" method="get" role="search">${ic("search", "sm")}` +
   `<input class="pcs-hi" id="pcs-hi" name="q" type="search" placeholder="Search ${FINDS_N} finds" aria-label="Search finds" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search">` +
   `<kbd class="pcs-kbd" aria-hidden="true">\u2318K</kbd></form><button class="pcs-hb" id="pcs-hb" type="button" aria-label="Search finds">${ic("search")}</button></div>`;
@@ -625,7 +697,7 @@ ${PAGE_JS}${SEARCH_BOOT_JS}${body.indexOf('class="cbuy"') >= 0 ? AGENT_SWAP_JS :
 <script src="/chat.js?v=7" defer></script>
 </body>
 </html>`;
-  return new Response(html, { status, headers: { "content-type": "text/html; charset=utf-8",
+  return new Response(liveCopy(html), { status, headers: { "content-type": "text/html; charset=utf-8",
     "cache-control": status === 200 ? "public, max-age=300, s-maxage=3600" : "public, max-age=60" } });
 }
 
