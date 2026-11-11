@@ -10,7 +10,8 @@
  * Env: SUPABASE_SERVICE_KEY (already set for /r/<code>).
  */
 const SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co";
-const AGENTS = new Set(["mycnbox", "kakobuy", "oopbuy", "lovegobuy", "sugargoo"]);
+const AGENTS = new Set(["mycnbox", "kakobuy", "oopbuy", "lovegobuy", "sugargoo", "litbuy", "usfans", "joyagoo", "superbuy", "cssbuy",
+  "hipobuy", "fishgoo", "hubbuy", "itaobuy", "gtbuy", "bbdbuy"]);   // keys as in AGENTS (site.js) and track.js AG
 
 export async function onRequestPost(context) {
   const { request, env } = context;
