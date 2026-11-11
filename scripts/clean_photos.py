@@ -343,7 +343,7 @@ def main():
     ap.add_argument("--rembg-model", default="isnet-general-use")
     ap.add_argument("--keep-main-view", action="store_true", help="drop extra views when the labels say multiple_views / collage")
     ap.add_argument("--max-parts", type=int, default=3)
-    ap.add_argument("--upscale-below", type=int, default=900, help="enlarge photos whose short side is under this (px)")
+    ap.add_argument("--upscale-below", type=int, default=0, help="enlarge photos whose short side is under this (px); 0 = never (owner, 9 Nov 2026: no AI upscaling of product photos)")
     ap.add_argument("--quality", type=int, default=84)
     ap.add_argument("--sheets", default=os.path.join(ROOT, "photo-sheets"))
     ap.add_argument("--dry-run", action="store_true", help="process and make sheets, but write no images and no records")
