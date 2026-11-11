@@ -44,7 +44,7 @@
 {"@type":"CollectionPage","@id":"https://www.puroclassico.com/#catalog","url":"https://www.puroclassico.com/","name":"Rep Finds Spreadsheet: Designer Rep Finds","isPartOf":{"@id":"https://www.puroclassico.com/#website"},"about":["rep finds","designer reps","rep spreadsheet","QC photos","shopping agents"]},
 {"@type":"FAQPage","@id":"https://www.puroclassico.com/#faq","mainEntity":[
 {"@type":"Question","name":"What is a rep finds spreadsheet?","acceptedAnswer":{"@type":"Answer","text":"A curated list of replica products from Weidian, Taobao and 1688 with photos, prices and links you open through a shopping agent."}},
-{"@type":"Question","name":"Which agent should I use?","acceptedAnswer":{"@type":"Answer","text":"Finds open in one tap on MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo; for any other agent, copy the original link into your agent."}},
+{"@type":"Question","name":"Which agent should I use?","acceptedAnswer":{"@type":"Answer","text":"Finds open in one tap on 16 agents, among them MyCNBox, KakoBuy, Oopbuy, Litbuy, Joyagoo, Sugargoo and LoveGoBuy; for any other agent, copy the original link into your agent."}},
 {"@type":"Question","name":"What does QC mean?","acceptedAnswer":{"@type":"Answer","text":"QC means quality check, real photos of your exact item taken in the agent's warehouse before it ships."}},
 {"@type":"Question","name":"Is this a Pandabuy alternative?","acceptedAnswer":{"@type":"Answer","text":"Yes. Pandabuy stopped operating in 2024; the same Weidian, Taobao and 1688 listings can be bought through MyCNBox, KakoBuy and other agents."}}
 ]}
@@ -1543,6 +1543,18 @@ main{padding-block:20px 64px}
 .buy-dd-item .agent-badge{background:var(--surface-2)!important;color:var(--ink)!important}
 @media (hover:hover){.buy-dd-item:hover{background:var(--surface-2)!important;color:var(--ink)!important}}
 .buy-dd-menu{padding:0!important;overflow:hidden}
+/* "See more agents" (11 Nov 2026): agent lists show the first 5; the button reveals the rest in place */
+.buy-dd-menu{max-height:min(62vh,470px);overflow-y:auto;overscroll-behavior:contain}
+.buy-dd-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;margin:0;padding:11px 16px;border:0;background:none;color:var(--muted);font:500 14px/1.2 var(--f-body);cursor:pointer}
+@media (hover:hover){.buy-dd-more:hover{background:var(--surface-2);color:var(--ink)}}
+.cselitem.csel-more{color:var(--muted)!important}
+.buy-dd-more .ic,.csel-more .ic,.set-more .ic,.pcwf-more .ic,.wb-more .ic{width:16px;height:16px;flex:none}
+#settings-modal .set-more,.pcwf-more,.wb-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;margin:0;padding:10px 14px;border:1px dashed var(--line-2);border-radius:12px;background:none;color:var(--muted);font:500 14px/1.2 var(--f-body);cursor:pointer;transition:border-color .15s ease,color .15s ease}
+#settings-modal .set-more{border-radius:14px}
+.pcwf-more{grid-column:1/-1}
+.wb-more{max-width:320px;margin:14px auto 0}
+@media (hover:hover){#settings-modal .set-more:hover,.pcwf-more:hover,.wb-more:hover{border-color:var(--input-line,#949494);color:var(--ink)}}
+.v9-ag-more{font:500 12px/1 var(--f-body);color:var(--_mutfg,var(--muted));white-space:nowrap}
 .buy-hint{background:var(--surface-2)!important;color:var(--ink)!important;border-radius:12px!important}
 .buy-hint svg{color:var(--ink)!important}
 @media (hover:hover){.buy-hint:hover{background:color-mix(in srgb,var(--ink) 8%,var(--surface-2))!important}}
@@ -2911,7 +2923,7 @@ html .pc-dens{border-color:transparent!important;background:var(--surface-2)!imp
     <div class="v9-trust">
       <a class="v9-tp" href="https://www.trustpilot.com/review/mycnbox.com" target="_blank" rel="noopener noreferrer"><span class="v9-tp-stars" aria-hidden="true"><i><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2.6l1.6 3.4 3.7.4-2.8 2.5.8 3.6L8 10.6l-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z"/></svg></i><i><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2.6l1.6 3.4 3.7.4-2.8 2.5.8 3.6L8 10.6l-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z"/></svg></i><i><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2.6l1.6 3.4 3.7.4-2.8 2.5.8 3.6L8 10.6l-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z"/></svg></i><i><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2.6l1.6 3.4 3.7.4-2.8 2.5.8 3.6L8 10.6l-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z"/></svg></i><i><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2.6l1.6 3.4 3.7.4-2.8 2.5.8 3.6L8 10.6l-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z"/></svg></i></span><b>4.8<span class="v9-vh"> out of 5</span></b><span class="v9-tp-l" data-i18n="tp_label">MyCNBox on Trustpilot</span></a>
       <span class="v9-trust-sep" aria-hidden="true"></span>
-      <div class="v9-ag" title="MyCNBox, KakoBuy, Oopbuy, LoveGoBuy, Sugargoo"><span class="v9-ag-stack"><img class="v9-ag-i v9-ag-red" src="/img/agents/mycnbox.webp" alt="MyCNBox" title="MyCNBox" width="24" height="24" decoding="async" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=mycnbox.com&amp;sz=64'"><img class="v9-ag-i" src="/img/agents/kakobuy.webp?v=2" alt="KakoBuy" title="KakoBuy" width="24" height="24" decoding="async" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=kakobuy.com&amp;sz=64'"><img class="v9-ag-i" src="/img/agents/oopbuy.webp" alt="Oopbuy" title="Oopbuy" width="24" height="24" decoding="async" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=oopbuy.com&amp;sz=64'"><img class="v9-ag-i" src="/img/agents/lovegobuy.webp?v=2" alt="LoveGoBuy" title="LoveGoBuy" width="24" height="24" decoding="async" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=lovegobuy.com&amp;sz=64'"><img class="v9-ag-i" src="/img/agents/sugargoo.webp?v=2" alt="Sugargoo" title="Sugargoo" width="24" height="24" decoding="async" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=sugargoo.com&amp;sz=64'"></span></div>
+      <div class="v9-ag" title="MyCNBox, KakoBuy, Oopbuy, Litbuy, Joyagoo, Sugargoo, Hipobuy, USFans, GTBuy, LoveGoBuy, Superbuy, iTaoBuy, CSSBuy, Fishgoo, Hubbuy, BBDBuy"><span class="v9-ag-stack"><img class="v9-ag-i v9-ag-red" src="/img/agents/mycnbox.webp" alt="MyCNBox" title="MyCNBox" width="24" height="24" decoding="async" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=mycnbox.com&amp;sz=64'"><img class="v9-ag-i" src="/img/agents/kakobuy.webp?v=2" alt="KakoBuy" title="KakoBuy" width="24" height="24" decoding="async" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=kakobuy.com&amp;sz=64'"><img class="v9-ag-i" src="/img/agents/oopbuy.webp" alt="Oopbuy" title="Oopbuy" width="24" height="24" decoding="async" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=oopbuy.com&amp;sz=64'"><img class="v9-ag-i" src="/img/agents/litbuy.webp" alt="Litbuy" title="Litbuy" width="24" height="24" decoding="async" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=litbuy.com&amp;sz=64'"><img class="v9-ag-i" src="/img/agents/joyagoo.webp" alt="Joyagoo" title="Joyagoo" width="24" height="24" decoding="async" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=joyagoo.com&amp;sz=64'"></span><span class="v9-ag-more" aria-label="and 11 more agents">+11</span></div>
     </div>
   </div>
 </section>
@@ -3013,7 +3025,7 @@ html .pc-dens{border-color:transparent!important;background:var(--surface-2)!imp
       <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-sheet"/></svg></span><span data-i18n="v9_n_finds">Finds on the sheet</span></dt><dd data-num="finds">9,100+</dd></div>
       <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg></span><span data-i18n="v9_n_qc">Finds with QC photos</span></dt><dd data-num="qc">2,100+</dd></div>
       <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-store"/></svg></span><span data-i18n="v9_n_markets">Marketplaces</span></dt><dd data-num="markets">3</dd></div>
-      <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-users"/></svg></span><span data-i18n="v9_n_agents">Agents supported</span></dt><dd data-num="agents">5</dd></div>
+      <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-users"/></svg></span><span data-i18n="v9_n_agents">Agents supported</span></dt><dd data-num="agents">16</dd></div>
     </dl>
   </div>
 </section>
@@ -3401,7 +3413,7 @@ html .pc-dens{border-color:transparent!important;background:var(--surface-2)!imp
     <p class="seo-p1">Puro Classico is a searchable <strong>rep finds spreadsheet</strong> with 9,000+ <strong>designer reps</strong> from Weidian, Taobao and 1688, ranked by what buyers actually view. Many finds have real <strong>QC photos</strong>. Buy in one tap through <strong>MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo</strong>, or paste the original link into any other agent with our <a href="/tools/link-converter">link converter</a>. Used the old Pandabuy spreadsheets? See <a href="/guides/pandabuy-alternatives">Pandabuy alternatives</a>.</p>
     <div class="seo-qs"><details class="seo-q seo-links"><summary><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-tag"/></svg></span><h3>Brands</h3><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><div class="seo-lk"><div class="seo-chips"><a href="/brand/jordan">Jordan reps</a><a href="/brand/nike">Nike</a><a href="/brand/corteiz">Corteiz</a><a href="/brand/stone-island">Stone Island</a><a href="/brand/stussy">Stüssy</a><a href="/brand/bape">Bape</a><a href="/brand/ralph-lauren">Ralph Lauren</a><a href="/brand/moncler">Moncler</a><a href="/brand/chrome-hearts">Chrome Hearts</a><a href="/brand/trapstar">Trapstar</a><a href="/brand/louis-vuitton">Louis Vuitton</a><a href="/brand/gucci">Gucci</a><a href="/brand/arcteryx">Arc'teryx</a><a href="/brand/golden-goose">Golden Goose</a><a href="/brand/jacob-cohen">Jacob Cohen</a><a href="/brand/maison-margiela">Maison Margiela</a><a href="/brand/goyard">Goyard</a><a href="/brand/mertra">Mertra</a><a href="/brand/loro-piana">Loro Piana</a><a href="/brand/acne-studios">Acne Studios</a><a href="/brands">all brands</a></div></div></details><details class="seo-q seo-links"><summary><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-award"/></svg></span><h3>Best reps by model</h3><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><div class="seo-lk"><div class="seo-chips"><a href="/best/air-jordan-1">Jordan 1</a><a href="/best/air-jordan-4">Jordan 4</a><a href="/best/nike-dunk">Dunk</a><a href="/best/corteiz-tracksuits">Corteiz tracksuit</a><a href="/best/moncler-puffer">Moncler puffer</a><a href="/best/essentials-hoodie">Essentials hoodie</a><a href="/best/chrome-hearts-jewelry">Chrome Hearts jewellery</a><a href="/best/rolex-watches">Rolex</a><a href="/best/football-shirts">football shirts</a><a href="/best/ralph-lauren-cable-knit">Ralph Lauren cable knit</a><a href="/best">all models</a></div><p class="seo-lbl"><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-tee"/></svg>Style</p><div class="seo-chips"><a href="/old-money">old money spreadsheet</a><a href="/stockholm-spreadsheet">Stockholm style spreadsheet</a><a href="/grisch-spreadsheet">grisch spreadsheet</a></div></div></details>
       <details class="seo-q"><summary><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-sheet"/></svg></span><h3>What is a rep finds spreadsheet?</h3><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><p>A curated list of replica products from Weidian, Taobao and 1688 with photos, prices and links you open through a shopping agent. <a href="/guides/what-is-a-rep-spreadsheet">How to use one</a>.</p></details>
-      <details class="seo-q"><summary><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-users"/></svg></span><h3>Which agent should I use?</h3><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><p>Finds open in one tap on MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo; for any other agent, copy the original link into your agent. <a href="/guides/best-shopping-agent">Compare agents</a>.</p></details>
+      <details class="seo-q"><summary><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-users"/></svg></span><h3>Which agent should I use?</h3><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><p>Finds open in one tap on 16 agents, among them MyCNBox, KakoBuy, Oopbuy, Litbuy, Joyagoo, Sugargoo and LoveGoBuy; for any other agent, copy the original link into your agent. <a href="/guides/best-shopping-agent">Compare agents</a>.</p></details>
       <details class="seo-q"><summary><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg></span><h3>What does QC mean?</h3><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><p>QC means quality check, real photos of your exact item taken in the agent's warehouse before it ships. <a href="/guides/how-to-qc">How to read QC photos</a>.</p></details>
       <details class="seo-q"><summary><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-refresh"/></svg></span><h3>Is this a Pandabuy alternative?</h3><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><p>Yes. Pandabuy stopped operating in 2024; the same Weidian, Taobao and 1688 listings can be bought through MyCNBox, KakoBuy and other agents. <a href="/guides/pandabuy-alternatives">Pandabuy alternatives</a>.</p></details>
     </div>
@@ -3438,7 +3450,24 @@ html .pc-dens{border-color:transparent!important;background:var(--surface-2)!imp
    DATA LAYER – swap sample data for the real feed here (same shape).
    ========================================================================== */
 const AFFILIATE_REF = "LHYDVW";
-const AGENT_REFS = { mycnbox:"LHYDVW", kakobuy:"w5war", lovegobuy:"9WJ54Y", oopbuy:"LHQC0OS8O", sugargoo:"3751749728009774836" };
+const AGENT_REFS = { mycnbox:"LHYDVW", kakobuy:"w5war", lovegobuy:"9WJ54Y", oopbuy:"LHQC0OS8O", sugargoo:"3751749728009774836",
+  litbuy:"N3GYNRNL7", usfans:"VKZFJG", joyagoo:"301083138", superbuy:"Expx5X", cssbuy:"R0dfOUY5QkM1RkU=", hipobuy:"6DJ8GVKLE",
+  fishgoo:"3920775520241738078", hubbuy:"082A1BdE", itaobuy:"6SMA234Z", gtbuy:"KI06I91RM", bbdbuy:"uDi7jz" };
+/* AGENT_ORDER (owner, 11 Nov 2026: "the ones who benefit me the most first"): the ONE list that sets the order of agents
+   everywhere in the app (buy menu, header agent menu, settings, welcome flow, welcome-bonus page). MyCNBox stays first and
+   the default; a visitor's own saved agent still goes first for them. Same list in functions/_lib/site.js. */
+const AGENT_ORDER = ["mycnbox","kakobuy","oopbuy","litbuy","joyagoo","sugargoo","hipobuy","usfans","gtbuy","lovegobuy","superbuy","itaobuy","cssbuy","fishgoo","hubbuy","bbdbuy"];
+/* sign-up links with the owner's codes (his own referral links); CSSBuy's code only works on its sign-up page */
+const AGENT_REG = { litbuy:"https://litbuy.com/register?inviteCode=N3GYNRNL7", usfans:"https://usfans.com/register?ref=VKZFJG",
+  joyagoo:"https://joyagoo.com/register?ref=301083138", superbuy:"https://www.superbuy.com/en/page/login?partnercode=Expx5X&type=register",
+  cssbuy:"https://www.cssbuy.com/register?invite=R0dfOUY5QkM1RkU=", hipobuy:"https://hipobuy.com/register?inviteCode=6DJ8GVKLE",
+  fishgoo:"https://www.fishgoo.com/#/login?memberId=3920775520241738078&ref=fishgoo",
+  hubbuy:"https://www.hubbuy.com/signUp?utm_source=website&utm_medium=ambassador&utm_campaign=linksharing&inviteCode=082A1BdE",
+  itaobuy:"https://www.itaobuy.com/register?inviteCode=6SMA234Z", gtbuy:"https://gtbuy.com/register?inviteCode=KI06I91RM",
+  bbdbuy:"https://www.bbdbuyeu.com/register?inviteCode=uDi7jz" };
+/* platform names per agent (catalogue platform -> what the agent's item route wants) */
+const agPl=(p,m)=>m[p.platform]!=null?m[p.platform]:m.weidian;
+const PL_WORD={weidian:"weidian",taobao:"taobao","1688":"1688"}, PL_NUM={weidian:2,taobao:1,"1688":0};
 /* Build the ORIGINAL seller product URL from platform + id, agents that take a ?url= deep-link need this. */
 function origUrl(p){
   const id=p.itemId||p.id;
@@ -3446,14 +3475,44 @@ function origUrl(p){
   if(p.platform==="1688")   return `https://detail.1688.com/offer/${id}.html`;
   return `https://weidian.com/item.html?itemID=${id}`; // weidian default
 }
-/* Order here = order in the buy dropdown: MyCNBox, KakoBuy, LoveGoBuy, Oopbuy, Sugargoo. */
+/* The order is AGENT_ORDER (the object is re-sorted right below). Item links checked 11 Nov 2026 (REPORT in the PR). */
 const AGENTS = {
   mycnbox:   { name:"MyCNBox",   domain:"mycnbox.com",   logo:"/img/agents/mycnbox.webp", build:(p)=>`https://mycnbox.com/goodsDetail?mallType=${p.platform}&itemId=${p.itemId||p.id}&referId=${AGENT_REFS.mycnbox}` },
   kakobuy:   { name:"KakoBuy",   domain:"kakobuy.com",   logo:"/img/agents/kakobuy.webp?v=2", build:(p)=>`https://www.kakobuy.com/item/details?url=${encodeURIComponent(origUrl(p))}&affcode=${AGENT_REFS.kakobuy}` },
   lovegobuy: { name:"LoveGoBuy", domain:"lovegobuy.com", logo:"/img/agents/lovegobuy.webp?v=2", build:(p)=>`https://www.lovegobuy.com/product?platform=${p.platform}&id=${p.itemId||p.id}&invite_code=${AGENT_REFS.lovegobuy}` },
   oopbuy:    { name:"Oopbuy",    domain:"oopbuy.com",    logo:"/img/agents/oopbuy.webp", build:(p)=>`https://oopbuy.com/product/${p.platform}/${p.itemId||p.id}?inviteCode=${AGENT_REFS.oopbuy}` },
   sugargoo:  { name:"Sugargoo",  domain:"sugargoo.com",  logo:"/img/agents/sugargoo.webp?v=2", build:(p)=>`https://www.sugargoo.com/#/home/productDetail?productLink=${encodeURIComponent(origUrl(p))}&memberId=${AGENT_REFS.sugargoo}` },
+  litbuy:    { name:"Litbuy",    domain:"litbuy.com",    logo:"/img/agents/litbuy.webp", build:(p)=>`https://www.litbuy.com/product/${agPl(p,PL_WORD)}/${p.itemId||p.id}?inviteCode=${AGENT_REFS.litbuy}` },
+  usfans:    { name:"USFans",    domain:"usfans.com",    logo:"/img/agents/usfans.webp", build:(p)=>`https://www.usfans.com/product/${agPl(p,{weidian:3,taobao:2,"1688":1})}/${p.itemId||p.id}?ref=${AGENT_REFS.usfans}` },
+  joyagoo:   { name:"Joyagoo",   domain:"joyagoo.com",   logo:"/img/agents/joyagoo.webp", build:(p)=>`https://joyagoo.com/product?id=${p.itemId||p.id}&platform=${agPl(p,{weidian:"WEIDIAN",taobao:"TAOBAO","1688":"ALI_1688"})}&ref=${AGENT_REFS.joyagoo}` },
+  superbuy:  { name:"Superbuy",  domain:"superbuy.com",  logo:"/img/agents/superbuy.webp", build:(p)=>`https://www.superbuy.com/en/page/buy?from=search-input&url=${encodeURIComponent(origUrl(p))}&partnercode=${AGENT_REFS.superbuy}` },
+  /* CSSBuy: the owner's invite code is only read on its sign-up page (item pages drop it), so its button opens the sign-up link */
+  cssbuy:    { name:"CSSBuy",    domain:"cssbuy.com",    logo:"/img/agents/cssbuy.webp", build:()=>AGENT_REG.cssbuy },
+  hipobuy:   { name:"Hipobuy",   domain:"hipobuy.com",   logo:"/img/agents/hipobuy.webp", build:(p)=>`https://hipobuy.com/product/${agPl(p,PL_WORD)}/${p.itemId||p.id}?inviteCode=${AGENT_REFS.hipobuy}` },
+  fishgoo:   { name:"Fishgoo",   domain:"fishgoo.com",   logo:"/img/agents/fishgoo.webp", build:(p)=>`https://www.fishgoo.com/#/product?productLink=${encodeURIComponent(origUrl(p))}&memberId=${AGENT_REFS.fishgoo}` },
+  hubbuy:    { name:"Hubbuy",    domain:"hubbuy.com",    logo:"/img/agents/hubbuy.webp", build:(p)=>`https://www.hubbuy.com/product/${agPl(p,PL_NUM)}/${p.itemId||p.id}?inviteCode=${AGENT_REFS.hubbuy}` },
+  itaobuy:   { name:"iTaoBuy",   domain:"itaobuy.com",   logo:"/img/agents/itaobuy.webp", build:(p)=>`https://www.itaobuy.com/product-detail?url=${encodeURIComponent(origUrl(p))}&inviteCode=${AGENT_REFS.itaobuy}` },
+  gtbuy:     { name:"GTBuy",     domain:"gtbuy.com",     logo:"/img/agents/gtbuy.webp", build:(p)=>`https://www.gtbuy.com/product/${agPl(p,PL_NUM)}/${p.itemId||p.id}?inviteCode=${AGENT_REFS.gtbuy}` },
+  bbdbuy:    { name:"BBDBuy",    domain:"bbdbuyeu.com",  logo:"/img/agents/bbdbuy.webp", build:(p)=>`https://www.bbdbuyeu.com/goods/${agPl(p,{weidian:"WEIDIAN",taobao:"TAOBAO","1688":"1688"})}/${p.itemId||p.id}?inviteCode=${AGENT_REFS.bbdbuy}` },
 };
+/* re-sort AGENTS in place by AGENT_ORDER (Object.keys / Object.entries then give that order everywhere) */
+(function(){ const o={}; AGENT_ORDER.forEach(k=>{ if(AGENTS[k]) o[k]=AGENTS[k]; }); Object.keys(AGENTS).forEach(k=>{ if(!o[k]) o[k]=AGENTS[k]; });
+  Object.keys(AGENTS).forEach(k=>{ delete AGENTS[k]; }); Object.assign(AGENTS,o); })();
+/* "See more agents" (owner, 11 Nov 2026: no big agents page, "scroll down and see more"): a list of agents shows the first
+   AG_SHOW, a button under it reveals the rest in place (a short fade, none under reduced motion) and then goes away. */
+const AG_SHOW=5;
+function agMoreBtn(cls){ const b=document.createElement("button"); b.type="button"; b.className=cls;
+  b.innerHTML=`<span>${t("see_more_agents")}</span><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg>`; return b; }
+function agMore(list,btn,after){
+  list.forEach(el=>{ el.hidden=true; });
+  btn.addEventListener("click",e=>{ e.preventDefault(); e.stopPropagation();
+    let rm=false; try{ rm=matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(_){}
+    list.forEach((el,i)=>{ el.hidden=false; if(!rm&&el.animate) try{ el.animate([{opacity:0,transform:"translateY(-4px)"},{opacity:1,transform:"none"}],{duration:200,delay:Math.min(i,10)*16,easing:"cubic-bezier(.22,1,.36,1)",fill:"backwards"}); }catch(_){} });
+    const f=list[0]; if(f&&f.focus) try{ f.focus({preventScroll:true}); }catch(_){}
+    btn.remove();
+    if(f&&f.scrollIntoView) try{ f.scrollIntoView({block:"nearest",behavior:rm?"auto":"smooth"}); }catch(_){}
+    if(after) try{ after(); }catch(_){} });
+}
 function agentLogo(a){ return `<img class="agent-ic" src="${a.logo||('https://icons.duckduckgo.com/ip3/'+a.domain+'.ico')}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=${a.domain}&sz=128'">`; }
 /* brand spelling variants -> one name (same map as scripts/clean_catalog.py and functions/_lib/site.js). The catalogue is
    cleaned at build time; this is the safety net for rows imported before the next clean run (and for a restored brand filter). */
@@ -3509,6 +3568,10 @@ const T = {
  nl:{est_weight:"Geschat gewicht, ongeveer {w}",est_weight_box:"Geschat gewicht, ongeveer {w} ({b} met doos)",qc_count:"{n} QC-foto's van kopers",colours_n:"{n} kleuren",nav_finds:"Vondsten",nav_brands:"Merken",buy_short:"Kopen",qc_of:"QC-foto's van {t}",tool_ship:"Verzendcalculator",tool_size:"Maatschatter",tool_parcel:"Pakket volgen",v9_trust_agents:"Werkt met 5 agents",all_tools:"Alle tools",theme_label:"Thema",theme_light:"Licht",theme_dark:"Donker",theme_system:"Systeem",aff_note:"De kooplinks zijn affiliatelinks: we kunnen een commissie verdienen als je bestelt, zonder extra kosten voor jou.",search_ph:"Zoek vondsten, bijv. hoodie, cargo, sneaker…",sources_label:"Bron",all_sources:"Alle bronnen",all_types:"Alle types",saved:"Opgeslagen",sort_featured:"Uitgelicht",sort_low:"Prijs laag naar hoog",sort_high:"Prijs hoog naar laag",sort_qc:"Meeste QC-foto’s",sort_pop:"Populairst",sort_recent:"Recent",all_brands:"Alle merken",search_brands:"Zoek merken",count:"{n} van {t} vondsten",indexed:"{n} items geïndexeerd",nothing_t:"Geen resultaten",nothing_b:"Probeer een andere zoekopdracht of wis de filters.",clear_filters:"Filters wissen",saved_filtered_b:"Je hebt {n} bewaarde vondsten. Wis de zoekopdracht of filters om ze te zien.",saved_empty_t:"Nog niets opgeslagen",saved_empty_b:"Tik op het sterretje bij een vondst om die hier op te slaan.",listing:"Advertentiefoto’s",qc:"QC",variants:"Varianten",description:"Beschrijving",seller:"Verkoper",buy_head:"Koop via je agent",buy_via:"Koop via {a}",more:"meer agents",add_ready:"links later toevoegen",note:"Kooplinks bevatten je code {r}. Titels, prijzen, QC-aantallen en beoordelingen zijn echte community-data.",footer:"Grensoverschrijdende vondsten, kwaliteitsgecontroleerd.",footer_line:"Community-vondsten, geïndexeerd voor makkelijk bladeren. Kooplinks via je agent.",sign_in:"Inloggen",sign_out:"Uitloggen",settings:"Instellingen",magic_title:"Inloggen",magic_sub:"We mailen je een link met één tik. Geen wachtwoord.",send_link:"Stuur link",cancel:"Annuleren",check_email:"Check je e-mail voor de inloglink.",auth_off:"Inloggen is tijdelijk niet beschikbaar. Probeer het later opnieuw.",auth_err:"Er ging iets mis bij het inloggen. Probeer het opnieuw.",auth_rate:"Te veel pogingen. Wacht een paar minuten en probeer het opnieuw.",comments:"Reacties",comment_ph:"Deel maat, kwaliteit, pasvorm… (geen externe links)",post:"Plaatsen",sign_in_comment:"Log in om te reageren",no_comments:"Nog geen reacties. Wees de eerste.",links_blocked:"Externe links zijn niet toegestaan in reacties.",comments_off:"Reacties werken op je live-site.",you:"jij",delete:"Verwijderen",hero_h:"De rep-spreadsheet: Vind het. QC het. Koop het.",hero_sub:"Het rep-spreadsheet voor vondsten van Weidian, Taobao en 1688, met echte QC-foto's van kopers en koopknoppen voor je agent in één tik.",stat_finds:"vondsten",stat_markets:"marktplaatsen",stat_qc:"QC-foto’s",cont_google:"Ga verder met Google",cont_apple:"Ga verder met Apple",or:"of",all_colours:"Alle kleuren",any_price:"Elke prijs",price_ask:"Vraag verkoper",blog_title:"Gidsen & blog",blog_sub:"Hoe kopen uit China via een agent werkt – QC, verzending, agents en meer.",read_more:"Lees",similar:"Vergelijkbare vondsten",find_search_ph:"Spring naar een andere vondst…",report_link:"Meld deze vondst",report_thanks:"Bedankt, we checken deze vondst.",rep_q:"Wat is er mis?",rep_dead:"Dode link",rep_wrong:"Verkeerd item of foto's",rep_scam:"Oplichter als verkoper",rep_other:"Iets anders",rep_send:"Melding versturen",rep_removed:"Deze vondst is verwijderd na meldingen van meerdere leden.",share:"Delen",copied:"Link gekopieerd",price_range:"Prijsbereik",gate_h:"Krijg $500 aan coupons",gate_sub:"Meld je gratis aan en we mailen je tot $500 aan MyCNBox-coupons voor nieuwe gebruikers, plus de beste nieuwe vondsten.",cont_discord:"Ga verder met Discord",cont_guest:"Ga verder als gast",gate_step:"Bijna klaar – één tik te gaan",recently_bought:"Favorieten van de community",back:"Terug",browse_all:"Blader door alle vondsten",cat_Tops:"Tops",cat_Outerwear:"Jassen",cat_Shoes:"Schoenen",cat_Pants:"Broeken",cat_Bags:"Tassen",cat_Accessories:"Accessoires",cat_Shorts:"Shorts",cat_Headwear:"Hoofddeksels",cat_Toys:"Speelgoed",all_genders:"Iedereen",g_men:"Heren",g_women:"Dames",qc_cta:"Bekijk echte QC-foto’s op de agentpagina →",in_stock_note:"Prijzen worden bijgewerkt vanuit de live catalogus.",browse_products:"Producten bekijken",most_popular:"Populairst",coupon_hint:"Nieuw bij MyCNBox? Meld je aan via onze link en krijg tot $500 aan coupons voor nieuwe gebruikers",invalid_email:"Vul een geldig e-mailadres in.",qc_real:"Echte QC-foto’s",qc_note:"{n} QC-foto’s van kopers, tik om te vergroten",tools:"Tools",tool_link:"Linkconverter",tool_qc:"QC-checker",tool_weight:"Gewichtschatter",tool_freight:"Verzendcalculator",welcome_bonus:"Welkomstbonus",affiliate:"Partnerprogramma",guides:"Gidsen",how_to_order:"Zo bestel je",hero_link:"Zo werkt bestellen",mycnbox_cta:"Maak een account bij MyCNBox",tp_label:"MyCNBox op Trustpilot",supported_agents:"Ondersteunde agents",language:"Taal",currency:"Valuta",username:"Gebruikersnaam",default_agent:"Standaardagent",save_btn:"Opslaan",back_catalog:"← Terug naar de catalogus",lc_lead:"Plak een Weidian-, Taobao-, 1688- of agentlink. Wij maken er een kooplink via je agent van, klaar om te bestellen.",qc_lead:"Plak een productlink of artikel-ID om QC-foto’s te zien van kopers die het al bestelden.",we_lead:"Plak een link of kies het type voor een globaal verzendgewicht. Vul het in bij de verzendcalculator voor een prijs.",fr_lead:"Een globale verzendprijs per bestemming en gewicht. Het echte bedrag zie je bij het afrekenen bij je agent.",wb_lead:"Nieuw met kopen uit China? Meld je via de links hieronder aan bij een agent en pak de welkomstcoupons vóór je eerste haul.",aff_lead:"Verdien aan de vondsten die je deelt.",lc_label:"Marktplaats- of agentlink",lc_go:"Omzetten",copy_link:"Link kopiëren",open_btn:"Openen",qc_label:"Productlink of artikel-ID",qc_go:"QC-foto’s checken",we_link_label:"Productlink (optioneel)",we_type:"Type artikel",fr_dest:"Bestemming",fr_weight:"Gewicht (gram)",gate_optin:"Mail me nieuwe drops & deals",wb_badge:"MyCNBox welkomstbonus",wb_h:"Claim je welkomstbonus",wb_p:"Nieuwe leden krijgen tot $500 aan coupons bij MyCNBox, onze #1 agent voor de netste QC en snelste verzending. Meld je gratis aan en de bonus geldt voor je eerste bestellingen.",wb_claim:"Claim $500 bonus",wb_more:"Bekijk alle agentbonussen",wb_less:"Verberg agentbonussen",wb_signup:"Aanmelden"}
 };
 
+/* 11 Nov 2026: "See more agents" */
+Object.assign(T.en,{see_more_agents:"See more agents"}); Object.assign(T.no,{see_more_agents:"Se flere agenter"}); Object.assign(T.sv,{see_more_agents:"Visa fler agenter"});
+Object.assign(T.da,{see_more_agents:"Se flere agenter"}); Object.assign(T.de,{see_more_agents:"Mehr Agenten anzeigen"}); Object.assign(T.nl,{see_more_agents:"Meer agents tonen"});
+Object.assign(T.fr,{see_more_agents:"Voir plus d'agents"}); Object.assign(T.it,{see_more_agents:"Mostra altri agenti"}); Object.assign(T.es,{see_more_agents:"Ver más agentes"}); Object.assign(T.zh,{see_more_agents:"查看更多代理"});
 /* r6 i18n GROUP A begin */
 Object.assign(T.en,{filters:"Filters",qc_only:"QC photos",price_h:"Price",price_reset:"Reset",p_min:"Min",p_max:"Max",price_upto:"Up to {b}",price_from:"From {a}",price_range2:"{a} to {b}",price_under:"Under {a}",price_between:"{a} to {b}",price_plus:"{a}+",show_n:"Show {n} finds",clear_all:"Clear all",ms_clear:"Clear",ms_done:"Done",ms_selected:"Selected",ms_remove:"remove",search_colours:"Search colours",load_more:"Load more finds",back_top:"Back to top",sort_pre:"Sort:",dens_label:"Card size",dens_lg:"Bigger cards",dens_sm:"Compact cards",ex_remove:"Remove a filter",ex_popular:"Popular searches",f_type:"Type",f_brand:"Brand",f_colour:"Colour",f_source:"Source",f_for:"For",f_sort:"Sort",open_find:"Open find",fs_close:"Close"});
 Object.assign(T.no,{filters:"Filtre",qc_only:"QC-bilder",price_h:"Pris",price_reset:"Nullstill",p_min:"Min",p_max:"Maks",price_upto:"Opptil {b}",price_from:"Fra {a}",price_range2:"{a} til {b}",price_under:"Under {a}",price_between:"{a} til {b}",show_n:"Vis {n} funn",clear_all:"Fjern alle",ms_clear:"Fjern",ms_done:"Ferdig",ms_selected:"Valgt",ms_remove:"fjern",search_colours:"Søk etter farge",load_more:"Last inn flere funn",back_top:"Til toppen",sort_pre:"Sorter:",dens_label:"Kortstørrelse",dens_lg:"Større kort",dens_sm:"Kompakte kort",ex_remove:"Fjern et filter",ex_popular:"Populære søk",f_type:"Type",f_brand:"Merke",f_colour:"Farge",f_source:"Kilde",f_for:"For",f_sort:"Sorter",open_find:"Åpne funnet",fs_close:"Lukk"});
@@ -3800,9 +3863,10 @@ function cselFocusOut(host,menu){
 const AGENT_LOGO={mycnbox:["/img/agents/mycnbox.webp","#E1301F"],
   kakobuy:["/img/agents/kakobuy.webp?v=2"],sugargoo:["/img/agents/sugargoo.webp?v=2"],
   oopbuy:["/img/agents/oopbuy.webp"],lovegobuy:["/img/agents/lovegobuy.webp?v=2"]};
+Object.keys(AGENTS).forEach(k=>{ if(!AGENT_LOGO[k]) AGENT_LOGO[k]=[AGENTS[k].logo]; });   /* the agents added 11 Nov 2026 */
 function agentIco(k){ const im=document.createElement("img"); im.className="cselico"; im.alt=""; im.width=20; im.height=20; im.decoding="async";
   if(AGENT_LOGO[k][1]) im.style.background=AGENT_LOGO[k][1];
-  im.onerror=function(){ this.onerror=null; this.src="https://www.google.com/s2/favicons?domain="+k+".com&sz=64"; }; im.src=AGENT_LOGO[k][0]; return im; }
+  im.onerror=function(){ this.onerror=null; this.src="https://www.google.com/s2/favicons?domain="+((AGENTS[k]&&AGENTS[k].domain)||k+".com")+"&sz=64"; }; im.src=AGENT_LOGO[k][0]; return im; }
 function buildCsel(sel, kind){
   const wrap=sel.closest(".selwrap,.fsel"); if(!wrap)return;
   const align=wrap.classList.contains("sort-fsel")?"right":"left";
@@ -3826,7 +3890,7 @@ function buildCsel(sel, kind){
   const btn=host.__btn, menu=host.__menu;
   menu.innerHTML="";
   /* long lists (brands) get a type-to-filter box pinned to the top of the menu */
-  if(sel.options.length>15){
+  if(sel.options.length>15&&sel.id!=="agent"){
     const sw=document.createElement("div"); sw.className="cselsearch";
     const si=document.createElement("input"); si.type="search"; si.autocomplete="off"; si.spellcheck=false; si.setAttribute("enterkeyhint","search");
     const sph=/colou?r/i.test(sel.id||"")?(t("search_colours")!=="search_colours"?t("search_colours"):"Search colours"):t("search_brands"); si.placeholder=sph; si.setAttribute("aria-label",sph);
@@ -3847,6 +3911,8 @@ function buildCsel(sel, kind){
     it.addEventListener("click",()=>{ const hasAll=!!sel.querySelector('option[value="all"]'); const nv=(hasAll&&o.value===sel.value)?"all":o.value; sel.value=nv; sel.dispatchEvent(new Event("change",{bubbles:true})); closeAllCsel(); buildCsel(sel,kind); const h=sel.closest(".selwrap,.fsel"); const nb=h&&h.querySelector(".csel")&&h.querySelector(".csel").__btn; if(nb&&document.contains(nb))nb.focus({preventScroll:true}); });
     menu.appendChild(it);
   });
+  if(sel.id==="agent"){ const ex=[...menu.querySelectorAll(".cselitem")].filter((it,i)=>i>=AG_SHOW&&!it.classList.contains("sel"));   /* See more agents */
+    if(ex.length){ const mb=agMoreBtn("cselitem csel-more"); const ck=document.createElement("span"); ck.className="ck"; mb.insertBefore(ck,mb.firstChild); menu.appendChild(mb); agMore(ex,mb); } }
   const cur=sel.selectedOptions[0]; btn.querySelector(".csellbl").textContent=cur?cur.textContent:""; host.__v=sel.value;
   if(sel.id==="agent"){ const old=btn.querySelector(".cselico"); if(old) old.remove(); if(AGENT_LOGO[sel.value]) btn.insertBefore(agentIco(sel.value),btn.firstChild); }
   const al=sel.getAttribute("aria-label"); if(al) btn.setAttribute("aria-label",al+": "+(cur?cur.textContent:""));
@@ -4556,17 +4622,17 @@ function agentRow(p){
   const main=AGENTS[sel];
   const others=Object.keys(AGENTS).filter(k=>k!==sel);
   const pop=`<span class="agent-badge">${t("most_popular")}</span>`;
-  const row=(k,cls)=>{ const a=AGENTS[k]; const inner=`${agentLogo(a)}<span class="agent-name">${t("buy_via").replace("{a}",a.name)}</span>${k==="mycnbox"?pop:""}`;
+  const row=(k,cls,more)=>{ const a=AGENTS[k]; const inner=`${agentLogo(a)}<span class="agent-name">${t("buy_via").replace("{a}",a.name)}</span>${k==="mycnbox"?pop:""}`;
     // primary = real buy link; menu items are real buy links too (23 Oct 2026: they used to only swap the main button,
     // so "Buy via X" bought nothing), and picking one also makes X the main button next time
     return cls.indexOf("primary")>=0
       ? `<a class="${cls}" href="${a.build(p)}" target="_blank" rel="sponsored nofollow noopener">${inner}</a>`
-      : `<a class="${cls}" data-agent="${k}" href="${a.build(p)}" target="_blank" rel="sponsored nofollow noopener">${inner}</a>`; };
+      : `<a class="${cls}" data-agent="${k}"${more?" data-more hidden":""} href="${a.build(p)}" target="_blank" rel="sponsored nofollow noopener">${inner}</a>`; };
   const hint=sel==="mycnbox"?couponHint():"";
   return `<div class="buy-dd">
     ${row(sel,"agent primary")}
     <button type="button" class="buy-dd-caret" id="buy-dd-caret" aria-expanded="false" aria-label="${t("more")}"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button>
-    <div class="buy-dd-menu" id="buy-dd-menu" hidden>${others.map(k=>row(k,"buy-dd-item")).join("")}</div>
+    <div class="buy-dd-menu" id="buy-dd-menu" hidden>${others.map((k,i)=>row(k,"buy-dd-item",i>=AG_SHOW-1)).join("")}${others.length>AG_SHOW-1?`<button type="button" class="buy-dd-more"><span>${t("see_more_agents")}</span><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button>`:""}</div>
   </div>${affLabel()}${hint}`;
 }
 /* item 17: quiet "Affiliate link" label right under the buy button (before the coupon hint); the popover script is delegated */
@@ -4935,8 +5001,12 @@ function gateSignedIn(){ try{ localStorage.setItem("pc.gate","1"); }catch(e){} h
 /* Settings dialog: the agent cards and currency chips are radiogroups (roving tabindex, arrow keys, Home/End) that write
    into the hidden #set-agent / #set-cur selects, so the Save handler below reads exactly the values it always has. */
 /* new-user offers, from each agent's own site (checked 9 Nov 2026): update here when they change */
-const AG_OFFER={ mycnbox:"$500", kakobuy:"$410", lovegobuy:"$141", oopbuy:"¥3,500", sugargoo:"¥800" };
-const SET_AG_SUB={ mycnbox:"Up to $500 in new-user coupons", kakobuy:"Up to $410 in new-user coupons", lovegobuy:"Up to $141 in new-user shipping coupons", oopbuy:"Up to ¥3,500 in new-user coupons", sugargoo:"Up to ¥800 in new-user shipping coupons" };   /* same offer the gate and the welcome flow already show */
+const AG_OFFER={ mycnbox:"$500", kakobuy:"$410", lovegobuy:"$141", oopbuy:"¥3,500", sugargoo:"¥800",
+  litbuy:"$165", joyagoo:"¥1,200", superbuy:"¥560", hipobuy:"$450", gtbuy:"$300", fishgoo:"$500", hubbuy:"¥300", cssbuy:"¥25" };   /* 11 Nov 2026: the agents' own promo pages; iTaoBuy (10% off), USFans and BBDBuy have no amount */
+const SET_AG_SUB={ mycnbox:"Up to $500 in new-user coupons", kakobuy:"Up to $410 in new-user coupons", lovegobuy:"Up to $141 in new-user shipping coupons", oopbuy:"Up to ¥3,500 in new-user coupons", sugargoo:"Up to ¥800 in new-user shipping coupons",
+  litbuy:"Up to $165 in shipping coupons", joyagoo:"Up to ¥1,200 coupon pack", superbuy:"Up to ¥560 new-user gift", hipobuy:"Up to $450 coupon bundle",
+  gtbuy:"Up to $300 coupon bundle", fishgoo:"Up to $500 in coupons", hubbuy:"Up to ¥300 in coupons", itaobuy:"Up to 10% off your first order",
+  cssbuy:"A ¥25 new-user coupon", usfans:"Sign up with our link", bbdbuy:"Sign up with our link" };   /* same offer the gate and the welcome flow already show */
 const SET_CK='<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function setRadios(box,sel,html){
   if(!box||!sel)return; box.innerHTML=html;
@@ -4944,7 +5014,7 @@ function setRadios(box,sel,html){
   const pick=(b,focus)=>{ opts.forEach(o=>{ const on=o===b; o.setAttribute("aria-checked",on?"true":"false"); o.tabIndex=on?0:-1; }); sel.value=b.dataset.v; if(focus) try{ b.focus(); }catch(e){} };
   const cur=opts.find(o=>o.dataset.v===sel.value)||opts[0]; if(cur) pick(cur,false);
   box.onclick=e=>{ const b=e.target.closest('[role="radio"]'); if(b&&box.contains(b)) pick(b,false); };
-  box.onkeydown=e=>{ const i=opts.indexOf(document.activeElement); if(i<0)return; let j=-1;
+  box.onkeydown=e=>{ const opts=[...box.querySelectorAll('[role="radio"]')].filter(o=>!o.hidden); const i=opts.indexOf(document.activeElement); if(i<0)return; let j=-1;
     if(e.key==="ArrowRight"||e.key==="ArrowDown") j=(i+1)%opts.length; else if(e.key==="ArrowLeft"||e.key==="ArrowUp") j=(i-1+opts.length)%opts.length;
     else if(e.key==="Home") j=0; else if(e.key==="End") j=opts.length-1;
     if(j>=0){ e.preventDefault(); pick(opts[j],true); } };
@@ -4957,6 +5027,8 @@ function openSettings(){
   const sc=$("#set-cur"); sc.innerHTML=Object.keys(CUR).map(k=>`<option value="${k}">${CUR[k].sym.trim()} ${k}</option>`).join(""); sc.value=state.cur;
   const sl=$("#set-lang"); sl.innerHTML=Object.entries(LANGS).map(([k,v])=>`<option value="${k}">${v}</option>`).join(""); sl.value=state.lang;
   setRadios($("#set-agents"),$("#set-agent"),Object.entries(AGENTS).map(([k,a])=>`<button type="button" role="radio" class="set-ag" data-v="${k}" data-set-ag="${k}"><img src="${a.logo}" alt="" width="36" height="36" decoding="async"><span class="set-ag-t"><span class="set-ag-n">${a.name}</span><span class="set-ag-s">${SET_AG_SUB[k]||a.domain}</span></span><span class="set-ck" aria-hidden="true">${SET_CK}</span></button>`).join(""));
+  { const box=$("#set-agents"); if(box){ const ex=[...box.querySelectorAll(".set-ag")].filter((b,i)=>i>=AG_SHOW&&b.getAttribute("aria-checked")!=="true");   /* See more agents */
+    if(ex.length){ const mb=agMoreBtn("set-more"); box.appendChild(mb); agMore(ex,mb,setFit); } } }
   setRadios($("#set-curs"),sc,Object.keys(CUR).map(k=>{ const y=CUR[k].sym.trim(); return `<button type="button" role="radio" class="set-cu" data-v="${k}" aria-label="${k}"><b>${k}</b>${y&&y!==k?`<span aria-hidden="true">${y}</span>`:""}</button>`; }).join(""));
   { const x=$("#set-x"), c=t("close"); if(x) x.setAttribute("aria-label",c&&c!=="close"?c:"Close"); }
   setUCount();
@@ -5688,12 +5760,23 @@ if(ADMIN) setTimeout(adminBar,1500);
 })();
 const PC_PAGES={"link-converter":"pg-link-converter","qc-checker":"pg-qc-checker","weight":"pg-weight","freight":"pg-freight","tutorials":"pg-tutorials","tutorial":"pg-tutorial","affiliate":"pg-affiliate","welcome-bonus":"pg-welcome-bonus"};
 /* Welcome-bonus agent links, fill `url` with your affiliate sign-up link for each agent. Empty url renders a "coming soon" card. */
-const WB_LINKS=[
+const WB_LINKS=[   /* order = AGENT_ORDER; names must match AGENTS (the welcome flow finds sign-up links here by name) */
   {name:"MyCNBox",  domain:"mycnbox.com",  logo:"/img/agents/mycnbox.webp", bonus:"Our #1 pick, best coupon bundle for new members, cleanest app and fastest QC.", url:"https://mycnbox.com/login/main-login?inviteCode=AACPYA", featured:true},
-  {name:"KakoBuy",  domain:"kakobuy.com",  bonus:"Up to $410 welcome coupon bundle.",     url:"https://ikako.vip/r/w5war"},
-  {name:"LoveGoBuy",domain:"lovegobuy.com",bonus:"Welcome coupons for new members.",       url:"https://www.lovegobuy.com/?invite_code=9WJ54Y"},
-  {name:"Oopbuy",   domain:"oopbuy.com",   bonus:"New-user coupons on your first orders.",url:"https://oopbuy.com/register?inviteCode=LHQC0OS8O"},
-  {name:"Sugargoo", domain:"sugargoo.com", bonus:"New-member coupon pack.",               url:"https://www.sugargoo.com/register?memberId=3751749728009774836"}
+  {name:"KakoBuy",  domain:"kakobuy.com",  logo:"/img/agents/kakobuy.webp?v=2", bonus:"Up to $410 welcome coupon bundle.",     url:"https://ikako.vip/r/w5war"},
+  {name:"Oopbuy",   domain:"oopbuy.com",   logo:"/img/agents/oopbuy.webp", bonus:"New-user coupons on your first orders.",url:"https://oopbuy.com/register?inviteCode=LHQC0OS8O"},
+  {name:"Litbuy",   domain:"litbuy.com",   logo:"/img/agents/litbuy.webp", bonus:"Up to $165 in shipping coupons.",       url:AGENT_REG.litbuy},
+  {name:"Joyagoo",  domain:"joyagoo.com",  logo:"/img/agents/joyagoo.webp", bonus:"Up to ¥1,200 coupon pack.",            url:AGENT_REG.joyagoo},
+  {name:"Sugargoo", domain:"sugargoo.com", logo:"/img/agents/sugargoo.webp?v=2", bonus:"New-member coupon pack.",         url:"https://www.sugargoo.com/register?memberId=3751749728009774836"},
+  {name:"Hipobuy",  domain:"hipobuy.com",  logo:"/img/agents/hipobuy.webp", bonus:"Up to $450 coupon bundle.",            url:AGENT_REG.hipobuy},
+  {name:"USFans",   domain:"usfans.com",   logo:"/img/agents/usfans.webp", bonus:"Sign up with our link.",                url:AGENT_REG.usfans},
+  {name:"GTBuy",    domain:"gtbuy.com",    logo:"/img/agents/gtbuy.webp", bonus:"Up to $300 coupon bundle.",              url:AGENT_REG.gtbuy},
+  {name:"LoveGoBuy",domain:"lovegobuy.com",logo:"/img/agents/lovegobuy.webp?v=2", bonus:"Welcome coupons for new members.",url:"https://www.lovegobuy.com/?invite_code=9WJ54Y"},
+  {name:"Superbuy", domain:"superbuy.com", logo:"/img/agents/superbuy.webp", bonus:"Up to ¥560 new-user gift.",           url:AGENT_REG.superbuy},
+  {name:"iTaoBuy",  domain:"itaobuy.com",  logo:"/img/agents/itaobuy.webp", bonus:"Up to 10% off your first order.",      url:AGENT_REG.itaobuy},
+  {name:"CSSBuy",   domain:"cssbuy.com",   logo:"/img/agents/cssbuy.webp", bonus:"A ¥25 new-user coupon.",                url:AGENT_REG.cssbuy},
+  {name:"Fishgoo",  domain:"fishgoo.com",  logo:"/img/agents/fishgoo.webp", bonus:"Up to $500 in coupons.",               url:AGENT_REG.fishgoo},
+  {name:"Hubbuy",   domain:"hubbuy.com",   logo:"/img/agents/hubbuy.webp", bonus:"Up to ¥300 in coupons.",                url:AGENT_REG.hubbuy},
+  {name:"BBDBuy",   domain:"bbdbuyeu.com", logo:"/img/agents/bbdbuy.webp", bonus:"Sign up with our link.",                url:AGENT_REG.bbdbuy}
 ];
 function renderWelcomeBonus(){
   const host=document.getElementById("wb-grid"); if(!host) return;
@@ -5712,6 +5795,7 @@ function renderWelcomeBonus(){
       +'<img class="wb-logo" src="'+logoFor(a)+'" alt="" width="40" height="40" loading="lazy"'+fb(a)+'>'
       +'<div class="wb-name">'+a.name+'</div><div class="wb-bonus">'+a.bonus+'</div>'+btn(a,"Claim bonus")+'</div>').join("")+'</div>';
   host.innerHTML=featHtml+(rest.length?'<p class="wb-more-label">Other agents</p>'+restHtml:"");
+  { const ex=[...host.querySelectorAll(".wb-card")].slice(AG_SHOW-1); if(ex.length){ const mb=agMoreBtn("wb-more"); host.appendChild(mb); agMore(ex,mb); } }   /* See more agents */
 }
 window.__pcBaseTitle=document.title;
 function pcRoute(){
@@ -6262,6 +6346,7 @@ function enhanceDrawer(p){
   (function wireBuy(){
     const caret=$("#buy-dd-caret",drawer), menu=$("#buy-dd-menu",drawer);
     if(!caret||!menu) return;
+    { const mb=menu.querySelector(".buy-dd-more"); if(mb) agMore([...menu.querySelectorAll(".buy-dd-item[data-more]")],mb); }
     caret.addEventListener("click",e=>{ e.stopPropagation(); const open=menu.hidden; menu.hidden=!open; caret.setAttribute("aria-expanded",String(open)); });
     // a menu item opens that agent (the link does it) and becomes the selected agent; the row is rebuilt after the click
     menu.querySelectorAll(".buy-dd-item").forEach(it=>it.addEventListener("click",e=>{
@@ -6963,7 +7048,7 @@ function wirePPFilters(){
           <a class="pcwf-claim" id="pcwb-go" href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" target="_blank" rel="sponsored nofollow noopener noreferrer"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg><span data-i18n="wf_claim">Claim up to $500 in coupons</span></a>
         </div>
         <p class="pcwf-label" data-i18n="wf_more">More agents</p>
-        <div class="pcwf-grid" id="pcwf-agents"><button type="button" class="pcwf-ag" role="radio" aria-checked="false" data-k="kakobuy"><img src="/img/agents/kakobuy.webp?v=2" alt="KakoBuy logo" width="36" height="36" loading="lazy" decoding="async"><span>KakoBuy</span><span class="pcwf-dot" aria-hidden="true"></span></button><button type="button" class="pcwf-ag" role="radio" aria-checked="false" data-k="oopbuy"><img src="/img/agents/oopbuy.webp" alt="Oopbuy logo" width="36" height="36" loading="lazy" decoding="async"><span>Oopbuy</span><span class="pcwf-dot" aria-hidden="true"></span></button><button type="button" class="pcwf-ag" role="radio" aria-checked="false" data-k="lovegobuy"><img src="/img/agents/lovegobuy.webp?v=2" alt="LoveGoBuy logo" width="36" height="36" loading="lazy" decoding="async"><span>LoveGoBuy</span><span class="pcwf-dot" aria-hidden="true"></span></button><button type="button" class="pcwf-ag" role="radio" aria-checked="false" data-k="sugargoo"><img src="/img/agents/sugargoo.webp?v=2" alt="Sugargoo logo" width="36" height="36" loading="lazy" decoding="async"><span>Sugargoo</span><span class="pcwf-dot" aria-hidden="true"></span></button></div>
+        <div class="pcwf-grid" id="pcwf-agents"></div>
       </div>
       <div class="pcwf-step" id="pcwf-s2" role="radiogroup" aria-labelledby="pcwb-h" hidden>
         <div class="pcwf-cur" id="pcwf-cur"></div>
@@ -7104,8 +7189,17 @@ function wirePPFilters(){
     ov.classList.remove("on"); document.documentElement.style.overflow=""; setTimeout(function(){ if(!ov.classList.contains("on")) ov.hidden=true; },260);
     var f=prevFocus; prevFocus=null; if(f&&f.focus&&f!==document.body&&document.contains(f)){ try{ f.focus({preventScroll:true}); }catch(e){} }
   }
+  /* "More agents": every agent but MyCNBox (featured above) in AGENT_ORDER; the first 4 show (5 with MyCNBox), "See more agents" reveals the rest */
+  function buildAgGrid(){
+    var host=$("pcwf-agents"); if(!host) return; var A=agents(), h="";
+    Object.keys(A).filter(function(k){ return k!=="mycnbox"; }).forEach(function(k,i){ var a=A[k];
+      h+='<button type="button" class="pcwf-ag" role="radio" aria-checked="false" data-k="'+k+'"'+(i>=AG_SHOW-1?' data-more':'')+'><img src="'+a.logo+'" alt="'+a.name+' logo" width="36" height="36" loading="lazy" decoding="async"><span>'+a.name+'</span><span class="pcwf-dot" aria-hidden="true"></span></button>'; });
+    host.innerHTML=h;
+    var ex=[].slice.call(host.querySelectorAll("[data-more]"));
+    if(ex.length){ try{ var mb=agMoreBtn("pcwf-more"); host.appendChild(mb); agMore(ex,mb); }catch(e){} }
+  }
   function wire(){
-    wired=true;
+    wired=true; buildAgGrid();
     $("pcwb-x").addEventListener("click",close);
     $("pcwb-go").addEventListener("click",function(){ convert(); pickAgent("mycnbox"); });   /* the sign-up link opens in a new tab; the flow stays open */
     [].forEach.call(ov.querySelectorAll("#pcwf-s1 [role=radio]"),function(b){ b.addEventListener("click",function(){ pickAgent(b.getAttribute("data-k")); }); });
@@ -7119,7 +7213,7 @@ function wirePPFilters(){
     ov.addEventListener("keydown",function(e){
       var k=e.key; if(k!=="ArrowRight"&&k!=="ArrowLeft"&&k!=="ArrowDown"&&k!=="ArrowUp") return;
       var r=e.target&&e.target.closest&&e.target.closest("[role=radio]"); if(!r) return;
-      var all=[].slice.call(ov.querySelectorAll('.pcwf-step:not([hidden]) [role=radio]')), i=all.indexOf(r); if(i<0) return;
+      var all=[].slice.call(ov.querySelectorAll('.pcwf-step:not([hidden]) [role=radio]')).filter(function(b){ return !b.hidden; }), i=all.indexOf(r); if(i<0) return;
       e.preventDefault(); var n=all[(i+((k==="ArrowRight"||k==="ArrowDown")?1:all.length-1))%all.length]; n.focus(); n.click();
     });
     document.addEventListener("keydown",function(e){
@@ -7139,7 +7233,7 @@ function wirePPFilters(){
     shown=true; put(WELCOME,DONE); mark(SEEN);   /* shown once: every way out counts as done */
     texts();
     try{ agent=agents()[state.agent]?state.agent:"mycnbox"; }catch(e){ agent="mycnbox"; }
-    [].forEach.call(ov.querySelectorAll("#pcwf-s1 [role=radio]"),function(b){ var on=b.getAttribute("data-k")===agent; b.setAttribute("aria-checked",String(on)); b.classList.toggle("is-sel",on); });
+    [].forEach.call(ov.querySelectorAll("#pcwf-s1 [role=radio]"),function(b){ var on=b.getAttribute("data-k")===agent; b.setAttribute("aria-checked",String(on)); b.classList.toggle("is-sel",on); if(on) b.hidden=false; });
     $("pcwf-feat").classList.toggle("is-sel",agent==="mycnbox"); rove("#pcwf-s1 [role=radio]");
     step=1; go(n===3?3:n===2?2:1);
     try{ window.pcNudge&&window.pcNudge.hide(); }catch(e){}
@@ -7273,6 +7367,6 @@ function wirePPFilters(){
 try{var AC=null,AH=matchMedia("(hover: hover)"),afp=function(l){var p=l.querySelector(".aff-pop");if(!p)return;l.classList.remove("up");var r=p.getBoundingClientRect(),t=l.getBoundingClientRect().top;if(r.bottom>innerHeight-8&&t>r.height+16)l.classList.add("up")},afs=function(l,o){var b=l&&l.querySelector(".aff-btn");if(!b)return;if(o){if(AC&&AC!==l)afs(AC,false);AC=l;l.classList.remove("shut");l.classList.add("open");afp(l)}else{l.classList.remove("open");if(AC===l)AC=null}b.setAttribute("aria-expanded",o?"true":"false")};document.addEventListener("click",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b){var l=b.closest(".aff-lb");e.preventDefault();afs(l,AH.matches?true:!l.classList.contains("open"));return}if(AC&&!AC.contains(e.target))afs(AC,false)});document.addEventListener("mouseover",function(e){if(!AH.matches)return;var l=e.target&&e.target.closest&&e.target.closest(".aff-lb");if(l&&!l.classList.contains("open")&&!l.classList.contains("shut"))afs(l,true)});document.addEventListener("mouseout",function(e){if(!AH.matches)return;var l=e.target&&e.target.closest&&e.target.closest(".aff-lb");if(l&&!l.contains(e.relatedTarget)){l.classList.remove("shut");if(!l.contains(document.activeElement))afs(l,false)}});document.addEventListener("focusin",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b&&b.matches(":focus-visible"))afs(b.closest(".aff-lb"),true)});document.addEventListener("focusout",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b){var l=b.closest(".aff-lb");if(!l.matches(":hover"))afs(l,false)}});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&AC){var l=AC;e.stopPropagation();afs(l,false);l.classList.add("shut")}},true)}catch(e){}})();
 </script>
 <script id="pc-search" src="/pcs.js?v=d65aa9db"></script>
-<script src="/track.js?v=4" defer></script>
+<script src="/track.js?v=5" defer></script>
 <script src="/also.js?v=1" defer></script>
 <script src="/chat.js?v=7" defer></script>

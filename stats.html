@@ -393,7 +393,7 @@ function renderReports(){
   const el=document.getElementById("reports-list")||(()=>{ const d=document.createElement("div"); d.id="reports-list"; d.style.marginTop="20px"; $("links-card").appendChild(d); return d; })();
   el.innerHTML='<div class="sublabel">Reported by visitors</div><div class="tw" style="max-height:320px"><table><tbody>'+r.slice(0,100).map(([id,n,d])=>'<tr><td><a href="/product/'+encodeURIComponent(id)+'" target="_blank" rel="noopener" style="color:var(--ink)">/product/'+id+'</a></td><td>'+n+' report'+(n===1?'':'s')+'</td><td>'+d+'</td></tr>').join("")+'</tbody></table></div>';
 }
-const AGENT_NAMES={mycnbox:"MyCNBox",kakobuy:"KakoBuy",oopbuy:"Oopbuy",lovegobuy:"LoveGoBuy",sugargoo:"Sugargoo"};
+const AGENT_NAMES={mycnbox:"MyCNBox",kakobuy:"KakoBuy",oopbuy:"Oopbuy",lovegobuy:"LoveGoBuy",sugargoo:"Sugargoo",litbuy:"Litbuy",usfans:"USFans",joyagoo:"Joyagoo",superbuy:"Superbuy",cssbuy:"CSSBuy",hipobuy:"Hipobuy",fishgoo:"Fishgoo",hubbuy:"Hubbuy",itaobuy:"iTaoBuy",gtbuy:"GTBuy",bbdbuy:"BBDBuy"};
 function countryName(c){ try{ return new Intl.DisplayNames(["en"],{type:"region"}).of(c)||c; }catch(e){ return c; } }
 function barList(el, rows, label){
   const top=rows.length?rows[0][1]:1;

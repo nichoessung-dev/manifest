@@ -8,7 +8,10 @@
    Campaign (29 Oct 2026): the link's utm_campaign (max 40 chars) is kept next to the source in sessionStorage (pc.cmp) and
    sent as its own field, so it survives on ?ref= channel links and when "source.campaign" is longer than 23 chars. */
 (function () {
-  var AG = { "mycnbox.com": "mycnbox", "kakobuy.com": "kakobuy", "ikako.vip": "kakobuy", "oopbuy.com": "oopbuy", "lovegobuy.com": "lovegobuy", "sugargoo.com": "sugargoo" };
+  var AG = { "mycnbox.com": "mycnbox", "kakobuy.com": "kakobuy", "ikako.vip": "kakobuy", "oopbuy.com": "oopbuy", "lovegobuy.com": "lovegobuy", "sugargoo.com": "sugargoo",
+    "litbuy.com": "litbuy", "usfans.com": "usfans", "joyagoo.com": "joyagoo", "superbuy.com": "superbuy", "cssbuy.com": "cssbuy", "cssb.uy": "cssbuy",
+    "hipobuy.com": "hipobuy", "fishgoo.com": "fishgoo", "hubbuy.com": "hubbuy", "hubbuycn.com": "hubbuy", "itaobuy.com": "itaobuy", "gtbuy.com": "gtbuy",
+    "bbdbuyeu.com": "bbdbuy", "bbdbuy.com": "bbdbuy" };
   var CHANNEL = { tt: "tiktok", tiktok: "tiktok", yt: "youtube", youtube: "youtube", ig: "instagram", instagram: "instagram", pin: "pinterest",
     pinterest: "pinterest", threads: "threads", dc: "discord", discord: "discord", tg: "telegram", telegram: "telegram", email: "email", x: "x" };
   var HOSTS = [[/(^|\.)gemini\.google\.com$/, "gemini"], [/(^|\.)copilot\.microsoft\.com$/, "copilot"], [/(^|\.)claude\.ai$/, "claude"],
@@ -53,7 +56,7 @@
     var u = href; try { u = decodeURIComponent(href); } catch (e) {}
     var m = u.match(/[?&]itemI[dD]=(\d{5,20})/) || u.match(/[?&]id=(\d{5,20})/) || u.match(/\/product\/[a-z0-9]+\/(\d{5,20})/i);
     if (m) return m[1];
-    if (/[?&](memberId|inviteCode|invite_code|affcode)=|\/register\b|\/login\b|ikako\.vip\/r\//i.test(u)) return "";   // a sign-up link: its code is not an item
+    if (/[?&](memberId|inviteCode|invite_code|affcode|invite|ref|partnercode)=|\/register\b|\/login\b|ikako\.vip\/r\//i.test(u)) return "";   // a sign-up link: its code is not an item
     m = u.match(/(\d{8,20})/);
     return m ? m[1] : "";
   }
