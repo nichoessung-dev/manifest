@@ -116,6 +116,8 @@ def select(items, labels, store, st, dead, a):
         if not SAFE_ID.match(p["id"]):
             continue
         old = done.get(p["id"])
+        if old and old.get("status") == "rejected":
+            continue                                        # turned down (by the owner or for damage): never again
         if old and old.get("status") in ("ok", "skipped") and not a.redo:
             continue
         out.append(p)
@@ -494,7 +496,31 @@ def request_content(p, lab, current_jpg, kept):
 _claude = None
 
 
-def call_claude(model, content):
+# Final check (owner, 10 Nov 2026, after the first 20: some new photos were no better, one had a hole in the cut-out):
+# the finished cut-out next to the current photo; it is kept only when it is clearly better and undamaged.
+VERDICT_SCHEMA = {"type": "object", "additionalProperties": False,
+                  "required": ["clearly_better", "same_item_and_colour", "cutout_damage", "confidence", "reason"],
+                  "properties": {"clearly_better": {"type": "boolean"}, "same_item_and_colour": {"type": "boolean"},
+                                 "cutout_damage": {"type": "boolean"}, "confidence": {"type": "number"},
+                                 "reason": {"type": "string"}}}
+VERDICT_PROMPT = ("Image 1 is the photo a shopping site shows now for: {title} ({brand}). Image 2 is a new cut-out made from the "
+    "seller's own listing photo, meant to replace it. Answer in JSON. clearly_better: true only if image 2 is clearly the better "
+    "main product photo for a shopper (sharper or bigger item, whole item visible, cleaner: no hanger, person, hand, box, text, "
+    "collage or busy background). If they are about the same, answer false. same_item_and_colour: image 2 shows the same product "
+    "in the same colour as image 1 and the title. cutout_damage: true if image 2 has holes, missing or chopped parts, jagged edges "
+    "or leftover background. confidence 0 to 1. reason: at most 12 words.")
+VERDICT_TOKENS = (1700, 80)
+
+
+def verdict_content(p, cur_jpg, new_jpg):
+    return [{"type": "text", "text": "Image 1 (now):"},
+            {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.standard_b64encode(cur_jpg).decode()}},
+            {"type": "text", "text": "Image 2 (new):"},
+            {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.standard_b64encode(new_jpg).decode()}},
+            {"type": "text", "text": VERDICT_PROMPT.format(title=p.get("title") or "", brand=p.get("brand") or "")}]
+
+
+def call_claude(model, content, schema=None):
     """Anthropic Messages API (official SDK), like catalog_ai.call_claude: images + prompt in, schema JSON out."""
     global _claude
     import anthropic
@@ -508,7 +534,7 @@ def call_claude(model, content):
     try:
         msg = _claude.messages.create(
             model=model, max_tokens=1024,
-            output_config={"effort": "low", "format": {"type": "json_schema", "schema": SCHEMA}},
+            output_config={"effort": "low", "format": {"type": "json_schema", "schema": schema or SCHEMA}},
             messages=[{"role": "user", "content": content}], **kw)
     except anthropic.APIStatusError as e:
         if e.status_code == 402 or getattr(e, "type", "") == "billing_error" or "credit balance" in str(e).lower():
@@ -688,6 +714,18 @@ def do_find(p, lab, store, source, a, ctx):
         c = kept[k]
         rec.update({"src": c["url"], "w": c["w"], "h": c["h"]})
         out, notes, st, fd, how = cut_out(c["im"], p, a)
+        # final check: clearly better than now, same item and colour, no cut-out damage
+        if cur_im is not None and not a.mock:
+            one = (VERDICT_TOKENS[0] * pin + VERDICT_TOKENS[1] * pout) / 1e6
+            if a.max_usd and ctx["usd"] + one > a.max_usd:
+                raise StopRun("money limit: $%.3f spent, the final check could pass $%.2f" % (ctx["usd"], a.max_usd))
+            vr, ti, to = call_claude(a.model, verdict_content(p, thumb_jpeg(cur_im), thumb_jpeg(out)), VERDICT_SCHEMA)
+            ctx["tin"] += ti; ctx["tout"] += to; ctx["usd"] += (ti * pin + to * pout) / 1e6; ctx["calls"] += 1
+            rec["verdict"] = {k2: vr.get(k2) for k2 in ("clearly_better", "same_item_and_colour", "cutout_damage", "confidence", "reason")}
+            vc = float(vr.get("confidence") or 0)
+            if not (vr.get("clearly_better") and vr.get("same_item_and_colour") and not vr.get("cutout_damage") and vc >= 0.75):
+                ctx["rows"].append((pid, cur_im, c["im"], out, "REJECTED by final check: %s" % str(vr.get("reason") or "")[:60]))
+                raise Skip("final check: not clearly better or damaged (%s)" % str(vr.get("reason") or "")[:120])
         buf = io.BytesIO(); out.save(buf, "WEBP", quality=a.quality, method=6); data = buf.getvalue()
         v = int(old.get("v") or 0) + 1 if old.get("status") == "ok" else max(1, int(old.get("v") or 0))
         name = file_name(pid, v)
