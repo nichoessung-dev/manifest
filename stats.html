@@ -363,14 +363,28 @@ function chart(el, labels, series, opts={}){
   svg.addEventListener("mouseleave",()=>{ tip.style.opacity=0; hx.setAttribute("opacity",0); });
 }
 
+/* 11 Nov 2026: sign-ups in real time. dashboard.json is built every few hours; the live member count (site_stats, checked
+   every 15 seconds) tops up the newest day, and adds today when the file does not have it yet (days are UTC) */
+function liveDays(){
+  const days=D.days.slice(), signups=D.signups.slice(), members=D.members.slice();
+  if(LIVE&&LIVE.total!=null&&days.length){
+    const today=new Date().toISOString().slice(0,10);
+    while(days[days.length-1]<today){ const d=new Date(days[days.length-1]+"T12:00:00Z"); d.setUTCDate(d.getUTCDate()+1);
+      days.push(d.toISOString().slice(0,10)); signups.push(0); members.push(members[members.length-1]); }
+    const extra=LIVE.total-members[members.length-1];
+    if(extra>0){ signups[signups.length-1]+=extra; members[members.length-1]=LIVE.total; }
+  }
+  return {days,signups,members};
+}
 function drawCharts(){
   if(!D) return;
+  const V=liveDays();
   const r=range.traffic;
   chart($("c-traffic"), slice(D.days,r), [
     {name:"find views", data:slice(D.views,r), color:"--c1", type:"area"},
     {name:"active members", data:slice(D.active,r), color:"--c2", type:"line"}]);
-  chart($("c-members"), slice(D.days,range.members), [{name:"members", data:slice(D.members,range.members), color:"--c1", type:"area"}]);
-  chart($("c-signups"), slice(D.days,range.signups), [{name:"sign-ups", data:slice(D.signups,range.signups), color:"--c1", type:"bar"}]);
+  chart($("c-members"), slice(V.days,range.members), [{name:"members", data:slice(V.members,range.members), color:"--c1", type:"area"}]);
+  chart($("c-signups"), slice(V.days,range.signups), [{name:"sign-ups", data:slice(V.signups,range.signups), color:"--c1", type:"bar"}]);
 }
 
 function renderReports(){
@@ -421,16 +435,22 @@ function settle(){
   if(!D){ $("months").innerHTML='<tr><td colspan="4"><div class="empty">No chart data yet</div></td></tr>'; $("brands").innerHTML='<div class="empty">No chart data yet</div>'; }
 }
 
+function liveStats(){
+  return fetch(SB+"/rest/v1/rpc/site_stats",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:"{}"})
+    .then(r=>{ if(!r.ok) throw new Error("live numbers "+r.status); return r.json(); })
+    .then(d=>{ LIVE=d; $("k-members").textContent=fmt(d.total); $("k-members-d").className="delta up"; $("k-members-d").textContent="+"+fmt(d.last_7d)+" this week · +"+fmt(d.last_24h)+" today";
+      $("k-opt").textContent=fmt(d.opted_in); $("k-opt-d").textContent=d.total? Math.round(d.opted_in/d.total*100)+"% of members":""; });
+}
+/* every 15 seconds while the tab is open: only the small live numbers, then the charts redraw (a no-op when nothing changed) */
+let lastTotal=null;
+setInterval(()=>{ if(document.hidden) return; liveStats().then(()=>{ if(LIVE&&LIVE.total!==lastTotal){ lastTotal=LIVE.total; drawCharts(); }
+  $("updated").textContent="Updated "+new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit"}); }).catch(()=>{}); },15000);
 async function load(){
   $("err").hidden=true;
   const errs=[];
   await Promise.all([
     fetch("/data/dashboard.json?ts="+Date.now()).then(r=>{ if(!r.ok) throw new Error("charts "+r.status); return r.json(); }).then(d=>{ D=d; }).catch(e=>errs.push(e.message)),
-    fetch(SB+"/rest/v1/rpc/site_stats",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:"{}"})
-      .then(r=>{ if(!r.ok) throw new Error("live numbers "+r.status); return r.json(); })
-      .then(d=>{ LIVE=d; $("k-members").textContent=fmt(d.total); $("k-members-d").className="delta up"; $("k-members-d").textContent="+"+fmt(d.last_7d)+" this week · +"+fmt(d.last_24h)+" today";
-        $("k-opt").textContent=fmt(d.opted_in); $("k-opt-d").textContent=d.total? Math.round(d.opted_in/d.total*100)+"% of members":""; })
-      .catch(e=>errs.push(e.message))
+    liveStats().catch(e=>errs.push(e.message))
   ]);
   render();
   settle();
