@@ -12,6 +12,9 @@ The owner can always put a find back with "keep" in data/report_overrides.json.
 Writes data/photo_hidden.json {"updated", "rule", "hidden": [ids], "why": {id: [issues]}}. bake_reports.py merges it
 into data/reported.json "hidden" (by: "photo"), which the app, the server cards and the product pages already honour.
 
+Also hides duplicates: the same item listed more than once (same brand, title and price) keeps only its best listing
+(see dupes()).
+
   python scripts/photo_hide.py [--dry-run]
 """
 import argparse, json, os, sys
@@ -48,6 +51,29 @@ def decide(items, labels):
     return why
 
 
+def dupes(items, gone, swapped, pq, views):
+    """Pure: the same item listed more than once (same brand, title and price) keeps only its best listing (owner,
+    12 Nov 2026). Best = a partner swap first, then the cleaner photo (data/photo_quality.json, lower is better), then
+    more views in 30 days, then the lowest id. Finds already gone (dead, hidden, bad photo) don't compete.
+    Returns {id: ["duplicate"]} for the others."""
+    groups = {}
+    for p in items:
+        pid = str(p.get("id"))
+        if pid in gone: continue
+        try: price = round(float(p.get("price") or 0))
+        except Exception: price = 0
+        key = ((p.get("brand") or "").strip().lower(), (p.get("title") or "").strip().lower(), price)
+        if not key[1]: continue
+        groups.setdefault(key, []).append(pid)
+    out = {}
+    for ids in groups.values():
+        if len(ids) < 2: continue
+        ids.sort(key=lambda i: (0 if i in swapped else 1, pq.get(i, 0), -views.get(i, 0), i))
+        for i in ids[1:]:
+            if i not in swapped: out[i] = ["duplicate"]
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--dry-run", action="store_true"); a = ap.parse_args()
     _, items, _, _ = load_catalog()
@@ -55,6 +81,15 @@ def main():
     if not labels:
         print("no labels, nothing written"); return 0
     why = decide(items, labels)
+    lh = load(os.path.join(ROOT, "data", "link_health.json"), {}) or {}
+    ov = load(os.path.join(ROOT, "data", "report_overrides.json"), {}) or {}
+    rp = load(os.path.join(ROOT, "data", "reported.json"), {}) or {}
+    gone = set(map(str, lh.get("dead") or [])) | set(map(str, ov.get("hide") or [])) | set(why)
+    gone |= {str(x.get("id")) for x in (rp.get("items") or []) if isinstance(x, dict) and x.get("by") == "reports"}
+    swapped = set(map(str, ((load(os.path.join(ROOT, "data", "link_swaps.json"), {}) or {}).get("swaps") or {})))
+    pq = {str(k): v for k, v in ((load(os.path.join(ROOT, "data", "photo_quality.json"), {}) or {}).get("bad") or {}).items()}
+    views = {str(k): (v[1] if isinstance(v, list) and len(v) > 1 else 0) for k, v in ((load(os.path.join(ROOT, "data", "stats.json"), {}) or {}).get("p") or {}).items()}
+    why.update(dupes(items, gone, swapped, pq, views))
     counts = {}
     for v in why.values():
         for i in v: counts[i] = counts.get(i, 0) + 1
