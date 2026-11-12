@@ -90,6 +90,7 @@ def main():
     pq = {str(k): v for k, v in ((load(os.path.join(ROOT, "data", "photo_quality.json"), {}) or {}).get("bad") or {}).items()}
     views = {str(k): (v[1] if isinstance(v, list) and len(v) > 1 else 0) for k, v in ((load(os.path.join(ROOT, "data", "stats.json"), {}) or {}).get("p") or {}).items()}
     why.update(dupes(items, gone, swapped, pq, views))
+    for pid in swapped: why.pop(pid, None)            # a partner-swapped find is never hidden (owner: the ones we want people to buy)
     counts = {}
     for v in why.values():
         for i in v: counts[i] = counts.get(i, 0) + 1

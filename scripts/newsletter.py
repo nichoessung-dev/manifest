@@ -153,13 +153,54 @@ def unsub_url(uid):
 import urllib.parse
 def esc(s): return str(s if s is not None else "").replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace('"',"&quot;")
 
+def load_swaps():
+    """The partner swaps (data/link_swaps.json, scripts/bake_swaps.py every 15 minutes): (swaps, price, hide_of).
+    Nothing readable means no swaps, and every email stays as it was."""
+    try:
+        req = urllib.request.Request(SITE + "/data/link_swaps.json", headers={"User-Agent": "Mozilla/5.0"})
+        j = json.loads(urllib.request.urlopen(req, timeout=30).read().decode()) or {}
+        return j.get("swaps") or {}, j.get("price") or {}, j.get("hide_of") or {}
+    except Exception as e:
+        print("partner swaps not readable:", hide(e)); return {}, {}, {}
+
 def load_products():
     req = urllib.request.Request(SITE + "/products.json", headers={"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"})
     r = urllib.request.urlopen(req, timeout=40)
     d = json.loads(r.read().decode())
+    # Partner swaps (owner, 12 Nov 2026): a swapped find carries the partner item's price and is marked "_rec" (the
+    # Recommended pill, and it goes first in every email, see featured()); its look-alikes leave the catalogue here.
+    swaps, price, hide_of = load_swaps()
+    for pid in hide_of: d.pop(pid, None)
+    for pid, s in swaps.items():
+        p = d.get(pid)
+        if not p: continue
+        p["_rec"] = True; p["platform"] = s[0]
+        pr = price.get(pid)
+        if isinstance(pr, list) and len(pr) == 3 and str(pr[0]) == str(s[1]) and (pr[1] or 0) > 0:
+            p["price"] = pr[1]
+            if (pr[2] or 0) > 0: p["usd"] = pr[2]
     # dict preserves insertion order; tail == most recently added
     ids = list(d.keys())
     return d, ids
+
+_FEAT = None
+def featured():
+    """[(pid, product)] of the partner-swapped finds with a photo: the finds we want people to buy, first in every email."""
+    global _FEAT
+    if _FEAT is None:
+        try:
+            prod, _ = load_products()
+            _FEAT = [(i, p) for i, p in prod.items() if p.get("_rec") and p.get("img")]
+        except Exception as e:
+            print("featured finds not loaded:", hide(e)); _FEAT = []
+    return _FEAT
+
+def featured_block(inner):
+    """A "Recommended" grid of the swapped finds not already in the email ("" when there are none), for wrap()."""
+    items = [(i, p) for i, p in featured() if ("/product/" + urllib.parse.quote(i)) not in inner][:4]
+    if not items: return ""
+    return (hr("40px 0 32px") + h2("Recommended By Us")
+            + lead("Hand-picked finds we recommend right now, one tap from your agent.", 15, 28) + grid(items))
 
 def usd(p):
     try: return "$" + str(int(round(float(p.get("usd") or 0))))
@@ -239,6 +280,9 @@ def btn(href, label, kind="primary", rel=""):
              'font-weight:600;color:%s;text-decoration:none;border-radius:999px;mso-padding-alt:0;">%s</a>') % (href, r, FONT, PRI_FG, label)
     return ('<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>%s%s</td></tr></table>' % (td, a))
 
+REC_PILL = ('<span style="display:inline-block;margin:0 0 6px;padding:4px 10px;border-radius:999px;background:%s;color:%s;font-family:%s;'
+            'font-size:11px;line-height:14px;font-weight:600;" class="pc-btn"><span class="pc-btn-a" style="color:%s;">Recommended</span></span><br>')
+
 def card(pid, p):
     img = esc(email_img(pid, p.get("img")) if p.get("img") else "")
     url = esc(site_link(SITE + "/product/" + urllib.parse.quote(pid)))   # track.js counts buy clicks from these visits as ~email
@@ -256,10 +300,11 @@ def card(pid, p):
             '<table role="presentation" width="100%%" cellpadding="0" cellspacing="0">'
             '<tr><td class="pc-well" bgcolor="%s" style="padding:14px;background:%s;border-radius:12px;">%s</td></tr>'
             '<tr><td style="padding:12px 2px 0;">'
-            '<div class="pc-mut" style="font-family:%s;font-size:12px;line-height:16px;font-weight:500;color:%s;">%s</div>'
+            '%s<div class="pc-mut" style="font-family:%s;font-size:12px;line-height:16px;font-weight:500;color:%s;">%s</div>'
             '<a href="%s" class="pc-ink" style="display:block;height:38px;overflow:hidden;margin-top:3px;font-family:%s;font-size:14px;line-height:19px;font-weight:600;color:%s;text-decoration:none;">%s</a>'
             '<div class="pc-ink" style="margin-top:6px;font-family:%s;font-size:15px;line-height:20px;font-weight:700;color:%s;">%s</div>'
-            '%s</td></tr></table></td>') % (WELL, WELL, well, FONT, MUT, esc(p.get("brand") or ""), url, FONT, INK, title,
+            '%s</td></tr></table></td>') % (WELL, WELL, well, (REC_PILL % (PRI, PRI_FG, FONT, PRI_FG)) if p.get("_rec") else "",
+                                            FONT, MUT, esc(p.get("brand") or ""), url, FONT, INK, title,
                                             FONT, INK, usd(p), pills)
 
 def grid(prods):
@@ -306,10 +351,14 @@ _DARK_RULES = [
 def _dark():
     return "".join("%s{%s}" % (sel, rule) for sel, rule in _DARK_RULES)
 
-def wrap(inner, unsub):
+def wrap(inner, unsub, feature=True):
     pre_text = ""
     m = re.match(r"<!--pre:(.*?)-->", inner, re.S)
     if m: pre_text, inner = m.group(1), inner[m.end():]
+    # every email ends with the partner-swapped finds it does not already show (owner, 12 Nov 2026: "every mail")
+    if feature:
+        try: inner += featured_block(inner)
+        except Exception as e: print("featured block skipped:", hide(e))
     ogsc = "".join("[data-ogsc] %s{%s}" % (sel, rule) for sel, rule in _DARK_RULES) + \
            "[data-ogsb] .pc-bg,[data-ogsb] .pc-out{background:#0A0A0A!important}[data-ogsb] .pc-well{background:#262626!important}[data-ogsb] .pc-btn{background:#E5E5E5!important}"
     css = DARK_CSS.replace("__DARK__", _dark())
@@ -694,6 +743,8 @@ def run_newsletter(profiles):
             except: active = True
         perso = bool(active and u and u["brands"])
         rnd = random.Random(uid + day)                       # a different mix each send, stable within one send
+        feat = [(i, p) for i, p in featured() if i in prod][:4]   # partner-swapped finds lead every newsletter (12 Nov 2026)
+        fids = {i for i, _ in feat}
         if perso:
             bt = float(max(u["brands"].values())); ct = float(max(u["cats"].values())) if u["cats"] else 1.0
             tset = [b for b, _ in sorted(u["brands"].items(), key=lambda kv: -kv[1])[:3]]
@@ -701,8 +752,9 @@ def run_newsletter(profiles):
                 p = prod[i]
                 taste = 3.0 * u["brands"].get(p.get("brand"), 0) / bt + 1.0 * u["cats"].get(p.get("cat"), 0) / ct
                 return (score[i] / top_score) * (1.0 + taste)      # popularity first, their taste multiplies it up to 5x
-            recs = pick(6, w, exclude=u["seen"], rnd=rnd)
-            if len(recs) < 6: recs += pick(6 - len(recs), w, exclude={i for i, _ in recs}, rnd=rnd)
+            recs = pick(6, w, exclude=set(u["seen"]) | fids, rnd=rnd)
+            if len(recs) < 6: recs += pick(6 - len(recs), w, exclude={i for i, _ in recs} | fids, rnd=rnd)
+            recs = (feat + recs)[:max(6, len(feat))]
             shown = [b for b in tset if any(p.get("brand") == b for _, p in recs)]
             intro = (pre("The most viewed and saved finds right now, matched to what you've been eyeing.")
                      + h1("Popular Finds Picked For You")
@@ -712,7 +764,7 @@ def run_newsletter(profiles):
             body = intro + grid(recs)
             body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(esc(site_link(SITE)), "Browse All Finds")
         else:
-            recs = pick(6, lambda i: score[i] / top_score, rnd=rnd)
+            recs = (feat + pick(6, lambda i: score[i] / top_score, exclude=fids, rnd=rnd))[:max(6, len(feat))]
             intro = (pre("What everyone is viewing and saving on Puro Classico right now.")
                      + h1("Most Popular Right Now")
                      + lead("What everyone is viewing and saving on Puro Classico right now.", 16, 36))
@@ -720,7 +772,7 @@ def run_newsletter(profiles):
             body = intro + grid(recs)
             body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(esc(site_link(SITE)), "Browse All Finds")
         if os.environ.get("DRY_RUN"):
-            print("DRY tier %d %s | %s | %s" % (tier(pr), "perso" if perso else "generic", subject, "; ".join("%s (%d)" % (p.get("title", "")[:28], score[i]) for i, p in recs)))
+            print("DRY tier %d %s | %s | %s" % (tier(pr), "perso" if perso else "generic", subject, "; ".join("%s (%d)" % (p.get("title", "")[:28], score.get(i, 0)) for i, p in recs)))
             sent += 1; continue
         html = wrap(body, unsub_url(uid))
         ok, msg = brevo_send(email, subject, html, unsub_url(uid), "newsletter")

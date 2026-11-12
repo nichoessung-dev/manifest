@@ -16,8 +16,8 @@ secret, read exactly like bake_stats.py does. Two signals are blended per find:
 The co-like weight per find grows with the number of members who touched it (ALPHA_MAX * u / (u + K_CONF)), so the
 file leans on content today and on members' behaviour as the data grows. The final 12 are picked with diversity caps
 (at most BRAND_CAP_SAME from the find's own brand, BRAND_CAP_OTHER from any other brand, MODEL_CAP of one model, one
-listing per title). Dead listings (data/link_health.json) and finds removed after reports (data/reported.json) are never
-picked as neighbours.
+listing per title). Dead listings (data/link_health.json), finds removed after reports (data/reported.json) and look-alikes
+of partner-swapped finds (data/link_swaps.json "hide") are never picked as neighbours.
 
 Every run also prints an offline evaluation to the Actions log (aggregate numbers only): leave-one-out hit rate@12 of
 the members' latest favourite, for popularity, content only, content plus brand affinity, co-likes only and the blend.
@@ -556,7 +556,11 @@ def main(argv=None):
     stats = load_json(os.path.join(a.root, "data", "stats.json"), {})
     lh = load_json(os.path.join(a.root, "data", "link_health.json"), {}) or {}
     rep = load_json(os.path.join(a.root, "data", "reported.json"), {}) or {}
-    dead = {str(x) for x in (lh.get("dead") or [])} | {str(x) for x in (rep.get("hidden") or [])}
+    # look-alikes of partner-swapped finds (data/link_swaps.json "hide", scripts/bake_swaps.py) are off the spreadsheet too.
+    # The swapped finds themselves are put first at read time (functions/_lib/pages.js rows, renderSimilar in index.html),
+    # which follows a new swap within minutes; this file is baked every 6 hours.
+    sw = load_json(os.path.join(a.root, "data", "link_swaps.json"), {}) or {}
+    dead = {str(x) for x in (lh.get("dead") or [])} | {str(x) for x in (rep.get("hidden") or [])} | {str(x) for x in (sw.get("hide") or [])}
 
     if a.favorites_file or a.views_file:
         favs, views = load_rows(a.favorites_file), load_rows(a.views_file)
