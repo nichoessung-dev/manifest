@@ -1,6 +1,8 @@
 name: Swaps
 # Every 15 minutes: the partner link swaps approved on /partner (Supabase approved_swaps()) go into data/link_swaps.json and
-# functions/_lib/link_swaps.js, so product pages and their Buy buttons use the partner's item. Commits only when they changed.
+# functions/_lib/link_swaps.js, so product pages and their Buy buttons use the partner's item. Since 12 Nov 2026 the bake also
+# reads each Weidian partner item's price (Weidian's public item API) and lists the look-alikes to hide (same name group and
+# category, from index.html's catalogue), see scripts/bake_swaps.py. Commits only when they changed.
 on:
   schedule:
     - cron: '7,22,37,52 * * * *'

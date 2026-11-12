@@ -37,6 +37,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - run: pip install pillow   # the email product pictures (scripts/newsletter.py email_img) of the Recommended finds in every email
 
       # --- one-off test send (manual dispatch with test_email) ---
       - name: Test email
