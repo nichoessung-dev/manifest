@@ -428,11 +428,12 @@ const PALETTE_SM = ic("palette", "sm");
 // owner, 12 Nov 2026: "add a (recommended) tag on every swaped link": the slot now carries the Recommended pill on a
 // partner-swapped find. With an icon argument (pages.js appCards, the app's card markup) it is the app's .rbadge (styled in
 // index.html); without, a pill styled inline for the ds.css cards (.ci is position:relative there).
-const REC_INLINE = "display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px 0 6px;border-radius:var(--r-pill,999px);" +
-  "background:var(--ink);color:var(--surface);font:600 12px/1 var(--font,inherit);letter-spacing:0;white-space:nowrap;pointer-events:none";
+const REC_INLINE = "display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px 0 7px;border-radius:999px;box-sizing:border-box;" +
+  "background:rgba(16,16,16,.78);-webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4);color:#fff;" +
+  "font:600 11.5px/1 var(--font,inherit);letter-spacing:.01em;white-space:nowrap;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),0 4px 12px rgba(0,0,0,.18)";
 export const recBadge = (p, app = false, where = "card") => !swapped(p) ? "" : app
   ? `<span class="rbadge" title="Recommended">${ic("award", "sm")}<span>Recommended</span></span>`
-  : `<span class="rbadge" style="${where === "card" ? "position:absolute;top:8px;left:8px;z-index:2;" : "vertical-align:middle;margin-left:10px;"}${REC_INLINE}">${ic("award", "sm")}Recommended</span>`;
+  : `<span class="rbadge" style="${where === "card" ? "position:absolute;top:8px;left:8px;z-index:2;" : "vertical-align:middle;margin-left:10px;"}${REC_INLINE}"><span style="display:inline-flex;color:#F2C14E">${ic("award", "sm")}</span>Recommended</span>`;
 export const colourBadge = (p, icon) => recBadge(p, !!icon);
 export function card(p, lazy = true) {
   const src = imgSrc(p), u = productUrl(p), ag = AGENTS.mycnbox;
@@ -467,7 +468,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "25";
+export const DS_VER = "26";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
