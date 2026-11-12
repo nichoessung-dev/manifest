@@ -2774,7 +2774,8 @@ html .v9-num dt{font-size:12.5px}
 .tw-t img{width:28px;height:28px;border-radius:8px}
 .tw-t small{font-size:11px;font-weight:500;color:var(--muted)}
 .tw-t.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
-.tw-t.on::after{content:"";position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:999px;background:var(--ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center/11px no-repeat}
+.tw-t.on::after{content:"";position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:999px;background:var(--fill)}
+.tw-t.on::before{content:"";position:absolute;top:11px;right:14px;width:5px;height:9px;border:solid var(--fill-ink);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);z-index:1}
 .tw-more{color:var(--muted);border-style:dashed}
 .tw-cur{grid-template-columns:repeat(4,minmax(0,1fr))}
 .tw-cur .tw-t{min-height:74px}
