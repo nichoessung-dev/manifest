@@ -3,7 +3,7 @@
 import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT, liveCopy, newest, FINDS_PLUS, QC_PLUS, AGENT_NAMES_ALL } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
   sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL, renderPlat, fitTitle, renderNew, newFindsHtml, NEW_LINKS, HX_CSS } from "./_lib/pages.js";
-import { imgSrc, navKey } from "./_lib/site.js";
+import { imgSrc, navKey, SWAP_VER } from "./_lib/site.js";
 import { reportedIds } from "./_lib/reported.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
@@ -197,7 +197,7 @@ async function searchIndexJson(ctx, url) {
   await ensureStats(url.origin);
   let ix = SI.cachedIndex(), body = ix && ix.body, etag = ix && ix.etag;
   const ver = ix ? ix.ver : SI.statsVersion();
-  const key = new Request(`https://ssr-cache.internal/search-index/${BUILT}/${ver}`, { method: "GET" });
+  const key = new Request(`https://ssr-cache.internal/search-index/${BUILT}-${SWAP_VER}/${ver}`, { method: "GET" });   // SWAP_VER: partner swaps (prices, look-alikes left out)
   if (!body) {
     const hit = await caches.default.match(key).catch(() => null);
     if (hit) { body = await hit.text(); etag = hit.headers.get("etag") || `"${BUILT}-${SI.fnv8(body)}"`; }
@@ -257,7 +257,8 @@ async function route(ctx) {
     try {
       const a = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "HEAD" }));
       const ver = (a.headers.get("etag") || "x").replace(/[^A-Za-z0-9]/g, "").slice(0, 32);
-      ckey = new Request(`https://ssr-cache.internal/page/${BUILT}/${PRODUCT_TPL}/${ver}${path}`, { method: "GET" });
+      // SWAP_VER (site.js): a new partner swap, partner price or set of hidden look-alikes changes the order and prices on these pages
+      ckey = new Request(`https://ssr-cache.internal/page/${BUILT}/${PRODUCT_TPL}/${SWAP_VER}/${ver}${path}`, { method: "GET" });
       const hit = await caches.default.match(ckey);
       if (hit) {
         const r = new Response(hit.body, hit), cc = r.headers.get("x-browser-cc");
