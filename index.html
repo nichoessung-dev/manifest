@@ -2737,6 +2737,68 @@ html .v9-num .v9-num-ic{display:none}
 html .v9-num dd{font-size:17px}
 html .v9-num dt{font-size:12.5px}
 @media (max-width:560px){html .v9-nums-grid{grid-template-columns:repeat(2,minmax(0,1fr))}html .v9-tool{display:flex}}
+/* how-to-order welcome, 4 steps (12 Nov 2026; showTutorialPopup) */
+.tw-pop{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(6,10,20,.6);opacity:0;transition:opacity .22s ease}
+.tw-pop.show{opacity:1}
+.tw-card{position:relative;width:min(560px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:var(--surface);color:var(--ink);border-radius:24px;padding:28px 28px 22px;box-shadow:0 24px 64px rgba(0,0,0,.28);transform:translateY(10px) scale(.98);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.tw-pop.show .tw-card{transform:none}
+.tw-x{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:22px;line-height:1;cursor:pointer}
+.tw-dots{display:flex;gap:6px;margin:0 0 18px}
+.tw-dots i{width:22px;height:4px;border-radius:4px;background:var(--line);transition:background .25s}
+.tw-dots i.on{background:var(--ink)}
+.tw-step h2{margin:0 48px 6px 0;font-size:24px;line-height:1.2;letter-spacing:-.02em;text-wrap:balance}
+.tw-lead{margin:0 0 18px;color:var(--muted);font-size:15px;line-height:1.5;text-wrap:pretty}
+.tw-media{border-radius:16px;background:var(--surface-2);padding:18px 10px 6px;margin:0 0 18px}
+.tw-ill{display:block;width:100%;height:auto}
+.tw-ill.tw-off{display:none}
+.tw-ill .tw-path{stroke:var(--line-2);stroke-width:2;stroke-dasharray:6 7;animation:tw-dash 1.6s linear infinite}
+.tw-ill .tw-node circle{fill:var(--surface);stroke:var(--line-2);stroke-width:1.5}
+.tw-ill .tw-node{opacity:0;transform-box:fill-box;transform-origin:center;animation:tw-pop .5s cubic-bezier(.2,.9,.3,1.3) var(--d) forwards}
+.tw-ill .tw-ln{fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tw-ill .tw-fill{fill:var(--ink)}
+.tw-ill .tw-tick{fill:none;stroke:#30A46C;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.tw-ill .tw-cap text{fill:var(--ink);font:600 14px/1 var(--f-body,Inter,system-ui,sans-serif);text-anchor:middle}
+.tw-vid{margin:-12px -4px 0}
+.tw-vid video{display:block;width:100%;max-height:60vh;border-radius:12px;background:#000}
+.tw-row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.tw-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 22px;border-radius:999px;border:1px solid var(--fill);background:var(--fill);color:var(--fill-ink);font:600 15px/1 var(--f-body,Inter,system-ui,sans-serif);cursor:pointer;transition:transform .12s,opacity .15s}
+.tw-btn:active{transform:scale(.96)}
+.tw-btn.tw-ghost{background:transparent;color:var(--ink);border-color:var(--line-2)}
+.tw-btn.tw-wide{flex:1}
+.tw-btn[hidden]{display:none}
+.tw-mut{color:var(--muted);font-weight:500}
+.tw-skip{display:block;margin:14px auto 0;padding:10px;border:0;background:none;color:var(--muted);font:500 14px/1 var(--f-body,Inter,system-ui,sans-serif);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.tw-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 20px}
+.tw-t{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:92px;padding:12px 8px;border-radius:16px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:600 14px/1.2 var(--f-body,Inter,system-ui,sans-serif);cursor:pointer;transition:border-color .15s,transform .12s,box-shadow .15s}
+.tw-t:active{transform:scale(.96)}
+.tw-t img{width:28px;height:28px;border-radius:8px}
+.tw-t small{font-size:11px;font-weight:500;color:var(--muted)}
+.tw-t.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.tw-t.on::after{content:"";position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:999px;background:var(--ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center/11px no-repeat}
+.tw-more{color:var(--muted);border-style:dashed}
+.tw-cur{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tw-cur .tw-t{min-height:74px}
+.tw-cur .tw-t b{font-size:18px}
+.tw-cur .tw-t span{font-size:12px;color:var(--muted);font-weight:500}
+.tw-end{position:relative;text-align:center;padding-top:6px}
+.tw-end h2{margin:14px 0 6px}
+.tw-check{width:84px;height:84px;display:block;margin:4px auto 0}
+.tw-check circle{fill:none;stroke:#30A46C;stroke-width:4;stroke-dasharray:214;stroke-dashoffset:214}
+.tw-check path{fill:none;stroke:#30A46C;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:50;stroke-dashoffset:50}
+.tw-end.play .tw-check{animation:tw-pop .5s cubic-bezier(.2,.9,.3,1.4) both}
+.tw-end.play .tw-check circle{animation:tw-draw .55s ease-out .05s forwards}
+.tw-end.play .tw-check path{animation:tw-draw .35s ease-out .5s forwards}
+.tw-end.play h2,.tw-end.play .tw-lead,.tw-end.play .tw-row{animation:tw-up .45s ease-out both}
+.tw-end.play .tw-lead{animation-delay:.08s}.tw-end.play .tw-row{animation-delay:.16s}
+.tw-burst{position:absolute;left:50%;top:46px;width:0;height:0;pointer-events:none}
+.tw-burst i{position:absolute;left:0;top:0;width:var(--w);height:calc(var(--w) * 1.6);border-radius:2px;background:var(--c);opacity:0;animation:tw-fly var(--t) cubic-bezier(.15,.7,.3,1) .35s forwards}
+@keyframes tw-fly{0%{opacity:1;transform:translate(0,0) rotate(0)}80%{opacity:1}100%{opacity:0;transform:translate(var(--x),calc(var(--y) + 60px)) rotate(var(--r))}}
+@keyframes tw-draw{to{stroke-dashoffset:0}}
+@keyframes tw-pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes tw-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tw-dash{to{stroke-dashoffset:-26}}
+@media (max-width:560px){.tw-card{padding:22px 18px 18px;border-radius:20px}.tw-step h2{font-size:21px}.tw-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tw-cur{grid-template-columns:repeat(3,minmax(0,1fr))}.tw-row .tw-btn{flex:1}.tw-ill .tw-cap text{font-size:17px}}
+@media (prefers-reduced-motion:reduce){.tw-ill .tw-node,.tw-end.play .tw-check,.tw-end.play h2,.tw-end.play .tw-lead,.tw-end.play .tw-row{animation:none;opacity:1}.tw-ill .tw-path{animation:none}.tw-check circle,.tw-check path{stroke-dashoffset:0;animation:none}}
 /* product view polish (owner, 8 Nov 2026: "make the product pages look way better"): calmer labels, a clear price, tighter rhythm */
 html #drawer .d-titlerow{gap:6px}
 html #drawer .pstats{margin-top:10px!important;font-size:14px!important}
@@ -5120,21 +5182,87 @@ async function _syncProfile(){
   /* one-time referral attribution: set referred_by only if not already set */
   try{ const ref=getRef(); if(ref){ await sb.from("profiles").update({referred_by:ref, referred_at:new Date().toISOString()}).eq("id",ME.id).is("referred_by",null); } }catch(e){}
 }
-/* how-to-order guide in a popup, once, for accounts made in the last two days; closes with the X, Esc or a click outside */
-function showTutorialPopup(){
-  try{ if(!ME||window.__pcLeaving||localStorage.getItem("pc.tut.seen")==="1") return; if(document.getElementById("tut-pop")) return;
-    const made=Date.parse(ME.created_at||""); if(!made||Date.now()-made>2*864e5) return; }catch(e){ return; }
-  const src=document.getElementById("pg-tutorial"); if(!src) return;
-  const steps=[...src.querySelectorAll(".tut-step")].map(e=>e.outerHTML).join("");
-  const el=document.createElement("div"); el.id="tut-pop"; el.className="tut-pop"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","How to order");
-  el.innerHTML='<div class="tut-card"><button type="button" class="tut-x" aria-label="Close">&times;</button><h2>Welcome! Here is how to order</h2><p class="lead">The whole process in six steps. You can find this again under Guides.</p>'+steps+'<div style="margin-top:8px"><a href="#" class="wb-btn" id="tut-go">Start browsing finds</a></div></div>';
+/* how-to-order welcome (12 Nov 2026, owner): 4 short steps instead of a wall of text. 1 an illustration of how ordering
+   works with the 1:47 video one tap away (easy to skip), 2 pick your agent, 3 pick your currency, 4 a "you're all set"
+   animation. Once, for accounts made in the last two days (pc.tut.seen); ?tour=1 opens it for anyone (preview, nothing
+   is marked as seen). Closes with the X, Esc or a click outside. Choices go through the header selects (#agent, #cur),
+   so the app re-renders exactly as when they are changed there. */
+function showTutorialPopup(force){
+  try{ if(!force){ if(!ME||window.__pcLeaving||localStorage.getItem("pc.tut.seen")==="1") return;
+    const made=Date.parse(ME.created_at||""); if(!made||Date.now()-made>2*864e5) return; }
+    if(document.getElementById("tut-pop")) return; }catch(e){ return; }
+  const A=(typeof AGENTS!=="undefined"&&AGENTS)||{}, ORDER=((typeof AGENT_ORDER!=="undefined"&&AGENT_ORDER)||Object.keys(A)).filter(k=>A[k]);
+  const C=(typeof CUR!=="undefined"&&CUR)||{USD:{sym:"$"}};
+  const esc2=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  let agent=(state&&A[state.agent])?state.agent:"mycnbox", cur=(state&&C[state.cur])?state.cur:"USD", step=0, moreOpen=false;
+  const phone=window.matchMedia&&matchMedia("(max-width:640px)").matches;
+  const vid=phone?{src:"/media/how-to-order-portrait.mp4",poster:"/media/how-to-order-poster-portrait.jpg"}:{src:"/media/how-to-order-landscape.mp4",poster:"/media/how-to-order-poster.jpg"};
+  const ILL=`<svg class="tw-ill" viewBox="0 0 640 170" role="img" aria-label="Pick a find, your agent buys it, you check the QC photos, it ships to you">
+    <path class="tw-path" d="M88 66 H552" fill="none"/>
+    <g class="tw-node" style="--d:0s"><circle cx="88" cy="66" r="44"/><rect x="70" y="40" width="36" height="54" rx="7" class="tw-ln"/><rect x="77" y="74" width="22" height="10" rx="5" class="tw-fill"/><path d="M78 52h20M78 60h14" class="tw-ln"/></g>
+    <g class="tw-node" style="--d:.15s"><circle cx="243" cy="66" r="44"/><path d="M222 58l21-12 21 12v26l-21 12-21-12z" class="tw-ln"/><path d="M222 58l21 12 21-12M243 70v26" class="tw-ln"/></g>
+    <g class="tw-node" style="--d:.3s"><circle cx="397" cy="66" r="44"/><rect x="374" y="50" width="46" height="34" rx="7" class="tw-ln"/><circle cx="397" cy="67" r="9" class="tw-ln"/><path d="M386 50l4-6h14l4 6" class="tw-ln"/><path class="tw-tick" d="M410 86l6 6 12-14"/></g>
+    <g class="tw-node" style="--d:.45s"><circle cx="552" cy="66" r="44"/><path d="M530 70l22-18 22 18v20h-44z" class="tw-ln"/><rect x="546" y="76" width="12" height="14" rx="2" class="tw-fill"/></g>
+    <g class="tw-cap"><text x="88" y="140">Tap Buy</text><text x="243" y="140">Agent buys it</text><text x="397" y="140">Check QC photos</text><text x="552" y="140">Ships to you</text></g>
+  </svg>`;
+  const el=document.createElement("div"); el.id="tut-pop"; el.className="tw-pop"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","How ordering works");
+  el.innerHTML=`<div class="tw-card"><button type="button" class="tw-x" aria-label="Close">&times;</button>
+    <div class="tw-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <section class="tw-step" data-s="0"><h2>How ordering works</h2><p class="tw-lead">An agent buys the find for you in China, sends you photos to check, then ships it home.</p>
+      <div class="tw-media">${ILL}<div class="tw-vid" hidden><video playsinline controls preload="none" poster="${vid.poster}"><source src="${vid.src}" type="video/mp4"></video></div></div>
+      <div class="tw-row"><button type="button" class="tw-btn tw-ghost" data-act="video"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>Watch the video <span class="tw-mut">1:47</span></button><button type="button" class="tw-btn" data-act="next">Next</button></div>
+      <button type="button" class="tw-skip" data-act="skip">Skip, I know how it works</button></section>
+    <section class="tw-step" data-s="1" hidden><h2>Pick your agent</h2><p class="tw-lead">Your Buy buttons open on this agent. You can change it any time.</p>
+      <div class="tw-grid" id="tw-ag" role="radiogroup" aria-label="Agent"></div>
+      <div class="tw-row"><button type="button" class="tw-btn tw-ghost" data-act="back">Back</button><button type="button" class="tw-btn" data-act="next">Next</button></div></section>
+    <section class="tw-step" data-s="2" hidden><h2>Pick your currency</h2><p class="tw-lead">Prices on the site show in this currency.</p>
+      <div class="tw-grid tw-cur" id="tw-cu" role="radiogroup" aria-label="Currency"></div>
+      <div class="tw-row"><button type="button" class="tw-btn tw-ghost" data-act="back">Back</button><button type="button" class="tw-btn" data-act="done">Done</button></div></section>
+    <section class="tw-step tw-end" data-s="3" hidden><div class="tw-burst" aria-hidden="true"></div>
+      <svg class="tw-check" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="34"/><path d="M25 41l10 10 20-22"/></svg>
+      <h2>You're all set</h2><p class="tw-lead" id="tw-sum"></p>
+      <div class="tw-row"><button type="button" class="tw-btn tw-wide" data-act="close">Start browsing</button></div></section>
+  </div>`;
   document.body.appendChild(el); requestAnimationFrame(()=>el.classList.add("show"));
-  try{ localStorage.setItem("pc.tut.seen","1"); }catch(e){}
-  const onKey=(e)=>{ if(e.key==="Escape") close(); };
-  const close=()=>{ document.removeEventListener("keydown",onKey); el.classList.remove("show"); setTimeout(()=>el.remove(),230); };
+  if(!force){ try{ localStorage.setItem("pc.tut.seen","1"); }catch(e){} }
+  const q=s=>el.querySelector(s), qa=s=>[...el.querySelectorAll(s)];
+  const setSel=(id,v)=>{ const s=document.getElementById(id); if(!s||![...s.options].some(o=>o.value===v)) return false;
+    if(s.value!==v){ s.value=v; s.dispatchEvent(new Event("change",{bubbles:true})); } try{ if(typeof buildCsel==="function") buildCsel(s,"mast"); }catch(e){} return true; };
+  const tile=(k)=>{ const a=A[k], on=k===agent; return `<button type="button" class="tw-t${on?" on":""}" role="radio" aria-checked="${on}" data-k="${k}"><img src="${esc2(a.logo||"")}" alt="" width="28" height="28" loading="lazy"><span>${esc2(a.name)}</span>${k==="mycnbox"?'<small>Most popular</small>':""}</button>`; };
+  function drawAgents(){ const host=q("#tw-ag"); const first=ORDER.slice(0,6), rest=ORDER.slice(6), show=moreOpen?ORDER:(first.includes(agent)?first:first.slice(0,5).concat(agent));
+    host.innerHTML=show.map(tile).join("")+(!moreOpen&&rest.length?`<button type="button" class="tw-t tw-more" data-act="more">+${ORDER.length-show.length} more</button>`:""); }
+  function drawCur(){ q("#tw-cu").innerHTML=Object.keys(C).map(k=>{ const on=k===cur; return `<button type="button" class="tw-t${on?" on":""}" role="radio" aria-checked="${on}" data-c="${k}"><b>${esc2(String(C[k].sym||"").trim()||k)}</b><span>${k}</span></button>`; }).join(""); }
+  function go(n){ step=n; qa(".tw-step").forEach(s=>{ s.hidden=+s.dataset.s!==n; }); qa(".tw-dots i").forEach((d,i)=>d.classList.toggle("on",i<=n));
+    const v=q("video"); if(v&&n!==0){ try{ v.pause(); }catch(e){} }
+    if(n===1) drawAgents(); if(n===2) drawCur();
+    if(n===3) celebrate();
+    const f=q(`.tw-step[data-s="${n}"] .tw-btn:not(.tw-ghost)`); try{ f&&f.focus({preventScroll:true}); }catch(e){} }
+  function celebrate(){ const a=A[agent]; q("#tw-sum").textContent=`Buy buttons open on ${a?a.name:"MyCNBox"}, prices in ${cur}.`;
+    const end=q(".tw-end"); end.classList.remove("play"); void end.offsetWidth; end.classList.add("play");
+    if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const b=q(".tw-burst"); b.innerHTML=""; const cols=["#1D1D1F","#0066CC","#E5484D","#F5A524","#30A46C","#8E4EC6"];
+    for(let i=0;i<34;i++){ const p=document.createElement("i"), ang=(i/34)*Math.PI*2+(Math.random()-.5)*.4, dist=90+Math.random()*90;
+      p.style.cssText=`--x:${Math.cos(ang)*dist}px;--y:${Math.sin(ang)*dist-30}px;--r:${Math.random()*540-270}deg;--c:${cols[i%cols.length]};--t:${.7+Math.random()*.5}s;--w:${5+Math.random()*5}px`; b.appendChild(p); } }
+  const onKey=e=>{ if(e.key==="Escape") close(); };
+  const close=()=>{ document.removeEventListener("keydown",onKey); try{ const v=q("video"); v&&v.pause(); }catch(e){} el.classList.remove("show"); setTimeout(()=>el.remove(),230); };
   document.addEventListener("keydown",onKey);
-  el.addEventListener("click",(e)=>{ if(e.target===el||e.target.closest(".tut-x")) close(); else if(e.target.closest("a")){ if(e.target.closest("#tut-go")) e.preventDefault(); close(); } });
+  el.addEventListener("click",e=>{
+    if(e.target===el||e.target.closest(".tw-x")) return close();
+    const t=e.target.closest("[data-act],[data-k],[data-c]"); if(!t) return;
+    const act=t.dataset.act;
+    if(act==="video"){ const w=q(".tw-vid"), v=q("video"); w.hidden=false; q(".tw-ill").classList.add("tw-off"); t.hidden=true; try{ v.play(); }catch(e){} return; }
+    if(act==="next") return go(step+1);
+    if(act==="back") return go(step-1);
+    if(act==="skip") return go(1);
+    if(act==="more"){ moreOpen=true; drawAgents(); return; }
+    if(act==="done") return go(3);
+    if(act==="close") return close();
+    if(t.dataset.k){ agent=t.dataset.k; if(!setSel("agent",agent)){ try{ state.agent=agent; save(); }catch(e){} } try{ typeof pcAgentSave==="function"&&pcAgentSave(1); }catch(e){} drawAgents(); return; }
+    if(t.dataset.c){ cur=t.dataset.c; if(!setSel("cur",cur)){ try{ window.__curTouched=1; state.cur=cur; save(); }catch(e){} } drawCur(); return; }
+  });
+  go(0);
 }
+try{ if(/[?&]tour=1(&|$)/.test(location.search)) setTimeout(()=>showTutorialPopup(true),1500); }catch(e){}
 /* one-time marketing opt-in prompt (OAuth users never see the gate checkbox, so ask them here) */
 function showOptinPrompt(){
   try{ if(!sb||!ME) return; if(localStorage.getItem("pc.optin")==="1"||localStorage.getItem("pc.optin.asked")==="1") return; if(document.getElementById("optin-toast")) return; }catch(e){ return; }
