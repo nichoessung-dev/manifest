@@ -15,6 +15,8 @@ into data/reported.json "hidden" (by: "photo"), which the app, the server cards 
 Also hides duplicates: the same item listed more than once (same brand, title and price) keeps only its best listing
 (see dupes()).
 
+Also hides finds whose photo still shows its background (data/photo_background.json).
+
   python scripts/photo_hide.py [--dry-run]
 """
 import argparse, json, os, sys
@@ -89,6 +91,13 @@ def main():
     swapped = set(map(str, ((load(os.path.join(ROOT, "data", "link_swaps.json"), {}) or {}).get("swaps") or {})))
     pq = {str(k): v for k, v in ((load(os.path.join(ROOT, "data", "photo_quality.json"), {}) or {}).get("bad") or {}).items()}
     views = {str(k): (v[1] if isinstance(v, list) and len(v) > 1 else 0) for k, v in ((load(os.path.join(ROOT, "data", "stats.json"), {}) or {}).get("p") or {}).items()}
+    # photos that still show their background (data/photo_background.json, a header scan of the photo files): hidden while
+    # the find still shows that same file; a seller photo or a new cut-out changes the file and brings the find back
+    bg = ((load(os.path.join(ROOT, "data", "photo_background.json"), {}) or {}).get("photos") or {})
+    for p in items:
+        pid = str(p.get("id")); f = bg.get(pid)
+        if f and pid not in why and (p.get("img") or "").split("?")[0].endswith(f.split("?")[0]): why[pid] = ["background"]
+        if f: gone.add(pid)
     why.update(dupes(items, gone, swapped, pq, views))
     for pid in swapped: why.pop(pid, None)            # a partner-swapped find is never hidden (owner: the ones we want people to buy)
     counts = {}
