@@ -7,7 +7,7 @@ on:
     - cron: '41 */2 * * *'
   push:
     branches: [main]
-    paths: ['data/report_overrides.json']
+    paths: ['data/report_overrides.json', 'scripts/photo_hide.py']
   workflow_dispatch: {}
 permissions:
   contents: write
@@ -24,12 +24,14 @@ jobs:
         with:
           python-version: '3.11'
       - run: python scripts/test_bake_reports.py
+      - name: Bad photos (data/photo_hidden.json)
+        run: python scripts/photo_hide.py
       - run: python scripts/bake_reports.py
         env:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       - name: Commit if changed
         run: |
-          git add data/reported.json
+          git add data/reported.json data/photo_hidden.json
           if git diff --cached --quiet; then
             echo "no change"
           else
