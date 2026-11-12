@@ -102,7 +102,8 @@ async function appFile(ctx, url, kind) {
   const asset = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "GET" }));
   if (!asset.ok) return new Response("/* unavailable */", { status: 502, headers: { ...type, "cache-control": "no-store" } });
   const ver = etagOf(asset);
-  const cc = url.searchParams.get("v") === ver ? "public, max-age=31536000, immutable" : "public, max-age=300";
+  // 12 Nov 2026: one day, not a year: a copy picked up while a deploy is still spreading could otherwise stay in a browser for good
+  const cc = url.searchParams.get("v") === ver ? "public, max-age=86400" : "public, max-age=300";
   const key = new Request(`https://ssr-cache.internal/app/${ver}/${kind}`, { method: "GET" });
   const hit = await caches.default.match(key);
   if (hit) { const r = new Response(hit.body, hit); r.headers.set("cache-control", cc); return r; }
