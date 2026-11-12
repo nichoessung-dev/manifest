@@ -2769,14 +2769,28 @@ html .v9-num dt{font-size:12.5px}
 .tw-mut{color:var(--muted);font-weight:500}
 .tw-skip{display:block;margin:14px auto 0;padding:10px;border:0;background:none;color:var(--muted);font:500 14px/1 var(--f-body,Inter,system-ui,sans-serif);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .tw-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 20px}
-.tw-t{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:92px;padding:12px 8px;border-radius:16px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:600 14px/1.2 var(--f-body,Inter,system-ui,sans-serif);cursor:pointer;transition:border-color .15s,transform .12s,box-shadow .15s}
+.tw-t{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:96px;padding:14px 8px 12px;border-radius:18px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);font:600 14px/1.2 var(--f-body,Inter,system-ui,sans-serif);cursor:pointer;transition:border-color .2s,background-color .2s,transform .12s,box-shadow .2s}
+@media (hover:hover){.tw-t:hover{border-color:var(--line-2);background:var(--surface)}}
 .tw-t:active{transform:scale(.96)}
-.tw-t img{width:28px;height:28px;border-radius:8px}
+.tw-t img{width:36px;height:36px;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.12);outline:1px solid rgba(127,127,127,.15);outline-offset:-1px}
 .tw-t small{font-size:11px;font-weight:500;color:var(--muted)}
-.tw-t.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.tw-t.on{border-color:var(--ink);background:var(--surface);box-shadow:0 0 0 1px var(--ink),0 6px 18px rgba(0,0,0,.12)}
 .tw-t.on::after{content:"";position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:999px;background:var(--fill)}
 .tw-t.on::before{content:"";position:absolute;top:11px;right:14px;width:5px;height:9px;border:solid var(--fill-ink);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);z-index:1}
-.tw-more{color:var(--muted);border-style:dashed}
+.tw-grid+.tw-extra{margin-top:-10px}
+.tw-extra{display:grid;grid-template-rows:0fr;transition:grid-template-rows .42s cubic-bezier(.2,.8,.2,1)}
+.tw-extra.open{grid-template-rows:1fr}
+.tw-extra-in{overflow:hidden;min-height:0}
+.tw-extra .tw-grid{padding-top:10px;margin:0}
+.tw-extra .tw-t{opacity:0;transform:translateY(8px) scale(.97);transition:opacity .3s ease,transform .35s cubic-bezier(.2,.8,.2,1),border-color .2s,background-color .2s,box-shadow .2s}
+.tw-extra.open .tw-t{opacity:1;transform:none;transition-delay:calc(var(--i) * 22ms + 60ms),calc(var(--i) * 22ms + 60ms),0s,0s,0s}
+.tw-toggle{display:flex;align-items:center;gap:6px;margin:14px auto 20px;min-height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:600 14px/1 var(--f-body,Inter,system-ui,sans-serif);cursor:pointer;transition:background-color .2s,transform .12s}
+.tw-toggle:active{transform:scale(.96)}
+@media (hover:hover){.tw-toggle:hover{background:var(--surface-2)}}
+.tw-toggle svg{transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.tw-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+#tw-ag>.tw-grid{margin:0}
+#tw-ag:not(:has(.tw-toggle))>.tw-grid{margin-bottom:20px}
 .tw-cur{grid-template-columns:repeat(4,minmax(0,1fr))}
 .tw-cur .tw-t{min-height:74px}
 .tw-cur .tw-t b{font-size:18px}
@@ -2799,7 +2813,7 @@ html .v9-num dt{font-size:12.5px}
 @keyframes tw-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes tw-dash{to{stroke-dashoffset:-26}}
 @media (max-width:560px){.tw-card{padding:22px 18px 18px;border-radius:20px}.tw-step h2{font-size:21px}.tw-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tw-cur{grid-template-columns:repeat(3,minmax(0,1fr))}.tw-row .tw-btn{flex:1}.tw-ill .tw-cap text{font-size:17px}}
-@media (prefers-reduced-motion:reduce){.tw-ill .tw-node,.tw-end.play .tw-check,.tw-end.play h2,.tw-end.play .tw-lead,.tw-end.play .tw-row{animation:none;opacity:1}.tw-ill .tw-path{animation:none}.tw-check circle,.tw-check path{stroke-dashoffset:0;animation:none}}
+@media (prefers-reduced-motion:reduce){.tw-extra,.tw-extra .tw-t,.tw-toggle svg{transition:none}.tw-ill .tw-node,.tw-end.play .tw-check,.tw-end.play h2,.tw-end.play .tw-lead,.tw-end.play .tw-row{animation:none;opacity:1}.tw-ill .tw-path{animation:none}.tw-check circle,.tw-check path{stroke-dashoffset:0;animation:none}}
 /* product view polish (owner, 8 Nov 2026: "make the product pages look way better"): calmer labels, a clear price, tighter rhythm */
 html #drawer .d-titlerow{gap:6px}
 html #drawer .pstats{margin-top:10px!important;font-size:14px!important}
@@ -5214,7 +5228,7 @@ function showTutorialPopup(force){
       <div class="tw-row"><button type="button" class="tw-btn tw-ghost" data-act="video"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>Watch the video <span class="tw-mut">1:47</span></button><button type="button" class="tw-btn" data-act="next">Next</button></div>
       <button type="button" class="tw-skip" data-act="skip">Skip, I know how it works</button></section>
     <section class="tw-step" data-s="1" hidden><h2>Pick your agent</h2><p class="tw-lead">Your Buy buttons open on this agent. You can change it any time.</p>
-      <div class="tw-grid" id="tw-ag" role="radiogroup" aria-label="Agent"></div>
+      <div id="tw-ag" role="radiogroup" aria-label="Agent"></div>
       <div class="tw-row"><button type="button" class="tw-btn tw-ghost" data-act="back">Back</button><button type="button" class="tw-btn" data-act="next">Next</button></div></section>
     <section class="tw-step" data-s="2" hidden><h2>Pick your currency</h2><p class="tw-lead">Prices on the site show in this currency.</p>
       <div class="tw-grid tw-cur" id="tw-cu" role="radiogroup" aria-label="Currency"></div>
@@ -5230,8 +5244,14 @@ function showTutorialPopup(force){
   const setSel=(id,v)=>{ const s=document.getElementById(id); if(!s||![...s.options].some(o=>o.value===v)) return false;
     if(s.value!==v){ s.value=v; s.dispatchEvent(new Event("change",{bubbles:true})); } try{ if(typeof buildCsel==="function") buildCsel(s,"mast"); }catch(e){} return true; };
   const tile=(k)=>{ const a=A[k], on=k===agent; return `<button type="button" class="tw-t${on?" on":""}" role="radio" aria-checked="${on}" data-k="${k}"><img src="${esc2(a.logo||"")}" alt="" width="28" height="28" loading="lazy"><span>${esc2(a.name)}</span>${k==="mycnbox"?'<small>Most popular</small>':""}</button>`; };
-  function drawAgents(){ const host=q("#tw-ag"); const first=ORDER.slice(0,6), rest=ORDER.slice(6), show=moreOpen?ORDER:(first.includes(agent)?first:first.slice(0,5).concat(agent));
-    host.innerHTML=show.map(tile).join("")+(!moreOpen&&rest.length?`<button type="button" class="tw-t tw-more" data-act="more">+${ORDER.length-show.length} more</button>`:""); }
+  function drawAgents(){ const host=q("#tw-ag"); if(host.dataset.built){ markAgents(); return; } host.dataset.built="1";
+    const first=ORDER.slice(0,6), rest=ORDER.slice(6); if(rest.includes(agent)) moreOpen=true;
+    host.innerHTML=`<div class="tw-grid">${first.map(tile).join("")}</div>`+(rest.length?`<div class="tw-extra${moreOpen?" open":""}" id="tw-extra"><div class="tw-extra-in"><div class="tw-grid">${rest.map((k,i)=>tile(k).replace('class="tw-t','style="--i:'+i+'" class="tw-t')).join("")}</div></div></div>
+      <button type="button" class="tw-toggle" data-act="more" aria-expanded="${moreOpen}" aria-controls="tw-extra"><span>${moreOpen?"Show less":"Show all "+ORDER.length+" agents"}</span><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:""); }
+  function markAgents(){ qa("#tw-ag .tw-t[data-k]").forEach(b=>{ const on=b.dataset.k===agent; b.classList.toggle("on",on); b.setAttribute("aria-checked",String(on)); }); }
+  function toggleMore(){ moreOpen=!moreOpen; const x=q("#tw-extra"), t=q(".tw-toggle"); if(!x||!t) return;
+    x.classList.toggle("open",moreOpen); t.setAttribute("aria-expanded",String(moreOpen)); t.querySelector("span").textContent=moreOpen?"Show less":"Show all "+ORDER.length+" agents";
+    if(moreOpen) setTimeout(()=>{ try{ t.scrollIntoView({behavior:"smooth",block:"nearest"}); }catch(e){} },380); }
   function drawCur(){ q("#tw-cu").innerHTML=Object.keys(C).map(k=>{ const on=k===cur; return `<button type="button" class="tw-t${on?" on":""}" role="radio" aria-checked="${on}" data-c="${k}"><b>${esc2(String(C[k].sym||"").trim()||k)}</b><span>${k}</span></button>`; }).join(""); }
   function go(n){ step=n; qa(".tw-step").forEach(s=>{ s.hidden=+s.dataset.s!==n; }); qa(".tw-dots i").forEach((d,i)=>d.classList.toggle("on",i<=n));
     const v=q("video"); if(v&&n!==0){ try{ v.pause(); }catch(e){} }
@@ -5255,10 +5275,10 @@ function showTutorialPopup(force){
     if(act==="next") return go(step+1);
     if(act==="back") return go(step-1);
     if(act==="skip") return go(1);
-    if(act==="more"){ moreOpen=true; drawAgents(); return; }
+    if(act==="more"){ toggleMore(); return; }
     if(act==="done") return go(3);
     if(act==="close") return close();
-    if(t.dataset.k){ agent=t.dataset.k; if(!setSel("agent",agent)){ try{ state.agent=agent; save(); }catch(e){} } try{ typeof pcAgentSave==="function"&&pcAgentSave(1); }catch(e){} drawAgents(); return; }
+    if(t.dataset.k){ agent=t.dataset.k; if(!setSel("agent",agent)){ try{ state.agent=agent; save(); }catch(e){} } try{ typeof pcAgentSave==="function"&&pcAgentSave(1); }catch(e){} markAgents(); return; }
     if(t.dataset.c){ cur=t.dataset.c; if(!setSel("cur",cur)){ try{ window.__curTouched=1; state.cur=cur; save(); }catch(e){} } drawCur(); return; }
   });
   go(0);
