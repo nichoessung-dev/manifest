@@ -182,7 +182,8 @@ const REFS = { mycnbox: "LHYDVW", kakobuy: "w5war", lovegobuy: "9WJ54Y", oopbuy:
   fishgoo: "3920775520241738078", hubbuy: "082A1BdE", itaobuy: "6SMA234Z", gtbuy: "KI06I91RM", bbdbuy: "uDi7jz" };
 // The order agents are listed in everywhere (owner, 11 Nov 2026: the ones that earn the most first). MyCNBox stays first
 // and the default. Same list as AGENT_ORDER in index.html and the A list in pages.js AGENT_JS.
-export const AGENT_ORDER = ["mycnbox", "kakobuy", "oopbuy", "litbuy", "joyagoo", "sugargoo", "hipobuy", "usfans", "gtbuy", "lovegobuy", "superbuy", "itaobuy", "cssbuy", "fishgoo", "hubbuy", "bbdbuy"];
+// 12 Nov 2026 (owner): Sugargoo, Superbuy and Fishgoo last until their item links open the product for signed-out visitors
+export const AGENT_ORDER = ["mycnbox", "kakobuy", "oopbuy", "litbuy", "joyagoo", "hipobuy", "usfans", "gtbuy", "lovegobuy", "itaobuy", "cssbuy", "hubbuy", "bbdbuy", "sugargoo", "superbuy", "fishgoo"];
 // CSSBuy reads the owner's invite code only on its sign-up page (item pages drop it), so its buttons open this link.
 const CSSBUY_REG = `https://www.cssbuy.com/register?invite=${REFS.cssbuy}`;
 const plOf = (p, m) => m[p.platform] != null ? m[p.platform] : m.weidian;
