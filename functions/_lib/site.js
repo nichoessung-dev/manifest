@@ -3,7 +3,8 @@
 import { ROWS, PREFIX, BUILT } from "./catalog.js";
 import * as SIG from "./signals.js";
 import { PQ } from "./photo_quality.js";
-import { SWAPS } from "./link_swaps.js";
+// Read through the namespace so a link_swaps.js written before SWAP_PRICE / SWAP_HIDE existed still loads.
+import * as LSW from "./link_swaps.js";
 import * as RD from "./rowdays.js";
 const { CHECKED, DEMAND, DEAD, SOLD_OUT } = SIG;
 // QC photo bank results (scripts/gen_signals.py from data/qc_bank.json, 28 Oct 2026), read through the namespace so a
@@ -33,11 +34,31 @@ function normBrand(p) {
   if (nb) { if (p.title.startsWith(p.brand + " ") && !p.title.toLowerCase().startsWith(nb.toLowerCase() + " ")) p.title = nb + p.title.slice(p.brand.length); p.brand = nb; }
   return p;
 }
-export const P = ROWS.map(r => normBrand({ id: r[0], title: r[1], brand: r[2], cat: r[3], platform: r[4], seller: r[5], usd: r[6], cny: r[7],
+// Partner link swaps approved on /partner (link_swaps.js, scripts/bake_swaps.py every 15 minutes, owner 12 Nov 2026):
+//   SWAPS: the find keeps its page, title and photo, its Buy buttons go to the partner's item;
+//   SWAP_PRICE: [item id, cny, usd] the partner item's own price (Weidian), used only while it belongs to the item in force;
+//   SWAP_HIDE: look-alike id -> swapped find: the other finds of the same item (same name group and category), left out of
+//   P (so of every hub, row, sitemap, search index and count) like removed finds; their page says where the item is now.
+//   Swapped finds rank first everywhere: score() below.
+const SWAPS = LSW.SWAPS || {}, SWAP_PRICE = LSW.SWAP_PRICE || {};
+export const SWAP_HIDE = LSW.SWAP_HIDE || {};
+export const SWAPPED = new Set(Object.keys(SWAPS));
+export const swapped = p => !!p && SWAPPED.has(String(p.id));
+// A short fingerprint of the swaps, prices and look-alikes: in the edge cache keys of product, hub and search pages, so a
+// new swap or a new partner price never waits for an old cached copy to expire.
+export const SWAP_VER = (s => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return ("0000000" + h.toString(16)).slice(-8); })(JSON.stringify([SWAPS, SWAP_PRICE, SWAP_HIDE]));
+// Every find, look-alikes included (idx().byId: their product pages still answer); P is the visible spreadsheet.
+export const P_ALL = ROWS.map(r => normBrand({ id: r[0], title: r[1], brand: r[2], cat: r[3], platform: r[4], seller: r[5], usd: r[6], cny: r[7],
   qc: NO_QC.has(r[0]) ? 0 : r[8], best: r[9], views: r[10], img: r[11], g: r[12], itemId: r[13], variants: r[14] }));
-// Partner link swaps approved on /partner (link_swaps.js, the Swaps workflow): the find keeps its page, title and photo,
-// its Buy buttons go to the partner's item.
-for (const p of P) { const s = SWAPS[p.id]; if (s) { p.platform = s[0]; p.itemId = s[1]; } }
+export const SWAP_KEY = {};   // find id -> "item id-price" of a swapped find (functions/product/[id].js cache key)
+for (const p of P_ALL) {
+  const s = SWAPS[p.id]; if (!s) continue;
+  p.platform = s[0]; p.itemId = s[1];
+  const pr = SWAP_PRICE[p.id];
+  if (Array.isArray(pr) && String(pr[0]) === String(s[1]) && +pr[1] > 0) { p.cny = +pr[1]; if (+pr[2] > 0) p.usd = +pr[2]; p.swapPrice = true; }
+  SWAP_KEY[p.id] = p.itemId + "-" + p.cny;
+}
+export const P = P_ALL.filter(p => !SWAP_HIDE[p.id]);
 // Real view stats (data/stats.json, refreshed every 6h by the Stats workflow): { id: [all, 30d, 7d, favourites] }
 // VIEWS_VER counts the different stats files this server instance has loaded (0 = none yet); every cache derived from
 // the numbers (idx(), and the model, brand-facts and related-brands caches in pages.js) is rebuilt when it moves.
@@ -63,8 +84,10 @@ export async function ensureStats(origin) {
 export const statsLoaded = () => VIEWS_VER > 0;
 // Popularity = views (30 days, last 7 days count double), then favourites, all-time views, curated best-of, QC count.
 // A bad main photo (photo_quality.js, from the vision labels) ranks lower: views x (1 - 0.6 x score). Owner, 10 Nov 2026.
+// Partner-swapped finds (SWAPPED) get 1e15 on top, above any popularity (at most ~1e14), so they come first in every list
+// sorted by score(): the homepage cards, hubs, product page rows, search index, AI chat (owner, 12 Nov 2026: "insane priority").
 export const score = p => { const v = VIEWS[p.id] || [0, 0, 0, 0], q = PQ[p.id] || 0;
-  return Math.min(Math.floor((v[1] + v[2]) * (1 - 0.6 * q)), 99999) * 1e9 + Math.min(v[3], 999) * 1e6 + Math.min(v[0], 999) * 1e3 + p.best * 500 + Math.min(p.qc, 499); };
+  return (SWAPPED.has(p.id) ? 1e15 : 0) + Math.min(Math.floor((v[1] + v[2]) * (1 - 0.6 * q)), 99999) * 1e9 + Math.min(v[3], 999) * 1e6 + Math.min(v[0], 999) * 1e3 + p.best * 500 + Math.min(p.qc, 499); };
 // The same numbers for pages that print them (the "top picks" on brand hubs): [views all time, last 30 days, last 7 days, favourites].
 const NO_VIEWS = [0, 0, 0, 0];
 export const views = p => VIEWS[p.id] || NO_VIEWS;
@@ -82,7 +105,7 @@ const baseIndexable = p => !GONE.has(p.id) && (p.qc >= 1 || p.best === 1 || DEMA
 // lowest real price, then catalogue order. The other listings stay noindex,follow, canonical unchanged. So a search like
 // "asics gel kayano 14 rep" has one page to land on without opening every near copy.
 export const PICK_PQ_MAX = 0.6;
-export const indexable = p => baseIndexable(p) || idx().groupPick.has(p.id);
+export const indexable = p => !SWAP_HIDE[p.id] && (baseIndexable(p) || idx().groupPick.has(p.id));
 // The days a find's row first appeared in catalog.js and last changed (rowdays.js, scripts/gen_rowdays.py); null when the
 // row is newer than that file.
 const RD_DAYS = RD.DAYS || [], RD_ROW = RD.ROWDAY || {};
@@ -107,8 +130,8 @@ export function idx() {
   if (_idx && _idxVer === VIEWS_VER) return _idx;
   _idxVer = VIEWS_VER;
   const byId = new Map(), byBrand = new Map(), byCat = new Map();
+  for (const p of P_ALL) byId.set(p.id, p);   // look-alikes too: their own product page still answers
   for (const p of P) {
-    byId.set(p.id, p);
     if (p.brand) { if (!byBrand.has(p.brand)) byBrand.set(p.brand, []); byBrand.get(p.brand).push(p); }
     if (!byCat.has(p.cat)) byCat.set(p.cat, []); byCat.get(p.cat).push(p);
   }
@@ -401,8 +424,16 @@ export function colourCount(p) {
 }
 const PALETTE_SM = ic("palette", "sm");
 // The pill markup. icon: the app-style cards (pages.js appCards) pass the app sprite icon so they match index.html byte for byte.
-// owner, 9 Nov 2026: "remove this color icon": no colour-count badge on cards (kept as a function so callers stay the same)
-export const colourBadge = () => "";
+// owner, 9 Nov 2026: "remove this color icon": no colour-count badge on cards (kept as a function so callers stay the same).
+// owner, 12 Nov 2026: "add a (recommended) tag on every swaped link": the slot now carries the Recommended pill on a
+// partner-swapped find. With an icon argument (pages.js appCards, the app's card markup) it is the app's .rbadge (styled in
+// index.html); without, a pill styled inline for the ds.css cards (.ci is position:relative there).
+const REC_INLINE = "display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px 0 6px;border-radius:var(--r-pill,999px);" +
+  "background:var(--ink);color:var(--surface);font:600 12px/1 var(--font,inherit);letter-spacing:0;white-space:nowrap;pointer-events:none";
+export const recBadge = (p, app = false, where = "card") => !swapped(p) ? "" : app
+  ? `<span class="rbadge" title="Recommended">${ic("award", "sm")}<span>Recommended</span></span>`
+  : `<span class="rbadge" style="${where === "card" ? "position:absolute;top:8px;left:8px;z-index:2;" : "vertical-align:middle;margin-left:10px;"}${REC_INLINE}">${ic("award", "sm")}Recommended</span>`;
+export const colourBadge = (p, icon) => recBadge(p, !!icon);
 export function card(p, lazy = true) {
   const src = imgSrc(p), u = productUrl(p), ag = AGENTS.mycnbox;
   return `<div class="c"><a class="cl" href="${u}">` +

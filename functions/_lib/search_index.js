@@ -6,6 +6,8 @@
 //    "plat":["weidian",...],"rows":[[id,title,brandIdx|-1,catIdx,platIdx,cny,usd,qc,preIdx,imgRest,pop,itemId|0]]}
 // Listings the weekly link check found dead are left out (the app hides them); sold-out ones stay.
 // pop = score(p) rounded (views and favourites when stats are loaded), usd = Math.round(cny * USD_RATE) as money() does.
+// P leaves out the look-alikes of partner-swapped finds (site.js SWAP_HIDE); a swapped find carries its partner price in
+// cny, and score() puts it above every other find (pop column), so the header search lists it first among its matches.
 import { P, gone, score, BUILT, CATS, idx, USD_RATE, rawImg } from "./site.js";
 
 // FNV-1a 32-bit as 8 hex characters (the ETag suffix, and the stats fingerprint in the cache key).

@@ -1,5 +1,5 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
-import { SITE, MYCNBOX_INVITE, BUILT, P, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, thumbSrc, IMG_FALLBACK, productUrl, brandUrl, catUrl,
+import { SITE, MYCNBOX_INVITE, BUILT, P, SWAP_HIDE, recBadge, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, thumbSrc, IMG_FALLBACK, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, colourBadge, GUIDE_LINKS, TOOL_LINKS, QC_ICON, origUrl,
   TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell, ic, icTile, icSteps, more , QC_BANKED, newest, rowDays, AGENT_N, FINDS_PLUS, gone as goneOf} from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, agentBrandCopy, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
@@ -85,7 +85,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w66";   // w65: hub layout v10 (compact head, one related-links row, agent logo row, About section under the grid; HX_CSS); w64: 16 agents in the buy menu, first 5 + "See more agents" (11 Nov 2026); w63: distinct agent page copy (AGENT_INTRO about/desc/faq, agentBrandCopy); w62: footer links to the Weidian, Taobao and 1688 spreadsheets, price ranges written "¥x to ¥y", titles fitted to 60 characters (fitTitle); w61: "Ask AI about this item" row, chat.js?v=7 (saved chats note), sharper agent logos; w60: no colour-count badge on cards (owner); w59: chat.js?v=6 (scrollable card row); w58: chat.js?v=5 (better answers); w57: no yen price next to the main price (owner); w56: product page like the app view (muted brand, Details folded, QC button only with stored photos); w55: chat.js?v=4 (pcChatAsk hook for the beta Ask box); w54: size answer beside the form on wide screens; w53: size estimator counts height for length, scrolls to the result; w52: pcs.js 5f23e99c (search: zero-result queries from the log, Nordic words, typo pass under 3 finds); w51: QC badge only for finds with stored QC photos (QC_BANKED); w50: chat.js?v=3 (messenger look; finds open in the app view);   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
+export const PRODUCT_TPL = "w67";   // w67: partner swaps (12 Nov 2026): the partner item's price, swapped finds first, look-alike pages point to the swapped find; w65: hub layout v10 (compact head, one related-links row, agent logo row, About section under the grid; HX_CSS); w64: 16 agents in the buy menu, first 5 + "See more agents" (11 Nov 2026); w63: distinct agent page copy (AGENT_INTRO about/desc/faq, agentBrandCopy); w62: footer links to the Weidian, Taobao and 1688 spreadsheets, price ranges written "¥x to ¥y", titles fitted to 60 characters (fitTitle); w61: "Ask AI about this item" row, chat.js?v=7 (saved chats note), sharper agent logos; w60: no colour-count badge on cards (owner); w59: chat.js?v=6 (scrollable card row); w58: chat.js?v=5 (better answers); w57: no yen price next to the main price (owner); w56: product page like the app view (muted brand, Details folded, QC button only with stored photos); w55: chat.js?v=4 (pcChatAsk hook for the beta Ask box); w54: size answer beside the form on wide screens; w53: size estimator counts height for length, scrolls to the result; w52: pcs.js 5f23e99c (search: zero-result queries from the log, Nordic words, typo pass under 3 finds); w51: QC badge only for finds with stored QC photos (QC_BANKED); w50: chat.js?v=3 (messenger look; finds open in the app view);   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -145,7 +145,8 @@ function ringAfter(key, list, p, k, skip = [], ok = () => true) {
 }
 
 // opt.reported: the find was removed after member reports (data/reported.json, functions/product/[id].js): the page says so
-// instead of the buy box, has no buy bar and is noindex,follow.
+// instead of the buy box, has no buy bar and is noindex,follow. A look-alike of a partner-swapped find (SWAP_HIDE, site.js)
+// is shown the same way, with a link to the swapped find instead of the report notice.
 export async function renderProduct(id, origin, opt = {}) {
   const { byId, byBrand, byCat } = idx();
   const p = byId.get(id);
@@ -171,8 +172,10 @@ export async function renderProduct(id, origin, opt = {}) {
   const g = gone(p), checked = LINKS_CHECKED ? new Date(LINKS_CHECKED + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "";
   const goneNote = !g ? "" : `<p class="buy-gone">${ic("alert", "sm")}${g === "dead" ? "This listing was no longer online" : "This listing was sold out"} at our link check${checked ? ` on ${checked}` : ""}. ` +
     `${g === "dead" ? "The buttons still open it in case the seller puts it back" : "The buttons still open it, since sellers often restock"}; similar finds are below.</p>`;
-  const rep = !!(opt && opt.reported);
-  const repNote = `<p class="buy-gone">${ic("alert", "sm")}This find was removed after several members reported it (a dead link, the wrong item or a scam seller). ` +
+  const swapOf = SWAP_HIDE[p.id] ? byId.get(SWAP_HIDE[p.id]) : null;
+  const rep = !!(opt && opt.reported) || !!swapOf;
+  const repNote = swapOf ? `<p class="buy-gone">${ic("alert", "sm")}This listing is no longer on the spreadsheet. The same item is listed here: ` +
+    `<a href="${productUrl(swapOf)}">${esc(swapOf.title)}</a>, ${money(swapOf.cny)}.</p>` : `<p class="buy-gone">${ic("alert", "sm")}This find was removed after several members reported it (a dead link, the wrong item or a scam seller). ` +
     `Its buy links are switched off; similar finds are below.</p>`;
   const buyBox = rep ? repNote : goneNote + `<div class="buybox"><div class="buy-split"><div class="buy-main">${buyLink(ag[0], true)}</div>` +
     `<details class="buy-more"><summary aria-label="Other agents">${CHEVRON}</summary><div class="buy-menu"><p class="buy-or">Or buy via</p><div class="buy-alt">${ag.slice(1).map(x => buyLink(x, false)).join("")}<a href="#" class="buy-agx" role="button" style="display:none;color:var(--muted)">See more agents</a></div></div></details></div>` +
@@ -212,7 +215,7 @@ export async function renderProduct(id, origin, opt = {}) {
   let alsoCo = 0;
   for (const [aid, , co] of alsoOf(p.id)) {
     const x = byId.get(aid);
-    if (!x || shownIds.has(x.id) || gone(x) === "dead") continue;
+    if (!x || shownIds.has(x.id) || gone(x) === "dead" || SWAP_HIDE[x.id]) continue;
     shownIds.add(x.id); alsoList.push(x); if (co) alsoCo++;
     if (alsoList.length >= 8) break;
   }
@@ -242,6 +245,7 @@ export async function renderProduct(id, origin, opt = {}) {
   <div class="pd-info">
     ${bUrl ? `<a class="pd-brand" href="${bUrl}">${esc(p.brand)}</a>` : (p.brand ? `<span class="pd-brand">${esc(p.brand)}</span>` : "")}
     <h1>${esc(p.title)}</h1>${statRow(p)}
+    ${swapOf ? "" : recBadge(p, false, "inline") ? `<p style="margin:10px 0 0">${recBadge(p, false, "inline").replace("margin-left:10px;", "")}</p>` : ""}
     <div class="price">${money(p.cny)}<small>${isPH(p.cny) ? "placeholder price · ask seller" : "before shipping"}</small></div>
     ${buyBox}
     ${askRow(p)}
