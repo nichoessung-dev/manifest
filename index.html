@@ -2655,6 +2655,11 @@ html .card .thumb img.qch{object-fit:cover!important;mix-blend-mode:normal!impor
 @media (pointer:coarse){.tbadges .qcb::before{content:"";position:absolute;inset:-10px -4px}}
 .card-acts .buy-pill{flex:1 1 100%}
 .sim-thumb .cbadge{top:6px;left:auto;right:6px;height:22px;padding:0 8px 0 6px}
+/* partner swaps (owner, 12 Nov 2026: "add a (recommended) tag on every swaped link"): the finds we want people to buy */
+.rbadge{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 9px 0 7px;border-radius:999px;box-sizing:border-box;background:var(--ink);color:var(--surface);font:600 12px/1 var(--f-body);letter-spacing:0;text-transform:none;white-space:nowrap;pointer-events:none;user-select:none;-webkit-user-select:none}
+.rbadge .ic{width:14px;height:14px;flex:none}
+.sim-thumb .rbadge{position:absolute;top:6px;left:6px;z-index:3;height:22px;padding:0 8px 0 6px}
+.d-rec{margin:10px 0 0}
 /* round 9 (31 Oct 2026): compact tool sections on phones (QC, size/track teasers, Free Tools, 3 steps). CSS only, phones only,
    every word stays in the DOM and visible (descriptions are clamped, not hidden); tap targets stay 44px. Desktop untouched. */
 @media (max-width:560px){
@@ -3646,6 +3651,10 @@ const T = {
  nl:{est_weight:"Geschat gewicht, ongeveer {w}",est_weight_box:"Geschat gewicht, ongeveer {w} ({b} met doos)",qc_count:"{n} QC-foto's van kopers",colours_n:"{n} kleuren",nav_finds:"Vondsten",nav_brands:"Merken",buy_short:"Kopen",qc_of:"QC-foto's van {t}",tool_ship:"Verzendcalculator",tool_size:"Maatschatter",tool_parcel:"Pakket volgen",v9_trust_agents:"Werkt met 5 agents",all_tools:"Alle tools",theme_label:"Thema",theme_light:"Licht",theme_dark:"Donker",theme_system:"Systeem",aff_note:"De kooplinks zijn affiliatelinks: we kunnen een commissie verdienen als je bestelt, zonder extra kosten voor jou.",search_ph:"Zoek vondsten, bijv. hoodie, cargo, sneaker…",sources_label:"Bron",all_sources:"Alle bronnen",all_types:"Alle types",saved:"Opgeslagen",sort_featured:"Uitgelicht",sort_low:"Prijs laag naar hoog",sort_high:"Prijs hoog naar laag",sort_qc:"Meeste QC-foto’s",sort_pop:"Populairst",sort_recent:"Recent",all_brands:"Alle merken",search_brands:"Zoek merken",count:"{n} van {t} vondsten",indexed:"{n} items geïndexeerd",nothing_t:"Geen resultaten",nothing_b:"Probeer een andere zoekopdracht of wis de filters.",clear_filters:"Filters wissen",saved_filtered_b:"Je hebt {n} bewaarde vondsten. Wis de zoekopdracht of filters om ze te zien.",saved_empty_t:"Nog niets opgeslagen",saved_empty_b:"Tik op het sterretje bij een vondst om die hier op te slaan.",listing:"Advertentiefoto’s",qc:"QC",variants:"Varianten",description:"Beschrijving",seller:"Verkoper",buy_head:"Koop via je agent",buy_via:"Koop via {a}",more:"meer agents",add_ready:"links later toevoegen",note:"Kooplinks bevatten je code {r}. Titels, prijzen, QC-aantallen en beoordelingen zijn echte community-data.",footer:"Grensoverschrijdende vondsten, kwaliteitsgecontroleerd.",footer_line:"Community-vondsten, geïndexeerd voor makkelijk bladeren. Kooplinks via je agent.",sign_in:"Inloggen",sign_out:"Uitloggen",settings:"Instellingen",magic_title:"Inloggen",magic_sub:"We mailen je een link met één tik. Geen wachtwoord.",send_link:"Stuur link",cancel:"Annuleren",check_email:"Check je e-mail voor de inloglink.",auth_off:"Inloggen is tijdelijk niet beschikbaar. Probeer het later opnieuw.",auth_err:"Er ging iets mis bij het inloggen. Probeer het opnieuw.",auth_rate:"Te veel pogingen. Wacht een paar minuten en probeer het opnieuw.",comments:"Reacties",comment_ph:"Deel maat, kwaliteit, pasvorm… (geen externe links)",post:"Plaatsen",sign_in_comment:"Log in om te reageren",no_comments:"Nog geen reacties. Wees de eerste.",links_blocked:"Externe links zijn niet toegestaan in reacties.",comments_off:"Reacties werken op je live-site.",you:"jij",delete:"Verwijderen",hero_h:"De rep-spreadsheet: Vind het. QC het. Koop het.",hero_sub:"Het rep-spreadsheet voor vondsten van Weidian, Taobao en 1688, met echte QC-foto's van kopers en koopknoppen voor je agent in één tik.",stat_finds:"vondsten",stat_markets:"marktplaatsen",stat_qc:"QC-foto’s",cont_google:"Ga verder met Google",cont_apple:"Ga verder met Apple",or:"of",all_colours:"Alle kleuren",any_price:"Elke prijs",price_ask:"Vraag verkoper",blog_title:"Gidsen & blog",blog_sub:"Hoe kopen uit China via een agent werkt – QC, verzending, agents en meer.",read_more:"Lees",similar:"Vergelijkbare vondsten",find_search_ph:"Spring naar een andere vondst…",report_link:"Meld deze vondst",report_thanks:"Bedankt, we checken deze vondst.",rep_q:"Wat is er mis?",rep_dead:"Dode link",rep_wrong:"Verkeerd item of foto's",rep_scam:"Oplichter als verkoper",rep_other:"Iets anders",rep_send:"Melding versturen",rep_removed:"Deze vondst is verwijderd na meldingen van meerdere leden.",share:"Delen",copied:"Link gekopieerd",price_range:"Prijsbereik",gate_h:"Krijg $500 aan coupons",gate_sub:"Meld je gratis aan en we mailen je tot $500 aan MyCNBox-coupons voor nieuwe gebruikers, plus de beste nieuwe vondsten.",cont_discord:"Ga verder met Discord",cont_guest:"Ga verder als gast",gate_step:"Bijna klaar – één tik te gaan",recently_bought:"Favorieten van de community",back:"Terug",browse_all:"Blader door alle vondsten",cat_Tops:"Tops",cat_Outerwear:"Jassen",cat_Shoes:"Schoenen",cat_Pants:"Broeken",cat_Bags:"Tassen",cat_Accessories:"Accessoires",cat_Shorts:"Shorts",cat_Headwear:"Hoofddeksels",cat_Toys:"Speelgoed",all_genders:"Iedereen",g_men:"Heren",g_women:"Dames",qc_cta:"Bekijk echte QC-foto’s op de agentpagina →",in_stock_note:"Prijzen worden bijgewerkt vanuit de live catalogus.",browse_products:"Producten bekijken",most_popular:"Populairst",coupon_hint:"Nieuw bij MyCNBox? Meld je aan via onze link en krijg tot $500 aan coupons voor nieuwe gebruikers",invalid_email:"Vul een geldig e-mailadres in.",qc_real:"Echte QC-foto’s",qc_note:"{n} QC-foto’s van kopers, tik om te vergroten",tools:"Tools",tool_link:"Linkconverter",tool_qc:"QC-checker",tool_weight:"Gewichtschatter",tool_freight:"Verzendcalculator",welcome_bonus:"Welkomstbonus",affiliate:"Partnerprogramma",guides:"Gidsen",how_to_order:"Zo bestel je",hero_link:"Zo werkt bestellen",mycnbox_cta:"Maak een account bij MyCNBox",tp_label:"MyCNBox op Trustpilot",supported_agents:"Ondersteunde agents",language:"Taal",currency:"Valuta",username:"Gebruikersnaam",default_agent:"Standaardagent",save_btn:"Opslaan",back_catalog:"← Terug naar de catalogus",lc_lead:"Plak een Weidian-, Taobao-, 1688- of agentlink. Wij maken er een kooplink via je agent van, klaar om te bestellen.",qc_lead:"Plak een productlink of artikel-ID om QC-foto’s te zien van kopers die het al bestelden.",we_lead:"Plak een link of kies het type voor een globaal verzendgewicht. Vul het in bij de verzendcalculator voor een prijs.",fr_lead:"Een globale verzendprijs per bestemming en gewicht. Het echte bedrag zie je bij het afrekenen bij je agent.",wb_lead:"Nieuw met kopen uit China? Meld je via de links hieronder aan bij een agent en pak de welkomstcoupons vóór je eerste haul.",aff_lead:"Verdien aan de vondsten die je deelt.",lc_label:"Marktplaats- of agentlink",lc_go:"Omzetten",copy_link:"Link kopiëren",open_btn:"Openen",qc_label:"Productlink of artikel-ID",qc_go:"QC-foto’s checken",we_link_label:"Productlink (optioneel)",we_type:"Type artikel",fr_dest:"Bestemming",fr_weight:"Gewicht (gram)",gate_optin:"Mail me nieuwe drops & deals",wb_badge:"MyCNBox welkomstbonus",wb_h:"Claim je welkomstbonus",wb_p:"Nieuwe leden krijgen tot $500 aan coupons bij MyCNBox, onze #1 agent voor de netste QC en snelste verzending. Meld je gratis aan en de bonus geldt voor je eerste bestellingen.",wb_claim:"Claim $500 bonus",wb_more:"Bekijk alle agentbonussen",wb_less:"Verberg agentbonussen",wb_signup:"Aanmelden"}
 };
 
+/* 12 Nov 2026: the Recommended pill on partner-swapped finds */
+Object.assign(T.en,{rec:"Recommended"}); Object.assign(T.no,{rec:"Anbefalt"}); Object.assign(T.sv,{rec:"Rekommenderad"}); Object.assign(T.da,{rec:"Anbefalet"});
+Object.assign(T.de,{rec:"Empfohlen"}); Object.assign(T.nl,{rec:"Aanbevolen"}); Object.assign(T.fr,{rec:"Recommandé"}); Object.assign(T.it,{rec:"Consigliato"});
+Object.assign(T.es,{rec:"Recomendado"}); Object.assign(T.zh,{rec:"推荐"});
 /* 11 Nov 2026: "See more agents" */
 Object.assign(T.en,{see_more_agents:"See more agents"}); Object.assign(T.no,{see_more_agents:"Se flere agenter"}); Object.assign(T.sv,{see_more_agents:"Visa fler agenter"});
 Object.assign(T.da,{see_more_agents:"Se flere agenter"}); Object.assign(T.de,{see_more_agents:"Mehr Agenten anzeigen"}); Object.assign(T.nl,{see_more_agents:"Meer agents tonen"});
@@ -4111,7 +4120,8 @@ function statRow(p){ const w=weightOf(p), q=p.qc||0, out=[];
 const NOT_COLOUR=/^(standard|default|as pictures?|same as pictures?|one ?size|os|eu\d+|[smlx]{1,3}|\d+)$/i;
 function colourCount(p){ if(p.__cc!=null)return p.__cc; const seen=new Set(); (p.variants||[]).forEach(v=>{ const n=String(v&&v[0]||"").split("·")[0].trim().replace(/\s+/g," "); if(!n||NOT_COLOUR.test(n)||/×\s*\d/.test(n))return; seen.add(n.toLowerCase().replace(/\bgray\b/g,"grey")); }); return (p.__cc=seen.size); }
 /* owner, 9 Nov 2026: "remove this color icon": no colour-count badge on cards */
-const colourBadge=p=>"";
+const colourBadge=p=>recBadge(p);   /* 12 Nov 2026: the slot now carries the Recommended pill of a partner-swapped find */
+function recBadge(p){ try{ return p&&typeof SWAPPED!=="undefined"&&SWAPPED.has(String(p.id))?`<span class="rbadge">${ICON("award","sm")}<span>${esc(t("rec"))}</span></span>`:""; }catch(e){ return ""; } }
 const COLORMAP={navy:"#1f2f57","navy blue":"#1f2f57",white:"#f2f2ef",black:"#1a1a1a",grey:"#8a8f98",gray:"#8a8f98",beige:"#d8c9a8",cream:"#efe7d2",red:"#c0392b",pink:"#e39ac0",green:"#3a7d5b",yellow:"#e3c04a","light blue":"#a9c9e8",blue:"#2e5aa8",brown:"#7a5230",orange:"#e08a3c",purple:"#7a5aa8"};
 /* r6: more colour names for the swatches; "Dark Blue" / "Light Grey" style names reuse the base colour, darker or lighter */
 Object.assign(COLORMAP,{gold:"#c9a227",silver:"#c0c0c0",sand:"#d6c3a0",stone:"#b5ad9e",khaki:"#b9a77c",olive:"#6b6b3a",burgundy:"#6d1f2b",wine:"#6d1f2b",camel:"#c19a6b",charcoal:"#3d3f44",ivory:"#f4f1e6",tan:"#c9a27a",mint:"#a8dcc4",lilac:"#c8a2c8",coffee:"#6f4e37",apricot:"#f3b38a",off:"#efe9dc","off white":"#efe9dc",cyan:"#3fb6c8",teal:"#2e7d7a",maroon:"#6d1f2b",rose:"#e8a3a8",violet:"#7a5aa8",indigo:"#3b3f8f",army:"#5b5e3a"});
@@ -4494,7 +4504,16 @@ function pSearchKey(p){ if(p._sk==null){ p._sk=" "+foldQ(`${p.title} ${p.brand||
 /* v9 search core: GROUP A end */
 /* keep ?q= in the URL in step with the search box (on /product/ pages, update the URL the drawer returns to instead) */
 function syncQParam(){ try{ const onP=location.pathname.indexOf("/product/")===0; const u=new URL(onP?(window.__pcBase||"/"):(location.pathname+location.search+location.hash),location.origin); if(state.q) u.searchParams.set("q",state.q); else u.searchParams.delete("q"); const n=u.pathname+u.search+u.hash; if(onP){ window.__pcBase=n; } else if(n!==location.pathname+location.search+location.hash){ history.replaceState(history.state,"",n); } }catch(e){} }
-function filtered(noBrand){   /* noBrand: unsorted list matching every filter except brand (brand menu counts); r6: or "brand" / "color" / "price" to leave out that one filter */
+/* partner swaps (see the loader after initSb()): SWAPPED = finds whose Buy link goes to the partner's item, SWAP_HIDE_OF =
+   look-alike id -> swapped find. swapFirst: swapped finds first, in the list's own order, except in the price sorts. */
+var SWAPPED=new Set(), SWAP_HIDE_OF={};
+function swapFirst(list){
+  if(!SWAPPED.size||!list||!list.length||state.sort==="low"||state.sort==="high") return list;
+  const a=[], b=[]; for(const p of list)(SWAPPED.has(String(p.id))?a:b).push(p);
+  return a.length?a.concat(b):list;
+}
+function filtered(noBrand){ const l=filtered0(noBrand); return noBrand?l:swapFirst(l); }
+function filtered0(noBrand){   /* noBrand: unsorted list matching every filter except brand (brand menu counts); r6: or "brand" / "color" / "price" to leave out that one filter */
   normState();
   const _ex=noBrand===true?"brand":(typeof noBrand==="string"?noBrand:"");
   const _qm=state.q?qMatcher(state.q):null;
@@ -4644,7 +4663,7 @@ function pinSsr(list){
 }
 let _shownSig="";
 function render(){
-  const list=pinSsr(filtered()), grid=$("#grid"), empty=$("#empty"), sig=_gridSig();
+  const list=swapFirst(pinSsr(filtered())), grid=$("#grid"), empty=$("#empty"), sig=_gridSig();
   /* background data (auth start, link check, view stats) often re-renders with nothing new on screen: keep those cards
      (no new <img> elements, no replayed intro animation, no scroll jump) and only refresh their saved stars */
   if(!SHOW_VIEWS&&sig===_shownSig&&_rn>0&&grid.children.length===_rn&&list.length>=_rn&&list.slice(0,_rn).every((p,i)=>p===_rlist[i])){
@@ -4791,6 +4810,7 @@ function _detailBuild(p){
         </div>
         <div class="d-info">
           <div class="d-titlerow"><h1 class="d-title">${esc(p.title)}</h1>${p.brand?`<span class="d-brand">${esc(p.brand)}</span>`:""}</div>${statRow(p)}
+          ${recBadge(p)?`<div class="d-rec">${recBadge(p)}</div>`:""}
           <div class="d-price"><span class="p">${pprice(p.price)}</span>${sub?`<span class="u">${sub}</span>`:""}</div>
           ${SHOW_FAV_COUNTS?`<div class="meta"><span class="tag" data-sc="${p.id}">${fmtStar(p.id)}</span></div>`:""}
           <div class="buy-block"><h2 class="sec-label">${ICON("cart","sm")}${t("buy_head")}</h2><div class="agents">${agentRow(p)}</div>
@@ -5499,6 +5519,7 @@ function renderFeatured(){
   /* once the favourite counts are in: a fresh random pick of favourited products on every visit */
   const favd=[...ALL].filter(p=>p.img&&(p.favs||0)>0);
   if(favd.length>=8){ const seenF=new Set(); items=favd.map(p=>[Math.random(),p]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]).filter(p=>{ const k=(p.brand||"")+"|"+(p.title||""); if(seenF.has(k))return false; seenF.add(k); return true; }).slice(0,14); }
+  try{ const sw=[...SWAPPED].map(id=>BY_ID[id]).filter(p=>p&&p.img&&!SWAP_HIDE_OF[String(p.id)]); if(sw.length){ const ids=new Set(sw.map(p=>p.id)); items=sw.concat(items.filter(p=>!ids.has(p.id)&&!SWAP_HIDE_OF[String(p.id)])).slice(0,Math.max(14,sw.length)); } }catch(e){}   /* partner swaps first (12 Nov 2026) */
   if(!items.length){ strip.innerHTML=""; return; }
   /* repeat the set until one copy is wider than the screen, then duplicate it for a seamless loop
      (no duplicate and no animation when the user prefers reduced motion: the strip scrolls instead) */
@@ -5582,12 +5603,39 @@ const _PR=/^\/product\//.test(location.pathname);
 if(!_PR){ render(); (window.requestIdleCallback||((f)=>setTimeout(f,300)))(()=>{try{renderFeatured();window.__featRendered=1;}catch(e){}}); }
 window.__sbReady=initSb; initSb();
 /* partner link swaps approved on /partner (11 Nov 2026): live from approved_swaps(), else the Swaps workflow's file.
-   The find keeps its page, title and photo; its Buy buttons go to the partner's item */
-(function(){ const put=m=>{ if(!m) return; const go=()=>{ if(typeof ALL==="undefined"||!ALL||!ALL.length){ setTimeout(go,500); return; }
-    ALL.forEach(p=>{ const s=m[p.id]; if(s&&/^(weidian|taobao|1688)$/.test(s[0])&&/^\d{5,20}$/.test(s[1])){ p.platform=s[0]; p.itemId=s[1]; } }); }; go(); };
-  fetch(SUPABASE_URL+"/rest/v1/rpc/approved_swaps",{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"},body:"{}"})
-    .then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(rows=>{ const m={}; (rows||[]).forEach(r=>{ m[r.pid]=[r.platform,String(r.item_id)]; }); put(m); })
-    .catch(()=>fetch("/data/link_swaps.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>put(j&&j.swaps)).catch(()=>{}));
+   The find keeps its page, title and photo; its Buy buttons go to the partner's item.
+   12 Nov 2026 (owner): the price follows the swap (the partner item's own Weidian price, data/link_swaps.json "price", read by
+   scripts/bake_swaps.py every 15 minutes, used only while that item is the one in force; Taobao and 1688 keep the catalogue
+   price); swapped finds come first everywhere (swapFirst, the Popular Now and category rows, the hero strip, similar finds)
+   with a Recommended pill; the other finds of the same item (same brand + title and category, the rule of bake_swaps.py,
+   worked out here for live swaps and taken from the file's "hide_of") leave the sheet. No swaps: nothing changes. */
+(function(){
+  const okSw=s=>s&&/^(weidian|taobao|1688)$/.test(s[0])&&/^\d{5,20}$/.test(String(s[1]));
+  const apply=(m,baked)=>{ const go=()=>{ if(typeof ALL==="undefined"||!ALL||!ALL.length){ setTimeout(go,500); return; }
+    const sw=new Set(), price=(baked&&baked.price)||{}, hideOf={};
+    for(const id in m){ const p=BY_ID[id], s=m[id]; if(!p||!okSw(s)) continue; p.platform=s[0]; p.itemId=String(s[1]); sw.add(String(id));
+      const pr=price[id];
+      if(Array.isArray(pr)&&String(pr[0])===String(s[1])&&+pr[1]>0){ const c=+pr[1]; p.price=c; if(+pr[2]>0) p.usd=+pr[2]; if(Array.isArray(p.variants)) p.variants.forEach(v=>{ if(Array.isArray(v)) v[1]=c; }); } }
+    if(sw.size){
+      const key=p=>((p.brand||"")+"|"+(p.title||"")).toLowerCase()+"|"+(p.cat||""), want=new Map();
+      sw.forEach(id=>{ const p=BY_ID[id]; if(p) want.set(key(p),id); });
+      for(const id in BY_ID){ const k=want.get(key(BY_ID[id])); if(k&&k!==String(id)&&!sw.has(String(id))) hideOf[String(id)]=k; }
+      const bh=(baked&&baked.hide_of)||{}; for(const id in bh){ if(sw.has(String(bh[id]))&&!sw.has(String(id))) hideOf[String(id)]=String(bh[id]); }
+    }
+    SWAPPED=sw; SWAP_HIDE_OF=hideOf;
+    const n=ALL.length; ALL=ALL.filter(p=>!hideOf[String(p.id)]);
+    try{ if(drawer.__pid!=null&&hideOf[String(drawer.__pid)]) markLookalike(hideOf[String(drawer.__pid)]); }catch(e){}
+    if(!sw.size&&ALL.length===n) return;
+    try{ RK_MEMO.k=""; }catch(e){}
+    window.PC_SWAP_V=(window.PC_SWAP_V||0)+1;
+    try{ softRender(); }catch(e){}
+    try{ if(window.__featRendered) renderFeatured(); }catch(e){}
+    try{ window.__pcNumbers&&window.__pcNumbers(); }catch(e){}
+  }; go(); };
+  const baked=fetch("/data/link_swaps.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null);
+  const live=fetch(SUPABASE_URL+"/rest/v1/rpc/approved_swaps",{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"},body:"{}"})
+    .then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(rows=>{ const m={}; (rows||[]).forEach(r=>{ m[r.pid]=[r.platform,String(r.item_id)]; }); return m; }).catch(()=>null);
+  Promise.all([live,baked]).then(([m,b])=>apply(m||(b&&b.swaps)||{},b)).catch(()=>{});
 })();
 /* dead Weidian listings (data/link_health.json, the weekly Link check workflow): hidden from the catalogue */
 var SOLD=new Set();   /* sold out at the last link check: left out of the similar finds */
@@ -6382,7 +6430,7 @@ function renderSimilar(p){
   // 23 Oct 2026: the same brand and item type first, most viewed first; then the same item type from other brands at a
   // similar listed price (60-140%); then the brand's other items. Never sold-out or reported finds, never the same title twice.
   const tk=x=>(x.title||"").toLowerCase().trim(), sold=(typeof SOLD!=="undefined"&&SOLD)||new Set();
-  const ok=x=>x.id!==p.id&&tk(x)!==tk(p)&&!isReported(x.id)&&!sold.has(String(x.id));
+  const ok=x=>x.id!==p.id&&tk(x)!==tk(p)&&!isReported(x.id)&&!sold.has(String(x.id))&&!SWAP_HIDE_OF[String(x.id)];
   const rank=(a,b)=>(popScore(b)-popScore(a))||((b.favs||0)-(a.favs||0))||((b.qc||0)-(a.qc||0));
   const pr=isPH(p.price)?null:p.price;
   /* cheap field tests first: ok() lower-cases two titles per call and ran on all ~9,200 finds three times per opened find */
@@ -6398,7 +6446,8 @@ function renderSimilar(p){
   const alS=al.filter(x=>x.cat===p.cat), alO=al.filter(x=>x.cat!==p.cat);
   const seen={}, seenT={}; let pool=[];
   const add=(arr,max)=>{ for(const x of arr){ if(pool.length>=max) break; if(seen[x.id]||seenT[tk(x)]) continue; seen[x.id]=seenT[tk(x)]=1; pool.push(x); } };
-  add(alS.concat(t1.slice(0,6),t2),8); add(alO,10); add(t2.concat(t3),10);
+  const swS=[...SWAPPED].map(id=>BY_ID[id]).filter(x=>x&&x.cat===p.cat&&ok(x));   /* partner swaps first (12 Nov 2026) */
+  add(swS.concat(alS,t1.slice(0,6),t2),8); add(alO,10); add(t2.concat(t3),10);
   if(!pool.length){ wrap.innerHTML=""; return; }
   wrap.innerHTML='<h2 class="sec-label">'+t("similar")+'</h2><div class="similar-row">'+pool.map(x=>
     '<button class="sim-card" data-sim="'+x.id+'"><span class="sim-thumb">'+(x.img?'<img src="'+esc(thumbOf(x.img))+'" alt="" loading="lazy">':'<canvas aria-hidden="true"></canvas>')+colourBadge(x)+'</span><span class="sim-t">'+esc(x.title)+'</span><span class="sim-p">'+pprice(x.price)+'</span></button>'
@@ -6443,6 +6492,17 @@ function _rtok(){
    kept locally too (pc.reports), so the button stays "sent" and the find leaves this visitor's similar finds. */
 /* the open product view is a find removed after reports (a shared or saved link): say so, no buy buttons. Also called
    when data/reported.json arrives after the view opened (a deep link opens the view first). */
+/* the open product view is a look-alike of a partner-swapped find (a shared or saved link): no buy buttons, a link to the
+   swapped find instead (12 Nov 2026) */
+function markLookalike(sid){
+  const ag=$(".agents",drawer), s=BY_ID[sid]; if(!ag||ag.hidden||!s) return;
+  const bb=$(".d-buybar",drawer), hd=$(".buy-block .sec-label",drawer), rr=$(".report-row",drawer);
+  ag.hidden=true; ag.insertAdjacentHTML("beforebegin",`<p class="report-gone">${ICON("alert","sm")}<span>This listing is no longer on the spreadsheet. The same item is listed here: <a href="/product/${encodeURIComponent(s.id)}" data-swap-open="1">${esc(s.title)}</a>, ${pprice(s.price)}.</span></p>`);
+  const a=$("[data-swap-open]",drawer); if(a) a.addEventListener("click",e=>{ if(e.metaKey||e.ctrlKey||e.shiftKey) return; e.preventDefault(); openDetail(s); });
+  if(hd) hd.hidden=true;
+  if(bb) bb.remove();
+  if(rr) rr.hidden=true;
+}
 function markRemoved(){
   const ag=$(".agents",drawer); if(!ag||ag.hidden) return;
   const bb=$(".d-buybar",drawer), hd=$(".buy-block .sec-label",drawer), rr=$(".report-row",drawer);
@@ -6483,6 +6543,7 @@ function enhanceDrawer(p){
   });
   const rb=$("#report-link",drawer), rs=$("#report-status",drawer), rw=$("#report-why",drawer);
   if(REPORTED.has(String(p.id))) markRemoved();
+  else if(SWAP_HIDE_OF[String(p.id)]) markLookalike(SWAP_HIDE_OF[String(p.id)]);
   else if(rb){
     if(isReported(p.id)){ if(rs)rs.textContent=t("report_thanks"); rb.disabled=true; }
     const rwSet=open=>{ if(!rw) return; rw.classList.toggle("on",open); rw.inert=!open; rb.setAttribute("aria-expanded",String(open)); };
@@ -6758,6 +6819,21 @@ function wirePPFilters(){
       ((b.best || 0) - (a.best || 0)) || ((b.ft || 0) - (a.ft || 0)) || ((a._rnd || 0) - (b._rnd || 0));
   }
   function sold(p) { try { return SOLD && SOLD.has(String(p.id)); } catch (e) { return false; } }
+  /* partner swaps (12 Nov 2026): hid = a look-alike of a swapped find; swTop puts the swapped finds (of that category, all of
+     them in Popular Now) before a row's cards, keeping the row's brand caps for the rest */
+  function hid(p) { try { return !!(p && SWAP_HIDE_OF[String(p.id)]); } catch (e) { return false; } }
+  function swTop(items, cat, caps) {
+    var s = []; try { s = Array.from(SWAPPED).map(function (id) { return BY_ID[id]; }).filter(function (p) { return p && p.img && !sold(p) && !hid(p) && (!cat || p.cat === cat); }); } catch (e) {}
+    if (!s.length) return items;
+    var ids = {}, used = {};
+    s.forEach(function (p) { ids[p.id] = 1; used[p.brand || ""] = (used[p.brand || ""] || 0) + 1; });
+    var rest = items.filter(function (p) {
+      if (ids[p.id] || hid(p)) return false;
+      var b = p.brand || ""; if (caps && caps[b]) { if ((used[b] || 0) >= caps[b]) return false; used[b] = (used[b] || 0) + 1; }
+      return true;
+    });
+    return s.concat(rest).slice(0, Math.max(PER, s.length));
+  }
   /* pool: every find with a photo that is not sold out, most popular first (sorted once for all rows, 5 Nov 2026) */
   function pick(pool, cat, skip) {
     var seen = {}, out = [];
@@ -6812,7 +6888,7 @@ function wirePPFilters(){
   function rotPicks(ids, caps) {
     var B = {}; try { B = BY_ID || {}; } catch (e) {}
     var left = shuffled(ids, Math.floor(Date.now() / 1800000)).map(function (id) { return B[id]; })
-      .filter(function (p) { return p && p.img && !sold(p); });
+      .filter(function (p) { return p && p.img && !sold(p) && !hid(p); });
     var out = [], used = {};
     var full = function (b) { return caps[b] && (used[b] || 0) >= caps[b]; };
     while (out.length < PER && left.length) {
@@ -6828,7 +6904,7 @@ function wirePPFilters(){
   function swapIn(items, c) {
     var sw = ROW_SWAP[c]; if (!sw) return items; var B = {}; try { B = BY_ID || {}; } catch (e) {}
     Object.keys(sw).forEach(function (from) {
-      var to = B[sw[from]]; if (!to || sold(to)) return;
+      var to = B[sw[from]]; if (!to || sold(to) || hid(to)) return;
       var i = -1; items.forEach(function (p, k) { if (String(p.id) === from) i = k; });
       if (i < 0) return;
       if (items.some(function (p) { return String(p.id) === sw[from]; })) items.splice(i, 1); else items[i] = to;
@@ -6854,6 +6930,7 @@ function wirePPFilters(){
       else if (ROW_PICKS[c]) { var rp = rotPicks(ROW_PICKS[c], {}); items = rp.length >= 4 ? rp : swapIn(pick(pool, c, skip), c); pick(pool, c, skip).forEach(function (p) { skip[p.id] = 1; }); }
       else { items = swapIn(pick(pool, c, skip), c); items.forEach(function (p) { skip[p.id] = 1; }); }
       /* a row the visitor has scrolled keeps its cards when only the background data changed */
+      items = swTop(items, c === "pop" ? "" : c, c === "pop" ? ONE_BRAND : null);   /* partner swaps first (12 Nov 2026) */
       if (!force && built && sl[n] > 4) return;
       var frag = d.createDocumentFragment();
       items.forEach(function (p, i) { guard(function () { frag.appendChild(card(p, 8 + i)); }); });   /* index 8+: lazy images, the hero h1 stays the LCP */
@@ -6891,7 +6968,7 @@ function wirePPFilters(){
   function sig() {
     var s = st() || {}, stats = 0;
     try { stats = STATS ? 1 : 0; } catch (e) {}
-    return [s.cur, s.lang, s.agent, list().length, stats].join("|");
+    return [s.cur, s.lang, s.agent, list().length, stats, w.PC_SWAP_V || 0].join("|");
   }
   var last = "";
   /* r12 (4 Nov 2026): the rows wait (grey placeholders) until the view stats and the dead-link check are both in, then

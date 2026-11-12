@@ -1222,13 +1222,20 @@ function loadCatalog() {
 }
 function getJSON(u) { return fetch(u).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
 var PRE = window.PC_PRE || {};   /* started in the head (perf, 5 Nov 2026) */
-Promise.all([loadCatalog(), PRE.stats || getJSON("/data/stats.json"), PRE.link_health || getJSON("/data/link_health.json"), PRE.reported || getJSON("/data/reported.json")]).then(function (r) {
-  var cat = r[0] || [], st = r[1], lh = r[2], rp = r[3];
+Promise.all([loadCatalog(), PRE.stats || getJSON("/data/stats.json"), PRE.link_health || getJSON("/data/link_health.json"), PRE.reported || getJSON("/data/reported.json"), getJSON("/data/link_swaps.json")]).then(function (r) {
+  var cat = r[0] || [], st = r[1], lh = r[2], rp = r[3], sw = r[4] || {};
+  // partner swaps (data/link_swaps.json, scripts/bake_swaps.py, 12 Nov 2026): look-alikes leave the feed like removed finds;
+  // swapped finds carry the partner item's price and open the feed, labelled Recommended
+  var SWP = sw.swaps || {}, SPR = sw.price || {}, swFirst = [];
+  if (Array.isArray(sw.hide)) sw.hide.forEach(function (id) { DEAD[String(id)] = 1; });
   if (st && st.p) for (var id in st.p) { var v = st.p[id]; POP[id] = (v[1] || 0) + (v[2] || 0) + 3 * (v[3] || 0); POP7[id] = v[2] || 0; if (POP[id] > maxPop) maxPop = POP[id]; }
   if (lh && lh.dead) lh.dead.forEach(function (id) { DEAD[String(id)] = 1; });
   if (rp && Array.isArray(rp.hidden)) rp.hidden.forEach(function (id) { DEAD[String(id)] = 1; });   // removed after member reports (scripts/bake_reports.py)
   cat.forEach(function (p) { p.id = String(p.id); p._img = imgOf(p); p._t = typeOf(p); p._k = colOf(p); p._n = (p.title || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); BY[p.id] = p; });
   ALL = cat;
+  cat.forEach(function (p) { var s = SWP[p.id]; if (!s) return; p.platform = s[0]; p.itemId = String(s[1]);
+    var pr = SPR[p.id]; if (Array.isArray(pr) && String(pr[0]) === String(s[1]) && +pr[1] > 0) p.price = +pr[1];
+    swFirst.push(p); });
   buildVocab();
   ALL.forEach(function (p) { if (p.brand) { BSLUG[slug(p.brand)] = p.brand; BSLUG[slug(p.brand.replace(/['\u2019]/g, ""))] = p.brand; } });   // brand pages drop apostrophes (arcteryx)
   if (!M.fl) M.fl = M.seeded ? Array.from(FAVES) : [];   // favourites taught by the old start-up step count as learned
@@ -1237,6 +1244,7 @@ Promise.all([loadCatalog(), PRE.stats || getJSON("/data/stats.json"), PRE.link_h
   if (q.get("m") === "tr") { mode = "tr"; $("#tab-fy").setAttribute("aria-selected", "false"); $("#tab-tr").setAttribute("aria-selected", "true"); }
   var start = BY[q.get("id") || ""];
   if (start && eligible(start)) { first.push(start); why[start.id] = ""; S.w["b:" + (start.brand || "?")] = 1.2; S.w["t:" + start._t] = 1.2; }
+  swFirst.forEach(function (p) { if (p !== start && eligible(p)) { first.push(p); why[p.id] = "Recommended"; } });
   var br = q.get("brand");
   if (br) { var bl = br.toLowerCase(); S.w["b:" + (ALL.find(function (p) { return p.brand && p.brand.toLowerCase() === bl; }) || {}).brand] = 3; }
   $("#load").remove();
