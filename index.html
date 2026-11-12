@@ -5199,12 +5199,12 @@ async function _syncProfile(){
 }
 /* how-to-order welcome (12 Nov 2026, owner): 4 short steps instead of a wall of text. 1 an illustration of how ordering
    works with the 1:47 video one tap away (easy to skip), 2 pick your agent, 3 pick your currency, 4 a "you're all set"
-   animation. Once, for accounts made in the last two days (pc.tut.seen); ?tour=1 opens it for anyone (preview, nothing
+   animation. Once, for accounts made in the last two days and for guests after the sign-up gate (pc.tut.seen); ?tour=1 opens it for anyone (preview, nothing
    is marked as seen). Closes with the X, Esc or a click outside. Choices go through the header selects (#agent, #cur),
    so the app re-renders exactly as when they are changed there. */
-function showTutorialPopup(force){
-  try{ if(!force){ if(!ME||window.__pcLeaving||localStorage.getItem("pc.tut.seen")==="1") return;
-    const made=Date.parse(ME.created_at||""); if(!made||Date.now()-made>2*864e5) return; }
+function showTutorialPopup(force,guest){
+  try{ if(!force){ if(window.__pcLeaving||localStorage.getItem("pc.tut.seen")==="1") return;
+    if(!guest){ if(!ME) return; const made=Date.parse(ME.created_at||""); if(!made||Date.now()-made>2*864e5) return; } }
     if(document.getElementById("tut-pop")) return; }catch(e){ return; }
   const A=(typeof AGENTS!=="undefined"&&AGENTS)||{}, ORDER=((typeof AGENT_ORDER!=="undefined"&&AGENT_ORDER)||Object.keys(A)).filter(k=>A[k]);
   const C=(typeof CUR!=="undefined"&&CUR)||{USD:{sym:"$"}};
@@ -5284,6 +5284,9 @@ function showTutorialPopup(force){
   go(0);
 }
 try{ if(/[?&]tour=1(&|$)/.test(location.search)) setTimeout(()=>showTutorialPopup(true),1500); }catch(e){}
+/* owner, 12 Nov 2026: guests get the tour too, right after "Continue as guest" closes the sign-up gate (members get it from the
+   profile code above). Once per browser, like for members (pc.tut.seen). */
+try{ window.addEventListener("pc:gate-closed",()=>setTimeout(()=>{ try{ if(!ME) showTutorialPopup(false,true); }catch(e){} },700)); }catch(e){}
 /* one-time marketing opt-in prompt (OAuth users never see the gate checkbox, so ask them here) */
 function showOptinPrompt(){
   try{ if(!sb||!ME) return; if(localStorage.getItem("pc.optin")==="1"||localStorage.getItem("pc.optin.asked")==="1") return; if(document.getElementById("optin-toast")) return; }catch(e){ return; }
