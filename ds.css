@@ -1297,3 +1297,7 @@ header.h .hprefs-l{display:flex;align-items:center;min-height:36px;padding:0 10p
   header.h .tools-menu{left:auto;right:0;transform-origin:top right}   /* opens leftwards: from the Tools button it ran off a 375px screen */
   header.h .hseg button{height:44px}
 }
+
+/* 12 Nov 2026: no multiply blend on product photos in dark mode (iPhone Safari can paint a white box behind blended cut-outs) */
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(.ci img,.pimg img,.thumbs img){mix-blend-mode:normal}}
+:root[data-theme="dark"] :is(.ci img,.pimg img,.thumbs img){mix-blend-mode:normal}
