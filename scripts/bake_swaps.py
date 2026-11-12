@@ -21,7 +21,7 @@ price, what the find cards show), in yuan. Every run looks the items up again, s
 those finds keep their catalogue price. usd = cny times the find's own catalogue usd/cny rate (0.1394 when unknown).
 
 Look-alikes (owner: "the links that are like the ones that has been switched to be removed from the spreadsheet"): every
-other find with the same name group as a swapped find (brand + title, lower case, after the same brand clean-up as
+other find of the same brand, category and kind of item (kind_of) as a swapped find; with no readable kind, the same name group (brand + title, lower case, after the same brand clean-up as
 functions/_lib/site.js and index.html, the key of idx().groups) AND the same category. A swapped find is never hidden.
 
 Local run without the service key (offline): python3 scripts/bake_swaps.py --from-json data/link_swaps.json
@@ -55,6 +55,37 @@ def norm(p):
         if title.startswith(brand + " ") and not title.lower().startswith(nb.lower() + " "): title = nb + title[len(brand):]
         brand = nb
     return brand, title
+
+
+# kinds of item, first match wins (so "Down Jacket" is a jacket, "Zip Hoodie" a hoodie); read from the title
+KINDS = [
+    ("jacket", r"jacket|coat|parka|puffer|down|windbreaker|shell|gilet|vest|anorak|bomber|overshirt|blazer"),
+    ("hoodie", r"hoodie|hoody|hooded"),
+    ("sweater", r"sweater|knit|knitwear|cardigan|jumper|sweatshirt|crewneck|crew neck|quarter zip|half zip|fleece"),
+    ("long sleeve", r"long ?sleeve|longsleeve"),
+    ("tee", r"t-?shirt|tee|tees|tank|polo|jersey|shirt|top"),
+    ("tracksuit", r"tracksuit|track suit|set"),
+    ("pants", r"pants|trousers|jeans|joggers|sweatpants|cargos?|leggings"),
+    ("shorts", r"shorts|swim ?shorts|trunks"),
+    ("shoes", r"shoes?|sneakers?|trainers?|boots?|slides?|sandals?|loafers?|runners?|clogs?|slippers?"),
+    ("bag", r"bags?|backpack|tote|wallet|cardholder|card holder|purse|pouch|duffel|crossbody"),
+    ("hat", r"cap|hat|beanie|bucket"),
+    ("belt", r"belts?"),
+    ("socks", r"socks?"),
+    ("scarf", r"scarf|scarves|balaclava|gloves?"),
+    ("glasses", r"glasses|sunglasses"),
+    ("jewellery", r"necklace|bracelet|ring|earrings?|chain|pendant"),
+    ("watch", r"watch"),
+]
+KIND_RE = [(k, re.compile(r"\b(?:%s)\b" % rx, re.I)) for k, rx in KINDS]
+
+
+def kind_of(p):
+    """The kind of item from the title (after the brand), or "" when none matches."""
+    t = norm(p)[1]
+    for k, rx in KIND_RE:
+        if rx.search(t): return k
+    return ""
 
 
 def group_key(p):
@@ -128,15 +159,22 @@ def bake(swaps, items, old):
         except (TypeError, ValueError): rate = USD_RATE
         if not 0.05 < rate < 0.5: rate = USD_RATE
         price[pid] = [item, cny, round(cny * rate, 2)]
-    # look-alikes: same name group and same category as a swapped find; never a swapped find itself
-    groups = {}
+    # look-alikes (owner, 12 Nov 2026: "now that we have this arcteryx jacket swapped remove all of the other jackets, do the
+    # same with all swapped items"): every other find of the same brand, category and kind of item (kind_of: jacket, hoodie,
+    # pants, ...). A find whose kind can't be read falls back to the same name group. Never a swapped find itself.
+    groups, kinds = {}, {}
     for p in items:
-        groups.setdefault((group_key(p), str(p.get("cat") or "")), []).append(str(p.get("id")))
+        cat = str(p.get("cat") or "")
+        groups.setdefault((group_key(p), cat), []).append(str(p.get("id")))
+        b, k = norm(p)[0].lower(), kind_of(p)
+        if b and k: kinds.setdefault((b, cat, k), []).append(str(p.get("id")))
     hide_of = {}
     for pid in swaps:
         p = by_id.get(pid)
         if not p: continue
-        for oid in groups.get((group_key(p), str(p.get("cat") or "")), []):
+        cat, b, k = str(p.get("cat") or ""), norm(p)[0].lower(), kind_of(p)
+        same = kinds.get((b, cat, k), []) if (b and k) else groups.get((group_key(p), cat), [])
+        for oid in same:
             if oid != pid and oid not in swaps and oid not in hide_of: hide_of[oid] = pid
     hide_of = dict(sorted(hide_of.items()))
     return {"swaps": swaps, "price": dict(sorted(price.items())), "hide": sorted(hide_of), "hide_of": hide_of}, looked
