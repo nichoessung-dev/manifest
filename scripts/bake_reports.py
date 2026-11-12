@@ -26,6 +26,7 @@ import datetime, json, math, os, sys, urllib.error, urllib.request
 SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co"
 PAGE = 1000
 OUT, OVR, STATS = "data/reported.json", "data/report_overrides.json", "data/stats.json"
+PHOTO = "data/photo_hidden.json"   # finds with a bad main photo (scripts/photo_hide.py), merged in by merge_photo
 
 WINDOW_DAYS = 30
 MEMBER_W = 1.0          # signed-in member with a confirmed email, account at least a day old at report time
@@ -136,7 +137,7 @@ def decide(rows, views30, overrides, prev, now):
             watch.append(s)
     # still removed from earlier runs (sticky until "keep"), with fresh numbers when there are any
     for pid, x in prev_items.items():
-        if pid in keep or x.get("by") == "owner": continue
+        if pid in keep or x.get("by") in ("owner", "photo"): continue   # photo: re-decided by merge_photo every run
         s = next((c for c in candidates if c["id"] == pid), None)
         if s: candidates.remove(s)
         else: s = dict(x)
@@ -168,6 +169,29 @@ def decide(rows, views30, overrides, prev, now):
         "watch": watch[:WATCH_MAX],
         "held": len(held),
     }
+
+
+def merge_photo(out, photo, overrides, prev, now):
+    """Pure: add the finds scripts/photo_hide.py hides for a bad main photo (data/photo_hidden.json) as by "photo".
+    Not sticky: a find comes back when it leaves that list (a new photo). The owner's "keep" always wins."""
+    keep, _ = load_overrides(overrides)
+    ids = [str(i) for i in ((photo or {}).get("hidden") or [])] if isinstance(photo, dict) else []
+    why = (photo or {}).get("why") or {} if isinstance(photo, dict) else {}
+    have = {x["id"] for x in out["items"]}
+    prev_items = {str(x.get("id")): x for x in (prev.get("items") or []) if isinstance(x, dict)}
+    today = now.date().isoformat()
+    add = []
+    for pid in ids:
+        if pid in keep or pid in have: continue
+        iss = why.get(pid) or []
+        add.append({"id": pid, "by": "photo", "issues": iss, "reasons": {"photo: " + i.replace("_", " "): 1 for i in iss},
+                    "since": (prev_items.get(pid) or {}).get("since") if (prev_items.get(pid) or {}).get("by") == "photo" else today})
+    if not add: return out
+    out = dict(out)
+    out["items"] = sorted(out["items"] + add, key=lambda x: (x.get("since") or "", x["id"]), reverse=True)
+    out["hidden"] = sorted(set(out["hidden"]) | {x["id"] for x in add})
+    out["photo"] = len(add)
+    return out
 
 
 def fetch_all(key, path):
@@ -206,6 +230,7 @@ def main():
     views30 = {str(k): (v[1] if isinstance(v, list) and len(v) > 1 else 0) for k, v in stats.items()}
     prev = read_json(OUT, {})
     out = decide(rows, views30, read_json(OVR, {}), prev if isinstance(prev, dict) else {}, now)
+    out = merge_photo(out, read_json(PHOTO, {}), read_json(OVR, {}), prev if isinstance(prev, dict) else {}, now)
     strip = lambda d: json.dumps({k: v for k, v in d.items() if k != "updated"}, sort_keys=True)
     if isinstance(prev, dict) and prev and strip(prev) == strip(out):
         print("reported unchanged:", len(out["hidden"]), "hidden"); return 0
