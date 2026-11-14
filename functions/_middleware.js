@@ -197,7 +197,7 @@ async function catalogJs(ctx, url) {
     // browsers older than ES2019 reject them raw in a string literal (and the whole part with them).
     const rows = all.slice(part * n, (part + 1) * n).map(p => { const q = { ...p }; delete q.usd; if (!q.rating) delete q.rating; if (!q.views) delete q.views; return q; });
     body = "window.PC_CATALOG=(window.PC_CATALOG||[]).concat(JSON.parse('" +
-      JSON.stringify(rows).replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/ /g, "\\u2028").replace(/ /g, "\\u2029") +
+      JSON.stringify(rows).replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029") +
       "'));window.PC_CATALOG_GOT=(window.PC_CATALOG_GOT||0)+1;";
   }
   ctx.waitUntil(caches.default.put(key, new Response(body, { headers: { ...type, "cache-control": "public, max-age=31536000" } })).catch(() => {}));
