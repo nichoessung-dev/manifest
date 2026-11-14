@@ -12,6 +12,7 @@ const SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co";
 // The site code never goes on item links: that would mix a counting change into the only sign-up series there is.
 const CODES = { site: "AACPYA", product: "", email: "", social: "" };
 const REFER_ID = "LHYDVW";
+const FB = /^fb\./i, FB_INVITE = "AADAXV";
 // The mallType values the site's own builders emit (the catalogue's "platform": AGENTS.mycnbox in index.html and _lib/site.js).
 const MALLS = ["weidian", "taobao", "1688"];
 // A new placement must be added here in the same deploy as the link that uses it, or it is stored as "other".
@@ -40,18 +41,21 @@ const INAPP = [
 // Where a click goes and how it is logged. k, m, i and p each count only when given exactly once.
 // "amp;m" is what "&m" turns into when a link was HTML-escaped once too often (&amp;m=... arrives as text).
 // It is read as the same parameter, so such a link still reaches its item and keeps its placement.
-function resolve(q) {
+function resolve(q, host = "") {
   const one = name => { const all = q.getAll(name).concat(q.getAll("amp;" + name)); return all.length === 1 ? all[0] : null; };
   const p = one("p"), m = one("m"), i = one("i");
   const placement = PLACEMENTS.includes(p) ? p : "other";
   if (one("k") === "item" && MALLS.includes(m) && /^[0-9]{5,20}$/.test(i || "")) {
     const code = CODES.product && CODES.product !== CODES.site ? CODES.product : "";
+    // fb.* (the partner's copy of the site): his invite code instead of our referId, see FB_INVITE in _middleware.js
+    if (FB.test(host)) return { kind: "item", placement, location: `https://mycnbox.com/goodsDetail?mallType=${m}&itemId=${i}&inviteCode=${FB_INVITE}` };
     return { kind: "item", placement,
       location: `https://mycnbox.com/goodsDetail?mallType=${m}&itemId=${i}&referId=${REFER_ID}` + (code ? `&inviteCode=${code}` : "") };
   }
   // Everything else, a broken item link included, lands on the sign-up page: a click never gets an error page.
   // The channel comes from the stored placement, so the table alone tells which code a click carried.
   const channel = placement.startsWith("email-") ? "email" : placement === "social" || placement === "start" ? "social" : "site";
+  if (FB.test(host)) return { kind: "invite", placement, location: "https://m.mycnbox.com/pages/login/index?inviteCode=" + FB_INVITE };
   return { kind: "invite", placement, location: "https://mycnbox.com/login/main-login?inviteCode=" + (CODES[channel] || CODES.site) };
 }
 
@@ -90,7 +94,7 @@ function go(context, counted) {
     return new Response(context.request.method === "HEAD" ? null : "Not found", { status: 404,
       headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
   }
-  const t = resolve(new URL(context.request.url).searchParams);
+  const t = resolve(new URL(context.request.url).searchParams, new URL(context.request.url).hostname);
   if (counted) count(context, t.kind, t.placement);
   // no-store: a cached redirect would hide later clicks and keep an old code alive after CODES changes.
   return new Response(null, { status: 302, headers: { "Location": t.location, "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
