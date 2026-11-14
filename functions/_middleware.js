@@ -55,8 +55,23 @@ const SECURITY_HEADERS = {
   "cross-origin-opener-policy": "same-origin-allow-popups",
   "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cloudflareinsights.com https://accounts.google.com/gsi/; frame-src https://*.supabase.co https://accounts.google.com https://appleid.apple.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
 };
+// fb.puroclassico.com (14 Nov 2026): the same site, with a partner's MyCNBox invite code in place of ours, on sign-up links,
+// the shown code and the Buy buttons. Only pages and scripts are rewritten, and only on hosts starting "fb.", so www is untouched.
+// The /go redirect does its own swap (go/[agent].js). Item links carry the partner's inviteCode instead of our referId.
+const FB_INVITE = "AADAXV";
+const FB_SIGNUP = "https://m.mycnbox.com/pages/login/index?inviteCode=" + FB_INVITE;
+const FB_RE = /https:\/\/mycnbox\.com\/login\/main-login\?inviteCode=AACPYA|AACPYA|referId=" \+ AGENT_REFS\.mycnbox|referId="\+R\.mycnbox|referId=\$\{AGENT_REFS\.mycnbox\}|referId=\$\{REFS\.mycnbox\}|referId=LHYDVW/g;
+const fbSwap = m => m === "AACPYA" ? FB_INVITE : m.startsWith("https:") ? FB_SIGNUP : m.includes('"') ? `inviteCode=${FB_INVITE}"` : `inviteCode=${FB_INVITE}`;
+async function fbRewrite(res) {
+  const type = res.headers.get("content-type") || "";
+  if (res.status !== 200 || !/html|javascript/i.test(type)) return res;
+  const out = new Response((await res.text()).replace(FB_RE, fbSwap), res);
+  for (const h of ["content-length", "content-encoding", "etag"]) out.headers.delete(h);
+  return out;
+}
 export async function onRequest(ctx) {
-  const res = await route(ctx);
+  let res = await route(ctx);
+  if (/^fb\./i.test(new URL(ctx.request.url).hostname)) res = await fbRewrite(res);
   const preview = new URL(ctx.request.url).hostname.endsWith("." + PAGES_DEV);
   const bare = !res.headers.has("x-content-type-options");   // built by a Function, so _headers never reached it
   if (!preview && !bare) return res;
@@ -182,7 +197,7 @@ async function catalogJs(ctx, url) {
     // browsers older than ES2019 reject them raw in a string literal (and the whole part with them).
     const rows = all.slice(part * n, (part + 1) * n).map(p => { const q = { ...p }; delete q.usd; if (!q.rating) delete q.rating; if (!q.views) delete q.views; return q; });
     body = "window.PC_CATALOG=(window.PC_CATALOG||[]).concat(JSON.parse('" +
-      JSON.stringify(rows).replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029") +
+      JSON.stringify(rows).replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/ /g, "\\u2028").replace(/ /g, "\\u2029") +
       "'));window.PC_CATALOG_GOT=(window.PC_CATALOG_GOT||0)+1;";
   }
   ctx.waitUntil(caches.default.put(key, new Response(body, { headers: { ...type, "cache-control": "public, max-age=31536000" } })).catch(() => {}));
