@@ -5575,12 +5575,15 @@ function renderFeatured(){
 /* image failed: retry once (transient /api/img 502s), then swap in the generated placeholder tile like grid cards */
 /* grid thumbnails: a 400 px copy from Cloudflare image resizing (22 Oct 2026); the drawer and zoom keep the original.
    A failed copy falls back to the original through the retry in the card's error handler and imgFallback. */
+/* 15 Nov 2026: the RepLibrary photos (img/rl/) were cut out in place on 11 Nov, but Cloudflare's resize cache kept the old
+   white-square copies; a new source URL makes it resize the transparent file. Bump c= if they are rewritten again. */
+function rlBust(p){ return /^\/img\/rl\/[^?]+$/.test(p)?p+"?c=1":p; }
 function thumbOf(u){ if(!u||!/(^|\.)puroclassico\.com$/.test(location.hostname)) return u; const o=location.origin, path=u.indexOf(o+"/")===0?u.slice(o.length):u;
-  return /^\/(img\/|api\/img\?)/.test(path)?o+"/cdn-cgi/image/width=400,quality=75,format=auto"+path:u; }
+  return /^\/(img\/|api\/img\?)/.test(path)?o+"/cdn-cgi/image/width=400,quality=75,format=auto"+rlBust(path):u; }
 /* 8 Nov 2026, sharper photos: a 720 px copy for retina screens next to the 400 px one (the browser picks), and the product
    view's photo as a 1400 px AVIF/WebP from Cloudflare (smaller and faster than the stored original, never upscaled) */
 function cdnOf(u,w,q){ if(!u||!/(^|\.)puroclassico\.com$/.test(location.hostname)) return u; const o=location.origin, path=u.indexOf(o+"/")===0?u.slice(o.length):u;
-  return /^\/(img\/|api\/img\?)/.test(path)?o+"/cdn-cgi/image/width="+w+",quality="+q+",format=auto"+path:u; }
+  return /^\/(img\/|api\/img\?)/.test(path)?o+"/cdn-cgi/image/width="+w+",quality="+q+",format=auto"+rlBust(path):u; }
 function thumbSet(u){ const a=thumbOf(u), b=cdnOf(u,720,80); return a===b?"":a+" 400w, "+b+" 720w"; }
 /* 9 Nov 2026: "&hd=2" gives the product view fresh Cloudflare copies, made from the full-size site photos (1200 px) */
 function bigOf(u){ const b=cdnOf(u,1400,85); return b!==u&&/\/api\/img\?/.test(b)?b+"&hd=2":b; }

@@ -301,8 +301,10 @@ export const THUMB = "/cdn-cgi/image/width=400,quality=75,format=auto";
 export function thumbSrc(src) {
   if (!src || src.indexOf(SITE + "/") !== 0) return src;
   const path = src.slice(SITE.length);
-  return /^\/(img\/|api\/img\?)/.test(path) ? SITE + THUMB + path : src;
+  return /^\/(img\/|api\/img\?)/.test(path) ? SITE + THUMB + rlBust(path) : src;
 }
+// 15 Nov 2026: img/rl/ was cut out in place on 11 Nov and Cloudflare's resize cache kept the white copies (same in index.html)
+export const rlBust = (p) => /^\/img\/rl\/[^?]+$/.test(p) ? p + "?c=1" : p;
 export const IMG_FALLBACK = `onerror="if(this.dataset.o){this.src=this.dataset.o;this.dataset.o=''}else this.remove()"`;
 export const productUrl = p => "/product/" + encodeURIComponent(p.id);
 export const brandUrl = b => { const s = idx().brandSlug.get(b); return s ? "/brand/" + s : null; };
