@@ -1,0 +1,70 @@
+name: Photo fix
+# Weak main photos only (owner, 15 Nov 2026): 1. an exact-match photo from official retailers (Brave image search,
+# vision check: same design + colour), 3. else an AI clean-up of the real photo (Gemini edit, vision check that the item
+# did not change). Step 2, the seller's own photos, is seller-photos.yml. Test runs: nothing on the site changes, the
+# before/after sheet and the new photos are in the run's artifacts. Needs secrets BRAVE_API_KEY, GEMINI_API_KEY,
+# ANTHROPIC_API_KEY.
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Finds with weak photos to try'
+        default: '20'
+      ids:
+        description: 'Only these ids (comma separated; optional)'
+        default: ''
+      steps:
+        description: 'Steps: retail,clean (or just one)'
+        default: 'retail,clean'
+      max_usd:
+        description: 'Hard stop for AI spend this run (USD)'
+        default: '5'
+permissions:
+  contents: read
+concurrency:
+  group: photo-fix
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      LIMIT: ${{ inputs.limit }}
+      IDS: ${{ inputs.ids }}
+      STEPS: ${{ inputs.steps }}
+      MAX_USD: ${{ inputs.max_usd }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check inputs
+        run: |
+          [[ "$LIMIT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::limit must be a number"; exit 1; }
+          [[ "$MAX_USD" =~ ^[0-9]{1,4}(\.[0-9]{1,2})?$ ]] || { echo "::error::max_usd must be a number"; exit 1; }
+          [[ "$STEPS" =~ ^(retail|clean)(,(retail|clean))?$ ]] || { echo "::error::steps must be retail and/or clean"; exit 1; }
+          [[ -z "$IDS" || "$IDS" =~ ^[0-9A-Za-z_,\ -]+$ ]] || { echo "::error::bad ids"; exit 1; }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install pillow "rembg[cpu]>=2.0.59,<3" numpy
+      - name: Cache background-removal model
+        uses: actions/cache@v4
+        with:
+          path: ~/.u2net
+          key: u2net-isnet-general-use-v1
+      - name: Fix photos (test, site unchanged)
+        env:
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
+          python -u scripts/photo_fix.py --limit "$LIMIT" --steps "$STEPS" --max-usd "$MAX_USD" $IDA
+          cp data/photo_fix.json out/photo-fix/ 2>/dev/null || true
+      - name: Keep photos and sheet
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: photo-fix-${{ github.run_number }}
+          path: out/photo-fix/
+          if-no-files-found: ignore
+          retention-days: 30
