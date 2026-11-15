@@ -47,6 +47,9 @@
 /data/also.json
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
+/data/subcats.json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
 # web app manifest (round 5): a day, so a changed name or icon reaches installs soon
 /manifest.webmanifest
   Content-Type: application/manifest+json

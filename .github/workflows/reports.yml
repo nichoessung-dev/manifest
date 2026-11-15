@@ -29,9 +29,11 @@ jobs:
       - run: python scripts/bake_reports.py
         env:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      - name: Subcategories (data/subcats.json)
+        run: python scripts/bake_subcats.py
       - name: Commit if changed
         run: |
-          git add data/reported.json data/photo_hidden.json
+          git add data/reported.json data/photo_hidden.json data/subcats.json
           if git diff --cached --quiet; then
             echo "no change"
           else

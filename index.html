@@ -567,6 +567,8 @@ footer a:hover{color:var(--ink)}
 .agent .agent-name{flex:0 1 auto}
 .buy-dd-item .agent-name{flex:1}
 .af-row{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 14px}.af-chip,.af-clear{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:999px;font:inherit;font-size:13px;cursor:pointer;transition:background-color .15s ease,transform .15s ease}.af-chip{border:0;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--ink)}.af-chip:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}.af-chip svg{width:13px;height:13px;color:var(--accent)}.af-clear{border:1px solid var(--line-2);background:transparent;color:var(--muted)}.af-clear:hover{color:var(--ink)}.af-chip:active,.af-clear:active{transform:scale(.96)}
+/* subcategory chips (owner, 15 Nov 2026): T-shirts, Hoodies ... above the grid when one category is picked; data/subcats.json */
+.sub-row{display:flex;gap:8px;margin:0 0 16px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:1px}.sub-row::-webkit-scrollbar{display:none}.sub-chip{flex:none;display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:transparent;color:var(--ink);font:inherit;font-size:13.5px;cursor:pointer;white-space:nowrap;transition:background-color .15s ease,border-color .15s ease,transform .15s ease}.sub-chip:hover{border-color:var(--muted)}.sub-chip:active{transform:scale(.96)}.sub-chip[aria-pressed="true"]{background:var(--fill);border-color:var(--fill);color:var(--fill-ink)}
 .buy-hint{display:flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:12px;font-size:12.5px;line-height:1.35;color:var(--ink);text-decoration:none;background:color-mix(in srgb,var(--accent) 10%,transparent);transition:background-color .15s ease}.buy-hint:hover{background:color-mix(in srgb,var(--accent) 18%,transparent)}.buy-hint span{flex:1;min-width:0}.buy-hint svg{width:16px;height:16px;flex:none;color:var(--accent)}
 .agent-badge{font-family:var(--f-mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
 .agent.primary .agent-badge{background:var(--brand-red);color:#fff}
@@ -3033,19 +3035,19 @@ html .pc-dens{border-color:transparent!important;background:var(--surface-2)!imp
 </section>
 <section class="v9-sec v9-row" data-row="Shoes" aria-labelledby="v9-row-Shoes-h">
   <div class="v9-wrap">
-    <div class="v9-head"><h2 id="v9-row-Shoes-h" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-shoe"/></svg></span><span data-i18n="v9_row_shoes">Shoes & Sneakers</span></h2><div class="v9-head-r"><a class="v9-more" href="/?cat=Shoes#v9-all" data-cat="Shoes"><span data-i18n="v9_view_more">View more</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a><span class="v9-arrows"><button type="button" class="v9-arr" data-dir="-1" aria-label="Previous finds" aria-controls="v9-rail-Shoes" disabled><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-left"/></svg></button><button type="button" class="v9-arr" data-dir="1" aria-label="Next finds" aria-controls="v9-rail-Shoes"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button></span></div></div>
+    <div class="v9-head"><h2 id="v9-row-Shoes-h" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-shoe"/></svg></span><span data-i18n="v9_row_shoes">Shoes & Sneakers</span></h2><div class="v9-head-r"><a class="v9-more" href="/category/sneakers"><span data-i18n="v9_view_more">View more</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a><span class="v9-arrows"><button type="button" class="v9-arr" data-dir="-1" aria-label="Previous finds" aria-controls="v9-rail-Shoes" disabled><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-left"/></svg></button><button type="button" class="v9-arr" data-dir="1" aria-label="Next finds" aria-controls="v9-rail-Shoes"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button></span></div></div>
     <div class="v9-rail" id="v9-rail-Shoes"><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div></div>
   </div>
 </section>
 <section class="v9-sec v9-row" data-row="Tops" aria-labelledby="v9-row-Tops-h">
   <div class="v9-wrap">
-    <div class="v9-head"><h2 id="v9-row-Tops-h" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-hoodie"/></svg></span><span data-i18n="v9_row_tops">Hoodies & Tops</span></h2><div class="v9-head-r"><a class="v9-more" href="/?cat=Tops#v9-all" data-cat="Tops"><span data-i18n="v9_view_more">View more</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a><span class="v9-arrows"><button type="button" class="v9-arr" data-dir="-1" aria-label="Previous finds" aria-controls="v9-rail-Tops" disabled><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-left"/></svg></button><button type="button" class="v9-arr" data-dir="1" aria-label="Next finds" aria-controls="v9-rail-Tops"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button></span></div></div>
+    <div class="v9-head"><h2 id="v9-row-Tops-h" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-hoodie"/></svg></span><span data-i18n="v9_row_tops">Hoodies & Tops</span></h2><div class="v9-head-r"><a class="v9-more" href="/category/tops"><span data-i18n="v9_view_more">View more</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a><span class="v9-arrows"><button type="button" class="v9-arr" data-dir="-1" aria-label="Previous finds" aria-controls="v9-rail-Tops" disabled><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-left"/></svg></button><button type="button" class="v9-arr" data-dir="1" aria-label="Next finds" aria-controls="v9-rail-Tops"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button></span></div></div>
     <div class="v9-rail" id="v9-rail-Tops"><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div></div>
   </div>
 </section>
 <section class="v9-sec v9-row" data-row="Outerwear" aria-labelledby="v9-row-Outerwear-h">
   <div class="v9-wrap">
-    <div class="v9-head"><h2 id="v9-row-Outerwear-h" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-jacket"/></svg></span><span data-i18n="v9_row_jackets">Jackets & Coats</span></h2><div class="v9-head-r"><a class="v9-more" href="/?cat=Outerwear#v9-all" data-cat="Outerwear"><span data-i18n="v9_view_more">View more</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a><span class="v9-arrows"><button type="button" class="v9-arr" data-dir="-1" aria-label="Previous finds" aria-controls="v9-rail-Outerwear" disabled><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-left"/></svg></button><button type="button" class="v9-arr" data-dir="1" aria-label="Next finds" aria-controls="v9-rail-Outerwear"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button></span></div></div>
+    <div class="v9-head"><h2 id="v9-row-Outerwear-h" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-jacket"/></svg></span><span data-i18n="v9_row_jackets">Jackets & Coats</span></h2><div class="v9-head-r"><a class="v9-more" href="/category/jackets"><span data-i18n="v9_view_more">View more</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a><span class="v9-arrows"><button type="button" class="v9-arr" data-dir="-1" aria-label="Previous finds" aria-controls="v9-rail-Outerwear" disabled><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-left"/></svg></button><button type="button" class="v9-arr" data-dir="1" aria-label="Next finds" aria-controls="v9-rail-Outerwear"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button></span></div></div>
     <div class="v9-rail" id="v9-rail-Outerwear"><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div></div>
   </div>
 </section>
@@ -3184,6 +3186,7 @@ html .pc-dens{border-color:transparent!important;background:var(--surface-2)!imp
 <main>
   <div class="wrap">
     <div class="af-row" id="af-row" hidden></div>
+    <div class="sub-row" id="sub-row" role="group" aria-label="Type" hidden></div>
     <div class="grid" id="grid"></div>
     <div class="grid pc-sk" id="grid-sk" aria-hidden="true" hidden></div>
     <div id="grid-sentinel" style="height:1px"></div>
@@ -4521,15 +4524,34 @@ function swapFirst(list){
   return a.length?a.concat(b):list;
 }
 function filtered(noBrand){ const l=filtered0(noBrand); return noBrand?l:swapFirst(l); }
+/* subcategories (owner, 15 Nov 2026): data/subcats.json, loaded when exactly one category is picked. The pick lives
+   outside state on purpose: it is not saved as a preference and clears when the category changes. */
+var SUBC=null, SUBSEL="", _subLoading=false;
+function subCat(){ return state.cats&&state.cats.length===1?state.cats[0]:(state.cat&&state.cat!=="all"?state.cat:""); }
+function subActive(){ const c=subCat(); return SUBC&&SUBSEL&&c&&(SUBC.subs[c]||[]).includes(SUBSEL)?SUBSEL:""; }
+function loadSubs(){ if(SUBC||_subLoading) return; _subLoading=true;
+  fetch("/data/subcats.json").then(r=>r.ok?r.json():null).then(d=>{ if(d&&d.subs&&d.m){ SUBC=d; try{ render(); }catch(e){} } }).catch(()=>{}); }
+function renderSubs(){ const row=document.getElementById("sub-row"); if(!row) return; const c=subCat();
+  if(!c||state.saved){ row.hidden=true; SUBSEL=""; return; }
+  if(!SUBC){ row.hidden=true; loadSubs(); return; }
+  const L=SUBC.subs[c]||[]; if(L.length<2){ row.hidden=true; SUBSEL=""; return; }
+  if(SUBSEL&&!L.includes(SUBSEL)) SUBSEL="";
+  const sig=c+"|"+SUBSEL; if(row.__sig===sig&&!row.hidden) return; row.__sig=sig;
+  row.innerHTML=`<button type="button" class="sub-chip" data-sub="" aria-pressed="${!SUBSEL}">${esc(t("all_types"))}</button>`+L.map(x=>`<button type="button" class="sub-chip" data-sub="${esc(x)}" aria-pressed="${SUBSEL===x}">${esc(x)}</button>`).join("");
+  row.hidden=false;
+  if(!row.__wired){ row.__wired=true; row.addEventListener("click",e=>{ const b=e.target.closest(".sub-chip"); if(!b) return; const v=b.getAttribute("data-sub")||""; SUBSEL=(v===SUBSEL?"":v); render(); }); }
+}
 function filtered0(noBrand){   /* noBrand: unsorted list matching every filter except brand (brand menu counts); r6: or "brand" / "color" / "price" to leave out that one filter */
   normState();
   const _ex=noBrand===true?"brand":(typeof noBrand==="string"?noBrand:"");
   const _qm=state.q?qMatcher(state.q):null;
+  const _sub=subActive();
   const _bs=_ex!=="brand"&&state.brand.length?new Set(state.brand):null, _cs=_ex!=="color"&&state.color.length?state.color:null, _pr=_ex!=="price";
   let list=ALL.filter(p=>{
     if(state.saved && !FAVES.has(p.id)) return false;
     if(state.plat!=="all"&&p.platform!==state.plat)return false;
     if(state.cats&&state.cats.length){ if(!state.cats.includes(p.cat))return false; }
+    if(_sub&&SUBC.m[p.id]!==_sub)return false;
     else if(state.cat!=="all"&&p.cat!==state.cat)return false;
     if(state.gender&&state.gender!=="all"&&(p.g||"m")!==state.gender)return false;
     if(state.qc&&!((p.qc||0)>=1))return false;
@@ -4654,7 +4676,7 @@ function _ensureSentinelObserver(){
    order, so the first render (and the re-render when the view stats arrive) doesn't reshuffle what is on screen. A saved
    sort, search or filter that doesn't match them skips the pin; any later change of filter, sort or search drops it. */
 var SSR_PIN, SSR_SIG;
-function ssrSig(){ normState(); return JSON.stringify([state.q,state.cat,state.cats,state.brand,state.color,state.plat,state.gender,state.pmin,state.pmax,state.price,state.sort,state.saved,state.qc]); }
+function ssrSig(){ normState(); return JSON.stringify([subActive(),state.q,state.cat,state.cats,state.brand,state.color,state.plat,state.gender,state.pmin,state.pmax,state.price,state.sort,state.saved,state.qc]); }
 function pinSsr(list){
   if(SSR_PIN===undefined){
     SSR_PIN=[...document.querySelectorAll("#grid [data-ssr]")].map(e=>e.getAttribute("data-ssr")); SSR_SIG=ssrSig();
@@ -4671,6 +4693,7 @@ function pinSsr(list){
 }
 let _shownSig="";
 function render(){
+  try{ renderSubs(); }catch(e){}
   const list=swapFirst(pinSsr(filtered())), grid=$("#grid"), empty=$("#empty"), sig=_gridSig();
   /* background data (auth start, link check, view stats) often re-renders with nothing new on screen: keep those cards
      (no new <img> elements, no replayed intro animation, no scroll jump) and only refresh their saved stars */
@@ -4718,7 +4741,7 @@ function softRender(){
   $$("#grid [data-fav]").forEach(b=>b.setAttribute("aria-pressed",String(FAVES.has(b.getAttribute("data-fav")))));
   $$("#grid [data-sc]").forEach(e=>{e.textContent=fmtStar(e.getAttribute("data-sc"));});
 }
-const _gridSig=()=>{ normState(); return JSON.stringify([state.q,state.cat,state.cats,state.brand,state.color,state.plat,state.gender,state.pmin,state.pmax,state.price,state.sort,state.saved,state.qc,state.cur,state.lang,state.agent,state.saved?[...FAVES].join():""]); };
+const _gridSig=()=>{ normState(); return JSON.stringify([subActive(),state.q,state.cat,state.cats,state.brand,state.color,state.plat,state.gender,state.pmin,state.pmax,state.price,state.sort,state.saved,state.qc,state.cur,state.lang,state.agent,state.saved?[...FAVES].join():""]); };
 /* ================= drawer ================= */
 const overlay=$("#overlay"), drawer=$("#drawer"); let lastFocus=null;
 function agentRow(p){
