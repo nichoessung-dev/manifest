@@ -1,6 +1,7 @@
 // Shared server-side rendering for the SEO pages (product pages, hubs, guides, sitemaps, 404).
 // Everything here is plain HTML + a little CSS so Google sees real content without running JS.
 import { ROWS, PREFIX, BUILT } from "./catalog.js";
+import * as COUNTS from "./counts.js";
 import * as SIG from "./signals.js";
 import { PQ } from "./photo_quality.js";
 // Read through the namespace so a link_swaps.js written before SWAP_PRICE / SWAP_HIDE existed still loads.
@@ -247,7 +248,9 @@ export const AGENTS = {
 // middleware on the homepage and the app hubs (index.html stays as it is). Each rule is an exact phrase or a number in a
 // fixed context, listed here so a new phrase is added on purpose.
 const plusOf = (n, step) => (Math.floor(n / step) * step).toLocaleString("en-US") + "+";
-export const FINDS_PLUS = plusOf(P.length, 1000);
+// 15 Nov 2026: the visible finds (hidden, dead and look-alike finds left out), to the hundred, baked by scripts/bake_counts.py
+// so the server and the app show the same number (the app no longer rewrites it on load)
+export const FINDS_PLUS = COUNTS.FINDS_PLUS;
 export const QC_PLUS = plusOf(P.filter(p => p.qc >= 1).length, 100);
 export const AGENT_N = AGENT_ORDER.length;
 const AGENT_NAMES = AGENT_ORDER.map(k => AGENTS[k] ? AGENTS[k].name : k);
@@ -476,7 +479,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "28";
+export const DS_VER = "29";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -647,7 +650,7 @@ const AGENT_SWAP_JS = `<script>(function(){try{var a=String((JSON.parse(localSto
   `bbdbuy:["BBDBuy",function(p,i){return "https://www.bbdbuyeu.com/goods/"+({taobao:"TAOBAO","1688":"1688"}[p]||"WEIDIAN")+"/"+i+"?inviteCode=${REFS.bbdbuy}"}]}[a];if(!B)return;` +
   `[].forEach.call(document.querySelectorAll("a.cbuy[data-iid]"),function(l){l.href=B[1](l.getAttribute("data-pl"),l.getAttribute("data-iid"));l.setAttribute("data-agent",a);l.setAttribute("aria-label",(l.getAttribute("aria-label")||"").replace(/ via [A-Za-z]+$/," via "+B[0]))})}catch(e){}})();</script>`;
 const ICON_GLOBE = ic("globe");
-export const NAV = [["/", "Finds"], ["/feed", "Swipe"], ["/brands", "Brands"], ["/tools", "Tools"], ["/guides", "Guides"], ["/how-to-order", "How to Order"]];
+export const NAV = [["/", "Finds"], ["/brands", "Brands"], ["/tools", "Tools"], ["/guides", "Guides"], ["/how-to-order", "How to Order"]];
 // The section a path belongs to (round 4, 29 Oct 2026). index.html mirrors it: the homepage markup marks Finds, and
 // _middleware.js hubApp() moves aria-current to navKey(spec.path) on the app hubs, so no page marks nothing by accident.
 export function navKey(path = "") {

@@ -8,7 +8,7 @@ import { reportedIds } from "./_lib/reported.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
-  "/how-to-order", "/how-to-order.html", "/admin", "/admin.html", "/links", "/links.html", "/feed", "/feed.html", "/partner", "/partner.html"]);
+  "/how-to-order", "/how-to-order.html", "/admin", "/admin.html", "/links", "/links.html", "/partner", "/partner.html"]);
 const VERIFY = { "/googleaea131de20fbf72e.html": "google-site-verification: googleaea131de20fbf72e.html" };
 // Paths answered by real Functions (exact shapes only, so /api/nope, /product/ or /product/<id>/x still 404).
 const PASS = /^\/api\/(qc|qc-check|hio-check|img|geo|chat|link)$|^\/r\/[^/]+$|^\/product\/[^/]+$|^\/unsubscribe$|^\/go\/[^/]+$/;
@@ -70,6 +70,8 @@ async function fbRewrite(res) {
   return out;
 }
 export async function onRequest(ctx) {
+  // owner, 15 Nov 2026: "remove the swipe function entirely": Swipe Finds is gone, old links land on the homepage
+  if (/^\/feed(\.html)?\/?$/.test(new URL(ctx.request.url).pathname)) return Response.redirect(new URL("/", ctx.request.url).toString(), 301);
   let res = await route(ctx);
   if (/^fb\./i.test(new URL(ctx.request.url).hostname)) res = await fbRewrite(res);
   const preview = new URL(ctx.request.url).hostname.endsWith("." + PAGES_DEV);

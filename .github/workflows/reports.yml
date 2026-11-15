@@ -31,9 +31,11 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       - name: Subcategories (data/subcats.json)
         run: python scripts/bake_subcats.py
+      - name: One finds count everywhere (scripts/bake_counts.py)
+        run: python scripts/bake_counts.py
       - name: Commit if changed
         run: |
-          git add data/reported.json data/photo_hidden.json data/subcats.json
+          git add data/reported.json data/photo_hidden.json data/subcats.json functions/_lib/counts.js index.html privacy.html terms.html how-to-order.html links.html llms.txt manifest.webmanifest functions/api/chat.js
           if git diff --cached --quiet; then
             echo "no change"
           else
