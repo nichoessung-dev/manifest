@@ -69,10 +69,27 @@ async function fbRewrite(res) {
   for (const h of ["content-length", "content-encoding", "etag"]) out.headers.delete(h);
   return out;
 }
+// 15 Nov 2026 (Search Console check): pages that once had Google traffic must not end in a 404 when the catalogue moves.
+// A hub that no longer exists sends the visitor (and Google) to the closest live page with a 301:
+//   /<agent>-spreadsheet/<brand>  -> /brand/<brand> when that brand has a hub, else /<agent>-spreadsheet
+//   /best/<brand>-<thing>         -> /brand/<brand> (longest brand slug that prefixes it), else /brands
+//   /<hub>/<page number>          -> /<hub> (a page past the end after the catalogue shrank)
+function rescue(path) {
+  let m;
+  const brands = () => new Set(idx().brandSlug.values());
+  if (!path.startsWith("/product/") && (m = path.match(/^\/(.+)\/\d{1,3}\/?$/))) return "/" + m[1];   // page numbers only, never a product id
+  if ((m = path.match(/^\/([a-z0-9]+)-spreadsheet\/([a-z0-9-]+)\/?$/))) return brands().has(m[2]) ? "/brand/" + m[2] : "/" + m[1] + "-spreadsheet";
+  if ((m = path.match(/^\/best\/([a-z0-9-]+)\/?$/))) {
+    const b = [...brands()].filter(x => m[1] === x || m[1].startsWith(x + "-")).sort((a, z) => z.length - a.length)[0];
+    return b ? "/brand/" + b : "/brands";
+  }
+  return null;
+}
 export async function onRequest(ctx) {
   // owner, 15 Nov 2026: "remove the swipe function entirely": Swipe Finds is gone, old links land on the homepage
   if (/^\/feed(\.html)?\/?$/.test(new URL(ctx.request.url).pathname)) return Response.redirect(new URL("/", ctx.request.url).toString(), 301);
   let res = await route(ctx);
+  if (res.status === 404) { const to = rescue(new URL(ctx.request.url).pathname); if (to) return Response.redirect(new URL(to, ctx.request.url).toString(), 301); }
   if (/^fb\./i.test(new URL(ctx.request.url).hostname)) res = await fbRewrite(res);
   const preview = new URL(ctx.request.url).hostname.endsWith("." + PAGES_DEV);
   const bare = !res.headers.has("x-content-type-options");   // built by a Function, so _headers never reached it
