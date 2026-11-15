@@ -140,7 +140,12 @@ export function idx() {
   sortAll(byBrand); sortAll(byCat);
   const all = P.slice().sort((a, b) => score(b) - score(a));
   const brandSlug = new Map(), slugBrand = new Map();
-  for (const [b, l] of byBrand) if (l.length >= BRAND_MIN || l.length >= (BRAND_ALLOW.get(b) || Infinity)) { const s = slug(b); brandSlug.set(b, s); slugBrand.set(s, b); }
+  // 15 Nov 2026: a brand keeps its hub when partner swaps hide its look-alikes. The partner-swap refresh hid 35 of 47
+  // Arc'teryx finds, the visible 12 fell under BRAND_MIN and /brand/arcteryx (a top Search Console page) went 404.
+  // So the hub is decided on every find of the brand (P_ALL); the page still lists only the visible ones.
+  const allCount = new Map(); for (const p of P_ALL) if (p.brand) allCount.set(p.brand, (allCount.get(p.brand) || 0) + 1);
+  for (const [b, l] of byBrand) { const n = Math.max(l.length, allCount.get(b) || 0);
+    if (n >= BRAND_MIN || n >= (BRAND_ALLOW.get(b) || Infinity)) { const s = slug(b); brandSlug.set(b, s); slugBrand.set(s, b); } }
   const titleCount = new Map();   // listings sharing a title get a distinguishing suffix on their product page
   for (const p of P) { const k = ((p.brand || "") + "|" + p.title).toLowerCase(); titleCount.set(k, (titleCount.get(k) || 0) + 1); }
   // groupPick: see indexable() above. Built here because it reads the view stats, like the rest of idx().
