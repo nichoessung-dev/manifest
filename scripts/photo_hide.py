@@ -12,14 +12,14 @@ The owner can always put a find back with "keep" in data/report_overrides.json.
 Writes data/photo_hidden.json {"updated", "rule", "hidden": [ids], "why": {id: [issues]}}. bake_reports.py merges it
 into data/reported.json "hidden" (by: "photo"), which the app, the server cards and the product pages already honour.
 
-Also hides duplicates: the same item listed more than once (same brand, title and price) keeps only its best listing
-(see dupes()).
+Also hides duplicates: the same item listed more than once (same brand and title, any price) keeps only the cheapest
+listing (see dupes()).
 
 Also hides finds whose photo still shows its background (data/photo_background.json).
 
   python scripts/photo_hide.py [--dry-run]
 """
-import argparse, json, os, sys
+import argparse, json, os, re, sys
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -53,24 +53,35 @@ def decide(items, labels):
     return why
 
 
+def _norm(s):
+    return " ".join(re.sub(r"[^\w]+", " ", (s or "").lower()).split())
+
+
+def _price(p):
+    try: return float(p.get("price") or 0) or float("inf")
+    except Exception: return float("inf")
+
+
 def dupes(items, gone, swapped, pq, views):
-    """Pure: the same item listed more than once (same brand, title and price) keeps only its best listing (owner,
-    12 Nov 2026). Best = a partner swap first, then the cleaner photo (data/photo_quality.json, lower is better), then
-    more views in 30 days, then the lowest id. Finds already gone (dead, hidden, bad photo) don't compete.
-    Returns {id: ["duplicate"]} for the others."""
+    """Pure: the same item listed more than once keeps only ONE listing, the cheapest (owner, 15 Nov 2026: "once it's
+    2 times the same item ... hide every item that is the same and keep the cheapest one"). Same item = same brand and
+    same title (case, spaces and punctuation ignored); price no longer has to match (12 Nov rule needed equal prices).
+    A partner swap in the group always wins (swapped finds are never hidden). Ties on price: the cleaner photo
+    (data/photo_quality.json, lower is better), then more views in 30 days, then the lowest id. Finds already gone
+    (dead, hidden, bad photo) don't compete. Returns {id: ["duplicate"]} for the others."""
+    by = {}
     groups = {}
     for p in items:
         pid = str(p.get("id"))
         if pid in gone: continue
-        try: price = round(float(p.get("price") or 0))
-        except Exception: price = 0
-        key = ((p.get("brand") or "").strip().lower(), (p.get("title") or "").strip().lower(), price)
+        key = (_norm(p.get("brand")), _norm(p.get("title")))
         if not key[1]: continue
+        by[pid] = p
         groups.setdefault(key, []).append(pid)
     out = {}
     for ids in groups.values():
         if len(ids) < 2: continue
-        ids.sort(key=lambda i: (0 if i in swapped else 1, pq.get(i, 0), -views.get(i, 0), i))
+        ids.sort(key=lambda i: (0 if i in swapped else 1, _price(by[i]), pq.get(i, 0), -views.get(i, 0), i))
         for i in ids[1:]:
             if i not in swapped: out[i] = ["duplicate"]
     return out
