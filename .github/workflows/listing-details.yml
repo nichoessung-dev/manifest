@@ -1,0 +1,54 @@
+name: Listing details
+# Colours, sizes, a photo per colour and the seller's size chart for Weidian finds (scripts/listing_details.py).
+# Test runs: nothing on the site changes; data/listing_details.json and report.html are in the run's artifacts.
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Weidian finds this run (most viewed first)'
+        default: '50'
+      ids:
+        description: 'Only these ids (comma separated; optional)'
+        default: ''
+      max_usd:
+        description: 'Hard stop for AI spend this run (USD)'
+        default: '3'
+permissions:
+  contents: read
+concurrency:
+  group: listing-details
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      LIMIT: ${{ inputs.limit }}
+      IDS: ${{ inputs.ids }}
+      MAX_USD: ${{ inputs.max_usd }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check inputs
+        run: |
+          [[ "$LIMIT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::limit must be a number"; exit 1; }
+          [[ "$MAX_USD" =~ ^[0-9]{1,4}(\.[0-9]{1,2})?$ ]] || { echo "::error::max_usd must be a number"; exit 1; }
+          [[ -z "$IDS" || "$IDS" =~ ^[0-9A-Za-z_,\ -]+$ ]] || { echo "::error::bad ids"; exit 1; }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - name: Fetch listing details (test, site unchanged)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
+          python -u scripts/listing_details.py --limit "$LIMIT" --max-usd "$MAX_USD" $IDA
+          cp data/listing_details.json out/listing-details/ 2>/dev/null || true
+      - name: Keep report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: listing-details-${{ github.run_number }}
+          path: out/listing-details/
+          if-no-files-found: ignore
+          retention-days: 30
