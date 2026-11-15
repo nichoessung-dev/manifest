@@ -35,7 +35,37 @@ var PCS_ALIAS=
 "grå,grau,gris,grigio,grijs,grise,灰>grey;blå,blau,bleu,azul,blu,blauw,bleue,蓝>blue;marine,marineblå,marinblå,marino>navy;"+
 "rød,röd,rot,rouge,rojo,rosso,rood,roja,rossa,rote,roter,红>red;grønn,grön,grøn,grün,vert,verde,groen,verte,绿>green;"+
 "brun,braun,marron,marrone,bruin>brown;rosa,rose,roze,粉>pink;gul,gelb,jaune,amarillo,giallo,geel,amarilla,gialla>yellow;"+
-"lilla,lila,violet,morado,viola,paars,morada>purple";
+"lilla,lila,violet,morado,viola,paars,morada>purple;"+
+/* 15 Nov 2026 (owner: "smart search where you can search stuff in other languages"): Russian, Polish, Portuguese,
+   Turkish, Japanese, Korean, Arabic, plus Nordic/Italian/UK words the log showed missing */
+"vinterjakke,vinterjacka,vinterjakke,winterjacke,giubbotto,giubbino,piumino,doudoune,plumifero,anorak>puffer|jacket;"+
+"jumper,jumpers,strikkegenser,stickad troja,strik,maglione,jersey de punto>sweater|knit;"+
+"joggedress,mjukisset,trainingsanzug,survetement,chandal,tuta>tracksuit;"+
+"boxershorts,boksershorts,unterhose,calecon,calzoncillos,mutande>boxer;"+
+"кроссовки,кеды,обувь,ботинки>sneaker|shoe;ботинки,сапоги>boots;худи,толстовка,кофта>hoodie|sweatshirt;свитер>sweater;"+
+"куртка,пуховик>jacket|puffer;пальто>coat;джинсы>jeans;штаны,брюки>pants|trousers;шорты>shorts;футболка>t shirt|tee;"+
+"рубашка>shirt;сумка>bag;рюкзак>backpack;кепка>cap;шапка>beanie;ремень>belt;часы>watch;очки>sunglasses;кошелек>wallet;"+
+"спортивный костюм>tracksuit;черный,чёрный,черная,чёрная,черные,чёрные,черное,чёрное>black;белый,белая,белые,белое>white;серый,серая,серые>grey;синий,синяя,синие>blue|navy;красный,красная,красные>red;зеленый,зеленая,зеленые>green;"+
+"buty,adidasy,trampki,obuwie>sneaker|shoe;bluza,bluza z kapturem>hoodie|sweatshirt;sweter>sweater;kurtka,puchowka>jacket|puffer;"+
+"plaszcz>coat;spodnie,dresy>pants|sweatpants;jeansy>jeans;spodenki,szorty>shorts;koszulka>t shirt|tee;koszula>shirt;"+
+"torba,torebka>bag;plecak>backpack;czapka>beanie|cap;pasek>belt;zegarek>watch;okulary>sunglasses;portfel>wallet;"+
+"czarny,czarna,czarne>black;bialy,biala,biale>white;szary,szara>grey;niebieski>blue;czerwony>red;zielony>green;"+
+"tenis,sapatilha,sapatilhas>sneaker|trainer;sapato,sapatos>shoe;moletom,moletom com capuz>hoodie|sweatshirt;"+
+"casaco,jaqueta,blusao>jacket;calca,calcas>pants|trousers;bermuda>shorts;camisa>shirt;camiseta,camisola>t shirt|tee;"+
+"bolsa,mochila>bag|backpack;bone>cap;gorro>beanie;cinto>belt;relogio>watch;oculos>sunglasses;carteira>wallet;"+
+"preto,preta>black;branco,branca>white;cinza>grey;vermelho,vermelha>red;"+
+"ayakkabi,spor ayakkabi>sneaker|shoe;esofman>tracksuit|sweatpants;kapusonlu,sweatshirt>hoodie|sweatshirt;mont,ceket>jacket;"+
+"kaban>coat;pantolon>pants|trousers;kot>jeans;sortlar>shorts;tisort>t shirt|tee;gomlek>shirt;canta>bag;sirt cantasi>backpack;"+
+"sapka,bere>cap|beanie;kemer>belt;saat>watch;gozluk>sunglasses;cuzdan>wallet;siyah>black;beyaz>white;gri>grey;kirmizi>red;"+
+"スニーカー,靴,シューズ>sneaker|shoe;パーカー>hoodie;トレーナー,スウェット>sweatshirt;セーター,ニット>sweater|knit;"+
+"ジャケット,アウター>jacket;ダウン>puffer;コート>coat;ジーンズ,デニム>jeans;パンツ,ズボン>pants|trousers;Tシャツ,ティーシャツ>t shirt|tee;"+
+"シャツ>shirt;バッグ,かばん>bag;リュック>backpack;キャップ,帽子>cap;ニット帽,ビーニー>beanie;ベルト>belt;時計>watch;財布>wallet;"+
+"サングラス>sunglasses;黒>black;白>white;"+
+"운동화,스니커즈,신발>sneaker|shoe;후드티,후드>hoodie;맨투맨>sweatshirt;니트,스웨터>sweater|knit;자켓,재킷>jacket;패딩>puffer;"+
+"코트>coat;청바지>jeans;바지>pants|trousers;반바지>shorts;티셔츠>t shirt|tee;셔츠>shirt;가방>bag;백팩>backpack;모자>cap;"+
+"비니>beanie;벨트>belt;시계>watch;지갑>wallet;선글라스>sunglasses;검정,블랙>black;흰색,화이트>white;"+
+"حذاء,احذية,سنيكرز>sneaker|shoe;هودي>hoodie;جاكيت>jacket;بنطلون>pants;شورت>shorts;تيشيرت>t shirt|tee;حقيبة,شنطة>bag;"+
+"ساعة>watch;نظارة>sunglasses;محفظة>wallet;حزام>belt;اسود>black;ابيض>white";
 var TYPES="hoodie sweater sweatshirt crewneck knit jacket puffer coat vest gilet parka windbreaker shirt tee polo "+
 "pants trousers jeans cargo sweatpants joggers shorts tracksuit sneaker sneakers trainer shoe shoes boots slides sandals "+
 "loafers beanie cap hat bucket bag backpack wallet belt watch sunglasses scarf necklace bracelet ring earring chain "+
