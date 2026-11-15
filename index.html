@@ -2656,9 +2656,13 @@ html .card .thumb img.qch{object-fit:cover!important;mix-blend-mode:normal!impor
 .card-acts .buy-pill{flex:1 1 100%}
 .sim-thumb .cbadge{top:6px;left:auto;right:6px;height:22px;padding:0 8px 0 6px}
 /* partner swaps (owner, 12 Nov 2026: "add a (recommended) tag on every swaped link"): the finds we want people to buy */
-.rbadge{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px 0 7px;border-radius:999px;box-sizing:border-box;background:rgba(16,16,16,.78);-webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4);color:#fff;font:600 11.5px/1 var(--f-body);letter-spacing:.01em;text-transform:none;white-space:nowrap;pointer-events:none;user-select:none;-webkit-user-select:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),0 4px 12px rgba(0,0,0,.18)}
-.rbadge .ic{width:13px;height:13px;flex:none;color:#F2C14E}
-.sim-thumb .rbadge{position:absolute;top:6px;left:6px;z-index:3;height:22px;padding:0 8px 0 6px}
+/* owner, 15 Nov 2026: "make the recommended a lot more subtle": icon-only dot on cards, label kept for screen readers and on hover; plain text on the product page */
+.rbadge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border-radius:999px;box-sizing:border-box;background:rgba(16,16,16,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font:500 12px/1 var(--f-body);letter-spacing:.01em;text-transform:none;white-space:nowrap;user-select:none;-webkit-user-select:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.rbadge .ic{width:12px;height:12px;flex:none;color:#F2C14E;opacity:.85}
+.rbadge>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.sim-thumb .rbadge{position:absolute;top:6px;left:6px;z-index:3;width:20px;height:20px}
+.d-rec .rbadge{width:auto;height:auto;gap:5px;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;color:var(--muted,#9a9a9a)}
+.d-rec .rbadge>span{position:static;width:auto;height:auto;overflow:visible;clip:auto}
 .d-rec{margin:10px 0 0}
 /* 12 Nov 2026 (owner: "make them have no background"): the multiply blend only helps white photos on a light page; in dark mode
    it is useless and iPhone Safari can paint a white box behind blended cut-outs inside the rounded photo boxes. Off in dark mode. */
@@ -4125,7 +4129,7 @@ const NOT_COLOUR=/^(standard|default|as pictures?|same as pictures?|one ?size|os
 function colourCount(p){ if(p.__cc!=null)return p.__cc; const seen=new Set(); (p.variants||[]).forEach(v=>{ const n=String(v&&v[0]||"").split("·")[0].trim().replace(/\s+/g," "); if(!n||NOT_COLOUR.test(n)||/×\s*\d/.test(n))return; seen.add(n.toLowerCase().replace(/\bgray\b/g,"grey")); }); return (p.__cc=seen.size); }
 /* owner, 9 Nov 2026: "remove this color icon": no colour-count badge on cards */
 const colourBadge=p=>recBadge(p);   /* 12 Nov 2026: the slot now carries the Recommended pill of a partner-swapped find */
-function recBadge(p){ try{ return p&&typeof SWAPPED!=="undefined"&&SWAPPED.has(String(p.id))?`<span class="rbadge">${ICON("award","sm")}<span>${esc(t("rec"))}</span></span>`:""; }catch(e){ return ""; } }
+function recBadge(p){ try{ return p&&typeof SWAPPED!=="undefined"&&SWAPPED.has(String(p.id))?`<span class="rbadge" title="${esc(t("rec"))}">${ICON("award","sm")}<span>${esc(t("rec"))}</span></span>`:""; }catch(e){ return ""; } }
 const COLORMAP={navy:"#1f2f57","navy blue":"#1f2f57",white:"#f2f2ef",black:"#1a1a1a",grey:"#8a8f98",gray:"#8a8f98",beige:"#d8c9a8",cream:"#efe7d2",red:"#c0392b",pink:"#e39ac0",green:"#3a7d5b",yellow:"#e3c04a","light blue":"#a9c9e8",blue:"#2e5aa8",brown:"#7a5230",orange:"#e08a3c",purple:"#7a5aa8"};
 /* r6: more colour names for the swatches; "Dark Blue" / "Light Grey" style names reuse the base colour, darker or lighter */
 Object.assign(COLORMAP,{gold:"#c9a227",silver:"#c0c0c0",sand:"#d6c3a0",stone:"#b5ad9e",khaki:"#b9a77c",olive:"#6b6b3a",burgundy:"#6d1f2b",wine:"#6d1f2b",camel:"#c19a6b",charcoal:"#3d3f44",ivory:"#f4f1e6",tan:"#c9a27a",mint:"#a8dcc4",lilac:"#c8a2c8",coffee:"#6f4e37",apricot:"#f3b38a",off:"#efe9dc","off white":"#efe9dc",cyan:"#3fb6c8",teal:"#2e7d7a",maroon:"#6d1f2b",rose:"#e8a3a8",violet:"#7a5aa8",indigo:"#3b3f8f",army:"#5b5e3a"});

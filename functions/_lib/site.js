@@ -428,12 +428,18 @@ const PALETTE_SM = ic("palette", "sm");
 // owner, 12 Nov 2026: "add a (recommended) tag on every swaped link": the slot now carries the Recommended pill on a
 // partner-swapped find. With an icon argument (pages.js appCards, the app's card markup) it is the app's .rbadge (styled in
 // index.html); without, a pill styled inline for the ds.css cards (.ci is position:relative there).
-const REC_INLINE = "display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px 0 7px;border-radius:999px;box-sizing:border-box;" +
-  "background:rgba(16,16,16,.78);-webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4);color:#fff;" +
-  "font:600 11.5px/1 var(--font,inherit);letter-spacing:.01em;white-space:nowrap;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),0 4px 12px rgba(0,0,0,.18)";
+// owner, 15 Nov 2026: "make the recommended a lot more subtle": an icon-only dot on cards (label for screen readers and
+// on hover), plain muted text next to the title on the product page.
+const REC_DOT = "display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;box-sizing:border-box;" +
+  "background:rgba(16,16,16,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)";
+const REC_TEXT = "display:inline-flex;align-items:center;gap:5px;font:500 12px/1 var(--font,inherit);color:var(--muted,#99A2AB);white-space:nowrap";
+const SR = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap";
+const REC_ICON = `<span style="display:inline-flex;color:#F2C14E;opacity:.85">${ic("award", "sm")}</span>`;
 export const recBadge = (p, app = false, where = "card") => !swapped(p) ? "" : app
   ? `<span class="rbadge" title="Recommended">${ic("award", "sm")}<span>Recommended</span></span>`
-  : `<span class="rbadge" style="${where === "card" ? "position:absolute;top:8px;left:8px;z-index:2;" : "vertical-align:middle;margin-left:10px;"}${REC_INLINE}"><span style="display:inline-flex;color:#F2C14E">${ic("award", "sm")}</span>Recommended</span>`;
+  : where === "card"
+    ? `<span class="rbadge" title="Recommended" style="position:absolute;top:8px;left:8px;z-index:2;${REC_DOT}">${REC_ICON}<span style="${SR}">Recommended</span></span>`
+    : `<span class="rbadge" style="vertical-align:middle;margin-left:10px;${REC_TEXT}">${REC_ICON}Recommended</span>`;
 export const colourBadge = (p, icon) => recBadge(p, !!icon);
 export function card(p, lazy = true) {
   const src = imgSrc(p), u = productUrl(p), ag = AGENTS.mycnbox;
@@ -468,7 +474,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "26";
+export const DS_VER = "27";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
