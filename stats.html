@@ -400,7 +400,12 @@ function loadLive(){ return fetch(LS_URL+"?t="+Date.now()).then(r=>r.ok?r.json()
 function liveSlots(){
   const src=LS||[]; if(!src.length) return [];
   const S=300, m=new Map(src.map(r=>[r[0],r[1]])), out=[], end=Math.floor(Date.now()/1000/S)*S;
-  for(let t=src[0][0]; t<end; t+=S) out.push([t, m.has(t)?m.get(t):0]);
+  for(let t=src[0][0]; t<end; t+=S) out.push([t, m.has(t)?m.get(t):null]);
+  /* a gap of up to 3 slots (15 min) between two samples is a missed sample, not an empty site: filled in between them */
+  for(let i=0;i<out.length;i++){ if(out[i][1]!==null) continue; let j=i; while(j<out.length&&out[j][1]===null) j++;
+    const a=i>0?out[i-1][1]:null, b=j<out.length?out[j][1]:null, gap=j-i;
+    for(let k=i;k<j;k++) out[k][1]=(gap<=3&&a!==null&&b!==null)? Math.round((a+(b-a)*(k-i+1)/(gap+1))*10)/10 : 0;
+    i=j-1; }
   return out;
 }
 function liveBuckets(days){
