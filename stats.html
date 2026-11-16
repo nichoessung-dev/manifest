@@ -329,7 +329,7 @@ let D=null, LIVE=null; const range={traffic:30,members:0,signups:30,live:1};
 /* live viewers: the same presence channel the site joins; this page listens without being counted */
 (function(){ try{
   const c=window.supabase.createClient(SB,KEY); const ch=c.channel("online-viewers");
-  const count=()=>{ let n=0; const st=ch.presenceState()||{}; for(const k in st) n+=(st[k]||[]).length; $("live").textContent=n; };
+  const count=()=>{ let n=0; const st=ch.presenceState()||{}; for(const k in st) n+=(st[k]||[]).length; $("live").textContent=n; if(n>LIVE_MAX){ LIVE_MAX=n; try{ renderLive(); }catch(e){} } };
   ch.on("presence",{event:"sync"},count).on("presence",{event:"join"},count).on("presence",{event:"leave"},count).subscribe();
 }catch(e){} })();
 
@@ -392,7 +392,7 @@ function liveDays(){
 }
 /* live viewers (15 Nov 2026): /api/live-sample stores the presence count every 5 minutes in a public storage file
    (a Cloudflare cron Worker calls it). 24H: every sample; 7D: hourly average + hourly peak; 30D: daily average + peak. */
-let LS=null;
+let LS=null, LIVE_MAX=0;   /* LIVE_MAX: the highest live count this page has seen, so the peak is never below "live now" */
 const LS_URL=SB+"/storage/v1/object/public/products/stats/live-samples.json";
 function loadLive(){ return fetch(LS_URL+"?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{ LS=d&&Array.isArray(d.s)?d.s:[]; renderLive(); }).catch(()=>{ LS=[]; renderLive(); }); }
 /* samples are only taken while someone has the site open, so a 5-minute slot without one means 0 viewers: every slot
@@ -421,7 +421,7 @@ function renderLive(){
   const av=a=>a.length?a.reduce((x,r)=>x+r[1],0)/a.length:null;
   const a=av(day), b=av(prev);
   if(a==null){ $("k-live").textContent="–"; $("k-live-d").textContent="Counting started, first numbers soon"; }
-  else{ $("k-live").textContent=a.toFixed(1); const pk=Math.max(...day.map(r=>r[1]));
+  else{ $("k-live").textContent=a.toFixed(1); const pk=Math.max(...day.map(r=>r[1]), LIVE_MAX||0);
     if(b!=null&&b>0){ const ch=Math.round((a-b)/b*100); $("k-live-d").className="delta "+(ch>=0?"up":"down"); $("k-live-d").textContent=(ch>=0?"+":"")+ch+"% vs day before · peak "+pk; }
     else{ $("k-live-d").className="delta"; $("k-live-d").textContent="Peak "+pk+" today"; } }
   const first=all.length?new Date(all[0][0]*1000):null;

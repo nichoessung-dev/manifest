@@ -44,18 +44,20 @@ function presenceCount() {
 export async function onRequestPost({ env }) {
   const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json", "cache-control": "no-store" } });
   if (!env || !env.SUPABASE_SERVICE_KEY) return json({ error: "not configured" }, 501);
-  // The open tabs of the site call this once per 5-minute slot (index.html liveTick): the slot is checked first, so the
-  // later calls of a slot end here without opening a realtime connection.
+  // The open tabs of the site call this at a random moment in each 5-minute slot (index.html liveTick).
   const now = Math.floor(Date.now() / 1000), slot = now - (now % SLOT);
   let rows = [];
   try {
     const r = await fetch(`${SUPA}/storage/v1/object/public/${OBJ}?t=${now}`, { cf: { cacheTtl: 0 } });
     if (r.ok) { const d = await r.json(); if (Array.isArray(d.s)) rows = d.s; }
   } catch (e) {}
-  if (rows.length && rows[rows.length - 1][0] >= slot) return json({ stored: false, slot: "taken" });
+  // About 4 tabs call per slot: each reads the count and the slot keeps the highest, so a short spike between two
+  // readings is caught more often (the peak on /stats). A slot whose reading is not higher is left as it is.
   let n;
   try { n = await presenceCount(); } catch (e) { return json({ error: String(e.message || e), log: LOG.splice(0) }, 502); }
-  rows.push([slot, n]);
+  const last = rows.length ? rows[rows.length - 1] : null;
+  if (last && last[0] >= slot) { if (n <= last[1]) return json({ n, stored: false, kept: last[1] }); last[1] = n; }
+  else rows.push([slot, n]);
   rows = rows.filter(x => x[0] >= now - KEEP);
   const body = JSON.stringify({ updated: now, slot: SLOT, s: rows });
   const up = await fetch(`${SUPA}/storage/v1/object/${OBJ}`, { method: "POST", body,
