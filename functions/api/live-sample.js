@@ -37,7 +37,7 @@ function presenceCount() {
       }
     });
     ws.send(JSON.stringify({ topic: "realtime:online-viewers", event: "phx_join", ref: "1",
-      payload: { config: { presence: { key: "" }, broadcast: { self: false } }, access_token: ANON } }));
+      payload: { config: { presence: { key: "", enabled: true }, broadcast: { self: false, ack: false }, private: false }, access_token: ANON } }));
   });
 }
 
