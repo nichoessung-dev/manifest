@@ -16,6 +16,7 @@ const ANON = "sb_publishable_qFcO570Cpl0_VWS6e_sAUg_noD-2XmY";   // the public k
 const OBJ = "products/stats/live-samples.json";
 const SLOT = 300, KEEP = 35 * 86400;
 
+const LOG = [];
 function presenceCount() {
   return new Promise(async (resolve, reject) => {
     let ws;
@@ -28,6 +29,7 @@ function presenceCount() {
     const done = (fn, v) => { clearTimeout(t); try { ws.close(1000, "done"); } catch (e) {} fn(v); };
     const t = setTimeout(() => done(reject, new Error("no presence state in time")), 6000);
     ws.addEventListener("message", ev => {
+      if (LOG.length < 6) LOG.push(String(ev.data).slice(0, 300));
       let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
       if (m.event === "presence_state") {
         let n = 0; for (const k in m.payload || {}) n += ((m.payload[k] || {}).metas || []).length;
@@ -43,7 +45,7 @@ export async function onRequestPost({ env }) {
   const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json", "cache-control": "no-store" } });
   if (!env || !env.SUPABASE_SERVICE_KEY) return json({ error: "not configured" }, 501);
   let n;
-  try { n = await presenceCount(); } catch (e) { return json({ error: String(e.message || e) }, 502); }
+  try { n = await presenceCount(); } catch (e) { return json({ error: String(e.message || e), log: LOG.splice(0) }, 502); }
   const now = Math.floor(Date.now() / 1000), slot = now - (now % SLOT);
   let rows = [];
   try {
