@@ -108,7 +108,8 @@
   /* cards, KPI tiles */
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:20px;min-width:0}
   @media (max-width:640px){.card{padding:16px}}
-  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 12px}
+  .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:0 0 12px}
+  @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
   @media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .kpi{padding:16px 18px}
   .kpi .label{font-size:13px;font-weight:500;color:var(--muted);line-height:1.3}
@@ -225,6 +226,7 @@
     <div class="card kpi"><div class="label">Monthly Active Users</div><div class="value" id="k-mau">–</div><div class="delta" id="k-mau-d">&nbsp;</div></div>
     <div class="card kpi"><div class="label">Find Views · 30 Days</div><div class="value" id="k-views">–</div><div class="delta" id="k-views-d">&nbsp;</div></div>
     <div class="card kpi"><div class="label">Newsletter Subscribers</div><div class="value" id="k-opt">–</div><div class="delta" id="k-opt-d">&nbsp;</div></div>
+    <div class="card kpi" title="Average number of people on the site at the same time, last 24 hours (counted every 5 minutes)"><div class="label">Avg Live Viewers · 24H</div><div class="value" id="k-live">–</div><div class="delta" id="k-live-d">&nbsp;</div></div>
   </section>
 
   <div class="stack">
@@ -237,6 +239,18 @@
       <div class="seg" data-chart="traffic" role="group" aria-label="Range"><button type="button" data-r="30" class="on">30D</button><button type="button" data-r="90">90D</button><button type="button" data-r="0">All</button></div>
     </div>
     <div class="chart" id="c-traffic"></div>
+  </section>
+
+  <section class="card">
+    <div class="ch-head">
+      <div>
+        <div class="ch-title">Live Viewers</div>
+        <div class="legend"><span><i style="background:var(--c1)"></i>Average on the site at once</span><span><i style="background:var(--c2)"></i>Peak</span></div>
+      </div>
+      <div class="seg" data-chart="live" role="group" aria-label="Range"><button type="button" data-r="1" class="on">24H</button><button type="button" data-r="7">7D</button><button type="button" data-r="30">30D</button></div>
+    </div>
+    <div class="chart" id="c-live"></div>
+    <p class="ch-sub" id="live-note" style="margin-top:8px"></p>
   </section>
 
   <section class="grid2b">
@@ -310,7 +324,7 @@ const KEY="sb_publishable_qFcO570Cpl0_VWS6e_sAUg_noD-2XmY";
 const $=id=>document.getElementById(id);
 const fmt=n=>(n==null||isNaN(n))?"–":Number(n).toLocaleString("en-US");
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-let D=null, LIVE=null; const range={traffic:30,members:0,signups:30};
+let D=null, LIVE=null; const range={traffic:30,members:0,signups:30,live:1};
 
 /* live viewers: the same presence channel the site joins; this page listens without being counted */
 (function(){ try{
@@ -338,7 +352,7 @@ function chart(el, labels, series, opts={}){
   let g="";
   for(let k=0;k<=4;k++){ const v=max*k/4, yy=Math.round(y(v))+.5; g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="${k?grid:css('--line')}" shape-rendering="crispEdges"/><text x="${L-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="${axis}">${v>=1000?(v/1000)+"k":v}</text>`; }
   const step=Math.max(1,Math.ceil(n/(W<500?4:6)));
-  for(let i=0;i<n;i+=step){ const xx=series.some(s=>s.type==='bar')?bx(i):x(i); g+=`<text x="${xx}" y="${H-6}" text-anchor="middle" font-size="11" fill="${axis}">${shortDate(labels[i])}</text>`; }
+  for(let i=0;i<n;i+=step){ const xx=series.some(s=>s.type==='bar')?bx(i):x(i); g+=`<text x="${xx}" y="${H-6}" text-anchor="middle" font-size="11" fill="${axis}">${(opts.label||shortDate)(labels[i])}</text>`; }
   for(const s of series){
     const c=css(s.color);
     if(s.type==='bar'){ s.data.forEach((v,i)=>{ const hh=Math.max(v?2:0,(v/max)*h); g+=`<rect x="${(bx(i)-bw/2).toFixed(1)}" y="${(T+h-hh).toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" rx="${Math.min(3,bw/2).toFixed(1)}" fill="${c}"/>`; }); continue; }
@@ -357,7 +371,7 @@ function chart(el, labels, series, opts={}){
     const r=svg.getBoundingClientRect(), mx=(e.clientX-r.left)*(W/r.width);
     let i=isBar? Math.floor((mx-L)/(w/n)) : Math.round((mx-L)/(w/Math.max(1,n-1))); i=Math.max(0,Math.min(n-1,i));
     const xx=isBar?bx(i):x(i); hx.setAttribute("x1",xx); hx.setAttribute("x2",xx); hx.setAttribute("opacity",1);
-    tip.innerHTML=`<span>${shortDate(labels[i])}</span>`+series.map(s=>`${fmt(s.data[i])} ${s.name}`).join("<br>");
+    tip.innerHTML=`<span>${(opts.tip||opts.label||shortDate)(labels[i])}</span>`+series.map(s=>`${fmt(s.data[i])} ${s.name}`).join("<br>");
     tip.style.left=(Math.max(60,Math.min(W-60,xx))/W*100)+"%"; tip.style.top=(y(Math.max(...series.map(s=>s.data[i])))/H*100)+"%"; tip.style.opacity=1;
   });
   svg.addEventListener("mouseleave",()=>{ tip.style.opacity=0; hx.setAttribute("opacity",0); });
@@ -376,7 +390,42 @@ function liveDays(){
   }
   return {days,signups,members};
 }
+/* live viewers (15 Nov 2026): /api/live-sample stores the presence count every 5 minutes in a public storage file
+   (a Cloudflare cron Worker calls it). 24H: every sample; 7D: hourly average + hourly peak; 30D: daily average + peak. */
+let LS=null;
+const LS_URL=SB+"/storage/v1/object/public/products/stats/live-samples.json";
+function loadLive(){ return fetch(LS_URL+"?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{ LS=d&&Array.isArray(d.s)?d.s:[]; renderLive(); }).catch(()=>{ LS=[]; renderLive(); }); }
+function liveBuckets(days){
+  const now=Date.now()/1000, rows=(LS||[]).filter(r=>r[0]>=now-days*86400);
+  if(days<=1) return {labels:rows.map(r=>r[0]), avg:rows.map(r=>r[1]), peak:null};
+  const size=days<=7?3600:86400, m=new Map();
+  for(const [t,n] of rows){ const k=t-(t%size); const a=m.get(k)||[]; a.push(n); m.set(k,a); }
+  const ks=[...m.keys()].sort((a,b)=>a-b);
+  return {labels:ks, avg:ks.map(k=>{ const a=m.get(k); return Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10; }), peak:ks.map(k=>Math.max(...m.get(k)))};
+}
+function renderLive(){
+  const all=LS||[], now=Date.now()/1000, day=all.filter(r=>r[0]>=now-86400), prev=all.filter(r=>r[0]<now-86400&&r[0]>=now-2*86400);
+  const av=a=>a.length?a.reduce((x,r)=>x+r[1],0)/a.length:null;
+  const a=av(day), b=av(prev);
+  if(a==null){ $("k-live").textContent="–"; $("k-live-d").textContent="Counting started, first numbers soon"; }
+  else{ $("k-live").textContent=a.toFixed(1); const pk=Math.max(...day.map(r=>r[1]));
+    if(b!=null&&b>0){ const ch=Math.round((a-b)/b*100); $("k-live-d").className="delta "+(ch>=0?"up":"down"); $("k-live-d").textContent=(ch>=0?"+":"")+ch+"% vs day before · peak "+pk; }
+    else{ $("k-live-d").className="delta"; $("k-live-d").textContent="Peak "+pk+" today"; } }
+  const first=all.length?new Date(all[0][0]*1000):null;
+  $("live-note").textContent=first?("Counted every 5 minutes since "+first.toLocaleDateString("en-US",{month:"short",day:"numeric"})+", "+first.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})+". "+all.length+" samples."):"Counting started. The graph fills in over the next hours.";
+  drawLive();
+}
+function drawLive(){
+  const el=$("c-live"); if(!el||LS==null) return;
+  const r=range.live, B=liveBuckets(r);
+  if(!B.labels.length){ el.innerHTML=""; return; }
+  const lab=t=>{ const d=new Date(t*1000); return r<=1? d.toLocaleTimeString("en-US",{hour:"numeric"}) : d.toLocaleDateString("en-US",{month:"short",day:"numeric"}); };
+  const series=[{name:"average", data:B.avg, color:"--c1", type:"area"}]; if(B.peak) series.push({name:"peak", data:B.peak, color:"--c2", type:"line"});
+  const tipf=t=>{ const d=new Date(t*1000); return d.toLocaleDateString("en-US",{month:"short",day:"numeric"})+(r<=7?", "+d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}):""); };
+  chart(el, B.labels, series, {label:lab, tip:tipf});
+}
 function drawCharts(){
+  try{ drawLive(); }catch(e){}
   if(!D) return;
   const V=liveDays();
   const r=range.traffic;
@@ -442,6 +491,7 @@ function liveStats(){
       $("k-opt").textContent=fmt(d.opted_in); $("k-opt-d").textContent=d.total? Math.round(d.opted_in/d.total*100)+"% of members":""; });
 }
 /* every 15 seconds while the tab is open: only the small live numbers, then the charts redraw (a no-op when nothing changed) */
+setInterval(()=>{ if(!document.hidden) loadLive(); },120000);   /* live viewers: a new sample every 5 minutes */
 let lastTotal=null;
 setInterval(()=>{ if(document.hidden) return; liveStats().then(()=>{ if(LIVE&&LIVE.total!==lastTotal){ lastTotal=LIVE.total; drawCharts(); }
   $("updated").textContent="Updated "+new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit"}); }).catch(()=>{}); },15000);
@@ -450,7 +500,8 @@ async function load(){
   const errs=[];
   await Promise.all([
     fetch("/data/dashboard.json?ts="+Date.now()).then(r=>{ if(!r.ok) throw new Error("charts "+r.status); return r.json(); }).then(d=>{ D=d; }).catch(e=>errs.push(e.message)),
-    liveStats().catch(e=>errs.push(e.message))
+    liveStats().catch(e=>errs.push(e.message)),
+    loadLive()
   ]);
   render();
   settle();
