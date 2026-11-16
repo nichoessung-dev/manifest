@@ -395,8 +395,16 @@ function liveDays(){
 let LS=null;
 const LS_URL=SB+"/storage/v1/object/public/products/stats/live-samples.json";
 function loadLive(){ return fetch(LS_URL+"?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{ LS=d&&Array.isArray(d.s)?d.s:[]; renderLive(); }).catch(()=>{ LS=[]; renderLive(); }); }
+/* samples are only taken while someone has the site open, so a 5-minute slot without one means 0 viewers: every slot
+   from the first sample on is filled in (the current, unfinished slot is left out) */
+function liveSlots(){
+  const src=LS||[]; if(!src.length) return [];
+  const S=300, m=new Map(src.map(r=>[r[0],r[1]])), out=[], end=Math.floor(Date.now()/1000/S)*S;
+  for(let t=src[0][0]; t<end; t+=S) out.push([t, m.has(t)?m.get(t):0]);
+  return out;
+}
 function liveBuckets(days){
-  const now=Date.now()/1000, rows=(LS||[]).filter(r=>r[0]>=now-days*86400);
+  const now=Date.now()/1000, rows=liveSlots().filter(r=>r[0]>=now-days*86400);
   if(days<=1) return {labels:rows.map(r=>r[0]), avg:rows.map(r=>r[1]), peak:null};
   const size=days<=7?3600:86400, m=new Map();
   for(const [t,n] of rows){ const k=t-(t%size); const a=m.get(k)||[]; a.push(n); m.set(k,a); }
@@ -404,7 +412,7 @@ function liveBuckets(days){
   return {labels:ks, avg:ks.map(k=>{ const a=m.get(k); return Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10; }), peak:ks.map(k=>Math.max(...m.get(k)))};
 }
 function renderLive(){
-  const all=LS||[], now=Date.now()/1000, day=all.filter(r=>r[0]>=now-86400), prev=all.filter(r=>r[0]<now-86400&&r[0]>=now-2*86400);
+  const all=liveSlots(), now=Date.now()/1000, day=all.filter(r=>r[0]>=now-86400), prev=all.filter(r=>r[0]<now-86400&&r[0]>=now-2*86400);
   const av=a=>a.length?a.reduce((x,r)=>x+r[1],0)/a.length:null;
   const a=av(day), b=av(prev);
   if(a==null){ $("k-live").textContent="–"; $("k-live-d").textContent="Counting started, first numbers soon"; }

@@ -44,15 +44,17 @@ function presenceCount() {
 export async function onRequestPost({ env }) {
   const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json", "cache-control": "no-store" } });
   if (!env || !env.SUPABASE_SERVICE_KEY) return json({ error: "not configured" }, 501);
-  let n;
-  try { n = await presenceCount(); } catch (e) { return json({ error: String(e.message || e), log: LOG.splice(0) }, 502); }
+  // The open tabs of the site call this once per 5-minute slot (index.html liveTick): the slot is checked first, so the
+  // later calls of a slot end here without opening a realtime connection.
   const now = Math.floor(Date.now() / 1000), slot = now - (now % SLOT);
   let rows = [];
   try {
     const r = await fetch(`${SUPA}/storage/v1/object/public/${OBJ}?t=${now}`, { cf: { cacheTtl: 0 } });
     if (r.ok) { const d = await r.json(); if (Array.isArray(d.s)) rows = d.s; }
   } catch (e) {}
-  if (rows.length && rows[rows.length - 1][0] >= slot) return json({ n, stored: false });
+  if (rows.length && rows[rows.length - 1][0] >= slot) return json({ stored: false, slot: "taken" });
+  let n;
+  try { n = await presenceCount(); } catch (e) { return json({ error: String(e.message || e), log: LOG.splice(0) }, 502); }
   rows.push([slot, n]);
   rows = rows.filter(x => x[0] >= now - KEEP);
   const body = JSON.stringify({ updated: now, slot: SLOT, s: rows });

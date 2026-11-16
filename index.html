@@ -3672,7 +3672,14 @@ function initSb(){
   try{ if(window.supabase&&window.supabase.createClient){ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); BACKEND_OK = true; } }catch(e){ BACKEND_OK=false; }
   if(!sb) return;
   /* live-presence: announce this viewer on a realtime channel so /stats can show live viewers */
-  try{ const _pc=sb.channel("online-viewers",{config:{presence:{key:(Math.random().toString(36).slice(2)+Date.now())}}}); _pc.subscribe(function(st){ if(st==="SUBSCRIBED"){ try{ _pc.track({t:Date.now()}); }catch(_){} } }); window.__pc=_pc; }catch(e){}
+  try{ const _pc=sb.channel("online-viewers",{config:{presence:{key:(Math.random().toString(36).slice(2)+Date.now())}}}); _pc.subscribe(function(st){ if(st==="SUBSCRIBED"){ try{ _pc.track({t:Date.now()}); }catch(_){} } }); window.__pc=_pc;
+    /* 15 Nov 2026, live viewers on /stats: once per 5-minute slot, at a random moment in it, a few of the open tabs ask
+       /api/live-sample to store the count (about 4 per slot, whatever the crowd; the server keeps the first of a slot).
+       No tab open means no sample, which /stats reads as 0 viewers. Hidden tabs never ask. */
+    (function liveTick(){ const S=300000, wait=S-(Date.now()%S)+15000+Math.random()*200000;
+      setTimeout(function(){ try{ if(!document.hidden){ let n=0; const st=_pc.presenceState()||{}; for(const k in st) n+=(st[k]||[]).length;
+        if(Math.random()<Math.min(1,4/Math.max(1,n))) fetch("/api/live-sample",{method:"POST",keepalive:true}).catch(function(){}); } }catch(_){} liveTick(); },wait); })();
+  }catch(e){}
   initAuth();
   loadStars();
 }
