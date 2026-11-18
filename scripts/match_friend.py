@@ -59,7 +59,7 @@ def jpg64(im, side=448):
     b = io.BytesIO(); bg.save(b, "JPEG", quality=84); return base64.b64encode(b.getvalue()).decode()
 
 
-def claude(content, max_tokens=400):
+def claude(content, max_tokens=900):
     global spent
     body = json.dumps({"model": MODEL, "max_tokens": max_tokens, "messages": [{"role": "user", "content": content}]}).encode()
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=body, headers={
@@ -68,8 +68,8 @@ def claude(content, max_tokens=400):
     u = d.get("usage") or {}; spent += (u.get("input_tokens", 0) * 1.0 + u.get("output_tokens", 0) * 5.0) / 1e6
     txt = "".join(c.get("text", "") for c in d.get("content", []))
     m = re.search(r"\{.*\}", txt, re.S)
-    try: return json.loads(m.group(0)) if m else {"_raw": txt[:240], "_stop": d.get("stop_reason")}
-    except Exception: return {"_raw": txt[:240], "_stop": d.get("stop_reason")}
+    try: return json.loads(m.group(0)) if m else {"_raw": "[" + str(d.get("stop_reason")) + "] " + txt[:220], "_stop": d.get("stop_reason")}
+    except Exception: return {"_raw": "[" + str(d.get("stop_reason")) + "] " + txt[:220], "_stop": d.get("stop_reason")}
 
 
 def pic(im): return {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": jpg64(im)}}
@@ -118,7 +118,7 @@ def pick(im, cands, cls):
         "same prints, same cut and details) in the same colour? Photos can differ (angle, model, background); the product must not. "
         "A similar item of the same brand is NOT the same product. Answer only JSON: "
         '{"choice": <number, 0 for none>, "same_design": true/false, "same_colour": true/false, "confidence": 0-1, "reason": "short"}'})
-    return claude(content, 300)
+    return claude(content, 900)
 
 
 def report(rows):
