@@ -44,7 +44,7 @@ def main():
     if not P.KEY: sys.exit("POSTIZ_API_KEY is not set")
     old = json.load(open(OUT, encoding="utf-8")) if os.path.exists(OUT) else {"slides": []}
     used = {s["url"]: s.get("used", 0) for s in old.get("slides", [])}
-    now = datetime.now(timezone.utc); slides, posts, shown = [], 0, False
+    now = datetime.now(timezone.utc); slides, posts, shown = [], 0, False; shown_detail = [False]
     for back in range(0, a.days, 7):
         end, start = now - timedelta(days=back), now - timedelta(days=min(a.days, back + 7))
         q = "?startDate=%s&endDate=%s" % (start.strftime("%Y-%m-%dT%H:%M:%S.000Z"), end.strftime("%Y-%m-%dT%H:%M:%S.000Z"))
@@ -53,6 +53,13 @@ def main():
             if a.account and a.account not in name: continue
             if not shown: print("sample post keys:", sorted(p.keys())); shown = True
             imgs = images_of(p)
+            if len(imgs) < 3 and p.get("id"):              # the list leaves the media out: read the post itself
+                try:
+                    d = P.call("GET", "/posts/%s" % p["id"])
+                    if not shown_detail[0]: print("post detail keys:", sorted(d.keys()) if isinstance(d, dict) else type(d).__name__, str(d)[:400]); shown_detail[0] = True
+                    imgs = images_of(d)
+                except SystemExit as e:
+                    if not shown_detail[0]: print("post detail failed:", str(e)[:200]); shown_detail[0] = True
             if len(imgs) < 3: continue                      # a carousel has a cover and several slides
             posts += 1
             for k, u in enumerate(imgs):
