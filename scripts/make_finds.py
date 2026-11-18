@@ -296,6 +296,51 @@ def usable(t):
     return bool(t) and 2 <= len(t) <= 26 and not any(c in t for c in ",/\n") and not any(w in t.lower() for w in (" and ", " & ", "puro"))
 
 
+WHISPER_VOICE = os.environ.get("FINDS_VOICE", "pNInz6obpgDQGcFmaJgB")
+
+
+def whisper_track(spoken, frames, hold, out_dir, part):
+    """One whispered line per slide (ElevenLabs eleven_v3, "[whispers]" tag), each slide held at least as long as its line plus
+    a breath. Changes the frame durations in place and returns the path of the voice track (wav, the video's exact length),
+    or None without ELEVENLABS_API_KEY or when the voice fails (the video is then made without it)."""
+    key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
+    if not key: print("  whisper: no ELEVENLABS_API_KEY, video without voice"); return None
+    clips = []
+    for k, line in enumerate(spoken):
+        line = re.sub(r"\s+", " ", (line or "").replace("&", " and ")).strip()
+        if not line: clips.append(None); continue
+        path = os.path.join(out_dir, "whisper-%d-%02d.mp3" % (part, k))
+        body = json.dumps({"text": "[whispers] " + line + ".", "model_id": "eleven_v3", "voice_settings": {"stability": 0.5}}).encode()
+        req = urllib.request.Request("https://api.elevenlabs.io/v1/text-to-speech/%s?output_format=mp3_44100_128" % WHISPER_VOICE, data=body,
+                                     headers={"xi-api-key": key, "Content-Type": "application/json", "Accept": "audio/mpeg"})
+        try:
+            with urllib.request.urlopen(req, timeout=120) as r: open(path, "wb").write(r.read())
+        except Exception as e:
+            print("  whisper failed:", str(e)[:120]); return None
+        dur = 0.0
+        probe = subprocess.run([FF, "-i", path], capture_output=True, text=True).stderr
+        m = re.search(r"Duration: (\d+):(\d+):([\d.]+)", probe)
+        if m: dur = int(m.group(1)) * 3600 + int(m.group(2)) * 60 + float(m.group(3))
+        clips.append((path, dur))
+    # frames[0] is the cover, frames[1 + k] slide k
+    starts, t = [], frames[0][1]
+    for k, c in enumerate(clips):
+        if 1 + k >= len(frames): break
+        d = max(hold, (c[1] + 0.55) if c else hold); frames[1 + k] = (frames[1 + k][0], d)
+        starts.append(t + 0.18); t += d
+    total = sum(d for _, d in frames)
+    ins, flt, n = [], [], 0
+    for k, c in enumerate(clips[:len(starts)]):
+        if not c: continue
+        ins += ["-i", c[0]]; flt.append("[%d:a]adelay=%d|%d,aformat=channel_layouts=stereo[v%d]" % (n, int(starts[k] * 1000), int(starts[k] * 1000), n)); n += 1
+    if not n: return None
+    wav = os.path.join(out_dir, "whisper-%d.wav" % part)
+    fc = ";".join(flt) + ";" + "".join("[v%d]" % i for i in range(n)) + "amix=inputs=%d:normalize=0,volume=1.6,apad,atrim=0:%.3f[o]" % (n, total)
+    subprocess.run([FF, "-y", "-loglevel", "error"] + ins + ["-filter_complex", fc, "-map", "[o]", "-ar", "44100", wav], check=True)
+    print("  whisper: %d lines, %.1fs" % (n, total))
+    return wav
+
+
 def pair_label(a, b):
     """A short casual name for the two items on a slide, like "Stoney Half-Zips" or "Moncler Puffers", asked once of OpenAI
     and stored in scripts/qc_labels.json. It only names a brand it can read on the item; otherwise it names the item.
@@ -443,6 +488,7 @@ def main():
     ap.add_argument("--single", action="store_true", help="one photo on each slide instead of two stacked")
     ap.add_argument("--text", default="", help="json with the caption lines and hashtag groups for this account")
     ap.add_argument("--badge", action="store_true", help="the second account's 'puro classico / HARDEST FINDS' badge in the corners of every photo")
+    ap.add_argument("--whisper", action="store_true", help="with --video: a whispered voice says the item(s) on each slide (ElevenLabs v3)")
     ap.add_argument("--commit-state", action="store_true"); a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
     rnd = random.Random(a.seed)
     if a.local: pool = [(hashlib.md5(open(f, "rb").read()).hexdigest(), f) for f in sorted(glob.glob(os.path.join(a.local, "*"))) if f.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))]
@@ -517,9 +563,17 @@ def main():
     else:
         badge = make_badge(int(FW * 0.15)) if a.badge else None
         for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH, badge, names[k // 2] if LABELS else ""), a.hold))
+    voice = None
+    if a.whisper and a.video and not a.single:                   # owner, 18 Nov 2026: slideshow videos with a whispering voice saying the item
+        spoken = [names[k] or plain_label(ims[2 * k][1], ims[2 * k + 1][1]) for k in range(len(names))]
+        voice = whisper_track(spoken, frames, a.hold, a.out, part)
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
     cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
-    cmd += ["-stream_loop", "-1", "-i", audio, "-af", "afade=t=out:st=%.2f:d=0.6" % (total - 0.7)] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
+    if voice and audio:                                          # the whisper over the sound, the sound kept quiet under it
+        cmd += ["-i", voice, "-stream_loop", "-1", "-i", audio, "-filter_complex",
+                "[2:a]volume=0.22,afade=t=out:st=%.2f:d=0.6[m];[1:a][m]amix=inputs=2:duration=first:normalize=0[a]" % (total - 0.7), "-map", "0:v", "-map", "[a]"]
+    elif voice: cmd += ["-i", voice]
+    else: cmd += ["-stream_loop", "-1", "-i", audio, "-af", "afade=t=out:st=%.2f:d=0.6" % (total - 0.7)] if audio else ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
     cmd += ["-t", "%.3f" % total, "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", out]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for im, d in frames:
@@ -530,7 +584,8 @@ def main():
     for k, (im, _) in enumerate([] if a.video else frames):
         ip = os.path.join(a.out, "finds-%d-%02d.jpg" % (part, k)); im.save(ip, quality=96, subsampling=0, optimize=True); imgs.append(ip)
     meta = {"format": "finds", "images": imgs, "ids": [], "caption": caption,
-            "seconds": round(total, 1), "voiceover": False, "file": out, "product_url": "https://www.puroclassico.com/"}
+            "seconds": round(total, 1), "voiceover": bool(voice), "file": out, "product_url": "https://www.puroclassico.com/",
+            "names": names}
     json.dump(meta, open(out[:-4] + ".json", "w"), indent=1, ensure_ascii=False)
     print("wrote", out, "%.1fs" % total, len(frames) - 1, "slides", "with sound" if audio else "silent")
     if a.commit_state:

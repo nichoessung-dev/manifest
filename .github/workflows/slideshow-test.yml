@@ -1,0 +1,34 @@
+name: Slideshow test
+# A test of the whisper slideshow video (owner, 18 Nov 2026): the carousel slides as a 9:16 video, a whispering voice says the
+# item(s) on each slide (scripts/make_finds.py --video --whisper). Nothing is posted and no photo usage is recorded; the video
+# is in the run's artifacts.
+on:
+  workflow_dispatch:
+    inputs:
+      slides:
+        description: 'Slides'
+        default: '7'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow imageio-ffmpeg numpy
+      - name: Render
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python -u scripts/make_finds.py --folder 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L --slides "${{ inputs.slides }}" --video --whisper --out out/slideshow --state out/slideshow-state.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: slideshow-${{ github.run_number }}
+          path: out/slideshow/
+          if-no-files-found: ignore
+          retention-days: 14
