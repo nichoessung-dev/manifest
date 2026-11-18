@@ -303,7 +303,8 @@ def card(pid, p):
             '%s<div class="pc-mut" style="font-family:%s;font-size:12px;line-height:16px;font-weight:500;color:%s;">%s</div>'
             '<a href="%s" class="pc-ink" style="display:block;height:38px;overflow:hidden;margin-top:3px;font-family:%s;font-size:14px;line-height:19px;font-weight:600;color:%s;text-decoration:none;">%s</a>'
             '<div class="pc-ink" style="margin-top:6px;font-family:%s;font-size:15px;line-height:20px;font-weight:700;color:%s;">%s</div>'
-            '%s</td></tr></table></td>') % (WELL, WELL, well, (REC_PILL % (PRI, PRI_FG, FONT, PRI_FG)) if p.get("_rec") else "",
+            '%s</td></tr></table></td>') % (WELL, WELL, well, "",   # 18 Nov 2026 (owner): no Recommended pill on cards any more (site and emails)
+
                                             FONT, MUT, esc(p.get("brand") or ""), url, FONT, INK, title,
                                             FONT, INK, usd(p), pills)
 

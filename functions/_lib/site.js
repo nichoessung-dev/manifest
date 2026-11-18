@@ -449,8 +449,9 @@ export const recBadge = (p, app = false, where = "card") => !swapped(p) ? "" : a
   ? `<span class="rbadge" title="Recommended">${ic("award", "sm")}<span>Recommended</span></span>`
   : where === "card"
     ? `<span class="rbadge" title="Recommended" style="position:absolute;top:8px;left:8px;z-index:2;${REC_DOT}">${REC_ICON}<span style="${SR}">Recommended</span></span>`
-    : `<span class="rbadge" style="vertical-align:middle;margin-left:10px;${REC_TEXT}">${REC_ICON}Recommended</span>`;
-export const colourBadge = (p, icon) => recBadge(p, !!icon);
+    : `<span class="rbadge" style="vertical-align:middle;margin-left:10px;${REC_TEXT}">${REC_ICON}Best batch</span>`;
+// 18 Nov 2026 (owner): no badge on cards any more ("Best batch" shows only on the product page, recBadge "inline")
+export const colourBadge = (p, icon) => "";
 export function card(p, lazy = true) {
   const src = imgSrc(p), u = productUrl(p), ag = AGENTS.mycnbox;
   return `<div class="c"><a class="cl" href="${u}">` +
@@ -484,7 +485,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "29";
+export const DS_VER = "30";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
