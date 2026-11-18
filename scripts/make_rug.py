@@ -92,12 +92,12 @@ LOOK = os.environ.get("RUG_LOOK", "claude" if CLAUDE_KEY else "")
 CLAUDE_MODEL = os.environ.get("RUG_CLAUDE_MODEL", "claude-haiku-5-5")
 
 
-def claude_json(text, ims, max_tokens=600, side=768):
+def claude_json(text, ims, max_tokens=2000, side=768):
     """One Claude vision call (text, then the images in order); the JSON object of its answer."""
     content = [{"type": "text", "text": text}]
     for im in ims:
         content.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.b64encode(jpeg(im, side)).decode()}})
-    content.append({"type": "text", "text": "Answer with the JSON object only, no code fence."})
+    content.append({"type": "text", "text": "Answer with the JSON object only, no code fence, keep any \"why\" under 25 words."})
     body = {"model": CLAUDE_MODEL, "max_tokens": max_tokens, "messages": [{"role": "user", "content": content}]}   # no temperature: the model refuses it (HTTP 400)
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(body).encode(),
                                  headers={"x-api-key": CLAUDE_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json"})
@@ -263,7 +263,7 @@ CHECK = ("A quality-check photo of a fashion find on a green mat (it may show th
 def check(qc):
     """Is this QC photo right for a rug slide, and what is it called. One small call (Gemini Flash, or gpt-4o-mini)."""
     t = qc.convert("RGB"); t.thumbnail((768, 768)); b = io.BytesIO(); t.save(b, "JPEG", quality=85)
-    if LOOK == "claude": return claude_json(CHECK, [t], 300)
+    if LOOK == "claude": return claude_json(CHECK, [t], 1200)
     if ENGINE == "gemini":
         try:
             j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": CHECK}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(b.getvalue()).decode()}}],
