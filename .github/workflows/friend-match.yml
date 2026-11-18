@@ -14,6 +14,9 @@ on:
       max_usd:
         description: 'Hard stop for AI spend this run (USD)'
         default: '10'
+      ids:
+        description: 'Only these listing ids, done again (optional)'
+        default: ''
 permissions:
   contents: write
 concurrency: friend-match
@@ -30,7 +33,7 @@ jobs:
       - name: Match
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: python -u scripts/match_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}"
+        run: python -u scripts/match_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}" ${{ inputs.ids != '' && format('--ids {0}', inputs.ids) || '' }}
       - name: Keep report
         if: always()
         uses: actions/upload-artifact@v4

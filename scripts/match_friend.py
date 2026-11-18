@@ -137,6 +137,7 @@ def main():
     ap.add_argument("--max-minutes", type=float, default=50); ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--max-usd", type=float, default=15); ap.add_argument("--pause", type=float, default=0.6)
     ap.add_argument("--redo-errors", action="store_true")
+    ap.add_argument("--ids", default="", help="only these listings, done again")
     a = ap.parse_args()
     ids = json.load(open(LIST, encoding="utf-8"))["ids"]
     st = json.load(open(STATE, encoding="utf-8")) if os.path.exists(STATE) else {"items": {}}
@@ -148,6 +149,7 @@ def main():
     finds = [p for p in cat_items if p.get("img")]
     done_states = ("matched", "nomatch", "gone", "already")
     todo = [x for x in ids if (items.get(x) or {}).get("status") not in done_states and (a.redo_errors or (items.get(x) or {}).get("status") != "error")]
+    if a.ids: todo = [x for x in a.ids.replace(" ", "").split(",") if x in ids]
     print(f"friend listings {len(ids)}, to do {len(todo)}, finds on the site {len(finds)}")
     t0, n, rows, img_cache = time.time(), 0, [], {}
     for x in todo:
@@ -183,6 +185,7 @@ def main():
                 rows.append((x, dict(rec, find_p=f)))
             else:
                 rec.update(status="nomatch" if "_raw" not in v else "error", conf=v.get("confidence"), reason=str(v.get("reason") or v.get("_raw") or "")[:240])
+                rec["verdict"] = {k: v.get(k) for k in ("choice", "same_design", "same_colour", "confidence")}
         except Exception as ex:   # noqa: BLE001
             rec.update(status="error", reason=str(ex)[:160])
         items[x] = rec
