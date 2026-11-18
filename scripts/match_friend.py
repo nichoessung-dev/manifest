@@ -59,13 +59,14 @@ def jpg64(im, side=448):
     b = io.BytesIO(); bg.save(b, "JPEG", quality=84); return base64.b64encode(b.getvalue()).decode()
 
 
-def claude(content, max_tokens=900):
+def claude(content, max_tokens=900, model=None):
     global spent
-    body = json.dumps({"model": MODEL, "max_tokens": max_tokens, "messages": [{"role": "user", "content": content}]}).encode()
+    body = json.dumps({"model": model or MODEL, "max_tokens": max_tokens, "messages": [{"role": "user", "content": content}]}).encode()
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=body, headers={
         "x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01", "content-type": "application/json"})
     with urllib.request.urlopen(req, timeout=120) as r: d = json.load(r)
-    u = d.get("usage") or {}; spent += (u.get("input_tokens", 0) * 1.0 + u.get("output_tokens", 0) * 5.0) / 1e6
+    u = d.get("usage") or {}; mult = 3.0 if model and "sonnet" in model else 1.0
+    spent += mult * (u.get("input_tokens", 0) * 1.0 + u.get("output_tokens", 0) * 5.0) / 1e6
     txt = "".join(c.get("text", "") for c in d.get("content", []))
     m = re.search(r"\{.*\}", txt, re.S)
     try: return json.loads(m.group(0)) if m else {"_raw": "[" + str(d.get("stop_reason")) + "] " + txt[:220], "_stop": d.get("stop_reason")}
@@ -119,6 +120,18 @@ def pick(im, cands, cls):
         "A similar item of the same brand is NOT the same product. Answer only JSON: "
         '{"choice": <number, 0 for none>, "same_design": true/false, "same_colour": true/false, "confidence": 0-1, "reason": "short"}'})
     return claude(content, 900)
+
+
+CONFIRM_MODEL = os.environ.get("FRIEND_CONFIRM_MODEL", "claude-sonnet-5-5")
+
+
+def confirm(im, cim, p):
+    """Second opinion on a pick the first model was not sure of: only the two photos, a stronger model."""
+    return claude([{"type": "text", "text": "Image A is a product from a partner store. Image B is a product already on our site: "
+                    + json.dumps(p.get("title")) + "."}, pic(im), pic(cim),
+                   {"type": "text", "text": "Are A and B the SAME product: same design, same logos and placement, same prints and details, "
+                    "same colour? Photos may differ (angle, background, model, a multi-colour set showing it among others). A similar item "
+                    'is not the same. Answer only JSON: {"same": true/false, "confidence": 0-1, "reason": "short"}'}], 400, CONFIRM_MODEL)
 
 
 def report(rows):
@@ -179,6 +192,10 @@ def main():
             if not loaded: raise RuntimeError("candidate photos failed")
             v = pick(im, loaded, cls); k = int(v.get("choice") or 0)
             ok = k and 1 <= k <= len(loaded) and v.get("same_design") and v.get("same_colour") and float(v.get("confidence") or 0) >= 0.85
+            if not ok and k and 1 <= k <= len(loaded) and v.get("same_design") and v.get("same_colour") and float(v.get("confidence") or 0) >= 0.4:
+                c2 = confirm(im, loaded[k - 1][1], loaded[k - 1][0]); rec["confirm"] = {kk: c2.get(kk) for kk in ("same", "confidence", "reason")}
+                if c2.get("same") is True and float(c2.get("confidence") or 0) >= 0.8:
+                    ok = True; v = dict(v, confidence=c2.get("confidence"), reason="confirmed: " + str(c2.get("reason") or ""))
             if ok:
                 f = loaded[k - 1][0]
                 rec.update(status="matched", find=str(f["id"]), conf=v.get("confidence"), reason=str(v.get("reason") or "")[:160])
