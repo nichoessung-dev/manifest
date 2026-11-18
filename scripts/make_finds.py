@@ -323,11 +323,12 @@ def est_price(a, b):
 
 
 def with_caption(im, name, usd):
-    """The rug caption on a finished slide: name, then the price, centred where the two photos meet."""
+    """The rug caption on a finished slide: name and price on one line, in the black strip under the photos."""
     if not name: return im
     try:
         import make_rug
-        return make_rug.caption(im, name.lower() + ("\n$%d" % usd if usd else ""), cy=int(im.height * 0.5))
+        # one line in the black strip under the photos (18 Nov 2026: on the seam it covered the items)
+        return make_rug.caption(im, name.lower() + (" $%d" % usd if usd else ""), cy=int(im.height * 0.94), size=62, width=0.9)
     except Exception as e:
         print("  caption failed:", str(e)[:80]); return im
 
