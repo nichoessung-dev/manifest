@@ -328,7 +328,8 @@ def with_caption(im, name, usd):
     try:
         import make_rug
         # one line in the black strip under the photos (18 Nov 2026: on the seam it covered the items)
-        return make_rug.caption(im, name.lower() + (" $%d" % usd if usd else ""), cy=int(im.height * 0.94), size=62, width=0.9)
+        # owner, 18 Nov 2026: "make the next on the main account have the text in the middle": one line where the two photos meet
+        return make_rug.caption(im, name.lower() + (" $%d" % usd if usd else ""), cy=int(im.height * 0.5), size=62, width=0.9)
     except Exception as e:
         print("  caption failed:", str(e)[:80]); return im
 
@@ -344,7 +345,8 @@ def whisper_track(spoken, frames, hold, out_dir, part):
         line = re.sub(r"\s+", " ", (line or "").replace("&", " and ")).strip()
         if not line: clips.append(None); continue
         path = os.path.join(out_dir, "whisper-%d-%02d.mp3" % (part, k))
-        body = json.dumps({"text": "[whispers] " + line + ".", "model_id": "eleven_v3", "voice_settings": {"stability": 0.5}}).encode()
+        # stability 0 is v3's "Creative" setting, the one that follows audio tags fully (0.5 talked more than it whispered)
+        body = json.dumps({"text": "[whispering] [softly] " + line + "...", "model_id": "eleven_v3", "voice_settings": {"stability": 0.0}}).encode()
         req = urllib.request.Request("https://api.elevenlabs.io/v1/text-to-speech/%s?output_format=mp3_44100_128" % WHISPER_VOICE, data=body,
                                      headers={"xi-api-key": key, "Content-Type": "application/json", "Accept": "audio/mpeg"})
         try:
