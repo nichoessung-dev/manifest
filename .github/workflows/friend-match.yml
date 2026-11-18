@@ -29,7 +29,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
+      # the branch as it is when the job starts, not the commit the run was queued on: a run queued by the previous
+      # run (before that one saved its state) would otherwise conflict when it saves
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
