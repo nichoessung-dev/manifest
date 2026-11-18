@@ -488,6 +488,7 @@ def main():
     ap.add_argument("--single", action="store_true", help="one photo on each slide instead of two stacked")
     ap.add_argument("--text", default="", help="json with the caption lines and hashtag groups for this account")
     ap.add_argument("--badge", action="store_true", help="the second account's 'puro classico / HARDEST FINDS' badge in the corners of every photo")
+    ap.add_argument("--music-dir", default="", help="a folder of mp3 tracks: one is put under the video, least used first (state 'music')")
     ap.add_argument("--whisper", action="store_true", help="with --video: a whispered voice says the item(s) on each slide (ElevenLabs v3)")
     ap.add_argument("--commit-state", action="store_true"); a = ap.parse_args(); os.makedirs(a.out, exist_ok=True)
     rnd = random.Random(a.seed)
@@ -568,6 +569,11 @@ def main():
         spoken = [names[k] or plain_label(ims[2 * k][1], ims[2 * k + 1][1]) for k in range(len(names))]
         voice = whisper_track(spoken, frames, a.hold, a.out, part)
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
+    if not audio and a.music_dir:                                # owner, 18 Nov 2026: background music on the product slideshows
+        lib = sorted(glob.glob(os.path.join(ROOT, a.music_dir, "*.mp3")) + glob.glob(os.path.join(a.music_dir, "*.mp3")))
+        if lib:
+            mu = used.setdefault("music", {}); rnd.shuffle(lib); lib.sort(key=lambda f: mu.get(os.path.basename(f), 0))
+            audio = lib[0]; mu[os.path.basename(audio)] = mu.get(os.path.basename(audio), 0) + 1; print("  music:", os.path.basename(audio))
     cmd = [FF, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"]
     if voice and audio:                                          # the whisper over the sound, the sound kept quiet under it
         cmd += ["-i", voice, "-stream_loop", "-1", "-i", audio, "-filter_complex",

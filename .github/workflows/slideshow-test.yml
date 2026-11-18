@@ -1,34 +1,68 @@
 name: Slideshow test
-# A test of the whisper slideshow video (owner, 18 Nov 2026): the carousel slides as a 9:16 video, a whispering voice says the
-# item(s) on each slide (scripts/make_finds.py --video --whisper). Nothing is posted and no photo usage is recorded; the video
-# is in the run's artifacts.
+# A test of the whisper slideshow videos (owner, 18 Nov 2026): carousel slides as a 9:16 video, a whispering voice says the
+# item(s) on each slide, quiet background music under it. main = the green-mat QC carousel (make_finds.py --video --whisper),
+# qualityfinds = the rug carousel (make_rug.py, then slides_to_video.py). Nothing is posted and no photo usage is recorded;
+# the video is in the run's artifacts. The first run also fills the music library (media/music-slideshow/, committed).
 on:
   workflow_dispatch:
     inputs:
+      account:
+        description: 'Which account style'
+        type: choice
+        options: [main, qualityfinds]
+        default: main
       slides:
         description: 'Slides'
         default: '7'
 permissions:
-  contents: read
+  contents: write
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: pip install pillow imageio-ffmpeg numpy
-      - name: Render
+      - name: Colour emoji font for the rug covers
+        if: inputs.account == 'qualityfinds'
+        continue-on-error: true
+        run: sudo apt-get install -y -q fonts-noto-color-emoji
+      - name: Music library (fills up to 20 tracks once)
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: |
+          python -u scripts/make_music_lib.py --count 20 || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/music-slideshow 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -q -m "media: slideshow music library [skip ci]"
+            for n in 1 2 3 4 5; do git pull --rebase -q origin "$GITHUB_REF_NAME" && git push -q && break; sleep $((n * 5)); done
+          fi
+      - name: Render (main)
+        if: inputs.account == 'main'
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: python -u scripts/make_finds.py --folder 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L --slides "${{ inputs.slides }}" --video --whisper --out out/slideshow --state out/slideshow-state.json
+        run: python -u scripts/make_finds.py --folder 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L --slides "${{ inputs.slides }}" --video --whisper --music-dir media/music-slideshow --out out/slideshow --state out/slideshow-state.json
+      - name: Render (qualityfinds)
+        if: inputs.account == 'qualityfinds'
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          RUG_ENGINE: gemini
+          RUG_MODELS: gemini-3.1-flash-image
+        run: |
+          python -u scripts/make_rug.py --out out/slideshow --n "${{ inputs.slides }}" --state out/slideshow-state.json
+          python -u scripts/slides_to_video.py --rug out/slideshow --music-dir media/music-slideshow
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: slideshow-${{ github.run_number }}
+          name: slideshow-${{ inputs.account }}-${{ github.run_number }}
           path: out/slideshow/
           if-no-files-found: ignore
           retention-days: 14
