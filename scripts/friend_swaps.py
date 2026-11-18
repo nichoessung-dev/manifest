@@ -39,6 +39,11 @@ def main():
         if pid in have_pid or item in have_item: continue
         c = float(r.get("conf") or 0)
         if pid not in best or c > best[pid][1]: best[pid] = (item, c)
+    # new finds added from his listings (scripts/import_friend.py): a swap to itself gives the badge and the top priority
+    imp = (json.load(open(os.path.join(ROOT, "data", "friend_import.json"), encoding="utf-8")) if os.path.exists(os.path.join(ROOT, "data", "friend_import.json")) else {}).get("items") or {}
+    html = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
+    for item, r in imp.items():
+        if r.get("status") == "ok" and item not in have_pid and item not in have_item and f'"id":"{item}"' in html: best[item] = (item, 1.0)
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
     rows = [{"pid": pid, "platform": "weidian", "item_id": item, "note": "friend match (scripts/match_friend.py)",
              "status": "approved", "decided_at": now, "by_name": by_name, "by_code": by_code} for pid, (item, c) in sorted(best.items())]

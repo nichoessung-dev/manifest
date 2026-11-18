@@ -159,7 +159,7 @@ def main():
     ai = (json.load(open(os.path.join(ROOT, "data", "catalog_ai.json"), encoding="utf-8")) or {}).get("items") or {}
     swaps = json.load(open(os.path.join(ROOT, "data", "link_swaps.json"), encoding="utf-8"))
     taken_items = {v[1] for v in (swaps.get("swaps") or {}).values()}
-    finds = [p for p in cat_items if p.get("img")]
+    finds = [p for p in cat_items if p.get("img") and str(p["id"]) not in set(ids)]   # never his own finds (added by import_friend.py)
     done_states = ("matched", "nomatch", "gone", "already")
     todo = [x for x in ids if (items.get(x) or {}).get("status") not in done_states and (a.redo_errors or (items.get(x) or {}).get("status") != "error")]
     if a.ids: todo = [x for x in a.ids.replace(" ", "").split(",") if x in ids]

@@ -1,0 +1,57 @@
+name: Import friend's finds
+# The friend's listings with no existing find on the site (scripts/match_friend.py said nomatch). The owner's friend's Weidian store (data/friend_finds.json, 18 Nov 2026). scripts/import_friend.py reads each listing,
+# names it with a vision model, cuts the photo out into img/fr/<id>.webp and adds the find to index.html. A push made by
+# this workflow does not start Catalog sync, so the derived files are regenerated here too. Run until the log says "left 0".
+on:
+  # every 30 minutes, after the matcher (friend-match.yml) has looked at more listings; ends in seconds when nothing is new
+  schedule:
+    - cron: '22,52 * * * *'
+  workflow_dispatch:
+    inputs:
+      max_minutes:
+        description: 'Minutes of importing this run'
+        default: '50'
+      limit:
+        description: 'Most finds this run (0 = no limit; try 20 first)'
+        default: '0'
+      max_usd:
+        description: 'Hard stop for AI spend this run (USD)'
+        default: '10'
+permissions:
+  contents: write
+concurrency: import-friend
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow "rembg[cpu]>=2.0.59,<3" numpy
+      - name: Cache background-removal model
+        uses: actions/cache@v4
+        with:
+          path: ~/.u2net
+          key: u2net-isnet-general-use-v1
+      - name: Import
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python -u scripts/import_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}"
+      - name: Regenerate catalogue files
+        run: |
+          python scripts/gen_catalog.py
+          python scripts/sync_catalog.py --no-thumbs
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A img/fr index.html functions/_lib/catalog.js products.json sitemap.xml data/friend_import.json
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "feat: import friend's finds ($(git diff --cached --name-only -- img/fr | wc -l) photos)"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::the import could not be saved"; exit 1
