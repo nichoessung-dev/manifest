@@ -1,0 +1,32 @@
+name: Rug library
+# Collects the rug slides already posted on Qualityfinds (from the Postiz queue) into data/rug_library.json for reuse
+# (scripts/rug_library.py). Run by hand.
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'How many days back'
+        default: '60'
+permissions:
+  contents: write
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Collect
+        env:
+          POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+        run: python -u scripts/rug_library.py --days "${{ inputs.days }}"
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/rug_library.json
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "chore: rug library [skip ci]"
+          for n in 1 2 3 4 5; do git pull --rebase -q origin "$GITHUB_REF_NAME" && git push -q && exit 0; sleep $((n * 5)); done
+          exit 1
