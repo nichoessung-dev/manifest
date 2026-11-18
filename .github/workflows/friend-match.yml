@@ -22,6 +22,7 @@ on:
         default: ''
 permissions:
   contents: write
+  actions: write
 concurrency: friend-match
 jobs:
   match:
@@ -36,11 +37,24 @@ jobs:
       - name: Match
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: python -u scripts/match_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}" --redo-errors ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }}
+        run: |
+          set -o pipefail
+          python -u scripts/match_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}" --redo-errors ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }} | tee out-match.log
       - name: Matches become approved partner swaps (scripts/friend_swaps.py)
         env:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: python -u scripts/friend_swaps.py
+      # GitHub did not start the 30-minute schedule (18 Nov 2026), so each run starts the next one itself while listings are
+      # left, and starts the import of the unmatched ones
+      - name: Next run
+        if: success() && inputs.ids == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          left=$(grep -o 'left [0-9]*' out-match.log | tail -1 | grep -o '[0-9]*' || echo 0)
+          echo "left $left"
+          gh workflow run import-friend.yml --ref "$GITHUB_REF_NAME" || true
+          if [ "${left:-0}" -gt 0 ]; then gh workflow run friend-match.yml --ref "$GITHUB_REF_NAME"; fi
       - name: Keep report
         if: always()
         uses: actions/upload-artifact@v4

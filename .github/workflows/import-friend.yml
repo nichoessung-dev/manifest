@@ -22,6 +22,7 @@ on:
         default: ''
 permissions:
   contents: write
+  actions: write
 concurrency: import-friend
 jobs:
   import:
@@ -41,7 +42,9 @@ jobs:
       - name: Import
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: python -u scripts/import_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}" ${{ inputs.redo && format('--redo {0}', inputs.redo) || '' }}
+        run: |
+          set -o pipefail
+          python -u scripts/import_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}" ${{ inputs.redo && format('--redo {0}', inputs.redo) || '' }} | tee out-import.log
       - name: Regenerate catalogue files
         run: |
           python scripts/gen_catalog.py
@@ -58,3 +61,10 @@ jobs:
             sleep $((n * 7))
           done
           echo "::error::the import could not be saved"; exit 1
+      # the import stopped at its time or budget limit with listings ready: go on right away (the matcher also starts it)
+      - name: Next run
+        if: success() && inputs.redo == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if grep -q "limit reached" out-import.log; then gh workflow run import-friend.yml --ref "$GITHUB_REF_NAME"; fi
