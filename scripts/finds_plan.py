@@ -33,6 +33,10 @@ SLIDES = os.environ.get("FINDS_SLIDES", "12")                # slides per post, 
 HOLD = os.environ.get("FINDS_HOLD", "0.8")                   # seconds each slide stays up: the pictures swap fast
 STYLE = os.environ.get("FINDS_STYLE", "")                    # "rug" = items re-shot on the owner's Margiela rug by the image model (scripts/make_rug.py)
 MAX_NEW = int(os.environ.get("FINDS_MAX_NEW", "0") or 0)      # build at most this many posts per run (0 = no limit): rug posts take minutes each
+# owner, 18 Nov 2026: every carousel also goes out as a video: the same slides, a whispered voice saying the item on each, quiet
+# music (scripts/slides_to_video.py), posted at the same slot number later that day on TikTok, YouTube Shorts and Instagram.
+VIDEO_SLOTS = [s.strip() for s in os.environ.get("FINDS_VIDEO_SLOTS", "").split(",") if s.strip()]   # empty = no paired videos
+VIDEO_CHANNELS = os.environ.get("FINDS_VIDEO_CHANNELS", "tiktok,youtube,instagram-standalone")
 
 
 def build_cmd(out):
@@ -83,7 +87,33 @@ def top_up():
         r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), os.path.join(out, metas[0])], env=env)
         if r.returncode: print("could not schedule", t); continue
         made += 1; print("queued a carousel for", t.astimezone(TZ).strftime("%a %d %b %H:%M"), "(Norwegian time)")
+        try: pair_video(out, metas[0], t)
+        except Exception as e: print("::warning::the paired video failed:", str(e)[:200])
     print("new posts queued:", made)
+
+
+def pair_video(out, meta_name, t):
+    """The carousel just queued for slot t as a whisper slideshow video, scheduled at the same slot number in VIDEO_SLOTS."""
+    if not VIDEO_SLOTS: return
+    lt = t.astimezone(TZ); hm = lt.strftime("%H:%M")
+    if hm not in SLOTS: return
+    k = SLOTS.index(hm)
+    if k >= len(VIDEO_SLOTS): return
+    vs = VIDEO_SLOTS[k]; vt = datetime(lt.year, lt.month, lt.day, int(vs[:2]), int(vs[3:]), tzinfo=TZ).astimezone(timezone.utc)
+    if vt < datetime.now(timezone.utc) + timedelta(minutes=20): vt = datetime.now(timezone.utc) + timedelta(minutes=30)
+    meta = json.load(open(os.path.join(out, meta_name), encoding="utf-8")); mp4 = os.path.join(out, "video.mp4")
+    if STYLE == "rug":
+        cmd = [sys.executable, os.path.join(ROOT, "scripts", "slides_to_video.py"), "--rug", out, "--out", mp4]
+    else:
+        imgs = [os.path.join(out, os.path.basename(i)) for i in meta.get("images") or []]
+        if len(imgs) < 2: print("no slides for a paired video"); return
+        cmd = [sys.executable, os.path.join(ROOT, "scripts", "slides_to_video.py"), "--images"] + imgs + ["--names", json.dumps(meta.get("names") or []), "--out", mp4]
+    if subprocess.run(cmd).returncode or not os.path.exists(mp4): print("could not build the paired video for", t); return
+    vmeta = dict(meta, images=[], file=mp4, voiceover=True)
+    vpath = os.path.join(out, "video.json"); json.dump(vmeta, open(vpath, "w"), indent=1, ensure_ascii=False)
+    env = dict(os.environ, SCHEDULE_AT=vt.strftime("%Y-%m-%dT%H:%M:%S.000Z"), SHORTS_CHANNELS=VIDEO_CHANNELS)
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), vpath], env=env)
+    print(("queued its video for " + vt.astimezone(TZ).strftime("%a %d %b %H:%M")) if not r.returncode else "could not schedule the paired video")
 
 
 def send_links():

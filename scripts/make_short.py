@@ -363,18 +363,38 @@ class Clip:                                                  # reads a video as 
         if self.p: self.p.kill(); self.p = None
 
 
+def safe_title(t):
+    """No "replica" on screen, in the voice or in captions (TikTok's IP rules, owner 18 Nov 2026): Maison Margiela's Replica
+    sneaker is called by its nickname GAT, the word is dropped elsewhere."""
+    t = str(t or "")
+    if re.search(r"margiela", t, re.I): t = re.sub(r"\bReplica\s*/\s*GAT\b", "GAT", t, flags=re.I); t = re.sub(r"\bReplica\b", "GAT", t, flags=re.I)
+    else: t = re.sub(r"\breplicas?\b", "", t, flags=re.I)
+    return re.sub(r"\s{2,}", " ", t).strip()
+
+
+def finds_plus():
+    """The site's live finds count ("8,100+", functions/_lib/counts.js, baked by scripts/bake_counts.py)."""
+    try:
+        m = re.search(r'FINDS_PLUS = "([^"]+)"', open(os.path.join(ROOT, "functions", "_lib", "counts.js"), encoding="utf-8").read())
+        if m: return m.group(1)
+    except Exception: pass
+    return "8,000+"
+
+
 def models():
     out = []
     for f in ("content2.js", "content3.js"):
         s = open(os.path.join(ROOT, "functions", "_lib", f), encoding="utf-8").read()
         for slug, name, rx, qc in re.findall(r'\{ slug: "([^"]+)", name: "([^"]+)", rx: "((?:[^"\\]|\\.)*)", intro: "(?:[^"\\]|\\.)*", qc: \[([^\]]*)\]', s):
-            out.append((slug, name, re.compile(rx.replace("\\\\", "\\"), re.I), re.findall(r'"((?:[^"\\]|\\.)*)"', qc)))
+            out.append((slug, safe_title(name), re.compile(rx.replace("\\\\", "\\"), re.I), re.findall(r'"((?:[^"\\]|\\.)*)"', qc)))
     return out
 
 
 class Data:
     def __init__(self):
         self.products = json.load(open(os.path.join(ROOT, "products.json"), encoding="utf-8"))
+        for _p in (self.products.values() if isinstance(self.products, dict) else self.products):
+            if isinstance(_p, dict) and _p.get("title"): _p["title"] = safe_title(_p["title"])
         self.stats = json.load(open(os.path.join(ROOT, "data", "stats.json"), encoding="utf-8"))["p"]
         try: self.state = json.load(open(os.path.join(ROOT, "shorts_posted.json")))
         except Exception: self.state = {}
@@ -1056,7 +1076,8 @@ def short_title(p, n=40):
     return t if len(t) <= n else t[:n - 1].rsplit(" ", 1)[0] + "…"
 
 SIGNOFF = "Join the China side. Link in bio!"
-def cta(hero, sub="puroclassico.com  ·  9,000+ finds", say=None, kicker="Link in bio"):
+def cta(hero, sub=None, say=None, kicker="Link in bio"):
+    sub = sub or "puroclassico.com  ·  %s finds" % finds_plus()
     say = (say + " " if say else "") + SIGNOFF
     return dict(dur=3.4, say=say, kicker=kicker, kcol=RED, head="Join the China side", hcol=ACCENT, sub=sub, scol=INK, mood="wow", host_big=True, last=True)
 
@@ -1775,7 +1796,10 @@ def main():
     if a.voice_samples: return voice_samples(a.out)
     if a.make_presenters: return make_presenters(a.out)
     D = Data(); n = a.slot if a.slot is not None else int(D.state.get("n", 0))
-    order = FORMATS[n % len(FORMATS):] + FORMATS[:n % len(FORMATS)] if a.format == "auto" else [a.format]
+    # owner, 18 Nov 2026: the daily format video rotates only through the formats he liked (SHORTS_ROTATION); no style videos with
+    # other creators' clips
+    rot = [f for f in os.environ.get("SHORTS_ROTATION", "").replace(" ", "").split(",") if f in FORMATS] or FORMATS
+    order = rot[n % len(rot):] + rot[:n % len(rot)] if a.format == "auto" else [a.format]
     built = None
     for f in order + ["spotlight"]:
         built = BUILD[f](D, a)

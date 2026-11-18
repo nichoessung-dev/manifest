@@ -165,6 +165,7 @@ jobs:
           ASSET_STRICT: ${{ (github.event_name == 'schedule' || inputs.post) && '1' || '' }}
           RENDER_FORMAT: ${{ inputs.format || 'auto' }}
           RENDER_ID: ${{ inputs.id }}
+          SHORTS_ROTATION: top5,guess,qc,term,order      # owner, 18 Nov 2026: the formats he liked; no style videos (other creators' clips)
         run: |
           set -o pipefail
           RENDER_ID="$(printf '%s' "$RENDER_ID" | tr -d '[:space:]')"      # an id never has white space in it (make_assets.py drops it the same way)
@@ -206,6 +207,8 @@ jobs:
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
           SHORTS_CHANNELS: ${{ inputs.channels }}
+          # one format video a day per TikTok account (owner, 18 Nov 2026): the 16:00 UTC run is the main account, 20:00 Qualityfinds
+          TIKTOK_ACCOUNT: ${{ github.event.schedule == '0 20 * * *' && 'qualityfinds' || '' }}
           MYCNBOX_WEBHOOK: ${{ secrets.MYCNBOX_WEBHOOK }}
           PINTEREST_BOARD: ${{ vars.PINTEREST_BOARD }}
           TIKTOK_BRANDED: ${{ vars.TIKTOK_BRANDED }}
