@@ -4,9 +4,8 @@ name: Import friend's finds
 # this workflow does not start Catalog sync, so the derived files are regenerated here too. Run until the log says "left 0".
 on:
   # every 30 minutes, after the matcher (friend-match.yml) has looked at more listings; ends in seconds when nothing is new
-  # schedule: re-enabled once the photo choice is checked
-  # schedule:
-  #   - cron: '22,52 * * * *'
+  schedule:
+    - cron: '22,52 * * * *'
   workflow_dispatch:
     inputs:
       max_minutes:
