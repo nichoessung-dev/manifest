@@ -419,6 +419,35 @@ def cover(rnd, last=None):
     return im.convert("RGB"), k, kg
 
 
+SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co"
+LIB_INDEX = "products/rug/library.json"
+
+
+def save_library(out_dir, log):
+    """Owner, 18 Nov 2026: "save them from now on". Every rug image made (before its caption) goes to Supabase storage
+    (products/rug/<date>-<name>.jpg) and to the index products/rug/library.json {"images": [{url, date, qc, name, usd, group,
+    used}]}, so later posts and videos can reuse them without paying for a new image. Needs SUPABASE_SERVICE_KEY."""
+    key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
+    if not key or not log: return
+    H = {"authorization": "Bearer " + key, "apikey": key}
+    def put(path, data, ctype):
+        req = urllib.request.Request("%s/storage/v1/object/%s" % (SUPA, path), data=data, method="POST",
+                                     headers=dict(H, **{"content-type": ctype, "x-upsert": "true", "cache-control": "max-age=31536000"}))
+        urllib.request.urlopen(req, timeout=120).read()
+    try: idx = json.loads(urllib.request.urlopen("%s/storage/v1/object/public/%s?t=%d" % (SUPA, LIB_INDEX, int(time.time())), timeout=30).read())
+    except Exception: idx = {"images": []}
+    day = time.strftime("%Y%m%d"); n = 0
+    for x in log:
+        raw = os.path.join(out_dir, x["file"][:-4] + "-raw.jpg")
+        if not os.path.exists(raw): continue
+        name = "rug/%s-%s.jpg" % (day, uuid.uuid4().hex[:8])
+        put("products/" + name, open(raw, "rb").read(), "image/jpeg")
+        idx["images"].append({"url": "%s/storage/v1/object/public/products/%s" % (SUPA, name), "date": day, "qc": x.get("qc"),
+                              "name": x.get("label") or x.get("name"), "usd": x.get("usd"), "group": x.get("group"), "used": 1}); n += 1
+    put(LIB_INDEX, json.dumps(idx, ensure_ascii=False).encode(), "application/json")
+    print("  rug library: saved %d images (%d in total)" % (n, len(idx["images"])))
+
+
 def phone_look(im, seed=None):
     """A touch of what a real phone photo has and a render lacks: fine sensor noise, slightly warm, a faint corner falloff."""
     try:
@@ -945,6 +974,8 @@ def main():
     json.dump(meta, open(os.path.join(a.out, "rug.json"), "w"), indent=1, ensure_ascii=False)
     json.dump({"cover": k, "slides": log}, open(os.path.join(a.out, "log.txt"), "w"), indent=1)      # not .json: finds_plan posts the first .json it finds
     print("wrote", len(images), "images;", caption.replace("\n", " | "))
+    try: save_library(a.out, log)
+    except Exception as e: print("  rug library: not saved (%s)" % str(e)[:120])
     if state_path and a.commit_state:
         for x in log:
             for q in x["qc"]: rc[q] = rc.get(q, 0) + 1

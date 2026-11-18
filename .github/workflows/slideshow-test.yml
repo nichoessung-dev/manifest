@@ -66,6 +66,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # names the slides (OpenAI ran out of credit, 18 Nov 2026)
           RUG_ENGINE: gemini
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}   # saves every rug image for reuse (scripts/make_rug.py save_library)
           RUG_MODELS: gemini-3.1-flash-image
         run: |
           python -u scripts/make_rug.py --out out/slideshow --n "${{ inputs.slides }}" --state out/slideshow-state.json
