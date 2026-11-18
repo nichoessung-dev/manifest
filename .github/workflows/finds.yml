@@ -48,13 +48,14 @@ jobs:
           FINDS_MODE: carousel
           # four very good drafts every morning at 5 (owner, 26 Oct 2026; was three since 21 Oct)
           FINDS_SLOTS: '05:00,05:02,05:04'            # three carousel drafts a day (owner, 18 Nov 2026: 7 posts a day on this account)
-          FINDS_VIDEO_SLOTS: ''   # OFF until the owner approves the videos (18 Nov 2026); planned: '11:23,15:23,19:23' # each carousel again as a whisper video, Norwegian time, posted directly
+          FINDS_VIDEO_SLOTS: '11:23,15:23,19:23'      # each carousel again as a whisper video, Norwegian time (owner approved, 18 Nov 2026)
           FINDS_VIDEO_CHANNELS: 'tiktok,youtube,instagram-standalone'
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           FINDS_FROM: '2026-10-20'             # 19 Oct already had its morning drafts
           FINDS_BEST: '1'                      # look at 8x the photos, drop the blurriest, strongest same-item pairs
-          FINDS_DAYS: '2'                      # each carousel takes minutes to build now (photo clean-up), so keep two days queued, not five
+          FINDS_DAYS: '14'                     # owner, 18 Nov 2026: make the next two weeks of posts now
           FINDS_SLIDES: '9'
+          FINDS_MAX_NEW: '4'                   # with two weeks to fill: four carousels (plus their videos) per run, the next run goes on
           FINDS_LINKS: '0'
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}   # labels each QC shot's item type once, so a slide pairs two of a kind
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # names the slides (OpenAI ran out of credit, 18 Nov 2026)
@@ -89,11 +90,11 @@ jobs:
           FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L
           FINDS_MODE: carousel
           FINDS_SLOTS: '05:01,05:03,05:05'            # three rug carousel drafts a day (owner, 18 Nov 2026: 6 posts a day on this account)
-          FINDS_VIDEO_SLOTS: ''   # OFF until the owner approves the videos (18 Nov 2026); planned: '12:43,16:43,20:43' # each again as a whisper video, Norwegian time, posted directly
+          FINDS_VIDEO_SLOTS: '12:43,16:43,20:43'      # each again as a whisper video, Norwegian time (owner approved, 18 Nov 2026)
           FINDS_VIDEO_CHANNELS: 'tiktok,youtube,instagram-standalone'
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           FINDS_FROM: '2026-10-19'
-          FINDS_DAYS: '2'
+          FINDS_DAYS: '14'                     # owner, 18 Nov 2026: make the next two weeks of posts now
           FINDS_SLIDES: '6'                    # six slides, several items each (owner, 22 Oct 2026)
           FINDS_OWN: '0'                       # the whole QC pool; the owner's picks (scripts/rug_picks.json) go first
           FINDS_STATE: slides_used.json
