@@ -402,7 +402,7 @@ def pair_label(a, b):
             def enc_a(im):
                 t = im.copy(); t.thumbnail((512, 512)); buf = io.BytesIO(); t.convert("RGB").save(buf, "JPEG", quality=85)
                 return {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.b64encode(buf.getvalue()).decode()}}
-            ab = {"model": os.environ.get("FINDS_LABEL_MODEL", "claude-haiku-5-5"), "max_tokens": 60, "messages": [{"role": "user", "content": [
+            ab = {"model": os.environ.get("FINDS_LABEL_MODEL", "claude-haiku-5-5"), "max_tokens": 600, "messages": [{"role": "user", "content": [
                 body["messages"][0]["content"][0], enc_a(a), enc_a(b)]}]}
             req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(ab).encode(),
                                          headers={"x-api-key": akey, "anthropic-version": "2023-06-01", "content-type": "application/json"})
@@ -444,13 +444,15 @@ def describe(shots):
                  "colour: the main colour in one word."},
                 {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode(), "detail": "low"}}]}]}
             if akey:      # 18 Nov 2026: OpenAI is out of credit, Claude describes the photos
-                ab = {"model": os.environ.get("FINDS_LABEL_MODEL", "claude-haiku-5-5"), "max_tokens": 120, "messages": [{"role": "user", "content": [
+                ab = {"model": os.environ.get("FINDS_LABEL_MODEL", "claude-haiku-5-5"), "max_tokens": 1000, "messages": [{"role": "user", "content": [
                     {"type": "text", "text": body["messages"][0]["content"][0]["text"] + " Answer with the JSON object only."},
                     {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.b64encode(buf.getvalue()).decode()}}]}]}
                 req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(ab).encode(),
                                              headers={"x-api-key": akey, "anthropic-version": "2023-06-01", "content-type": "application/json"})
                 txt = "".join(c.get("text", "") for c in json.load(urllib.request.urlopen(req, timeout=60)).get("content", []))
-                j = json.loads(re.search(r"\{.*\}", txt, re.S).group(0))
+                m = re.search(r"\{.*?\}", txt, re.S)
+                if not m: raise RuntimeError("no JSON in the answer: %s" % txt[:80])
+                j = json.loads(m.group(0))
             else:
                 req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
                                              headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"})
