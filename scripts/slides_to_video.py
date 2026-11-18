@@ -39,7 +39,7 @@ def main():
     else:
         images = a.images or []; names = json.loads(a.names); prices = json.loads(a.prices)
         names = names[1:] if len(names) == len(images) else names
-        spoken = [n + (", %d dollars" % p if isinstance(p, (int, float)) and p else "") for n, p in zip(names, prices + [None] * len(names))]
+        spoken = [(n + (", %d dollars" % p if isinstance(p, (int, float)) and p else "")) if n else "" for n, p in zip(names, prices + [None] * len(names))]
         out = a.out or "slideshow.mp4"
     if len(images) < 2: sys.exit("need a cover and at least one slide")
     frames = [(ImageOps.fit(Image.open(p).convert("RGB"), (W, H), Image.LANCZOS), min(1.4, a.hold * 1.4)) for p in images[:1]]

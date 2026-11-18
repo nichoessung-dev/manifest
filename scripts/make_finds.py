@@ -629,8 +629,10 @@ def main():
             frames.append((sl, a.hold))
     voice = None
     if a.whisper and a.video and not a.single:                   # owner, 18 Nov 2026: slideshow videos with a whispering voice saying the item
-        spoken = [(spoken_names[k] if k < len(spoken_names) else names[k] or plain_label(ims[2 * k][1], ims[2 * k + 1][1]))
-                  + (", %d dollars" % prices[k] if k < len(prices) and prices[k] else "") for k in range(len(names))]
+        spoken = []
+        for k in range(len(names)):
+            nm = spoken_names[k] if k < len(spoken_names) else (names[k] or plain_label(ims[2 * k][1], ims[2 * k + 1][1]))
+            spoken.append((nm + (", %d dollars" % prices[k] if k < len(prices) and prices[k] else "")) if nm else "")
         voice = whisper_track(spoken, frames, a.hold, a.out, part)
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
     if not audio and a.music_dir:                                # owner, 18 Nov 2026: background music on the product slideshows
