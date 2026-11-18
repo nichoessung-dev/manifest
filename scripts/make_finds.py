@@ -428,10 +428,10 @@ def describe(shots):
     asked once of OpenAI (a small thumbnail, gpt-4o-mini) and the answer is stored. Unknown or failed: item "other"."""
     try: known = json.load(open(ITEMS_FILE))
     except Exception: known = {}
-    key = os.environ.get("OPENAI_API_KEY", "").strip(); out, new = {}, 0
+    key = os.environ.get("OPENAI_API_KEY", "").strip(); akey = os.environ.get("ANTHROPIC_API_KEY", "").strip(); out, new = {}, 0
     for sid, im in shots:
         if sid in known: out[sid] = known[sid]; continue
-        if not key: out[sid] = {"i": "other", "b": "", "c": ""}; continue
+        if not key and not akey: out[sid] = {"i": "other", "b": "", "c": ""}; continue
         try:
             import base64, io
             t = im.copy(); t.thumbnail((512, 512)); buf = io.BytesIO(); t.convert("RGB").save(buf, "JPEG", quality=85)
@@ -440,9 +440,18 @@ def describe(shots):
                  "item: exactly one of " + ", ".join(ITEMS) + ". brand: the brand only if you can read it on a logo, patch or tag of the item, lowercase, else \"\" (the round 'puro classico' stamp in the corner is not a brand). "
                  "colour: the main colour in one word."},
                 {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode(), "detail": "low"}}]}]}
-            req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
-                                         headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"})
-            j = json.loads(json.load(urllib.request.urlopen(req, timeout=60))["choices"][0]["message"]["content"])
+            if akey:      # 18 Nov 2026: OpenAI is out of credit, Claude describes the photos
+                ab = {"model": os.environ.get("FINDS_LABEL_MODEL", "claude-haiku-5-5"), "max_tokens": 120, "messages": [{"role": "user", "content": [
+                    {"type": "text", "text": body["messages"][0]["content"][0]["text"] + " Answer with the JSON object only."},
+                    {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.b64encode(buf.getvalue()).decode()}}]}]}
+                req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(ab).encode(),
+                                             headers={"x-api-key": akey, "anthropic-version": "2023-06-01", "content-type": "application/json"})
+                txt = "".join(c.get("text", "") for c in json.load(urllib.request.urlopen(req, timeout=60)).get("content", []))
+                j = json.loads(re.search(r"\{.*\}", txt, re.S).group(0))
+            else:
+                req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
+                                             headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"})
+                j = json.loads(json.load(urllib.request.urlopen(req, timeout=60))["choices"][0]["message"]["content"])
             it = str(j.get("item", "")).strip().lower()
             out[sid] = known[sid] = {"i": it if it in ITEMS else "other", "b": str(j.get("brand", "")).strip().lower()[:30],
                                      "c": str(j.get("colour", "")).strip().lower()[:15]}; new += 1
