@@ -67,8 +67,8 @@ def classify(im, zh, opts):
               "team name. Brand '' when the item has no clear brand. cat is exactly one of " + json.dumps(CATS) + ". item is the "
               "item type (T-Shirt, Hoodie, Jersey, Belt, Shorts ...). colour is the main colour of the item in the photo. g is 'm', "
               "'w' or 'u' (unisex). colours: English names for the colour options, same order. "
-              'Answer only JSON: {"title":"","brand":"","cat":"","item":"","colour":"","g":"m","colours":[]}')
-    body = json.dumps({"model": MODEL, "max_tokens": 400, "messages": [{"role": "user", "content": [
+              'Answer only JSON, no code fence: {"title":"","brand":"","cat":"","item":"","colour":"","g":"m","colours":[]}')
+    body = json.dumps({"model": MODEL, "max_tokens": 2000, "messages": [{"role": "user", "content": [
         {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": jpg64(im)}},
         {"type": "text", "text": prompt}]}]}).encode()
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=body, headers={
@@ -156,6 +156,8 @@ def main():
                     opts = [str(v.get("attrValue") or "") for at in (res.get("attrList") or []) for v in (at.get("attrValues") or []) if v.get("img")][:12]
                     im = get_img(res["itemMainPic"])
                     c = classify(im, zh, opts)
+                    if c.get("cat") not in CATS or not c.get("title"):
+                        c = dict((mt.get(x) or {}).get("cls") or {}, g="m", colours=[])   # the matcher's naming of the same listing
                     if c.get("cat") not in CATS or not c.get("title"): raise RuntimeError("classification failed: " + json.dumps(c)[:120])
                     cut = cutout(im)
                     save_webp(cut if cut is not None else im.convert("RGB"), os.path.join(IMG_DIR, x + ".webp"))
