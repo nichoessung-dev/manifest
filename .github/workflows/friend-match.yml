@@ -1,0 +1,54 @@
+name: Friend matches
+# Matches the friend's Weidian listings (data/friend_finds.json) to the finds already on the site (scripts/match_friend.py).
+# Nothing on the site changes: the state goes to data/friend_match.json (committed) and the spot-check report to the
+# run's artifacts. Turning matches into partner swaps is a separate, approved step. Run until the log says "left 0".
+on:
+  workflow_dispatch:
+    inputs:
+      max_minutes:
+        description: 'Minutes of matching this run'
+        default: '50'
+      limit:
+        description: 'Most listings this run (0 = no limit; try 20 first)'
+        default: '0'
+      max_usd:
+        description: 'Hard stop for AI spend this run (USD)'
+        default: '10'
+permissions:
+  contents: write
+concurrency: friend-match
+jobs:
+  match:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - name: Match
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python -u scripts/match_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}"
+      - name: Keep report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: friend-match-${{ github.run_number }}
+          path: out/friend-match/
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Save state
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/friend_match.json
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "chore: friend matches [skip ci]"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::the state could not be saved"; exit 1

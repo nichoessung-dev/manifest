@@ -1,5 +1,5 @@
 {
- "_how": "The owner's friend's Weidian store (owner, 18 Nov 2026: 'those links are also from my friend, remember that'; file oct1.xls, 2,756 links). Treated like a partner: every find here is imported by scripts/import_friend.py, gets the Recommended badge, and shares the top priority group with the partner-swapped finds (default sort: 5 of every 6 cards from that group, the 6th a popular find). Add new links from the friend to 'ids'.",
+ "_how": "The owner's friend's Weidian store, the same partner as the approved partner swaps (owner, 18 Nov 2026: 'those links are also from my friend, remember that' and 'these are links of items we already have, the popular stats of the old items should go to the new ones'). File oct1.xls, 2,756 links. They are NOT added as new finds: scripts/match_friend.py matches each link to the existing find that is the same item, and a match becomes an approved partner swap (the find keeps its views and popularity, its Buy link goes to the friend's listing, it gets the Recommended badge and the top priority group). Add new links from the friend to 'ids'.",
  "added": "2026-11-18",
  "ids": [
   "7675174820",
