@@ -57,26 +57,37 @@ def jpg64(im, side=512):
     return base64.b64encode(b.getvalue()).decode()
 
 
-def classify(im, zh, opts):
+def classify(photos, zh, hint):
+    """One call: pick the clean single-product photo among the listing's photos (main + colour options) and name it.
+    photos: [(label, PIL image)]. hint: the matcher's naming of the listing (brand/title), used when it fits."""
     global spent
-    prompt = ("This is a product listing from a Chinese Weidian store. Chinese title: " + json.dumps(zh, ensure_ascii=False) +
-              ". Colour options: " + json.dumps(opts, ensure_ascii=False) + ".\n"
-              "Write the catalogue entry in English. Rules: title in the form 'Brand Item Colour' (short, 2-6 words, Title Case, "
-              "no codes like DX1-7 or CY, no words like replica, fake, rep, 1:1, custom). Football kits: team, season and kit, e.g. "
-              "'Argentina 2026 Home Jersey', 'Germany 2024/25 Training Hoodie'; brand = the kit maker if its logo is visible, else the "
-              "team name. Brand '' when the item has no clear brand. cat is exactly one of " + json.dumps(CATS) + ". item is the "
-              "item type (T-Shirt, Hoodie, Jersey, Belt, Shorts ...). colour is the main colour of the item in the photo. g is 'm', "
-              "'w' or 'u' (unisex). colours: English names for the colour options, same order. "
-              'Answer only JSON, no code fence: {"title":"","brand":"","cat":"","item":"","colour":"","g":"m","colours":[]}')
-    body = json.dumps({"model": MODEL, "max_tokens": 2000, "messages": [{"role": "user", "content": [
-        {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": jpg64(im)}},
-        {"type": "text", "text": prompt}]}]}).encode()
+    content = []
+    for k, (lab, im) in enumerate(photos):
+        content += [{"type": "text", "text": f"Photo {k}: {lab}"}, {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": jpg64(im)}}]
+    content.append({"type": "text", "text":
+        "These are the photos of one Chinese Weidian listing (photo 0 is its main photo, the others are its colour options). "
+        "Chinese title: " + json.dumps(zh, ensure_ascii=False) + ". An earlier look named it: " + json.dumps(hint, ensure_ascii=False) + ".\n"
+        "1) photo: the number of the best photo for a shop catalogue that shows ONE single product only, fully visible: no collage or "
+        "grid of several products, no text or watermark over the photo, no packaging or box as the subject, no person wearing it, no "
+        "hand. -1 if no photo qualifies.\n2) Name the product in that photo in English: title 'Brand Item Colour' (2-7 words, Title "
+        "Case, no seller codes like DX1-7 or CY, never the words replica, fake, rep, 1:1, custom). brand: the designer brand of the "
+        "design, read from logos, monograms, signature designs and the title (e.g. Yeezy, Louis Vuitton, Off-White, Chrome Hearts, "
+        "Ralph Lauren, Bape); football kits: the kit maker if its logo shows, else the club or team. '' only when there is truly no "
+        "brand. cat: exactly one of " + json.dumps(CATS) + ". item: the item type. colour: its main colour. g: 'm', 'w' or 'u'. "
+        'Answer only JSON, no code fence: {"photo":0,"title":"","brand":"","cat":"","item":"","colour":"","g":"m"}'})
+    body = json.dumps({"model": MODEL, "max_tokens": 2000, "messages": [{"role": "user", "content": content}]}).encode()
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=body, headers={
         "x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01", "content-type": "application/json"})
     with urllib.request.urlopen(req, timeout=120) as r: d = json.load(r)
     u = d.get("usage") or {}; spent += (u.get("input_tokens", 0) * 1.0 + u.get("output_tokens", 0) * 5.0) / 1e6
     m = re.search(r"\{.*\}", "".join(c.get("text", "") for c in d.get("content", [])), re.S)
-    return json.loads(m.group(0)) if m else {}
+    try: return json.loads(m.group(0)) if m else {}
+    except Exception: return {}
+
+
+# brand names as the catalogue spells them (the site's own clean-up does the rest)
+BRAND_FIX = {"polo ralph lauren": "Ralph Lauren", "polo": "Ralph Lauren", "a bathing ape": "Bape", "bape": "Bape", "yeezy": "Yeezy",
+             "off white": "Off-White", "off-white": "Off-White", "fear of god essentials": "Essentials", "arcteryx": "Arc'teryx"}
 
 
 _sess = None
@@ -123,6 +134,7 @@ def main():
     ap.add_argument("--max-minutes", type=float, default=50); ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--max-usd", type=float, default=20); ap.add_argument("--pause", type=float, default=0.6)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--redo", default="", help="ids already added, done again (their rows and photos are replaced)")
     a = ap.parse_args()
     ids = json.load(open(LIST, encoding="utf-8"))["ids"]
     st = json.load(open(STATE, encoding="utf-8")) if os.path.exists(STATE) else {"items": {}}
@@ -133,7 +145,9 @@ def main():
     # only the listings scripts/match_friend.py found NO existing find for: a matched one takes over that find instead
     # (a partner swap), and a listing it has not looked at yet waits for it
     mt = (json.load(open(os.path.join(ROOT, "data", "friend_match.json"), encoding="utf-8")) if os.path.exists(os.path.join(ROOT, "data", "friend_match.json")) else {}).get("items") or {}
-    todo = [x for x in ids if x not in have and (mt.get(x) or {}).get("status") == "nomatch" and (items.get(x) or {}).get("status") not in ("ok", "gone")]
+    todo = [x for x in ids if x not in have and (mt.get(x) or {}).get("status") == "nomatch" and (items.get(x) or {}).get("status") not in ("ok", "gone", "badphoto")]
+    redo = [x for x in a.redo.replace(" ", "").split(",") if x]
+    if redo: todo = redo
     files = repo_files()
     print(f"friend list {len(ids)}, in catalogue {sum(1 for x in ids if x in have)}, to process {len(todo)}, site files {files}")
     if files + len(todo) > MAX_FILES: sys.exit("stopping: the photos would pass the Cloudflare Pages file limit")
@@ -153,12 +167,20 @@ def main():
                 if isinstance(stock, (int, float)) and stock <= 0: rec.update(status="gone", note="sold out")
                 else:
                     zh = res.get("itemTitle") or ""
-                    opts = [str(v.get("attrValue") or "") for at in (res.get("attrList") or []) for v in (at.get("attrValues") or []) if v.get("img")][:12]
-                    im = get_img(res["itemMainPic"])
-                    c = classify(im, zh, opts)
-                    if c.get("cat") not in CATS or not c.get("title"):
-                        c = dict((mt.get(x) or {}).get("cls") or {}, g="m", colours=[])   # the matcher's naming of the same listing
+                    optv = [v for at in (res.get("attrList") or []) for v in (at.get("attrValues") or []) if v.get("img")][:7]
+                    photos = [("main photo", get_img(res["itemMainPic"]))]
+                    for v in optv:
+                        try: photos.append(("colour option " + str(v.get("attrValue") or ""), get_img(v["img"])))
+                        except Exception: pass
+                    hint = {k: ((mt.get(x) or {}).get("cls") or {}).get(k) for k in ("brand", "title", "cat")}
+                    c = classify(photos, zh, hint)
                     if c.get("cat") not in CATS or not c.get("title"): raise RuntimeError("classification failed: " + json.dumps(c)[:120])
+                    k = c.get("photo")
+                    if not isinstance(k, int) or not 0 <= k < len(photos):
+                        rec.update(status="badphoto", note="no clean single-product photo in the listing"); items[x] = rec; continue
+                    im = photos[k][1]
+                    c["brand"] = BRAND_FIX.get(str(c.get("brand") or "").strip().lower(), str(c.get("brand") or "").strip())
+                    c["colours"] = [c.get("colour")] if c.get("colour") else []
                     cut = cutout(im)
                     save_webp(cut if cut is not None else im.convert("RGB"), os.path.join(IMG_DIR, x + ".webp"))
                     price = price_of(res)
@@ -178,6 +200,37 @@ def main():
             json.dump(st, open(STATE, "w", encoding="utf-8"), ensure_ascii=False)
     json.dump(st, open(STATE, "w", encoding="utf-8"), ensure_ascii=False)
     add = [r["row"] for k, r in items.items() if r.get("status") == "ok" and k not in have and os.path.exists(os.path.join(IMG_DIR, k + ".webp"))]
+    # --redo: rows already in the catalogue are swapped for the new one (or taken out when the listing has no clean photo)
+    if redo:
+        rows = json.loads(raw); keep = []
+        for r in rows:
+            k = str(r.get("id"))
+            if k in redo:
+                st_k = items.get(k) or {}
+                if st_k.get("status") == "ok": keep.append(st_k["row"])
+                elif st_k.get("status") in ("badphoto", "gone"):
+                    try: os.remove(os.path.join(IMG_DIR, k + ".webp"))
+                    except OSError: pass
+                else: keep.append(r)
+            else: keep.append(r)
+        if keep != rows:
+            # rewrite only the redone rows: each old row's exact text is replaced, the rest of the block is untouched
+            new_raw = raw
+            for r in rows:
+                k = str(r.get("id"))
+                if k not in redo: continue
+                old = json.dumps(r, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+                st_k = items.get(k) or {}
+                if old not in new_raw: continue
+                if st_k.get("status") == "ok":
+                    new_raw = new_raw.replace(old, json.dumps(st_k["row"], ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/"), 1)
+                elif st_k.get("status") in ("badphoto", "gone"):
+                    new_raw = new_raw.replace("," + old, "", 1) if ("," + old) in new_raw else new_raw.replace(old + ",", "", 1)
+            json.loads(new_raw)
+            raw = new_raw; html = html[:s] + raw + html[s + len(html[s:e]):]; e = s + len(raw)
+            open(path, "w", encoding="utf-8").write(html)
+            have = {str(p["id"]) for p in json.loads(raw)}
+            add = [r for r in add if str(r["id"]) not in have]
     if add:
         body = raw.rstrip()
         extra = json.dumps(add, ensure_ascii=False, separators=(",", ":"))[1:-1].replace("</", "<\\/")
@@ -186,7 +239,7 @@ def main():
         open(path, "w", encoding="utf-8").write(html[:s] + new_raw + html[e:])
     from collections import Counter
     cnt = Counter(r.get("status") for r in items.values())
-    left = sum(1 for x in ids if x not in have and (items.get(x) or {}).get("status") not in ("ok", "gone"))
+    left = sum(1 for x in ids if x not in have and (items.get(x) or {}).get("status") not in ("ok", "gone", "badphoto"))
     print(f"done: {done} processed this run, {len(add)} finds added to index.html; states {dict(cnt)}; left {left} "
           f"(${spent:.2f}, {time.time() - t0:.0f} s)")
 

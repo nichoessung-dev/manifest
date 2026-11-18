@@ -4,8 +4,9 @@ name: Import friend's finds
 # this workflow does not start Catalog sync, so the derived files are regenerated here too. Run until the log says "left 0".
 on:
   # every 30 minutes, after the matcher (friend-match.yml) has looked at more listings; ends in seconds when nothing is new
-  schedule:
-    - cron: '22,52 * * * *'
+  # schedule: re-enabled once the photo choice is checked
+  # schedule:
+  #   - cron: '22,52 * * * *'
   workflow_dispatch:
     inputs:
       max_minutes:
@@ -17,6 +18,9 @@ on:
       max_usd:
         description: 'Hard stop for AI spend this run (USD)'
         default: '10'
+      redo:
+        description: 'Ids already added, done again (optional)'
+        default: ''
 permissions:
   contents: write
 concurrency: import-friend
@@ -38,7 +42,7 @@ jobs:
       - name: Import
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: python -u scripts/import_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}"
+        run: python -u scripts/import_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}" ${{ inputs.redo && format('--redo {0}', inputs.redo) || '' }}
       - name: Regenerate catalogue files
         run: |
           python scripts/gen_catalog.py
