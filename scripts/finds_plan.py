@@ -107,7 +107,7 @@ def pair_video(out, meta_name, t):
     else:
         imgs = [os.path.join(out, os.path.basename(i)) for i in meta.get("images") or []]
         if len(imgs) < 2: print("no slides for a paired video"); return
-        cmd = [sys.executable, os.path.join(ROOT, "scripts", "slides_to_video.py"), "--images"] + imgs + ["--names", json.dumps(meta.get("names") or []), "--out", mp4]
+        cmd = [sys.executable, os.path.join(ROOT, "scripts", "slides_to_video.py"), "--images"] + imgs + ["--names", json.dumps(meta.get("names") or []), "--prices", json.dumps(meta.get("prices") or []), "--out", mp4]
     if subprocess.run(cmd).returncode or not os.path.exists(mp4): print("could not build the paired video for", t); return
     vmeta = dict(meta, images=[], file=mp4, voiceover=True)
     vpath = os.path.join(out, "video.json"); json.dump(vmeta, open(vpath, "w"), indent=1, ensure_ascii=False)

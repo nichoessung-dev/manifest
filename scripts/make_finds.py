@@ -614,18 +614,23 @@ def main():
     look = [rnd.choice([k for k in range(len(COVER_FONTS)) if k != last[0]]), rnd.choice([k for k in range(len(ARROWS)) if k != last[1]])]
     used["look"] = look
     frames = [(cover_card(title, FW, FH, bg, look), min(1.4, max(0.9, a.hold * 1.4)))]      # the start picture stays a little longer than a slide
+    spoken_names, prices = [], []
     if a.single:
         for _, im in ims: frames.append((whole(im, FW, FH), a.hold))
     else:
         badge = make_badge(int(FW * 0.15)) if a.badge else None
+        spoken_names, prices = [], []
         for k in range(0, len(ims) - 1, 2):
             sl = slide(ims[k][1], ims[k + 1][1], FW, FH, badge, names[k // 2] if LABELS else "")
             if CAPTIONS and not LABELS:
-                sl = with_caption(sl, names[k // 2] or plain_label(ims[k][1], ims[k + 1][1]), est_price(ims[k][1], ims[k + 1][1]))
+                nm = names[k // 2] or plain_label(ims[k][1], ims[k + 1][1]); pr = est_price(ims[k][1], ims[k + 1][1])
+                spoken_names.append(nm); prices.append(pr)
+                sl = with_caption(sl, nm, pr)
             frames.append((sl, a.hold))
     voice = None
     if a.whisper and a.video and not a.single:                   # owner, 18 Nov 2026: slideshow videos with a whispering voice saying the item
-        spoken = [names[k] or plain_label(ims[2 * k][1], ims[2 * k + 1][1]) for k in range(len(names))]
+        spoken = [(spoken_names[k] if k < len(spoken_names) else names[k] or plain_label(ims[2 * k][1], ims[2 * k + 1][1]))
+                  + (", %d dollars" % prices[k] if k < len(prices) and prices[k] else "") for k in range(len(names))]
         voice = whisper_track(spoken, frames, a.hold, a.out, part)
     total = sum(d for _, d in frames); out = os.path.join(a.out, "finds-%d.mp4" % part); audio = drive_get(a.audio, "mp3") if a.audio else None
     if not audio and a.music_dir:                                # owner, 18 Nov 2026: background music on the product slideshows
@@ -650,7 +655,7 @@ def main():
         ip = os.path.join(a.out, "finds-%d-%02d.jpg" % (part, k)); im.save(ip, quality=96, subsampling=0, optimize=True); imgs.append(ip)
     meta = {"format": "finds", "images": imgs, "ids": [], "caption": caption,
             "seconds": round(total, 1), "voiceover": bool(voice), "file": out, "product_url": "https://www.puroclassico.com/",
-            "names": names}
+            "names": spoken_names if spoken_names else names, "prices": prices}
     json.dump(meta, open(out[:-4] + ".json", "w"), indent=1, ensure_ascii=False)
     print("wrote", out, "%.1fs" % total, len(frames) - 1, "slides", "with sound" if audio else "silent")
     if a.commit_state:

@@ -54,10 +54,11 @@ jobs:
           J=$(ls out/slideshow/finds-*.json | head -1)
           python - "$J" <<'PY' > out/slideshow/args.txt
           import json, sys
-          m = json.load(open(sys.argv[1])); print(json.dumps(m.get("names") or [])); print(" ".join(m["images"]))
+          m = json.load(open(sys.argv[1])); print(json.dumps(m.get("names") or [])); print(" ".join(m["images"])); print(json.dumps(m.get("prices") or []))
           PY
           NAMES=$(sed -n 1p out/slideshow/args.txt); IMGS=$(sed -n 2p out/slideshow/args.txt)
-          python -u scripts/slides_to_video.py --images $IMGS --names "$NAMES" --out out/slideshow/video.mp4
+          PRICES=$(sed -n 3p out/slideshow/args.txt)
+          python -u scripts/slides_to_video.py --images $IMGS --names "$NAMES" --prices "$PRICES" --out out/slideshow/video.mp4
       - name: Render (qualityfinds)
         if: inputs.account == 'qualityfinds'
         env:

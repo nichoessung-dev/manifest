@@ -21,7 +21,7 @@ W, H, FPS = 1080, 1920, 30
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--rug"); ap.add_argument("--images", nargs="*"); ap.add_argument("--names", default="[]")
+    ap.add_argument("--rug"); ap.add_argument("--images", nargs="*"); ap.add_argument("--names", default="[]"); ap.add_argument("--prices", default="[]")
     ap.add_argument("--music-dir", default="media/music-slideshow"); ap.add_argument("--hold", type=float, default=2.2)
     ap.add_argument("--out"); ap.add_argument("--seed", type=int)
     a = ap.parse_args()
@@ -29,10 +29,17 @@ def main():
         meta = json.load(open(os.path.join(a.rug, "rug.json"), encoding="utf-8"))
         log = json.load(open(os.path.join(a.rug, "log.txt"), encoding="utf-8"))
         images = meta["images"]
-        spoken = [" and ".join(x.get("label") or x.get("name") or []) if isinstance(x.get("label") or x.get("name"), list) else str(x.get("name") or "") for x in log["slides"]]
+        # owner, 18 Nov 2026: "make it also say the dollar amount": each item with its price
+        def line(x):
+            ns = x.get("label") or x.get("name") or []; us = x.get("usd") or []
+            ns = ns if isinstance(ns, list) else [ns]; us = us if isinstance(us, list) else [us]
+            return ", and ".join(n + (", %d dollars" % u if isinstance(u, (int, float)) and u else "") for n, u in zip(ns, us + [None] * len(ns)))
+        spoken = [line(x) for x in log["slides"]]
         out = a.out or os.path.join(a.rug, "rug.mp4")
     else:
-        images = a.images or []; names = json.loads(a.names); spoken = names[1:] if len(names) == len(images) else names
+        images = a.images or []; names = json.loads(a.names); prices = json.loads(a.prices)
+        names = names[1:] if len(names) == len(images) else names
+        spoken = [n + (", %d dollars" % p if isinstance(p, (int, float)) and p else "") for n, p in zip(names, prices + [None] * len(names))]
         out = a.out or "slideshow.mp4"
     if len(images) < 2: sys.exit("need a cover and at least one slide")
     frames = [(ImageOps.fit(Image.open(p).convert("RGB"), (W, H), Image.LANCZOS), min(1.4, a.hold * 1.4)) for p in images[:1]]
