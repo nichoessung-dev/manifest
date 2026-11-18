@@ -66,8 +66,10 @@ def claude(content, max_tokens=400):
         "x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01", "content-type": "application/json"})
     with urllib.request.urlopen(req, timeout=120) as r: d = json.load(r)
     u = d.get("usage") or {}; spent += (u.get("input_tokens", 0) * 1.0 + u.get("output_tokens", 0) * 5.0) / 1e6
-    m = re.search(r"\{.*\}", "".join(c.get("text", "") for c in d.get("content", [])), re.S)
-    return json.loads(m.group(0)) if m else {}
+    txt = "".join(c.get("text", "") for c in d.get("content", []))
+    m = re.search(r"\{.*\}", txt, re.S)
+    try: return json.loads(m.group(0)) if m else {"_raw": txt[:240], "_stop": d.get("stop_reason")}
+    except Exception: return {"_raw": txt[:240], "_stop": d.get("stop_reason")}
 
 
 def pic(im): return {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": jpg64(im)}}
@@ -161,6 +163,7 @@ def main():
                 rec.update(status="gone", reason="listing gone or sold out"); items[x] = rec; continue
             im = get_img(res["itemMainPic"]); rec["pic"] = res["itemMainPic"]
             cls = classify(im, res.get("itemTitle") or ""); rec["cls"] = cls
+            if "_raw" in cls: raise RuntimeError("naming failed: " + str(cls.get("_raw")))
             cs = candidates(cls, finds, ai)
             rec["cands"] = [str(p["id"]) for p in cs]
             if not cs: rec.update(status="nomatch", reason="no candidate"); items[x] = rec; continue
@@ -179,7 +182,7 @@ def main():
                 rec.update(status="matched", find=str(f["id"]), conf=v.get("confidence"), reason=str(v.get("reason") or "")[:160])
                 rows.append((x, dict(rec, find_p=f)))
             else:
-                rec.update(status="nomatch", conf=v.get("confidence"), reason=str(v.get("reason") or "")[:160])
+                rec.update(status="nomatch" if "_raw" not in v else "error", conf=v.get("confidence"), reason=str(v.get("reason") or v.get("_raw") or "")[:240])
         except Exception as ex:   # noqa: BLE001
             rec.update(status="error", reason=str(ex)[:160])
         items[x] = rec
