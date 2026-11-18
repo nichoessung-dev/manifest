@@ -49,7 +49,7 @@ def group(t):
     return "small" if t in SMALL else "shoes" if t in SHOES else "bags" if t in BAGS else "jackets"
 
 
-MULTI = {"small": 3, "shoes": 2, "bags": 2, "jackets": 1}       # items per slide (owner, 22 Oct 2026: several accessories or shoes together; one jacket fills the rug)
+MULTI = {"small": 2, "shoes": 1, "bags": 1, "jackets": 1}       # items per slide (owner, 18 Nov 2026: "this looks too AI": fewer items per slide, one pair, one bag)
 
 
 def prompt(items, angle, product=False):
@@ -67,7 +67,9 @@ def prompt(items, angle, product=False):
     return ("Image 1 is a photo of my cream Maison Margiela rug (black numbers 0 to 23, 'Maison Margiela PARIS') on the wooden floor of my room, taken standing up with my iPhone. "
             + what + "Keep everything else of image 1: the same camera position, height and angle, the same room, light and colours. "
             "It must look like a plain photo from my camera roll, not an ad, not a render and not a close-up: natural light, a real soft shadow under each item, "
-            "natural creases in the fabric, real rug fibres, a little iPhone noise. "
+            "natural creases in the fabric, real rug fibres, a little iPhone noise. Every item has weight: it rests on the rug, a bag slumps a little, "
+            "the rug fibres press up around its edges, and its shadow falls the same way as the other shadows in image 1. Items lie a little crooked, "
+            "never perfectly lined up or floating. "
             "Keep every item exactly as in its photo: the same shape, colours, materials, logos, text, stitching and hardware. Never add, move or invent a logo or text. "
             "Real sizes on the rug. " + count +
             "No feet, legs, hands or people. No green mat, no ruler, no round stamp, no other objects. Vertical 9:16 photo.")
@@ -119,7 +121,7 @@ def judge(shots, png):
             text = JUDGE.format(n=len(shots), last=len(shots) + 1, res=len(shots) + 2)
             v = claude_json(text, [Image.open(RUG)] + list(shots) + [Image.open(io.BytesIO(png))])
         except Exception as e: return True, "judge failed: %s" % str(e)[:300]
-        ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= 6
+        ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= int(os.environ.get("RUG_REAL_MIN", "8"))
         return ok, json.dumps(v)[:300]
     if ENGINE != "gemini": return True, "no judge"
     enc = lambda im: {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(im, 768)).decode()}}
@@ -129,7 +131,7 @@ def judge(shots, png):
                    {"responseMimeType": "application/json", "temperature": 0}, 90)
         v = json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
     except Exception as e: return True, "judge failed: %s" % str(e)[:80]          # never block on a broken judge; the owner still reviews the draft
-    ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= 6
+    ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= int(os.environ.get("RUG_REAL_MIN", "8"))
     return ok, json.dumps(v)[:300]
 
 
@@ -298,7 +300,7 @@ def price(brand, item, grp):
     br = lambda rs: [r for r in rs if brand and brand.lower() in r[2].lower()]
     for pool, need in ((br(kw), 2), (br(rows), 3), (kw, 5)):
         if len(pool) >= need:                                   # the cheaper end of what the site has (owner: lower prices), never below the cheapest find
-            p = sorted(r[6] for r in pool); return max(1, int(round(p[len(p) // 4])))
+            p = sorted(r[6] for r in pool); return max(1, int(round(p[len(p) // 2])))   # the middle price (owner, 18 Nov 2026: "$7 for an LV duffle")
     return None
 
 
@@ -415,6 +417,21 @@ def cover(rnd, last=None):
     blk = blk.rotate(-14, resample=Image.BICUBIC, expand=True)
     im.alpha_composite(blk, (90, int(1920 * 0.64)))
     return im.convert("RGB"), k, kg
+
+
+def phone_look(im, seed=None):
+    """A touch of what a real phone photo has and a render lacks: fine sensor noise, slightly warm, a faint corner falloff."""
+    try:
+        import numpy as np
+        a = np.asarray(im.convert("RGB")).astype(np.float32); h, w = a.shape[:2]
+        rng = np.random.default_rng(seed)
+        a += rng.normal(0, 3.2, (h, w, 1)) + rng.normal(0, 1.4, (h, w, 3))           # luma grain plus a little colour noise
+        a[..., 0] *= 1.012; a[..., 2] *= 0.985                                         # a hair warmer
+        yy, xx = np.mgrid[0:h, 0:w]; r = ((xx - w / 2) / (w / 2)) ** 2 + ((yy - h / 2) / (h / 2)) ** 2
+        a *= (1 - 0.07 * np.clip(r - 0.35, 0, None))[..., None]                       # faint vignette
+        return Image.fromarray(np.clip(a, 0, 255).astype("uint8"))
+    except Exception:
+        return im
 
 
 def item_slide(im, name, usd, fk=0):
@@ -920,7 +937,7 @@ def main():
     cv, k, kg = cover(rnd, used.get("rug_cover")); cover_path = os.path.join(a.out, "00-cover.jpg"); cv.save(cover_path, quality=94)
     images = [cover_path]
     for x in log:
-        p = os.path.join(a.out, x["file"]); raw = Image.open(p[:-4] + "-raw.jpg")
+        p = os.path.join(a.out, x["file"]); raw = phone_look(Image.open(p[:-4] + "-raw.jpg"))
         (flat_caption(raw, x["label"], x["usd"], x["boxes"]) if x.get("boxes") is not None else item_slide(raw, x["name"], x["usd"])).save(p, quality=94); images.append(p)
     caption = "%dkg haul unboxing\n\n%s" % (kg, RUG_TAGS)       # the title line is the same weight as on the cover
     meta = {"format": "finds", "images": images, "ids": [], "caption": caption, "seconds": 0, "voiceover": False,
