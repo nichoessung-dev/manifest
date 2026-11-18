@@ -3,6 +3,9 @@ name: Friend matches
 # Nothing on the site changes: the state goes to data/friend_match.json (committed) and the spot-check report to the
 # run's artifacts. Turning matches into partner swaps is a separate, approved step. Run until the log says "left 0".
 on:
+  # every 30 minutes until every listing is done (a run with nothing left ends in seconds); remove when "left 0"
+  schedule:
+    - cron: '7,37 * * * *'
   workflow_dispatch:
     inputs:
       max_minutes:
@@ -33,7 +36,11 @@ jobs:
       - name: Match
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: python -u scripts/match_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}" ${{ inputs.ids != '' && format('--ids {0}', inputs.ids) || '' }}
+        run: python -u scripts/match_friend.py --max-minutes "${{ inputs.max_minutes || '50' }}" --limit "${{ inputs.limit || '0' }}" --max-usd "${{ inputs.max_usd || '10' }}" --redo-errors ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }}
+      - name: Matches become approved partner swaps (scripts/friend_swaps.py)
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python -u scripts/friend_swaps.py
       - name: Keep report
         if: always()
         uses: actions/upload-artifact@v4

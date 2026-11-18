@@ -59,7 +59,7 @@ def jpg64(im, side=448):
     b = io.BytesIO(); bg.save(b, "JPEG", quality=84); return base64.b64encode(b.getvalue()).decode()
 
 
-def claude(content, max_tokens=900, model=None):
+def claude(content, max_tokens=2000, model=None):
     global spent
     body = json.dumps({"model": model or MODEL, "max_tokens": max_tokens, "messages": [{"role": "user", "content": content}]}).encode()
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=body, headers={
@@ -117,9 +117,9 @@ def pick(im, cands, cls):
         content += [{"type": "text", "text": f"Image {i}: {p.get('title')}"}, pic(cim)]
     content.append({"type": "text", "text": "Which candidate is the SAME product as image 0: the same design (same logos and their placement, "
         "same prints, same cut and details) in the same colour? Photos can differ (angle, model, background); the product must not. "
-        "A similar item of the same brand is NOT the same product. Answer only JSON: "
+        "A similar item of the same brand is NOT the same product. Keep the reason under 25 words. Answer only JSON, no code fence: "
         '{"choice": <number, 0 for none>, "same_design": true/false, "same_colour": true/false, "confidence": 0-1, "reason": "short"}'})
-    return claude(content, 900)
+    return claude(content, 2000)
 
 
 CONFIRM_MODEL = os.environ.get("FRIEND_CONFIRM_MODEL", "claude-sonnet-5-5")
