@@ -96,7 +96,7 @@ def claude_json(text, ims, max_tokens=600, side=768):
     for im in ims:
         content.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.b64encode(jpeg(im, side)).decode()}})
     content.append({"type": "text", "text": "Answer with the JSON object only, no code fence."})
-    body = {"model": CLAUDE_MODEL, "max_tokens": max_tokens, "temperature": 0, "messages": [{"role": "user", "content": content}]}
+    body = {"model": CLAUDE_MODEL, "max_tokens": max_tokens, "messages": [{"role": "user", "content": content}]}   # no temperature: the model refuses it (HTTP 400)
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(body).encode(),
                                  headers={"x-api-key": CLAUDE_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json"})
     for attempt in range(3):
@@ -118,7 +118,7 @@ def judge(shots, png):
         try:
             text = JUDGE.format(n=len(shots), last=len(shots) + 1, res=len(shots) + 2)
             v = claude_json(text, [Image.open(RUG)] + list(shots) + [Image.open(io.BytesIO(png))])
-        except Exception as e: return True, "judge failed: %s" % str(e)[:80]
+        except Exception as e: return True, "judge failed: %s" % str(e)[:300]
         ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= 6
         return ok, json.dumps(v)[:300]
     if ENGINE != "gemini": return True, "no judge"
