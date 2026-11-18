@@ -47,6 +47,7 @@ jobs:
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # names the slides (OpenAI ran out of credit, 18 Nov 2026)
         run: python -u scripts/make_finds.py --folder 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L --slides "${{ inputs.slides }}" --video --whisper --music-dir media/music-slideshow --out out/slideshow --state out/slideshow-state.json
       - name: Render (qualityfinds)
         if: inputs.account == 'qualityfinds'
@@ -54,6 +55,7 @@ jobs:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # names the slides (OpenAI ran out of credit, 18 Nov 2026)
           RUG_ENGINE: gemini
           RUG_MODELS: gemini-3.1-flash-image
         run: |

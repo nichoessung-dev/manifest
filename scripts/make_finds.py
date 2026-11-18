@@ -297,6 +297,39 @@ def usable(t):
 
 
 WHISPER_VOICE = os.environ.get("FINDS_VOICE", "pNInz6obpgDQGcFmaJgB")
+# owner, 18 Nov 2026: "on the main account add the same captions as on the Qualityfinds account, on every single slide": the
+# rug captions (scripts/make_rug.py caption: pale yellow TikTok Sans, soft shadow), the slide's name and an estimated price,
+# in the middle where the two photos meet. FINDS_CAPTIONS=0 turns them off.
+CAPTIONS = os.environ.get("FINDS_CAPTIONS", "1") == "1"
+_ROWS = None
+
+
+def est_price(a, b):
+    """The cheaper end of what the site has for this brand and item (the same rule as make_rug.price), or None."""
+    global _ROWS
+    try: d = json.load(open(ITEMS_FILE))
+    except Exception: return None
+    p = d.get(a.info.get("sid", ""), {}); item = (p.get("i") or "").lower(); br = brand(p) if brand(p) else ""
+    if not item or item == "other": return None
+    if _ROWS is None:
+        t = open(os.path.join(ROOT, "functions", "_lib", "catalog.js"), encoding="utf-8").read(); i = t.index("export const ROWS = ") + 20
+        _ROWS = json.loads(t[i:t.index("];", i) + 1])
+    kw = item.rstrip("s")
+    rows = [r for r in _ROWS if isinstance(r[6], (int, float)) and r[6] > 0 and kw in str(r[1]).lower()]
+    for pool, need in (([r for r in rows if br and br.lower() in str(r[2]).lower()], 2), (rows, 5)):
+        if len(pool) >= need:
+            v = sorted(r[6] for r in pool); return max(1, int(round(v[len(v) // 4])))
+    return None
+
+
+def with_caption(im, name, usd):
+    """The rug caption on a finished slide: name, then the price, centred where the two photos meet."""
+    if not name: return im
+    try:
+        import make_rug
+        return make_rug.caption(im, name.lower() + ("\n$%d" % usd if usd else ""), cy=int(im.height * 0.5))
+    except Exception as e:
+        print("  caption failed:", str(e)[:80]); return im
 
 
 def whisper_track(spoken, frames, hold, out_dir, part):
@@ -349,8 +382,8 @@ def pair_label(a, b):
     try: known = json.load(open(LABELS_FILE))
     except Exception: known = {}
     if ka and kb and k in known: return known[k] if usable(known[k]) else plain_label(a, b)
-    key = os.environ.get("OPENAI_API_KEY", "").strip()
-    if not key: return ""
+    key = os.environ.get("OPENAI_API_KEY", "").strip(); akey = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if not key and not akey: return ""
     try:
         import base64, io
         def enc(im):
@@ -362,9 +395,19 @@ def pair_label(a, b):
              "Use common nicknames (Stone Island = Stoney, Ralph Lauren = Ralph). Ignore the round 'puro classico' stamp in the corner, it is not a brand. Only name a brand you can clearly see on a logo, patch or tag; "
              "if the two items are different brands or you are not sure, name the item instead ('Grey Puffers', 'Zip Knits'). Never invent a collab. "
              "One label for both, never two names, no commas. Answer with the label only, no quotes."}, enc(a), enc(b)]}]}
-        req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
-                                     headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"})
-        t = json.load(urllib.request.urlopen(req, timeout=60))["choices"][0]["message"]["content"].strip().strip("'\".").replace("\u2014", "-")
+        if akey:      # 18 Nov 2026: the OpenAI account ran out of credit; Claude names the slides, OpenAI only without an Anthropic key
+            def enc_a(im):
+                t = im.copy(); t.thumbnail((512, 512)); buf = io.BytesIO(); t.convert("RGB").save(buf, "JPEG", quality=85)
+                return {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.b64encode(buf.getvalue()).decode()}}
+            ab = {"model": os.environ.get("FINDS_LABEL_MODEL", "claude-haiku-5-5"), "max_tokens": 60, "messages": [{"role": "user", "content": [
+                body["messages"][0]["content"][0], enc_a(a), enc_a(b)]}]}
+            req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(ab).encode(),
+                                         headers={"x-api-key": akey, "anthropic-version": "2023-06-01", "content-type": "application/json"})
+            t = "".join(c.get("text", "") for c in json.load(urllib.request.urlopen(req, timeout=60)).get("content", [])).strip().split("\n")[0].strip().strip("'\".").replace("\u2014", "-")
+        else:
+            req = urllib.request.Request("https://api.openai.com/v1/chat/completions", data=json.dumps(body).encode(),
+                                         headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"})
+            t = json.load(urllib.request.urlopen(req, timeout=60))["choices"][0]["message"]["content"].strip().strip("'\".").replace("\u2014", "-")
         t = t if usable(t) else ""
     except Exception as e:
         print("  could not label a slide:", str(e)[:80]); return ""
@@ -563,7 +606,11 @@ def main():
         for _, im in ims: frames.append((whole(im, FW, FH), a.hold))
     else:
         badge = make_badge(int(FW * 0.15)) if a.badge else None
-        for k in range(0, len(ims) - 1, 2): frames.append((slide(ims[k][1], ims[k + 1][1], FW, FH, badge, names[k // 2] if LABELS else ""), a.hold))
+        for k in range(0, len(ims) - 1, 2):
+            sl = slide(ims[k][1], ims[k + 1][1], FW, FH, badge, names[k // 2] if LABELS else "")
+            if CAPTIONS and not LABELS:
+                sl = with_caption(sl, names[k // 2] or plain_label(ims[k][1], ims[k + 1][1]), est_price(ims[k][1], ims[k + 1][1]))
+            frames.append((sl, a.hold))
     voice = None
     if a.whisper and a.video and not a.single:                   # owner, 18 Nov 2026: slideshow videos with a whispering voice saying the item
         spoken = [names[k] or plain_label(ims[2 * k][1], ims[2 * k + 1][1]) for k in range(len(names))]
