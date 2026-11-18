@@ -83,8 +83,44 @@ JUDGE = ("Image 1 is the real photo of my room: a rug, a wooden floor, white dra
          "real_photo: how much image {res} looks like a plain iPhone photo from someone's camera roll (10) versus AI, a render or an ad (1). Be strict.")
 
 
+# owner, 18 Nov 2026: "use the Anthropic credit for everything except generation": the photo check and the judge run on Claude
+# when ANTHROPIC_API_KEY is set (RUG_LOOK=claude, the default then); Gemini only makes the images.
+CLAUDE_KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+LOOK = os.environ.get("RUG_LOOK", "claude" if CLAUDE_KEY else "")
+CLAUDE_MODEL = os.environ.get("RUG_CLAUDE_MODEL", "claude-haiku-5-5")
+
+
+def claude_json(text, ims, max_tokens=600, side=768):
+    """One Claude vision call (text, then the images in order); the JSON object of its answer."""
+    content = [{"type": "text", "text": text}]
+    for im in ims:
+        content.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.b64encode(jpeg(im, side)).decode()}})
+    content.append({"type": "text", "text": "Answer with the JSON object only, no code fence."})
+    body = {"model": CLAUDE_MODEL, "max_tokens": max_tokens, "temperature": 0, "messages": [{"role": "user", "content": content}]}
+    req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(body).encode(),
+                                 headers={"x-api-key": CLAUDE_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json"})
+    for attempt in range(3):
+        try:
+            d = json.load(urllib.request.urlopen(req, timeout=90)); break
+        except urllib.error.HTTPError as e:
+            msg = e.read().decode("utf-8", "replace")[:300]
+            if e.code in (429, 529, 503) and attempt < 2: time.sleep(8 * (attempt + 1)); continue
+            raise RuntimeError("HTTP %s %s" % (e.code, msg))
+    t = "".join(c.get("text", "") for c in d.get("content", []))
+    m = re.search(r"\{.*\}", t, re.S)
+    if not m: raise RuntimeError("no JSON in Claude's answer: %s" % t[:120])
+    return json.loads(m.group(0))
+
+
 def judge(shots, png):
     """A strict second look at a made image (Gemini Flash): True when it may be posted. The owner's slop rules (22 Oct 2026)."""
+    if LOOK == "claude":
+        try:
+            text = JUDGE.format(n=len(shots), last=len(shots) + 1, res=len(shots) + 2)
+            v = claude_json(text, [Image.open(RUG)] + list(shots) + [Image.open(io.BytesIO(png))])
+        except Exception as e: return True, "judge failed: %s" % str(e)[:80]
+        ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= 6
+        return ok, json.dumps(v)[:300]
     if ENGINE != "gemini": return True, "no judge"
     enc = lambda im: {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(im, 768)).decode()}}
     try:
@@ -225,6 +261,7 @@ CHECK = ("A quality-check photo of a fashion find on a green mat (it may show th
 def check(qc):
     """Is this QC photo right for a rug slide, and what is it called. One small call (Gemini Flash, or gpt-4o-mini)."""
     t = qc.convert("RGB"); t.thumbnail((768, 768)); b = io.BytesIO(); t.save(b, "JPEG", quality=85)
+    if LOOK == "claude": return claude_json(CHECK, [t], 300)
     if ENGINE == "gemini":
         try:
             j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": CHECK}, {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(b.getvalue()).decode()}}],
