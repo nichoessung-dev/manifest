@@ -59,14 +59,14 @@ def urls_from(lst):
     return out
 
 
-def catalogue():
+def catalogue(everything=False):
     src = open(os.path.join(ROOT, "functions", "_lib", "catalog.js"), encoding="utf-8").read()
     rows = json.loads(src[src.index("export const ROWS = ") + 20:].rstrip().rstrip(";"))
     out = []
     for r in rows:
         plat, qc, item = r[4], r[8] or 0, (r[13] if len(r) > 13 and r[13] else r[0])
         sid = str(item).lstrip("0")
-        if plat in ("weidian", "taobao", "1688") and qc >= 1 and re.fullmatch(r"[1-9][0-9]{5,19}", sid):
+        if plat in ("weidian", "taobao", "1688") and (qc >= 1 or everything) and re.fullmatch(r"[1-9][0-9]{5,19}", sid):
             out.append((r[0], plat + "/" + sid, qc))
     return out
 
@@ -108,7 +108,16 @@ def main():
     items, checked = bank.setdefault("items", {}), bank.setdefault("checked", {})
     now = datetime.now(timezone.utc); old = (now - timedelta(days=RECHECK_DAYS)).date().isoformat()
     v = views()
-    todo = [(pid, key, qc) for pid, key, qc in catalogue()
+    # a paid plan (owner, 19 Nov 2026: "Save QC photos in bulk"): with 10,000+ lookups a month every find is looked up,
+    # also those with no QC on record (the catalogue's QC counts are old), more photos are kept and the pace follows the
+    # plan's per-minute limit
+    st, use = (0, None) if dry else upstream("/usage")
+    month, minute = (use or {}).get("month") or {}, (use or {}).get("minute") or {}
+    big = (month.get("limit") or 0) >= 10000
+    global MAX_THUMBS
+    if big: MAX_THUMBS = 12; old = (now - timedelta(days=30)).date().isoformat()
+    pause = max(0.25, 66.0 / (minute.get("limit") or 30))
+    todo = [(pid, key, qc) for pid, key, qc in catalogue(big)
             if key not in items or (items[key][1] == 0 and checked.get(key, "") < old)]
     todo = list({key: (pid, key, qc) for pid, key, qc in todo}.values())
     todo.sort(key=lambda t: (-v.get(t[0], 0), -t[2]))
@@ -116,10 +125,10 @@ def main():
     if dry:
         for t in todo[:15]: print("  ", t[1], "views", v.get(t[0], 0), "qc", t[2])
         return
-    st, use = upstream("/usage")
-    left = ((use or {}).get("month") or {}).get("remaining")
+    left = month.get("remaining")
     if left is None: raise SystemExit("could not read the qualit.ly quota (status %s): nothing looked up" % st)
     budget = max(0, min(mx, left - reserve))
+    print("plan: %s lookups a month%s" % (month.get("limit"), " (bulk mode: every find)" if big else ""))
     print("qualit.ly lookups left this month: %s, reserve for visitors: %d, this run: %d" % (left, reserve, budget))
     done = stored = 0
     for pid, key, qc in todo:
@@ -133,9 +142,10 @@ def main():
         items[key] = [int((d or {}).get("qc_count") or 0), n]; checked[key] = now.date().isoformat()
         stored += n > 0
         print("%-28s qc %-3s stored %d" % (key, items[key][0], n))
-        time.sleep(2.2)                                   # the quota allows 30 lookups a minute
+        time.sleep(pause)                                 # the plan's per-minute limit (30 on the free plan)
         if done % 25 == 0: save(bank, now)                # keep progress if the run is cut short
     save(bank, now)
+    print("still to look up after this run: %d" % max(0, len(todo) - done))
     print("looked up %d, finds with photos stored: %d, bank now %d finds (%d with photos)" %
           (done, stored, len(items), sum(1 for x in items.values() if x[1])))
 
