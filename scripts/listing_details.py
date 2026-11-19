@@ -115,8 +115,10 @@ def read_chart(im):
         {"type": "text", "text": "Read this clothing/shoe size chart. Return every size row with its measurements. Convert all lengths to "
          "cm. Weights: Chinese charts often give weight in jin (斤, half a kilogram), sometimes labelled 'G' or '斤'; ranges like 90-130 "
          "for an adult are jin, so divide by 2. Give weight in kg. Use these keys when present: shoulder, chest, length, sleeve, waist, "
-         "hip, inseam, foot_length, height_min, height_max, weight_min, weight_max. Answer only JSON: {\"unit_note\": \"what you "
-         "converted\", \"rows\": [{\"size\": \"S\", \"chest\": 120, ...}], \"confidence\": 0-1}"}], 900)
+         "hip, inseam, foot_length, height_min, height_max, weight_min, weight_max. measured: 'flat' when chest/waist are the garment laid "
+         "flat (half the way round), 'round' when all the way round, 'body' when they are body measurements. Answer only JSON, no other "
+         "text: {\"unit_note\": \"a few words\", \"measured\": \"flat|round|body\", \"rows\": [{\"size\": \"S\", \"chest\": 120, ...}], "
+         "\"confidence\": 0-1}"}], 2000)
 
 
 def report(rows):
@@ -146,6 +148,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=50); ap.add_argument("--ids", default="")
     ap.add_argument("--max-usd", type=float, default=3); ap.add_argument("--redo", action="store_true")
+    ap.add_argument("--done", default="", help="also skip the ids in this file's items (data/sizes.json)")
+    ap.add_argument("--max-minutes", type=float, default=0)
     a = ap.parse_args()
     _, items, _, _ = load_catalog()
     st = (json.load(open(os.path.join(ROOT, "data", "stats.json"))) if os.path.exists(os.path.join(ROOT, "data", "stats.json")) else {}).get("p") or {}
@@ -153,15 +157,21 @@ def main():
     wdn = [p for p in items if p.get("platform") == "weidian"]
     log = json.load(open(LOG)) if os.path.exists(LOG) else {"items": {}}
     done = log.setdefault("items", {})
+    skip = set()
+    if a.done and os.path.exists(a.done):
+        try: skip = set((json.load(open(a.done)).get("items") or {}).keys())
+        except Exception: pass
+    t0 = time.time()
     if a.ids:
         want = set(a.ids.replace(" ", "").split(",")); todo = [p for p in wdn if str(p["id"]) in want]
     else:
-        todo = sorted((p for p in wdn if a.redo or str(p["id"]) not in done), key=lambda p: -views(str(p["id"])))
+        todo = sorted((p for p in wdn if a.redo or (str(p["id"]) not in done and str(p["id"]) not in skip)), key=lambda p: -views(str(p["id"])))
     todo = todo[:a.limit]
     print(f"{len(todo)} Weidian finds")
     rows = []
     for p in todo:
-        if spent >= a.max_usd: print("budget reached"); break
+        if spent >= a.max_usd: print("budget reached, limit reached"); break
+        if a.max_minutes and time.time() - t0 > a.max_minutes * 60: print("time up, limit reached"); break
         i = str(p["id"]); iid = str(p.get("itemId") or i)
         rec = {"date": now(), "title": p.get("title")}
         res = wd("getItemSkuInfo", {"itemId": iid}); time.sleep(PAUSE)

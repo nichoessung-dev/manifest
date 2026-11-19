@@ -1,49 +1,89 @@
 name: Listing details
-# Colours, sizes, a photo per colour and the seller's size chart for Weidian finds (scripts/listing_details.py).
-# Test runs: nothing on the site changes; data/listing_details.json and report.html are in the run's artifacts.
+# Sizes and the seller's size chart for Weidian finds, most viewed first (scripts/listing_details.py), saved as
+# data/sizes.json for the size helper (size.js, scripts/bake_sizes.py; owner 19 Nov 2026). Each run reads up to ~100 minutes,
+# saves, and starts the next run until "target" finds are done or the AI spend for the run hits max_usd.
+# save=false is the old test mode: nothing on the site changes, the report is in the run's artifacts.
 on:
   workflow_dispatch:
     inputs:
       limit:
         description: 'Weidian finds this run (most viewed first)'
-        default: '50'
+        default: '600'
+      target:
+        description: 'Keep going until this many finds have been read'
+        default: '3000'
       ids:
         description: 'Only these ids (comma separated; optional)'
         default: ''
       max_usd:
         description: 'Hard stop for AI spend this run (USD)'
-        default: '3'
+        default: '5'
+      save:
+        description: 'Save to the site (data/sizes.json)'
+        type: boolean
+        default: true
 permissions:
-  contents: read
+  contents: write
+  actions: write
 concurrency:
   group: listing-details
   cancel-in-progress: false
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 130
     env:
       LIMIT: ${{ inputs.limit }}
+      TARGET: ${{ inputs.target }}
       IDS: ${{ inputs.ids }}
       MAX_USD: ${{ inputs.max_usd }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
       - name: Check inputs
         run: |
           [[ "$LIMIT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::limit must be a number"; exit 1; }
+          [[ "$TARGET" =~ ^[0-9]{1,6}$ ]] || { echo "::error::target must be a number"; exit 1; }
           [[ "$MAX_USD" =~ ^[0-9]{1,4}(\.[0-9]{1,2})?$ ]] || { echo "::error::max_usd must be a number"; exit 1; }
           [[ -z "$IDS" || "$IDS" =~ ^[0-9A-Za-z_,\ -]+$ ]] || { echo "::error::bad ids"; exit 1; }
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: pip install pillow
-      - name: Fetch listing details (test, site unchanged)
+      - name: Fetch listing details
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          set -o pipefail
           IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
-          python -u scripts/listing_details.py --limit "$LIMIT" --max-usd "$MAX_USD" $IDA
-          cp data/listing_details.json out/listing-details/ 2>/dev/null || true
+          DONE=""; [ "${{ inputs.save }}" = "true" ] && DONE="--done data/sizes.json"
+          python -u scripts/listing_details.py --limit "$LIMIT" --max-usd "$MAX_USD" --max-minutes 100 $DONE $IDA | tee out-ld.log
+          mkdir -p out/listing-details; cp data/listing_details.json out/listing-details/ 2>/dev/null || true
+      - name: Save sizes
+        if: inputs.save
+        run: |
+          python scripts/bake_sizes.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/sizes.json data/sizes
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "data: size charts for the size helper"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::sizes could not be saved"; exit 1
+      - name: Next run
+        if: success() && inputs.save && inputs.ids == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          N=$(python -c "import json;print(len(json.load(open('data/sizes.json'))['items']))")
+          echo "finds read so far: $N of $TARGET"
+          if [ "$N" -lt "$TARGET" ] && grep -q "limit reached\|Weidian finds" out-ld.log && ! grep -q "^0 Weidian finds" out-ld.log; then
+            gh workflow run listing-details.yml --ref "$GITHUB_REF_NAME" -f limit="$LIMIT" -f target="$TARGET" -f max_usd="$MAX_USD" -f save=true
+          fi
       - name: Keep report
         if: always()
         uses: actions/upload-artifact@v4

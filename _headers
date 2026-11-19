@@ -40,6 +40,13 @@
 /track.js
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
+# the size helper (19 Nov 2026), linked as /size.js?v=N; its data /data/sizes/NN.json changes with the Listing details runs
+/size.js
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/data/sizes/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
 # the feedback pop-up for the most active visitors (19 Nov 2026), linked as /feedback.js?v=N
 /feedback.js
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800

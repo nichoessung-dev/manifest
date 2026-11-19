@@ -4943,6 +4943,16 @@ function pcBetaAsk(p){
   /* owner, 9 Nov 2026: "when clicking ask ai it should ask straight away" */
   drawer.querySelector("#pc-ask").addEventListener("click",()=>{ const q=`Tell me about the ${p.title}: is it worth it, and what should I check before I buy?`; if(!(window.pcChatAsk&&window.pcChatAsk(q))) toast("The assistant is not available right now."); });
 }
+/* "Find my size" (size.js, 19 Nov 2026): height and weight to a size, from the seller's chart when there is one.
+   Clothes and shoes only; size.js is loaded the first time a find view needs it. */
+function pcSizeRow(p){
+  if(!/^(Tops|Outerwear|Pants|Shorts|Shoes)$/.test(p.cat||"")) return;
+  const bb=drawer.querySelector(".buy-block"); if(!bb||bb.querySelector(".agents[hidden]")) return;
+  let el=drawer.querySelector("#pc-size"); if(el) el.remove();
+  el=document.createElement("div"); el.id="pc-size"; bb.insertAdjacentElement("afterend",el);
+  const go=()=>{ try{ window.pcSize.mount(el,{id:p.id,cat:p.cat}); }catch(e){} };
+  if(window.pcSize) go(); else { let s=document.getElementById("pcsz-js"); if(!s){ s=document.createElement("script"); s.id="pcsz-js"; s.src="/size.js?v=1"; s.async=true; document.head.appendChild(s); } s.addEventListener("load",go); }
+}
 function pcBetaQc(p){
   const tok=drawer.__tok;
   const el=pcBetaBox("pc-aiqc",`<div class="pcb-h"><span>AI QC check</span><span class="pcb-tag">Beta</span></div><p class="pcb-sub">AI reads the buyer QC photos and notes what to look at.</p><button type="button" class="pcb-run">Check the QC photos</button>`);
@@ -6643,6 +6653,7 @@ function enhanceDrawer(p){
       reportFind(p,b.getAttribute("data-r")).then(ok=>{ setTimeout(()=>{ rwSet(false); if(rs)rs.textContent=ok?"\u2713 "+t("report_thanks"):t("report_failed"); },260); }); });
   }
   pcBetaAsk(p);   /* owner, 9 Nov 2026: live for everyone (the AI QC check stays beta) */
+  pcSizeRow(p);
   wireDrawerSearch();
   const _tk=drawer.__tok;   /* r7: similar finds, the QC check and the browse grid wait for the first paint (and an idle moment) */
   _idle(()=>{ if(drawer.__tok===_tk) renderSimilar(p); });
