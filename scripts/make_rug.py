@@ -433,6 +433,33 @@ SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co"
 LIB_INDEX = "products/rug/library.json"
 
 
+ALL_MADE = []      # every image the model made this run, approved or not (owner, 19 Nov 2026: "can we save those")
+ALL_INDEX = "products/rug/all.json"
+
+
+def save_all_made():
+    """Every image made this run goes to Supabase storage products/rug/all/<day>-<id>.jpg and the index products/rug/all.json
+    {"images": [{url, date, name, usd, qc, group, ok, real, why}]}, approved or rejected, so nothing paid for is lost."""
+    key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
+    if not key or not ALL_MADE: return
+    H = {"authorization": "Bearer " + key, "apikey": key}
+    def put(path, data, ctype):
+        req = urllib.request.Request("%s/storage/v1/object/%s" % (SUPA, path), data=data, method="POST",
+                                     headers=dict(H, **{"content-type": ctype, "x-upsert": "true", "cache-control": "max-age=31536000"}))
+        urllib.request.urlopen(req, timeout=120).read()
+    try: idx = json.loads(urllib.request.urlopen("%s/storage/v1/object/public/%s?t=%d" % (SUPA, ALL_INDEX, int(time.time())), timeout=30).read())
+    except Exception: idx = {"images": []}
+    if not isinstance(idx, dict) or "images" not in idx: idx = {"images": []}
+    day = time.strftime("%Y%m%d")
+    for x in ALL_MADE:
+        name = "rug/all/%s-%s.jpg" % (day, uuid.uuid4().hex[:8]); buf = io.BytesIO()
+        Image.open(io.BytesIO(x["png"])).convert("RGB").save(buf, "JPEG", quality=92)
+        put("products/" + name, buf.getvalue(), "image/jpeg")
+        idx["images"].append(dict({k: v for k, v in x.items() if k != "png"}, url="%s/storage/v1/object/public/products/%s" % (SUPA, name), date=day))
+    put(ALL_INDEX, json.dumps(idx, ensure_ascii=False).encode(), "application/json")
+    print("  saved all %d images made this run (%d in the archive)" % (len(ALL_MADE), len(idx["images"])))
+
+
 def save_library(out_dir, log):
     """Owner, 18 Nov 2026: "save them from now on". Every rug image made (before its caption) goes to Supabase storage
     (products/rug/<date>-<name>.jpg) and to the index products/rug/library.json {"images": [{url, date, qc, name, usd, group,
@@ -948,15 +975,27 @@ def main():
         shots = [p["img"] if p.get("single") else top_shot(p["img"]) for p in sl]; label = " + ".join(p["name"] for p in sl)
         angle = rnd.choice(ANGLES["several"]) if len(sl) > 1 else sl[0]["angle"]
         if AI_OUT[0]: return sl, composite(sl, random.Random("%s %s" % (a.seed, label))), "rug flat-lay (no AI credit)", {}     # its own dice: the slides are made side by side
+        best = None                                            # 19 Nov 2026: the best near miss is used, not thrown away
         for attempt in range(2):
             if time.time() - t0 > budget: print("  out of time, skipping", label); break
             print("  making", label, "try", attempt + 1, "%.0fs in" % (time.time() - t0))
             png, model, use = generate([rug] + [jpeg(x) for x in shots], prompt([p["item"] for p in sl], angle, all(p["qc"].startswith("pop:") for p in sl)))
             if not png: break
             ok, why = judge(shots, png); print("  %s, try %d: %s %s" % (label, attempt + 1, "OK" if ok else "REJECTED", why))
+            try: v = json.loads(why) if why.startswith("{") else {}
+            except Exception: v = {}
+            score = int(v.get("real_photo") or 0)
+            ALL_MADE.append({"png": png, "name": [p["name"] for p in sl], "usd": [p["usd"] for p in sl], "qc": [p["qc"] for p in sl],
+                             "group": sl[0]["group"], "ok": bool(ok), "real": score, "why": v.get("why", "")})
             if ok: return sl, png, model, use
+            if all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and (not best or score > best[0]):
+                best = (score, png, model, use)
+        if best and best[0] >= int(os.environ.get("RUG_FALLBACK_MIN", "6")):
+            print("  using the best try for", label, "(realism %d)" % best[0]); return sl, best[1], best[2], best[3]
         return sl, None, None, {}
     with ThreadPoolExecutor(3) as ex: done = list(ex.map(make, slides))
+    try: save_all_made()
+    except Exception as e: print("  could not save the made images:", str(e)[:150])
     log = []
     for sl, png, model, use in done:
         if not png or len(log) >= a.n: print("no image for", " + ".join(p["name"] for p in sl)) if not png else None; continue
