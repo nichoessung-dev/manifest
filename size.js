@@ -19,7 +19,7 @@
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function load(id) {
     var k = String(id).slice(-2); if (k.length < 2) k = "0" + k;
-    if (!cache[k]) cache[k] = fetch("/data/sizes/" + k + ".json").then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; });
+    if (!cache[k]) cache[k] = fetch("/data/sizes/" + k + ".json?v=1").then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; });
     return cache[k].then(function (m) { return m[String(id)] || null; });
   }
   function norm(s) { s = String(s).toUpperCase().replace(/\s/g, ""); return s === "2XL" ? "XXL" : s === "XXXL" ? "3XL" : s === "XXXXL" ? "4XL" : s; }

@@ -4951,7 +4951,7 @@ function pcSizeRow(p){
   let el=drawer.querySelector("#pc-size"); if(el) el.remove();
   el=document.createElement("div"); el.id="pc-size"; bb.insertAdjacentElement("afterend",el);
   const go=()=>{ try{ window.pcSize.mount(el,{id:p.id,cat:p.cat}); }catch(e){} };
-  if(window.pcSize) go(); else { let s=document.getElementById("pcsz-js"); if(!s){ s=document.createElement("script"); s.id="pcsz-js"; s.src="/size.js?v=1"; s.async=true; document.head.appendChild(s); } s.addEventListener("load",go); }
+  if(window.pcSize) go(); else { let s=document.getElementById("pcsz-js"); if(!s){ s=document.createElement("script"); s.id="pcsz-js"; s.src="/size.js?v=2"; s.async=true; document.head.appendChild(s); } s.addEventListener("load",go); }
 }
 function pcBetaQc(p){
   const tok=drawer.__tok;
