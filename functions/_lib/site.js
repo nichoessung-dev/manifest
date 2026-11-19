@@ -19,7 +19,7 @@ export const SITE = "https://www.puroclassico.com";
 export const MYCNBOX_INVITE = "https://mycnbox.com/login/main-login?inviteCode=AACPYA";
 // The Discord invite lives here and nowhere else. Every page, static file and email links to /discord on our own
 // domain, and functions/_middleware.js redirects that address to this URL: a new invite is a change to this one line.
-export const DISCORD_INVITE = "https://discord.gg/Pf3zpG3E4";
+export const DISCORD_INVITE = "https://discord.gg/FUUsSCGqQf";
 export { BUILT };
 
 // ------------------------------------------------------------------ data

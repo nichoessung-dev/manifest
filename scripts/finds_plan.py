@@ -82,7 +82,10 @@ def top_up():
         out = os.path.join(ROOT, "out", t.strftime("%m%d-%H%M")); os.makedirs(out, exist_ok=True)
         r = subprocess.run(build_cmd(out))
         metas = [f for f in os.listdir(out) if f.endswith(".json")]
-        if r.returncode or not metas: print("could not build the carousel for", t); continue
+        if r.returncode or not metas:
+            print("could not build the carousel for", t)
+            if STYLE == "rug": print("stopping this run: a failed rug build would only spend more images"); break   # 19 Nov 2026
+            continue
         env = dict(os.environ, SCHEDULE_AT=t.strftime("%Y-%m-%dT%H:%M:%S.000Z"))
         r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), os.path.join(out, metas[0])], env=env)
         if r.returncode: print("could not schedule", t); continue

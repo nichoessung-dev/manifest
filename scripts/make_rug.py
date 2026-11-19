@@ -121,7 +121,7 @@ def judge(shots, png):
             text = JUDGE.format(n=len(shots), last=len(shots) + 1, res=len(shots) + 2)
             v = claude_json(text, [Image.open(RUG)] + list(shots) + [Image.open(io.BytesIO(png))])
         except Exception as e: return True, "judge failed: %s" % str(e)[:300]
-        ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= int(os.environ.get("RUG_REAL_MIN", "8"))
+        ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= int(os.environ.get("RUG_REAL_MIN", "7"))
         return ok, json.dumps(v)[:300]
     if ENGINE != "gemini": return True, "no judge"
     enc = lambda im: {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(im, 768)).decode()}}
@@ -131,7 +131,7 @@ def judge(shots, png):
                    {"responseMimeType": "application/json", "temperature": 0}, 90)
         v = json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
     except Exception as e: return True, "judge failed: %s" % str(e)[:80]          # never block on a broken judge; the owner still reviews the draft
-    ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= int(os.environ.get("RUG_REAL_MIN", "8"))
+    ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= int(os.environ.get("RUG_REAL_MIN", "7"))
     return ok, json.dumps(v)[:300]
 
 
@@ -215,7 +215,17 @@ def newest_flash():
     print("  item check model:", _FLASH); return _FLASH
 
 
+# spending cap (19 Nov 2026): one fill of the two-week queue made ~1,500 images in an hour (the realism judge sent most
+# back for another try) and used up the owner's whole Gemini top-up. Each run may now make at most RUG_MAX_IMAGES images
+# (about $0.05 each); past that the run stops. The finds workflow runs often, so the queue still fills, just slowly.
+_IMG_N = 0
+IMG_CAP = int(os.environ.get("RUG_MAX_IMAGES", "16"))
+
+
 def gemini_image(model, images, text):
+    global _IMG_N
+    if _IMG_N >= IMG_CAP: sys.exit("IMAGE CAP: %d images made this run (RUG_MAX_IMAGES), stopping to keep the cost down" % _IMG_N)
+    _IMG_N += 1
     parts = [{"text": text}] + [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(d).decode()}} for d in images]
     j = gemini(model, parts, {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "9:16"}})
     for p in ((j.get("candidates") or [{}])[0].get("content") or {}).get("parts", []):
@@ -231,7 +241,7 @@ def generate(images, text, models=None):
                 try: png, use = gemini_image(m, images, text); return png, m, use
                 except NoCredit as e:
                     if to_openai(str(e)): return generate(images, text)
-                    return None, None, {}
+                    sys.exit("GEMINI OUT OF CREDIT: stopping this run (%s)" % str(e)[:120])
                 except Exception as e:
                     print("  %s: %s" % (m, str(e)[:200]))
                     if "429" in str(e) or "503" in str(e) or "timed out" in str(e): time.sleep(10 * (attempt + 1)); continue

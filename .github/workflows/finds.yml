@@ -94,7 +94,8 @@ jobs:
           FINDS_VIDEO_CHANNELS: 'tiktok,youtube,instagram-standalone'
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           FINDS_FROM: '2026-10-19'
-          FINDS_DAYS: '14'                     # owner, 18 Nov 2026: make the next two weeks of posts now
+          FINDS_DAYS: '3'                      # 19 Nov 2026: 14 days of rug posts at once used up the Gemini top-up; 3 days ahead, about 3 new carousels a day
+          RUG_MAX_IMAGES: '16'                 # at most 16 images (~$0.80) per carousel
           FINDS_SLIDES: '6'                    # six slides, several items each (owner, 22 Oct 2026)
           FINDS_OWN: '0'                       # the whole QC pool; the owner's picks (scripts/rug_picks.json) go first
           FINDS_STATE: slides_used.json
