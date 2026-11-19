@@ -205,6 +205,12 @@ def main():
                 rec["verdict"] = {k: v.get(k) for k in ("choice", "same_design", "same_colour", "confidence")}
         except Exception as ex:   # noqa: BLE001
             rec.update(status="error", reason=str(ex)[:160])
+        if rec.get("status") == "error":
+            # a listing that keeps failing (its photo 404s, say) would keep the chained runs restarting forever
+            tries = int((items.get(x) or {}).get("tries") or 0) + 1
+            rec["tries"] = tries
+            if "404" in str(rec.get("reason")) or tries >= 3:
+                rec.update(status="gone", reason="gave up after %d tries: %s" % (tries, rec.get("reason")))
         items[x] = rec
         if n % 25 == 0:
             print(f"  {n} done, ${spent:.2f}, {time.time() - t0:.0f} s")
