@@ -5728,6 +5728,8 @@ window.__sbReady=initSb; initSb();
 var SOLD=new Set();   /* sold out at the last link check: left out of the similar finds */
 /* removed after member reports (data/reported.json, scripts/bake_reports.py every 2 hours): hidden like dead listings */
 var REPORTED=new Set();
+/* only the finds members reported get the "removed" notice (rp.removed, 19 Nov 2026); photo-cleanup and owner hides just leave the grid */
+var REMOVED=new Set();
 /* link_health.json and stats.json both change the grid: redraw once, when both have answered (was one full redraw each) */
 let _bgLeft=2, _bgDirty=false; const _bgDone=()=>{ if(--_bgLeft===0&&_bgDirty){ setTimeout(()=>{ try{ softRender(); }catch(e){} },0); } };   /* own task (perf, 5 Nov 2026) */
 const _gj=u=>fetch(u,{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null);
@@ -5736,7 +5738,8 @@ Promise.all([_pre.link_health||_gj("/data/link_health.json"),_pre.reported||_gj(
   if(pq&&pq.bad){ ALL.forEach(p=>{ const q=pq.bad[p.id]; if(q) p.pq=q; }); try{ RK_MEMO.k=""; }catch(_){} _bgDirty=true; }
   if(h&&Array.isArray(h.sold_out)) SOLD=new Set(h.sold_out.map(String));
   if(rp&&Array.isArray(rp.hidden)) REPORTED=new Set(rp.hidden.map(String));
-  try{ if(drawer.__pid!=null&&REPORTED.has(String(drawer.__pid))) markRemoved(); }catch(e){}
+  if(rp&&Array.isArray(rp.removed)) REMOVED=new Set(rp.removed.map(String));
+  try{ if(drawer.__pid!=null&&REMOVED.has(String(drawer.__pid))) markRemoved(); }catch(e){}
   const dead=new Set([...(h&&Array.isArray(h.dead)?h.dead.map(String):[]),...REPORTED]), n=ALL.length;
   if(!dead.size) return;
   ALL=ALL.filter(p=>!dead.has(String(p.id)));
@@ -6629,7 +6632,7 @@ function enhanceDrawer(p){
     sh.classList.add("ok"); toast(t("copied")); setTimeout(()=>sh.classList.remove("ok"),1400);
   });
   const rb=$("#report-link",drawer), rs=$("#report-status",drawer), rw=$("#report-why",drawer);
-  if(REPORTED.has(String(p.id))) markRemoved();
+  if(REMOVED.has(String(p.id))) markRemoved();
   else if(SWAP_HIDE_OF[String(p.id)]) markLookalike(SWAP_HIDE_OF[String(p.id)]);
   else if(rb){
     if(isReported(p.id)){ if(rs)rs.textContent=t("report_thanks"); rb.disabled=true; }

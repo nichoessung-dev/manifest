@@ -4,7 +4,7 @@
 import { renderProduct, PRODUCT_TPL } from "../_lib/pages.js";
 import { notFound, ensureStats, BUILT, SWAP_KEY, SWAP_HIDE } from "../_lib/site.js";
 import { countView } from "../_lib/views.js";
-import { reportedIds } from "../_lib/reported.js";
+import { removedIds } from "../_lib/reported.js";
 
 const PAGE_TTL = 60 * 60 * 24;     // 1 day
 const QC_MISS_TTL = 60 * 15;       // 15 min when the QC lookup failed
@@ -21,7 +21,7 @@ export async function onRequestGet(context) {
   // Removed after member reports (data/reported.json): its own cached copy ("-r"), with the notice instead of the buy box.
   // A partner-swapped find: its own copy per partner item and price ("-s"); a look-alike of one (site.js SWAP_HIDE): its own
   // copy ("-h"), with a link to the swapped find instead of the buy box, noindex like a reported find (pages.js renderProduct).
-  const rep = (await reportedIds(context.env, url.origin)).has(id);
+  const rep = (await removedIds(context.env, url.origin)).has(id);   // member reports only (19 Nov 2026)
   const swapKey = SWAP_KEY[id] ? "-s" + SWAP_KEY[id] : "";
   const hideKey = SWAP_HIDE[id] ? "-h" + SWAP_HIDE[id] : "";
   const cache = caches.default;

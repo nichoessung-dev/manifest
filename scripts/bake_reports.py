@@ -27,6 +27,7 @@ SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co"
 PAGE = 1000
 OUT, OVR, STATS = "data/reported.json", "data/report_overrides.json", "data/stats.json"
 PHOTO = "data/photo_hidden.json"   # finds with a bad main photo (scripts/photo_hide.py), merged in by merge_photo
+SWAPS = "data/link_swaps.json"      # partner-swapped finds (scripts/bake_swaps.py): never hidden, the swap wins
 
 WINDOW_DAYS = 30
 MEMBER_W = 1.0          # signed-in member with a confirmed email, account at least a day old at report time
@@ -194,6 +195,18 @@ def merge_photo(out, photo, overrides, prev, now):
     return out
 
 
+def finalize(out, swaps):
+    """Pure (19 Nov 2026): a partner-swapped find is never hidden (it has a new, checked link), and "removed" lists only the
+    finds members reported (by "reports"). Only those get the "removed after reports" notice; finds hidden by the photo
+    cleanup or the owner's hide list just leave the grid, their pages stay normal."""
+    sw = {str(k) for k in ((swaps or {}).get("swaps") or {})} if isinstance(swaps, dict) else set()
+    out = dict(out)
+    out["items"] = [x for x in out["items"] if x["id"] not in sw]
+    out["hidden"] = sorted({x["id"] for x in out["items"]})
+    out["removed"] = sorted(x["id"] for x in out["items"] if x.get("by") == "reports")
+    return out
+
+
 def fetch_all(key, path):
     rows, start = [], 0
     while True:
@@ -231,6 +244,7 @@ def main():
     prev = read_json(OUT, {})
     out = decide(rows, views30, read_json(OVR, {}), prev if isinstance(prev, dict) else {}, now)
     out = merge_photo(out, read_json(PHOTO, {}), read_json(OVR, {}), prev if isinstance(prev, dict) else {}, now)
+    out = finalize(out, read_json(SWAPS, {}))
     strip = lambda d: json.dumps({k: v for k, v in d.items() if k != "updated"}, sort_keys=True)
     if isinstance(prev, dict) and prev and strip(prev) == strip(out):
         print("reported unchanged:", len(out["hidden"]), "hidden"); return 0
