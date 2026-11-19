@@ -170,5 +170,30 @@ export async function onRequestGet(context) {
 
   const res = json(out, 200, { "cache-control": `public, max-age=${thumbs.length ? CACHE_TTL : MISS_TTL}` });
   context.waitUntil(cache.put(cacheKey, res.clone()));
+  if (thumbs.length && env.SUPABASE_SERVICE_KEY) context.waitUntil(saveLive(env, storefront, id, out, thumbs).catch(() => {}));
   return res;
+}
+
+// Every live lookup is kept (owner, 19 Nov 2026: "make sure we save qc photos from now on"): the photos a visitor's lookup
+// returned go to our Supabase storage (products/qc-live/<storefront>-<id>-<k>.<ext> and <storefront>-<id>.json) right
+// away, and scripts/qc_bank.py moves them into the QC bank on its next run, without spending another qualit.ly lookup.
+// The thumbnail links from qualit.ly expire, so they are copied now, not later.
+const QC_LIVE = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/products/qc-live/";
+async function saveLive(env, storefront, id, out, thumbs) {
+  const H = { authorization: "Bearer " + env.SUPABASE_SERVICE_KEY, apikey: env.SUPABASE_SERVICE_KEY, "x-upsert": "true" };
+  const files = [];
+  for (let k = 0; k < Math.min(thumbs.length, 8); k++) {
+    try {
+      const r = await fetch(thumbs[k], { cf: { cacheTtl: 0 } });
+      if (!r.ok) continue;
+      const type = r.headers.get("content-type") || "image/jpeg";
+      if (!/^image\//.test(type)) continue;
+      const ext = type.includes("png") ? "png" : type.includes("webp") ? "webp" : "jpg", name = `${storefront}-${id}-${k}.${ext}`;
+      const up = await fetch(QC_LIVE + name, { method: "POST", headers: { ...H, "content-type": type, "cache-control": "max-age=31536000" }, body: await r.arrayBuffer() });
+      if (up.ok) files.push(name);
+    } catch (e) {}
+  }
+  if (!files.length) return;
+  const meta = { storefront, id, qc_count: out.qc_count || 0, files, at: new Date().toISOString() };
+  await fetch(QC_LIVE + `${storefront}-${id}.json`, { method: "POST", headers: { ...H, "content-type": "application/json" }, body: JSON.stringify(meta) });
 }

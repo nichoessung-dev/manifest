@@ -101,12 +101,45 @@ def store(key, thumbs):
     return n
 
 
+def ingest_live(items, checked, now):
+    """QC photos saved by visitors' live lookups (functions/api/qc.js saveLive, 19 Nov 2026) into the bank: no lookup spent."""
+    key_ = os.environ["SUPABASE_SERVICE_KEY"]; H = {**UA, "Authorization": "Bearer " + key_, "apikey": key_, "Content-Type": "application/json"}
+    names, off = [], 0
+    while True:
+        req = urllib.request.Request(SUPA + "/storage/v1/object/list/products", method="POST", headers=H,
+                                     data=json.dumps({"prefix": "qc-live/", "limit": 1000, "offset": off}).encode())
+        pg = json.loads(urllib.request.urlopen(req, timeout=60).read())
+        names += [x["name"] for x in pg if x.get("name", "").endswith(".json")]
+        if len(pg) < 1000: break
+        off += 1000
+    added = 0
+    for nm in names:
+        try:
+            meta = json.loads(get(SUPA + "/storage/v1/object/public/products/qc-live/" + nm))
+            key = "%s/%s" % (meta["storefront"], meta["id"])
+            if key in items and items[key][1] > 0: continue
+            n = 0; name = key.replace("/", "-")
+            for f in meta.get("files") or []:
+                if n >= MAX_THUMBS: break
+                try:
+                    im = Image.open(io.BytesIO(get(SUPA + "/storage/v1/object/public/products/qc-live/" + f, timeout=30))).convert("RGB"); im.thumbnail((900, 900))
+                    buf = io.BytesIO(); im.save(buf, "WEBP", quality=80); upload("%s-%d.webp" % (name, n), buf.getvalue()); n += 1
+                except Exception as e: print("   live photo skipped: %s" % str(e)[:80])
+            if n:
+                items[key] = [int(meta.get("qc_count") or n), n]; checked[key] = now.date().isoformat(); added += 1
+        except Exception as e: print("   live entry skipped (%s): %s" % (nm, str(e)[:80]))
+    print("saved from visitors' lookups: %d finds added to the bank (%d saved in all)" % (added, len(names)))
+
+
 def main():
     mx, reserve, dry = arg("--max", 300), arg("--reserve", 150), "--dry" in sys.argv
     try: bank = json.load(open(BANK, encoding="utf-8"))
     except Exception: bank = {}
     items, checked = bank.setdefault("items", {}), bank.setdefault("checked", {})
     now = datetime.now(timezone.utc); old = (now - timedelta(days=RECHECK_DAYS)).date().isoformat()
+    if not dry:
+        try: ingest_live(items, checked, now); save(bank, now)
+        except Exception as e: print("visitors' saved lookups not read: %s" % str(e)[:120])
     v = views()
     # a paid plan (owner, 19 Nov 2026: "Save QC photos in bulk"): with 10,000+ lookups a month every find is looked up,
     # also those with no QC on record (the catalogue's QC counts are old), more photos are kept and the pace follows the
