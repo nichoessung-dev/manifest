@@ -6928,6 +6928,10 @@ function wirePPFilters(){
   function swTop(items, cat, caps) {
     var s = []; try { s = Array.from(SWAPPED).map(function (id) { return BY_ID[id]; }).filter(function (p) { return p && p.img && !sold(p) && !hid(p) && (!cat || p.cat === cat); }); } catch (e) {}
     if (!s.length) return items;
+    /* perf (19 Nov 2026): a row holds PER cards. With 2,600 swaps every row put all of them in (4,700 cards, 83,000 page
+       elements, seconds of freeze on load). The row takes PER of the most popular swaps, a different mix each load. */
+    s.sort(byPop);
+    if (s.length > PER) { var top = s.slice(0, PER * 3), keep = {}; top.map(function (p) { return [Math.random(), p]; }).sort(function (x, y) { return x[0] - y[0]; }).slice(0, PER).forEach(function (x) { keep[x[1].id] = 1; }); s = top.filter(function (p) { return keep[p.id]; }); }
     var ids = {}, used = {};
     s.forEach(function (p) { ids[p.id] = 1; used[p.brand || ""] = (used[p.brand || ""] || 0) + 1; });
     var rest = items.filter(function (p) {
@@ -6935,7 +6939,7 @@ function wirePPFilters(){
       var b = p.brand || ""; if (caps && caps[b]) { if ((used[b] || 0) >= caps[b]) return false; used[b] = (used[b] || 0) + 1; }
       return true;
     });
-    return s.concat(rest).slice(0, Math.max(PER, s.length));
+    return s.concat(rest).slice(0, PER);
   }
   /* pool: every find with a photo that is not sold out, most popular first (sorted once for all rows, 5 Nov 2026) */
   function pick(pool, cat, skip) {
