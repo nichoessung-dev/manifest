@@ -39,7 +39,7 @@
       ".pcfb .b2{background:transparent;color:var(--muted,#666)}.pcfb .lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted,#666);margin:-6px 0 12px}";
     var s = document.createElement("style"); s.textContent = css; document.head.appendChild(s);
     var b = document.createElement("div"); b.className = "pcfb"; b.setAttribute("role", "dialog"); b.setAttribute("aria-label", "Feedback");
-    b.innerHTML = '<button class="x" type="button" aria-label="Close">×</button>' +
+    b.innerHTML = '<button class="x" type="button" aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="display:block;margin:auto"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
       "<h3>You're one of our most active members</h3><p>Got 30 seconds? Tell us what would make Puro Classico better for you.</p>" +
       '<div class="rt" role="group" aria-label="How useful is the spreadsheet for you?">' + [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" data-r="' + n + '">' + n + "</button>"; }).join("") + "</div>" +
       '<div class="lbl"><span>Not useful</span><span>Love it</span></div>' +
