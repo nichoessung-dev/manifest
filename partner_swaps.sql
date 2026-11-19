@@ -53,7 +53,7 @@ begin
   select * into me from public.partner_codes c where c.code = p_code;
   if not found then raise exception 'wrong code'; end if;
   return query select s.id, s.created_at, s.pid, s.platform, s.item_id, s.note, s.by_name, s.status, s.decided_at
-    from public.link_swaps s where me.role = 'owner' or s.by_code = p_code order by s.created_at desc limit 500;
+    from public.link_swaps s where me.role = 'owner' or s.by_code = p_code order by s.created_at desc, s.id desc;   -- no cap: /partner reads every page (19 Nov 2026)
 end $$;
 
 create or replace function public.partner_submit(p_code text, p_pid text, p_platform text, p_item text, p_note text) returns bigint

@@ -393,9 +393,14 @@ async function loadCatalog(){
 /* the swaps: ROWS from the database; LIVE[find id] = the row that is in force (latest decision per find, if an approval) */
 async function loadSwaps(){
   BAKED=await fetch("/data/link_swaps.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null);
-  ROWS=await rpc("partner_list",{p_code:CODE})||[];
+  /* every swap, page by page: the API hands out at most 1000 rows a call (19 Nov 2026) */
+  ROWS=[]; for(let off=0;;off+=1000){ const pg=await rpc("partner_list?offset="+off+"&limit=1000",{p_code:CODE})||[]; ROWS=ROWS.concat(pg); if(pg.length<1000) break; }
   const last={}; ROWS.filter(r=>r.status==="approved"||r.status==="removed").forEach(r=>{ const d=r.decided_at||r.created_at, o=last[r.pid]; if(!o||(o.decided_at||o.created_at)<d) last[r.pid]=r; });
   LIVE={}; for(const k in last) if(last[k].status==="approved") LIVE[k]=last[k];
+  /* the owner sees every swap in force: approved_swaps() has them all, so one the list did not return (an older database
+     function stopped at 500) still shows, without an Undo until that function is updated (19 Nov 2026) */
+  if(ROLE==="owner") try{ for(let off=0;;off+=1000){ const pg=await rpc("approved_swaps?offset="+off+"&limit=1000",{})||[];
+    pg.forEach(r=>{ if(!LIVE[r.pid]) LIVE[r.pid]={pid:r.pid,platform:r.platform,item_id:r.item_id,status:"approved"}; }); if(pg.length<1000) break; } }catch(e){}
   $("n-sw").textContent=Object.keys(LIVE).length;
 }
 const yuan=n=>n?"¥"+n.toLocaleString("en-US"):"";
@@ -411,7 +416,7 @@ function render(reset){
   if(TAB==="swapped"){
     const rows=Object.values(LIVE).map(r=>({r,p:BYID[r.pid]})).filter(x=>x.p&&ok(x.p)).sort((a,b)=>(b.r.decided_at||"").localeCompare(a.r.decided_at||""));
     $("count").textContent=LANG==="zh"?rows.length+" 个已替换":rows.length+" swapped";
-    $("swlist").innerHTML=rows.map(({r,p})=>`<div class="row"><img src="${esc(p.img)}" alt="" loading="lazy"><div style="min-width:0"><b>${esc(p.t)}</b><div class="sw"><a class="old" href="${esc(orig(p.pl,p.i))}" target="_blank" rel="noopener">${esc(plName(p.pl)+" "+p.i)}</a><span class="arrow">→</span><a href="${esc(orig(r.platform,r.item_id))}" target="_blank" rel="noopener">${esc(plName(r.platform)+" "+r.item_id)}</a>${r.by_name?`<span>· ${esc(r.by_name)}</span>`:""}<span>· ${esc(new Date(r.decided_at||r.created_at).toLocaleString(LANG==="zh"?"zh-CN":"en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))}</span>${r.note?`<span>· ${esc(r.note)}</span>`:""}</div></div><div class="acts"><a class="btn" href="/product/${encodeURIComponent(p.id)}" target="_blank" rel="noopener">${esc(tr("View"))}</a><button class="btn" type="button" data-undo="${r.id}">${esc(tr("Undo"))}</button></div></div>`).join("")||`<div class="empty">${esc(tr("Nothing swapped yet"))}</div>`;
+    $("swlist").innerHTML=rows.map(({r,p})=>`<div class="row"><img src="${esc(p.img)}" alt="" loading="lazy"><div style="min-width:0"><b>${esc(p.t)}</b><div class="sw"><a class="old" href="${esc(orig(p.pl,p.i))}" target="_blank" rel="noopener">${esc(plName(p.pl)+" "+p.i)}</a><span class="arrow">→</span><a href="${esc(orig(r.platform,r.item_id))}" target="_blank" rel="noopener">${esc(plName(r.platform)+" "+r.item_id)}</a>${r.by_name?`<span>· ${esc(r.by_name)}</span>`:""}${(r.decided_at||r.created_at)?`<span>· ${esc(new Date(r.decided_at||r.created_at).toLocaleString(LANG==="zh"?"zh-CN":"en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))}</span>`:""}${r.note?`<span>· ${esc(r.note)}</span>`:""}</div></div><div class="acts"><a class="btn" href="/product/${encodeURIComponent(p.id)}" target="_blank" rel="noopener">${esc(tr("View"))}</a>${r.id?`<button class="btn" type="button" data-undo="${r.id}">${esc(tr("Undo"))}</button>`:""}</div></div>`).join("")||`<div class="empty">${esc(tr("Nothing swapped yet"))}</div>`;
     return;
   }
   LIST=CAT.filter(ok);
