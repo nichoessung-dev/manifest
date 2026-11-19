@@ -191,13 +191,19 @@ def featured():
         try:
             prod, _ = load_products()
             _FEAT = [(i, p) for i, p in prod.items() if p.get("_rec") and p.get("img")]
+            # most viewed and saved first (19 Nov 2026: 2,600 swaps, the first four in file order went to everyone)
+            try:
+                st = load_stats(); _FEAT.sort(key=lambda ip: -pop_score(st[ip[0]]) if ip[0] in st else 0)
+            except Exception as e: print("featured finds not ranked:", hide(e))
         except Exception as e:
             print("featured finds not loaded:", hide(e)); _FEAT = []
     return _FEAT
 
 def featured_block(inner):
     """A "Recommended" grid of the swapped finds not already in the email ("" when there are none), for wrap()."""
-    items = [(i, p) for i, p in featured() if ("/product/" + urllib.parse.quote(i)) not in inner][:4]
+    import random
+    top = [(i, p) for i, p in featured() if ("/product/" + urllib.parse.quote(i)) not in inner][:40]
+    items = random.sample(top, min(4, len(top)))           # four of the 40 most popular, a different mix per email
     if not items: return ""
     return (hr("40px 0 32px") + h2("Recommended By Us")
             + lead("Hand-picked finds we recommend right now, one tap from your agent.", 15, 28) + grid(items))
@@ -683,16 +689,32 @@ def run_newsletter(profiles):
     print("popular pool: %d of %d products" % (len(POOL), len(ids)))
     if len(POOL) < 6: print("not enough popularity data - nothing sent"); return
     top_score = score[POOL[0]] or 1.0
+    # the partner's finds (owner, 19 Nov 2026: "my friends links should be the only finds that shows up in the mails, and
+    # should be showned like 95% of the time"): every card slot comes from the partner's swapped finds 95% of the time,
+    # their most viewed and saved first; the other 5% from the popular pool as before
+    FR = [i for i in ids if prod[i].get("_rec") and prod[i].get("img")]
+    FR.sort(key=lambda i: -score.get(i, 0))
+    POOL_F = FR[:max(120, len(FR) // 4)]
+    POOL_O = [i for i in POOL if i not in set(FR)]
+    print("partner pool: %d of %d partner finds" % (len(POOL_F), len(FR)))
     def pick(n, weight, exclude=(), per_brand=2, rnd=None):
-        """Best n from the popular pool by weight; at most per_brand per brand so one label does not fill the email."""
-        order = sorted(POOL, key=lambda i: -(weight(i) * ((0.75 + 0.5 * rnd.random()) if rnd else 1)))
-        out, seen_b = [], {}
-        for i in order:
-            if i in exclude: continue
-            b = prod[i].get("brand") or ""
-            if seen_b.get(b, 0) >= per_brand: continue
-            seen_b[b] = seen_b.get(b, 0) + 1; out.append((i, prod[i]))
-            if len(out) >= n: break
+        """Best n by weight, each slot from the partner pool 95% of the time; at most per_brand per brand."""
+        r = rnd or random.Random()
+        def order(pool): return iter(sorted(pool, key=lambda i: -((weight(i) + 0.02) * (0.6 + 0.8 * r.random()))))
+        fo, oo = order(POOL_F), order(POOL_O)
+        out, seen_b, taken = [], {}, set(exclude)
+        def nxt(it):
+            for i in it:
+                if i in taken: continue
+                b = prod[i].get("brand") or ""
+                if seen_b.get(b, 0) >= per_brand: continue
+                seen_b[b] = seen_b.get(b, 0) + 1; taken.add(i); return i
+            return None
+        while len(out) < n:
+            i = nxt(fo) if r.random() < 0.95 else nxt(oo)
+            if i is None: i = nxt(fo) or nxt(oo)
+            if i is None: break
+            out.append((i, prod[i]))
         return out
     # each member's taste: brands and categories they viewed, favourites count triple
     views = sb_all("product_views?select=user_id,product_id,brand,cat,viewed_at&user_id=not.is.null&viewed_at=gte.%s&order=viewed_at.desc" % since(60))
@@ -744,7 +766,7 @@ def run_newsletter(profiles):
             except: active = True
         perso = bool(active and u and u["brands"])
         rnd = random.Random(uid + day)                       # a different mix each send, stable within one send
-        feat = [(i, p) for i, p in featured() if i in prod][:4]   # partner-swapped finds lead every newsletter (12 Nov 2026)
+        feat = []   # 19 Nov 2026: every slot is picked from the partner's finds by pick() now (95%), no fixed lead four
         fids = {i for i, _ in feat}
         if perso:
             bt = float(max(u["brands"].values())); ct = float(max(u["cats"].values())) if u["cats"] else 1.0
@@ -752,7 +774,7 @@ def run_newsletter(profiles):
             def w(i):
                 p = prod[i]
                 taste = 3.0 * u["brands"].get(p.get("brand"), 0) / bt + 1.0 * u["cats"].get(p.get("cat"), 0) / ct
-                return (score[i] / top_score) * (1.0 + taste)      # popularity first, their taste multiplies it up to 5x
+                return (score.get(i, 0) / top_score) * (1.0 + taste)      # popularity first, their taste multiplies it up to 5x
             recs = pick(6, w, exclude=set(u["seen"]) | fids, rnd=rnd)
             if len(recs) < 6: recs += pick(6 - len(recs), w, exclude={i for i, _ in recs} | fids, rnd=rnd)
             recs = (feat + recs)[:max(6, len(feat))]
@@ -765,7 +787,7 @@ def run_newsletter(profiles):
             body = intro + grid(recs)
             body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(esc(site_link(SITE)), "Browse All Finds")
         else:
-            recs = (feat + pick(6, lambda i: score[i] / top_score, exclude=fids, rnd=rnd))[:max(6, len(feat))]
+            recs = (feat + pick(6, lambda i: score.get(i, 0) / top_score, exclude=fids, rnd=rnd))[:max(6, len(feat))]
             intro = (pre("What everyone is viewing and saving on Puro Classico right now.")
                      + h1("Most Popular Right Now")
                      + lead("What everyone is viewing and saving on Puro Classico right now.", 16, 36))
