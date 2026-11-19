@@ -40,6 +40,10 @@
 /track.js
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
+# the feedback pop-up for the most active visitors (19 Nov 2026), linked as /feedback.js?v=N
+/feedback.js
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
 # related finds (scripts/bake_also.py, every 6 hours): /also.js is linked as /also.js?v=N; the data may be an hour old
 /also.js
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800

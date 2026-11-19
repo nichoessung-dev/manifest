@@ -288,6 +288,7 @@
     <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Filter by title, brand or ID" aria-label="Filter by title, brand or ID" autocomplete="off"></label>
   </div>
   <section class="card tcard"><div id="tbl"><div style="padding:16px"><div class="bars"><span class="sk" style="height:40px"></span><span class="sk" style="height:40px"></span><span class="sk" style="height:40px;width:80%"></span><span class="sk" style="height:40px;width:60%"></span></div></div></div></section>
+  <section class="card" id="fb-card" style="padding:18px;margin-top:16px"><h2 style="margin:0 0 4px;font-size:18px">Feedback</h2><p class="note" id="fb-sum" style="margin:0 0 12px">Loading…</p><div id="fb-list"></div></section>
   <p class="note">Stats are aggregated from Supabase every 6 hours by the "Stats" GitHub workflow (Actions → Stats → Run workflow to refresh now). Counts only, no user data.</p>
 </main>
 <script>/* theme button: system -> light -> dark -> system, same key and order as the site header ("manifest.theme") */
@@ -362,6 +363,14 @@ try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",tc)}cat
   else { const sd=s=>{ const x=new Date(s+"T12:00:00"); return isNaN(x)?esc(s):x.toLocaleDateString("en-US",{month:"short",day:"numeric"}); }; $("#xaxis").innerHTML=`<span>${sd(stats.daily[0][0])}</span><span>Peak ${max.toLocaleString("en-US")}</span><span>${sd(stats.daily[stats.daily.length-1][0])}</span>`; }
   // QC quota: when ADMIN_TOKEN is set on the server, open /admin#token=... once to store it in this browser.
   let qcTok=""; try{ const m=location.hash.match(/token=([^&]+)/); if(m){ localStorage.setItem("pc.admintoken",decodeURIComponent(m[1])); history.replaceState(null,"",location.pathname+location.search); } qcTok=localStorage.getItem("pc.admintoken")||""; }catch(e){}
+  /* feedback from the pop-up for the most active visitors (feedback.js, /api/feedback, 19 Nov 2026) */
+  (function(){ const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])), sum=document.getElementById("fb-sum"), box=document.getElementById("fb-list");
+    if(!qcTok){ sum.textContent="Open this page once as /admin#token=YOUR_ADMIN_TOKEN to see feedback."; return; }
+    fetch("/api/feedback",{headers:{"x-admin-token":qcTok},cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject(r.status)).then(j=>{
+      const it=(j&&j.items)||[], rs=it.filter(x=>x.r), avg=rs.length?(rs.reduce((a,x)=>a+x.r,0)/rs.length).toFixed(1):"";
+      sum.textContent=it.length?it.length+" answers in the last two months"+(avg?", average "+avg+" / 5":""):"No feedback yet.";
+      box.innerHTML=it.slice(0,200).map(x=>`<div style="padding:12px 0;border-top:1px solid var(--line,rgba(0,0,0,.08))"><div style="display:flex;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted)"><b style="color:var(--ink)">${x.r?E(x.r)+" / 5":"No rating"}</b><span>${E((x.at||"").slice(0,16).replace("T"," "))}</span><span>${E(x.min)} min, ${E(x.days)} days</span><span>${E(x.country)}</span><span>${E(x.page)}</span>${x.email?`<a href="mailto:${E(x.email)}">${E(x.email)}</a>`:""}</div>${x.text?`<div style="margin-top:6px;white-space:pre-wrap">${E(x.text)}</div>`:""}</div>`).join("");
+    }).catch(c=>{ sum.textContent=c===401?"The admin token is wrong or ADMIN_TOKEN is not set in Cloudflare.":"Couldn't load feedback."; }); })();
   fetch("/api/qc?usage=1",qcTok?{headers:{"x-admin-token":qcTok}}:{}).then(r=>r.ok?r.json():null).then(u=>{ if(!u) return;
     const flat=[]; (function walk(o,pre){ for(const [k,v] of Object.entries(o||{})){ if(v&&typeof v==="object") walk(v,pre+k+" "); else if(typeof v==="number"||typeof v==="string") flat.push([pre+k,v]); } })(u,"");
     const el=document.createElement("div"); el.className="card quota";

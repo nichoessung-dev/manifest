@@ -485,7 +485,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "30";
+export const DS_VER = "31";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -744,6 +744,7 @@ ${body}
 ${footer()}
 ${PAGE_JS}${SEARCH_BOOT_JS}${body.indexOf('class="cbuy"') >= 0 ? AGENT_SWAP_JS : ""}${CUR_JS}
 <script src="/track.js?v=5" defer></script>
+<script src="/feedback.js?v=1" defer></script>
 <script src="/chat.js?v=7" defer></script>
 </body>
 </html>`;
