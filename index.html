@@ -7054,7 +7054,9 @@ function wirePPFilters(){
     var inp = $("v9-q");
     /* the placeholder keeps the baked number too (it is only translated: the number is read from the page) */
     if (inp && ok) { var bn = (inp.getAttribute("placeholder") || "").match(/\d[\d,.\s]*\+/); if (bn) inp.placeholder = tr("v9_search_ph", "Search {n} finds").replace("{n}", bn[0]); }
-    var hi = $("pcs-hi"); if (hi && ok) hi.placeholder = tr("pcs_ph_n", "Search {n} finds").replace("{n}", v.finds);
+    /* the header search box shows the same baked number (19 Nov 2026: it counted the finds in the browser and said 9,700+ next to 9,600+) */
+    var hi = $("pcs-hi"), hb = (inp && ((inp.getAttribute("placeholder") || "").match(/\d[\d,.\s]*\+/) || [])[0]) || "";
+    if (hi && ok && hb) hi.placeholder = tr("pcs_ph_n", "Search {n} finds").replace("{n}", hb);
   }
 
   /* ---------- first build, then again when currency, language, agent, the stats or the dead-link check change it ---------- */
