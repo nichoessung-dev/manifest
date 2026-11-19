@@ -4560,10 +4560,21 @@ function syncQParam(){ try{ const onP=location.pathname.indexOf("/product/")===0
 /* partner swaps (see the loader after initSb()): SWAPPED = finds whose Buy link goes to the partner's item, SWAP_HIDE_OF =
    look-alike id -> swapped find. swapFirst: swapped finds first, in the list's own order, except in the price sorts. */
 var SWAPPED=new Set(), SWAP_HIDE_OF={};
+/* owner, 19 Nov 2026: "i want my friends finds to be like 95-99% of the spreadsheet only when people search up stuff they
+   find the other stuff". Browsing (no search, not the saved list): the partner's finds, with about 3% other finds mixed in
+   (the most popular of them, one every ~33 cards). When a view has under 48 partner finds the others follow them in full,
+   so no category or filter ends up empty. A search shows everything, partner finds first. */
+const SW_MIX=33;
 function swapFirst(list){
-  if(!SWAPPED.size||!list||!list.length||state.sort==="low"||state.sort==="high") return list;
+  if(!SWAPPED.size||!list||!list.length) return list;
   const a=[], b=[]; for(const p of list)(SWAPPED.has(String(p.id))?a:b).push(p);
-  return a.length?a.concat(b):list;
+  const browse=!(state.q||"").trim()&&!state.saved;
+  if(!browse) return (state.sort==="low"||state.sort==="high")?list:(a.length?a.concat(b):list);
+  if(a.length<48) return (state.sort==="low"||state.sort==="high")?list:a.concat(b);
+  const n=Math.max(1,Math.ceil(a.length*0.03)), keep=b.slice(0,n);
+  if(state.sort==="low"||state.sort==="high"){ const ks=new Set(keep); return list.filter(p=>SWAPPED.has(String(p.id))||ks.has(p)); }
+  const out=[]; let k=0; for(let i=0;i<a.length;i++){ out.push(a[i]); if((i+1)%SW_MIX===0&&k<keep.length) out.push(keep[k++]); }
+  return out;
 }
 function filtered(noBrand){ const l=filtered0(noBrand); return noBrand?l:swapFirst(l); }
 /* subcategories (owner, 15 Nov 2026): data/subcats.json, loaded when exactly one category is picked. The pick lives

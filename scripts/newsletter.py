@@ -698,7 +698,7 @@ def run_newsletter(profiles):
     POOL_O = [i for i in POOL if i not in set(FR)]
     print("partner pool: %d of %d partner finds" % (len(POOL_F), len(FR)))
     def pick(n, weight, exclude=(), per_brand=2, rnd=None):
-        """Best n by weight, each slot from the partner pool 95% of the time; at most per_brand per brand."""
+        """Best n by weight from the partner pool (100%); at most per_brand per brand, relaxed when the pool runs short."""
         r = rnd or random.Random()
         def order(pool): return iter(sorted(pool, key=lambda i: -((weight(i) + 0.02) * (0.6 + 0.8 * r.random()))))
         fo, oo = order(POOL_F), order(POOL_O)
@@ -711,8 +711,8 @@ def run_newsletter(profiles):
                 seen_b[b] = seen_b.get(b, 0) + 1; taken.add(i); return i
             return None
         while len(out) < n:
-            i = nxt(fo) if r.random() < 0.95 else nxt(oo)
-            if i is None: i = nxt(fo) or nxt(oo)
+            i = nxt(fo)                                     # owner, 19 Nov 2026: "100% only his finds"
+            if i is None and not POOL_F: i = nxt(oo)        # only if there were no partner finds at all
             if i is None: break
             out.append((i, prod[i]))
         return out
@@ -827,7 +827,7 @@ def run_saved(profiles):
     for f in favs:
         try: fresh = datetime.fromisoformat((f.get("created_at") or "").replace("Z", "+00:00")) >= cutoff
         except Exception: fresh = False
-        if fresh and f["product_id"] in prod and f["product_id"] not in gone: recent.setdefault(f["user_id"], []).append(f["product_id"])
+        if fresh and f["product_id"] in prod and f["product_id"] not in gone and prod[f["product_id"]].get("_rec"): recent.setdefault(f["user_id"], []).append(f["product_id"])
     due = [pr for pr in profiles if pr.get("email") and recent.get(pr["id"]) and not welcomed_lately(pr)]
     cap = slots("saved") if due else 0
     sent = fails = 0
