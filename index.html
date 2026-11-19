@@ -2109,17 +2109,18 @@ html.js-fade .v9-cat-ph img:not(.is-in){opacity:0}
 
 /* ---------- skeleton cards in the home rails until the rows are built (same box as a card; opacity pulse) ---------- */
 .sk-card{box-sizing:border-box;display:flex;flex-direction:column;padding:var(--card-pad,10px);border-radius:var(--r-card,12px);pointer-events:none}
-.sk-card i{display:block;border-radius:6px;background:var(--_mut)}
-.sk-card .sk-im{aspect-ratio:1/1;border-radius:10px}
+.sk-card i{display:block;border-radius:6px;background:color-mix(in srgb,var(--ink) 9%,transparent)}
+.sk-card .sk-im{aspect-ratio:1/1;border-radius:10px;background:color-mix(in srgb,var(--ink) 4%,transparent)}
 .sk-card .sk-l1{width:45%;height:12px;margin:13px 0 5px}
 .sk-card .sk-l2{width:90%;height:14px;margin:3px 0 6px}
 .sk-card .sk-l3{width:60%;height:14px;margin:0 0 3px}
 .sk-card .sk-pr{width:35%;height:16px;margin:6px 0 4px}
-.sk-card .sk-p{height:30px;margin-top:14px;border-radius:999px}
+.sk-card .sk-p{height:30px;margin-top:14px;border-radius:999px;background:var(--ink);opacity:.88;animation:none!important}
 @media (max-width:560px){.sk-card .sk-p{margin-top:37px}}
 html:not(.js-fade) .sk-card{visibility:hidden}
-@media (prefers-reduced-motion:no-preference){.sk-card i{animation:sk-pulse 1.2s ease-in-out infinite}}
-@keyframes sk-pulse{0%,100%{opacity:1}50%{opacity:.6}}
+/* 19 Nov 2026 (owner: "more like replibrary"): a slow, soft opacity pulse on pale ink-tinted lines, the Buy button shape solid */
+@media (prefers-reduced-motion:no-preference){.sk-card i{animation:sk-pulse 2s cubic-bezier(.4,0,.6,1) infinite}}
+@keyframes sk-pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
 /* ---------- reduced motion: no transforms, no fades, no pulses ---------- */
 @media (prefers-reduced-motion:reduce){
@@ -2378,7 +2379,7 @@ html.pc-fs-lock,html.pc-fs-lock body{overflow:hidden}
 #grid-sk[hidden]{display:none!important}
 @media (max-width:560px){#grid-sk{gap:10px;margin-top:10px}}
 #grid-sk .sk-card{visibility:visible!important}
-#grid-sk .sk-card i{background:var(--surface-2)}
+#grid-sk .sk-card .sk-im{background:color-mix(in srgb,var(--ink) 4%,transparent)}
 .pc-more{display:flex;align-items:center;justify-content:center;height:44px;margin:24px auto 0;padding:0 22px;border:1px solid var(--line-2);border-radius:999px;background:var(--surface);color:var(--ink);font:500 14px/1 var(--f-body);cursor:pointer}
 .pc-more[hidden]{display:none!important}
 @media (hover:hover){.pc-more:hover{background:var(--surface-2)}}
