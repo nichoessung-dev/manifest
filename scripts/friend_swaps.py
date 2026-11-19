@@ -28,7 +28,11 @@ def rest(path, method="GET", body=None, prefer=None):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--dry-run", action="store_true"); a = ap.parse_args()
     items = (json.load(open(os.path.join(ROOT, "data", "friend_match.json"), encoding="utf-8")) or {}).get("items") or {}
-    live = rest("rpc/approved_swaps", "POST", {}) or []
+    live, off = [], 0
+    while True:   # the API returns at most 1000 rows a call: read every page, or swaps past the first 1000 get inserted again
+        page = rest(f"rpc/approved_swaps?offset={off}&limit=1000", "POST", {}) or []
+        live += page; off += len(page)
+        if len(page) < 1000: break
     have_pid = {str(r["pid"]) for r in live}; have_item = {str(r["item_id"]) for r in live}
     who = rest("link_swaps?select=by_name,by_code&status=eq.approved&by_code=not.is.null&order=id.desc&limit=1") or [{}]
     by_name, by_code = (who[0] or {}).get("by_name"), (who[0] or {}).get("by_code")
