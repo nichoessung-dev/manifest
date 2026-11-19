@@ -15,12 +15,16 @@ from catalog_common import ROOT, load_catalog  # noqa: E402
 
 def main():
     bank = json.load(open(os.path.join(ROOT, "data", "qc_bank.json"), encoding="utf-8")).get("items") or {}
+    try: swaps = json.load(open(os.path.join(ROOT, "data", "link_swaps.json"), encoding="utf-8")).get("swaps") or {}
+    except Exception: swaps = {}
     html, items, s, e = load_catalog()
     block = html[s:e]
     changed = 0
     for p in items:
         sid = str(p.get("itemId") or p.get("id")).lstrip("0")
-        b = bank.get("%s/%s" % (p.get("platform"), sid))
+        sw = swaps.get(str(p.get("id")))               # a swapped find shows the partner item's QC photos
+        b = bank.get("%s/%s" % (sw[0], str(sw[1]).lstrip("0"))) if sw else None
+        b = b if b and b[1] else bank.get("%s/%s" % (p.get("platform"), sid))
         if not b or not b[1]: continue
         n = max(int(b[0] or 0), int(b[1]))
         if n <= int(p.get("qc") or 0): continue

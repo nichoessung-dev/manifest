@@ -36,6 +36,8 @@ TAG = '<script type="application/json" id="pc-catalog">'
 WD_API = "https://thor.weidian.com/detail/getItemSkuInfo/1.0?param="
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
 MAX_LOOKUPS = 150      # Weidian lookups per run (one per swapped Weidian find); the rest keep their last price
+SOFT_HIDE = True       # look-alikes = same brand + name only (owner, 19 Nov 2026), not every find of the same kind
+LOOKUP_SECONDS = 150   # and at most this long, so the run always finishes
 PAUSE = 0.6            # seconds between lookups: Weidian refuses bursts
 USD_RATE = 0.1394      # catalogue rate, used when the find has no usd/cny of its own
 # Same map as functions/_lib/site.js BRAND_ALIAS and index.html (loadProducts): the group key must match theirs.
@@ -102,9 +104,15 @@ def catalogue(root):
 
 
 def fetch_swaps(key):
-    req = urllib.request.Request(SUPA + "/rest/v1/rpc/approved_swaps", data=b"{}", method="POST",
-                                 headers={"apikey": key, "Authorization": "Bearer " + key, "Content-Type": "application/json"})
-    return json.load(urllib.request.urlopen(req, timeout=30))
+    """Every approved swap, 1,000 rows a call (the API's page limit; 19 Nov 2026: 2,614 swaps, only 1,000 were read)."""
+    rows, off = [], 0
+    while True:
+        req = urllib.request.Request(SUPA + "/rest/v1/rpc/approved_swaps?offset=%d&limit=1000" % off, data=b"{}", method="POST",
+                                     headers={"apikey": key, "Authorization": "Bearer " + key, "Content-Type": "application/json"})
+        pg = json.load(urllib.request.urlopen(req, timeout=30))
+        rows += pg
+        if len(pg) < 1000: return rows
+        off += 1000
 
 
 def clean_swaps(rows):
@@ -142,11 +150,14 @@ def bake(swaps, items, old):
     """The new file's content (without the stamp) from the swaps, the catalogue and the previous file."""
     by_id = {str(p.get("id")): p for p in items}
     old_price = (old or {}).get("price") or {}
-    price, looked = {}, 0
-    for pid, (pl, item) in swaps.items():
+    price, looked, t0 = {}, 0, time.time()
+    # the swaps without a price read yet first, then the rest in a different order every run, at most MAX_LOOKUPS and
+    # LOOKUP_SECONDS (19 Nov 2026: with 2,600 swaps the job ran past its 5 minutes and was cancelled every time)
+    order = sorted(swaps.items(), key=lambda kv: (kv[0] in old_price, (hash(kv[0]) ^ int(t0 // 900)) & 0xffff))
+    for pid, (pl, item) in order:
         if pl != "weidian": continue                                         # Taobao and 1688: catalogue price stays
         cny = None
-        if looked < MAX_LOOKUPS:
+        if looked < MAX_LOOKUPS and time.time() - t0 < LOOKUP_SECONDS:
             if looked: time.sleep(PAUSE)
             looked += 1
             cny = weidian_price(item)
@@ -173,7 +184,8 @@ def bake(swaps, items, old):
         p = by_id.get(pid)
         if not p: continue
         cat, b, k = str(p.get("cat") or ""), norm(p)[0].lower(), kind_of(p)
-        same = kinds.get((b, cat, k), []) if (b and k) else groups.get((group_key(p), cat), [])
+        # owner, 19 Nov 2026 (2,614 swaps hid 7,266 finds by kind): "softer hiding", only the same item (brand + name)
+        same = groups.get((group_key(p), cat), []) if SOFT_HIDE else (kinds.get((b, cat, k), []) if (b and k) else groups.get((group_key(p), cat), []))
         for oid in same:
             if oid != pid and oid not in swaps and oid not in hide_of: hide_of[oid] = pid
     hide_of = dict(sorted(hide_of.items()))

@@ -117,10 +117,15 @@ def main():
     global MAX_THUMBS
     if big: MAX_THUMBS = 12; old = (now - timedelta(days=30)).date().isoformat()
     pause = max(0.25, 66.0 / (minute.get("limit") or 30))
-    todo = [(pid, key, qc) for pid, key, qc in catalogue(big)
-            if key not in items or (items[key][1] == 0 and checked.get(key, "") < old)]
+    # the partner's store items first (owner, 19 Nov 2026: "i want to do qc photos on all my friends items"): their own
+    # Weidian ids (data/friend_finds.json), which are the Buy links of the imported and the swapped finds
+    try: friend = [str(i).lstrip("0") for i in json.load(open(os.path.join(ROOT, "data", "friend_finds.json"), encoding="utf-8"))["ids"]]
+    except Exception: friend = []
+    fkeys = {"weidian/" + i for i in friend if re.fullmatch(r"[1-9][0-9]{5,19}", i)}
+    todo = [("fr:" + k, k, 1) for k in sorted(fkeys)] + [(pid, key, qc) for pid, key, qc in catalogue(big) if key not in fkeys]
+    todo = [t for t in todo if t[1] not in items or (items[t[1]][1] == 0 and checked.get(t[1], "") < old)]
     todo = list({key: (pid, key, qc) for pid, key, qc in todo}.values())
-    todo.sort(key=lambda t: (-v.get(t[0], 0), -t[2]))
+    todo.sort(key=lambda t: (not t[0].startswith("fr:"), -v.get(t[0], 0), -t[2]))
     print("finds with QC on record: %d, banked: %d, still to look up: %d" % (len(catalogue()), len(items), len(todo)))
     if dry:
         for t in todo[:15]: print("  ", t[1], "views", v.get(t[0], 0), "qc", t[2])
