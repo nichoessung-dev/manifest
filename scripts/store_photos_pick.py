@@ -85,6 +85,10 @@ Rules:
 - MAIN: the best product-only FRONT shot (no person, no hands). A 3/4 standing product shot (item shaped as if worn, on
   an invisible mannequin) beats a flat lay; for shoes a clean side profile is the front. The main is NEVER a photo with
   a person. For a set (tracksuit) the top alone may be the main.
+- KEEP THE CURRENT MAIN: image 0 is the find's photo on the site now. When image 0 is ALREADY a clean professional
+  studio product-only front shot (official-looking, sharp, item alone, no hanger/floor/hands) at least as good as the
+  chosen store's front, set "keep_current_main": true; the store's photos then follow it (owner on the Arc'teryx Beta LT:
+  the current official front shot stays the main).
 - "person": true for any photo where a person (or part of one: legs, hands, face) is visible; product shots on grey or
   coloured studio backgrounds are person: false.
 - Order "photos": main first, then the other product-only shots (back, side, close-ups, sole), then photos with a person
@@ -94,7 +98,7 @@ Answer with JSON only:
 {{"model_name": "exact product name", "colour": "colourway of the chosen photos", "store": "the store letter or null",
 "set": "full" | "picked" | "none", "photos": [{{"i": number, "view": "front|three_quarter|back|side|closeup|sole|top",
 "person": true/false}}], "colour_match": true/false, "confidence": 0.0-1.0 (that the photos show the exact version),
-"note": "a few words: why this store, what was rejected"}}"""
+"keep_current_main": true/false, "note": "a few words: why this store, what was rejected"}}"""
 
 
 def now(): return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -284,6 +288,9 @@ def process(p, entry, nm, a):
         if v in seen_v and v not in ("detail", "other"): continue
         seen_v.add(v); keep.append(x)
     prod, pers = keep[:8], pers[:3]
+    if ans.get("keep_current_main") is True:   # rule 21: the site's own clean front shot stays the main
+        rec["main"] = "current"; rec["keep_current_main"] = True
+        prod = [x for x in prod if x[4] not in ("front", "three_quarter")]   # rule 17: no second front
     shown = []  # (kind, image, host) for the sheets
     pid = p["id"]; k_out = 0
     for i, k, im, host, view, _ in prod:

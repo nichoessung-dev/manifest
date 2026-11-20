@@ -47,3 +47,5 @@
 20. The main shows the item's FRONT the way it is worn or seen first: a watch's dial facing the camera, never the caseback
     (AP Royal Oak: the caseback was picked as main by mistake). A caseback, sole or inside view is a good EXTRA photo
     after the main.
+21. Keep the current main when it is already a clean official studio front shot (Arc'teryx Beta LT: the site's photo
+    stayed the main, the store's model shots follow). The store photos are added after it; no second front shot.
