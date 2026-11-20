@@ -9,3 +9,8 @@
 5. One store per set: every photo of a find (main and angles) comes from the same store's photoshoot, so lighting,
    angle style and finish match. Pick the store with the best complete set and take the main from that set; when a
    photo does not look like the rest, look at another store instead of mixing.
+6. Every photo shows the whole item: no detail crops or close-ups (a logo alone is "not the t-shirt").
+7. Fewer, better photos: the best product-only FRONT (the main) and the best product-only BACK, then ONE model photo
+   (the best front view, kept as the full photo, never cut out). No near-duplicates (three similar model poses: keep one).
+   Extra product angles (side, top, sole for shoes) only when they are as good as the front and back.
+8. The main photo is never a model photo.
