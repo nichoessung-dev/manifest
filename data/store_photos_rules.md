@@ -42,3 +42,5 @@
     3/4, top, sole, close-up of the item, model shots), not only main + back + one model. Owner on the Ralph Lauren grey
     zip hoodie and the Rolex: "perfect images but id prefer more if there are any". Rule 7 now only means: never pad
     with weaker or repeated shots.
+19. Item alone: no packaging, boxes, bags, tags or props in a photo (Pampeano belt: the shot with the branded box was
+    dropped; the rolled belt alone became the main, plus the worn shot).

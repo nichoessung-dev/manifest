@@ -77,7 +77,7 @@ Rules:
   shots, never near-duplicates (the same angle twice, several similar model poses: keep the best one).
 - QUALITY: sharp, high-resolution, professional studio photos only. Brand/official studio photos are best, wherever they
   appear (resellers and marketplaces reuse them). Reject homemade photos (items on floors, beds, hangers, in rooms, in a
-  hand, phone flash), collages, several products in one frame (a pair of shoes is fine), text/price overlays,
+  hand, phone flash), collages, several products in one frame (a pair of shoes is fine), packaging/boxes/bags/tags or props next to the item, text/price overlays,
   watermarks, size charts, swatches, packaging, cropped photos where the item is cut off by the frame, and loose
   detail crops (a logo alone). Close-ups are fine only inside a full set from the same shoot.
 - MAIN: the best product-only FRONT shot (no person, no hands). A 3/4 standing product shot (item shaped as if worn, on
