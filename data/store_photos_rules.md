@@ -66,3 +66,5 @@
     pre-owned listings are skipped (Louis Vuitton Keepall: owner wants more photos of the bag).
 28. Model photos show the whole item on the person; tight model crops (chest and collar only, item cut off) are skipped
     (Ralph Lauren glossy puffer).
+29. Always try for a product-only back shot (AMI heart sweater: "id prefer a back photo"); a back view on a model is the
+    fallback, nothing is not.
