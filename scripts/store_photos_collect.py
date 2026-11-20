@@ -298,7 +298,8 @@ def main():
     names = (load_json(NAMES, {}) or {}).get("items") or {}
     data = load_json(OUT, {"items": {}})
     # done = searched with the find's exact model name (v2); entries from before the naming step are searched again
-    done = lambda i: (data["items"].get(i) or {}).get("v") == 2 or (i not in names and i in data["items"])
+    # an entry with no candidates (the search was refused, e.g. Brave out of searches) is searched again
+    done = lambda i: ((data["items"].get(i) or {}).get("v") == 2 and len((data["items"].get(i) or {}).get("c") or []) > 0) or (i not in names and i in data["items"])
     if a.ids: todo = [i for i in a.ids.split(",") if i and i in by and (a.redo or not done(i))]
     elif a.named_only: todo = [i for i in ids if i in names and (a.redo or not done(i))][a.offset:a.offset + a.limit]
     else: todo = [i for i in ids[a.offset:a.offset + a.limit] if a.redo or not done(i)]

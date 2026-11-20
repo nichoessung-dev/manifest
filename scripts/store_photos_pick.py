@@ -468,7 +468,8 @@ def main():
     log = load_json(LOG, {"items": {}, "spent_usd": 0.0})
     order = [i for i in a.ids.split(",") if i] if a.ids else [i for i in partner_order(by) if i in cands]
     base = total_spent()
-    done = lambda i: (log["items"].get(i) or {}).get("v") == 2
+    # a find whose search came back empty (Brave out of searches, 20 Nov 2026) is not done: it is picked again
+    done = lambda i: (log["items"].get(i) or {}).get("v") == 2 and (log["items"].get(i) or {}).get("error") != "no usable candidates"
     # only finds searched with their exact model name (collector v2), unless asked by id
     todo = [i for i in order if i in cands and i in by and (a.ids or cands[i].get("v") == 2) and (a.redo or not done(i))][:a.limit or None]
     print(f"{len(todo)} finds to do; spent so far {base:.2f} USD (cap {a.max_total_usd})", flush=True)
