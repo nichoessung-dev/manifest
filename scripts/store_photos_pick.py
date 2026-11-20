@@ -95,7 +95,7 @@ def jpg64(im, side=THUMB):
     return base64.b64encode(b.getvalue()).decode()
 
 
-def claude(content, max_tokens=1200):
+def claude(content, max_tokens=4000):
     global spent
     body = json.dumps({"model": MODEL, "max_tokens": max_tokens, "messages": [{"role": "user", "content": content}]}).encode()
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=body, headers={
