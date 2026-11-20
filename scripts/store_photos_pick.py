@@ -33,6 +33,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from catalog_common import COLOURS, ROOT, load_catalog, load_json  # noqa: E402
+import store_photos_shards as shards  # noqa: E402
 
 CAND = os.path.join(ROOT, "data", "store_photo_candidates.json")
 NAMES = os.path.join(ROOT, "data", "store_photo_names.json")
@@ -175,12 +176,18 @@ def claude(content, max_tokens=4000):
     body = json.dumps({"model": MODEL, "max_tokens": max_tokens, "messages": [{"role": "user", "content": content}]}).encode()
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=body, headers={
         "x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01", "content-type": "application/json"})
-    for k in range(4):
+    # rate limits and overload (several shards run at once): exponential back-off, about 2 minutes in all
+    waits = [4, 8, 16, 32, 60]
+    for k in range(len(waits) + 1):
         try:
             with urllib.request.urlopen(req, timeout=180) as r: d = json.load(r); break
         except urllib.error.HTTPError as e:
-            if e.code not in (429, 500, 502, 503, 529) or k == 3: raise
-            time.sleep(10 * (k + 1))
+            if e.code not in (429, 500, 502, 503, 529) or k == len(waits): raise
+            ra = e.headers.get("retry-after") if e.headers else None
+            time.sleep(min(60, float(ra)) if ra and ra.replace(".", "", 1).isdigit() else waits[k])
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            if k == len(waits): raise
+            time.sleep(waits[k])
     u = d.get("usage") or {}
     cost = (u.get("input_tokens", 0) * 1.0 + u.get("output_tokens", 0) * 5.0) / 1e6
     spent += cost
@@ -445,26 +452,38 @@ def save_json(path, data):
     os.replace(tmp, path)
 
 
-def partner_order(by):
+def partner_order(by, shard=(0, 1)):
+    """The partner's finds in this shard, most viewed first."""
     swaps = (load_json(os.path.join(ROOT, "data", "link_swaps.json"), {}) or {}).get("swaps") or {}
     stats = (load_json(os.path.join(ROOT, "data", "stats.json"), {}) or {}).get("p") or {}
-    return sorted([i for i in swaps if i in by], key=lambda i: (-(stats.get(i) or [0])[0], i))
+    return sorted([i for i in swaps if i in by and shards.mine(i, shard)], key=lambda i: (-(stats.get(i) or [0])[0], i))
 
 
 def total_spent():
-    """Everything spent so far on this project (naming + picking), for the global cap."""
-    return (load_json(NAMES, {}) or {}).get("spent_usd", 0) + (load_json(LOG, {}) or {}).get("spent_usd", 0)
+    """Everything spent so far on this project (naming + picking, every shard), for the global cap."""
+    return shards.spent_all()
+
+
+def over_budget(a, base, base_shard):
+    """The reason to stop, or None: the run's cap, the global cap (all shards), or this shard's share of it."""
+    if spent >= a.max_usd: return f"run budget reached ({spent:.3f} USD), limit reached"
+    if base + spent >= a.max_total_usd: return "global budget reached"
+    n = a.shard_t[1]
+    if n > 1 and base_shard + spent >= a.max_total_usd / n: return f"global budget reached (this shard's share, {a.max_total_usd / n:.2f} USD)"
+    return None
 
 
 def run_name(a, by):
-    names = load_json(NAMES, {"items": {}})
-    base = total_spent()
-    ids = [i for i in a.ids.split(",") if i] if a.ids else partner_order(by)
-    todo = [i for i in ids if i in by and (a.redo or i not in names["items"])][:a.limit or None]
+    own_path = shards.path("names", a.shard_t)
+    names = load_json(own_path, {"items": {}})  # this shard's own file: the only one it writes
+    named = shards.merged("names")["items"]
+    base, base_shard = total_spent(), shards.spent_shard(a.shard_t)
+    ids = [i for i in a.ids.split(",") if i] if a.ids else partner_order(by, a.shard_t)
+    todo = [i for i in ids if i in by and (a.redo or i not in named)][:a.limit or None]
     print(f"{len(todo)} finds to name", flush=True)
     for n, i in enumerate(todo, 1):
-        if spent >= a.max_usd: print(f"run budget reached ({spent:.3f} USD), limit reached"); break
-        if base + spent >= a.max_total_usd: print("global budget reached"); break
+        stop = over_budget(a, base, base_shard)
+        if stop: print(stop); break
         p = by[i]
         try:
             before = current_photo(p)
@@ -476,7 +495,8 @@ def run_name(a, by):
         ans["at"] = now(); names["items"][i] = ans
         print(f"[{n}/{len(todo)}] {i} {p.get('title')} -> {ans.get('name')} | {json.dumps(ans.get('queries'), ensure_ascii=False)[:160]} ${cost:.4f}", flush=True)
     names["spent_usd"] = round(names.get("spent_usd", 0) + spent, 4)
-    save_json(NAMES, names)
+    os.makedirs(os.path.dirname(own_path), exist_ok=True)
+    save_json(own_path, names)
     print(f"summary: named {len(todo)} finds, {spent:.4f} USD ({spent / max(1, len(todo)):.4f} per find)")
 
 
@@ -490,14 +510,25 @@ def main():
     ap.add_argument("--max-total-usd", type=float, default=float(os.environ.get("STORE_PHOTOS_TOTAL_USD", "60")))
     ap.add_argument("--redo", action="store_true")
     ap.add_argument("--dry", action="store_true", help="no uploads (names only)")
+    ap.add_argument("--shard", default="0/1", help="k/n: only the finds of shard k of n (see store_photos_shards.py)")
     a = ap.parse_args()
+    a.shard_t = shards.parse(a.shard)
     by = {p["id"]: p for p in load_catalog()[1]}
     if a.name: return run_name(a, by)
-    cands = load_json(CAND, {"items": {}})["items"]
-    names = load_json(NAMES, {"items": {}})["items"]
-    log = load_json(LOG, {"items": {}, "spent_usd": 0.0})
-    order = [i for i in a.ids.split(",") if i] if a.ids else [i for i in partner_order(by) if i in cands]
-    base = total_spent()
+    cands = shards.merged("cands")["items"]
+    names = shards.merged("names")["items"]
+    log = shards.merged("log")  # every shard's results: what is done already
+    own_path = shards.path("log", a.shard_t)
+    own = load_json(own_path, {"items": {}, "spent_usd": 0.0})  # this shard's own file: the only one it writes
+    order = [i for i in a.ids.split(",") if i] if a.ids else [i for i in partner_order(by, a.shard_t) if i in cands]
+    base, base_shard = total_spent(), shards.spent_shard(a.shard_t)
+    own_spent0 = own.get("spent_usd", 0)
+
+    def save_own():
+        if a.dry: return
+        own["spent_usd"] = round(own_spent0 + spent, 4)
+        os.makedirs(os.path.dirname(own_path), exist_ok=True)
+        save_json(own_path, own)
     # a find whose search came back empty (Brave out of searches, 20 Nov 2026) is not done: it is picked again
     done = lambda i: (log["items"].get(i) or {}).get("v") == 2 and (log["items"].get(i) or {}).get("error") != "no usable candidates"
     # only finds searched with their exact model name (collector v2), unless asked by id
@@ -506,31 +537,31 @@ def main():
     rows = []
     os.makedirs(OUT, exist_ok=True)
     for n, i in enumerate(todo, 1):
-        if spent >= a.max_usd: print(f"run budget reached ({spent:.3f} USD), limit reached"); break
-        if base + spent >= a.max_total_usd: print("global budget reached"); break
+        stop = over_budget(a, base, base_shard)
+        if stop: print(stop); break
         p = by[i]
         try:
             rec, shown, before = process(p, cands[i], names.get(i), a)
         except Exception as e:
             print(f"  {i} failed: {e!r}", flush=True)
             rec, shown, before = {"v": 2, "error": repr(e)[:200], "at": now(), "set": "none"}, [], None
-        log["items"][i] = rec
+        log["items"][i] = rec; own["items"][i] = rec
+        if n % 10 == 0: save_own()  # a run that is stopped keeps what it has done
         rows.append((p, rec, before, shown))
         if before is not None: review(n, p, rec, before, shown, os.path.join(OUT, f"review2-{n}.jpg"))
         print(f"[{n}/{len(todo)}] {i} {p.get('title')} -> {rec.get('model_name')} set={rec.get('set')} store={rec.get('store')} "
               f"main={'yes' if rec.get('main') else 'NO'} gallery={len(rec.get('gallery') or [])} model={len(rec.get('model') or [])} "
               f"conf={rec.get('conf')} ${rec.get('cost', 0):.4f} total ${spent:.3f} | {rec.get('error') or rec.get('note') or ''} "
               f"{'; '.join(rec.get('dropped') or [])}", flush=True)
-    log["spent_usd"] = round(log.get("spent_usd", 0) + spent, 4)
-    if not a.dry: save_json(LOG, log)
+    save_own()
     if rows:
         sheet(rows, os.path.join(OUT, "sheet.jpg"))
         print("contact sheet:", os.path.join(OUT, "sheet.jpg"))
     finished = [r for _, r, _, _ in rows]
     sets = {}
     for r in finished: sets[r.get("set")] = sets.get(r.get("set"), 0) + 1
-    left = [i for i in partner_order(by) if not done(i)]
-    print(f"remaining {len(left)} partner finds without v2 store photos")
+    left = [i for i in partner_order(by, a.shard_t) if not done(i)]
+    print(f"remaining {len(left)} partner finds without v2 store photos (shard {a.shard})")
     print(f"summary: {len(finished)} finds, sets {sets}, {spent:.4f} USD this run ({spent / max(1, len(finished)):.4f} per find), "
           f"{base + spent:.2f} USD in total (cap {a.max_total_usd})")
 
