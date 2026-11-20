@@ -49,3 +49,7 @@
     after the main.
 21. Keep the current main when it is already a clean official studio front shot (Arc'teryx Beta LT: the site's photo
     stayed the main, the store's model shots follow). The store photos are added after it; no second front shot.
+22. Design on the back: when the main graphic or logo is on the back (Acne Studios Stockholm 1996 hoodie), the back is the
+    main and the plain front follows.
+23. No logo or print close-ups: a close-up of only the print/text is a bad shot (Acne hoodie). Close-ups must show a
+    recognisable part of the item (collar, zip, buckle).

@@ -68,6 +68,10 @@ Image 0 is the item's current photo: it shows the exact DESIGN and VERSION (lini
 The candidates below are grouped by store; each store's photos are numbered.
 
 Rules:
+- DESIGN ON THE BACK: when the item's main graphic/logo is on the back (image 0 shows the back, or the front is plain),
+  the BACK product shot is the main and the plain front follows it.
+- NO LOGO CLOSE-UPS: never pick a close-up of only a print/logo/text (it reads as a bad shot); close-ups must show a
+  recognisable part of the item (a collar, a zip, a buckle).
 - MAIN = the item's FRONT as it is worn or first seen: a watch's dial facing the camera (never the caseback), a jacket's
   or hoodie's front, a shoe's outer side. Casebacks, soles and insides are fine as EXTRA photos after the main.
 - EXACT VERSION only: every detail must match image 0 (a different lining colour, pocket layout or logo = another
