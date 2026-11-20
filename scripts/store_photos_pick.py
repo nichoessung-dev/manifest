@@ -304,7 +304,7 @@ def process(p, entry, nm, a):
     seen_v, keep = set(), []
     for x in prod:
         v = x[4] or "other"
-        if v in seen_v and v not in ("detail", "other"): continue
+        if v in seen_v and v not in ("detail", "other", "closeup"): continue
         seen_v.add(v); keep.append(x)
     prod, pers = keep[:12], pers[:3]
     # rule 24 (owner, 20 Nov 2026, Ralph jeans from poshmark at 45%): an unsure match never replaces the main; the photos
