@@ -25,7 +25,7 @@ on:
         description: 'Hard stop for AI spend this run (USD)'
         default: '8'
       redo:
-        description: 'Do finds again that are already done (yes/no)'
+        description: 'Do finds again that are already done (yes/no; with step=all the names are kept, search and pick redone)'
         type: choice
         options: ['no', 'yes']
         default: 'no'
@@ -78,7 +78,7 @@ jobs:
         run: |
           set -o pipefail
           python -u scripts/store_photos_pick.py --name --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" \
-            ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }} ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee -a out-store-photos.log
+            ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }} ${{ (inputs.redo == 'yes' && inputs.step == 'name') && '--redo' || '' }} | tee -a out-store-photos.log
           bash /tmp/save.sh "names"
       - name: Search the stores (Serper/Google, or Brave)
         if: inputs.step == 'all'
