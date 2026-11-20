@@ -158,7 +158,12 @@ def main():
     todo = [("fr:" + k, k, 1) for k in sorted(fkeys)] + [(pid, key, qc) for pid, key, qc in catalogue(big) if key not in fkeys]
     todo = [t for t in todo if t[1] not in items or (items[t[1]][1] == 0 and checked.get(t[1], "") < old)]
     todo = list({key: (pid, key, qc) for pid, key, qc in todo}.values())
-    todo.sort(key=lambda t: (not t[0].startswith("fr:"), -v.get(t[0], 0), -t[2]))
+    # 20 Nov 2026: the partner's own listings turned out to have no QC on qualit.ly (130 of 130 empty), so the old listings
+    # of the swapped finds go first (the app shows those photos on the swapped finds), then the rest by views; the
+    # partner's own ids last
+    try: swapped = set((json.load(open(os.path.join(ROOT, "data", "link_swaps.json"), encoding="utf-8")).get("swaps") or {}).keys())
+    except Exception: swapped = set()
+    todo.sort(key=lambda t: (t[0].startswith("fr:"), t[0] not in swapped, -v.get(t[0], 0), -t[2]))
     print("finds with QC on record: %d, banked: %d, still to look up: %d" % (len(catalogue()), len(items), len(todo)))
     if dry:
         for t in todo[:15]: print("  ", t[1], "views", v.get(t[0], 0), "qc", t[2])

@@ -4853,7 +4853,9 @@ function __pcLB(url){
 /* QC photos come from qualit.ly, 1,000 lookups a month (22 Oct 2026): opening a find reads only what /api/qc already has
    cached (&cached=1, no lookup); a live lookup happens only when the visitor taps "Show QC photos" (live=true). */
 function qcFetch(p,live){
-  const sf=p.platform, id=(p.itemId||p.id);
+  /* a swapped find shows the QC photos of the listing it had before the swap (owner, 20 Nov 2026): the partner's own
+     listings have no QC photos anywhere yet */
+  const sf=(p._qcSrc&&p._qcSrc[0])||p.platform, id=(p._qcSrc&&p._qcSrc[1])||(p.itemId||p.id);
   const key=sf+"/"+id+(live?":L":":C");
   if(QC_CACHE[key]) return QC_CACHE[key];
   const pr=fetch("/api/qc?storefront="+encodeURIComponent(sf)+"&id="+encodeURIComponent(id)+(live?"":"&cached=1"))
@@ -5722,7 +5724,7 @@ window.__sbReady=initSb; initSb();
   const okSw=s=>s&&/^(weidian|taobao|1688)$/.test(s[0])&&/^\d{5,20}$/.test(String(s[1]));
   const apply=(m,baked)=>{ const go=()=>{ if(typeof ALL==="undefined"||!ALL||!ALL.length){ setTimeout(go,500); return; }
     const sw=new Set(), price=(baked&&baked.price)||{}, hideOf={};
-    for(const id in m){ const p=BY_ID[id], s=m[id]; if(!p||!okSw(s)) continue; p.platform=s[0]; p.itemId=String(s[1]); sw.add(String(id));
+    for(const id in m){ const p=BY_ID[id], s=m[id]; if(!p||!okSw(s)) continue; if(!p._qcSrc) p._qcSrc=[p.platform,String(p.itemId||p.id)]; p.platform=s[0]; p.itemId=String(s[1]); sw.add(String(id));
       const pr=price[id];
       if(Array.isArray(pr)&&String(pr[0])===String(s[1])&&+pr[1]>0){ const c=+pr[1]; p.price=c; if(+pr[2]>0) p.usd=+pr[2]; if(Array.isArray(p.variants)) p.variants.forEach(v=>{ if(Array.isArray(v)) v[1]=c; }); } }
     if(sw.size){
