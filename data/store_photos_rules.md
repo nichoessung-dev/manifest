@@ -44,3 +44,6 @@
     with weaker or repeated shots.
 19. Item alone: no packaging, boxes, bags, tags or props in a photo (Pampeano belt: the shot with the branded box was
     dropped; the rolled belt alone became the main, plus the worn shot).
+20. The main shows the item's FRONT the way it is worn or seen first: a watch's dial facing the camera, never the caseback
+    (AP Royal Oak: the caseback was picked as main by mistake). A caseback, sole or inside view is a good EXTRA photo
+    after the main.

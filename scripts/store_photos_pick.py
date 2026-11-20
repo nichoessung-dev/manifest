@@ -68,6 +68,8 @@ Image 0 is the item's current photo: it shows the exact DESIGN and VERSION (lini
 The candidates below are grouped by store; each store's photos are numbered.
 
 Rules:
+- MAIN = the item's FRONT as it is worn or first seen: a watch's dial facing the camera (never the caseback), a jacket's
+  or hoodie's front, a shoe's outer side. Casebacks, soles and insides are fine as EXTRA photos after the main.
 - EXACT VERSION only: every detail must match image 0 (a different lining colour, pocket layout or logo = another
   product). The wanted colour if any store has it, else the brand's best known colour of the same model.
 - ONE STORE: choose the single store whose photos are the best consistent professional set of the exact item. Never mix
