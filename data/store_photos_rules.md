@@ -29,3 +29,8 @@
     after (owner on the Burberry Bideford set from miinto.no: "use all of them"). Rule 7 (fewer, better) is for when
     photos would have to be picked from mixed or weaker sources. Close-ups are fine when they come from that same full set
     and show the item in context (rule 6 is about loose detail crops like a floating logo).
+14. The brand's official studio photo is the best main (Nike Tech Fleece: Nike's crisp 3/4 studio shot on a light grey
+    background). It is fine to take it from wherever it turns up, eBay included: resellers often reuse the official
+    photo. Skip a source for the photo TYPE (homemade: floors, hangers, phone light, people's rooms), never for the
+    website it is on.
+15. A set like a tracksuit can use the top's photo as the main when no clean full-set photo exists.
