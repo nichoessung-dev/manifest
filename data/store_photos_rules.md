@@ -58,3 +58,6 @@
     (3 full store set, 2 picked set, 1 weak, 0 nothing).
 25. Ranking: the best photos and the most popular finds first. When the photos go live, photo_score is part of the
     spreadsheet's order (with popularity), so finds with weak photos sit a bit lower.
+26. A store photo that is the very photo already on the site proves the match (Parajumpers Ivor: the AI said 40%); then
+    take that store's whole gallery (Care of Carl had 7 photos of it). The owner wants more photos whenever the store has
+    them.

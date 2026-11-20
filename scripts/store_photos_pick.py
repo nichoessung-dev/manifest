@@ -239,6 +239,19 @@ def load_cands(entry):
         return [r for r in ex.map(one, range(len(c))) if r]
 
 
+def dhash(im, n=12):
+    """A small difference hash: near-identical photos (the same store photo, resized or recompressed) get close hashes."""
+    g = im.convert("L").resize((n + 1, n), Image.LANCZOS); px = list(g.getdata())
+    return [px[r * (n + 1) + c] > px[r * (n + 1) + c + 1] for r in range(n) for c in range(n)]
+
+
+def same_photo(a_im, b_im):
+    try:
+        ha, hb = dhash(a_im), dhash(b_im)
+        return sum(x != y for x, y in zip(ha, hb)) <= 14          # of 144 bits
+    except Exception: return False
+
+
 def process(p, entry, nm, a):
     c = entry["c"]
     got = load_cands(entry)
@@ -296,6 +309,10 @@ def process(p, entry, nm, a):
     # are added after the current one, and "photo_score" marks the find lower for the ranking
     try: conf = float(ans.get("confidence") or 0)
     except Exception: conf = 0.0
+    # rule 26: a chosen store photo that IS the site's current photo proves it is the exact item (Parajumpers: the AI said
+    # 40% while the store's photo was the very photo on the site)
+    if any(same_photo(before, im) for _, _, im, _, _, _ in chosen):
+        conf = max(conf, 0.9); rec["conf"] = conf; rec["same_as_current"] = True
     weak = conf < 0.7
     rec["photo_score"] = 0 if not chosen else (1 if weak else (3 if rec["set"] == "full" else 2))
     if weak and chosen: ans["keep_current_main"] = True
