@@ -19,3 +19,8 @@
 10. No padding: if there is no good back photo, the set is just main + one model photo. Never fill with weaker shots.
 11. The model photo: the one that best matches the main's photoshoot (same store and lighting), straight front view, the
     item clearly the focus (owner's pick on the Arc'teryx Beta: the brand's own studio shot, not a second store's).
+12. Exact version: details must match the find's photo (hood lining pattern and colour, hardware, pockets, logos). The
+    Burberry puffer: a beige-check lining is a different jacket from the grey-check "Bideford". Name the exact model
+    first, then search for that name, also in European stores (miinto, Farfetch-fed shops) and in other languages; the
+    owner found a full set on miinto.no that the first search missed. Keep searching until a store with a full,
+    matching set turns up instead of settling for a near match.
