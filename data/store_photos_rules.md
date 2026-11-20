@@ -24,3 +24,8 @@
     first, then search for that name, also in European stores (miinto, Farfetch-fed shops) and in other languages; the
     owner found a full set on miinto.no that the first search missed. Keep searching until a store with a full,
     matching set turns up instead of settling for a near match.
+13. A full set from one store beats picking: when one store has a complete, consistent professional set of the exact item
+    (one photoshoot: front, back, close-up, model full body, side), use ALL of it, product-only shots first and model shots
+    after (owner on the Burberry Bideford set from miinto.no: "use all of them"). Rule 7 (fewer, better) is for when
+    photos would have to be picked from mixed or weaker sources. Close-ups are fine when they come from that same full set
+    and show the item in context (rule 6 is about loose detail crops like a floating logo).
