@@ -61,3 +61,6 @@
 26. A store photo that is the very photo already on the site proves the match (Parajumpers Ivor: the AI said 40%); then
     take that store's whole gallery (Care of Carl had 7 photos of it). The owner wants more photos whenever the store has
     them.
+27. More photos per store page: up to 16 photos of one page are considered (was 9), up to 12 product photos kept. Close-ups
+    of a real part (handle, name tag, clasp, strap clip, inside) are kept; pure texture and wear/damage details from
+    pre-owned listings are skipped (Louis Vuitton Keepall: owner wants more photos of the bag).

@@ -30,7 +30,7 @@ NAMES = os.path.join(ROOT, "data", "store_photo_names.json")
 API = "https://api.search.brave.com/res/v1/"
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36"
 MIN_SIDE = 800
-MAX_HOSTS, PER_HOST, MAX_C = 8, 9, 56  # groups (a page's photoshoot, or a store's loose hits), photos each, total
+MAX_HOSTS, PER_HOST, MAX_C = 8, 16, 72  # groups (a page's photoshoot, or a store's loose hits), photos each, total
 # replica sellers and buying agents: their photos are never the store's own
 SKIP_HOSTS = ("weidian.", "geilicdn.", "taobao.", "tmall.", "1688.", "alicdn.", "yupoo.", "pandabuy", "cnfans", "kakobuy",
               "superbuy", "sugargoo", "hoobuy", "allchinabuy", "mulebuy", "acbuy", "litbuy", "oopbuy", "orientdig", "dhgate.",
@@ -124,7 +124,7 @@ def page_gallery(page):
         try:
             d = json.loads(get(f"{u.scheme}://{u.netloc}{u.path[:m.end()]}.json", {"User-Agent": UA, "Accept": "application/json"}))
             out = []
-            for im in ((d.get("product") or {}).get("images") or [])[:12]:
+            for im in ((d.get("product") or {}).get("images") or [])[:20]:
                 s = im.get("src") or ""
                 if s.startswith("//"): s = "https:" + s
                 if s: out.append((s, im.get("width") or 0, im.get("height") or 0))
@@ -162,7 +162,7 @@ def page_gallery(page):
                 stack.extend(x)
     og = re.search(r'<meta[^>]+property=["\']og:image(?::secure_url)?["\'][^>]+content=["\']([^"\']+)', h, re.I) or \
         re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image', h, re.I)
-    if not og: return [(s, 0, 0) for s in found[:12]]
+    if not og: return [(s, 0, 0) for s in found[:20]]
     og_u = htmlmod.unescape(og.group(1)).replace("\\/", "/")
     og_u = urllib.parse.urljoin(page, "https:" + og_u if og_u.startswith("//") else og_u)
     os_ = urllib.parse.urlsplit(og_u)
@@ -199,7 +199,7 @@ def page_gallery(page):
         for s in gal: add(s)
     else:
         add(og_u)
-    return [(s, 0, 0) for s in found[:12]]
+    return [(s, 0, 0) for s in found[:20]]
 
 
 def collect(p, nm):

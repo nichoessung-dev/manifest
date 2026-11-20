@@ -70,6 +70,8 @@ The candidates below are grouped by store; each store's photos are numbered.
 Rules:
 - DESIGN ON THE BACK: when the item's main graphic/logo is on the back (image 0 shows the back, or the front is plain),
   the BACK product shot is the main and the plain front follows it.
+- CLOSE-UPS: keep close-ups of a real part (handle, name tag, clasp/strap clip, zip, inside, collar, sole); skip pure
+  pattern/texture shots and wear or damage details (pre-owned listings have many).
 - NO LOGO CLOSE-UPS: never pick a close-up of only a print/logo/text (it reads as a bad shot); close-ups must show a
   recognisable part of the item (a collar, a zip, a buckle).
 - MAIN = the item's FRONT as it is worn or first seen: a watch's dial facing the camera (never the caseback), a jacket's
@@ -304,7 +306,7 @@ def process(p, entry, nm, a):
         v = x[4] or "other"
         if v in seen_v and v not in ("detail", "other"): continue
         seen_v.add(v); keep.append(x)
-    prod, pers = keep[:8], pers[:3]
+    prod, pers = keep[:12], pers[:3]
     # rule 24 (owner, 20 Nov 2026, Ralph jeans from poshmark at 45%): an unsure match never replaces the main; the photos
     # are added after the current one, and "photo_score" marks the find lower for the ranking
     try: conf = float(ans.get("confidence") or 0)
