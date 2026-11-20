@@ -69,3 +69,6 @@
 29. Always try for a product-only back shot (AMI heart sweater: "id prefer a back photo"); a back view on a model is the
     fallback, nothing is not.
 30. No label shots: size tags, care labels and scans of the inside or neck print are never used (Chrome Hearts hoodie).
+31. Way more photos: when the chosen store has fewer than 4 good photos, a second store with the same exact item in a
+    matching style (similar background and lighting) adds its photos after the first store's; the main is always from
+    the first store (Burberry check-hood zip hoodie: one photo from burberry.com was too few). This relaxes rule 5.

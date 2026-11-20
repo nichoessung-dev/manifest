@@ -84,6 +84,9 @@ Rules:
   or hoodie's front, a shoe's outer side. Casebacks, soles and insides are fine as EXTRA photos after the main.
 - EXACT VERSION only: every detail must match image 0 (a different lining colour, pocket layout or logo = another
   product). The wanted colour if any store has it, else the brand's best known colour of the same model.
+- SECOND STORE (owner, 20 Nov 2026: "id like way more photos"): when the chosen store has FEWER THAN 4 good photos, also
+  name a second store ("store2") with more photos of the SAME exact item in a matching style (similar background and
+  lighting) and add its good photos after the first store's. Never a second store for the main.
 - ONE STORE: choose the single store whose photos are the best consistent professional set of the exact item. Never mix
   stores. If one store has a COMPLETE consistent photoshoot of the exact item (front, back, side or close-ups of the item,
   model photos), set "set": "full" and use ALL of its good photos. Otherwise "set": "picked": still choose EVERY good
@@ -107,7 +110,7 @@ Rules:
   (front first).
 
 Answer with JSON only:
-{{"model_name": "exact product name", "colour": "colourway of the chosen photos", "store": "the store letter or null",
+{{"model_name": "exact product name", "colour": "colourway of the chosen photos", "store": "the store letter or null", "store2": "a second store letter or null (only when store has fewer than 4 good photos)",
 "set": "full" | "picked" | "none", "photos": [{{"i": number, "view": "front|three_quarter|back|side|closeup|sole|top",
 "person": true/false}}], "colour_match": true/false, "confidence": 0.0-1.0 (that the photos show the exact version),
 "keep_current_main": true/false, "note": "a few words: why this store, what was rejected"}}"""
@@ -290,6 +293,7 @@ def process(p, entry, nm, a):
             content.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": jpg64(im)}})
     ans, cost = claude(content)
     store = letters.get(str(ans.get("store") or "").strip().upper()[:1])
+    store2 = letters.get(str(ans.get("store2") or "").strip().upper()[:1])
     rec = {"model_name": ans.get("model_name"), "colour": ans.get("colour"), "colour_match": bool(ans.get("colour_match")),
            "conf": ans.get("confidence"), "note": ans.get("note"), "set": ans.get("set") or "none", "store": store,
            "v": 2, "cost": round(cost, 5), "at": now(), "main": None, "gallery": [], "model": [], "src": [], "dropped": []}
@@ -300,9 +304,11 @@ def process(p, entry, nm, a):
         if i not in num or i in seen: continue
         seen.add(i)
         k, im, host = num[i]
-        if store and host != store: rec["dropped"].append(f"{i}: other store"); continue  # rule 5
+        if store and host != store and not (store2 and host == store2): rec["dropped"].append(f"{i}: other store"); continue  # rule 5 (+ rule 31)
         chosen.append((i, k, im, host, str(ph.get("view") or ""), bool(ph.get("person"))))
     if not store and chosen: store = rec["store"] = chosen[0][3]; chosen = [x for x in chosen if x[3] == store]
+    if store2 and store2 != store:   # rule 31: the second store's photos come after the first store's, never the main
+        rec["store2"] = store2; chosen = [x for x in chosen if x[3] == store] + [x for x in chosen if x[3] == store2]
     prod = [x for x in chosen if not x[5]]
     pers = [x for x in chosen if x[5]]
     # rule 18 (owner, 20 Nov 2026: "id prefer more if there are any"): every good photo of the chosen store, one per
