@@ -7,8 +7,12 @@ Step 2 of 3, run where the Brave Search API is reachable (the Claude Code contai
   2. HERE, this script: per find, most viewed first (data/stats.json "p"[id][0]):
        - Brave image searches for each named query (local-language ones with that country), Brave web searches for the
          exact name (English + Norwegian) to find store pages that image search misses (miinto, Farfetch-fed shops)
-       - every promising page is read for its whole gallery: Shopify <page>.json, else JSON-LD "image", og:image and the
-         page's own gallery images (same image host as og:image, appearing more than once)
+       - about 5 Brave requests per find (3 image searches, 2 web searches with up to 20 results); product pages are
+         read before category pages, and listing pages are followed to the products named like the exact model
+       - only the MAIN product's gallery is read from a page (up to 16): Shopify <page>.json, the page's own JSON-LD
+         Product (never a list of products or other colours), then the main image's product-id family (careofcarl
+         <sku>_<n>, SFCC/Scene7 <sku>_<view>) or, for hashed names, the pictures next to it in the page's gallery
+         markup that appear about as often as it; recommendations and "you may also like" are left out
        - candidates are grouped by store (host), so step 3 can take one store's complete photoshoot (rules 5, 13)
      No site is excluded for being a marketplace (rule 14: resellers reuse the official photo); only replica sellers and
      buying agents are skipped, which never carry store photos. Images known to be under 800 px are dropped.
@@ -53,7 +57,7 @@ def get(url, headers=None, timeout=15):
 
 
 def brave(kind, q, country=""):
-    url = API + kind + "/search?count=" + ("30" if kind == "images" else "12") + "&q=" + urllib.parse.quote(q)
+    url = API + kind + "/search?count=" + ("30" if kind == "images" else "20") + "&q=" + urllib.parse.quote(q)
     if country: url += "&country=" + country
     for k in range(3):
         wait = PAUSE - (time.time() - _last[0])
@@ -64,6 +68,8 @@ def brave(kind, q, country=""):
             return d.get("results") or [] if kind == "images" else (d.get("web") or {}).get("results") or []
         except urllib.error.HTTPError as e:
             if e.code == 422 and country: return brave(kind, q)  # country not supported: search without it
+            if e.code in (401, 402, 403):  # no key or no credit: stop rather than record finds with no candidates
+                raise SystemExit(f"Brave Search refused the request (HTTP {e.code}): stopping")
             if e.code != 429: print("  brave", e.code, q, flush=True); return []
         except Exception as e:
             print("  brave", e, flush=True)
@@ -112,19 +118,80 @@ def queries(p, nm):
 
 IMG_RE = re.compile(r"""https?:(?:\\?/){2}[^\s"'<>()\\]+?\.(?:jpe?g|png|webp|avif)(?:\?[^\s"'<>()\\]*)?""", re.I)
 REL_RE = re.compile(r"""(?:src|data-src|data-zoom|data-large|href)=["']((?!https?:|//|data:)[^"'\s]+?\.(?:jpe?g|png|webp)(?:\?[^"'\s]*)?)["']""", re.I)
+# image servers whose URLs have no file extension: Scene7 (/is/image/), Salsify, Cloudinary-style upload paths
+IMG_NOEXT_RE = re.compile(r"""https?:(?:\\?/){2}[^\s"'<>()\\]+?/(?:is/image|image/upload)/[^\s"'<>()\\?]+(?:\?[^\s"'<>()\\]*)?""", re.I)
 JUNK = re.compile(r"logo|icon|sprite|favicon|placeholder|payment|badge|flag|banner|avatar|swatch|loader|spinner|klarna|"
                   r"/thumb|_thumb|-thumb|thumbnail|_small|_xs\b|50x50|100x100|1x1", re.I)
 
 
+_links = {}  # listing page -> [(product url, product name)] found in its JSON-LD ItemList
+PER_PAGE = 16
+SIZE_HINT = re.compile(r"zoom|large|original|full|2000|1600|1500|1200|hi-?res", re.I)
+
+
+def _abs(page, s):
+    s = htmlmod.unescape(s or "").replace("\\/", "/").replace("\\u002F", "/").strip()
+    if s.startswith("//"): s = "https:" + s
+    return urllib.parse.urljoin(page, s)
+
+
+def _stem(path):
+    return re.sub(r"\.(jpe?g|png|webp|avif|tiff?)$", "", os.path.basename(path), flags=re.I)
+
+
+def _family(url):
+    """The product id at the start of an image file name (careofcarl 26158811r_1, Scene7 SKU_ALT1, SFCC 12345_A),
+    or None for hashes and UUIDs that carry no product id."""
+    st = _stem(urllib.parse.urlsplit(url).path)
+    if re.fullmatch(r"[0-9a-f]{24,}|[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}", st): return None
+    fam = re.sub(r"_[A-Za-z0-9*]{1,6}$", "", st)  # the view suffix: _1, _A, _FLAT, _ALT2
+    if "_" in fam: fam = fam.split("_")[0] if re.search(r"\d", fam.split("_")[0]) else fam
+    return fam.lower() if len(fam) >= 5 and re.search(r"\d", fam) and re.fullmatch(r"[A-Za-z0-9*-]+", fam) else None
+
+
+def _ld_products(h):
+    """(Product nodes outside lists, [(url, name)] of products inside an ItemList)."""
+    own, listed = [], []
+    for blk in re.findall(r'<script[^>]+application/ld\+json[^>]*>(.*?)</script>', h, re.S | re.I):
+        try: data = json.loads(blk.strip())
+        except Exception: continue
+        stack = [(data, False)]
+        while stack:
+            x, in_list = stack.pop(0)
+            if isinstance(x, list):
+                stack.extend((v, in_list) for v in x); continue
+            if not isinstance(x, dict): continue
+            t = x.get("@type"); t = " ".join(t) if isinstance(t, list) else str(t or "")
+            if t.lower() in ("itemlist", "offercatalog", "collectionpage"):
+                stack.extend((v, True) for v in x.values() if isinstance(v, (dict, list))); continue
+            if t.lower() in ("product", "productgroup"):
+                if in_list: listed.append((x.get("url") or (x.get("offers") or {}).get("url") if isinstance(x.get("offers"), dict) else x.get("url"), x.get("name") or ""))
+                else: own.append(x)
+                continue  # never read related products nested inside a product
+            stack.extend((v, in_list) for v in x.values() if isinstance(v, (dict, list)))
+    return own, listed
+
+
+def _ld_images(node):
+    out = []
+    for k in ("image", "images"):
+        im = node.get(k)
+        for v in (im if isinstance(im, list) else [im]):
+            if isinstance(v, dict): v = v.get("url") or v.get("contentUrl")
+            if isinstance(v, str) and v: out.append(v)
+    return out  # never a ProductGroup's variants: those are the other colours
+
+
 def page_gallery(page):
-    """Full-size gallery images of a product page (up to 12), best first."""
+    """The MAIN product's gallery on a store page (up to 16, full size), never the recommendations, other colours or
+    other products on it. A listing page (several products) gives no photos; its products are kept in _links."""
     u = urllib.parse.urlsplit(page)
     m = re.search(r"/products/([^/?#]+)", u.path)
-    if m:  # Shopify: the whole gallery at full size
+    if m:  # Shopify: the product's own media, in the store's order
         try:
             d = json.loads(get(f"{u.scheme}://{u.netloc}{u.path[:m.end()]}.json", {"User-Agent": UA, "Accept": "application/json"}))
             out = []
-            for im in ((d.get("product") or {}).get("images") or [])[:20]:
+            for im in ((d.get("product") or {}).get("images") or [])[:PER_PAGE]:
                 s = im.get("src") or ""
                 if s.startswith("//"): s = "https:" + s
                 if s: out.append((s, im.get("width") or 0, im.get("height") or 0))
@@ -139,73 +206,100 @@ def page_gallery(page):
     found = []
 
     def add(s):
-        s = htmlmod.unescape(s or "").replace("\\/", "/").strip()
-        if s.startswith("//"): s = "https:" + s
-        if s.startswith("/"): s = f"{u.scheme}://{u.netloc}{s}"
+        s = _abs(page, s)
         sz = re.search(r"-(\d{2,4})x(\d{2,4})\.(?:jpe?g|png|webp)", s, re.I)  # WordPress size copies
         if sz and max(int(sz.group(1)), int(sz.group(2))) < MIN_SIDE: return
         if s.startswith("http") and not JUNK.search(s) and s not in found: found.append(s)
 
-    for blk in re.findall(r'<script[^>]+application/ld\+json[^>]*>(.*?)</script>', h, re.S | re.I):
-        try: data = json.loads(blk)
-        except Exception: continue
-        stack = data if isinstance(data, list) else [data]
-        while stack:
-            x = stack.pop(0)
-            if isinstance(x, dict):
-                if str(x.get("@type", "")).lower() in ("product", "productgroup") or "image" in x:
-                    im = x.get("image")
-                    for v in (im if isinstance(im, list) else [im]):
-                        add(v.get("url") or v.get("contentUrl") if isinstance(v, dict) else v)
-                stack.extend(v for v in x.values() if isinstance(v, (dict, list)))
-            elif isinstance(x, list):
-                stack.extend(x)
+    own, listed = _ld_products(h)
+    if len(own) > 1:  # several top-level products: keep the one this page is about, if any
+        mine = [x for x in own if (x.get("url") or "").split("?")[0].rstrip("/") == page.split("?")[0].rstrip("/")]
+        if not mine: listed += [(x.get("url"), x.get("name") or "") for x in own]
+        own = mine
+    if not own and len(listed) >= 2:  # a listing: no photos, its products may be followed
+        _links[page] = [(_abs(page, l), n) for l, n in listed if l]
+        return []
+    ld_imgs = [_abs(page, s) for x in own[:1] for s in _ld_images(x)]
     og = re.search(r'<meta[^>]+property=["\']og:image(?::secure_url)?["\'][^>]+content=["\']([^"\']+)', h, re.I) or \
         re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image', h, re.I)
-    if not og: return [(s, 0, 0) for s in found[:20]]
-    og_u = htmlmod.unescape(og.group(1)).replace("\\/", "/")
-    og_u = urllib.parse.urljoin(page, "https:" + og_u if og_u.startswith("//") else og_u)
-    os_ = urllib.parse.urlsplit(og_u)
-    # every image URL on the page: absolute ones anywhere, relative ones in src / data-src / href attributes
-    imgs = [htmlmod.unescape(s).replace("\\/", "/") for s in IMG_RE.findall(h)]
-    imgs += [urllib.parse.urljoin(page, htmlmod.unescape(s)) for s in REL_RE.findall(h)]
-    imgs = [s for s in imgs if not s.split("?")[0].lower().endswith(".avif")]
+    main = _abs(page, og.group(1)) if og else (ld_imgs[0] if ld_imgs else "")
+    if not main:
+        return []
+    ms = urllib.parse.urlsplit(main)
+    # every image URL on the page with its positions: absolute ones anywhere, relative ones in src/data-src/href
+    occ = {}
+    for mt in IMG_RE.finditer(h): occ.setdefault(_abs(page, mt.group(0)), []).append(mt.start())
+    for mt in REL_RE.finditer(h): occ.setdefault(_abs(page, mt.group(1)), []).append(mt.start(1))
+    for mt in IMG_NOEXT_RE.finditer(h): occ.setdefault(_abs(page, mt.group(0)), []).append(mt.start())
+    by_stem = {}  # one entry per picture: all its URLs (sizes, formats) and every position it appears at
+    for s, pos in occ.items():
+        if s.split("?")[0].lower().endswith(".avif"): continue
+        sp = urllib.parse.urlsplit(s)
+        key = (sp.netloc, _stem(sp.path))
+        e = by_stem.setdefault(key, {"urls": [], "pos": []}); e["urls"].append(s); e["pos"] += pos
 
-    def stem_of(path): return re.sub(r"\.(jpe?g|png|webp|avif)$", "", path, flags=re.I)
-    # (a) files named after the og:image file (careofcarl: 26158811r.jpg -> zoom/26158811r_1.jpg), largest variant
-    ostem = stem_of(os.path.basename(os_.path))
-    sib = {}
-    if len(ostem) >= 6:
-        for s in imgs:
-            base = os.path.basename(urllib.parse.urlsplit(s).path)
-            if not base.startswith(ostem): continue
-            score = 2 if re.search(r"zoom|large|original|full|2000|1600|1200", s, re.I) else 1
-            if score > sib.get(base, (0, ""))[0]: sib[base] = (score, s)
-    # (b) images on the og:image host that the page shows more than once (gallery + zoom + thumbs: miinto)
-    counts = {}
-    for s in imgs:
-        su = urllib.parse.urlsplit(s)
-        if su.netloc != os_.netloc: continue
-        c = counts.setdefault(stem_of(su.path), [0, s]); c[0] += 1
-    gal = []
-    for st, (n, s) in sorted(counts.items(), key=lambda kv: -kv[1][0]):
-        if n < 2: continue
-        su = urllib.parse.urlsplit(s)
-        if os_.query and su.query != os_.query: s = f"{su.scheme}://{su.netloc}{su.path}?{os_.query}"  # og:image's size
-        gal.append(s)
-    if len(sib) > 1:
-        for base in sorted(sib): add(sib[base][1])
-    elif len(gal) > 1:
-        for s in gal: add(s)
-    else:
-        add(og_u)
-    return [(s, 0, 0) for s in found[:20]]
+    def best_url(urls):
+        def score(x):
+            q = urllib.parse.parse_qs(urllib.parse.urlsplit(x).query)
+            wid = max([int(v) for k in ("wid", "width", "w", "sw") for v in q.get(k, []) if v.isdigit()] or [0])
+            return (bool(SIZE_HINT.search(x)), wid, -len(x))
+        b = max(urls, key=score)
+        bq = urllib.parse.urlsplit(b)
+        if ms.query and bq.netloc == ms.netloc and not re.search(r"(^|&)(wid|width|w)=\d{3,}", bq.query) and re.search(r"(wid|width|w)=\d{3,}", ms.query):
+            b = f"{bq.scheme}://{bq.netloc}{bq.path}?{ms.query}"  # the main image's size parameters (miinto)
+        return b
+
+    mkey = (ms.netloc, _stem(ms.path))
+    fam = _family(main)
+    pics = []
+    # 1. the product id family of the main image (careofcarl 26158811r_1..4, Scene7/SFCC SKU sets)
+    if fam:
+        pics = [k for k in by_stem if k[0] == ms.netloc and (_family("x/" + k[1] + ".jpg") == fam)]
+    # 2. else the gallery around the main image: pictures on its host that sit next to it in the page (chained), and
+    #    appear at least half as often as the gallery's typical picture (recommendations appear once or twice)
+    if len(pics) < 2 and mkey in by_stem:
+        near, frontier, D = {mkey}, [mkey], 2500
+        cand = {k: v for k, v in by_stem.items() if k[0] == ms.netloc}
+        while frontier:
+            k0 = frontier.pop()
+            p0 = cand[k0]["pos"]
+            for k, v in cand.items():
+                if k in near: continue
+                if any(abs(a - b) <= D for a in v["pos"] for b in p0):
+                    near.add(k); frontier.append(k)
+        counts = sorted((len(cand[k]["pos"]) for k in near if k != mkey), reverse=True)
+        if counts:
+            typical = counts[min(len(counts) - 1, 2)]
+            near = {k for k in near if k == mkey or len(cand[k]["pos"]) >= max(2, typical / 2)}
+        pics = sorted(near, key=lambda k: min(cand[k]["pos"]))
+    have = set()
+    for k in pics:
+        add(best_url(by_stem[k]["urls"])); have.add(k[1])
+    for x in ld_imgs + [main]:  # the JSON-LD photos and the main image, unless the gallery already has them
+        if _stem(urllib.parse.urlsplit(x).path) not in have: add(x); have.add(_stem(urllib.parse.urlsplit(x).path))
+    return [(s, 0, 0) for s in found[:PER_PAGE]]
+
+
+CATEGORY_PATH = re.compile(r"/(c|l|w|b|s|collections?|categor(y|ies)|brands?|search|shop|sale|men|women|herre|dame|"
+                           r"herren|damen|homme|femme)(/|$)|[?&](k|q|query|search)=", re.I)
+PRODUCT_PATH = re.compile(r"/(products?|p|item|itm|dp|artikel|produkt|produit)/|-p\d{5,}|/p-[a-z0-9-]{8,}|\d{6,}|\.html?$", re.I)
+
+
+def page_score(url, keys):
+    """Product pages first (the exact model's name in the address, a product-style path), category pages last."""
+    path = urllib.parse.urlsplit(url).path.lower() + "?" + urllib.parse.urlsplit(url).query.lower()
+    sc = 2 * sum(k in path for k in keys) + (1 if PRODUCT_PATH.search(path) else 0)
+    if CATEGORY_PATH.search(path) and not PRODUCT_PATH.search(path): sc -= 3
+    return sc
 
 
 def collect(p, nm):
+    """About 5 Brave requests per find: 3 image searches (English x2, Norwegian, or the title without a name) and 2 web
+    searches (the exact name in English, then in German) for store pages; then each store page's own gallery."""
     qs = queries(p, nm)
+    img_qs = [x for x in qs if x[1] == "en"][:2] + [x for x in qs if x[1] == "no"][:1]
     hits, pages_rank = [], {}
-    for q, lang in qs:
+    for q, lang in img_qs or qs[:2]:
         for r in brave("images", q, COUNTRY.get(lang, "")):
             img = (r.get("properties") or {}).get("url") or ""
             page = r.get("url") or ""
@@ -216,31 +310,39 @@ def collect(p, nm):
             hits.append((img, page, w, h))
             pages_rank[page] = pages_rank.get(page, 0) + 1
     name = re.sub(r"\s*\([^)]*\)", "", (nm or {}).get("name") or "").strip() or qs[0][0]
-    web = []
-    for q, c in ((name, ""), (((nm or {}).get("queries") or {}).get("no") or "", "NO")):
-        if isinstance(q, list): q = q[0] if q else ""
-        if q:
-            for r in brave("web", q, c)[:6]:
-                if r.get("url") and not skip(r["url"]): web.append(r["url"])
-    to_read = list(dict.fromkeys(web[:8] + [pg for pg, _ in sorted(pages_rank.items(), key=lambda kv: -kv[1])][:8]))[:14]
-    with ThreadPoolExecutor(8) as ex:
-        galleries = dict(zip(to_read, ex.map(page_gallery, to_read)))
-    # listing pages (a store's brand or category page): follow links to product pages named like the exact model
     brand = (p.get("brand") or "").lower()
     keys = [w for w in re.findall(r"[a-z0-9'-]{5,}", name.lower()) if w not in GENERIC and w not in brand]
+    web = []
+    de = ((nm or {}).get("queries") or {}).get("de") or ""
+    if isinstance(de, list): de = de[0] if de else ""
+    for q, c in ((name, ""), (de, "DE")):
+        if q:
+            for r in brave("web", q, c):
+                if r.get("url") and not skip(r["url"]) and r["url"] not in web: web.append(r["url"])
+    web.sort(key=lambda u: -page_score(u, keys))
+    img_pages = sorted(pages_rank, key=lambda pg: (-pages_rank[pg], -page_score(pg, keys)))
+    to_read = list(dict.fromkeys(web[:10] + img_pages[:8]))[:16]
+    with ThreadPoolExecutor(8) as ex:
+        galleries = dict(zip(to_read, ex.map(page_gallery, to_read)))
+    # listing pages (a store's brand or category page): follow its products named like the exact model
     follow = []
     if keys:
         for page in to_read:
-            h = _html.get(page) or ""
-            if galleries.get(page) and any(k in page.lower() for k in keys): continue
-            for href in re.findall(r'href=["\']([^"\'#]+)["\']', h):
-                full = urllib.parse.urljoin(page, htmlmod.unescape(href))
-                if host_of(full) != host_of(page) or full in to_read or full in follow: continue
-                slug = urllib.parse.urlsplit(full).path.lower()
-                if any(k in slug for k in keys) and not slug.endswith((".jpg", ".png", ".webp", ".css", ".js")):
-                    follow.append(full)
-                    if sum(host_of(f) == host_of(page) for f in follow) >= 3: break
-        follow = follow[:10]
+            if galleries.get(page) and page_score(page, keys) >= 2: continue
+            links = [(l, n) for l, n in _links.get(page, []) if any(k in (l + " " + n).lower() for k in keys)]
+            if not links:
+                for href in re.findall(r'href=["\']([^"\'#]+)["\']', _html.get(page) or ""):
+                    full = urllib.parse.urljoin(page, htmlmod.unescape(href))
+                    slug = urllib.parse.urlsplit(full).path.lower()
+                    if host_of(full) == host_of(page) and any(k in slug for k in keys) \
+                            and not slug.endswith((".jpg", ".png", ".webp", ".css", ".js")):
+                        links.append((full, ""))
+            n_page = 0
+            for l, _ in links:
+                if l in to_read or l in follow: continue
+                follow.append(l); n_page += 1
+                if n_page >= 3: break
+        follow = sorted(follow, key=lambda u: -page_score(u, keys))[:10]
         with ThreadPoolExecutor(8) as ex:
             galleries.update(zip(follow, ex.map(page_gallery, follow)))
         to_read = follow + to_read
@@ -305,6 +407,14 @@ def main():
     else: todo = [i for i in ids[a.offset:a.offset + a.limit] if a.redo or not done(i)]
     ids = todo
     print(f"{len(ids)} partner finds asked, {len(todo)} to search", flush=True)
+    try:
+        _run(todo, by, names, data)
+    finally:
+        save(data)
+    print("done,", len(data["items"]), "finds in", os.path.relpath(OUT, ROOT))
+
+
+def _run(todo, by, names, data):
     for n, i in enumerate(todo, 1):
         p = by[i]
         try:
@@ -315,8 +425,6 @@ def main():
         hosts = {host_of(e["p"][c[1]]) for c in e["c"]}
         print(f"[{n}/{len(todo)}] {i} {e['name']}: {len(e['c'])} candidates from {len(hosts)} stores", flush=True)
         if n % 10 == 0: save(data)
-    save(data)
-    print("done,", len(data["items"]), "finds in", os.path.relpath(OUT, ROOT))
 
 
 if __name__ == "__main__":
