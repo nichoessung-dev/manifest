@@ -1,39 +1,49 @@
 name: Store photos
-# Real store photos for the partner's finds (owner, 20 Nov 2026; rules in data/store_photos_rules.md). step=name names the
-# exact models (data/store_photo_names.json); scripts/store_photos_collect.py (run where Brave Search works) then writes
-# data/store_photo_candidates.json; step=pick has claude-haiku-5-5 pick a clean product-only front shot, the
-# other product-only angles and on-model shots of the same design, cuts the product shots out (rembg), uploads everything
-# to Supabase products/store/ and records it in data/store_photos.json. The live site's photos do not change here: the
-# contact sheet (artifact "store-photos") is for the owner's review first.
+# Real store photos for the partner's finds (owner, 20 Nov 2026; rules in data/store_photos_rules.md). Nothing on the live
+# site changes: the photos go to Supabase products/store/ and data/store_photos.json, and each run's contact sheet
+# (artifact "store-photos") is for the owner's review before a later apply step.
+#   all    one batch of the whole pipeline, most viewed partner finds first:
+#          name (exact model + search queries, claude-haiku-5-5) -> collect (Brave Search with BRAVE_API_KEY, store page
+#          galleries) -> pick (one store's set, cut-outs, upload). Starts the next batch itself until every partner find
+#          is done or the global budget (STORE_PHOTOS_TOTAL_USD, all runs together) is spent.
+#   name / pick   one step only (collect can also run in the Claude Code container: scripts/store_photos_collect.py)
 on:
   workflow_dispatch:
     inputs:
       step:
-        description: 'name (step 1: exact model names + queries for the Brave search) or pick (step 3: choose, cut out, upload)'
+        description: 'all (name + collect + pick, chains itself), name, or pick'
         type: choice
-        options: [pick, name]
-        default: pick
+        options: [all, pick, name]
+        default: all
       limit:
         description: 'Finds this run (most viewed first, skipping finds already done)'
-        default: '20'
+        default: '150'
       ids:
-        description: 'Only these ids (comma separated, optional)'
+        description: 'Only these ids (comma separated, optional; pick or name step)'
         default: ''
       max_usd:
         description: 'Hard stop for AI spend this run (USD)'
-        default: '10'
+        default: '8'
       redo:
-        description: 'Do finds again that are already in data/store_photos.json (yes/no)'
+        description: 'Do finds again that are already done (yes/no)'
         type: choice
         options: ['no', 'yes']
         default: 'no'
+      chain:
+        description: 'step=all: start the next batch when this one is done (yes/no)'
+        type: choice
+        options: ['yes', 'no']
+        default: 'yes'
 permissions:
   contents: write
+  actions: write
 concurrency: store-photos
+env:
+  STORE_PHOTOS_TOTAL_USD: '60'
 jobs:
-  pick:
+  run:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,30 +57,67 @@ jobs:
         with:
           path: ~/.u2net
           key: u2net-isnet-general-use-v1
+      - name: Save helper
+        run: |
+          cat > /tmp/save.sh <<'EOF'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for f in data/store_photos.json data/store_photo_names.json data/store_photo_candidates.json; do [ -f "$f" ] && git add "$f"; done
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "data: store photos for partner finds, $1 (review before applying)"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::the store photos could not be saved"; exit 1
+          EOF
+      - name: Name the exact models
+        if: inputs.step == 'all' || inputs.step == 'name'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -o pipefail
+          python -u scripts/store_photos_pick.py --name --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" \
+            ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }} ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee -a out-store-photos.log
+          bash /tmp/save.sh "names"
+      - name: Search the stores (Brave)
+        if: inputs.step == 'all'
+        env:
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+        run: |
+          set -o pipefail
+          python -u scripts/store_photos_collect.py --named-only --limit "${{ inputs.limit }}" | tee -a out-store-photos.log
+          bash /tmp/save.sh "candidates"
       - name: Pick, cut out and upload
+        if: inputs.step == 'all' || inputs.step == 'pick'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           set -o pipefail
-          python -u scripts/store_photos_pick.py ${{ inputs.step == 'name' && '--name' || '' }} --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" \
-            ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }} ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee out-store-photos.log
-          mkdir -p out/store-photos && cp out-store-photos.log out/store-photos/
+          python -u scripts/store_photos_pick.py --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" \
+            ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }} ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee -a out-store-photos.log
+          bash /tmp/save.sh "photos"
+      - name: Keep the log with the sheet
+        if: always()
+        run: mkdir -p out/store-photos && cp out-store-photos.log out/store-photos/ || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: store-photos
           path: out/store-photos
           retention-days: 30
-      - name: Save
+      # more partner finds left and budget left: the next batch
+      - name: Next batch
+        if: success() && inputs.step == 'all' && inputs.chain == 'yes' && inputs.ids == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for f in data/store_photos.json data/store_photo_names.json; do [ -f "$f" ] && git add "$f"; done
-          git diff --cached --quiet && { echo "nothing new"; exit 0; }
-          git commit -q -m "data: store photos for partner finds, ${{ inputs.step }} step (review before applying)"
-          for n in 1 2 3 4 5; do
-            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
-            sleep $((n * 7))
-          done
-          echo "::error::the store photos could not be saved"; exit 1
+          left=$(grep -oP 'remaining \K[0-9]+' out-store-photos.log | tail -1)
+          if grep -q "global budget reached" out-store-photos.log; then echo "global budget reached, stopping"; exit 0; fi
+          made=$(grep -oP 'summary: \K[0-9]+(?= finds, sets)' out-store-photos.log | tail -1)
+          if [ "${made:-0}" -eq 0 ]; then echo "this batch did no finds, stopping (see the log)"; exit 0; fi
+          if [ "${left:-0}" -gt 0 ]; then
+            gh workflow run store-photos.yml --ref "$GITHUB_REF_NAME" -f step=all -f limit="${{ inputs.limit }}" -f max_usd="${{ inputs.max_usd }}"
+            echo "started the next batch ($left finds left)"
+          fi

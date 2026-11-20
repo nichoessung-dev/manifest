@@ -16,7 +16,8 @@ Step 2 of 3, run where the Brave Search API is reachable (the Claude Code contai
 Writes data/store_photo_candidates.json {"items": {id: {"name", "q", "p": [pages], "c": [[img, page index, w, h,
 "s" page gallery | "b" Brave hit], ...]}}}.
 
-  python scripts/store_photos_collect.py [--limit 300] [--offset 0] [--ids 1,2] [--redo]
+  python scripts/store_photos_collect.py [--limit 300] [--offset 0] [--ids 1,2] [--named-only] [--redo]
+The Brave key: BRAVE_API_KEY (GitHub secret); without it the request goes keyless (the Claude Code proxy adds one).
 """
 import argparse, html as htmlmod, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -59,7 +60,7 @@ def brave(kind, q, country=""):
         if wait > 0: time.sleep(wait)
         _last[0] = time.time()
         try:
-            d = json.loads(get(url, {"X-Subscription-Token": "x", "Accept": "application/json"}, 20))
+            d = json.loads(get(url, {"X-Subscription-Token": os.environ.get("BRAVE_API_KEY") or "x", "Accept": "application/json"}, 20))
             return d.get("results") or [] if kind == "images" else (d.get("web") or {}).get("results") or []
         except urllib.error.HTTPError as e:
             if e.code == 422 and country: return brave(kind, q)  # country not supported: search without it
@@ -263,7 +264,7 @@ def collect(p, nm):
             if len(cands) >= MAX_C: break
             if c[1] not in pages: pages.append(c[1])
             cands.append([c[0], pages.index(c[1]), int(c[2] or 0), int(c[3] or 0), c[4]])
-    return {"name": name, "q": [q for q, _ in qs], "p": pages, "c": cands}
+    return {"v": 2 if nm else 1, "name": name, "q": [q for q, _ in qs], "p": pages, "c": cands}
 
 
 def partner_ids(items):
@@ -291,12 +292,17 @@ def main():
     ap.add_argument("--offset", type=int, default=0)
     ap.add_argument("--ids", default="")
     ap.add_argument("--redo", action="store_true")
+    ap.add_argument("--named-only", action="store_true", help="the next --limit finds that are named but not searched yet")
     a = ap.parse_args()
     ids, by = partner_ids(load_catalog()[1])
-    ids = [i for i in a.ids.split(",") if i] if a.ids else ids[a.offset:a.offset + a.limit]
     names = (load_json(NAMES, {}) or {}).get("items") or {}
     data = load_json(OUT, {"items": {}})
-    todo = [i for i in ids if a.redo or i not in data["items"]]
+    # done = searched with the find's exact model name (v2); entries from before the naming step are searched again
+    done = lambda i: (data["items"].get(i) or {}).get("v") == 2 or (i not in names and i in data["items"])
+    if a.ids: todo = [i for i in a.ids.split(",") if i and i in by and (a.redo or not done(i))]
+    elif a.named_only: todo = [i for i in ids if i in names and (a.redo or not done(i))][a.offset:a.offset + a.limit]
+    else: todo = [i for i in ids[a.offset:a.offset + a.limit] if a.redo or not done(i)]
+    ids = todo
     print(f"{len(ids)} partner finds asked, {len(todo)} to search", flush=True)
     for n, i in enumerate(todo, 1):
         p = by[i]

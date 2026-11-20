@@ -23,7 +23,7 @@ Runs in GitHub Actions (.github/workflows/store-photos.yml, ANTHROPIC_API_KEY + 
 The live site does not change: a later apply step can point the catalogue "img" at "main" and show the gallery.
 
   python scripts/store_photos_pick.py --name [--limit 20] [--ids ...] [--redo]
-  python scripts/store_photos_pick.py [--limit 20] [--ids 1,2] [--max-usd 10] [--max-total-usd 150] [--redo] [--dry]
+  python scripts/store_photos_pick.py [--limit 20] [--ids 1,2] [--max-usd 8] [--max-total-usd 60] [--redo] [--dry]
 """
 import argparse, base64, io, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -233,7 +233,7 @@ def process(p, entry, nm, a):
     c = entry["c"]
     got = load_cands(entry)
     before = current_photo(p)
-    if not got: return {"error": "no usable candidates", "at": now(), "set": "none"}, [], before
+    if not got: return {"v": 2, "error": "no usable candidates", "at": now(), "set": "none"}, [], before
     # groups as the collector made them: a page with its own gallery is one photoshoot, loose hits group by store
     gal_pages = {x[1] for x in c if x[4] == "s"}
     stores = {}
@@ -261,7 +261,7 @@ def process(p, entry, nm, a):
     store = letters.get(str(ans.get("store") or "").strip().upper()[:1])
     rec = {"model_name": ans.get("model_name"), "colour": ans.get("colour"), "colour_match": bool(ans.get("colour_match")),
            "conf": ans.get("confidence"), "note": ans.get("note"), "set": ans.get("set") or "none", "store": store,
-           "cost": round(cost, 5), "at": now(), "main": None, "gallery": [], "model": [], "src": [], "dropped": []}
+           "v": 2, "cost": round(cost, 5), "at": now(), "main": None, "gallery": [], "model": [], "src": [], "dropped": []}
     chosen, seen = [], set()
     for ph in ans.get("photos") or []:
         try: i = int(ph.get("i"))
@@ -380,13 +380,20 @@ def partner_order(by):
     return sorted([i for i in swaps if i in by], key=lambda i: (-(stats.get(i) or [0])[0], i))
 
 
+def total_spent():
+    """Everything spent so far on this project (naming + picking), for the global cap."""
+    return (load_json(NAMES, {}) or {}).get("spent_usd", 0) + (load_json(LOG, {}) or {}).get("spent_usd", 0)
+
+
 def run_name(a, by):
     names = load_json(NAMES, {"items": {}})
+    base = total_spent()
     ids = [i for i in a.ids.split(",") if i] if a.ids else partner_order(by)
     todo = [i for i in ids if i in by and (a.redo or i not in names["items"])][:a.limit or None]
     print(f"{len(todo)} finds to name", flush=True)
     for n, i in enumerate(todo, 1):
         if spent >= a.max_usd: print(f"run budget reached ({spent:.3f} USD), limit reached"); break
+        if base + spent >= a.max_total_usd: print("global budget reached"); break
         p = by[i]
         try:
             before = current_photo(p)
@@ -408,8 +415,8 @@ def main():
     ap.add_argument("--name", action="store_true", help="step 1: name the exact models")
     ap.add_argument("--limit", type=int, default=20)
     ap.add_argument("--ids", default="")
-    ap.add_argument("--max-usd", type=float, default=10.0)
-    ap.add_argument("--max-total-usd", type=float, default=float(os.environ.get("STORE_PHOTOS_TOTAL_USD", "150")))
+    ap.add_argument("--max-usd", type=float, default=8.0)
+    ap.add_argument("--max-total-usd", type=float, default=float(os.environ.get("STORE_PHOTOS_TOTAL_USD", "60")))
     ap.add_argument("--redo", action="store_true")
     ap.add_argument("--dry", action="store_true", help="no uploads (names only)")
     a = ap.parse_args()
@@ -419,19 +426,22 @@ def main():
     names = load_json(NAMES, {"items": {}})["items"]
     log = load_json(LOG, {"items": {}, "spent_usd": 0.0})
     order = [i for i in a.ids.split(",") if i] if a.ids else [i for i in partner_order(by) if i in cands]
-    todo = [i for i in order if i in cands and i in by and (a.redo or i not in log["items"])][:a.limit or None]
-    print(f"{len(todo)} finds to do; spent so far {log.get('spent_usd', 0):.2f} USD (cap {a.max_total_usd})", flush=True)
+    base = total_spent()
+    done = lambda i: (log["items"].get(i) or {}).get("v") == 2
+    # only finds searched with their exact model name (collector v2), unless asked by id
+    todo = [i for i in order if i in cands and i in by and (a.ids or cands[i].get("v") == 2) and (a.redo or not done(i))][:a.limit or None]
+    print(f"{len(todo)} finds to do; spent so far {base:.2f} USD (cap {a.max_total_usd})", flush=True)
     rows = []
     os.makedirs(OUT, exist_ok=True)
     for n, i in enumerate(todo, 1):
         if spent >= a.max_usd: print(f"run budget reached ({spent:.3f} USD), limit reached"); break
-        if log.get("spent_usd", 0) + spent >= a.max_total_usd: print("global budget reached, limit reached"); break
+        if base + spent >= a.max_total_usd: print("global budget reached"); break
         p = by[i]
         try:
             rec, shown, before = process(p, cands[i], names.get(i), a)
         except Exception as e:
             print(f"  {i} failed: {e!r}", flush=True)
-            rec, shown, before = {"error": repr(e)[:200], "at": now(), "set": "none"}, [], None
+            rec, shown, before = {"v": 2, "error": repr(e)[:200], "at": now(), "set": "none"}, [], None
         log["items"][i] = rec
         rows.append((p, rec, before, shown))
         if before is not None: review(n, p, rec, before, shown, os.path.join(OUT, f"review2-{n}.jpg"))
@@ -444,10 +454,13 @@ def main():
     if rows:
         sheet(rows, os.path.join(OUT, "sheet.jpg"))
         print("contact sheet:", os.path.join(OUT, "sheet.jpg"))
-    done = [r for _, r, _, _ in rows]
+    finished = [r for _, r, _, _ in rows]
     sets = {}
-    for r in done: sets[r.get("set")] = sets.get(r.get("set"), 0) + 1
-    print(f"summary: {len(done)} finds, sets {sets}, {spent:.4f} USD this run ({spent / max(1, len(done)):.4f} per find)")
+    for r in finished: sets[r.get("set")] = sets.get(r.get("set"), 0) + 1
+    left = [i for i in partner_order(by) if not done(i)]
+    print(f"remaining {len(left)} partner finds without v2 store photos")
+    print(f"summary: {len(finished)} finds, sets {sets}, {spent:.4f} USD this run ({spent / max(1, len(finished)):.4f} per find), "
+          f"{base + spent:.2f} USD in total (cap {a.max_total_usd})")
 
 
 if __name__ == "__main__":
