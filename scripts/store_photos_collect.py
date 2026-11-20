@@ -29,6 +29,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from catalog_common import COLOURS, ROOT, load_catalog, load_json  # noqa: E402
+import store_photos_shards as shards  # noqa: E402
 
 OUT = os.path.join(ROOT, "data", "store_photo_candidates.json")
 NAMES = os.path.join(ROOT, "data", "store_photo_names.json")
@@ -418,14 +419,16 @@ def partner_ids(items):
     return ids, by
 
 
-def save(data):
-    tmp = OUT + ".tmp"
+def save(data, out=None):
+    out = out or OUT
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    tmp = out + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         f.write("{\"items\": {\n")
         rows = [json.dumps(k) + ": " + json.dumps(v, ensure_ascii=False, separators=(",", ":")) for k, v in data["items"].items()]
         f.write(",\n".join(rows))
         f.write("\n}}\n")
-    os.replace(tmp, OUT)
+    os.replace(tmp, out)
 
 
 def main():
@@ -435,10 +438,15 @@ def main():
     ap.add_argument("--ids", default="")
     ap.add_argument("--redo", action="store_true")
     ap.add_argument("--named-only", action="store_true", help="the next --limit finds that are named but not searched yet")
+    ap.add_argument("--shard", default="0/1", help="k/n: only the finds of shard k of n (see store_photos_shards.py)")
     a = ap.parse_args()
+    shard = shards.parse(a.shard)
     ids, by = partner_ids(load_catalog()[1])
-    names = (load_json(NAMES, {}) or {}).get("items") or {}
-    data = load_json(OUT, {"items": {}})
+    ids = [i for i in ids if shards.mine(i, shard)]
+    names = shards.merged("names")["items"]
+    out = shards.path("cands", shard)
+    own = load_json(out, {"items": {}})  # this shard's own file: the only one it writes
+    data = shards.merged("cands")  # every shard's searches: what is done already
     # done = searched with the find's exact model name (v2); entries from before the naming step are searched again
     # an entry with no candidates (the search was refused, e.g. Brave out of searches) is searched again
     done = lambda i: ((data["items"].get(i) or {}).get("v") == 2 and len((data["items"].get(i) or {}).get("c") or []) > 0) or (i not in names and i in data["items"])
@@ -448,14 +456,14 @@ def main():
     ids = todo
     print(f"{len(ids)} partner finds asked, {len(todo)} to search", flush=True)
     try:
-        _run(todo, by, names, data)
+        _run(todo, by, names, own, out)
     finally:
-        save(data)
-    print(f"done, {len(data['items'])} finds in {os.path.relpath(OUT, ROOT)}; {PROVIDER} requests used: {requests_used[0]} "
+        save(own, out)
+    print(f"done, {len(own['items'])} finds in {os.path.relpath(out, ROOT)}; {PROVIDER} requests used: {requests_used[0]} "
           f"({requests_used[0] / max(1, len(todo)):.1f} per find)")
 
 
-def _run(todo, by, names, data):
+def _run(todo, by, names, data, out):
     for n, i in enumerate(todo, 1):
         p = by[i]
         try:
@@ -465,7 +473,7 @@ def _run(todo, by, names, data):
         e = data["items"][i]
         hosts = {host_of(e["p"][c[1]]) for c in e["c"]}
         print(f"[{n}/{len(todo)}] {i} {e['name']}: {len(e['c'])} candidates from {len(hosts)} stores", flush=True)
-        if n % 10 == 0: save(data)
+        if n % 10 == 0: save(data, out)
 
 
 if __name__ == "__main__":
