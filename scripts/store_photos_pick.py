@@ -234,8 +234,13 @@ def process(p, entry, nm, a):
     got = load_cands(entry)
     before = current_photo(p)
     if not got: return {"error": "no usable candidates", "at": now(), "set": "none"}, [], before
+    # groups as the collector made them: a page with its own gallery is one photoshoot, loose hits group by store
+    gal_pages = {x[1] for x in c if x[4] == "s"}
     stores = {}
-    for k, im in got: stores.setdefault(host_of(entry["p"][c[k][1]]), []).append((k, im))
+    for k, im in got:
+        pg = entry["p"][c[k][1]]
+        key = host_of(pg) + urllib.parse.urlsplit(pg).path if c[k][1] in gal_pages else host_of(pg)
+        stores.setdefault(key, []).append((k, im))
     nm = nm or {}
     content = [{"type": "text", "text": PICK_PROMPT.format(title=p.get("title"), brand=p.get("brand"), cat=p.get("cat"),
                                                            name=nm.get("name") or entry.get("name") or "unknown",
@@ -247,7 +252,7 @@ def process(p, entry, nm, a):
     n = 0
     for si, (host, ims) in enumerate(stores.items()):
         L = chr(65 + si); letters[L] = host
-        content.append({"type": "text", "text": f"Store {L}: {host}"})
+        content.append({"type": "text", "text": f"Store {L}: {host}" + (" (one product page)" if "/" in host else " (separate image hits)")})
         for k, im in ims:
             n += 1; num[n] = (k, im, host)
             content.append({"type": "text", "text": f"[{n}] store {L}, {im.width}x{im.height}"})
@@ -284,12 +289,12 @@ def process(p, entry, nm, a):
         url = name if a.dry else upload(name, webp(cut, 88))
         if rec["main"] is None: rec["main"] = url; kind = "main"
         else: rec["gallery"].append(url); kind = view or "product"
-        rec["src"].append(entry["p"][c[k][1]]); shown.append((kind, cut, host))
+        rec["src"].append(entry["p"][c[k][1]]); shown.append((kind, cut, host.split("/")[0]))
     for m, (i, k, im, host, view, _) in enumerate(pers):
         im = im.copy(); im.thumbnail((1600, 1600), Image.LANCZOS)
         name = f"{pid}-m{m}.webp"
         rec["model"].append(name if a.dry else upload(name, webp(im, 85)))
-        rec["src"].append(entry["p"][c[k][1]]); shown.append(("model", im, host))
+        rec["src"].append(entry["p"][c[k][1]]); shown.append(("model", im, host.split("/")[0]))
     rec["src"] = list(dict.fromkeys(rec["src"]))
     if not rec["main"]: rec["set"] = "none" if not rec["model"] else "model only"
     elif rec["set"] == "full" and not rec["gallery"]: rec["set"] = "picked"

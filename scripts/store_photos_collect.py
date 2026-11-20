@@ -29,7 +29,7 @@ NAMES = os.path.join(ROOT, "data", "store_photo_names.json")
 API = "https://api.search.brave.com/res/v1/"
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36"
 MIN_SIDE = 800
-MAX_HOSTS, PER_HOST, MAX_C = 8, 9, 48
+MAX_HOSTS, PER_HOST, MAX_C = 8, 9, 56  # groups (a page's photoshoot, or a store's loose hits), photos each, total
 # replica sellers and buying agents: their photos are never the store's own
 SKIP_HOSTS = ("weidian.", "geilicdn.", "taobao.", "tmall.", "1688.", "alicdn.", "yupoo.", "pandabuy", "cnfans", "kakobuy",
               "superbuy", "sugargoo", "hoobuy", "allchinabuy", "mulebuy", "acbuy", "litbuy", "oopbuy", "orientdig", "dhgate.",
@@ -250,7 +250,8 @@ def collect(p, nm):
         key = re.sub(r"[?#].*$", "", img) if "miinto" not in img else img
         if key in seen or skip(img): return
         seen.add(key)
-        by_host.setdefault(host_of(page), []).append([img, page, w, h, kind])
+        # a page with its own gallery is one photoshoot; loose image hits group by store
+        by_host.setdefault(page if galleries.get(page) else host_of(page), []).append([img, page, w, h, kind])
 
     for page in to_read:
         for s, w, h in galleries.get(page) or []: add(s, page, w, h, "s")
