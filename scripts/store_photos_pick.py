@@ -72,9 +72,9 @@ Rules:
   product). The wanted colour if any store has it, else the brand's best known colour of the same model.
 - ONE STORE: choose the single store whose photos are the best consistent professional set of the exact item. Never mix
   stores. If one store has a COMPLETE consistent photoshoot of the exact item (front, back, side or close-ups of the item,
-  model photos), set "set": "full" and use ALL of its good photos. Otherwise "set": "picked" and choose fewer, better:
-  the main, the best product-only back if there is one, and ONE model photo matching the main's shoot. Never pad with
-  weaker shots, never near-duplicates (several similar model poses: keep one).
+  model photos), set "set": "full" and use ALL of its good photos. Otherwise "set": "picked": still choose EVERY good
+  photo of that one store (the owner prefers more photos when they are good), one per angle. Never pad with weaker
+  shots, never near-duplicates (the same angle twice, several similar model poses: keep the best one).
 - QUALITY: sharp, high-resolution, professional studio photos only. Brand/official studio photos are best, wherever they
   appear (resellers and marketplaces reuse them). Reject homemade photos (items on floors, beds, hangers, in rooms, in a
   hand, phone flash), collages, several products in one frame (a pair of shoes is fine), text/price overlays,
@@ -274,12 +274,14 @@ def process(p, entry, nm, a):
     if not store and chosen: store = rec["store"] = chosen[0][3]; chosen = [x for x in chosen if x[3] == store]
     prod = [x for x in chosen if not x[5]]
     pers = [x for x in chosen if x[5]]
-    if rec["set"] != "full":  # rule 7: main + best back (+ an equally good side) + one model photo
-        backs = [x for x in prod[1:] if x[4] == "back"][:1]
-        prod = prod[:1] + backs + [x for x in prod[1:] if x[4] in ("side", "three_quarter") and x not in backs][:1]
-        pers = pers[:1]
-    else:
-        prod, pers = prod[:8], pers[:3]
+    # rule 18 (owner, 20 Nov 2026: "id prefer more if there are any"): every good photo of the chosen store, one per
+    # angle (rule 17: no repeated angle), product shots first; at most 8 product and 3 model photos
+    seen_v, keep = set(), []
+    for x in prod:
+        v = x[4] or "other"
+        if v in seen_v and v not in ("detail", "other"): continue
+        seen_v.add(v); keep.append(x)
+    prod, pers = keep[:8], pers[:3]
     shown = []  # (kind, image, host) for the sheets
     pid = p["id"]; k_out = 0
     for i, k, im, host, view, _ in prod:

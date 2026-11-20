@@ -38,3 +38,7 @@
     acceptable when no store has the exact one, but keep searching for the exact colour first.
 17. No repeated angle: a second back view (even on a different background) is a duplicate, not a model photo. Essentials
     hoodie: owner kept main + back only.
+18. More is better when it is good: from the chosen store, keep every good photo, one per angle (front, back, side,
+    3/4, top, sole, close-up of the item, model shots), not only main + back + one model. Owner on the Ralph Lauren grey
+    zip hoodie and the Rolex: "perfect images but id prefer more if there are any". Rule 7 now only means: never pad
+    with weaker or repeated shots.
