@@ -39,6 +39,11 @@ CAT_WORD = {"Shoes": "sneakers", "Outerwear": "jacket", "Tops": "", "Pants": "pa
 COUNTRY = {"no": "NO", "de": "DE", "fr": "FR", "en": ""}
 PAUSE = 1.05
 _last = [0.0]
+_html = {}  # page -> its HTML, for following product links from listing pages
+GENERIC = set("""jacket jackets hooded hoodie hoodies puffer sneakers sneaker trainers shoes low-top high-top men's mens women's
+sweater sweatshirt crewneck t-shirt shirt long sleeve sleeves pants trousers jeans shorts zip-up full-zip fleece cotton
+leather belt watch steel stainless black white grey navy brown green most likely exact model name unconfirmed selfwinding
+oyster perpetual sportswear joggers tracksuit hybrid padded check-lined logo""".split())
 
 
 def get(url, headers=None, timeout=15):
@@ -129,6 +134,7 @@ def page_gallery(page):
         h = get(page).decode("utf-8", "replace")
     except Exception:
         return []
+    _html[page] = h
     found = []
 
     def add(s):
@@ -218,6 +224,25 @@ def collect(p, nm):
     to_read = list(dict.fromkeys(web[:8] + [pg for pg, _ in sorted(pages_rank.items(), key=lambda kv: -kv[1])][:8]))[:14]
     with ThreadPoolExecutor(8) as ex:
         galleries = dict(zip(to_read, ex.map(page_gallery, to_read)))
+    # listing pages (a store's brand or category page): follow links to product pages named like the exact model
+    brand = (p.get("brand") or "").lower()
+    keys = [w for w in re.findall(r"[a-z0-9'-]{5,}", name.lower()) if w not in GENERIC and w not in brand]
+    follow = []
+    if keys:
+        for page in to_read:
+            h = _html.get(page) or ""
+            if galleries.get(page) and any(k in page.lower() for k in keys): continue
+            for href in re.findall(r'href=["\']([^"\'#]+)["\']', h):
+                full = urllib.parse.urljoin(page, htmlmod.unescape(href))
+                if host_of(full) != host_of(page) or full in to_read or full in follow: continue
+                slug = urllib.parse.urlsplit(full).path.lower()
+                if any(k in slug for k in keys) and not slug.endswith((".jpg", ".png", ".webp", ".css", ".js")):
+                    follow.append(full)
+                    if sum(host_of(f) == host_of(page) for f in follow) >= 3: break
+        follow = follow[:10]
+        with ThreadPoolExecutor(8) as ex:
+            galleries.update(zip(follow, ex.map(page_gallery, follow)))
+        to_read = follow + to_read
     pages, cands, seen = [], [], set()
     by_host = {}
 
