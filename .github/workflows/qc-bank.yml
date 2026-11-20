@@ -12,6 +12,9 @@ on:
       max:
         description: 'Most lookups this run'
         default: '1000'
+      reserve:
+        description: 'Lookups left untouched for visitors this month'
+        default: '150'
 permissions:
   contents: write
   actions: write
@@ -34,7 +37,7 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           set -o pipefail
-          python -u scripts/qc_bank.py --max "${{ inputs.max || '1000' }}" | tee out-bank.log
+          python -u scripts/qc_bank.py --max "${{ inputs.max || '1000' }}" --reserve "${{ inputs.reserve || '150' }}" | tee out-bank.log
       - name: Save the bank
         if: always()
         run: |
