@@ -106,6 +106,9 @@ Rules:
   the current official front shot stays the main).
 - "person": true for any photo where a person (or part of one: legs, hands, face) is visible; product shots on grey or
   coloured studio backgrounds are person: false.
+- MANY PHOTOS: list EVERY good product-only shot of the item in the chosen store(s), not a sample: front, 3/4, back, both
+  sides, top, sole, inside, real-part close-ups (the owner wants way more photos; 6-10 product shots is normal when a
+  store has them). Only skip the ones the rules above reject.
 - Order "photos": main first, then the other product-only shots (back, side, close-ups, sole), then photos with a person
   (front first).
 
@@ -204,8 +207,10 @@ def cutout(im):
     solid = alpha >= 24
     cover = solid.mean()
     if not 0.03 <= cover <= 0.95: return None, "cut-out failed"
+    # cropped = the item is CUT by the frame: more than 6% of one border is item (20 Nov 2026: a sole, strap tip or
+    # shadow just touching the edge dropped 11 good product shots in one run)
     m = 2
-    if solid[:m].any() or solid[-m:].any() or solid[:, :m].any() or solid[:, -m:].any(): return None, "item touches the frame"
+    if max(solid[:m].mean(), solid[-m:].mean(), solid[:, :m].mean(), solid[:, -m:].mean()) > 0.06: return None, "item cut off by the frame"
     ys, xs = np.where(solid)
     item = Image.fromarray(out).crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
     s = 1200 * 0.86 / max(item.size)
