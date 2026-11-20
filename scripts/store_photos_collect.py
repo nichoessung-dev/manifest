@@ -208,7 +208,7 @@ def collect(p, nm):
             if max(w, h) and max(w, h) < MIN_SIDE: continue
             hits.append((img, page, w, h))
             pages_rank[page] = pages_rank.get(page, 0) + 1
-    name = (nm or {}).get("name") or qs[0][0]
+    name = re.sub(r"\s*\([^)]*\)", "", (nm or {}).get("name") or "").strip() or qs[0][0]
     web = []
     for q, c in ((name, ""), (((nm or {}).get("queries") or {}).get("no") or "", "NO")):
         if isinstance(q, list): q = q[0] if q else ""
