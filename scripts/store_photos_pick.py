@@ -292,6 +292,13 @@ def process(p, entry, nm, a):
         if v in seen_v and v not in ("detail", "other"): continue
         seen_v.add(v); keep.append(x)
     prod, pers = keep[:8], pers[:3]
+    # rule 24 (owner, 20 Nov 2026, Ralph jeans from poshmark at 45%): an unsure match never replaces the main; the photos
+    # are added after the current one, and "photo_score" marks the find lower for the ranking
+    try: conf = float(ans.get("confidence") or 0)
+    except Exception: conf = 0.0
+    weak = conf < 0.7
+    rec["photo_score"] = 0 if not chosen else (1 if weak else (3 if rec["set"] == "full" else 2))
+    if weak and chosen: ans["keep_current_main"] = True
     if ans.get("keep_current_main") is True:   # rule 21: the site's own clean front shot stays the main
         rec["main"] = "current"; rec["keep_current_main"] = True
         prod = [x for x in prod if x[4] not in ("front", "three_quarter")]   # rule 17: no second front

@@ -53,3 +53,8 @@
     main and the plain front follows.
 23. No logo or print close-ups: a close-up of only the print/text is a bad shot (Acne hoodie). Close-ups must show a
     recognisable part of the item (collar, zip, buckle).
+24. Unsure matches (confidence under 0.7, or second-hand photo quality) never replace the main: the current photo stays
+    first and the found photos are added after it (Ralph Lauren jeans from poshmark). Each find gets a "photo_score"
+    (3 full store set, 2 picked set, 1 weak, 0 nothing).
+25. Ranking: the best photos and the most popular finds first. When the photos go live, photo_score is part of the
+    spreadsheet's order (with popularity), so finds with weak photos sit a bit lower.
