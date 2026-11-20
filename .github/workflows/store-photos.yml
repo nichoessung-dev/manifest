@@ -86,7 +86,8 @@ jobs:
           BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
         run: |
           set -o pipefail
-          python -u scripts/store_photos_collect.py --named-only --limit "${{ inputs.limit }}" | tee -a out-store-photos.log
+          python -u scripts/store_photos_collect.py ${{ inputs.ids && format('--ids {0}', inputs.ids) || '--named-only' }} --limit "${{ inputs.limit }}" \
+            ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee -a out-store-photos.log
           bash /tmp/save.sh "candidates"
       - name: Pick, cut out and upload
         if: inputs.step == 'all' || inputs.step == 'pick'
