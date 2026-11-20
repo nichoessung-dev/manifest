@@ -72,3 +72,5 @@
 31. Way more photos: when the chosen store has fewer than 4 good photos, a second store with the same exact item in a
     matching style (similar background and lighting) adds its photos after the first store's; the main is always from
     the first store (Burberry check-hood zip hoodie: one photo from burberry.com was too few). This relaxes rule 5.
+32. No campaign or lifestyle shots (a man on a sofa holding the Goyard wallet): model photos are plain studio or catalogue
+    shots where the item is the clear focus.

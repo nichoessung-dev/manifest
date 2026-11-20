@@ -72,6 +72,8 @@ Rules:
   the BACK product shot is the main and the plain front follows it.
 - BACK: always include a product-only BACK shot when the chosen store has one (the owner asks for it every time); a back
   view on a model is the fallback.
+- NO CAMPAIGN SHOTS: skip ad/lifestyle photos (a person posing on a sofa, a scene, editorial styling where the item is
+  small). Model photos are plain studio or catalogue shots of the item being worn or held (owner, Goyard wallet).
 - MODEL PHOTOS show the whole item on the person (the full jacket, top or trousers, shoes on feet): skip tight model crops
   where the item is cut off or only a chest/collar area shows (owner: Ralph Lauren glossy puffer, the chest crop).
 - CLOSE-UPS: keep close-ups of a real part (handle, name tag, clasp/strap clip, zip, inside, collar, sole); skip pure
