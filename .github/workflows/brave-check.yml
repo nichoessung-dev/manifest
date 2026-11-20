@@ -1,0 +1,22 @@
+name: Brave key check
+# Checks which Brave Search secret exists (prints only lengths, never the value) and makes one test search.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check
+        env:
+          A: ${{ secrets.BRAVE_API_KEY }}
+          B: ${{ secrets.BRAVE_SEARCH_API_KEY }}
+          C: ${{ secrets.BRAVE_KEY }}
+          D: ${{ secrets.BRAVE }}
+        run: |
+          for n in A B C D; do v="${!n}"; echo "$n length ${#v}"; done
+          K="${A:-${B:-${C:-$D}}}"
+          [ -z "$K" ] && { echo "no Brave secret found"; exit 0; }
+          code=$(curl -s -o /tmp/r.json -w '%{http_code}' -H "X-Subscription-Token: $K" -H "Accept: application/json" "https://api.search.brave.com/res/v1/web/search?q=golden+goose&count=1")
+          echo "test search HTTP $code"; head -c 300 /tmp/r.json | sed 's/[A-Za-z0-9_-]\{30,\}/[x]/g'; echo
