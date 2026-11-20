@@ -74,3 +74,5 @@
     the first store (Burberry check-hood zip hoodie: one photo from burberry.com was too few). This relaxes rule 5.
 32. No campaign or lifestyle shots (a man on a sofa holding the Goyard wallet): model photos are plain studio or catalogue
     shots where the item is the clear focus.
+33. Broken cut-outs are dropped: when the cut-out tool removes most of a light item and only lines are left (Trapstar
+    close-ups), the photo goes. Trapstar Decoded puffer: owner kept only the back main.

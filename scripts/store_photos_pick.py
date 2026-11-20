@@ -214,6 +214,10 @@ def cutout(im):
     m = 2
     if max(solid[:m].mean(), solid[-m:].mean(), solid[:, :m].mean(), solid[:, -m:].mean()) > 0.06: return None, "item cut off by the frame"
     ys, xs = np.where(solid)
+    # a broken cut-out (rule 33, Trapstar close-ups): the tool removed most of a light or white item and only scattered
+    # lines are left, so the item fills little of its own box
+    box = solid[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+    if box.mean() < 0.35: return None, "cut-out broke (item mostly removed)"
     item = Image.fromarray(out).crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
     s = 1200 * 0.86 / max(item.size)
     item = item.resize((max(1, round(item.width * s)), max(1, round(item.height * s))), Image.LANCZOS)
