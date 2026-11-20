@@ -14,3 +14,8 @@
    (the best front view, kept as the full photo, never cut out). No near-duplicates (three similar model poses: keep one).
    Extra product angles (side, top, sole for shoes) only when they are as good as the front and back.
 8. The main photo is never a model photo.
+9. A 3/4 standing product shot (the item shaped as if worn, no person) beats a flat lay for the main; drop the flat lay
+   when the 3/4 shot exists.
+10. No padding: if there is no good back photo, the set is just main + one model photo. Never fill with weaker shots.
+11. The model photo: the one that best matches the main's photoshoot (same store and lighting), straight front view, the
+    item clearly the focus (owner's pick on the Arc'teryx Beta: the brand's own studio shot, not a second store's).
