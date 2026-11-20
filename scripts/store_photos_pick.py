@@ -76,6 +76,8 @@ Rules:
   where the item is cut off or only a chest/collar area shows (owner: Ralph Lauren glossy puffer, the chest crop).
 - CLOSE-UPS: keep close-ups of a real part (handle, name tag, clasp/strap clip, zip, inside, collar, sole); skip pure
   pattern/texture shots and wear or damage details (pre-owned listings have many).
+- NO LABELS: never pick shots of size tags, care labels, neck-print/inside-print scans or the inside print alone (owner,
+  Chrome Hearts hoodie).
 - NO LOGO CLOSE-UPS: never pick a close-up of only a print/logo/text (it reads as a bad shot); close-ups must show a
   recognisable part of the item (a collar, a zip, a buckle).
 - MAIN = the item's FRONT as it is worn or first seen: a watch's dial facing the camera (never the caseback), a jacket's

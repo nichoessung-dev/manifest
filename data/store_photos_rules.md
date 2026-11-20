@@ -68,3 +68,4 @@
     (Ralph Lauren glossy puffer).
 29. Always try for a product-only back shot (AMI heart sweater: "id prefer a back photo"); a back view on a model is the
     fallback, nothing is not.
+30. No label shots: size tags, care labels and scans of the inside or neck print are never used (Chrome Hearts hoodie).
