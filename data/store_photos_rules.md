@@ -64,3 +64,5 @@
 27. More photos per store page: up to 16 photos of one page are considered (was 9), up to 12 product photos kept. Close-ups
     of a real part (handle, name tag, clasp, strap clip, inside) are kept; pure texture and wear/damage details from
     pre-owned listings are skipped (Louis Vuitton Keepall: owner wants more photos of the bag).
+28. Model photos show the whole item on the person; tight model crops (chest and collar only, item cut off) are skipped
+    (Ralph Lauren glossy puffer).

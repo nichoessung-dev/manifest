@@ -70,6 +70,8 @@ The candidates below are grouped by store; each store's photos are numbered.
 Rules:
 - DESIGN ON THE BACK: when the item's main graphic/logo is on the back (image 0 shows the back, or the front is plain),
   the BACK product shot is the main and the plain front follows it.
+- MODEL PHOTOS show the whole item on the person (the full jacket, top or trousers, shoes on feet): skip tight model crops
+  where the item is cut off or only a chest/collar area shows (owner: Ralph Lauren glossy puffer, the chest crop).
 - CLOSE-UPS: keep close-ups of a real part (handle, name tag, clasp/strap clip, zip, inside, collar, sole); skip pure
   pattern/texture shots and wear or damage details (pre-owned listings have many).
 - NO LOGO CLOSE-UPS: never pick a close-up of only a print/logo/text (it reads as a bad shot); close-ups must show a
