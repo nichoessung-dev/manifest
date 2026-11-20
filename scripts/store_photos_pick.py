@@ -89,6 +89,10 @@ Rules:
   or hoodie's front, a shoe's outer side. Casebacks, soles and insides are fine as EXTRA photos after the main.
 - EXACT VERSION only: every detail must match image 0 (a different lining colour, pocket layout or logo = another
   product). The wanted colour if any store has it, else the brand's best known colour of the same model.
+- VERY CLOSE FALLBACK: when NO store has the exact version, a VERY close design of the same brand (same pattern, same
+  kind of garment, same colours, small differences like collar or pocket shape) may be used as extra photos with
+  "confidence" under 0.7 (so the current photo stays the main). Not a different pattern, colour or garment type (owner:
+  Gucci GG knit zip cardigan, Stussy puffer).
 - SECOND STORE (owner, 20 Nov 2026: "id like way more photos"): when the chosen store has FEWER THAN 4 good photos, also
   name a second store ("store2") with more photos of the SAME exact item in a matching style (similar background and
   lighting) and add its good photos after the first store's. Never a second store for the main.

@@ -78,3 +78,6 @@
     close-ups), the photo goes. Trapstar Decoded puffer: owner kept only the back main.
 34. A listing that sells several colours (image 0 shows a colour range): pick ONE colour, the most popular (usually
     black), and use that colour for every photo, main and model shots (Acne Stockholm 1996 long sleeve).
+35. Very close fallback: when no store has the exact version, a very close design of the same brand (same pattern,
+    garment type and colours; small differences like collar or pocket shape) is used as extra photos after the current
+    photo. Never a different pattern, colour or garment (Gucci GG knit zip cardigan, Stussy puffer).
