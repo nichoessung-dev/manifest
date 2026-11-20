@@ -74,6 +74,9 @@ Rules:
   view on a model is the fallback.
 - NO CAMPAIGN SHOTS: skip ad/lifestyle photos (a person posing on a sofa, a scene, editorial styling where the item is
   small). Model photos are plain studio or catalogue shots of the item being worn or held (owner, Goyard wallet).
+- SEVERAL COLOURS: when image 0 shows the item in several colours (the listing sells them all), choose ONE colour, the
+  most popular one (usually black, else the brand's best-known colour), and take every photo, main and model shots,
+  in that same colour (owner, Acne Stockholm 1996 long sleeve).
 - MODEL PHOTOS show the whole item on the person (the full jacket, top or trousers, shoes on feet): skip tight model crops
   where the item is cut off or only a chest/collar area shows (owner: Ralph Lauren glossy puffer, the chest crop).
 - CLOSE-UPS: keep close-ups of a real part (handle, name tag, clasp/strap clip, zip, inside, collar, sole); skip pure

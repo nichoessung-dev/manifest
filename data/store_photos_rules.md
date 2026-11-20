@@ -76,3 +76,5 @@
     shots where the item is the clear focus.
 33. Broken cut-outs are dropped: when the cut-out tool removes most of a light item and only lines are left (Trapstar
     close-ups), the photo goes. Trapstar Decoded puffer: owner kept only the back main.
+34. A listing that sells several colours (image 0 shows a colour range): pick ONE colour, the most popular (usually
+    black), and use that colour for every photo, main and model shots (Acne Stockholm 1996 long sleeve).
