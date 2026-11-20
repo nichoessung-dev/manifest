@@ -105,6 +105,7 @@ def queries(p, nm):
 
 
 IMG_RE = re.compile(r"""https?:(?:\\?/){2}[^\s"'<>()\\]+?\.(?:jpe?g|png|webp|avif)(?:\?[^\s"'<>()\\]*)?""", re.I)
+REL_RE = re.compile(r"""(?:src|data-src|data-zoom|data-large|href)=["']((?!https?:|//|data:)[^"'\s]+?\.(?:jpe?g|png|webp)(?:\?[^"'\s]*)?)["']""", re.I)
 JUNK = re.compile(r"logo|icon|sprite|favicon|placeholder|payment|badge|flag|banner|avatar|swatch|loader|spinner|klarna|"
                   r"/thumb|_thumb|-thumb|thumbnail|_small|_xs\b|50x50|100x100|1x1", re.I)
 
@@ -134,6 +135,8 @@ def page_gallery(page):
         s = htmlmod.unescape(s or "").replace("\\/", "/").strip()
         if s.startswith("//"): s = "https:" + s
         if s.startswith("/"): s = f"{u.scheme}://{u.netloc}{s}"
+        sz = re.search(r"-(\d{2,4})x(\d{2,4})\.(?:jpe?g|png|webp)", s, re.I)  # WordPress size copies
+        if sz and max(int(sz.group(1)), int(sz.group(2))) < MIN_SIDE: return
         if s.startswith("http") and not JUNK.search(s) and s not in found: found.append(s)
 
     for blk in re.findall(r'<script[^>]+application/ld\+json[^>]*>(.*?)</script>', h, re.S | re.I):
@@ -152,38 +155,43 @@ def page_gallery(page):
                 stack.extend(x)
     og = re.search(r'<meta[^>]+property=["\']og:image(?::secure_url)?["\'][^>]+content=["\']([^"\']+)', h, re.I) or \
         re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image', h, re.I)
-    if og: add(og.group(1))
-    # the page's own gallery: images on the og:image host that the page shows more than once (gallery + zoom + thumbs)
-    if og:
-        oh = urllib.parse.urlsplit(htmlmod.unescape(og.group(1))).netloc
-        oq = urllib.parse.urlsplit(htmlmod.unescape(og.group(1))).query
-        counts = {}
-        for s in IMG_RE.findall(h):
-            s = htmlmod.unescape(s).replace("\\/", "/")
-            su = urllib.parse.urlsplit(s)
-            if su.netloc != oh: continue
-            stem = re.sub(r"\.(jpe?g|png|webp|avif)$", "", su.path, flags=re.I)
-            c = counts.setdefault(stem, [0, s])
-            c[0] += 1
-            if su.path.lower().endswith((".webp", ".jpg", ".jpeg")) and c[1].split("?")[0].lower().endswith(".avif"): c[1] = s
-        for stem, (n, s) in sorted(counts.items(), key=lambda kv: -kv[1][0]):
-            if n < 2: continue
-            su = urllib.parse.urlsplit(s)
-            if oq and su.query != oq: s = f"{su.scheme}://{su.netloc}{su.path}?{oq}"  # og:image's size (miinto)
-            add(s)
-        # siblings named after the og:image file (careofcarl: 26158811r.jpg -> zoom/26158811r_1.jpg), largest variant
-        stem = re.sub(r"\.(jpe?g|png|webp|avif)$", "", os.path.basename(urllib.parse.urlsplit(htmlmod.unescape(og.group(1))).path), flags=re.I)
-        if len(stem) >= 6:
-            best = {}
-            for s in IMG_RE.findall(h):
-                s = htmlmod.unescape(s).replace("\\/", "/")
-                base = os.path.basename(urllib.parse.urlsplit(s).path)
-                if not base.startswith(stem): continue
-                score = 2 if re.search(r"zoom|large|original|full|2000|1600|1200", s, re.I) else 1
-                if score > best.get(base, (0, ""))[0]: best[base] = (score, s)
-            for base in sorted(best): add(best[base][1])
-            if len(best) > 1 and og.group(1) in found:  # the og:image is then a smaller duplicate
-                found.remove(htmlmod.unescape(og.group(1)).replace("\\/", "/")) if htmlmod.unescape(og.group(1)) in found else None
+    if not og: return [(s, 0, 0) for s in found[:12]]
+    og_u = htmlmod.unescape(og.group(1)).replace("\\/", "/")
+    og_u = urllib.parse.urljoin(page, "https:" + og_u if og_u.startswith("//") else og_u)
+    os_ = urllib.parse.urlsplit(og_u)
+    # every image URL on the page: absolute ones anywhere, relative ones in src / data-src / href attributes
+    imgs = [htmlmod.unescape(s).replace("\\/", "/") for s in IMG_RE.findall(h)]
+    imgs += [urllib.parse.urljoin(page, htmlmod.unescape(s)) for s in REL_RE.findall(h)]
+    imgs = [s for s in imgs if not s.split("?")[0].lower().endswith(".avif")]
+
+    def stem_of(path): return re.sub(r"\.(jpe?g|png|webp|avif)$", "", path, flags=re.I)
+    # (a) files named after the og:image file (careofcarl: 26158811r.jpg -> zoom/26158811r_1.jpg), largest variant
+    ostem = stem_of(os.path.basename(os_.path))
+    sib = {}
+    if len(ostem) >= 6:
+        for s in imgs:
+            base = os.path.basename(urllib.parse.urlsplit(s).path)
+            if not base.startswith(ostem): continue
+            score = 2 if re.search(r"zoom|large|original|full|2000|1600|1200", s, re.I) else 1
+            if score > sib.get(base, (0, ""))[0]: sib[base] = (score, s)
+    # (b) images on the og:image host that the page shows more than once (gallery + zoom + thumbs: miinto)
+    counts = {}
+    for s in imgs:
+        su = urllib.parse.urlsplit(s)
+        if su.netloc != os_.netloc: continue
+        c = counts.setdefault(stem_of(su.path), [0, s]); c[0] += 1
+    gal = []
+    for st, (n, s) in sorted(counts.items(), key=lambda kv: -kv[1][0]):
+        if n < 2: continue
+        su = urllib.parse.urlsplit(s)
+        if os_.query and su.query != os_.query: s = f"{su.scheme}://{su.netloc}{su.path}?{os_.query}"  # og:image's size
+        gal.append(s)
+    if len(sib) > 1:
+        for base in sorted(sib): add(sib[base][1])
+    elif len(gal) > 1:
+        for s in gal: add(s)
+    else:
+        add(og_u)
     return [(s, 0, 0) for s in found[:12]]
 
 

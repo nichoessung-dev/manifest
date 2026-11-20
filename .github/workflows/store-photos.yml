@@ -1,12 +1,18 @@
 name: Store photos
-# Real store photos for the partner's finds (owner, 20 Nov 2026). scripts/store_photos_collect.py (run where Brave Search
-# works) wrote data/store_photo_candidates.json; this run has claude-haiku-5-5 pick a clean product-only front shot, the
+# Real store photos for the partner's finds (owner, 20 Nov 2026; rules in data/store_photos_rules.md). step=name names the
+# exact models (data/store_photo_names.json); scripts/store_photos_collect.py (run where Brave Search works) then writes
+# data/store_photo_candidates.json; step=pick has claude-haiku-5-5 pick a clean product-only front shot, the
 # other product-only angles and on-model shots of the same design, cuts the product shots out (rembg), uploads everything
 # to Supabase products/store/ and records it in data/store_photos.json. The live site's photos do not change here: the
 # contact sheet (artifact "store-photos") is for the owner's review first.
 on:
   workflow_dispatch:
     inputs:
+      step:
+        description: 'name (step 1: exact model names + queries for the Brave search) or pick (step 3: choose, cut out, upload)'
+        type: choice
+        options: [pick, name]
+        default: pick
       limit:
         description: 'Finds this run (most viewed first, skipping finds already done)'
         default: '20'
@@ -35,7 +41,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install pillow "rembg[cpu]>=2.0.59,<3" numpy
+      - run: pip install pillow "rembg[cpu]>=2.0.59,<3" numpy scipy
       - name: Cache background-removal model
         uses: actions/cache@v4
         with:
@@ -47,7 +53,7 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           set -o pipefail
-          python -u scripts/store_photos_pick.py --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" \
+          python -u scripts/store_photos_pick.py ${{ inputs.step == 'name' && '--name' || '' }} --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" \
             ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }} ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee out-store-photos.log
           mkdir -p out/store-photos && cp out-store-photos.log out/store-photos/
       - uses: actions/upload-artifact@v4
@@ -60,9 +66,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/store_photos.json
+          for f in data/store_photos.json data/store_photo_names.json; do [ -f "$f" ] && git add "$f"; done
           git diff --cached --quiet && { echo "nothing new"; exit 0; }
-          git commit -q -m "data: store photos for partner finds (review before applying)"
+          git commit -q -m "data: store photos for partner finds, ${{ inputs.step }} step (review before applying)"
           for n in 1 2 3 4 5; do
             if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
             sleep $((n * 7))
