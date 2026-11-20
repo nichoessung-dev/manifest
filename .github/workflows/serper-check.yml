@@ -1,0 +1,21 @@
+name: Serper key check
+# One test search with the SERPER_API_KEY secret (prints only its length and the HTTP status, never the value).
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check
+        env:
+          K: ${{ secrets.SERPER_API_KEY }}
+        run: |
+          echo "key length ${#K}"
+          [ -z "$K" ] && { echo "no SERPER_API_KEY secret"; exit 1; }
+          code=$(curl -s -o /tmp/r.json -w '%{http_code}' -X POST https://google.serper.dev/images \
+            -H "X-API-KEY: $K" -H "Content-Type: application/json" -d '{"q":"golden goose super-star","num":10}')
+          echo "test image search HTTP $code"
+          python3 -c "import json;d=json.load(open('/tmp/r.json'));print('images', len(d.get('images') or []), 'credits', d.get('credits'))" || head -c 300 /tmp/r.json
+          [ "$code" = "200" ]

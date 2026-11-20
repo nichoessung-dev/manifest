@@ -7,8 +7,9 @@ Step 2 of 3, run where the Brave Search API is reachable (the Claude Code contai
   2. HERE, this script: per find, most viewed first (data/stats.json "p"[id][0]):
        - Brave image searches for each named query (local-language ones with that country), Brave web searches for the
          exact name (English + Norwegian) to find store pages that image search misses (miinto, Farfetch-fed shops)
-       - about 5 Brave requests per find (3 image searches, 2 web searches with up to 20 results); product pages are
-         read before category pages, and listing pages are followed to the products named like the exact model
+       - 3 search requests per find with SEARCH_PROVIDER serper (Google via serper.dev, SERPER_API_KEY; the default
+         when that key is set) or brave (BRAVE_API_KEY): 2 image searches + 1 web search; product pages are read before
+         category pages, and listing pages are followed to the products named like the exact model
        - only the MAIN product's gallery is read from a page (up to 16): Shopify <page>.json, the page's own JSON-LD
          Product (never a list of products or other colours), then the main image's product-id family (careofcarl
          <sku>_<n>, SFCC/Scene7 <sku>_<view>) or, for hashed names, the pictures next to it in the page's gallery
@@ -56,6 +57,11 @@ def get(url, headers=None, timeout=15):
         return r.read(3_000_000)
 
 
+PROVIDER = (os.environ.get("SEARCH_PROVIDER") or ("serper" if os.environ.get("SERPER_API_KEY") else "brave")).lower()
+SERPER = "https://google.serper.dev/"
+requests_used = [0]
+
+
 def brave(kind, q, country=""):
     url = API + kind + "/search?count=" + ("30" if kind == "images" else "20") + "&q=" + urllib.parse.quote(q)
     if country: url += "&country=" + country
@@ -64,6 +70,7 @@ def brave(kind, q, country=""):
         if wait > 0: time.sleep(wait)
         _last[0] = time.time()
         try:
+            requests_used[0] += 1
             d = json.loads(get(url, {"X-Subscription-Token": os.environ.get("BRAVE_API_KEY") or "x", "Accept": "application/json"}, 20))
             return d.get("results") or [] if kind == "images" else (d.get("web") or {}).get("results") or []
         except urllib.error.HTTPError as e:
@@ -75,6 +82,45 @@ def brave(kind, q, country=""):
             print("  brave", e, flush=True)
         time.sleep(3 * (k + 1))
     return []
+
+
+def serper(kind, q, country=""):
+    """Google results through serper.dev (SERPER_API_KEY): kind "images" -> /images, "web" -> /search."""
+    body = json.dumps({"q": q, "gl": (country or "us").lower(), "num": 30 if kind == "images" else 20}).encode()
+    for k in range(3):
+        try:
+            requests_used[0] += 1
+            req = urllib.request.Request(SERPER + ("images" if kind == "images" else "search"), data=body, method="POST",
+                                         headers={"X-API-KEY": os.environ.get("SERPER_API_KEY") or "", "Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=30) as r: d = json.load(r)
+            return d.get("images") or [] if kind == "images" else d.get("organic") or []
+        except urllib.error.HTTPError as e:
+            if e.code in (401, 402, 403):  # no key or no credit: stop rather than record finds with no candidates
+                raise SystemExit(f"Serper refused the request (HTTP {e.code}): stopping")
+            if e.code != 429: print("  serper", e.code, q, flush=True); return []
+        except Exception as e:
+            print("  serper", e, flush=True)
+        time.sleep(3 * (k + 1))
+    return []
+
+
+def search_images(q, country=""):
+    """[(image url, page url, width, height)] from the chosen provider."""
+    out = []
+    if PROVIDER == "serper":
+        for r in serper("images", q, country):
+            out.append((r.get("imageUrl") or "", r.get("link") or "", int(r.get("imageWidth") or 0), int(r.get("imageHeight") or 0)))
+    else:
+        for r in brave("images", q, country):
+            pr = r.get("properties") or {}
+            out.append((pr.get("url") or "", r.get("url") or "", int(pr.get("width") or 0), int(pr.get("height") or 0)))
+    return out
+
+
+def search_web(q, country=""):
+    """[page url] from the chosen provider."""
+    if PROVIDER == "serper": return [r.get("link") for r in serper("web", q, country) if r.get("link")]
+    return [r.get("url") for r in brave("web", q, country) if r.get("url")]
 
 
 def host_of(u):
@@ -294,18 +340,16 @@ def page_score(url, keys):
 
 
 def collect(p, nm):
-    """About 5 Brave requests per find: 3 image searches (English x2, Norwegian, or the title without a name) and 2 web
-    searches (the exact name in English, then in German) for store pages; then each store page's own gallery."""
+    """3 search requests per find (Serper/Google or Brave, SEARCH_PROVIDER): 2 image searches (the exact name in English,
+    then the Norwegian store wording with that country) and 1 web search for store pages with the exact name; then each
+    store page's own gallery."""
     qs = queries(p, nm)
-    img_qs = [x for x in qs if x[1] == "en"][:2] + [x for x in qs if x[1] == "no"][:1]
+    img_qs = ([x for x in qs if x[1] == "en"][:1] + [x for x in qs if x[1] == "no"][:1]) or qs[:2]
+    if len(img_qs) < 2: img_qs = (img_qs + [x for x in qs if x not in img_qs])[:2]
     hits, pages_rank = [], {}
-    for q, lang in img_qs or qs[:2]:
-        for r in brave("images", q, COUNTRY.get(lang, "")):
-            img = (r.get("properties") or {}).get("url") or ""
-            page = r.get("url") or ""
+    for q, lang in img_qs:
+        for img, page, w, h in search_images(q, COUNTRY.get(lang, "")):
             if not img or not page or skip(page) or skip(img): continue
-            pr = r.get("properties") or {}
-            w, h = int(pr.get("width") or 0), int(pr.get("height") or 0)
             if max(w, h) and max(w, h) < MIN_SIDE: continue
             hits.append((img, page, w, h))
             pages_rank[page] = pages_rank.get(page, 0) + 1
@@ -313,12 +357,8 @@ def collect(p, nm):
     brand = (p.get("brand") or "").lower()
     keys = [w for w in re.findall(r"[a-z0-9'-]{5,}", name.lower()) if w not in GENERIC and w not in brand]
     web = []
-    de = ((nm or {}).get("queries") or {}).get("de") or ""
-    if isinstance(de, list): de = de[0] if de else ""
-    for q, c in ((name, ""), (de, "DE")):
-        if q:
-            for r in brave("web", q, c):
-                if r.get("url") and not skip(r["url"]) and r["url"] not in web: web.append(r["url"])
+    for u in search_web(name):
+        if not skip(u) and u not in web: web.append(u)
     web.sort(key=lambda u: -page_score(u, keys))
     img_pages = sorted(pages_rank, key=lambda pg: (-pages_rank[pg], -page_score(pg, keys)))
     to_read = list(dict.fromkeys(web[:10] + img_pages[:8]))[:16]
@@ -411,7 +451,8 @@ def main():
         _run(todo, by, names, data)
     finally:
         save(data)
-    print("done,", len(data["items"]), "finds in", os.path.relpath(OUT, ROOT))
+    print(f"done, {len(data['items'])} finds in {os.path.relpath(OUT, ROOT)}; {PROVIDER} requests used: {requests_used[0]} "
+          f"({requests_used[0] / max(1, len(todo)):.1f} per find)")
 
 
 def _run(todo, by, names, data):

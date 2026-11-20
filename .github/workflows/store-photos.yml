@@ -3,7 +3,7 @@ name: Store photos
 # site changes: the photos go to Supabase products/store/ and data/store_photos.json, and each run's contact sheet
 # (artifact "store-photos") is for the owner's review before a later apply step.
 #   all    one batch of the whole pipeline, most viewed partner finds first:
-#          name (exact model + search queries, claude-haiku-5-5) -> collect (Brave Search with BRAVE_API_KEY, store page
+#          name (exact model + search queries, claude-haiku-5-5) -> collect (Google via Serper with SERPER_API_KEY, or Brave; store page
 #          galleries) -> pick (one store's set, cut-outs, upload). Starts the next batch itself until every partner find
 #          is done or the global budget (STORE_PHOTOS_TOTAL_USD, all runs together) is spent.
 #   name / pick   one step only (collect can also run in the Claude Code container: scripts/store_photos_collect.py)
@@ -80,10 +80,12 @@ jobs:
           python -u scripts/store_photos_pick.py --name --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" \
             ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }} ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee -a out-store-photos.log
           bash /tmp/save.sh "names"
-      - name: Search the stores (Brave)
+      - name: Search the stores (Serper/Google, or Brave)
         if: inputs.step == 'all'
         env:
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
           BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+          SEARCH_PROVIDER: ${{ vars.SEARCH_PROVIDER }}
         run: |
           set -o pipefail
           python -u scripts/store_photos_collect.py ${{ inputs.ids && format('--ids {0}', inputs.ids) || '--named-only' }} --limit "${{ inputs.limit }}" \
