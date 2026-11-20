@@ -1,0 +1,70 @@
+name: Store photos
+# Real store photos for the partner's finds (owner, 20 Nov 2026). scripts/store_photos_collect.py (run where Brave Search
+# works) wrote data/store_photo_candidates.json; this run has claude-haiku-5-5 pick a clean product-only front shot, the
+# other product-only angles and on-model shots of the same design, cuts the product shots out (rembg), uploads everything
+# to Supabase products/store/ and records it in data/store_photos.json. The live site's photos do not change here: the
+# contact sheet (artifact "store-photos") is for the owner's review first.
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Finds this run (most viewed first, skipping finds already done)'
+        default: '20'
+      ids:
+        description: 'Only these ids (comma separated, optional)'
+        default: ''
+      max_usd:
+        description: 'Hard stop for AI spend this run (USD)'
+        default: '10'
+      redo:
+        description: 'Do finds again that are already in data/store_photos.json (yes/no)'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+permissions:
+  contents: write
+concurrency: store-photos
+jobs:
+  pick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow "rembg[cpu]>=2.0.59,<3" numpy
+      - name: Cache background-removal model
+        uses: actions/cache@v4
+        with:
+          path: ~/.u2net
+          key: u2net-isnet-general-use-v1
+      - name: Pick, cut out and upload
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -o pipefail
+          python -u scripts/store_photos_pick.py --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" \
+            ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }} ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee out-store-photos.log
+          mkdir -p out/store-photos && cp out-store-photos.log out/store-photos/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: store-photos
+          path: out/store-photos
+          retention-days: 30
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/store_photos.json
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "data: store photos for partner finds (review before applying)"
+          for n in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::the store photos could not be saved"; exit 1
