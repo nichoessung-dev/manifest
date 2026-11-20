@@ -34,3 +34,7 @@
     photo. Skip a source for the photo TYPE (homemade: floors, hangers, phone light, people's rooms), never for the
     website it is on.
 15. A set like a tracksuit can use the top's photo as the main when no clean full-set photo exists.
+16. Colour: the find's own colour is preferred; a close shade of the same design (Essentials heather grey vs taupe) is
+    acceptable when no store has the exact one, but keep searching for the exact colour first.
+17. No repeated angle: a second back view (even on a different background) is a duplicate, not a model photo. Essentials
+    hoodie: owner kept main + back only.
