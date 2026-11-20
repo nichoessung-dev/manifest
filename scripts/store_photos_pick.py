@@ -39,9 +39,9 @@ THUMB = 384
 spent = 0.0
 _sess = None
 
-PROMPT = """You pick store photos for a fashion find on a replica-finds site.
+PROMPT = """You pick official store product photos for a clothing item in a shopping catalogue.
 Find: "{title}" (brand: {brand}, category: {cat}). Wanted colour: {colour}.
-Image 0 is the find's current photo: it shows the DESIGN (shape, logo placement, pattern, details). It may be a replica.
+Image 0 is the item's current photo: it shows the DESIGN (shape, logo placement, pattern, details).
 Images 1..{n} are candidate photos from online stores (host and size in brackets before each).
 
 Choose, using only candidates that show the SAME DESIGN as image 0 (same model; a different colourway of the same model is
@@ -111,7 +111,12 @@ def claude(content, max_tokens=1200):
     spent += cost
     txt = "".join(c.get("text", "") for c in d.get("content", []))
     m = re.search(r"\{.*\}", txt, re.S)
-    return (json.loads(m.group(0)) if m else {}), cost
+    try:
+        ans = json.loads(m.group(0)) if m else {}
+    except ValueError:
+        ans = {}
+    if not ans: ans = {"note": f"no answer ({d.get('stop_reason')}): {txt[:160]}"}
+    return ans, cost
 
 
 def cutout(im):
@@ -292,7 +297,7 @@ def main():
         rows.append((p, rec, before, shown))
         print(f"[{n}/{len(todo)}] {i} {p.get('title')} -> {rec.get('model_name')} main={'yes' if rec.get('main') else 'NO'} "
               f"gallery={len(rec.get('gallery') or [])} model={len(rec.get('model') or [])} conf={rec.get('conf')} "
-              f"${rec.get('cost', 0):.4f} total ${spent:.3f}", flush=True)
+              f"${rec.get('cost', 0):.4f} total ${spent:.3f} {rec.get('error') or rec.get('note') or ''}", flush=True)
     log["spent_usd"] = round(log.get("spent_usd", 0) + spent, 4)
     if not a.dry: save_log(log)
     if rows:
