@@ -216,10 +216,10 @@ def cutout(im):
     solid = alpha >= 24
     cover = solid.mean()
     if not 0.03 <= cover <= 0.95: return None, "cut-out failed"
-    # cropped = the item is CUT by the frame: more than 6% of one border is item (20 Nov 2026: a sole, strap tip or
+    # cropped = the item is CUT by the frame: more than 25% of one border is item (tight store crops where a toe or heel touches the edge are fine, Jordan 4: 7 good shots dropped at 6%) (20 Nov 2026: a sole, strap tip or
     # shadow just touching the edge dropped 11 good product shots in one run)
     m = 2
-    if max(solid[:m].mean(), solid[-m:].mean(), solid[:, :m].mean(), solid[:, -m:].mean()) > 0.06: return None, "item cut off by the frame"
+    if max(solid[:m].mean(), solid[-m:].mean(), solid[:, :m].mean(), solid[:, -m:].mean()) > 0.25: return None, "item cut off by the frame"
     ys, xs = np.where(solid)
     # a broken cut-out (rule 33, Trapstar close-ups): the tool removed most of a light or white item and only scattered
     # lines are left, so the item fills little of its own box
