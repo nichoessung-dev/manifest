@@ -1,5 +1,5 @@
 {
- "deep_spent_usd": 3.2284,
+ "deep_spent_usd": 4.5395,
  "items": {
   "674945610775": {
    "at": "2026-11-21T12:34:10+00:00",
@@ -10024,53 +10024,70 @@
    "v": 2
   },
   "7734156074": {
-   "at": "2026-11-21T01:43:44+00:00",
-   "colour": "Yellow/gold with navy-grey trim (store A); store B's trim is royal blue",
-   "colour_match": true,
-   "conf": 0.6,
-   "cost": 0.01719,
+   "at": "2026-11-21T14:44:57+00:00",
+   "colour": "none",
+   "colour_match": false,
+   "conf": 0.0,
+   "cost": 0.0127,
+   "current_bad": true,
+   "deep": 1,
    "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734156074-0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734156074-1.webp"
-   ],
-   "keep_current_main": true,
-   "main": "current",
+   "gallery": [],
+   "main": null,
    "model": [],
    "model_name": "Tunisia 2026 Third Jersey",
-   "note": "Store A has the navy-trim yellow version matching image 0, but only one clean product front (1). Its other shots are duplicates, a hanger back shot (3), a flat lay (2), a neck label (5), a crest close-up (4), a desert campaign shot (6) and a model in a golf cart (7). Store B is added as store2 for its white studio back (13) and side (15). Its trim is bluer than image 0, which lowers confidence. Its near-duplicate fronts and backs were skipped. Image 0 is not a clean professional studio shot, so it does not stay as main.",
-   "photo_score": 1,
-   "set": "picked",
-   "src": [
-    "https://kickoff-store.com/en/product/maillot-tunisie-third-2026/"
-   ],
-   "store": "xclusivejerseys.com/en-gb/products/tunisia-2025-2026-third-kit",
-   "store2": "kickoff-store.com/en/product/maillot-tunisie-third-2026/",
+   "note": "No candidate store sells this jersey or a similar football shirt. Store A is skirts, B a camisole, C a tie and jacket, D fabric swatches, E a romper, F a blouse, G sneakers, H coats and jackets, so none is a valid match. Current photo is a flat cut-out with a white tag strap at the right edge, so it is marked bad.",
+   "photo_score": 0,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734156074-0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734156074-1.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "Tunisia 2026 Third Jersey",
+    "set": "picked",
+    "store": "xclusivejerseys.com/en-gb/products/tunisia-2025-2026-third-kit"
+   },
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": null,
    "v": 2
   },
   "7734170070": {
-   "at": "2026-11-21T01:44:02+00:00",
-   "colour": "Green",
-   "colour_match": true,
-   "conf": 0.4,
-   "cost": 0.01672,
+   "at": "2026-11-21T14:45:08+00:00",
+   "colour": "green",
+   "colour_match": false,
+   "conf": 0.1,
+   "cost": 0.01669,
+   "current_bad": false,
+   "deep": 1,
    "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734170070-0.webp"
-   ],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734170070-m0.webp"
-   ],
-   "model_name": "Mexico Retro Jersey (Score Draw-style, green V-neck with tricolour trim)",
-   "note": "No store has the exact Score Draw-style jersey with the tricolour trim. Store C's retro green V-neck Mexico shirt is the closest garment and colour, so it is used only as extra photos under the fallback rule, behind the current photo. Rejected: store A's mostly homemade, pinterest and off-model shirts, store B's Aztec-pattern polo, store D's adidas home kit, store E's room scene, store F's mixed-club photo, the crest-only close-up (logo close-up) and the duplicate model shot. Store2 not added because no store has the same item.",
-   "photo_score": 1,
-   "set": "picked",
-   "src": [
-    "https://soccerpost.com/products/mexico-retro-1986-home-jersey-green-jn3710?srsltid=AYCX9vJ3obkUI2o1zWrIWWsfoiTOryhv3UgXti6I-v3IUlj3SdgleJoJ"
-   ],
-   "store": "soccerpost.com/products/mexico-retro-1986-home-jersey-green-jn3710",
+   "gallery": [],
+   "main": null,
+   "model": [],
+   "model_name": "Mexico Retro Jersey (Score Draw-style green V-neck)",
+   "note": "No store shows the exact item: plain green V-neck with Mexican-flag trim and a MEXICO shield crest. Store A and C sell the adidas 1986 retro jersey, which has a white collar, three sleeve stripes and an adidas trefoil, so it is a different design and was rejected as not similar enough. Store D, E and F show other Mexico shirts with different prints or cuts. Store B is a track jacket. Image 0 is the only photo of the exact item, so it stays as the main.",
+   "photo_score": 0,
+   "prev": {
+    "conf": 0.4,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734170070-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734170070-m0.webp"
+    ],
+    "model_name": "Mexico Retro Jersey (Score Draw-style, green V-neck with tricolour trim)",
+    "set": "picked",
+    "store": "soccerpost.com/products/mexico-retro-1986-home-jersey-green-jn3710"
+   },
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": null,
    "v": 2
   },
   "7734180000": {
@@ -10130,6 +10147,8 @@
    "colour_match": true,
    "conf": 0.45,
    "cost": 0.01842,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734208977-0.webp"
@@ -10142,6 +10161,19 @@
    "model_name": "Argentina Retro 2006 Home Jersey (adidas)",
    "note": "Store B has the closest studio front and plain back shots of a sky-blue and white striped Argentina retro shirt. Its model shot is kept as the last photo. Rejected: the crest close-up (18) because it is a logo crop with a person, and the duplicate front and back (19, 20). Store A is mostly mixed or homemade photos. Stores C and F show Messi-numbered or 2024 versions. Store D and E are different clubs. The adidas chest logo on this version differs from image 0, so the match is uncertain. No second store, since no store has more exact-version photos.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.45,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734208977-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734208977-m0.webp"
+    ],
+    "model_name": "Argentina Retro 2006 Home Jersey (adidas)",
+    "set": "picked",
+    "store": "surf.soccerpost.com/products/adid-kf0322-adidas-argentina-retro-2006-home-jersey-white-clblue-launch-1-13-26"
+   },
    "set": "picked",
    "src": [
     "https://surf.soccerpost.com/products/adid-kf0322-adidas-argentina-retro-2006-home-jersey-white-clblue-launch-1-13-26"
@@ -10155,6 +10187,8 @@
    "colour_match": true,
    "conf": 0.7,
    "cost": 0.02067,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734242375-1.webp"
@@ -10164,6 +10198,17 @@
    "model_name": "Nike Portugal Eusebio Tribute Jersey",
    "note": "Store D has clean studio flat shots of the all-over shield pattern version without the number: front (15) and back (14). Store D's number-13 shots (12, 13) were rejected as a different version. Store C's flat front (11) is a product-only match, added as a second-store photo. Store A and B model shots show the number-13 print, and store A's packaging and chest crop were rejected. Image 0 is an angled marketplace-style photo, not an official studio shot, so it is not kept as main.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.7,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734242375-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734242375-0.webp",
+    "model": [],
+    "model_name": "Nike Portugal Eusebio Tribute Jersey",
+    "set": "picked",
+    "store": "unisportstore.com"
+   },
    "set": "picked",
    "src": [
     "https://www.unisportstore.com/t-shirts/fpf-se-jersey-replica-puma-black-puma-gold/399675/"
@@ -10233,6 +10278,8 @@
    "colour_match": true,
    "conf": 0.8,
    "cost": 0.02213,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734269735-1.webp",
@@ -10243,6 +10290,18 @@
    "model_name": "Japan National Football Team 1998 FIFA World Cup Goalkeeper Long Sleeve Jersey (flame design)",
    "note": "Store E has clean grey studio shots of the exact unnumbered front (crest and FIFA France 98 text, no number). Its back shot 42 carries a KAWAGUCHI 20 name print, so it was skipped. Collar close-up 39 kept. Crest/logo close-up 40 and lining scan 41 rejected. Store D has a matching front but the items hang on hangers. Store C has a hanger and watermark. Store G's front has a printed number 20, so it is a different version. No second store was added because no other store has clean, matching photos.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.8,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734269735-1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734269735-2.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734269735-0.webp",
+    "model": [],
+    "model_name": "Japan National Football Team 1998 FIFA World Cup Goalkeeper Long Sleeve Jersey (flame design)",
+    "set": "picked",
+    "store": "tbjerseys.com/product/japan-1998-world-cup-goalkeeper-long-sleeve-football-shirt-kawaguchi/"
+   },
    "set": "picked",
    "src": [
     "https://tbjerseys.com/product/japan-1998-world-cup-goalkeeper-long-sleeve-football-shirt-kawaguchi/?srsltid=AYCX9vK0_e5yIM5s7yT9yZwdwLgcmIZ9rIsxNpjg3-jZxv5ZNNWmq5e4"
@@ -10256,6 +10315,8 @@
    "colour_match": true,
    "conf": 0.5,
    "cost": 0.01656,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [],
    "keep_current_main": true,
@@ -10266,6 +10327,17 @@
    "model_name": "Adidas Argentina 2022 Tiro Training Jersey and Shorts Set",
    "note": "Store D is the only store with the light blue Argentina training jersey with purple side panels and navy shorts. It has only two photos, both model shots of the same pose, so I kept one. Image 0 is already a clean product-only studio shot, so it stays the main. No other store matches this exact colourway: A has home, black and tracksuit sets, B and C are white, E and G are different blue/camo designs. Store D's jersey is the 2022 Tiro version, so the match is approximate.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.5,
+    "gallery": [],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734285645-m0.webp"
+    ],
+    "model_name": "Adidas Argentina 2022 Tiro Training Jersey and Shorts Set",
+    "set": "picked",
+    "store": "soccerworld.net/products/argentina-2022-tiro-training-jersey-blue"
+   },
    "set": "picked",
    "src": [
     "https://www.soccerworld.net/products/argentina-2022-tiro-training-jersey-blue?srsltid=AYCX9vIQSpri54QwrxFlIyBFETgdMwlh4hxExbmoE7Ow1NEs62nv6OAy"
@@ -10306,6 +10378,8 @@
    "colour_match": true,
    "conf": 0.75,
    "cost": 0.01914,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734497141-1.webp"
@@ -10315,6 +10389,17 @@
    "model_name": "Portugal 2024 Home Kids Kit (Euro 2024 replica, jersey and shorts)",
    "note": "Store E has a plain product shot of the kit that matches image 0 (no name print), but only two near-duplicate photos, so store A is the second store. Its shorts front and back are plain product shots and are used. Store A's jersey shots (2, 3) are rejected because they carry a RONALDO 7 print that image 0 lacks. Store B and D are model-only, store C and G add name prints or show other kits, and store F is a different design. Image 0 is a low-resolution catalogue photo, so it is replaced.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.75,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734497141-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734497141-0.webp",
+    "model": [],
+    "model_name": "Portugal 2024 Home Kids Kit (Euro 2024 replica, jersey and shorts)",
+    "set": "picked",
+    "store": "jerseymotion.com/product/ronaldo-portugal-24-25-home-kids-kit/"
+   },
    "set": "picked",
    "src": [
     "https://jerseymotion.com/product/ronaldo-portugal-24-25-home-kids-kit/",
@@ -10349,6 +10434,8 @@
    "colour_match": true,
    "conf": 0.6,
    "cost": 0.01877,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734589017-0.webp"
@@ -10359,6 +10446,17 @@
    "model_name": "Umbro England 1996 Home Shirt Long Sleeve (Shearer)",
    "note": "Store D is the only long-sleeve 1996 Umbro England home shirt with clean studio shots. Its front (24) is the main and its back (23) is the product-only back shot. Photo 25 is a near-duplicate of 24 and was dropped. Store B is the same design but short-sleeve (youths SS label), and its photos are pre-owned with labels and fabric close-ups, so it was rejected. Store A is a Nike 2020 kit, Store C is a short-sleeve Euro 96 redesign, Store E is a 2002-era Umbro shirt with a red cross, and Store F is an editorial article. Store D shows a UMBRO chest logo and a number 9 that are not visible in image 0, so the exact version is uncertain. Only two good photos exist, so a second store was considered, but none has the exact long-sleeve version.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734589017-0.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "Umbro England 1996 Home Shirt Long Sleeve (Shearer)",
+    "set": "picked",
+    "store": "kittedsa.co.za/products/england-1996-shearer-home-kit"
+   },
    "set": "picked",
    "src": [
     "https://kittedsa.co.za/products/england-1996-shearer-home-kit?srsltid=AYCX9vLyFmXhNRwaoacGkl8B6gxoSkokjHraJF3wtBbefHlhT7y89Rm9"
@@ -10398,6 +10496,8 @@
    "colour_match": true,
    "conf": 0.5,
    "cost": 0.02172,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734614631-0.webp",
@@ -10409,6 +10509,18 @@
    "model_name": "Portugal 2024 Away Kids Kit (shirt and shorts set)",
    "note": "Store A has the only consistent studio set of the Nike 2024 away kids kit, with a front and back shirt shot and shorts shots. Exact version not found: the store's shorts are black, while image 0 shows white shorts with black side panels, so this is a close fallback. Rejected the multi-product set shots (with socks, shorts and shirt together), the Ronaldo-printed set, the socks, and the red home kit.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.5,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734614631-0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734614631-1.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "Portugal 2024 Away Kids Kit (shirt and shorts set)",
+    "set": "picked",
+    "store": "foot-sport.com/en/products/maillot-portugal-enfant-exterieur-2024-2025"
+   },
    "set": "picked",
    "src": [
     "https://www.foot-sport.com/en/products/maillot-portugal-enfant-exterieur-2024-2025?srsltid=AYCX9vLhzvQ-UZXGxqqHr1nXl4gRrRcDhTMwIv2ME-uvEXqLjl147wHp"
@@ -10422,6 +10534,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.01794,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [
     "18 closeup: item cut off by the frame"
    ],
@@ -10433,6 +10547,17 @@
    "model_name": "Nike Brazil 1998 Home Long Sleeve Jersey",
    "note": "Store C has the same long-sleeve 1998 home shirt (yellow, green crew neck and cuffs, CBF crest) on a clean studio background, but only three good shots, so store E's matching long-sleeve shoot is added as store2. Rejected: store C's crest close-up (logo-only crop), store A's photos (hanging on a rail with tags visible), store B and G (short-sleeve versions or campaign shots), and the ad and model shots. Store E's mannequin photos show goalkeeper-style gloves as props, but the jersey itself is clear.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734642123-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734642123-0.webp",
+    "model": [],
+    "model_name": "Nike Brazil 1998 Home Long Sleeve Jersey",
+    "set": "picked",
+    "store": "retrofootball-shirts.com/products/brazil-long-sleeve-home-shirt-1998"
+   },
    "set": "picked",
    "src": [
     "https://retrofootball-shirts.com/products/brazil-long-sleeve-home-shirt-1998?srsltid=AYCX9vKiSgo7Lub4jCgrWeuQSYcfCpHDEVXYcgnaYEtDxVD6lz1AoKU0"
@@ -10442,28 +10567,40 @@
    "v": 2
   },
   "7734644089": {
-   "at": "2026-11-21T01:48:50+00:00",
+   "at": "2026-11-21T14:48:07+00:00",
    "colour": "Yellow with green trim",
    "colour_match": true,
-   "conf": 0.9,
-   "cost": 0.01476,
+   "conf": 0.5,
+   "cost": 0.02195,
+   "current_bad": false,
+   "deep": 1,
    "dropped": [
-    "20 closeup: item cut off by the frame"
+    "9 closeup: cut-out broke (item mostly removed)",
+    "10 closeup: item cut off by the frame",
+    "11 closeup: cut-out broke (item mostly removed)"
    ],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734644089-1.webp"
-   ],
-   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734644089-0.webp",
+   "gallery": [],
+   "keep_current_main": true,
+   "main": "current",
    "model": [],
    "model_name": "Nike Brazil 2002 Home Jersey Long Sleeve",
-   "note": "Store G has the exact 2002 long-sleeve retro with its raglan green piping, shot on a mannequin as a 3/4 standing front and a back view, so it is the main set. Store G has only 2 good photos, so store E is the second store and contributes its cuff close-up (20), a real part of the same shirt. Store E's front and back (19, 21) are on hangers and were rejected as homemade-style shots. Image 0 is a flat lay, so the store's standing front wins.",
-   "photo_score": 2,
+   "note": "Store A is the only store with long-sleeve shots of this kit (green collar, cuffs and CBF crest), so it is chosen. Its long-sleeve photos show the crest and sleeve details, but no clean full front or back. Image 0 is already a clean, straight-on product front on a plain background, so it stays the main. Store A's hanger shots (1-8) and back shots (4-6) were rejected for the hanger hook. The short-sleeve shots (1-6) and the duplicate sleeve crops (12) were also rejected. Store B and C show a 2002 short-sleeve design with green side panels, which is a different garment. Store D's photos show a homemade wall setting, and the set is thin, so a second store was not added.",
+   "photo_score": 1,
+   "prev": {
+    "conf": 0.9,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734644089-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734644089-0.webp",
+    "model": [],
+    "model_name": "Nike Brazil 2002 Home Jersey Long Sleeve",
+    "set": "picked",
+    "store": "retrosleague.com/products/brazil-2002-home-long-sleeve-retro-jersey"
+   },
    "set": "picked",
-   "src": [
-    "https://retrosleague.com/products/brazil-2002-home-long-sleeve-retro-jersey?srsltid=AYCX9vL27OPf7scxUlPx1qWOsQScjCtoy4BdKqWOSIdBTetOyF6yXS98"
-   ],
-   "store": "retrosleague.com/products/brazil-2002-home-long-sleeve-retro-jersey",
-   "store2": "retrofootball-shirts.com/products/brazil-long-sleeve-home-shirt-2002",
+   "similar": false,
+   "src": [],
+   "store": "footballthrift.shop/en/football-shirt-brazil-2000-02-home-xl/",
    "v": 2
   },
   "7734657981": {
@@ -10472,6 +10609,8 @@
    "colour_match": true,
    "conf": 0.6,
    "cost": 0.01371,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734657981-0.webp"
@@ -10482,6 +10621,17 @@
    "model_name": "Portugal Debut Retro White Football Jersey",
    "note": "Store B's front shot (7) matches image 0's crest, red-maroon collar and gold raglan stitching. Store B's back shot (6) is a product-only back view; photo 8 is a duplicate of 7 and was dropped. Store A's Euro 2004 jersey has a patterned body and navy collar, so it is a different version and not used as a second store. Stores C–F are lifestyle shots of other items. Image 0 is a flat shot with background artifacts, so it is not a clean studio main.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734657981-0.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "Portugal Debut Retro White Football Jersey",
+    "set": "picked",
+    "store": "thejerseyculture.com/products/cristiano-ronaldo-17-portugal-debut-retro-white-football-jersey"
+   },
    "set": "picked",
    "src": [
     "https://thejerseyculture.com/products/cristiano-ronaldo-17-portugal-debut-retro-white-football-jersey?srsltid=AYCX9vKrJ0BsjDDAKQKkDVQ-xfdzt_IHxRUrrFW3ADfW77KQs104EbwE"
@@ -10495,6 +10645,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.01818,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [
     "7 closeup: item cut off by the frame"
    ],
@@ -10508,6 +10660,19 @@
    "model_name": "Umbro England 2002-2004 Home Shirt (long sleeve)",
    "note": "Store A has the exact 2002-04 Umbro long-sleeve home shirt with a consistent studio set. Picked one front, one back, and the crest/collar and hem close-ups. Rejected near-duplicate fronts and backs, Umbro logo-only crops, and the back-collar shot. Store B is a Nike 2020 shirt, a different version. Other stores show different items or are reseller and social posts.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734673767-1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734673767-2.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734673767-3.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7734673767-0.webp",
+    "model": [],
+    "model_name": "Umbro England 2002-2004 Home Shirt (long sleeve)",
+    "set": "picked",
+    "store": "footballthrift.shop/en/football-shirt-england-2002-04-home-l/"
+   },
    "set": "picked",
    "src": [
     "https://footballthrift.shop/en/football-shirt-england-2002-04-home-l/"
@@ -10566,6 +10731,8 @@
    "colour_match": true,
    "conf": 0.9,
    "cost": 0.01756,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [
     "45 closeup: cut-out broke (item mostly removed)"
    ],
@@ -10579,6 +10746,19 @@
    "model_name": "Japan 1998 FIFA World Cup Home Replica Jersey (Asics, flame design)",
    "note": "Store F has a consistent, clean studio set of the exact short-sleeve 1998 home kit (Asics collar, JFA crest, flame sleeves, Japan script back) on a plain background. Front (40) is cleaner and higher resolution than the current photo, so it becomes the main. Back product shot (41) is included as the owner requires. Collar, crest and sleeve close-ups are real parts of the garment. Rejected the inside label shot (44) under the no-labels rule. Store A has model shots and a grass-background set, store B is long-sleeve, store C and D have watermarks or a different look, store E is a football, and store G is a lower-quality set, so none were used. Store F has 5 good photos, so no second store is needed.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.9,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735120834-1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735120834-2.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735120834-3.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735120834-0.webp",
+    "model": [],
+    "model_name": "Japan 1998 FIFA World Cup Home Replica Jersey (Asics, flame design)",
+    "set": "picked",
+    "store": "retrosleague.com/products/japan-1998-home-jersey"
+   },
    "set": "picked",
    "src": [
     "https://retrosleague.com/products/japan-1998-home-jersey?srsltid=AYCX9vJ0tpCccdH3QlUM2LCXrFw5EILDZw4j5Yxi7XHZIOfzCJqB0VmL"
@@ -10592,6 +10772,8 @@
    "colour_match": true,
    "conf": 0.9,
    "cost": 0.01893,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735164142-1.webp"
@@ -10604,6 +10786,20 @@
    "model_name": "Nike Brazil 2024 Stadium Away Men's Dri-FIT Soccer Jersey",
    "note": "Store A has the exact blue away jersey with a consistent studio set. Chose the standing front shot (2) as main, the product-only back (6), then full-body model front and back (10, 11). Rejected the care/size tag (5), crest and swoosh logo close-ups (3, 4), the side crop with an arm and tattoo (7), the face and chest crops (8, 9) as near-duplicates, and the flat front (1) as a near-duplicate of 2. Current photo 0 is a less sharp cut-out, so it is replaced.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.9,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735164142-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735164142-0.webp",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735164142-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735164142-m1.webp"
+    ],
+    "model_name": "Nike Brazil 2024 Stadium Away Men's Dri-FIT Soccer Jersey",
+    "set": "picked",
+    "store": "icuracao.com/products/nike-brazil-2024-away-stadium-mens-extra-large-soccer-replica-jersey-blue"
+   },
    "set": "picked",
    "src": [
     "https://icuracao.com/products/nike-brazil-2024-away-stadium-mens-extra-large-soccer-replica-jersey-blue?srsltid=AYCX9vKYhZGsV-FtMsPZTHebnlRM2JaiuYNoZmj6XjGedcNXx3m0n2cz"
@@ -10617,6 +10813,8 @@
    "colour_match": true,
    "conf": 0.6,
    "cost": 0.01839,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735168020-0.webp",
@@ -10631,6 +10829,21 @@
    "model_name": "Brazil Home Kit Kids Replica (yellow jersey and royal blue shorts set)",
    "note": "Store E has the closest match: the same yellow jersey with green collar and trim, and royal blue shorts with white side panels, shown as a full set on a mannequin. Its photo 27 duplicates 25 and was dropped. Store E has fewer than 4 good photos, so store A (the same Nike/CBF jersey design on studio backgrounds) is added as store2. Its photos 1, 2, 3 and 9 are near-duplicate model shots and were skipped. The store A jersey does not show the shorts, and the 2026 version may differ slightly from the mid-2000s styling, so confidence is moderate.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735168020-0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735168020-1.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735168020-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735168020-m1.webp"
+    ],
+    "model_name": "Brazil Home Kit Kids Replica (yellow jersey and royal blue shorts set)",
+    "set": "picked",
+    "store": "kithappens.store/nb-no/products/brazil-kids-home-kit-2026"
+   },
    "set": "picked",
    "src": [
     "https://kithappens.store/nb-no/products/brazil-kids-home-kit-2026",
@@ -10665,6 +10878,8 @@
    "colour_match": false,
    "conf": 0.6,
    "cost": 0.02123,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735903497-0.webp",
@@ -10678,6 +10893,20 @@
    "model_name": "adidas Ukraine 2024 Home Kit (kids jersey and shorts set)",
    "note": "Store G has a consistent kids product set (front and back on white, sleeve-hem close-up) of the same kit. Its trim is royal blue, not the light blue of the current photo. Store H has the light blue trim but no product-only shots, and its only usable photos are on adult models (its main candidate would have to be a person shot). Rejected chest crops (31, 35), back-of-head crop (33), and the shoulder/print close-up (40). Image 0 is a kids set with a front crest and was not a clean studio front, so it stays replaced.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735903497-0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735903497-1.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735903497-m0.webp"
+    ],
+    "model_name": "adidas Ukraine 2024 Home Kit (kids jersey and shorts set)",
+    "set": "picked",
+    "store": "unisportstore.no"
+   },
    "set": "picked",
    "src": [
     "https://www.unisportstore.no/fotballdrakter/adidas-ukraine-26-home-kids-jersey/461343/",
@@ -10692,6 +10921,8 @@
    "colour_match": true,
    "conf": 0.7,
    "cost": 0.01426,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735911252-1.webp"
@@ -10701,6 +10932,17 @@
    "model_name": "Italy 1998 Away Football Shirt",
    "note": "Store A's Nike 1998 away shirt matches the design (open polo collar, blue piping, FIGC crest). Its front shots 2 and 5 and back shots 4 and 6 are duplicates, so only one front and one back are kept. Store A has fewer than 4 unique photos, so store E's studio front (16) is added as store2. Rejected: store C (hanger shots, mislabelled 1990 home), store D (hanger shot), store G (name-printed or different kit), store F (different designs or model shots).",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.7,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735911252-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735911252-0.webp",
+    "model": [],
+    "model_name": "Italy 1998 Away Football Shirt",
+    "set": "picked",
+    "store": "fotball-drakter.com/products/italy-retro-bortedrakt-1998-686563"
+   },
    "set": "picked",
    "src": [
     "https://fotball-drakter.com/products/italy-retro-bortedrakt-1998-686563"
@@ -10715,6 +10957,8 @@
    "colour_match": true,
    "conf": 0.8,
    "cost": 0.0218,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735931195-1.webp"
@@ -10724,6 +10968,17 @@
    "model_name": "Brazil 2002 FIFA World Cup Away Shirt (Nike)",
    "note": "Store D has the exact 2002 away shirt in royal blue with the 2002 WC patch; front on white (25) is the main and the product-only back (21) follows. Store A is added as store2 because D has fewer than 4 clean photos; its studio front (2) is the only usable blue shot there. Rejected: hanger shots (4, 32), wrong-colour yellow home kit mockups and team photos (3, 5-9), 2004 kit (10), logo and label close-ups (12, 17-19), hand/wall shots (24), grass-background shots (13-16, 20, 22), duplicates (26, 20). Current photo 0 is a cut-out mockup, not an official studio shot, so it is not kept as main.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.8,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735931195-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735931195-0.webp",
+    "model": [],
+    "model_name": "Brazil 2002 FIFA World Cup Away Shirt (Nike)",
+    "set": "picked",
+    "store": "thejerseyculture.com/products/ronaldo-nazario-brazil-2002-world-cup-blue-retro-football-jersey-trikot"
+   },
    "set": "picked",
    "src": [
     "https://thejerseyculture.com/products/ronaldo-nazario-brazil-2002-world-cup-blue-retro-football-jersey-trikot?srsltid=AYCX9vJO4djEiEv2XHbj16wQ7DR4zEiHGOxCNrNClUfHFE9eZTuMQXAZ"
@@ -10733,26 +10988,36 @@
    "v": 2
   },
   "7735950847": {
-   "at": "2026-11-21T01:53:11+00:00",
-   "colour": "Royal blue with black panels",
-   "colour_match": true,
-   "conf": 0.4,
-   "cost": 0.01806,
+   "at": "2026-11-21T14:51:20+00:00",
+   "colour": "Royal blue",
+   "colour_match": false,
+   "conf": 0.1,
+   "cost": 0.01753,
+   "current_bad": false,
+   "deep": 1,
    "dropped": [],
    "gallery": [],
    "keep_current_main": true,
    "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735950847-m0.webp"
-   ],
+   "model": [],
    "model_name": "Korea National Football Team Half-Zip Training Tracksuit",
-   "note": "Store G has the closest colourway (royal blue drill top with black raglan panels), but only one usable shot, a full-length model photo. Its trousers are plain blue, while image 0 has black lower-leg panels, so the match is partial. Image 42 is a chest crop and image 43 is a teal fleece jogger, both rejected. Store B's drill top is the same design but black/red, so it was not used to avoid mixing colourways. Store A, C, D, E and F show different garments or colours. Image 0 stays the main because no store has a product-only blue front shot.",
+   "note": "No store has the exact Korea tracksuit. Store H's royal blue half-zip training top (product-only studio front) is the closest garment type and colour, but it has white sleeve stripes instead of black panels. Image 0 is already a clean white-background studio product shot of the exact set, so it stays the main. Rejected: Store A (Wilson tennis top, navy/teal), B (black hummel tracksuit), C (green wholesale tracksuit), D (women's polo), E (Nike Korea fleece jacket, different garment), F (black Nike drill top, red jersey), G (black hoodie), H image 36 (navy, not royal blue). Store2 not added: no store offers a closer match. Store H has only one good photo.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.4,
+    "gallery": [],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735950847-m0.webp"
+    ],
+    "model_name": "Korea National Football Team Half-Zip Training Tracksuit",
+    "set": "picked",
+    "store": "ebay.com"
+   },
    "set": "picked",
-   "src": [
-    "https://www.ebay.com/itm/134992101623"
-   ],
-   "store": "ebay.com",
+   "similar": true,
+   "src": [],
+   "store": "prodirectsport.com",
    "v": 2
   },
   "7735950849": {
@@ -10761,6 +11026,8 @@
    "colour_match": false,
    "conf": 0.4,
    "cost": 0.02181,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735950849-0.webp"
@@ -10773,6 +11040,19 @@
    "model_name": "Umbro England 1996 Home Shirt (Euro 96 retro)",
    "note": "No store has the exact Umbro Euro 96 version (red collar piping, no chest text). Store A's Score Draw 1996 replica is the closest consistent studio set (same white shirt, navy collar, crest, same garment type), but its trim is light blue, so confidence is low. Rejected: crest and collar close-ups (logo close-up and neck label), the neck crop (tight, person), and the duplicate front. Stores B, C, F and G show a chest UMBRO text or stripes; D is a 2010 shirt; E is a signed item.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.4,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735950849-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735950849-m0.webp"
+    ],
+    "model_name": "Umbro England 1996 Home Shirt (Euro 96 retro)",
+    "set": "picked",
+    "store": "prodirectsport.com/products/football-shirts-score-draw-retro-england-home-football-shirt-mens-replica-retro-football-shirts-white-navy-124318"
+   },
    "set": "picked",
    "src": [
     "https://www.prodirectsport.com/products/football-shirts-score-draw-retro-england-home-football-shirt-mens-replica-retro-football-shirts-white-navy-124318"
@@ -10786,6 +11066,8 @@
    "colour_match": true,
    "conf": 0.7,
    "cost": 0.02544,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
     "1 front: item cut off by the frame",
     "2 back: item cut off by the frame"
@@ -10800,6 +11082,19 @@
    "model_name": "Adidas Belgium Home Jersey (2026 youth home jersey, same design as the current photo)",
    "note": "Store A's shirt matches the current photo's red body, yellow/black trim, lion crest and back lion. Its clean front and back product shots are used first, then three full-length model shots. Rejected: the chest crops (6, 10), the shoulder crop (7), and the two-person group shots (8, 9) that show two products in one frame. Store A is a youth version, so confidence is below 1. Current photo is on a cluttered background, so it is not kept as main. Store2 not needed: store A has 7 good photos.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.7,
+    "gallery": [],
+    "main": null,
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735962663-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735962663-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735962663-m2.webp"
+    ],
+    "model_name": "Adidas Belgium Home Jersey (2026 youth home jersey, same design as the current photo)",
+    "set": "model only",
+    "store": "tudnfanshop.com/products/adidas-2026-belgium-youth-home-jersey"
+   },
    "set": "model only",
    "src": [
     "https://www.tudnfanshop.com/products/adidas-2026-belgium-youth-home-jersey?srsltid=AYCX9vJwCxASlUw5NaLvRYAEcLdauCWcbAxbO7cxymVRqgMpzzKwtE_3"
@@ -10850,6 +11145,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.01875,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [],
    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735991126-0.webp",
@@ -10861,6 +11158,19 @@
    "model_name": "Adidas Germany 1994 Home Kit (DFB World Cup 1994 Home Shirt)",
    "note": "Store C has the exact 1994 home shirt with a clean product front on white, a collar close-up of a real part, and two full-look model shots, so it has four usable photos and no second store is needed. Store A has only model shots, store B has few usable frames, and the chest/logo crops were rejected. The current photo is a kids' set with shorts, not a clean studio front, so it is not kept as main. No back shot exists in store C.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735991126-0.webp",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735991126-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735991126-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7735991126-m2.webp"
+    ],
+    "model_name": "Adidas Germany 1994 Home Kit (DFB World Cup 1994 Home Shirt)",
+    "set": "picked",
+    "store": "thesoccerfactory.com/products/germany-home-jersey-1994"
+   },
    "set": "picked",
    "src": [
     "https://thesoccerfactory.com/products/germany-home-jersey-1994?srsltid=AYCX9vI0CZDQo65sYN-NvJ8kT8vfQF_wAtTCfpdo2VqL8oF5LGIhQOXo"
@@ -10936,6 +11246,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.01522,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [
     "22 closeup: cut-out broke (item mostly removed)"
    ],
@@ -10947,6 +11259,17 @@
    "model_name": "Nike Brazil 2004 Away Shirt",
    "note": "Store C has the exact 2004-05 blue away shirt on clean studio shots. Used the front, the plain back product shot, and the collar/crest close-up. Images 23-25 duplicate those angles and were skipped. Stores B, D and E sell the 2026 Jordan away kit, a different design. Store A's blue photos show a hanger (image 2) or a player number 8 (image 3), so they don't match. Store C has fewer than 4 unique good photos, but no other store has the exact version in a matching style, so no second store. The current photo is a kit with shorts, not a clean front product shot.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736005969-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736005969-0.webp",
+    "model": [],
+    "model_name": "Nike Brazil 2004 Away Shirt",
+    "set": "picked",
+    "store": "vintagehistoricsports.fr/en/products/2004-05-bresil-exterieur-16-xs"
+   },
    "set": "picked",
    "src": [
     "https://vintagehistoricsports.fr/en/products/2004-05-bresil-exterieur-16-xs"
@@ -10960,6 +11283,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.01785,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
     "14 closeup: cut-out broke (item mostly removed)"
    ],
@@ -10971,6 +11296,17 @@
    "model_name": "Nike Portugal 2010/11 Home Jersey",
    "note": "Store B has the exact 2010/11 home shirt on a clean grey studio background: front, plain back and a crest close-up. Its neck and hem label shots were rejected as labels, and the duplicate frames were dropped. Store B has fewer than 4 good photos, so store H's clean front shot is added as store2. Store A, C, D, E, F and G show other teams, the name-printed or away versions, or a different collar. Store H's size-overlay shots were rejected. The current photo is a flat front with a white edge artifact, so the store B front takes the main slot.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736011905-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736011905-0.webp",
+    "model": [],
+    "model_name": "Nike Portugal 2010/11 Home Jersey",
+    "set": "picked",
+    "store": "rokit.co.uk/products/2010-11-nike-portugal-fifa-world-cup-dri-fit-short-sleeve-home-football-shirt-xxl"
+   },
    "set": "picked",
    "src": [
     "https://www.rokit.co.uk/products/2010-11-nike-portugal-fifa-world-cup-dri-fit-short-sleeve-home-football-shirt-xxl"
@@ -11004,6 +11340,8 @@
    "colour_match": false,
    "conf": 0.5,
    "cost": 0.02683,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736031677-0.webp"
@@ -11018,6 +11356,21 @@
    "model_name": "Adidas Spain 2022/23 Training Tracksuit (navy)",
    "note": "Store A is the only store selling this exact navy Spain training tracksuit (top and pants, same model). Its colourway has red/yellow sleeves but no cyan panels, so it is the closest match and the cyan version is not found. No product-only back shot exists, so the back model shot is the fallback. Rejected the other stores: B, C, D, E, F, G and H are jackets, shirts, maroon or retro items, or are not product pages. Rejected the crop shots of cut-off legs and the close-ups of the crest that show little of the item. Image 0 is a flat lay with a stick visible, so it is not the cleaner main.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.5,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736031677-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736031677-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736031677-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736031677-m2.webp"
+    ],
+    "model_name": "Adidas Spain 2022/23 Training Tracksuit (navy)",
+    "set": "picked",
+    "store": "soccertracksuits.com/products/adidas-spain-training-tracksuit-navy-2022"
+   },
    "set": "picked",
    "src": [
     "https://www.soccertracksuits.com/products/adidas-spain-training-tracksuit-navy-2022?srsltid=AYCX9vKUy47t2SNGrudyEqRwx7l5BMdbnEMR5-CV4wIKGe3VLqY3ijJL"
@@ -11026,32 +11379,39 @@
    "v": 2
   },
   "7736057946": {
-   "at": "2026-11-21T01:56:52+00:00",
-   "colour": "Coral/brick-red base with navy pinstripes (store C shows a deeper rust-red; store A is closer to the coral of image 0)",
+   "at": "2026-11-21T14:53:30+00:00",
+   "colour": "none",
    "colour_match": false,
-   "conf": 0.6,
-   "cost": 0.02185,
+   "conf": 0.0,
+   "cost": 0.00919,
+   "current_bad": false,
+   "deep": 1,
    "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736057946-0.webp"
-   ],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736057946-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736057946-m1.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736057946-m2.webp"
-   ],
+   "gallery": [],
+   "main": null,
+   "model": [],
    "model_name": "adidas Scotland Originals Away Jersey",
-   "note": "Store C has a clean product-only front and back on a mannequin, with the purple trim and white edging matching image 0. Its colour is deeper than the coral, so colour_match is false. Store C has fewer than 4 good photos, so store A (coral, closest colour) is the second store. Rejected: store B logo, stripe and trefoil close-ups and duplicates, store A face crops and tight chest crops, the track jacket, store D/F/G and the Spain/Chile shirts, and the reddit and torshovsport images.",
-   "photo_score": 1,
-   "set": "picked",
-   "src": [
-    "https://soccerpost.com/products/adid-jl6901-adidas-scotland-2026-away-jersey?srsltid=AYCX9vJC51ipfN8Kw0xw9UD2G0oLdIZB5SyKLFjkDAv4dnq4FMcaYovh",
-    "https://blog.jdsports.co.uk/scotland-2026-away-kit/"
-   ],
-   "store": "soccerpost.com/products/adid-jl6901-adidas-scotland-2026-away-jersey",
-   "store2": "blog.jdsports.co.uk/scotland-2026-away-kit/",
+   "note": "No candidate shows the jersey. Every store (A to H) offers football boots (Predator models), a shoe fragment, or a hand photo, so none is a similar garment. Nothing is picked, and the current photo stays unchanged until a jersey listing is found.",
+   "photo_score": 0,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736057946-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736057946-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736057946-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736057946-m2.webp"
+    ],
+    "model_name": "adidas Scotland Originals Away Jersey",
+    "set": "picked",
+    "store": "soccerpost.com/products/adid-jl6901-adidas-scotland-2026-away-jersey"
+   },
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": null,
    "v": 2
   },
   "7736077746": {
@@ -11060,6 +11420,8 @@
    "colour_match": true,
    "conf": 0.75,
    "cost": 0.02138,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [],
    "keep_current_main": true,
@@ -11072,6 +11434,19 @@
    "model_name": "England Hollywood GK Jersey 25-26 (Nike long-sleeve goalkeeper top)",
    "note": "Store D is the only store with the exact long-sleeve, black mock-collar design. Its photos are all on a model, so none can be the main; the current product-only front (image 0) stays the main. Kept full-body front and back and one torso shot. Rejected the chest crop (30) and the shoulder crop (31). Store A's version is short-sleeved, so it is a different garment. Store B, C, E, F, G and H show different patterns or colours.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.75,
+    "gallery": [],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736077746-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736077746-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736077746-m2.webp"
+    ],
+    "model_name": "England Hollywood GK Jersey 25-26 (Nike long-sleeve goalkeeper top)",
+    "set": "picked",
+    "store": "thesoccerfactory.com/products/england-hollywood-gk-jersey-25-26"
+   },
    "set": "picked",
    "src": [
     "https://thesoccerfactory.com/products/england-hollywood-gk-jersey-25-26?srsltid=AYCX9vLFaBVUC-K_QrmKWPDx1_N5ipUtjxvAo8pE-mcVSDGxehvXVA5m"
@@ -11085,6 +11460,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.01684,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
     "18 front: cut-out failed"
    ],
@@ -11099,6 +11476,20 @@
    "model_name": "Puma Portugal 2016 Home Long Sleeve Jersey",
    "note": "Store G has the exact long-sleeve red wave-pattern home shirt with teal trim and FPF crest, with a studio front, a plain back and a collar close-up. Store G has fewer than 4 good photos, so store F's model front and back shots of the same shirt follow. Rejected: the cat logo close-up, the Ronaldo-named back print, the short-sleeve shirts, the duplicate front scan, the flat front from F (near-duplicate), the campaign-style sitting shot, the logo close-up and the worn current photo, which is not a studio shot.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736083714-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736083714-0.webp",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736083714-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736083714-m1.webp"
+    ],
+    "model_name": "Puma Portugal 2016 Home Long Sleeve Jersey",
+    "set": "picked",
+    "store": "unisportstore.no"
+   },
    "set": "picked",
    "src": [
     "https://www.unisportstore.no/fotballdrakter/fpf-home-jersey-replica-ls-club-red-green-lagoon/434191/",
@@ -11133,6 +11524,8 @@
    "colour_match": true,
    "conf": 0.55,
    "cost": 0.02375,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737163379-0.webp"
@@ -11147,6 +11540,21 @@
    "model_name": "Adidas Mexico 2026 Authentic Match Away Jersey (white, Originals trefoil; closest match to image 0)",
    "note": "Store C is the only white listing whose front matches image 0 (red V-neck with black trim, shoulder stripes, crest, Climacool hem logo). Its product is the 2026 authentic match jersey, while image 0 is labelled as the 2022 away, so the version is uncertain. Store A, D, E, F and G show the patterned 2022 away in cream, and store B is a different white Originals jersey with a green collar. Rejected: 28 (duplicate of 20), 26 (cropped face and ball). Image 0 is a flat shot with an overlay, so it does not stay as the main.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.55,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737163379-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737163379-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737163379-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737163379-m2.webp"
+    ],
+    "model_name": "Adidas Mexico 2026 Authentic Match Away Jersey (white, Originals trefoil; closest match to image 0)",
+    "set": "full",
+    "store": "mexicofanshop.com/products/adidas-mens-mexico-away-2026-authentic-match-jersey"
+   },
    "set": "full",
    "src": [
     "https://mexicofanshop.com/products/adidas-mens-mexico-away-2026-authentic-match-jersey"
@@ -11160,6 +11568,8 @@
    "colour_match": true,
    "conf": 0.55,
    "cost": 0.01947,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [
     "14 closeup: cut-out broke (item mostly removed)"
    ],
@@ -11173,6 +11583,18 @@
    "model_name": "Portugal Eusébio Tribute Jersey Black",
    "note": "Store C has the most consistent studio set, and its front (4), back (7) and hem commemorative patch close-up (11) match image 0 without a printed number. Store C has fewer than 4 good shots, so store D adds its collar close-up (14) for the crest and tipping. Rejected: store C's numbered '13' shots (5, 6, 8, 9), the box packaging (10), the wall scene (5) and the store A model shots, which show a '13' print. Store D's flat front (12) duplicates store C's front. The number 13 on store D's collar crest shot is a version mismatch, so confidence is lowered.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.55,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737175372-0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737175372-1.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "Portugal Eusébio Tribute Jersey Black",
+    "set": "picked",
+    "store": "unisportstore.no"
+   },
    "set": "picked",
    "src": [
     "https://www.unisportstore.no/t-skjorter/fpf-se-jersey-replica-puma-black-puma-gold/399675/",
@@ -11207,6 +11629,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.02013,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
     "29 closeup: cut-out broke (item mostly removed)",
     "34 closeup: item cut off by the frame"
@@ -11220,6 +11644,18 @@
    "model_name": "Adidas Mexico Home Authentic Long Sleeve Jersey (2026 Aztec calendar design)",
    "note": "Store E has the long-sleeve Aztec calendar jersey with the same print, red V collar, white sleeve stripes and red cuffs as image 0. Its studio front (26) replaces the low-res current photo as main, with the back (27) and real-part close-ups of the shoulder/collar and cuff. Rejected: the CLIMACOOL text close-up (30), the neck print tag (31), the pattern-only texture (32), and the crest-only logo close-up (28). The model name in the brief (2014) does not match the visual design; the 2014 home is a different chevron design, so confirm the tag.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737177177-1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737177177-2.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737177177-0.webp",
+    "model": [],
+    "model_name": "Adidas Mexico Home Authentic Long Sleeve Jersey (2026 Aztec calendar design)",
+    "set": "picked",
+    "store": "unisportstore.no"
+   },
    "set": "picked",
    "src": [
     "https://www.unisportstore.no/fotballdrakter/mexico-hjemmedrakt-world-cup-2026-langermet/431565/"
@@ -11266,33 +11702,38 @@
    "v": 2
   },
   "7737184955": {
-   "at": "2026-11-21T01:59:49+00:00",
-   "colour": "Yellow with green trim",
+   "at": "2026-11-21T14:55:21+00:00",
+   "colour": "Yellow shirt with royal blue shorts",
    "colour_match": false,
-   "conf": 0.6,
-   "cost": 0.01895,
-   "dropped": [
-    "10 closeup: cut-out failed"
-   ],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737184955-0.webp"
-   ],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737184955-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737184955-m1.webp"
-   ],
-   "model_name": "Brazil 1998 Home Shirt (Nike, short sleeve)",
-   "note": "Store B has the exact short-sleeve 1998 home shirt on a clean studio background, but only three unique product shots (11 and 12 duplicate 8 and 10), so store G's model shots are added as the second store. Store A is long-sleeve, so it was rejected. Store D was rejected because its shots show printed names, labels, logo-only close-ups or mixed designs. The shorts are not covered by the chosen stores, and the crew-neck trim differs slightly from the V-collar in image 0.",
-   "photo_score": 1,
-   "set": "picked",
-   "src": [
-    "https://vintagehistoricsports.fr/en/products/1998-99-bresil-domicile-m",
-    "https://www.unisportstore.com/football-shirts/cbf-m-nk-reissue-ss-jsy-varsity-maizepine-greenlucky-green/353121/"
-   ],
-   "store": "vintagehistoricsports.fr/en/products/1998-99-bresil-domicile-m",
-   "store2": "unisportstore.com",
+   "conf": 0.1,
+   "cost": 0.01885,
+   "current_bad": false,
+   "deep": 1,
+   "dropped": [],
+   "gallery": [],
+   "main": null,
+   "model": [],
+   "model_name": "Brazil 1998 Umbro Home Shirt and Shorts (replica)",
+   "note": "No store carries this exact kit. Store A and C show the Nike 2002 kit, store B the Umbro USA/England shirts, store G and H the Nike 1998 home (round collar, no tonal crest pattern), and store E's Brazil hit is a single detail crop. Those differ in collar, pattern or brand, so none qualifies as the exact version or a very similar item. Store H's photos are on hangers and a tag is visible, and store G has only three distinct shots. Image 0 is a clean, straight-on studio set on white, so it stays as the main.",
+   "photo_score": 0,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737184955-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737184955-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737184955-m1.webp"
+    ],
+    "model_name": "Brazil 1998 Home Shirt (Nike, short sleeve)",
+    "set": "picked",
+    "store": "vintagehistoricsports.fr/en/products/1998-99-bresil-domicile-m"
+   },
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": null,
    "v": 2
   },
   "7737197016": {
@@ -11301,6 +11742,8 @@
    "colour_match": true,
    "conf": 0.92,
    "cost": 0.01798,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737197016-1.webp"
@@ -11314,6 +11757,21 @@
    "model_name": "Adidas Argentina 2024 Home Long Sleeve Jersey",
    "note": "Store A lists the exact 2024 long sleeve home jersey (IP8383) in white/light blue with the FIFA and AFA badges. Its clean 2000px studio front (1) becomes the main, followed by the product-only back (2). Model shots 3, 6 and 4 show the full top. Rejected: 5 (ball and kneeling crop), 7 and 8 (tight chest and shoulder crops), and the current photo, which is less clean than store A's studio front. Store A has 4+ good photos, so no second store is needed.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.92,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737197016-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737197016-0.webp",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737197016-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737197016-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737197016-m2.webp"
+    ],
+    "model_name": "Adidas Argentina 2024 Home Long Sleeve Jersey",
+    "set": "picked",
+    "store": "nikys-sports.com/products/adidas-argentina-2024-long-sleeve-authentic-jersey-ip8383"
+   },
    "set": "picked",
    "src": [
     "https://www.nikys-sports.com/products/adidas-argentina-2024-long-sleeve-authentic-jersey-ip8383?srsltid=AYCX9vIfzEG7uVWBlHXQ1XTYmb-GM9e_jlqOTthNPML42lRC_T51PSEz"
@@ -11327,6 +11785,8 @@
    "colour_match": true,
    "conf": 0.6,
    "cost": 0.02268,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
     "9 closeup: cut-out broke (item mostly removed)",
     "5 closeup: item cut off by the frame",
@@ -11342,6 +11802,17 @@
    "model_name": "Argentina 1998 World Cup Retro Home Football Shirt (1998-99 Batistuta 9 vintage adidas home shirt)",
    "note": "Store A has the largest consistent set of the 1998 adidas home shirt, with a front, back and real-part close-ups (crest, sleeve piping, hem label), all product-only with no person. Its front shot sits on a hanger, so the current studio front (image 0) stays the main. Rejected: cut-off chest and sleeve crops (3, 4, 8), the collar and inside label scans (13, 14, 15), and the duplicate back shot (16). Confidence is reduced because the back print (BATISTUTA 9) cannot be checked against image 0, which shows only the front. Other stores were not needed as a second store, since A has 4 or more good photos.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737206721-0.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "Argentina 1998 World Cup Retro Home Football Shirt (1998-99 Batistuta 9 vintage adidas home shirt)",
+    "set": "picked",
+    "store": "footballshirtcollective.com/products/1998-99-batistuta-9-argentina-vintage-adidas-home-football-shirt-l-wc-98"
+   },
    "set": "picked",
    "src": [
     "https://footballshirtcollective.com/products/1998-99-batistuta-9-argentina-vintage-adidas-home-football-shirt-l-wc-98?srsltid=AYCX9vLlUndJMo-Cm5-fhsIDSCglIOw__vRCFLGzanCQBtBJH9OOP6SO"
@@ -11388,30 +11859,37 @@
    "v": 2
   },
   "7737238447": {
-   "at": "2026-11-21T02:01:30+00:00",
-   "colour": "Navy (Blackened Blue / Midnight Navy) with light sky-blue panels",
-   "colour_match": true,
-   "conf": 0.4,
-   "cost": 0.02136,
+   "at": "2026-11-21T14:56:26+00:00",
+   "colour": "Navy",
+   "colour_match": false,
+   "conf": 0.2,
+   "cost": 0.02089,
+   "current_bad": false,
+   "deep": 1,
    "dropped": [],
    "gallery": [],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737238447-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737238447-m1.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737238447-m2.webp"
-   ],
-   "model_name": "France 2024 Nike Dri-FIT Training Kit (drill top, navy/light-blue)",
-   "note": "No store shows the exact short-sleeve 2024 set in clean product shots. Store F has the 2024 navy drill top with light-blue panels and matching navy shorts, but only on models, so it is the closest set. Store C adds the same 2024 navy top on models. Current photo stays main because it is already a clean product-only shot of the set. Rejected: Store A and D (home jerseys), Store G (track jacket), Store B (watermarked leak renders), Store E (logo only), and store F's 2022 and blue items.",
-   "photo_score": 1,
-   "set": "picked",
-   "src": [
-    "https://www.unisportstore.no/treningsoverdel/fff-m-nk-df-strk-drill-top-k-blackened-bluecobalt-blisscobalt-bliss/352786/",
-    "https://www.prodirectsport.com/products/nike-france-2024-dri-fit-adv-strike-drill-top-blackened-blue-cobalt-bliss-cobalt-bliss-mens-replica-1015204"
-   ],
-   "store": "unisportstore.no",
-   "store2": "prodirectsport.com/products/nike-france-2024-dri-fit-adv-strike-drill-top-blackened-blue-cobalt-bliss-cobalt-bliss-mens-replica-1015204",
+   "main": null,
+   "model": [],
+   "model_name": "France 2024 Nike Dri-FIT Training Kit",
+   "note": "Only store G shows the matching 2024-25 navy top with sky-blue raglan panels, but only as a model shot (photo 47), and the main must be product-only. Other store G France photos are different versions (2022 Strike, blue match shorts). Store F's navy tracksuit is a long-sleeve jacket and pants in a group frame, and store A/B/C/D/H are other items or colours. No clean product-only front of the exact top, so no photos are picked and the current photo stays.",
+   "photo_score": 0,
+   "prev": {
+    "conf": 0.4,
+    "gallery": [],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737238447-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737238447-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737238447-m2.webp"
+    ],
+    "model_name": "France 2024 Nike Dri-FIT Training Kit (drill top, navy/light-blue)",
+    "set": "picked",
+    "store": "unisportstore.no"
+   },
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": null,
    "v": 2
   },
   "7737242150": {
@@ -11420,6 +11898,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.01983,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
     "25 front: cut-out broke (item mostly removed)"
    ],
@@ -11432,6 +11912,18 @@
    "model_name": "England 2002 Home Shirt (Umbro, retro replica)",
    "note": "Store D (scoredraw) has a clean, consistent studio set of the exact 2002 shirt: plain front (no name or number), plain back, and crest close-ups showing the real badge and sleeve. Front is the main, back product shot follows. Rejected: size/kick-off tags (30), inside mesh with tag (29). Pinterest (A) is a mixed collage of sources, and store B/C photos show name/number prints, labels and tags. Store F duplicates D's shots and adds only a model shot, so it was not needed. Current photo is a smaller, less professional image, so it is not kept as main.",
    "photo_score": 3,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737242150-1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737242150-2.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737242150-0.webp",
+    "model": [],
+    "model_name": "England 2002 Home Shirt (Umbro, retro replica)",
+    "set": "full",
+    "store": "scoredraw.com/international/international/england/739_england-2002-retro-football-shirt.html"
+   },
    "set": "full",
    "src": [
     "https://www.scoredraw.com/international/international/england/739_england-2002-retro-football-shirt.html"
@@ -11472,6 +11964,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.01997,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [],
    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737484480-0.webp",
@@ -11479,6 +11973,15 @@
    "model_name": "Adidas Netherlands 1988 Home Jersey (long sleeve)",
    "note": "Store A's photo 1 is the same long-sleeve orange 1988 KNVB jersey as image 0, at 1024px and product-only, so it replaces the low-res current main. Store A's other photos show the short-sleeve version or are model and campaign shots, so they were rejected. Store B and E are short-sleeve, so they are a different garment and were not used. No store has a second set of the exact long-sleeve item, so store2 is null.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737484480-0.webp",
+    "model": [],
+    "model_name": "Adidas Netherlands 1988 Home Jersey (long sleeve)",
+    "set": "picked",
+    "store": "pinterest.com/ideas/netherlands-1988-home-jersey/918827136320/"
+   },
    "set": "picked",
    "src": [
     "https://www.pinterest.com/ideas/netherlands-1988-home-jersey/918827136320/"
@@ -11487,29 +11990,36 @@
    "v": 2
   },
   "7737549317": {
-   "at": "2026-11-21T02:02:49+00:00",
-   "colour": "Sky Blue/White/Black",
+   "at": "2026-11-21T14:57:28+00:00",
+   "colour": "Sky blue/white with black shorts",
    "colour_match": true,
-   "conf": 0.6,
-   "cost": 0.01886,
-   "dropped": [
-    "15 closeup: cut-out failed"
-   ],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737549317-0.webp"
-   ],
+   "conf": 0.55,
+   "cost": 0.02075,
+   "current_bad": false,
+   "deep": 1,
+   "dropped": [],
+   "gallery": [],
    "keep_current_main": true,
    "main": "current",
    "model": [],
    "model_name": "Argentina 1986 Retro Home Kit (shirt and shorts set)",
-   "note": "Store E is the only store selling the exact shirt-and-shorts set with black shorts and light blue piping, so it gives the main front and back. Its image 30 puts two views in one frame, so it was rejected. Store E has fewer than 4 good photos, so store B adds shirt-only shots: the back and a sleeve close-up. Store B's collar and crest or logo close-ups were rejected because they show the inside label or only a logo, and its duplicate shots were skipped. Store B has no shorts, so the extra photos are shirt-only, which lowers confidence. Image 0 is not a clean studio product shot, so it does not stay as the main.",
+   "note": "Store G has one clean studio shot of the shirt and shorts set on a plain background, with no person, hanger or watermark. Store A is mostly model shots of the shirt only, with a different crest. Store B and E are hanger shots. Store C has a watermark and store H has hanger shots and a front-and-back collage. Only one clean product photo was found, so no second store was added. Image 0 is already a clean product front of the same set, so it may stay the main.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737549317-0.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "Argentina 1986 Retro Home Kit (shirt and shorts set)",
+    "set": "picked",
+    "store": "billigefotballdrakter.com/argentina-hjemmedrakt-1986-fotballsett-til-barn/"
+   },
    "set": "picked",
-   "src": [
-    "https://www.billigefotballdrakter.com/argentina-hjemmedrakt-1986-fotballsett-til-barn/"
-   ],
-   "store": "billigefotballdrakter.com/argentina-hjemmedrakt-1986-fotballsett-til-barn/",
-   "store2": "footyjerseyhub.com/products/argentina-home-1986-retro-adults",
+   "similar": true,
+   "src": [],
+   "store": "retrofootball-shirts.com",
    "v": 2
   },
   "7737556608": {
@@ -11542,26 +12052,35 @@
    "v": 2
   },
   "7737563360": {
-   "at": "2026-11-21T02:03:25+00:00",
+   "at": "2026-11-21T14:57:39+00:00",
    "colour": "Navy",
-   "colour_match": true,
-   "conf": 0.3,
-   "cost": 0.01134,
+   "colour_match": false,
+   "conf": 0.2,
+   "cost": 0.01404,
+   "current_bad": true,
+   "deep": 1,
    "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737563360-0.webp"
-   ],
-   "keep_current_main": true,
-   "main": "current",
+   "gallery": [],
+   "main": null,
    "model": [],
    "model_name": "England 2004 Umbro Away Shorts",
-   "note": "Store B is the only navy England shorts listing, but it is a 2004-05 Umbro training short with white piping and no white side panel, so it is not the exact away version. Photo 8 is a near-duplicate of 7 and was dropped. Store D has the matching crest and panel layout but is royal blue with grey panels, so it was not used. No store has the exact version, so confidence is low. Store A, C, E, F and G are white or otherwise off-colour and were rejected. Store2 is null because no other store offers a navy match.",
-   "photo_score": 1,
-   "set": "picked",
-   "src": [
-    "https://www.classicfootballshirts.co.uk/2004-05-england-umbro-training-shorts-910-m-engsh0450372.html"
-   ],
-   "store": "classicfootballshirts.co.uk/2004-05-england-umbro-training-shorts-910-m-engsh0450372.html",
+   "note": "No store has a clean, studio, product-only photo of the exact navy shorts. Store F (image 23) and Store E (image 18) show navy England shorts, but both are on a hanger in a room or against a busy background, which the rules reject. Store A and C show landmarks, B shows a red shirt, D is a kit set on grass with a trophy, G shows white shorts, H shows Chelsea shorts, and the rest are other items or other colours. Image 0 has a hanging tag at the top, so it is not a clean main either. Recommend sourcing a clean studio shot before listing.",
+   "photo_score": 0,
+   "prev": {
+    "conf": 0.3,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737563360-0.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "England 2004 Umbro Away Shorts",
+    "set": "picked",
+    "store": "classicfootballshirts.co.uk/2004-05-england-umbro-training-shorts-910-m-engsh0450372.html"
+   },
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": null,
    "v": 2
   },
   "7737575040": {
@@ -11589,6 +12108,8 @@
    "colour_match": false,
    "conf": 0.55,
    "cost": 0.01732,
+   "deep": 1,
+   "deep_error": "TimeoutError('The read operation timed out')",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737579018-0.webp",
@@ -11600,6 +12121,18 @@
    "model_name": "Umbro England 1990 Home Retro Jersey",
    "note": "Store B is the only clean, consistent studio set of the 1990-92 England home shirt with the same pattern, crest and cuff band. Its collar is navy rather than black, so the colour match is partial. Photos 8 and 9 are duplicates of 5 and 7, so they were dropped. Store A, C and G show different designs, and D and E are hanger or mannequin shots with pinterest-quality images. Store F and H are mixed resale listings with different versions. Store2 is null because the other candidates are not a consistent set of this exact item. Current photo 0 is on a hanger, so it is not a clean studio main.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.55,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737579018-0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737579018-1.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "Umbro England 1990 Home Retro Jersey",
+    "set": "picked",
+    "store": "vintagehistoricsports.fr/en/products/1990-92-angleterre-domicile-9-l"
+   },
    "set": "picked",
    "src": [
     "https://vintagehistoricsports.fr/en/products/1990-92-angleterre-domicile-9-l"
@@ -11613,6 +12146,8 @@
    "colour_match": true,
    "conf": 0.6,
    "cost": 0.0193,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [],
    "keep_current_main": true,
@@ -11625,6 +12160,19 @@
    "model_name": "Nike England 2024 Away Stadium Shirt",
    "note": "Image 0 (dark purple, gold crest, blue/maroon/gold side panels) is the Euro 2024 away kit, not the 2020 blue away. Store F has only one clean product-only front (30) and its other shots carry a 'DAD 1' name print, so they were rejected; store C is the second store with the same purple kit on a model, giving front, back and collar close-up. Rejected: C's crest-only close-up and 'ENGINEERED' label, sleeve crop, near-duplicate front crop; A, B, E and the scarf in D are the wrong kit or product.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737581024-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737581024-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737581024-m2.webp"
+    ],
+    "model_name": "Nike England 2024 Away Stadium Shirt",
+    "set": "picked",
+    "store": "rebelsport.com.au/p/england-nike-away-stadium-shirt-2024-with-dad-1-printing-FAN201514258.html"
+   },
    "set": "picked",
    "src": [
     "https://www.footballshirtculture.com/new-kits/england-2024-nike-away-kit.html"
@@ -11639,6 +12187,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.01264,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737586868-1.webp"
@@ -11648,6 +12198,17 @@
    "model_name": "Umbro England Euro 96 Home Shirt (1996 Home Jersey)",
    "note": "Store C (urbanmenswear) sells the exact Umbro Euro 96 home shirt in white, with clean studio front and product-only back shots. Photo 17 duplicates the front, so it was skipped. Current photo 0 is a hanger shot on a wall, not a studio shot, so it does not stay the main. Store C has fewer than 4 distinct photos, but no other store has more photos of this exact Umbro 1996 shirt: store F shows one back view with a Southgate name print, store D is a pre-owned Gascoigne shirt, and the other Nike or Umbro listings are different kits. So no second store was named.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737586868-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737586868-0.webp",
+    "model": [],
+    "model_name": "Umbro England Euro 96 Home Shirt (1996 Home Jersey)",
+    "set": "picked",
+    "store": "urbanmenswear.co.uk/products/umbro-euro-96-home-england-shirt-white"
+   },
    "set": "picked",
    "src": [
     "https://www.urbanmenswear.co.uk/products/umbro-euro-96-home-england-shirt-white"
@@ -11661,6 +12222,8 @@
    "colour_match": true,
    "conf": 0.8,
    "cost": 0.01788,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
     "35 closeup: cut-out broke (item mostly removed)"
    ],
@@ -11674,6 +12237,19 @@
    "model_name": "Netherlands 1994-1996 Retro Home Shirt (Copa retro replica)",
    "note": "Store E sells the same Copa 1994 retro design with the KNVB crest, white collar and red/white/blue cuffs. Chose its clean studio front as main, then the back, the embroidered crest close-up, and one full-length model shot. Rejected the label close-up, the gift-box shots, the seated bar lifestyle shot and the vintage player photo. Store E has four usable photos, so no second store is needed. The current photo is a low-resolution shot and is not better than store E's front.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.8,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737592846-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737592846-0.webp",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737592846-m0.webp"
+    ],
+    "model_name": "Netherlands 1994-1996 Retro Home Shirt (Copa retro replica)",
+    "set": "picked",
+    "store": "copafootball.com/en-us/products/holland-world-cup-1994-retro-football-shirt"
+   },
    "set": "picked",
    "src": [
     "https://copafootball.com/en-us/products/holland-world-cup-1994-retro-football-shirt"
@@ -11682,29 +12258,37 @@
    "v": 2
   },
   "7737623780": {
-   "at": "2026-11-21T02:05:04+00:00",
-   "colour": "Green (mint/teal with darker green tonal pattern)",
-   "colour_match": true,
-   "conf": 0.8,
-   "cost": 0.017,
+   "at": "2026-11-21T15:00:04+00:00",
+   "colour": "none",
+   "colour_match": false,
+   "conf": 0.0,
+   "cost": 0.01004,
+   "current_bad": true,
+   "deep": 1,
    "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737623780-1.webp"
-   ],
-   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737623780-0.webp",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737623780-m0.webp"
-   ],
-   "model_name": "Adidas Germany Goalkeeper Short Sleeve Jersey (KD5121)",
-   "note": "Store B has the exact short-sleeve goalkeeper jersey (KD5121) with a clean front studio shot, but only two good photos, so store D (same short-sleeve shirt on a mannequin, with a product-only back shot) is added as store2. Rejected: store A (long-sleeve version), store E (kids version), store C (mock-ups), store F/G (different colourways or designs), store B's close-up 10 (person and texture crop), store D's duplicate front 16 and near-duplicate front 14, and image 0 as main (not a clean official studio shot).",
-   "photo_score": 2,
-   "set": "picked",
-   "src": [
-    "https://www.prokeepersline.com/ADIDAS-GERMANY-26-HOME-GOALKEEPER-SHORT-SLEEVE-JERSEY/KD5121",
-    "https://kithappens.store/en-us/products/germany-goalkeeper-world-cup-jersey-2026"
-   ],
-   "store": "prokeepersline.com/ADIDAS-GERMANY-26-HOME-GOALKEEPER-SHORT-SLEEVE-JERSEY/KD5121",
-   "store2": "kithappens.store/en-us/products/germany-goalkeeper-world-cup-jersey-2026",
+   "gallery": [],
+   "main": null,
+   "model": [],
+   "model_name": "Adidas Germany 2024 Goalkeeper Jersey",
+   "note": "No candidate shows a football jersey. Stores A to H only list Adidas sneakers and shoes (Campus 00s, Grand Court, Superstar, running shoes), so no store has the exact item or a very similar garment. Image 0 is a tilted, non-studio seller shot on a busy background with stray lines, so it is rated as a bad current main. Nothing is selected.",
+   "photo_score": 0,
+   "prev": {
+    "conf": 0.8,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737623780-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737623780-0.webp",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737623780-m0.webp"
+    ],
+    "model_name": "Adidas Germany Goalkeeper Short Sleeve Jersey (KD5121)",
+    "set": "picked",
+    "store": "prokeepersline.com/ADIDAS-GERMANY-26-HOME-GOALKEEPER-SHORT-SLEEVE-JERSEY/KD5121"
+   },
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": null,
    "v": 2
   },
   "7737976883": {
@@ -11713,6 +12297,8 @@
    "colour_match": true,
    "conf": 0.6,
    "cost": 0.01406,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737976883-0.webp"
@@ -11725,6 +12311,19 @@
    "model_name": "Adidas Algeria Home Kit (2025-26 home jersey, white)",
    "note": "Store A has the clearest studio set of this white and green/red trim design: a front product shot and a back product shot, plus one usable model shot. Image 6 duplicates image 1, image 5 is a tight neck crop on a person, and image 4 is a near-duplicate chest crop of the model. Store A sells the jersey only, not the matching shorts, and the design is a close match rather than a verified exact version, hence the moderate confidence.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737976883-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737976883-m0.webp"
+    ],
+    "model_name": "Adidas Algeria Home Kit (2025-26 home jersey, white)",
+    "set": "picked",
+    "store": "surf.soccerpost.com/products/adid-jn4457-adidas-algeria-25-26-home-jersey"
+   },
    "set": "picked",
    "src": [
     "https://surf.soccerpost.com/products/adid-jn4457-adidas-algeria-25-26-home-jersey"
@@ -11738,6 +12337,8 @@
    "colour_match": false,
    "conf": 0.3,
    "cost": 0.01974,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738018335-0.webp"
@@ -11750,6 +12351,19 @@
    "model_name": "Adidas Algeria Concept Jersey",
    "note": "No store has the white/gold concept version. Store A's Algeria kit (same gold-tan triangle pattern on white, but green/red trim) is the closest clean studio set, so its front and back are used as main and back; only two good shots, so store B's product shots and a model front shot are added as store2. Rejected: A's crest and collar close-ups (logo and neck-print), tag and care-label shots, duplicate front; B's duplicate front, collar close-up and cropped chest model shot; store C's and F's 2024 green-pattern kits; D's tech sheet and pair shot; E's and G's repeats of the same kit. The current photo is a flat lay with a messy background, so it is not kept as main.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.3,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738018335-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738018335-m0.webp"
+    ],
+    "model_name": "Adidas Algeria Concept Jersey",
+    "set": "picked",
+    "store": "prodirectsport.com/products/adidas-algeria-2026-authentic-home-shirt-chalk-white-mens-replica-1042894"
+   },
    "set": "picked",
    "src": [
     "https://www.prodirectsport.com/products/adidas-algeria-2026-authentic-home-shirt-chalk-white-mens-replica-1042894",
@@ -11765,6 +12379,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.02107,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738042141-1.webp"
@@ -11776,6 +12392,19 @@
    "model_name": "Colombia Centenary Jersey (Colombia Centenary Football Shirt, White, 100-year anniversary edition)",
    "note": "Store G has clean 3840px studio product shots of the exact centenary shirt: front (20), back (23, product-only) and a women's-cut front (21). That is fewer than 4 good photos, so Store A is the second store: its studio front (2) and a model shot (3) follow. Rejected: Store G 22 and 24-28 (2016 home shirt, different design), Store A's flat lay on the chair (styled scene with props), and the Store B and D lifestyle or chair shots. Store C and E/F are different jerseys. Current photo 0 has edge artefacts, so Store G's cleaner front takes the main slot.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738042141-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738042141-0.webp",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738042141-m0.webp"
+    ],
+    "model_name": "Colombia Centenary Jersey (Colombia Centenary Football Shirt, White, 100-year anniversary edition)",
+    "set": "picked",
+    "store": "unisportstore.no"
+   },
    "set": "picked",
    "src": [
     "https://www.unisportstore.no/fotballdrakter/colombia-hjemmedrakt-100-ars-jubileum/359220/",
@@ -11810,6 +12439,8 @@
    "colour_match": true,
    "conf": 0.8,
    "cost": 0.01956,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [],
    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738067721-0.webp",
@@ -11821,6 +12452,19 @@
    "model_name": "adidas Japan Football Association Anthem Jacket",
    "note": "Store C has the closest exact version: royal blue with white three stripes on sleeves and shoulders, white zip, JFA crest. Its front product shot (24) is the main. Model shots 27 (full length) and 25 (back) follow, plus 28 for a different pose. Rejected: 26 (tight chest crop), 29 (near-duplicate of 28). Store B's jacket is reversible with a printed side, so it is a different product, and store D's photos are model-only with no back product shot.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.8,
+    "gallery": [],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738067721-0.webp",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738067721-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738067721-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738067721-m2.webp"
+    ],
+    "model_name": "adidas Japan Football Association Anthem Jacket",
+    "set": "picked",
+    "store": "aztecasoccer.com/products/adidas-japan-mens-home-anthem-2026-jacket-blue"
+   },
    "set": "picked",
    "src": [
     "https://aztecasoccer.com/products/adidas-japan-mens-home-anthem-2026-jacket-blue?srsltid=AYCX9vKa8NDJ46LE5pt8lJW3WpcpCjsAj-6sYLQ2Ean9DCn9Nsrxx1o5"
@@ -11834,6 +12478,8 @@
    "colour_match": true,
    "conf": 0.8,
    "cost": 0.01643,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
     "16 closeup: item cut off by the frame"
    ],
@@ -11848,6 +12494,20 @@
    "model_name": "Adidas Spain Home Jersey (pinstripe red with navy raglan sleeves, gold crest)",
    "note": "Image 0 matches the newer pinstripe kit with navy raglan sleeves, not the 2022 Home shirt (which has no pinstripes). Store D has the matching kit in a clean studio front, back and detail set, so it is chosen over the other stores. Rejected: the chest logo crop (14) as a loose logo, the label/inside shot (19), the tight chest crop of the model (12), the model holding the shirt (17), and the duplicate model shots. Store D has at least 4 good photos, so no second store is needed.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.8,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738891550-1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738891550-2.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738891550-0.webp",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738891550-m0.webp"
+    ],
+    "model_name": "Adidas Spain Home Jersey (pinstripe red with navy raglan sleeves, gold crest)",
+    "set": "picked",
+    "store": "unisportstore.no"
+   },
    "set": "picked",
    "src": [
     "https://www.unisportstore.no/fotballdrakter/spania-hjemmedrakt-202526/430383/",
@@ -11902,26 +12562,41 @@
    "v": 2
   },
   "7738930336": {
-   "at": "2026-11-21T02:08:07+00:00",
+   "at": "2026-11-21T15:01:56+00:00",
    "colour": "Red with yellow and black trim",
    "colour_match": true,
-   "conf": 0.4,
-   "cost": 0.01762,
+   "conf": 0.8,
+   "cost": 0.02228,
+   "current_bad": false,
+   "deep": 1,
    "dropped": [
-    "28 closeup: item cut off by the frame",
-    "26 closeup: cut-out broke (item mostly removed)"
+    "25 closeup: cut-out broke (item mostly removed)",
+    "27 closeup: item cut off by the frame"
    ],
    "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738930336-0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738930336-1.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738930336-d0.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738930336-d1.webp"
    ],
    "keep_current_main": true,
    "main": "current",
    "model": [],
-   "model_name": "Adidas Belgium 2022 Home Jersey Long Sleeve (short-sleeve fallback design)",
-   "note": "No store sells the exact long-sleeve version. Store E has the same tonal red pattern, yellow and black trim and yellow sleeve stripes, but on a short-sleeve shirt, so it is used only as extra photos. Image 0 stays the main because it is already a clean studio front. Rejected: store A (Liverpool kit), stores B, C, D and H (2022 flame-sleeve design), store F (maroon away kit), store G (different design), store E's training top, T-shirt and Switzerland shirt (different garments), and the lion-print back neck shot (logo-like detail).",
-   "photo_score": 1,
+   "model_name": "Adidas Belgium 2022 Home Jersey Long Sleeve",
+   "note": "Store G is the only store showing this exact long-sleeve design: yellow raglan stripes, black and yellow trim, and the back devil logo. Its useful product shots are the back view (29) and crest, collar and sleeve close-ups (25, 30, 27). Image 0 is already a clean straight-on studio front, and store G has no clean front, so image 0 stays the main. Rejected: the training top (26), the other team shirts (31, 32), and the back-neck logo shot (28), which reads as a logo close-up. Stores A, B, D, E and F show short-sleeve or different-design versions with flame sleeves, and store H is a Liverpool kit.",
+   "photo_score": 2,
+   "prev": {
+    "conf": 0.4,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738930336-0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738930336-1.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "Adidas Belgium 2022 Home Jersey Long Sleeve (short-sleeve fallback design)",
+    "set": "picked",
+    "store": "unisportstore.no"
+   },
    "set": "picked",
+   "similar": false,
    "src": [
     "https://www.unisportstore.no/fotballdrakter/belgia-hjemmedrakt-202526/430351/"
    ],
@@ -11934,6 +12609,8 @@
    "colour_match": false,
    "conf": 0.5,
    "cost": 0.0161,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [],
    "keep_current_main": true,
@@ -11944,6 +12621,17 @@
    "model_name": "adidas Argentina AFA Training Vest",
    "note": "No store has the exact version. Store D's flat front shot (11) matches the vest's white body, light blue shoulder panels and three-star AFA crest, so it is the main. Its back view (14) is a model shot cut at the hips, used as the fallback back. Rejected: store D's sponsor-branded versions (13, 16-18, a different version), the chest crop (12), the hem detail with hands (15) and the label shot (18). Store A is beige/grey, store B is mint/navy, store C is 2002 navy, and stores E, F and G sell short-sleeve tops, track tops or home jerseys. No second store, since the other stores show different designs or garments.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.5,
+    "gallery": [],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738940914-m0.webp"
+    ],
+    "model_name": "adidas Argentina AFA Training Vest",
+    "set": "picked",
+    "store": "ebay.com"
+   },
    "set": "picked",
    "src": [
     "https://www.ebay.com/itm/317511740810"
@@ -11983,6 +12671,8 @@
    "colour_match": true,
    "conf": 0.4,
    "cost": 0.01631,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738995950-0.webp"
@@ -11997,6 +12687,21 @@
    "model_name": "Adidas Wales 2024 Home Jersey (Wales 22 Home kit, kids' set not matched)",
    "note": "Store A is the only option with a consistent official studio set of a Wales red home shirt. Its design differs from image 0: it has green and white side panels and no horizontal chest stripes, and it is an adult jersey rather than the kids' set. Store B is Liverpool, store C and D show the 2022 World Cup diagonal-pattern shirt, and store E and F are not the item. Rejected: store A photo 8 and 10 (duplicates of the front), photo 6 (chest crop), photo 3 (torso crop with hands), and photo 9 (cropped model). Store2 not needed since store A has more than 4 good photos.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.4,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738995950-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738995950-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738995950-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738995950-m2.webp"
+    ],
+    "model_name": "Adidas Wales 2024 Home Jersey (Wales 22 Home kit, kids' set not matched)",
+    "set": "picked",
+    "store": "bestbuysoccer.com/products/adidas-wales-home-jersey-2024"
+   },
    "set": "picked",
    "src": [
     "https://www.bestbuysoccer.com/products/adidas-wales-home-jersey-2024?srsltid=AYCX9vIflt4h3N_dY4abVmbVt07jgwudS0z7n5MY2IEcft7hmQQPcMr5"
@@ -12010,6 +12715,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.01959,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [
     "38 front: item cut off by the frame",
     "39 back: item cut off by the frame"
@@ -12024,6 +12731,19 @@
    "model_name": "Mexico Fan Jersey White",
    "note": "Store E's adidas Mexico host/pre-match jersey matches the white dot-halftone pattern, green MEXICO wordmark, crest and green collar. Its clean front shot (38) becomes the main, replacing the current photo, which is not a clean studio shot. The back product shot is included. Model shots 40, 41 and 43 are kept, plus the hem close-up 44. Rejected: 46 (duplicate of 38), 42 (similar to 40), 45 (logo-focused chest crop). Store E has enough good photos, so no second store is needed.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [],
+    "main": null,
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738999956-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738999956-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7738999956-m2.webp"
+    ],
+    "model_name": "Mexico Fan Jersey White",
+    "set": "model only",
+    "store": "tudnfanshop.com/products/adidas-mexico-host-nation-jersey"
+   },
    "set": "model only",
    "src": [
     "https://www.tudnfanshop.com/products/adidas-mexico-host-nation-jersey?srsltid=AYCX9vJCduKzy09jLi-2RbPVFL01Q_Szu8sMRE42-RcV0rzdHqluxLPD"
@@ -12055,6 +12775,8 @@
    "colour_match": true,
    "conf": 0.5,
    "cost": 0.01523,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7739526081-0.webp"
@@ -12065,6 +12787,17 @@
    "model_name": "Switzerland National Team Home Jersey 2026 (Switzerland 26-27 Home Jersey)",
    "note": "Store A has the closest studio match (red, tonal wave texture, white side panels, lion crest, cross). Its photos 3 and 4 were rejected because they carry a printed number and name, which the item lacks. Store E (one front photo) and Store G (authentic version, one photo) are weaker or duplicates. Store D has a hang tag in its front shot. Store A shows a Puma logo while image 0 suggests Nike Dri-FIT, so the manufacturer should be verified and confidence is moderate. Image 0 is a dirty flat lay, so it does not stay as main.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.5,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7739526081-0.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "Switzerland National Team Home Jersey 2026 (Switzerland 26-27 Home Jersey)",
+    "set": "picked",
+    "store": "jerseymotion.com/product/switzerland-26-27-home-jersey/"
+   },
    "set": "picked",
    "src": [
     "https://jerseymotion.com/product/switzerland-26-27-home-jersey/"
@@ -12078,6 +12811,8 @@
    "colour_match": true,
    "conf": 0.7,
    "cost": 0.02199,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [],
    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7739540109-0.webp",
@@ -12085,6 +12820,15 @@
    "model_name": "Switzerland 2026 Home Jersey (Puma, men's replica)",
    "note": "Store E is the official Puma listing for the 2026 home jersey. Its front shot is a clean studio product photo matching image 0 (crest left chest, Swiss cross right chest, white side panels, Puma mark). It has only one good photo, so store A (same design, reseller images) is the second store. Most store A shots carry a 'Real images' watermark and are close-ups of logos or hems, so they were rejected. Store A's front shot is a near-duplicate of store E's, and it is the only clean one from store A. Store G is the 'authentic' version with a different pattern, store F is the away kit, store H is a video frame, and stores B, C and D are other kits or homemade photos. Image 0 is a draped product photo, not a clean studio shot, so the current main is replaced.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.7,
+    "gallery": [],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7739540109-0.webp",
+    "model": [],
+    "model_name": "Switzerland 2026 Home Jersey (Puma, men's replica)",
+    "set": "picked",
+    "store": "eu.puma.com/pt/en/pd/switzerland-2026-home-jersey-men/783218"
+   },
    "set": "picked",
    "src": [
     "https://eu.puma.com/pt/en/pd/switzerland-2026-home-jersey-men/783218?swatch=01"
@@ -12143,6 +12887,8 @@
    "colour_match": true,
    "conf": 0.85,
    "cost": 0.01425,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [
     "14 closeup: cut-out broke (item mostly removed)"
    ],
@@ -12154,6 +12900,17 @@
    "model_name": "Brazil CBF Long Sleeve Training Top (2002-era, Nike, Guaraná Antarctica sponsor)",
    "note": "Store B has the exact match: the same royal blue top with white side panels, Guaraná sponsor, CBF crest and Nike logo, shot as a consistent studio set. Photo 11 is the front and photo 12 the product-only back. Photo 14 is kept as a close-up showing the crest and the collar/zip area. Photo 13 is rejected as a logo-only close-up, and photo 15 is a duplicate of the front. Stores A, C and D are different garments or colourways, and E, F and G are other products or search hits.",
    "photo_score": 3,
+   "prev": {
+    "conf": 0.85,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740159244-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740159244-0.webp",
+    "model": [],
+    "model_name": "Brazil CBF Long Sleeve Training Top (2002-era, Nike, Guaraná Antarctica sponsor)",
+    "set": "full",
+    "store": "foot-sport.com/en/products/veste-bresil-training-homme-2002-bleu"
+   },
    "set": "full",
    "src": [
     "https://www.foot-sport.com/en/products/veste-bresil-training-homme-2002-bleu?srsltid=AYCX9vJzaTjTdJ-IC4qWY1GEXrmf4g1NjsvTRZkmcxlXseIXjg8Y1BLg"
@@ -12200,27 +12957,36 @@
    "v": 2
   },
   "7740180920": {
-   "at": "2026-11-21T02:11:37+00:00",
-   "colour": "Black with light blue hem trim and gold AFA crest",
-   "colour_match": true,
-   "conf": 0.6,
-   "cost": 0.01733,
+   "at": "2026-11-21T15:05:01+00:00",
+   "colour": "none chosen",
+   "colour_match": false,
+   "conf": 0.1,
+   "cost": 0.01692,
+   "current_bad": false,
+   "deep": 1,
    "dropped": [],
    "gallery": [],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740180920-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740180920-m1.webp"
-   ],
-   "model_name": "Argentina AFA Football Shorts (2026 black fan version)",
-   "note": "Store D has the matching black version with gold crest and light blue hem, and has more than 4 usable photos, so no second store. Its product front (7) is the main. Its only product-only back (8) is a different checkered design, so the model back (14) is used as the fallback. Model front (10) is included. Rejected: checkered and navy designs (8, 9, 12, 13), the close crop of the back (11), and the navy and checkered store A/B/E/F/G/H items. Store A has only 3 photos and shows a slightly different panel layout, so it was not used as the main store. The light blue side panels of image 0 do not clearly appear in store D's shots, so the match is not certain.",
-   "photo_score": 1,
-   "set": "picked",
-   "src": [
-    "https://www.storeafa.com/en/argentina-adidas-messi-2026-shorts/p-136647092553989966+z-93-2095231716"
-   ],
-   "store": "storeafa.com",
+   "main": null,
+   "model": [],
+   "model_name": "Argentina AFA football shorts (2024 Copa América style, unconfirmed)",
+   "note": "No store has the exact black shorts with light blue side panels. Store A (footsoccerpro) and Store F (footballkitzone) show navy shorts with a sky-blue block panel, a different colour and panel layout. Store D's shorts are white, Store G's are a printed blue design, and Store E's shots are player/campaign photos. Store H and Store B/C show jerseys only. Rejected for colour, panel layout and campaign or mannequin shots. The current photo is a clean front product shot on a white background, so it stays as the main.",
+   "photo_score": 0,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740180920-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740180920-m1.webp"
+    ],
+    "model_name": "Argentina AFA Football Shorts (2026 black fan version)",
+    "set": "picked",
+    "store": "storeafa.com"
+   },
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": null,
    "v": 2
   },
   "7740180922": {
@@ -12254,6 +13020,8 @@
    "colour_match": false,
    "conf": 0.4,
    "cost": 0.02083,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740220496-0.webp"
@@ -12264,6 +13032,17 @@
    "model_name": "France National Team Sleeveless Training Top and Shorts Set",
    "note": "No store sells the navy top with light blue panels. Store A's set matches the navy shorts with light grey side panels and the rooster crest with stars and FFF, but its top is white/pale blue with navy shoulders, so it is a close fallback. All stores B to H are in other colourways (royal blue, mint, white tracksuits, denim, camo). Store A has four clean studio product shots, so no second store is needed. Current photo 0 has a hanger, so it is not kept as main. Rejected nothing from Store A.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.4,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740220496-0.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "France National Team Sleeveless Training Top and Shorts Set",
+    "set": "picked",
+    "store": "footsoccerpro.co/en/product/France-national-team-2024-2025-white-tank-top-and-shorts/"
+   },
    "set": "picked",
    "src": [
     "https://footsoccerpro.co/en/product/France-national-team-2024-2025-white-tank-top-and-shorts/"
@@ -12302,6 +13081,8 @@
    "colour_match": true,
    "conf": 0.55,
    "cost": 0.01984,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740927542-0.webp"
@@ -12315,6 +13096,20 @@
    "model_name": "Adidas Argentina 2024 Copa América Home Authentic Jersey",
    "note": "Store C's photo shows the exact final-edition version (gold champion patch and blue association patch on the sleeves, commemorative match text under the crest), but it has only one photo, so store A is added as second store for more shots. Store A's Authentic jersey lacks the sleeve patches and commemorative text, so its photos are a close but not exact match, which lowers confidence. Store A's back product shot (11) and collar close-up (6) are used, plus one model front shot (2). Rejected: lifestyle and kicking shots, the hem and shoulder detail shots, and the large number of near-duplicate store A poses. The current photo 0 is not a clean studio shot, so it does not stay as main.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.55,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740927542-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740927542-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740927542-m1.webp"
+    ],
+    "model_name": "Adidas Argentina 2024 Copa América Home Authentic Jersey",
+    "set": "picked",
+    "store": "protechkitzone.com/argentina-2024-home-shirt-copa-america-final-full-set-ver-with-match-details-992357790"
+   },
    "set": "picked",
    "src": [
     "https://xtremesocceronline.com/products/adidas-argentina-2024-match-home-mens-soccer-authentic-jersey-ip8388?srsltid=AYCX9vIRvcWe2eZuvV_N8QE6qwqXT5vFWnGCrgS7wS8aFn1A2I0f57oR"
@@ -12329,6 +13124,8 @@
    "colour_match": true,
    "conf": 0.75,
    "cost": 0.01934,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [
     "15 side: item cut off by the frame"
    ],
@@ -12341,6 +13138,18 @@
    "model_name": "Japan National Team 1998 Retro Home Football Kit (Shirt and Shorts), kids set",
    "note": "Store E is the only store selling the exact kids shirt-and-shorts set in royal blue with white shorts, with a front and back product shot on a plain background. It has only 2 photos, so store B is added as store2 for its consistent studio shots of the same 1998 shirt (back, crest close-up, side collar/sleeve). Store B's front and asics-patch shots were skipped as near-duplicates or weak logo crops. Store B shows the shirt only, not the shorts. Store A, C, D, F, G, H were not used: they show the shirt alone, mixed photos, or lifestyle/player shots.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.75,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740931478-1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740931478-2.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740931478-0.webp",
+    "model": [],
+    "model_name": "Japan National Team 1998 Retro Home Football Kit (Shirt and Shorts), kids set",
+    "set": "picked",
+    "store": "retrofootball-shirts.com/products/japan-home-1998-kids-set"
+   },
    "set": "picked",
    "src": [
     "https://retrofootball-shirts.com/products/japan-home-1998-kids-set?srsltid=AYCX9vKe2H-VaCv5i_-0Wp6SHx2OKSf4E3p59D4GtWF6dSnmkIw44afI",
@@ -12356,6 +13165,8 @@
    "colour_match": true,
    "conf": 0.8,
    "cost": 0.01419,
+   "deep": 1,
+   "deep_error": "<HTTPError 520: '<none>'>",
    "dropped": [],
    "gallery": [],
    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740939146-0.webp",
@@ -12367,6 +13178,19 @@
    "model_name": "Adidas Wales 26 Away Jersey",
    "note": "Store A's 2026 away shirt matches image 0's design (tricolour shoulders, gold dragon, white body), though the description says Euro 2020. Store A has no product-only back shot, so the model back view is the fallback. Image 1 is the clean front main; image 5 duplicates it and is skipped. Store B and D are the 2020 yellow shirt, and C and H are the 2018 white shirt, so they don't match. Store E is a homemade deck photo and is rejected. Store A has four good photos, so no second store is needed.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.8,
+    "gallery": [],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740939146-0.webp",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740939146-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740939146-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740939146-m2.webp"
+    ],
+    "model_name": "Adidas Wales 26 Away Jersey",
+    "set": "picked",
+    "store": "shoebacca.com/products/wales-26-away-jersey-sb1158-jl6928"
+   },
    "set": "picked",
    "src": [
     "https://www.shoebacca.com/products/wales-26-away-jersey-sb1158-jl6928?srsltid=AYCX9vL11lhuzjpbCqcPi5GQVwzTLEZ1CRayU4v0rZIg9JTEsTo1fwN8"
@@ -12375,29 +13199,47 @@
    "v": 2
   },
   "7740951154": {
-   "at": "2026-11-21T02:13:46+00:00",
+   "at": "2026-11-21T15:06:40+00:00",
    "colour": "Black",
    "colour_match": true,
-   "conf": 0.5,
-   "cost": 0.01738,
+   "conf": 0.3,
+   "cost": 0.02172,
+   "current_bad": false,
+   "deep": 1,
    "dropped": [
-    "7 closeup: item cut off by the frame"
+    "31 closeup: item cut off by the frame"
    ],
    "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-1.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-d0.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-d1.webp"
    ],
    "keep_current_main": true,
    "main": "current",
    "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-m1.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-m2.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-dm0.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-dm1.webp"
    ],
-   "model_name": "Adidas AFA Argentina OG Shorts (JZ6308)",
-   "note": "Store A is the only store with a consistent professional set of black shorts with the AFA crest and three-stripe legs, including a product-only back shot. Its stripes look white rather than the white/light-blue/black of image 0, so the version match is uncertain. Duplicates (photos 8-10 repeat 1, 6 and 3) were dropped. Store B has a similar set but lacks the light-blue stripe detail and has fewer unique shots. Store H's crest and stripe layouts do not match. Store C, D and E are football-match photos, not product shots. Image 0 has no back view, so the store's back shot leads the set.",
+   "model_name": "Adidas Argentina Originals Shorts (JZ6308)",
+   "note": "Store D has the clearest black Argentina shorts shoot with white stripes, a clean flat front, back, side and drawcord close-up. Its stripes are white only, not the white, sky blue and black of image 0, so it is a similar item. Duplicates (25/32, 30/33, 23/31, 22/29) and the repeated model shots were dropped. Store A shows a different trefoil-branded design and store B is a jersey. Current photo 0 is a clean straight-on front on white and matches the exact stripes, so it stays as the main.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.5,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-1.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740951154-m2.webp"
+    ],
+    "model_name": "Adidas AFA Argentina OG Shorts (JZ6308)",
+    "set": "picked",
+    "store": "overkillshop.com/products/adidas-afa-argentina-og-shorts-jz6308-black"
+   },
    "set": "picked",
+   "similar": true,
    "src": [
     "https://www.overkillshop.com/products/adidas-afa-argentina-og-shorts-jz6308-black"
    ],
@@ -12405,27 +13247,40 @@
    "v": 2
   },
   "7740964866": {
-   "at": "2026-11-21T02:14:09+00:00",
-   "colour": "Red",
+   "at": "2026-11-21T15:07:38+00:00",
+   "colour": "Red with yellow and black trim",
    "colour_match": true,
-   "conf": 0.5,
-   "cost": 0.01851,
+   "conf": 0.8,
+   "cost": 0.02097,
+   "current_bad": true,
+   "deep": 1,
    "dropped": [],
    "gallery": [],
-   "keep_current_main": true,
-   "main": "current",
+   "main": null,
    "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740964866-m0.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740964866-dm0.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740964866-dm1.webp"
    ],
-   "model_name": "Adidas Belgium Home Jersey (youth/kids, red with yellow shoulder stripes)",
-   "note": "Store F's image 29 is the only clean studio front that matches image 0's yellow shoulder stripes and yellow/black trim. Its other shots (30-35) show the 2022 black-raglan version, so they were rejected. Store F has fewer than 4 good photos, so store G is added for its full-body model shot (39) of the same red shirt. Store G's 36 is a tight crop and 37 has a prop ball, so both were rejected. Confidence is moderate because the sizing and exact version could not be fully verified from the photos.",
-   "photo_score": 1,
-   "set": "picked",
+   "model_name": "Adidas Belgium Home Jersey 2022 (kids)",
+   "note": "Store A is the only store with the exact kids' red kit with yellow shoulder stripes and yellow/black trim. Its only usable shots are on models: a full-body front shot with a ball (5) and a back shot of two kids (4). No product-only front exists, so the main is a model shot. Rejected: tight chest crops (1, 2), a sleeve/back detail with a person (7), and the dark-red 2024 kit (3, 6, 8-12). Other stores show the adult 2022 kit with black flame sleeves, a different design, so no second store is added. Image 0 is a washed-out cut-out with edge artifacts, so it is marked bad.",
+   "photo_score": 2,
+   "prev": {
+    "conf": 0.5,
+    "gallery": [],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740964866-m0.webp"
+    ],
+    "model_name": "Adidas Belgium Home Jersey (youth/kids, red with yellow shoulder stripes)",
+    "set": "picked",
+    "store": "unisportstore.no"
+   },
+   "set": "model only",
+   "similar": false,
    "src": [
-    "https://www.zalando.no/adidas-performance-belgium-26-home-fan-lifestyle-t-shirts-med-print-redbold-gold-coloured-ad542d6ct-g11.html"
+    "https://www.zalando.co.uk/adidas-performance-belgium-home-youth-unisex-football-shirt-redgold-coloured-ad543d2hi-g11.html?size=15Y"
    ],
-   "store": "unisportstore.no",
-   "store2": "zalando.no",
+   "store": "zalando.co.uk",
    "v": 2
   },
   "7744031299": {
@@ -12453,6 +13308,8 @@
    "colour_match": true,
    "conf": 0.8,
    "cost": 0.02048,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
     "10 closeup: cut-out broke (item mostly removed)",
     "23 closeup: item cut off by the frame"
@@ -12465,6 +13322,17 @@
    "model_name": "Burberry Check Trim Cotton Jogging Pants",
    "note": "Store B matches image 0: drawstring with tipped cords, full-length check side panels, rib cuffs. Its photos 12-14 duplicate 8, 10 and 11, so only unique shots are kept. Store B has fewer than 4 good unique shots, so store D (same drawstring jogger with check panels, though its check looks slightly darker) adds more. Store A and C are kids' versions with no drawstring. Store G and H show different check placement and no drawstring. Lifestyle and model shots were skipped in favour of product-only photos.",
    "photo_score": 2,
+   "prev": {
+    "conf": 0.8,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7746902202-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7746902202-0.webp",
+    "model": [],
+    "model_name": "Burberry Check Trim Cotton Jogging Pants",
+    "set": "picked",
+    "store": "onudesignerwear.com/products/burberry-vintage-check-panel-cotton-jogging-pants-black"
+   },
    "set": "picked",
    "src": [
     "https://www.onudesignerwear.com/products/burberry-vintage-check-panel-cotton-jogging-pants-black"
@@ -12497,6 +13365,8 @@
    "colour_match": true,
    "conf": 0.6,
    "cost": 0.01961,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [],
    "keep_current_main": true,
@@ -12509,6 +13379,19 @@
    "model_name": "Purple Brand P001 Slim Jeans (light vintage wash)",
    "note": "Store A is the only store whose photos show the light blue vintage wash with the same thigh and knee distressing as image 0. Its one clean product front (5) is the main, followed by the model back view as the fallback (no product-only back), a model side view, and a back-pocket close-up. Rejected: duplicate pocket crops (3, 6, 7). Store B and D show paint-splatter or printed designs, Store C is a darker bronze wash with no distress, Store E uses a greenish wash and chain accessories, Store F and G are homemade or resale photos.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.6,
+    "gallery": [],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7775517615-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7775517615-m1.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7775517615-m2.webp"
+    ],
+    "model_name": "Purple Brand P001 Slim Jeans (light vintage wash)",
+    "set": "picked",
+    "store": "breuninger.com/lt/en/b/purple-brand/jeans-slim-fit/1001625742/p/"
+   },
    "set": "picked",
    "src": [
     "https://www.breuninger.com/lt/en/b/purple-brand/jeans-slim-fit/1001625742/p/"
@@ -12602,6 +13485,8 @@
    "colour_match": true,
    "conf": 0.35,
    "cost": 0.01955,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
     "5 closeup: item cut off by the frame"
    ],
@@ -12616,11 +13501,100 @@
    "model_name": "Longines DolceVita Automatic",
    "note": "No store shows the exact Roman-numeral, date-at-3 version of image 0. Store A is the most consistent professional studio set of the closest DolceVita Automatic (silver dial, blue hands, black strap, 'Automatic' text), though its dial uses Arabic numerals with the date at 6. Current photo 0 is already a clean official front shot of the exact item, so it stays the main. Rejected: caseback shot 6 (size/price tags visible), store A's wrist shot kept only as a last model photo, and the Cartier, Jaeger-LeCoultre and Nomos photos (other brands). Stores B to G were not used because their versions differ from the item and store A's set is better; no second store was needed since store A has more than 4 good photos.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.35,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7799632064-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7799632064-m0.webp"
+    ],
+    "model_name": "Longines DolceVita Automatic",
+    "set": "picked",
+    "store": "deployant.com/review-longines-dolcevita-automatic-the-sweet-watch/"
+   },
    "set": "picked",
    "src": [
     "https://deployant.com/review-longines-dolcevita-automatic-the-sweet-watch/"
    ],
    "store": "deployant.com/review-longines-dolcevita-automatic-the-sweet-watch/",
+   "v": 2
+  },
+  "7799634910": {
+   "at": "2026-11-20T21:46:20+00:00",
+   "colour": "Black Titanium",
+   "colour_match": true,
+   "conf": 0.9,
+   "cost": 0.01494,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
+   "dropped": [
+    "16 back: item cut off by the frame",
+    "15 front: item cut off by the frame",
+    "18 three_quarter: item cut off by the frame",
+    "20 closeup: item cut off by the frame"
+   ],
+   "gallery": [],
+   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7799634910-0.webp",
+   "model": [],
+   "model_name": "Apple iPhone 15 Pro Max 256GB Black Titanium",
+   "note": "Store B is a consistent black titanium studio shoot matching the wanted colour, with a product-only back shot as main per the back-logo rule. Store A's shots are mostly blue titanium, and its Black Titanium listing does not match the photos. Store B's duplicate 3/4 shot (21) was skipped. No person photos, and store B has enough photos, so no second store.",
+   "photo_score": 3,
+   "prev": {
+    "conf": 0.9,
+    "gallery": [],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7799634910-0.webp",
+    "model": [],
+    "model_name": "Apple iPhone 15 Pro Max 256GB Black Titanium",
+    "set": "picked",
+    "store": "re.now/products/iphone-15-pro-max-256gb-black-titanium"
+   },
+   "set": "picked",
+   "src": [
+    "https://re.now/products/iphone-15-pro-max-256gb-black-titanium?srsltid=AYCX9vKN-YF_ZGBgsANi3sKdlMcynJUaFfSg5DwJw10cQmdGZrfP91MC"
+   ],
+   "store": "re.now/products/iphone-15-pro-max-256gb-black-titanium",
+   "v": 2
+  },
+  "7809875727": {
+   "at": "2026-11-20T19:46:26+00:00",
+   "colour": "grey and off-white Damier with grey ribbed cuff",
+   "colour_match": true,
+   "conf": 0.5,
+   "cost": 0.02099,
+   "deep": 1,
+   "deep_error": "<HTTPError 544: '<none>'>",
+   "dropped": [],
+   "gallery": [
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7809875727-0.webp"
+   ],
+   "keep_current_main": true,
+   "main": "current",
+   "model": [
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7809875727-m0.webp"
+   ],
+   "model_name": "Louis Vuitton Neo Petit Damier Grey Beanie",
+   "note": "Store D is the only store selling this beanie; its 2048px studio shots are sharper than the current 360px photo. Chose the beanie-only front (53) and a cuff/metal patch close-up (58), plus one model side view (49). Rejected the beanie-and-scarf set shots, the scarf-only shots, the duplicate of 53 (59), the duplicate close-up (60), and the head-and-chest crop (51). Store D's version shows no mint edge trim, so the exact version is uncertain.",
+   "photo_score": 1,
+   "prev": {
+    "conf": 0.5,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7809875727-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7809875727-m0.webp"
+    ],
+    "model_name": "Louis Vuitton Neo Petit Damier Grey Beanie",
+    "set": "picked",
+    "store": "crepslocker.com/products/louis-vuitton-neo-petit-damier-grey-beanie-scarf"
+   },
+   "set": "picked",
+   "src": [
+    "https://www.crepslocker.com/products/louis-vuitton-neo-petit-damier-grey-beanie-scarf"
+   ],
+   "store": "crepslocker.com/products/louis-vuitton-neo-petit-damier-grey-beanie-scarf",
    "v": 2
   },
   "7811399310": {
@@ -12629,6 +13603,8 @@
    "colour_match": true,
    "conf": 0.5,
    "cost": 0.01269,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7811399310-0.webp"
@@ -12639,6 +13615,17 @@
    "model_name": "Stüssy Stock Cuff Beanie",
    "note": "Store A has the exact Stock Cuff Beanie in black; its front shot (1) is the main and the plain back (2) follows. Images 3 and 4 are near-duplicates of 1 and 2, so they were dropped. Store A has fewer than 4 distinct good angles, so store C's front (9) is added as a second-store photo. Store C's close-up (10) is a partial crop, so it was rejected. Store B's photos show a different 'basic' cuff model, so they were excluded. Store A's logo is embroidered directly on the cuff rather than on a black woven patch as in image 0, which lowers confidence.",
    "photo_score": 1,
+   "prev": {
+    "conf": 0.5,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7811399310-0.webp"
+    ],
+    "main": "current",
+    "model": [],
+    "model_name": "Stüssy Stock Cuff Beanie",
+    "set": "picked",
+    "store": "stussy.com/products/1321020-stock-cuff-beanie-black"
+   },
    "set": "picked",
    "src": [
     "https://www.stussy.com/products/1321020-stock-cuff-beanie-black"
@@ -12665,7 +13652,89 @@
    "src": [],
    "store": null,
    "v": 2
+  },
+  "857354995346": {
+   "at": "2026-11-20T19:51:35+00:00",
+   "colour": "Black",
+   "colour_match": true,
+   "conf": 0.5,
+   "cost": 0.01691,
+   "deep": 1,
+   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
+   "dropped": [],
+   "gallery": [
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/857354995346-0.webp"
+   ],
+   "keep_current_main": true,
+   "main": "current",
+   "model": [
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/857354995346-m0.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/857354995346-m1.webp"
+   ],
+   "model_name": "Stussy Midweight Hooded Puffer Jacket Black",
+   "note": "Store D has the closest hooded black puffer with the Stussy chest logo and hem toggles, with a flat front and back product shot plus full-body model shots. Its quilting is a square grid rather than the radiating stitch lines in image 0, and the hood lining is unverified, so confidence is moderate. Rejected chest and face crops, duplicates, and the non-hooded or different-colour jackets from store A and store E. Store A's only black hooded shot is a model photo of the same design, not enough for a set.",
+   "photo_score": 1,
+   "prev": {
+    "conf": 0.5,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/857354995346-0.webp"
+    ],
+    "main": "current",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/857354995346-m0.webp",
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/857354995346-m1.webp"
+    ],
+    "model_name": "Stussy Midweight Hooded Puffer Jacket Black",
+    "set": "picked",
+    "store": "stussy.com/products/115856-midweight-hooded-puffer-black"
+   },
+   "set": "picked",
+   "src": [
+    "https://www.stussy.com/products/115856-midweight-hooded-puffer-black"
+   ],
+   "store": "stussy.com/products/115856-midweight-hooded-puffer-black",
+   "v": 2
+  },
+  "894876922963": {
+   "at": "2026-11-21T14:40:06+00:00",
+   "colour": "grey (heather grey)",
+   "colour_match": true,
+   "conf": 0.45,
+   "cost": 0.01683,
+   "current_bad": false,
+   "deep": 1,
+   "dropped": [],
+   "gallery": [],
+   "main": null,
+   "model": [
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/894876922963-dm0.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/894876922963-dm1.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/894876922963-dm2.webp"
+   ],
+   "model_name": "Fear of God Essentials Hoodie",
+   "note": "Store A is the only heather grey oversized hoodie with a matching drop-shoulder, ribbed cuffs and hem. Its photos are all on a model and its back shows no flocked ESSENTIALS wordmark, so it is a very similar item rather than the exact version. Rejected the near-duplicate front shot (2). Other stores show a different front print (B, D, F, G), a colourblock design (C) or an embossed front (H), so they do not match. Image 0 is a clean back product shot, but no store offers a product-only back of this item to replace it.",
+   "photo_score": 1,
+   "prev": {
+    "conf": 0.8,
+    "gallery": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/894876922963-1.webp"
+    ],
+    "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/894876922963-0.webp",
+    "model": [
+     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/894876922963-m0.webp"
+    ],
+    "model_name": "Fear of God Essentials Hoodie",
+    "set": "picked",
+    "store": "averlo.com.au/products/fear-of-god-essentials-holiday24-hoodie-heather-grey"
+   },
+   "set": "model only",
+   "similar": true,
+   "src": [
+    "https://www.ssense.com/en-us/men/product/essentials/gray-signature-classic-hoodie/18989481"
+   ],
+   "store": "ssense.com/en-us/men/product/essentials/gray-signature-classic-hoodie/18989481",
+   "v": 2
   }
  },
- "spent_usd": 10.3429
+ "spent_usd": 11.654
 }
