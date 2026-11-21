@@ -1,0 +1,61 @@
+name: Store photos audit
+# Second AI check of every store-photo set (scripts/store_photos_audit.py). Writes data/store_photos_audit.json only;
+# nothing on the live site changes until the owner approves the apply step.
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Finds this run (0 = all not checked yet, most viewed first)'
+        default: '0'
+      ids:
+        description: 'Only these ids (comma separated, optional)'
+        default: ''
+      max_usd:
+        description: 'Hard stop for AI spend, all audit runs together (USD)'
+        default: '25'
+      redo:
+        description: 'Check finds again that are already checked (yes/no)'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+      model:
+        description: 'Model for the check'
+        default: 'claude-haiku-5-5'
+permissions:
+  contents: write
+concurrency: store-photos-audit
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow numpy scipy "rembg[cpu]>=2.0.59,<3"
+      - name: Check the photos
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          STORE_PHOTOS_MODEL: ${{ inputs.model }}
+        run: |
+          python scripts/store_photos_audit.py --limit "${{ inputs.limit }}" --ids "${{ inputs.ids }}" --max-usd "${{ inputs.max_usd }}" ${{ inputs.redo == 'yes' && '--redo' || '' }} 2>&1 | tee out-audit.log
+      - name: Save
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          [ -e data/store_photos_audit.json ] || exit 0
+          git add data/store_photos_audit.json
+          git diff --cached --quiet && exit 0
+          git commit -q -m "data: store photos audit (review before applying)"
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((RANDOM % 20 + 5))
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: store-photos-audit
+          path: out-audit.log
