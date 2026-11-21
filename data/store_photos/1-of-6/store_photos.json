@@ -1,5 +1,5 @@
 {
- "deep_spent_usd": 4.5573,
+ "deep_spent_usd": 5.1233,
  "items": {
   "582577986359": {
    "at": "2026-11-21T12:34:16+00:00",
@@ -5029,24 +5029,94 @@
    "v": 2
   },
   "7675815770": {
-   "at": "2026-11-21T00:35:52+00:00",
-   "colour": "light taupe / bone-beige",
-   "colour_match": false,
-   "conf": 0.4,
-   "cost": 0.01716,
+   "at": "2026-11-21T16:22:25+00:00",
+   "colour": "sand/taupe beige",
+   "colour_match": true,
+   "conf": 0.3,
+   "cost": 0.017,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
-   "dropped": [],
+   "deep_pending": {
+    "ans": {
+     "colour": "sand/taupe beige",
+     "colour_match": true,
+     "confidence": 0.3,
+     "current_bad": false,
+     "keep_current_main": true,
+     "model_name": "Nike Sportswear Essentials Collection Balloon Fleece Pants",
+     "note": "No store has the exact fleece balloon pant with slit hem. Store E's taupe Nike fleece oversized pants are the closest match, but all its photos show a model. Image 0 is already a clean, product-only front on a plain background, so it stays the main and Store E's model shots follow. Rejected: the face crop (10), the near-duplicate waist-cropped front (13), and the other stores' items, which differ in fabric, colour or stripes (F, G, H) or are unrelated (A, B, C, D).",
+     "photos": [
+      {
+       "i": 12,
+       "person": true,
+       "view": "front"
+      },
+      {
+       "i": 9,
+       "person": true,
+       "view": "side"
+      },
+      {
+       "i": 11,
+       "person": true,
+       "view": "back"
+      }
+     ],
+     "set": "picked",
+     "similar": true,
+     "store": "E",
+     "store2": null
+    },
+    "num": {
+     "1": 0,
+     "10": 37,
+     "11": 38,
+     "12": 39,
+     "13": 40,
+     "14": 8,
+     "15": 11,
+     "16": 12,
+     "17": 13,
+     "18": 16,
+     "19": 17,
+     "2": 1,
+     "20": 18,
+     "21": 21,
+     "22": 22,
+     "23": 23,
+     "24": 24,
+     "25": 25,
+     "26": 26,
+     "27": 27,
+     "28": 28,
+     "29": 29,
+     "3": 2,
+     "30": 30,
+     "31": 31,
+     "32": 32,
+     "33": 33,
+     "34": 34,
+     "35": 35,
+     "4": 3,
+     "5": 4,
+     "6": 5,
+     "7": 6,
+     "8": 7,
+     "9": 36
+    }
+   },
+   "dropped": [
+    "12 model: upload failed <HTTPError 429: 'Too Many Requests'>"
+   ],
    "gallery": [],
    "keep_current_main": true,
    "main": "current",
    "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675815770-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675815770-m1.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675815770-m2.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675815770-dm1.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675815770-dm2.webp"
    ],
-   "model_name": "Nike Sportswear Studio Fleece Oversized High-Waisted Pants (closest match; exact balloon-fleece model not found in any store)",
-   "note": "No store carries the exact balloon-leg fleece with vented ankle slit. Store D has the closest match (oversized Nike fleece, small Swoosh, beige) but every photo shows a model and none is a product-only front, so the current studio photo stays main. Store F (khaki washed fleece) is the second store for more photos, though it is a men's cuffed style. Store A is rejected (nylon parachute pants with side stripe), B (black nylon), C (green tech knit), E (green), G (knit). Face crop [24] and [25] rejected.",
+   "model_name": "Nike Sportswear Essentials Collection Balloon Fleece Pants",
+   "note": "No store has the exact fleece balloon pant with slit hem. Store E's taupe Nike fleece oversized pants are the closest match, but all its photos show a model. Image 0 is already a clean, product-only front on a plain background, so it stays the main and Store E's model shots follow. Rejected: the face crop (10), the near-duplicate waist-cropped front (13), and the other stores' items, which differ in fabric, colour or stripes (F, G, H) or are unrelated (A, B, C, D).",
    "photo_score": 1,
    "prev": {
     "conf": 0.4,
@@ -5062,11 +5132,11 @@
     "store": "nike.com/no/t/studio-fleece-mellomtykk-oversized-bukse-med-hoyt-liv-og-oppbrett-til-dame-bkaitP1a"
    },
    "set": "picked",
+   "similar": true,
    "src": [
     "https://www.nike.com/no/t/studio-fleece-mellomtykk-oversized-bukse-med-hoyt-liv-og-oppbrett-til-dame-bkaitP1a"
    ],
    "store": "nike.com/no/t/studio-fleece-mellomtykk-oversized-bukse-med-hoyt-liv-og-oppbrett-til-dame-bkaitP1a",
-   "store2": "nike.com/t/sportswear-club-mens-washed-cuffed-fleece-pants-QCXpC7Ky/IQ1218-297",
    "v": 2
   },
   "7675823696": {
@@ -5096,25 +5166,115 @@
    "v": 2
   },
   "7675938660": {
-   "at": "2026-11-21T00:36:40+00:00",
-   "colour": "Grey, blue and neon yellow",
+   "at": "2026-11-21T16:25:21+00:00",
+   "colour": "Black",
    "colour_match": false,
-   "conf": 0.5,
-   "cost": 0.01885,
+   "conf": 0.6,
+   "cost": 0.02158,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
-   "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675938660-0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675938660-1.webp"
+   "deep_pending": {
+    "ans": {
+     "colour": "Black",
+     "colour_match": false,
+     "confidence": 0.6,
+     "current_bad": false,
+     "keep_current_main": false,
+     "model_name": "Balenciaga Track Sneakers",
+     "note": "Store B is the same Track design with a consistent black studio set and the most good product shots (side profile, back, inner side, 3/4 pair, plus a full-length model shot). The wanted grey/blue colourway is not on any store with a consistent set: store H is grey/blue but has one unique photo (the second is a duplicate), store D is a reseller set on a stone wall with a box, and store C is a different Runner model. Rejected the near-duplicate 3/4 pair shot (12), the tag shot (24), and the sole/detail shots of other stores.",
+     "photos": [
+      {
+       "i": 9,
+       "person": false,
+       "view": "side"
+      },
+      {
+       "i": 10,
+       "person": false,
+       "view": "back"
+      },
+      {
+       "i": 11,
+       "person": false,
+       "view": "side"
+      },
+      {
+       "i": 8,
+       "person": false,
+       "view": "three_quarter"
+      },
+      {
+       "i": 13,
+       "person": true,
+       "view": "front"
+      }
+     ],
+     "set": "full",
+     "similar": false,
+     "store": "B",
+     "store2": null
+    },
+    "num": {
+     "1": 0,
+     "10": 12,
+     "11": 13,
+     "12": 14,
+     "13": 15,
+     "14": 17,
+     "15": 18,
+     "16": 19,
+     "17": 20,
+     "18": 38,
+     "19": 39,
+     "2": 2,
+     "20": 40,
+     "21": 41,
+     "22": 42,
+     "23": 43,
+     "24": 44,
+     "25": 45,
+     "26": 46,
+     "27": 47,
+     "28": 48,
+     "29": 49,
+     "3": 3,
+     "30": 50,
+     "31": 51,
+     "32": 52,
+     "33": 53,
+     "34": 54,
+     "35": 55,
+     "36": 56,
+     "37": 57,
+     "38": 58,
+     "39": 59,
+     "4": 4,
+     "40": 60,
+     "41": 61,
+     "42": 62,
+     "43": 63,
+     "44": 64,
+     "45": 65,
+     "46": 66,
+     "47": 67,
+     "5": 5,
+     "6": 6,
+     "7": 8,
+     "8": 9,
+     "9": 11
+    }
+   },
+   "dropped": [
+    "9 side: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "10 back: upload failed TimeoutError('The read operation timed out')",
+    "13 model: upload failed <HTTPError 429: 'Too Many Requests'>"
    ],
+   "gallery": [],
    "keep_current_main": true,
    "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675938660-m0.webp"
-   ],
+   "model": [],
    "model_name": "Balenciaga Track Sneakers",
-   "note": "Store A is the only store with a consistent studio set of the Balenciaga Track in grey and blue. Its neon yellow sole and lack of black differ from image 0, so the match is approximate. Rejected: photo 7 (size label), photo 8 (near-duplicate of photo 1), photo 4 (box in frame), and photo 6 is kept last because a hand is visible. Store B, C, D and G show other colourways or models, and E has only one usable photo, so no second store is needed.",
+   "note": "Store B is the same Track design with a consistent black studio set and the most good product shots (side profile, back, inner side, 3/4 pair, plus a full-length model shot). The wanted grey/blue colourway is not on any store with a consistent set: store H is grey/blue but has one unique photo (the second is a duplicate), store D is a reseller set on a stone wall with a box, and store C is a different Runner model. Rejected the near-duplicate 3/4 pair shot (12), the tag shot (24), and the sole/detail shots of other stores.",
    "photo_score": 1,
    "prev": {
     "conf": 0.5,
@@ -5131,31 +5291,98 @@
     "store": "thegallery630.com/products/balenciaga-track-runner-gray-blue-yellow-sneaker-sz-8-41-no-box"
    },
    "set": "picked",
-   "src": [
-    "https://thegallery630.com/products/balenciaga-track-runner-gray-blue-yellow-sneaker-sz-8-41-no-box?srsltid=AYCX9vKGYD2s0AKVwbyC9flidH1JzzzBHKsbMsSOuP2QlQLDfZVQH9Gq"
-   ],
-   "store": "thegallery630.com/products/balenciaga-track-runner-gray-blue-yellow-sneaker-sz-8-41-no-box",
+   "similar": false,
+   "src": [],
+   "store": "ssense.com/en-us/women/product/balenciaga/black-track-piercing-sneakers/18778241",
    "v": 2
   },
   "7675968570": {
-   "at": "2026-11-21T00:37:50+00:00",
-   "colour": "Black",
-   "colour_match": false,
-   "conf": 0.35,
-   "cost": 0.0169,
+   "at": "2026-11-21T15:52:08+00:00",
+   "colour": "Black (black leather with dark grey-black FF Zucca reverse, silver-tone buckle in store A)",
+   "colour_match": true,
+   "conf": 0.45,
+   "cost": 0.01666,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
-   "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675968570-0.webp"
+   "deep_pending": {
+    "ans": {
+     "colour": "Black (black leather with dark grey-black FF Zucca reverse, silver-tone buckle in store A)",
+     "colour_match": true,
+     "confidence": 0.45,
+     "current_bad": false,
+     "keep_current_main": false,
+     "model_name": "Fendi FF Buckle Reversible Belt",
+     "note": "Store A is the closest reversible FF belt set on a clean studio background, but its buckle is silver rather than the matte black of image 0. Model shots 1 and 2 were rejected as tight crops that cut off the belt. Store A has fewer than 4 good product shots, so store E was added for its black Zucca-reverse belt. Store E's gold-buckle belts (19, 20) were rejected as a different hardware colour.",
+     "photos": [
+      {
+       "i": 5,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 4,
+       "person": false,
+       "view": "back"
+      },
+      {
+       "i": 3,
+       "person": false,
+       "view": "side"
+      },
+      {
+       "i": 18,
+       "person": false,
+       "view": "three_quarter"
+      },
+      {
+       "i": 21,
+       "person": false,
+       "view": "back"
+      }
+     ],
+     "set": "picked",
+     "similar": true,
+     "store": "A",
+     "store2": "E"
+    },
+    "num": {
+     "1": 0,
+     "10": 48,
+     "11": 49,
+     "12": 22,
+     "13": 23,
+     "14": 25,
+     "15": 26,
+     "16": 56,
+     "17": 57,
+     "18": 60,
+     "19": 61,
+     "2": 2,
+     "20": 62,
+     "21": 63,
+     "22": 64,
+     "23": 65,
+     "24": 66,
+     "3": 3,
+     "4": 4,
+     "5": 43,
+     "6": 44,
+     "7": 45,
+     "8": 46,
+     "9": 47
+    }
+   },
+   "dropped": [
+    "5 front: upload failed <HTTPError 544: '<none>'>",
+    "4 back: upload failed <HTTPError 544: '<none>'>",
+    "3 side: upload failed <HTTPError 544: '<none>'>",
+    "18 three_quarter: upload failed <HTTPError 544: '<none>'>"
    ],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675968570-m0.webp"
-   ],
+   "gallery": [],
+   "main": null,
+   "model": [],
    "model_name": "Fendi FF Buckle Reversible Belt",
-   "note": "No store has the exact matte black buckle. Store B has the black reversible FF belt with the monogram on the reverse (silver buckle), so it is the main store. Store E has a pebbled reversible photo with the monogram lining (2 photos), so it is store2 to add more. Rejected: store A (thin gold-buckle belts), store B's brown-monogram and gold-buckle versions, store C's homemade and wrapped photos, store D's gunmetal/gold variants and monogram-strap belt, and store F's grey monogram strap. Excluded store B's model crop of the waist-down view only because it is the weakest of the set.",
+   "note": "Store A is the closest reversible FF belt set on a clean studio background, but its buckle is silver rather than the matte black of image 0. Model shots 1 and 2 were rejected as tight crops that cut off the belt. Store A has fewer than 4 good product shots, so store E was added for its black Zucca-reverse belt. Store E's gold-buckle belts (19, 20) were rejected as a different hardware colour.",
    "photo_score": 1,
    "prev": {
     "conf": 0.35,
@@ -5170,36 +5397,134 @@
     "set": "picked",
     "store": "mytheresa.com"
    },
-   "set": "picked",
-   "src": [
-    "https://www.giglio.com/en-us/accessories-men_belt-fendi-7c0535aff1-571.html?srsltid=AYCX9vKAUgSCVhv2F4uTG2yqLIBvfs3pJi7WTZDrchZBnDZZKJnBSfmF",
-    "https://www.mytheresa.com/us/en/men/fendi-ff-reversible-leather-belt-brown-p01227277"
-   ],
-   "store": "mytheresa.com",
-   "store2": "giglio.com",
+   "set": "none",
+   "similar": true,
+   "src": [],
+   "store": "mytheresa.com/us/en/men/fendi-ff-zucca-reversible-leather-belt-black-p01248954",
+   "store2": "we-in-style.com",
    "v": 2
   },
   "7676177504": {
-   "at": "2026-11-21T00:38:15+00:00",
-   "colour": "Black washed denim",
+   "at": "2026-11-21T16:33:10+00:00",
+   "colour": "black washed denim (medium wash)",
    "colour_match": true,
-   "conf": 0.6,
-   "cost": 0.0196,
+   "conf": 0.55,
+   "cost": 0.02416,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
+   "deep_pending": {
+    "ans": {
+     "colour": "black washed denim (medium wash)",
+     "colour_match": true,
+     "confidence": 0.55,
+     "current_bad": false,
+     "keep_current_main": false,
+     "model_name": "Stone Island Regular Straight Fit Jeans",
+     "note": "Store H has the black washed straight-leg Stone Island jeans with a clean studio front (38) and the compass tab at the back waistband, but only one good product front, so store F is added as store2 for its clean back product shot (24) and fly close-up (25). Store F's shot 21 duplicates the front, and its tag/packaging shots (26, 27) were rejected. Store H's second front (39) is a near-duplicate and was skipped. The cut is straight rather than slim, so it is treated as very similar.",
+     "photos": [
+      {
+       "i": 38,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 24,
+       "person": false,
+       "view": "back"
+      },
+      {
+       "i": 25,
+       "person": false,
+       "view": "closeup"
+      },
+      {
+       "i": 40,
+       "person": true,
+       "view": "front"
+      },
+      {
+       "i": 41,
+       "person": true,
+       "view": "front"
+      },
+      {
+       "i": 42,
+       "person": true,
+       "view": "back"
+      },
+      {
+       "i": 43,
+       "person": true,
+       "view": "closeup"
+      }
+     ],
+     "set": "picked",
+     "similar": true,
+     "store": "H",
+     "store2": "F"
+    },
+    "num": {
+     "1": 0,
+     "10": 15,
+     "11": 16,
+     "12": 17,
+     "13": 18,
+     "14": 19,
+     "15": 20,
+     "16": 21,
+     "17": 22,
+     "18": 23,
+     "19": 24,
+     "2": 1,
+     "20": 25,
+     "21": 52,
+     "22": 53,
+     "23": 54,
+     "24": 55,
+     "25": 56,
+     "26": 57,
+     "27": 58,
+     "28": 26,
+     "29": 27,
+     "3": 2,
+     "30": 28,
+     "31": 29,
+     "32": 30,
+     "33": 31,
+     "34": 32,
+     "35": 33,
+     "36": 34,
+     "37": 35,
+     "38": 36,
+     "39": 37,
+     "4": 3,
+     "40": 38,
+     "41": 39,
+     "42": 40,
+     "43": 41,
+     "44": 42,
+     "45": 43,
+     "46": 44,
+     "5": 4,
+     "6": 5,
+     "7": 12,
+     "8": 13,
+     "9": 14
+    }
+   },
    "dropped": [
-    "31 closeup: cut-out broke (item mostly removed)"
+    "38 front: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "24 back: upload failed <HTTPError 544: '<none>'>",
+    "25 closeup: cut-out broke (item mostly removed)",
+    "40 model: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "41 model: upload failed <HTTPError 544: '<none>'>",
+    "42 model: upload failed <HTTPError 429: 'Too Many Requests'>"
    ],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676177504-0.webp"
-   ],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676177504-m0.webp"
-   ],
-   "model_name": "Stone Island Five-Pocket Washed Denim Jeans",
-   "note": "Store D has black washed jeans with clean product front and back shots plus a fly close-up, and a full-body model shot. Store A is light wash, so wrong colour. Store B's black pair is a regular straight fit with no product-only back shot. Store D's hang-tag pocket shots (32, 33) were rejected as labels/duplicates, and the back model shot (29) is a near-duplicate of the product back. Current photo 0 has a hanger, so it is not kept as main. Fit is straight rather than slim, so confidence is moderate.",
+   "gallery": [],
+   "main": null,
+   "model": [],
+   "model_name": "Stone Island Regular Straight Fit Jeans",
+   "note": "Store H has the black washed straight-leg Stone Island jeans with a clean studio front (38) and the compass tab at the back waistband, but only one good product front, so store F is added as store2 for its clean back product shot (24) and fly close-up (25). Store F's shot 21 duplicates the front, and its tag/packaging shots (26, 27) were rejected. Store H's second front (39) is a near-duplicate and was skipped. The cut is straight rather than slim, so it is treated as very similar.",
    "photo_score": 1,
    "prev": {
     "conf": 0.6,
@@ -5214,11 +5539,11 @@
     "set": "picked",
     "store": "viettishop.com/en-us/products/men-stone-island-denim-raw-straight-leg-jeans-l2s14j100006-25422399"
    },
-   "set": "picked",
-   "src": [
-    "https://viettishop.com/en-us/products/men-stone-island-denim-raw-straight-leg-jeans-l2s14j100006-25422399"
-   ],
-   "store": "viettishop.com/en-us/products/men-stone-island-denim-raw-straight-leg-jeans-l2s14j100006-25422399",
+   "set": "none",
+   "similar": true,
+   "src": [],
+   "store": "careofcarl.no/no/stone-island-regular-straight-fit-jeans-black-medium-wash",
+   "store2": "viettishop.com/en-us/products/men-stone-island-denim-raw-straight-leg-jeans-l2s14j100006-25422399",
    "v": 2
   },
   "7676179542": {
@@ -5349,22 +5674,111 @@
    "v": 2
   },
   "7676226966": {
-   "at": "2026-11-21T00:39:26+00:00",
-   "colour": "Ivory/white frame with brown gradient lens",
-   "colour_match": true,
-   "conf": 0.3,
-   "cost": 0.01839,
+   "at": "2026-11-21T16:41:18+00:00",
+   "colour": "ivory/beige frame with brown gradient lens",
+   "colour_match": false,
+   "conf": 0.5,
+   "cost": 0.01701,
+   "current_bad": true,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
-   "dropped": [],
-   "gallery": [],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676226966-m0.webp"
+   "deep_pending": {
+    "ans": {
+     "colour": "ivory/beige frame with brown gradient lens",
+     "colour_match": false,
+     "confidence": 0.5,
+     "current_bad": true,
+     "keep_current_main": false,
+     "model_name": "Prada Symbole Sunglasses (ivory acetate with triangle logo temples)",
+     "note": "No store has a white cat-eye Prada with triangle temples. Store G's ivory/beige acetate with brown gradient lens and triangle temple logos is the closest match, so these are used as very similar. Its four studio product shots on plain background are used; the brown-frame shots (45-48) are rejected as another colour. Image 0 is a marketplace photo with a box and a card, so it is marked bad. No model photos or back-only shot were offered by this store. Stores A, B, C, D, E and F were rejected for gold, black, blue or other frame colours.",
+     "photos": [
+      {
+       "i": 41,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 42,
+       "person": false,
+       "view": "three_quarter"
+      },
+      {
+       "i": 43,
+       "person": false,
+       "view": "side"
+      },
+      {
+       "i": 44,
+       "person": false,
+       "view": "top"
+      }
+     ],
+     "set": "picked",
+     "similar": true,
+     "store": "G",
+     "store2": null
+    },
+    "num": {
+     "1": 0,
+     "10": 9,
+     "11": 10,
+     "12": 11,
+     "13": 12,
+     "14": 13,
+     "15": 14,
+     "16": 15,
+     "17": 16,
+     "18": 17,
+     "19": 18,
+     "2": 1,
+     "20": 19,
+     "21": 20,
+     "22": 21,
+     "23": 22,
+     "24": 23,
+     "25": 24,
+     "26": 25,
+     "27": 26,
+     "28": 27,
+     "29": 28,
+     "3": 2,
+     "30": 29,
+     "31": 33,
+     "32": 34,
+     "33": 35,
+     "34": 36,
+     "35": 37,
+     "36": 38,
+     "37": 39,
+     "38": 40,
+     "39": 41,
+     "4": 3,
+     "40": 42,
+     "41": 49,
+     "42": 50,
+     "43": 51,
+     "44": 52,
+     "45": 53,
+     "46": 54,
+     "47": 55,
+     "48": 56,
+     "5": 4,
+     "6": 5,
+     "7": 6,
+     "8": 7,
+     "9": 8
+    }
+   },
+   "dropped": [
+    "41 front: upload failed TimeoutError('The read operation timed out')",
+    "42 three_quarter: upload failed <HTTPError 544: '<none>'>",
+    "43 side: upload failed <HTTPError 544: '<none>'>",
+    "44 top: upload failed <HTTPError 544: '<none>'>"
    ],
-   "model_name": "Prada Shadowplay Sunglasses (closest available; not the cat-eye triangle-logo model)",
-   "note": "No store carries the exact white cat-eye triangle-logo model. Store E has the only white frame with a brown gradient lens, but it is a different aviator shape, so it is used only as a low-confidence extra. Its other photos are tight face crops, which were skipped. Image 0 stays the main because it has packaging and no clean product-only shot. Stores A, B, C, D, F and G have only black, tortoise, gold, pink, green, clear or silver frames, so they were rejected for colour.",
+   "gallery": [],
+   "main": null,
+   "model": [],
+   "model_name": "Prada Symbole Sunglasses (ivory acetate with triangle logo temples)",
+   "note": "No store has a white cat-eye Prada with triangle temples. Store G's ivory/beige acetate with brown gradient lens and triangle temple logos is the closest match, so these are used as very similar. Its four studio product shots on plain background are used; the brown-frame shots (45-48) are rejected as another colour. Image 0 is a marketplace photo with a box and a card, so it is marked bad. No model photos or back-only shot were offered by this store. Stores A, B, C, D, E and F were rejected for gold, black, blue or other frame colours.",
    "photo_score": 1,
    "prev": {
     "conf": 0.3,
@@ -5377,11 +5791,10 @@
     "set": "picked",
     "store": "prada.com/us/en/p/prada-shadowplay-sunglasses/SPRC05_E17K_FE20S_C_057"
    },
-   "set": "picked",
-   "src": [
-    "https://www.prada.com/us/en/p/prada-shadowplay-sunglasses/SPRC05_E17K_FE20S_C_057"
-   ],
-   "store": "prada.com/us/en/p/prada-shadowplay-sunglasses/SPRC05_E17K_FE20S_C_057",
+   "set": "none",
+   "similar": true,
+   "src": [],
+   "store": "specscollective.com/products/prada-pr-d03sd-low-bridge-fit-sunglasses",
    "v": 2
   },
   "7676228990": {
@@ -5439,26 +5852,123 @@
    "v": 2
   },
   "7676238774": {
-   "at": "2026-11-21T00:39:52+00:00",
+   "at": "2026-11-21T16:48:45+00:00",
    "colour": "Damier Graphite (black/grey) with black leather trim",
    "colour_match": true,
-   "conf": 0.35,
-   "cost": 0.01845,
+   "conf": 0.2,
+   "cost": 0.02045,
+   "current_bad": true,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
+   "deep_pending": {
+    "ans": {
+     "colour": "Damier Graphite (black/grey) with black leather trim",
+     "colour_match": true,
+     "confidence": 0.2,
+     "current_bad": true,
+     "keep_current_main": false,
+     "model_name": "Louis Vuitton Discovery Backpack PM (Damier Graphite, closest available; not the Soft Trunk Backpack)",
+     "note": "No store shows the Soft Trunk Backpack itself. Store C has a consistent white-background set of the Damier Graphite Discovery backpack, the closest match in colour, trim and type, but its rounded silhouette differs from the flat trunk body. Stores A, B, D, E and F show sling bags, other backpacks, mini soft trunks with print or a different pattern. The current photo is a busy shot with magazine props and is marked bad. Duplicate angles and the second 3/4 view were dropped.",
+     "photos": [
+      {
+       "i": 11,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 13,
+       "person": false,
+       "view": "three_quarter"
+      },
+      {
+       "i": 14,
+       "person": false,
+       "view": "back"
+      },
+      {
+       "i": 15,
+       "person": false,
+       "view": "top"
+      },
+      {
+       "i": 16,
+       "person": false,
+       "view": "closeup"
+      },
+      {
+       "i": 18,
+       "person": false,
+       "view": "closeup"
+      }
+     ],
+     "set": "picked",
+     "similar": true,
+     "store": "C",
+     "store2": null
+    },
+    "num": {
+     "1": 0,
+     "10": 9,
+     "11": 56,
+     "12": 57,
+     "13": 58,
+     "14": 59,
+     "15": 60,
+     "16": 61,
+     "17": 62,
+     "18": 63,
+     "19": 64,
+     "2": 1,
+     "20": 24,
+     "21": 25,
+     "22": 26,
+     "23": 27,
+     "24": 28,
+     "25": 29,
+     "26": 30,
+     "27": 31,
+     "28": 32,
+     "29": 33,
+     "3": 2,
+     "30": 34,
+     "31": 35,
+     "32": 40,
+     "33": 45,
+     "34": 46,
+     "35": 47,
+     "36": 48,
+     "37": 49,
+     "38": 50,
+     "39": 51,
+     "4": 3,
+     "40": 52,
+     "41": 53,
+     "42": 54,
+     "43": 55,
+     "44": 65,
+     "45": 66,
+     "46": 67,
+     "47": 68,
+     "48": 78,
+     "5": 4,
+     "6": 5,
+     "7": 6,
+     "8": 7,
+     "9": 8
+    }
+   },
    "dropped": [
-    "34 top: item cut off by the frame",
-    "36 closeup: item cut off by the frame"
+    "11 front: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "13 three_quarter: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "14 back: upload failed <HTTPError 544: '<none>'>",
+    "15 top: upload failed <HTTPError 544: '<none>'>",
+    "16 closeup: item cut off by the frame",
+    "18 closeup: item cut off by the frame"
    ],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676238774-0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676238774-1.webp"
-   ],
-   "keep_current_main": true,
-   "main": "current",
+   "gallery": [],
+   "main": null,
    "model": [],
-   "model_name": "Louis Vuitton Discovery Backpack PM (Damier Graphite), closest available",
-   "note": "No store has the exact Soft Trunk Backpack in Damier Graphite. Store A/B carry the same trunk shape and colourway but with an animal print, which is a different design. Store C's Damier Graphite Discovery Backpack matches the pattern, colours and black leather trim, but has a dome backpack shape, so it is used only as a very close fallback under 0.7 confidence. The current photo stays the main. Excluded the duplicate 3/4 (37), and the store D, E and F items are different models or patterns.",
+   "model_name": "Louis Vuitton Discovery Backpack PM (Damier Graphite, closest available; not the Soft Trunk Backpack)",
+   "note": "No store shows the Soft Trunk Backpack itself. Store C has a consistent white-background set of the Damier Graphite Discovery backpack, the closest match in colour, trim and type, but its rounded silhouette differs from the flat trunk body. Stores A, B, D, E and F show sling bags, other backpacks, mini soft trunks with print or a different pattern. The current photo is a busy shot with magazine props and is marked bad. Duplicate angles and the second 3/4 view were dropped.",
    "photo_score": 1,
    "prev": {
     "conf": 0.35,
@@ -5472,10 +5982,9 @@
     "set": "picked",
     "store": "mygemma.com/products/147725-louis-vuitton-damier-graphite-canvas-discovery-backpack-pm"
    },
-   "set": "picked",
-   "src": [
-    "https://mygemma.com/products/147725-louis-vuitton-damier-graphite-canvas-discovery-backpack-pm?srsltid=AYCX9vKAVPT19sjE376MknAlCS7_KL12J4qcRqkra-U7DEKyPw4WoBUJ"
-   ],
+   "set": "none",
+   "similar": true,
+   "src": [],
    "store": "mygemma.com/products/147725-louis-vuitton-damier-graphite-canvas-discovery-backpack-pm",
    "v": 2
   },
@@ -5649,25 +6158,110 @@
    "v": 2
   },
   "7676276164": {
-   "at": "2026-11-21T00:41:44+00:00",
+   "at": "2026-11-21T16:55:19+00:00",
    "colour": "White/Black (reversible), antique gold buckle",
    "colour_match": true,
-   "conf": 0.75,
-   "cost": 0.01643,
+   "conf": 0.8,
+   "cost": 0.01751,
+   "current_bad": true,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
+   "deep_pending": {
+    "ans": {
+     "colour": "White/Black (reversible), antique gold buckle",
+     "colour_match": true,
+     "confidence": 0.8,
+     "current_bad": true,
+     "keep_current_main": false,
+     "model_name": "Valentino Garavani VLogo Signature Reversible Belt",
+     "note": "Store D has a consistent studio set of the white/black reversible belt with the gold VLogo buckle, with no people. Photo 12 is the straight-on front main, 11 shows the black reverse, 13 and 14 are buckle and reverse close-ups, and 15 is the narrow version. Rejected: store A and C (black or beige fronts), store B (black/red and model shots), store E (blog and unboxing photos), store F (embellished buckle), store G and H (crystal or model shots), and the navy/silver-buckle photos 16 and 17. The current photo is a casual shot on a wooden surface, so it is a bad main.",
+     "photos": [
+      {
+       "i": 12,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 11,
+       "person": false,
+       "view": "back"
+      },
+      {
+       "i": 13,
+       "person": false,
+       "view": "closeup"
+      },
+      {
+       "i": 14,
+       "person": false,
+       "view": "closeup"
+      },
+      {
+       "i": 15,
+       "person": false,
+       "view": "front"
+      }
+     ],
+     "set": "full",
+     "similar": false,
+     "store": "D",
+     "store2": null
+    },
+    "num": {
+     "1": 0,
+     "10": 18,
+     "11": 48,
+     "12": 49,
+     "13": 50,
+     "14": 51,
+     "15": 52,
+     "16": 53,
+     "17": 54,
+     "18": 34,
+     "19": 35,
+     "2": 2,
+     "20": 36,
+     "21": 37,
+     "22": 38,
+     "23": 39,
+     "24": 40,
+     "25": 41,
+     "26": 42,
+     "27": 43,
+     "28": 44,
+     "29": 45,
+     "3": 8,
+     "30": 46,
+     "31": 47,
+     "32": 55,
+     "33": 56,
+     "34": 57,
+     "35": 58,
+     "36": 59,
+     "37": 60,
+     "38": 66,
+     "39": 67,
+     "4": 9,
+     "40": 68,
+     "41": 69,
+     "5": 13,
+     "6": 14,
+     "7": 15,
+     "8": 16,
+     "9": 17
+    }
+   },
    "dropped": [
-    "18 closeup: item cut off by the frame"
+    "12 front: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "11 back: upload failed <HTTPError 544: '<none>'>",
+    "13 closeup: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "14 closeup: item cut off by the frame"
    ],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676276164-1.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676276164-2.webp"
-   ],
-   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676276164-0.webp",
+   "gallery": [],
+   "main": null,
    "model": [],
    "model_name": "Valentino Garavani VLogo Signature Reversible Belt",
-   "note": "Store C has a consistent studio set of the exact white/black reversible belt with the gold open-frame VLogo buckle. Chose front, back, and two buckle/reverse close-ups. Rejected store C 19 (narrow width, not confirmed to match), 20 and 21 (navy colourway). Store A is mostly props and boxes, store B is the crystal-embellished version, store D mixes other models, and store E-G are model or different designs. Current photo 0 is not a clean studio shot, so it is not kept as main.",
-   "photo_score": 2,
+   "note": "Store D has a consistent studio set of the white/black reversible belt with the gold VLogo buckle, with no people. Photo 12 is the straight-on front main, 11 shows the black reverse, 13 and 14 are buckle and reverse close-ups, and 15 is the narrow version. Rejected: store A and C (black or beige fronts), store B (black/red and model shots), store E (blog and unboxing photos), store F (embellished buckle), store G and H (crystal or model shots), and the navy/silver-buckle photos 16 and 17. The current photo is a casual shot on a wooden surface, so it is a bad main.",
+   "photo_score": 3,
    "prev": {
     "conf": 0.75,
     "gallery": [
@@ -5680,12 +6274,9 @@
     "set": "picked",
     "store": "we-in-style.com"
    },
-   "set": "picked",
-   "src": [
-    "https://we-in-style.com/no/products/reversible-vlogo-belt-valentino-garavani-women-15980138758524?srsltid=AYCX9vIRfgvcbtI1DSTC_MzoFixO0eHSoQ4TE-aFLczu8wdzYM9UTc7N",
-    "https://we-in-style.com/products/vlogo-reversible-belt-valentino-valentino-garavani-women-15827337707900?srsltid=AYCX9vIc2djWRD4nofMDAXgNk6JlBdT1lWumgTlZsH6uiDjYOeY2STVG",
-    "https://we-in-style.com/no/products/vlogo-reversible-belt-valentino-valentino-garavani-women-15827337707900?srsltid=AYCX9vKRamXU2tA4Xp5KbLRKgMeVdCVkCaTRezEgTHXzHua0smi_9Yzb"
-   ],
+   "set": "none",
+   "similar": false,
+   "src": [],
    "store": "we-in-style.com",
    "v": 2
   },
@@ -5718,23 +6309,88 @@
    "v": 2
   },
   "7676286156": {
-   "at": "2026-11-21T00:42:10+00:00",
+   "at": "2026-11-21T17:00:08+00:00",
    "colour": "Brown Monogram canvas with brown leather trim and gold-tone hardware",
    "colour_match": false,
-   "conf": 0.5,
-   "cost": 0.01718,
+   "conf": 0.6,
+   "cost": 0.01578,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
-   "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676286156-0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676286156-1.webp"
+   "deep_pending": {
+    "ans": {
+     "colour": "Brown Monogram canvas with brown leather trim and gold-tone hardware",
+     "colour_match": false,
+     "confidence": 0.6,
+     "current_bad": false,
+     "keep_current_main": false,
+     "model_name": "Louis Vuitton Dragonne Key Holder in Monogram",
+     "note": "Store C has the most consistent professional white-background studio set of the Dragonne Key Holder (Monogram, brown trim), with 3 usable product shots. Rejected its box shots (17-19) and the coin-prop shot (14). Store D is the same product but offers only 2 clean shots, so Store A's white-background studio shot (2) is added as the second store. Hardware is gold in all candidates, not the silver in image 0, and the trim is brown, not black, so this is a close variant rather than an exact match. Store A's homemade photos, Store B's pre-owned pouches and Store E's lifestyle shot were rejected.",
+     "photos": [
+      {
+       "i": 13,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 15,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 16,
+       "person": false,
+       "view": "closeup"
+      },
+      {
+       "i": 2,
+       "person": false,
+       "view": "three_quarter"
+      }
+     ],
+     "set": "picked",
+     "similar": true,
+     "store": "C",
+     "store2": "A"
+    },
+    "num": {
+     "1": 0,
+     "10": 13,
+     "11": 14,
+     "12": 15,
+     "13": 21,
+     "14": 22,
+     "15": 23,
+     "16": 24,
+     "17": 25,
+     "18": 26,
+     "19": 27,
+     "2": 1,
+     "20": 28,
+     "21": 29,
+     "22": 30,
+     "23": 31,
+     "24": 32,
+     "25": 33,
+     "26": 34,
+     "3": 2,
+     "4": 3,
+     "5": 4,
+     "6": 5,
+     "7": 6,
+     "8": 52,
+     "9": 53
+    }
+   },
+   "dropped": [
+    "13 front: upload failed <HTTPError 544: '<none>'>",
+    "16 closeup: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "2 three_quarter: upload failed <HTTPError 429: 'Too Many Requests'>"
    ],
-   "keep_current_main": true,
-   "main": "current",
+   "gallery": [],
+   "main": null,
    "model": [],
-   "model_name": "Louis Vuitton Monogram Dragonne Key Holder",
-   "note": "Store A is the first store, with three good product shots (1, 2, 4). Its other shots were rejected: image 3 has a coin prop, and images 5-7 show the box, with 7 a duplicate of 4. Store A has fewer than 4 good photos, so store B is the second store, with product shots 8 and 10; image 9 has a coin and 11-13 show the box. Both stores show gold-tone hardware and brown leather trim, not the black trim and silver hardware in the wanted colour, and image 0 looks like the silver-hardware variant. No store has the exact version, so the match is only close and confidence is under 0.7. Image 0 has a box in frame, so it is not a clean studio main and the store's front is used instead.",
+   "model_name": "Louis Vuitton Dragonne Key Holder in Monogram",
+   "note": "Store C has the most consistent professional white-background studio set of the Dragonne Key Holder (Monogram, brown trim), with 3 usable product shots. Rejected its box shots (17-19) and the coin-prop shot (14). Store D is the same product but offers only 2 clean shots, so Store A's white-background studio shot (2) is added as the second store. Hardware is gold in all candidates, not the silver in image 0, and the trim is brown, not black, so this is a close variant rather than an exact match. Store A's homemade photos, Store B's pre-owned pouches and Store E's lifestyle shot were rejected.",
    "photo_score": 1,
    "prev": {
     "conf": 0.5,
@@ -5748,32 +6404,27 @@
     "set": "picked",
     "store": "fashionphile.com/products/louis-vuitton-monogram-dragonne-key-holder-712075"
    },
-   "set": "picked",
-   "src": [
-    "https://www.fashionphile.com/products/louis-vuitton-monogram-dragonne-key-holder-712075",
-    "https://www.fashionphile.com/products/louis-vuitton-monogram-dragonne-key-holder-1987303"
-   ],
+   "set": "none",
+   "similar": true,
+   "src": [],
    "store": "fashionphile.com/products/louis-vuitton-monogram-dragonne-key-holder-712075",
-   "store2": "fashionphile.com/products/louis-vuitton-monogram-dragonne-key-holder-1987303",
+   "store2": "ebay.com",
    "v": 2
   },
   "7676288044": {
-   "at": "2026-11-21T00:42:29+00:00",
+   "at": "2026-11-21T17:05:54+00:00",
    "colour": "White",
    "colour_match": true,
-   "conf": 0.5,
-   "cost": 0.01837,
+   "conf": 0.3,
+   "cost": 0.01904,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676288044-0.webp"
-   ],
-   "keep_current_main": true,
-   "main": "current",
+   "gallery": [],
+   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676288044-d0.webp",
    "model": [],
    "model_name": "Stussy International Tribe Crewneck Sweatshirt",
-   "note": "Store H is the only store with a white copy of the International Stussy Tribe back print, but only image 26 is a usable product shot. Image 27 and 29 are different front designs, and 28 is blue. Store A has the exact design but only in black, and its other photos are logo close-ups, labels or a size chart. Store B is a long-sleeve tee, C is a basic logo crew, D is navy, and F is a campaign shot. Image 0 already shows the front and back, so it stays the main. The store has fewer than 4 good photos, but no second store offers a matching white set, so none is named.",
+   "note": "Store E's white crewneck carries the same International Stussy Tribe back theme and is a clean product-only shot, but its print lacks the script wordmark and city list, so it is a similar item rather than the exact version. Its other white shot (19) is worn on a hanger in a room and is rejected. Store E has only one good photo and no other store offers the exact white print, so no second store is named. Store F's exact-style print is black and store H's is a different basic logo print, so both were rejected. Image 0 is a two-view flat lay, not a clean single front, so it is not kept as the main.",
    "photo_score": 1,
    "prev": {
     "conf": 0.5,
@@ -5787,6 +6438,7 @@
     "store": "grailed.com"
    },
    "set": "picked",
+   "similar": true,
    "src": [
     "https://www.grailed.com/listings/21888431-streetwear-x-stussy-stussy-ist-international-stussy-tribe-hoodie"
    ],
@@ -5852,28 +6504,28 @@
    "v": 2
   },
   "7676303818": {
-   "at": "2026-11-21T00:42:57+00:00",
-   "colour": "Grey body with light grey/beige jacquard strap",
+   "at": "2026-11-21T17:06:41+00:00",
+   "colour": "Asphalt grey leather with light grey/beige LOEWE jacquard strap and silver hardware",
    "colour_match": true,
-   "conf": 0.6,
-   "cost": 0.01751,
+   "conf": 0.8,
+   "cost": 0.01696,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
-    "9 closeup: cut-out broke (item mostly removed)",
-    "12 closeup: item cut off by the frame",
-    "7 closeup: item cut off by the frame"
+    "33 closeup: cut-out broke (item mostly removed)",
+    "36 closeup: item cut off by the frame",
+    "29 closeup: item cut off by the frame",
+    "31 closeup: item cut off by the frame"
    ],
    "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676303818-0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676303818-1.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676303818-d1.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676303818-d2.webp"
    ],
-   "keep_current_main": true,
-   "main": "current",
+   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676303818-d0.webp",
    "model": [],
-   "model_name": "Loewe Logo Jacquard Strap Shoulder Bag",
-   "note": "Store A has a consistent Fashionphile set of the grey bag with the jacquard strap, with 7 usable product shots. Chose the clean front as main, then the 3/4, the mannequin side view, the bottom and buckle close-ups, and the interior. Rejected the size/label photos [6], [8], duplicates [5], [10], [11], [13]-[16], and the strap-end detail repeats. Store B is navy/grey-lit lookalike and was not needed. Confidence is limited because the exact model is unconfirmed.",
-   "photo_score": 1,
+   "model_name": "Loewe Cubi Small Supple Smooth Calfskin Jacquard Crossbody Bag",
+   "note": "Store H (Fashionphile) has a consistent studio set of the grey jacquard-strap LOEWE bag matching image 0's grey leather body, jacquard LOEWE strap and silver hardware. Main is the straight front on white. Rejected the label shots (30, 32) and near-duplicate base crops (34, 35). The current photo is a cut-out with a messy strap and no clean front, so it is replaced.",
+   "photo_score": 2,
    "prev": {
     "conf": 0.6,
     "gallery": [
@@ -5887,6 +6539,7 @@
     "store": "fashionphile.com/products/loewe-supple-smooth-calfskin-jacquard-small-cubi-crossbody-bag-asphalt-grey-1501386"
    },
    "set": "picked",
+   "similar": false,
    "src": [
     "https://www.fashionphile.com/products/loewe-supple-smooth-calfskin-jacquard-small-cubi-crossbody-bag-asphalt-grey-1501386"
    ],
@@ -6191,22 +6844,78 @@
    "v": 2
   },
   "7677427243": {
-   "at": "2026-11-21T00:46:15+00:00",
-   "colour": "light blue / mint",
+   "at": "2026-11-21T17:07:13+00:00",
+   "colour": "Light Blue",
    "colour_match": true,
    "conf": 0.6,
-   "cost": 0.0169,
+   "cost": 0.01675,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
-   "dropped": [],
+   "deep_pending": {
+    "ans": {
+     "colour": "Light Blue",
+     "colour_match": true,
+     "confidence": 0.6,
+     "current_bad": false,
+     "keep_current_main": false,
+     "model_name": "Gallery Dept. Logo T-Shirt",
+     "note": "Store E's photo is a clean studio front of the same light blue tee with the small black left-chest wordmark, the closest match to image 0. Store E has only one good photo, so store D is named as second store for its side view on a model. Rejected: store A and C (painted/distressed versions with sleeve and back prints), store E's pocket version, store B and D back shots (back print not in image 0), and store D's 'Art Dept' and pocket-logo designs. Store D's studio front (13) is a near-duplicate angle with a more turquoise tone, so it was skipped.",
+     "photos": [
+      {
+       "i": 21,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 16,
+       "person": true,
+       "view": "side"
+      }
+     ],
+     "set": "picked",
+     "similar": false,
+     "store": "E",
+     "store2": "D"
+    },
+    "num": {
+     "1": 21,
+     "10": 28,
+     "11": 29,
+     "12": 33,
+     "13": 34,
+     "14": 35,
+     "15": 36,
+     "16": 37,
+     "17": 38,
+     "18": 39,
+     "19": 40,
+     "2": 22,
+     "20": 41,
+     "21": 50,
+     "22": 51,
+     "23": 52,
+     "24": 53,
+     "25": 54,
+     "26": 55,
+     "27": 56,
+     "3": 30,
+     "4": 31,
+     "5": 23,
+     "6": 24,
+     "7": 25,
+     "8": 26,
+     "9": 27
+    }
+   },
+   "dropped": [
+    "16 model: upload failed <HTTPError 544: '<none>'>"
+   ],
    "gallery": [],
    "keep_current_main": true,
    "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7677427243-m0.webp"
-   ],
+   "model": [],
    "model_name": "Gallery Dept. Logo T-Shirt",
-   "note": "Store B has a clean studio front of the same left-chest wordmark tee in matching mint/light blue, but only one product shot, so store C (clean light-blue front, same wordmark) is added as store2. Store B's back shot is on a model with a 'Hollywood, CA' back print, which may not match the plain back of this version, so it is kept only as a model fallback. Rejected: store A (different distressed French Blue design), store C's 'Gallery Art Dept' tee and back/side model shots, store D's pocket and reverse-print variants, store E and F (different colourways/designs), and image 0 (hanger shot, not a studio product shot).",
+   "note": "Store E's photo is a clean studio front of the same light blue tee with the small black left-chest wordmark, the closest match to image 0. Store E has only one good photo, so store D is named as second store for its side view on a model. Rejected: store A and C (painted/distressed versions with sleeve and back prints), store E's pocket version, store B and D back shots (back print not in image 0), and store D's 'Art Dept' and pocket-logo designs. Store D's studio front (13) is a near-duplicate angle with a more turquoise tone, so it was skipped.",
    "photo_score": 1,
    "prev": {
     "conf": 0.6,
@@ -6220,10 +6929,9 @@
     "store": "clothbase.com/items/2bb76a5f_gallery-dept-souvenir-logo-print-cotton-jersey-t-shirt-blue_gallery-dept"
    },
    "set": "picked",
-   "src": [
-    "https://clothbase.com/items/2bb76a5f_gallery-dept-souvenir-logo-print-cotton-jersey-t-shirt-blue_gallery-dept"
-   ],
-   "store": "clothbase.com/items/2bb76a5f_gallery-dept-souvenir-logo-print-cotton-jersey-t-shirt-blue_gallery-dept",
+   "similar": false,
+   "src": [],
+   "store": "ebay.com",
    "store2": "theatticstreetwear.com",
    "v": 2
   },
@@ -6322,24 +7030,103 @@
    "v": 2
   },
   "7677457259": {
-   "at": "2026-11-21T00:47:14+00:00",
-   "colour": "Andover Heather (light grey heather, navy pony)",
+   "at": "2026-11-21T15:59:02+00:00",
+   "colour": "Andover Heather (grey heather)",
    "colour_match": true,
-   "conf": 0.85,
-   "cost": 0.01821,
+   "conf": 0.8,
+   "cost": 0.02156,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "TimeoutError('The read operation timed out')",
-   "dropped": [],
-   "gallery": [],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7677457259-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7677457259-m1.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7677457259-m2.webp"
+   "deep_pending": {
+    "ans": {
+     "colour": "Andover Heather (grey heather)",
+     "colour_match": true,
+     "confidence": 0.8,
+     "current_bad": false,
+     "keep_current_main": false,
+     "model_name": "Polo Ralph Lauren Fleece Full-Zip Hoodie",
+     "note": "Store A's double-knit full-zip hoodie matches image 0: grey heather, navy pony, grey drawstrings, kangaroo pockets. Its studio front [2] is the sharpest product-only shot and becomes the main, as image 0 is low-resolution. Store A has no product-only back, so the model back [4] is the fallback. Model full-length [3] is kept. Rejected: near-duplicate model shots [1], [6]-[8], and the chest crop [5] that cuts the item off. Store B's version has cream drawstrings and a blue pony, so it is a different item and was not used. No other store carries the exact version, so no store2.",
+     "photos": [
+      {
+       "i": 2,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 4,
+       "person": true,
+       "view": "back"
+      },
+      {
+       "i": 3,
+       "person": true,
+       "view": "front"
+      }
+     ],
+     "set": "picked",
+     "similar": false,
+     "store": "A",
+     "store2": null
+    },
+    "num": {
+     "1": 0,
+     "10": 9,
+     "11": 10,
+     "12": 11,
+     "13": 12,
+     "14": 13,
+     "15": 14,
+     "16": 15,
+     "17": 20,
+     "18": 21,
+     "19": 22,
+     "2": 1,
+     "20": 23,
+     "21": 25,
+     "22": 26,
+     "23": 27,
+     "24": 28,
+     "25": 30,
+     "26": 31,
+     "27": 32,
+     "28": 33,
+     "29": 34,
+     "3": 2,
+     "30": 36,
+     "31": 37,
+     "32": 38,
+     "33": 39,
+     "34": 40,
+     "35": 42,
+     "36": 43,
+     "37": 61,
+     "38": 62,
+     "39": 63,
+     "4": 3,
+     "40": 64,
+     "41": 65,
+     "42": 44,
+     "43": 45,
+     "44": 46,
+     "45": 47,
+     "46": 48,
+     "5": 4,
+     "6": 5,
+     "7": 6,
+     "8": 7,
+     "9": 8
+    }
+   },
+   "dropped": [
+    "2 front: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "4 model: upload failed <HTTPError 544: '<none>'>",
+    "3 model: upload failed <HTTPError 544: '<none>'>"
    ],
+   "gallery": [],
+   "main": null,
+   "model": [],
    "model_name": "Polo Ralph Lauren Fleece Full-Zip Hoodie",
-   "note": "Store A has the exact fleece full-zip hoodie in Andover heather with the navy pony, and it has four usable shots, so no second store is needed. Its only product-only front (2) follows the current official front (image 0), which is already a clean studio shot. There is no product-only back, so the model back view (4) is the fallback. Rejected: the chest and face crops (5, 6), which cut the item off. Store G's Andover heather is a double-knit mesh model with a different lining, and its logo close-up and duplicate front were rejected. Stores B, C, E and F are other colours or models.",
+   "note": "Store A's double-knit full-zip hoodie matches image 0: grey heather, navy pony, grey drawstrings, kangaroo pockets. Its studio front [2] is the sharpest product-only shot and becomes the main, as image 0 is low-resolution. Store A has no product-only back, so the model back [4] is the fallback. Model full-length [3] is kept. Rejected: near-duplicate model shots [1], [6]-[8], and the chest crop [5] that cuts the item off. Store B's version has cream drawstrings and a blue pony, so it is a different item and was not used. No other store carries the exact version, so no store2.",
    "photo_score": 2,
    "prev": {
     "conf": 0.85,
@@ -6354,11 +7141,10 @@
     "set": "picked",
     "store": "ralphlauren.com/men-clothing-sweatshirts/fleece-full-zip-hoodie/0076811520.html"
    },
-   "set": "picked",
-   "src": [
-    "https://www.ralphlauren.com/men-clothing-sweatshirts/fleece-full-zip-hoodie/0076811520.html?dwvar_0076811520_primarysize=XL&checkStoreProd=false&dwvar_0076811520_colorname=Light%20Sport%20Heather&poloShopPage=false&checkQuickShopProd=false&bvstate=pg:4/ct:r"
-   ],
-   "store": "ralphlauren.com/men-clothing-sweatshirts/fleece-full-zip-hoodie/0076811520.html",
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": "ralphlauren.com/men-clothing-sweatshirts/double-knit-full-zip-hoodie/624763.html",
    "v": 2
   },
   "7677458535": {
@@ -6473,26 +7259,117 @@
    "v": 2
   },
   "7677480229": {
-   "at": "2026-11-20T23:12:01+00:00",
+   "at": "2026-11-21T16:03:59+00:00",
    "colour": "Black",
    "colour_match": true,
-   "conf": 0.4,
-   "cost": 0.02301,
+   "conf": 0.5,
+   "cost": 0.01794,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
-   "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7677480229-0.webp"
+   "deep_pending": {
+    "ans": {
+     "colour": "Black",
+     "colour_match": true,
+     "confidence": 0.5,
+     "current_bad": false,
+     "keep_current_main": false,
+     "model_name": "Moncler Hermine Long Down Jacket",
+     "note": "Store A is the official Moncler page with the closest long belted jacket with fur hood and sleeve patch, all in black. Its finish is matte, while image 0 is glossy, so it is a very similar item. No product-only back shot exists, so the model back view is the fallback. Image 7 was rejected because its pockets and belt buckle differ. Image 6 was rejected as a tight face crop. Store A has five usable photos, so no second store is needed.",
+     "photos": [
+      {
+       "i": 1,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 4,
+       "person": true,
+       "view": "three_quarter"
+      },
+      {
+       "i": 2,
+       "person": true,
+       "view": "front"
+      },
+      {
+       "i": 5,
+       "person": true,
+       "view": "back"
+      },
+      {
+       "i": 3,
+       "person": true,
+       "view": "side"
+      }
+     ],
+     "set": "picked",
+     "similar": true,
+     "store": "A",
+     "store2": null
+    },
+    "num": {
+     "1": 0,
+     "10": 18,
+     "11": 19,
+     "12": 20,
+     "13": 21,
+     "14": 22,
+     "15": 73,
+     "16": 74,
+     "17": 75,
+     "18": 76,
+     "19": 77,
+     "2": 1,
+     "20": 55,
+     "21": 56,
+     "22": 62,
+     "23": 63,
+     "24": 64,
+     "25": 23,
+     "26": 24,
+     "27": 25,
+     "28": 26,
+     "29": 27,
+     "3": 2,
+     "30": 28,
+     "31": 29,
+     "32": 30,
+     "33": 31,
+     "34": 32,
+     "35": 33,
+     "36": 34,
+     "37": 40,
+     "38": 41,
+     "39": 42,
+     "4": 3,
+     "40": 43,
+     "41": 44,
+     "42": 45,
+     "43": 46,
+     "44": 47,
+     "45": 48,
+     "46": 50,
+     "47": 51,
+     "48": 52,
+     "5": 4,
+     "6": 5,
+     "7": 6,
+     "8": 16,
+     "9": 17
+    }
+   },
+   "dropped": [
+    "1 front: upload failed <HTTPError 544: '<none>'>",
+    "4 model: upload failed <HTTPError 544: '<none>'>",
+    "2 model: upload failed <HTTPError 429: 'Too Many Requests'>"
    ],
-   "keep_current_main": true,
-   "main": "current",
+   "gallery": [],
+   "main": null,
    "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7677480229-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7677480229-m1.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7677480229-m2.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7677480229-dm2.webp"
    ],
    "model_name": "Moncler Hermine Long Down Jacket",
-   "note": "Store C has the clean black Hermine studio front and back, plus one full-length model shot, but only 3 usable photos, so Store F (black Hermine, model shots) is added as store2. Current photo shows a shiny, fur-hooded belted version that none of the stores match exactly; the Hermine is only a likely model. Rejected: navy-only photos (Store E), chest/torso crops (Store F front), lifestyle/Pinterest shots of people outdoors (Store B), homemade mirror selfies, and the duplicate-resolution front/back shots.",
+   "note": "Store A is the official Moncler page with the closest long belted jacket with fur hood and sleeve patch, all in black. Its finish is matte, while image 0 is glossy, so it is a very similar item. No product-only back shot exists, so the model back view is the fallback. Image 7 was rejected because its pockets and belt buckle differ. Image 6 was rejected as a tight face crop. Store A has five usable photos, so no second store is needed.",
    "photo_score": 1,
    "prev": {
     "conf": 0.4,
@@ -6509,14 +7386,12 @@
     "set": "picked",
     "store": "shop.mitchellstores.com/products/796441-moncler-coats"
    },
-   "set": "picked",
+   "set": "model only",
+   "similar": true,
    "src": [
-    "https://shop.mitchellstores.com/products/796441-moncler-coats",
-    "https://www.nordstrom.com/s/moncler-hermine-grosgrain-trim-quilted-down-puffer-coat/5293963?srsltid=AYCX9vJ3RVXPsQSPq3zgpFT6i_HLPy97ApbL48mC3_PP-9BXh6Le3aWh",
-    "https://www.nordstrom.com/s/moncler-hermine-grosgrain-trim-quilted-down-puffer-coat/5293963?srsltid=AYCX9vKa42ZjPCP8_M3908-gz5lFl4EC9EdPi_Sr338N7onHxXdM4hoX"
+    "https://www.moncler.com/en-au/women/outerwear/long-jackets-and-parka"
    ],
-   "store": "shop.mitchellstores.com/products/796441-moncler-coats",
-   "store2": "nordstrom.com",
+   "store": "moncler.com/en-au/women/outerwear/long-jackets-and-parka",
    "v": 2
   },
   "7677490177": {
@@ -6797,24 +7672,74 @@
    "v": 2
   },
   "7680377596": {
-   "at": "2026-11-21T00:51:00+00:00",
+   "at": "2026-11-21T17:08:59+00:00",
    "colour": "White with black Swoosh",
    "colour_match": true,
    "conf": 0.6,
-   "cost": 0.01117,
+   "cost": 0.01515,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "TimeoutError('The read operation timed out')",
+   "deep_pending": {
+    "ans": {
+     "colour": "White with black Swoosh",
+     "colour_match": true,
+     "confidence": 0.6,
+     "current_bad": false,
+     "keep_current_main": false,
+     "model_name": "Nike Everyday Cushioned Crew Socks (3 pack, white)",
+     "note": "Store D (Walmart) has the matching 3-pack cushioned crew sock on a clean white background: front and back shots used, the text-overlay photo 11 and the near-duplicate 10 rejected. Store D has fewer than 4 good photos, so store B is the second store, adding its model shot 5 (legs, full socks visible). Store B's swoosh close-up 3 and the 6-sock grid 4 were rejected. Store A, C and E use different sole and swoosh designs, and store G's grid shows six socks in one frame.",
+     "photos": [
+      {
+       "i": 8,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 9,
+       "person": false,
+       "view": "back"
+      },
+      {
+       "i": 5,
+       "person": true,
+       "view": "front"
+      }
+     ],
+     "set": "picked",
+     "similar": false,
+     "store": "D",
+     "store2": "B"
+    },
+    "num": {
+     "1": 4,
+     "10": 28,
+     "11": 30,
+     "12": 23,
+     "13": 24,
+     "14": 38,
+     "15": 39,
+     "16": 40,
+     "17": 42,
+     "2": 5,
+     "3": 9,
+     "4": 10,
+     "5": 11,
+     "6": 14,
+     "7": 15,
+     "8": 25,
+     "9": 26
+    }
+   },
    "dropped": [
-    "4 back: item cut off by the frame"
+    "9 back: item cut off by the frame",
+    "5 model: upload failed <HTTPError 429: 'Too Many Requests'>"
    ],
    "gallery": [],
    "keep_current_main": true,
    "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680377596-m0.webp"
-   ],
-   "model_name": "Nike Everyday Cushioned Crew Socks",
-   "note": "Store B's 3-pack is the closest exact match (white crew sock, black Swoosh, cushioned). Image 5 duplicates image 3 and image 6 has a feature text overlay, so both were skipped. Store B has fewer than 4 good photos, so Store E (same Everyday Cushioned Training crew sock, white with black Swoosh) is added as store2 with its model shot. Store A's 6-pack has coloured Swooshes, Store C is the Everyday Max version with grey heels, and Store D is the Everyday Plus Dri-FIT version, so these were rejected. Image 0 is a low-quality homemade-looking photo, so it stays not the main.",
+   "model": [],
+   "model_name": "Nike Everyday Cushioned Crew Socks (3 pack, white)",
+   "note": "Store D (Walmart) has the matching 3-pack cushioned crew sock on a clean white background: front and back shots used, the text-overlay photo 11 and the near-duplicate 10 rejected. Store D has fewer than 4 good photos, so store B is the second store, adding its model shot 5 (legs, full socks visible). Store B's swoosh close-up 3 and the 6-sock grid 4 were rejected. Store A, C and E use different sole and swoosh designs, and store G's grid shows six socks in one frame.",
    "photo_score": 1,
    "prev": {
     "conf": 0.6,
@@ -6828,33 +7753,110 @@
     "store": "walmart.com/ip/Nike-Everyday-Cushioned-Crew-Socks-White-Cotton-3-Pack/2972155348"
    },
    "set": "picked",
-   "src": [
-    "https://kitlocker.com/product/nike-everyday-cushioned-training-crew-socks-6-pairs/"
-   ],
+   "similar": false,
+   "src": [],
    "store": "walmart.com/ip/Nike-Everyday-Cushioned-Crew-Socks-White-Cotton-3-Pack/2972155348",
-   "store2": "kitlocker.com/product/nike-everyday-cushioned-training-crew-socks-6-pairs/",
+   "store2": "nike.com/t/everyday-cushioned-training-crew-socks-6-pairs-dtmKC5/SX7666-100",
    "v": 2
   },
   "7680379382": {
-   "at": "2026-11-21T00:51:14+00:00",
-   "colour": "beige and brown Jumbo GG",
+   "at": "2026-11-21T17:10:39+00:00",
+   "colour": "camel beige and brown Jumbo GG",
    "colour_match": true,
-   "conf": 0.5,
-   "cost": 0.01621,
+   "conf": 0.7,
+   "cost": 0.02201,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
-   "dropped": [],
-   "gallery": [],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680379382-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680379382-m1.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680379382-m2.webp"
+   "deep_pending": {
+    "ans": {
+     "colour": "camel beige and brown Jumbo GG",
+     "colour_match": true,
+     "confidence": 0.7,
+     "current_bad": false,
+     "keep_current_main": false,
+     "model_name": "Gucci Jumbo GG Cotton Jacquard Shorts",
+     "note": "Store F has the Jumbo GG pattern in the matching camel/brown with the elastic drawstring waistband, so it is the best match. Its product front (27) is the main. Model shots (29, 31, 30) follow. Store F has no product-only back shot. Rejected the shirt (26), the detail crop with a person (28), and the campaign-style shot (31 is kept as a full-figure model shot only). Store A is grey/navy, Store B uses a smaller standard GG pattern, Store G has a belt-tab waistband, and the remaining stores have the wrong colourway or are seller photos.",
+     "photos": [
+      {
+       "i": 27,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 29,
+       "person": true,
+       "view": "three_quarter"
+      },
+      {
+       "i": 31,
+       "person": true,
+       "view": "front"
+      },
+      {
+       "i": 30,
+       "person": true,
+       "view": "back"
+      }
+     ],
+     "set": "picked",
+     "similar": false,
+     "store": "F",
+     "store2": null
+    },
+    "num": {
+     "1": 1,
+     "10": 12,
+     "11": 15,
+     "12": 16,
+     "13": 17,
+     "14": 18,
+     "15": 19,
+     "16": 20,
+     "17": 21,
+     "18": 22,
+     "19": 23,
+     "2": 2,
+     "20": 24,
+     "21": 38,
+     "22": 39,
+     "23": 40,
+     "24": 41,
+     "25": 42,
+     "26": 26,
+     "27": 43,
+     "28": 44,
+     "29": 45,
+     "3": 3,
+     "30": 46,
+     "31": 47,
+     "32": 28,
+     "33": 29,
+     "34": 30,
+     "35": 31,
+     "36": 32,
+     "37": 33,
+     "38": 34,
+     "39": 35,
+     "4": 6,
+     "5": 7,
+     "6": 8,
+     "7": 9,
+     "8": 10,
+     "9": 11
+    }
+   },
+   "dropped": [
+    "27 front: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "29 model: upload failed <HTTPError 544: '<none>'>",
+    "31 model: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "30 model: upload failed <HTTPError 544: '<none>'>"
    ],
-   "model_name": "Gucci Jumbo GG Canvas Shorts (closest match; store A's tailored version)",
-   "note": "Store A has the same Jumbo GG beige/brown pattern and shorts, but its version is tailored with belt loops and no drawstring, so it is a close fallback, not the exact elastic-drawstring version. Image 0 is already a clean studio front, so it stays the main. Store A's front shot 1 is kept as the product-only shot, and model shots 2, 3 and the back view 4 follow. Near-duplicate 6 and the knee-level crop 5 were skipped. Stores B and E use a different or small monogram, store C has only one model crop, and store D is mostly reseller photos. No second store is needed since store A has four usable photos.",
-   "photo_score": 1,
+   "gallery": [],
+   "main": null,
+   "model": [],
+   "model_name": "Gucci Jumbo GG Cotton Jacquard Shorts",
+   "note": "Store F has the Jumbo GG pattern in the matching camel/brown with the elastic drawstring waistband, so it is the best match. Its product front (27) is the main. Model shots (29, 31, 30) follow. Store F has no product-only back shot. Rejected the shirt (26), the detail crop with a person (28), and the campaign-style shot (31 is kept as a full-figure model shot only). Store A is grey/navy, Store B uses a smaller standard GG pattern, Store G has a belt-tab waistband, and the remaining stores have the wrong colourway or are seller photos.",
+   "photo_score": 2,
    "prev": {
     "conf": 0.5,
     "gallery": [],
@@ -6868,11 +7870,10 @@
     "set": "picked",
     "store": "clothbase.com/items/a5f75165_gucci-jumbo-gg-canvas-shorts_gucci"
    },
-   "set": "picked",
-   "src": [
-    "https://clothbase.com/items/a5f75165_gucci-jumbo-gg-canvas-shorts_gucci"
-   ],
-   "store": "clothbase.com/items/a5f75165_gucci-jumbo-gg-canvas-shorts_gucci",
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": "mytheresa.com",
    "v": 2
   },
   "7680389060": {
@@ -7094,28 +8095,103 @@
    "v": 2
   },
   "7680436820": {
-   "at": "2026-11-21T00:53:32+00:00",
-   "colour": "pink monogram canvas with vachetta trim",
-   "colour_match": true,
+   "at": "2026-11-21T17:16:43+00:00",
+   "colour": "pink tonal monogram canvas with vachetta trim",
+   "colour_match": false,
    "conf": 0.6,
-   "cost": 0.01691,
+   "cost": 0.0183,
+   "current_bad": true,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
+   "deep_pending": {
+    "ans": {
+     "colour": "pink tonal monogram canvas with vachetta trim",
+     "colour_match": false,
+     "confidence": 0.6,
+     "current_bad": true,
+     "keep_current_main": false,
+     "model_name": "Louis Vuitton Nano Speedy Monogram Origine Lin (Rose Ruban)",
+     "note": "Store A has the most consistent set of pink Nano Speedy photos with vachetta trim and gold hardware, but its monogram is tonal pink rather than the white monogram in image 0, so it is a very similar item. Current image 0 is a cut-out with smeared edges and a plastic bag behind it, so it is marked bad. Rejected: image 12 (duplicate of image 1), image 6 (interior label), image 11 (packaging box), and the pattern-only corner shots 8, 9 and 10. Store B is the same style but has fewer photos, and store C and D are different materials or designs.",
+     "photos": [
+      {
+       "i": 1,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 3,
+       "person": false,
+       "view": "three_quarter"
+      },
+      {
+       "i": 4,
+       "person": false,
+       "view": "side"
+      },
+      {
+       "i": 7,
+       "person": false,
+       "view": "closeup"
+      },
+      {
+       "i": 5,
+       "person": false,
+       "view": "closeup"
+      },
+      {
+       "i": 2,
+       "person": false,
+       "view": "three_quarter"
+      }
+     ],
+     "set": "picked",
+     "similar": true,
+     "store": "A",
+     "store2": null
+    },
+    "num": {
+     "1": 23,
+     "10": 32,
+     "11": 33,
+     "12": 34,
+     "13": 38,
+     "14": 39,
+     "15": 40,
+     "16": 41,
+     "17": 42,
+     "18": 43,
+     "19": 44,
+     "2": 24,
+     "20": 45,
+     "21": 46,
+     "22": 47,
+     "23": 48,
+     "24": 49,
+     "25": 50,
+     "26": 73,
+     "27": 74,
+     "28": 75,
+     "29": 76,
+     "3": 25,
+     "4": 26,
+     "5": 27,
+     "6": 28,
+     "7": 29,
+     "8": 30,
+     "9": 31
+    }
+   },
    "dropped": [
-    "5 closeup: item cut off by the frame",
+    "1 front: upload failed <HTTPError 544: '<none>'>",
+    "3 three_quarter: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "4 side: upload failed <HTTPError 544: '<none>'>",
     "7 closeup: item cut off by the frame",
-    "8 closeup: item cut off by the frame"
+    "5 closeup: item cut off by the frame"
    ],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680436820-0.webp"
-   ],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680436820-m0.webp"
-   ],
+   "gallery": [],
+   "main": null,
+   "model": [],
    "model_name": "Louis Vuitton Nano Speedy Monogram Origine Lin (Rose Ruban)",
-   "note": "Store A has the most consistent professional set of the pink Nano Speedy Origine canvas, with no back product shot available. Rejected the box shot (11), the label (6), and duplicate angles (12-15). Kept one corner close-up (8) and skipped the similar pattern corners (9, 10). Store A has at least 4 good photos, so no second store. The monogram in Store A is tonal pink, while image 0 shows cream, so the match is approximate.",
+   "note": "Store A has the most consistent set of pink Nano Speedy photos with vachetta trim and gold hardware, but its monogram is tonal pink rather than the white monogram in image 0, so it is a very similar item. Current image 0 is a cut-out with smeared edges and a plastic bag behind it, so it is marked bad. Rejected: image 12 (duplicate of image 1), image 6 (interior label), image 11 (packaging box), and the pattern-only corner shots 8, 9 and 10. Store B is the same style but has fewer photos, and store C and D are different materials or designs.",
    "photo_score": 1,
    "prev": {
     "conf": 0.6,
@@ -7130,10 +8206,9 @@
     "set": "picked",
     "store": "fashionphile.com/products/louis-vuitton-monogram-origine-lin-nano-speedy-rose-ruban-1914918"
    },
-   "set": "picked",
-   "src": [
-    "https://www.fashionphile.com/products/louis-vuitton-monogram-origine-lin-nano-speedy-rose-ruban-1914918"
-   ],
+   "set": "none",
+   "similar": true,
+   "src": [],
    "store": "fashionphile.com/products/louis-vuitton-monogram-origine-lin-nano-speedy-rose-ruban-1914918",
    "v": 2
   },
@@ -7240,23 +8315,89 @@
    "v": 2
   },
   "7680456556": {
-   "at": "2026-11-21T00:54:32+00:00",
-   "colour": "Tan/mustard (Store A's solid 8 ball back graphic; no ash heather version found)",
-   "colour_match": false,
-   "conf": 0.5,
-   "cost": 0.01999,
+   "at": "2026-11-21T17:21:36+00:00",
+   "colour": "Ash Heather (light grey marl)",
+   "colour_match": true,
+   "conf": 0.85,
+   "cost": 0.01767,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
-   "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680456556-0.webp"
+   "deep_pending": {
+    "ans": {
+     "colour": "Ash Heather (light grey marl)",
+     "colour_match": true,
+     "confidence": 0.85,
+     "current_bad": false,
+     "keep_current_main": false,
+     "model_name": "Stussy 8 Ball Hoodie",
+     "note": "Store C is the only official listing of this exact 8 Ball hoodie in ash heather. Its back shot matches the script and 8 ball graphic, so it is the main, with the plain front after it. Only two product shots exist, and no other store has the exact design in this colour. Store A and B show a different back print, store H has a chest-only 8 ball, and store E is in other colours. The eBay photos were rejected as homemade or showing tags and hangers, and store E's model shots are not ash heather.",
+     "photos": [
+      {
+       "i": 6,
+       "person": false,
+       "view": "back"
+      },
+      {
+       "i": 5,
+       "person": false,
+       "view": "front"
+      }
+     ],
+     "set": "picked",
+     "similar": false,
+     "store": "C",
+     "store2": null
+    },
+    "num": {
+     "1": 3,
+     "10": 51,
+     "11": 52,
+     "12": 53,
+     "13": 16,
+     "14": 17,
+     "15": 18,
+     "16": 19,
+     "17": 20,
+     "18": 21,
+     "19": 22,
+     "2": 4,
+     "20": 23,
+     "21": 24,
+     "22": 25,
+     "23": 26,
+     "24": 27,
+     "25": 32,
+     "26": 33,
+     "27": 34,
+     "28": 35,
+     "29": 36,
+     "3": 5,
+     "30": 37,
+     "31": 38,
+     "32": 39,
+     "33": 40,
+     "34": 41,
+     "35": 42,
+     "36": 43,
+     "37": 44,
+     "4": 6,
+     "5": 7,
+     "6": 8,
+     "7": 12,
+     "8": 13,
+     "9": 14
+    }
+   },
+   "dropped": [
+    "6 back: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "5 front: upload failed <HTTPError 544: '<none>'>"
    ],
-   "keep_current_main": true,
-   "main": "current",
+   "gallery": [],
+   "main": null,
    "model": [],
    "model_name": "Stussy 8 Ball Hoodie",
-   "note": "Store A is the only listing with the same back 8 ball graphic on a pullover hoodie, but it has no ash heather. I chose the tan version because its solid black 8 ball matches image 0. Image 2 is a near-duplicate back shot and was dropped. Model shots were skipped because they are in other colours and the wanted colour is unavailable. Store B has the wanted ash heather but a front embroidered 8 ball man design, so it is not the same item. Store C and store H photos are homemade (floors, doors, hangers, personal rooms). Store D, E and F have different designs or are zips. Store G is a campaign shot. Store2 was not added because the tan Store A photos are the only exact-design set, and other stores do not show the same back print.",
-   "photo_score": 1,
+   "note": "Store C is the only official listing of this exact 8 Ball hoodie in ash heather. Its back shot matches the script and 8 ball graphic, so it is the main, with the plain front after it. Only two product shots exist, and no other store has the exact design in this colour. Store A and B show a different back print, store H has a chest-only 8 ball, and store E is in other colours. The eBay photos were rejected as homemade or showing tags and hangers, and store E's model shots are not ash heather.",
+   "photo_score": 2,
    "prev": {
     "conf": 0.5,
     "gallery": [
@@ -7268,34 +8409,30 @@
     "set": "picked",
     "store": "jacketsmasters.com/product/8-ball-hoodie/"
    },
-   "set": "picked",
-   "src": [
-    "https://www.jacketsmasters.com/product/8-ball-hoodie/?srsltid=AYCX9vL9Fcas8bZVvKT4YlMiL4ZVyj23g27Rfxj1SHTr1pMUJ0NMlGIb"
-   ],
-   "store": "jacketsmasters.com/product/8-ball-hoodie/",
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": "stussy.com/products/1925103-8-ball-hoodie-ash-heather",
    "v": 2
   },
   "7680460248": {
-   "at": "2026-11-21T00:54:46+00:00",
-   "colour": "Blue denim with black leather trim",
+   "at": "2026-11-21T17:24:41+00:00",
+   "colour": "Mid blue denim with black leather strap",
    "colour_match": true,
-   "conf": 0.4,
-   "cost": 0.01687,
+   "conf": 0.5,
+   "cost": 0.01573,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680460248-0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680460248-1.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680460248-d1.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680460248-d2.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680460248-d3.webp"
    ],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680460248-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680460248-m1.webp"
-   ],
-   "model_name": "Jacquemus Le Bambino Long (denim)",
-   "note": "No store sells the exact Le Bambino Long in denim. Store C's padded denim Bambimou with black leather strap is the closest match, so it is the main source, with its near-duplicate front shot (14) and its model shot dropped as redundant. Store C has only one clean product shot, so store B's denim Bambimou is added as second store for its back, 3/4 and side views. Store B's logo close-up (10) was skipped as a logo-only crop. Store A's denim bag is a top-handle Chiquito, and store D-G are leather Bambino bags in other colours, so all were rejected. Confidence is low because the padded construction differs from image 0.",
+   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680460248-d0.webp",
+   "model": [],
+   "model_name": "Jacquemus Le Bambimou Long padded denim shoulder bag",
+   "note": "Store H has a consistent clean studio set of the same long denim flap bag with black strap and silver JACQUEMUS plate. The tab is denim rather than the black leather of image 0, so it is marked similar. Rejected the logo close-up (37) as a loose detail. Store F has only two unique product shots plus model photos, so H is the better set. Image 0 is not a clean studio front, so it is not kept as main.",
    "photo_score": 1,
    "prev": {
     "conf": 0.4,
@@ -7313,32 +8450,30 @@
     "store": "endource.com/product/jacquemus-le-bambimou-leather-trimmed-padded-denim-shoulder-bag/ZcIhhVLIUwABSxtR"
    },
    "set": "picked",
+   "similar": true,
    "src": [
-    "https://www.vivrelle.com/products/denim-padded-le-bambimou-long-flap-bag",
-    "https://www.endource.com/product/jacquemus-le-bambimou-leather-trimmed-padded-denim-shoulder-bag/ZcIhhVLIUwABSxtR"
+    "https://www.vivrelle.com/products/denim-padded-le-bambimou-long-flap-bag"
    ],
-   "store": "endource.com/product/jacquemus-le-bambimou-leather-trimmed-padded-denim-shoulder-bag/ZcIhhVLIUwABSxtR",
-   "store2": "vivrelle.com/products/denim-padded-le-bambimou-long-flap-bag",
+   "store": "vivrelle.com/products/denim-padded-le-bambimou-long-flap-bag",
    "v": 2
   },
   "7680464324": {
-   "at": "2026-11-21T00:55:06+00:00",
-   "colour": "White (bianco), with fur-trimmed hood",
+   "at": "2026-11-21T17:27:03+00:00",
+   "colour": "White (glossy off-white)",
    "colour_match": true,
-   "conf": 0.5,
-   "cost": 0.01844,
+   "conf": 0.55,
+   "cost": 0.01918,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [],
-   "keep_current_main": true,
-   "main": "current",
+   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680464324-d0.webp",
    "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680464324-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680464324-m1.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680464324-dm0.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680464324-dm1.webp"
    ],
    "model_name": "Moncler Bady Short Hooded Down Jacket",
-   "note": "Store A has the only consistent Bady studio set in white, but its listing shows a detachable fur-trim hood that image 0 lacks, so confidence is capped at 0.5 and the current photo stays main. Store B and E show black zip and hardware (not silver), so they are rejected. Store C is a resale listing with a fur pom and homemade photos. Store D and G have no matching Bady. Store A has no product-only back shot, so the model back view is the fallback. Duplicate angles and the styled campaign shot (16) are skipped.",
+   "note": "Store G has only one clean product front (glossy white hooded, horizontal baffles, sleeve patch), so store E is the second store. Its Maya white jacket is a close match but has a matte, box-quilted look, so the match is similar. Rejected store G's cropped stand-collar jacket, long coat, and head-cropped model shots, plus store E's cropped model shots and duplicate front.",
    "photo_score": 1,
    "prev": {
     "conf": 0.5,
@@ -7353,10 +8488,13 @@
     "store": "follestad.no/produkt/moncler-badyf-short-down-jacket-hvit/"
    },
    "set": "picked",
+   "similar": true,
    "src": [
-    "https://www.follestad.no/produkt/moncler-badyf-short-down-jacket-hvit/"
+    "https://www.moncler.com/en-es/men/outerwear/short-down-jackets/moncler-maya-hooded-short-down-jacket-white-L20911A5360068950032.html",
+    "https://www.moncler.com/en-hu/women/outerwear/short-down-jackets/moncler-maya-hooded-short-down-jacket-white-L20931A0016254A81034.html"
    ],
-   "store": "follestad.no/produkt/moncler-badyf-short-down-jacket-hvit/",
+   "store": "moncler.com",
+   "store2": "moncler.com/en-hu/women/outerwear/short-down-jackets/moncler-maya-hooded-short-down-jacket-white-L20931A0016254A81034.html",
    "v": 2
   },
   "7680474090": {
@@ -7396,19 +8534,80 @@
    "v": 2
   },
   "7680482018": {
-   "at": "2026-11-21T00:55:39+00:00",
+   "at": "2026-11-21T17:27:22+00:00",
    "colour": "Navy with white and red accents",
    "colour_match": true,
    "conf": 0.8,
-   "cost": 0.01883,
+   "cost": 0.01714,
+   "current_bad": true,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
-   "dropped": [],
+   "deep_pending": {
+    "ans": {
+     "colour": "Navy with white and red accents",
+     "colour_match": true,
+     "confidence": 0.8,
+     "current_bad": true,
+     "keep_current_main": false,
+     "model_name": "Nike NFL New England Patriots Vapor Untouchable Limited Home Jersey (Tom Brady #12)",
+     "note": "Store G (Patriots proshop) is the only store with the Brady Limited jersey: photo 22 is a clean studio shot showing the BRADY name on the back, so it is the main. No other Brady photos are good, and no other store has this jersey. Rejected: #11, #85, #10 and #81 jerseys (other players), hoodie, women's and youth jerseys, the crop of the NFL shield, and the Maye alternate jersey in store H. Store2 is null because no other store carries this exact item. Image 0 is a two-view composite, so it is marked as a bad current main.",
+     "photos": [
+      {
+       "i": 22,
+       "person": false,
+       "view": "back"
+      }
+     ],
+     "set": "picked",
+     "similar": false,
+     "store": "G",
+     "store2": null
+    },
+    "num": {
+     "1": 0,
+     "10": 10,
+     "11": 11,
+     "12": 12,
+     "13": 13,
+     "14": 14,
+     "15": 15,
+     "16": 16,
+     "17": 17,
+     "18": 18,
+     "19": 21,
+     "2": 2,
+     "20": 22,
+     "21": 23,
+     "22": 31,
+     "23": 32,
+     "24": 33,
+     "25": 34,
+     "26": 35,
+     "27": 36,
+     "28": 37,
+     "29": 38,
+     "3": 3,
+     "30": 39,
+     "31": 40,
+     "32": 41,
+     "33": 42,
+     "34": 25,
+     "35": 26,
+     "4": 4,
+     "5": 5,
+     "6": 6,
+     "7": 7,
+     "8": 8,
+     "9": 9
+    }
+   },
+   "dropped": [
+    "22 back: upload failed <HTTPError 429: 'Too Many Requests'>"
+   ],
    "gallery": [],
-   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680482018-0.webp",
+   "main": null,
    "model": [],
-   "model_name": "Nike NFL New England Patriots Vapor Untouchable Limited Home Jersey (#12 Brady)",
-   "note": "Store C is the only store with this exact Brady Vapor Untouchable Limited navy jersey. Photo 4 is a clean studio front shot and becomes the main. Photos 5 and 6 are different players (#11 and Henry), so they were rejected. Store C has no Brady back shot. Photo 2 (store A) is a Maye jersey and was not used. Photos 7 to 17 were rejected as person shots, other players, other products (hoodie, long sleeve, youth/women's), a shield close-up on a model, and a tag. Store C has fewer than 4 good photos, but no other store carries this exact Brady version, so no second store was named. Image 0 is a two-view composite, so it does not qualify as the main.",
+   "model_name": "Nike NFL New England Patriots Vapor Untouchable Limited Home Jersey (Tom Brady #12)",
+   "note": "Store G (Patriots proshop) is the only store with the Brady Limited jersey: photo 22 is a clean studio shot showing the BRADY name on the back, so it is the main. No other Brady photos are good, and no other store has this jersey. Rejected: #11, #85, #10 and #81 jerseys (other players), hoodie, women's and youth jerseys, the crop of the NFL shield, and the Maye alternate jersey in store H. Store2 is null because no other store carries this exact item. Image 0 is a two-view composite, so it is marked as a bad current main.",
    "photo_score": 2,
    "prev": {
     "conf": 0.8,
@@ -7419,10 +8618,9 @@
     "set": "picked",
     "store": "proshop.patriots.com"
    },
-   "set": "picked",
-   "src": [
-    "https://proshop.patriots.com/mens-nike-tom-brady-navy-new-england-patriots-vapor-untouchable-limited-player-jersey/p-35730370711068+z-9861-1166522466"
-   ],
+   "set": "none",
+   "similar": false,
+   "src": [],
    "store": "proshop.patriots.com",
    "v": 2
   },
@@ -7493,22 +8691,82 @@
    "v": 2
   },
   "7705694037": {
-   "at": "2026-11-21T00:57:00+00:00",
-   "colour": "TNF Red with black",
-   "colour_match": true,
-   "conf": 0.4,
-   "cost": 0.01803,
+   "at": "2026-11-21T17:30:14+00:00",
+   "colour": "Black (red not available at the chosen store)",
+   "colour_match": false,
+   "conf": 0.3,
+   "cost": 0.02278,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
-   "dropped": [],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7705694037-0.webp"
+   "deep_pending": {
+    "ans": {
+     "colour": "Black (red not available at the chosen store)",
+     "colour_match": false,
+     "confidence": 0.3,
+     "current_bad": false,
+     "keep_current_main": true,
+     "model_name": "The North Face Denali Etip Glove",
+     "note": "Store A has the Etip in black with the white half-dome logo on the back of the hand, the closest match to image 0's layout. Its red-colourway photos are a different product (zipper, large cuff logo), so they were rejected. Store A has fewer than 4 good photos of this model, so store H's black product shot is added after them. The current red photo (image 0) is an exact-version clean studio front and is kept as the main. Store A's purple, brown, navy and grey versions, its black fleece Denali glove (image 12), its model crop (image 4) and the store H lifestyle shot (25) were rejected.",
+     "photos": [
+      {
+       "i": 9,
+       "person": false,
+       "view": "back"
+      },
+      {
+       "i": 11,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 26,
+       "person": false,
+       "view": "front"
+      }
+     ],
+     "set": "picked",
+     "similar": true,
+     "store": "A",
+     "store2": "H"
+    },
+    "num": {
+     "1": 3,
+     "10": 12,
+     "11": 13,
+     "12": 14,
+     "13": 17,
+     "14": 18,
+     "15": 19,
+     "16": 20,
+     "17": 21,
+     "18": 22,
+     "19": 23,
+     "2": 4,
+     "20": 24,
+     "21": 28,
+     "22": 29,
+     "23": 30,
+     "24": 25,
+     "25": 31,
+     "26": 32,
+     "3": 5,
+     "4": 6,
+     "5": 7,
+     "6": 8,
+     "7": 9,
+     "8": 10,
+     "9": 11
+    }
+   },
+   "dropped": [
+    "9 back: upload failed <HTTPError 429: 'Too Many Requests'>"
    ],
+   "gallery": [],
    "keep_current_main": true,
    "main": "current",
    "model": [],
-   "model_name": "The North Face Denali Etip Glove (red, youth/fleece version)",
-   "note": "No store has the exact soft-shell red version in image 0. Store B's red Denali Etip is the closest same-brand, same-colour glove, but it has a back zip pocket that image 0 lacks, so it is only a very close fallback. Image 0 is already a clean official-looking product front, so it stays the main. Store B's two red shots [3] and [4] are near-duplicates, so [4] is kept only as a real-part zip close-up. Store B's black [2] was rejected for colour, and store E/F/G/A images were pink, brown, grey or black versions.",
+   "model_name": "The North Face Denali Etip Glove",
+   "note": "Store A has the Etip in black with the white half-dome logo on the back of the hand, the closest match to image 0's layout. Its red-colourway photos are a different product (zipper, large cuff logo), so they were rejected. Store A has fewer than 4 good photos of this model, so store H's black product shot is added after them. The current red photo (image 0) is an exact-version clean studio front and is kept as the main. Store A's purple, brown, navy and grey versions, its black fleece Denali glove (image 12), its model crop (image 4) and the store H lifestyle shot (25) were rejected.",
    "photo_score": 1,
    "prev": {
     "conf": 0.4,
@@ -7522,10 +8780,10 @@
     "store": "solematesneakers.com/products/north-face-denali-etip-glove-tnf-red"
    },
    "set": "picked",
-   "src": [
-    "https://solematesneakers.com/products/north-face-denali-etip-glove-tnf-red?srsltid=AYCX9vIDb7j4LPRvupnsPxdfcRF70Q0QtIyKK1SQ8X1oHtsWlNPAgNzR"
-   ],
-   "store": "solematesneakers.com/products/north-face-denali-etip-glove-tnf-red",
+   "similar": true,
+   "src": [],
+   "store": "thenorthface.com",
+   "store2": "packhacker.com/travel-gear/the-north-face/denali-etip-gloves/",
    "v": 2
   },
   "7708539348": {
@@ -8586,24 +9844,25 @@
    "v": 2
   },
   "7720231122": {
-   "at": "2026-11-20T23:15:39+00:00",
-   "colour": "Bleached Sand / Kelp Tan (beige)",
+   "at": "2026-11-21T16:10:13+00:00",
+   "colour": "Bleached Sand / Kelp Tan",
    "colour_match": true,
    "conf": 0.85,
-   "cost": 0.01734,
+   "cost": 0.013,
+   "current_bad": true,
    "deep": 1,
-   "deep_error": "TimeoutError('The read operation timed out')",
    "dropped": [
+    "3 closeup: item cut off by the frame",
     "4 closeup: cut-out broke (item mostly removed)"
    ],
    "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720231122-1.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720231122-d1.webp"
    ],
-   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720231122-0.webp",
+   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720231122-d0.webp",
    "model": [],
-   "model_name": "The North Face Sherpa Nuptse Jacket (Bleached Sand / Kelp Tan)",
-   "note": "Store A's product page is the same sherpa Nuptse in a beige colourway, with clean studio front, back and zip/pocket close-ups. Image 5 duplicates the front and image 6 duplicates the collar shot, so both are skipped. Image 3 shows the black neck label, so it is rejected under the labels rule. Image 0 is a hanging, tagged photo, so it is not a clean studio main. Store A has only three usable photos, so a second store would normally be needed, but no other store has the same sherpa beige version with clean studio shots. Store G's sherpa photos are in cream/white and show bed, mannequin and collage shots, so I left store2 empty.",
-   "photo_score": 3,
+   "model_name": "The North Face Sherpa Nuptse Jacket",
+   "note": "Store A has the exact sherpa Nuptse in the beige colourway, with a product-only front, back and two real-part close-ups (embroidered logo and collar/zip, pocket zip). Rejected duplicates [5] and [6]. The current photo is a seller shot on a hanger with a hook visible, so it is marked bad. Store A has four good photos, so no second store is needed.",
+   "photo_score": 2,
    "prev": {
     "conf": 0.85,
     "gallery": [
@@ -8615,7 +9874,8 @@
     "set": "full",
     "store": "overkillshop.com/de/products/the-north-face-sherpa-nuptse-jacket-nf0a5a8411g-bleached-sand-kelp-tan"
    },
-   "set": "full",
+   "set": "picked",
+   "similar": false,
    "src": [
     "https://www.overkillshop.com/de/products/the-north-face-sherpa-nuptse-jacket-nf0a5a8411g-bleached-sand-kelp-tan"
    ],
@@ -8708,23 +9968,25 @@
    "v": 2
   },
   "7720246908": {
-   "at": "2026-11-20T23:15:53+00:00",
+   "at": "2026-11-21T16:10:43+00:00",
    "colour": "White/Marina Blue",
    "colour_match": true,
-   "conf": 0.7,
-   "cost": 0.01325,
+   "conf": 0.9,
+   "cost": 0.01608,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720246908-0.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720246908-d1.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720246908-d2.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720246908-d3.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720246908-d4.webp"
    ],
-   "keep_current_main": true,
-   "main": "current",
+   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720246908-d0.webp",
    "model": [],
-   "model_name": "Air Jordan 1 Low",
-   "note": "Store E's image 18 is the only studio shot showing the White/Marina Blue colourway. It is a top view, so it follows the current main (image 0), which is already a clean official side profile at least as good as any store front. Store A and D only have navy/university-blue or ice-blue colourways, and store E's other shots are different colourways, so they were rejected as a different version. Store B is a women's campaign shot with a person, and store C is a scene. No second store was added because no other store carries this exact colourway.",
-   "photo_score": 2,
+   "model_name": "Air Jordan 1 Low \"Marina Blue\"",
+   "note": "Store A (Kith, style DC0774-114) has a complete consistent 1600px studio shoot of the exact white/marina blue Air Jordan 1 Low. Image 1 is the main: a clean side profile with the toe pointing left, matching the current photo but sharper and higher resolution. Also included: the opposite side, a 3/4 pair shot, top view, back view and sole. Rejected: photo 7, a near-duplicate of photo 3. The current photo 0 is low resolution, so it is replaced rather than kept as main. No person shots or store B/C/D/E/F/G/H, which are other colourways, models or campaign images.",
+   "photo_score": 3,
    "prev": {
     "conf": 0.7,
     "gallery": [
@@ -8736,11 +9998,12 @@
     "set": "picked",
     "store": "nike.com"
    },
-   "set": "picked",
+   "set": "full",
+   "similar": false,
    "src": [
-    "https://www.nike.com/sg/launch/t/womens-air-jordan-1-low-dark-marina-blue"
+    "https://eu.kith.com/products/jbdc0774-114"
    ],
-   "store": "nike.com",
+   "store": "eu.kith.com/products/jbdc0774-114",
    "v": 2
   },
   "7720247000": {
@@ -8883,23 +10146,24 @@
    "v": 2
   },
   "7720262764": {
-   "at": "2026-11-20T23:16:11+00:00",
-   "colour": "Teal",
+   "at": "2026-11-21T16:11:13+00:00",
+   "colour": "Hydro teal / radial turquoise",
    "colour_match": true,
-   "conf": 0.4,
-   "cost": 0.01976,
+   "conf": 0.5,
+   "cost": 0.01647,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
-   "gallery": [],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720262764-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720262764-m1.webp"
+   "gallery": [
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720262764-d1.webp"
    ],
-   "model_name": "Under Armour Men's UA Tech Short Sleeve T-Shirt",
-   "note": "No store has the exact printed tonal-marble teal version with the jacquard collar tape. Store B's teal heathered UA Tech tee is the closest same-garment match in teal, so its product shot (26) is used. Its second teal shot (27) is a near-duplicate and was dropped. Store B has fewer than 4 good teal photos, so store H's teal model shots (front and back) are added as store2. Collages and multi-colour grids were rejected, as was the close-up of the neck area. The current photo is already a clean studio front shot, so it stays the main.",
+   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720262764-d0.webp",
+   "model": [
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720262764-dm0.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720262764-dm1.webp"
+   ],
+   "model_name": "Under Armour Men's UA Tech Textured Short Sleeve T-Shirt",
+   "note": "Store A is the only store with teal in the same family as image 0. Its tee has a heathered stripe texture rather than the crackle print, so it is marked similar. Its clean front (4) is the main, with the product-only back (5) and two model shots. Rejected the logo close-up (3) and the near-duplicate model front (6). Four or more good photos, so no second store.",
    "photo_score": 1,
    "prev": {
     "conf": 0.4,
@@ -8914,11 +10178,11 @@
     "store": "westportbigandtall.com/products/38354-under-armour-ua-tech-short-sleeve-tee-shirt-1"
    },
    "set": "picked",
+   "similar": true,
    "src": [
-    "https://www.dunhamssports.com/under-armour-men-s-tech-2-0-short-sleeve-t-shirt-W0000179009.html"
+    "https://www.oneills.com/under-armour-ua-tech-textured-t-shirt-adults-hydro-teal-radial-turquoise.html"
    ],
-   "store": "westportbigandtall.com/products/38354-under-armour-ua-tech-short-sleeve-tee-shirt-1",
-   "store2": "dunhamssports.com/under-armour-men-s-tech-2-0-short-sleeve-t-shirt-W0000179009.html",
+   "store": "oneills.com/under-armour-ua-tech-textured-t-shirt-adults-hydro-teal-radial-turquoise.html",
    "v": 2
   },
   "7720264784": {
@@ -9144,24 +10408,23 @@
    "v": 2
   },
   "7720302224": {
-   "at": "2026-11-20T23:16:35+00:00",
+   "at": "2026-11-21T16:11:32+00:00",
    "colour": "Blue tonal camo",
    "colour_match": true,
-   "conf": 0.55,
-   "cost": 0.01796,
+   "conf": 0.7,
+   "cost": 0.01557,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [],
    "gallery": [],
-   "keep_current_main": true,
-   "main": "current",
+   "main": null,
    "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720302224-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720302224-m1.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720302224-dm0.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720302224-dm1.webp"
    ],
    "model_name": "Under Armour UA Tech Tonal Camo Short Sleeve T-Shirt",
-   "note": "Store H has the closest match: blue tonal camo with a black UA logo on the left chest. Only its model shots show that version, and there are no product-only studio shots, so the main is a model photo. Store A and E show plain or heather tees, store B has a contrast-panel slate colourway, store C and F have a white or grey logo, and store D is black/navy camo. The chest close-up (38) was skipped as mostly logo with a neck crop, and the heather and light-blue store H shots are different patterns.",
-   "photo_score": 1,
+   "note": "Store G is the only store with this blue tonal camo print and black chest logo. Its only matching shots are model photos, so no clean product-only front exists; the front model shot is used as main, with the back model shot as the fallback. Rejected: the chest logo close-up (21), which is mainly a logo crop, and G's 22-24, which are different heather or textured tees. Stores A-H have no matching camo version.",
+   "photo_score": 2,
    "prev": {
     "conf": 0.55,
     "gallery": [],
@@ -9174,7 +10437,8 @@
     "set": "picked",
     "store": "terracesmenswear.co.uk"
    },
-   "set": "picked",
+   "set": "model only",
+   "similar": false,
    "src": [
     "https://www.terracesmenswear.co.uk/products/72389?srsltid=AYCX9vJPLELdzrKEfVP2v17uxItf7Uf95kZrQrVsvpLDZUHdh2f_FQu_",
     "https://www.terracesmenswear.co.uk/products/72389?srsltid=AYCX9vKL8_eq5ZQsEDxnJ8WyPjmXy-J3MxdlO5ZzjpFhbZbv98SsXn0W"
@@ -12277,22 +13541,88 @@
    "v": 2
   },
   "7737258177": {
-   "at": "2026-11-21T02:09:56+00:00",
-   "colour": "White and aqua/teal wave print",
+   "at": "2026-11-21T16:11:44+00:00",
+   "colour": "White and aqua/teal",
    "colour_match": true,
-   "conf": 0.8,
-   "cost": 0.01829,
+   "conf": 0.9,
+   "cost": 0.01423,
+   "current_bad": true,
    "deep": 1,
-   "deep_error": "TimeoutError('The read operation timed out')",
-   "dropped": [],
-   "gallery": [],
-   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737258177-0.webp",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737258177-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737258177-m1.webp"
+   "deep_pending": {
+    "ans": {
+     "colour": "White and aqua/teal",
+     "colour_match": true,
+     "confidence": 0.9,
+     "current_bad": true,
+     "keep_current_main": false,
+     "model_name": "Puma Portugal 2025/26 Away Jersey (Long Sleeve, Player Version)",
+     "note": "Store A (false9fits) has the exact long-sleeve player version in white/aqua with a clean studio front (2), a product-only back (12), a cuff close-up with the patch (9) and a full-length model shot (1). Current image 0 is a tilted flat lay, so it is replaced. Rejected: crest, Puma logo and patch-only close-ups (logo alone), the collar with the PORTUGAL print and label, the DRYCELL label, and fabric texture crops. Store A has four good photos, so no second store is needed.",
+     "photos": [
+      {
+       "i": 2,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 12,
+       "person": false,
+       "view": "back"
+      },
+      {
+       "i": 9,
+       "person": false,
+       "view": "closeup"
+      },
+      {
+       "i": 1,
+       "person": true,
+       "view": "front"
+      }
+     ],
+     "set": "picked",
+     "similar": false,
+     "store": "A",
+     "store2": null
+    },
+    "num": {
+     "1": 0,
+     "10": 9,
+     "11": 10,
+     "12": 11,
+     "13": 14,
+     "14": 15,
+     "15": 16,
+     "16": 17,
+     "17": 18,
+     "18": 19,
+     "19": 20,
+     "2": 1,
+     "20": 21,
+     "21": 22,
+     "22": 23,
+     "23": 24,
+     "24": 25,
+     "25": 26,
+     "3": 2,
+     "4": 3,
+     "5": 4,
+     "6": 5,
+     "7": 6,
+     "8": 7,
+     "9": 8
+    }
+   },
+   "dropped": [
+    "2 front: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "12 back: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "9 closeup: cut-out failed",
+    "1 model: upload failed <HTTPError 544: '<none>'>"
    ],
+   "gallery": [],
+   "main": null,
+   "model": [],
    "model_name": "Puma Portugal 2025/26 Away Jersey (Long Sleeve, Player Version)",
-   "note": "Store C is the only store selling the long-sleeve player version with this wave design. Chose the product front (15) as main, with model front (16) and model back (17) as the back fallback, since no product-only back exists. Rejected the near-duplicate product shot (18), the RONALDO-name flat shot (14) because the name print differs from image 0, and the duplicate model poses (19). Stores A, B, D, E, F and G show short-sleeve or different-style jerseys, so none matches the exact version. No second store is named because none carries the long-sleeve version.",
+   "note": "Store A (false9fits) has the exact long-sleeve player version in white/aqua with a clean studio front (2), a product-only back (12), a cuff close-up with the patch (9) and a full-length model shot (1). Current image 0 is a tilted flat lay, so it is replaced. Rejected: crest, Puma logo and patch-only close-ups (logo alone), the collar with the PORTUGAL print and label, the DRYCELL label, and fabric texture crops. Store A has four good photos, so no second store is needed.",
    "photo_score": 2,
    "prev": {
     "conf": 0.8,
@@ -12306,11 +13636,10 @@
     "set": "picked",
     "store": "surf.soccerpost.com/products/puma-788147-77-puma-portugal-2026-ronaldo-long-sleeve-away-jersey-white-launch-3-24-26"
    },
-   "set": "picked",
-   "src": [
-    "https://surf.soccerpost.com/products/puma-788147-77-puma-portugal-2026-ronaldo-long-sleeve-away-jersey-white-launch-3-24-26"
-   ],
-   "store": "surf.soccerpost.com/products/puma-788147-77-puma-portugal-2026-ronaldo-long-sleeve-away-jersey-white-launch-3-24-26",
+   "set": "none",
+   "similar": false,
+   "src": [],
+   "store": "false9fits.com/products/portugal-2026-long-sleeve-away-shirt",
    "v": 2
   },
   "7737273775": {
@@ -13635,25 +14964,94 @@
    "v": 2
   },
   "7743954927": {
-   "at": "2026-11-20T22:56:56+00:00",
-   "colour": "Heather Grey",
+   "at": "2026-11-21T15:46:14+00:00",
+   "colour": "Heather grey",
    "colour_match": true,
-   "conf": 0.45,
-   "cost": 0.01974,
+   "conf": 0.3,
+   "cost": 0.01839,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
+   "deep_pending": {
+    "ans": {
+     "colour": "Heather grey",
+     "colour_match": true,
+     "confidence": 0.3,
+     "current_bad": false,
+     "keep_current_main": true,
+     "model_name": "Polo Ralph Lauren Polo Bear Fleece Crewneck Sweatshirt",
+     "note": "No store has the exact tennis-bear version. Store A has the same heather grey crewneck with a large Polo Bear print, so it is the closest consistent studio set, but it has only one product-only front shot and no product-only back, so Store B is added as second store for more photos. The current photo is a clean studio front of the exact item, so it stays the main. Rejected: Store A's tight bear crop [5] (bear cut off), near-duplicate model shots [1], [6], [7], [8], Store B's cropped side [11] and full-figure shot [13] (bear cut off by framing), and the kids' versions from Stores C to H (different bears, child sizes).",
+     "photos": [
+      {
+       "i": 2,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 3,
+       "person": true,
+       "view": "front"
+      },
+      {
+       "i": 4,
+       "person": true,
+       "view": "back"
+      },
+      {
+       "i": 9,
+       "person": true,
+       "view": "front"
+      },
+      {
+       "i": 12,
+       "person": true,
+       "view": "back"
+      }
+     ],
+     "set": "picked",
+     "similar": true,
+     "store": "A",
+     "store2": "B"
+    },
+    "num": {
+     "1": 0,
+     "10": 10,
+     "11": 11,
+     "12": 12,
+     "13": 13,
+     "14": 16,
+     "15": 17,
+     "16": 18,
+     "17": 20,
+     "18": 22,
+     "19": 23,
+     "2": 1,
+     "20": 28,
+     "21": 29,
+     "22": 34,
+     "23": 35,
+     "24": 40,
+     "25": 46,
+     "26": 47,
+     "3": 2,
+     "4": 3,
+     "5": 4,
+     "6": 5,
+     "7": 6,
+     "8": 7,
+     "9": 8
+    }
+   },
    "dropped": [
-    "33: other store"
+    "3 model: upload failed <HTTPError 429: 'Too Many Requests'>",
+    "4 model: upload failed <HTTPError 544: '<none>'>",
+    "9 model: upload failed <HTTPError 544: '<none>'>"
    ],
    "gallery": [],
    "keep_current_main": true,
    "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7743954927-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7743954927-m1.webp"
-   ],
+   "model": [],
    "model_name": "Polo Ralph Lauren Polo Bear Fleece Crewneck Sweatshirt",
-   "note": "No store has the tennis-bear version. Store G is the official Ralph Lauren listing for the same Polo Bear grey fleece crewneck in Heather Grey, but its bear wears a varsity jacket. Its flat front shot is the only product-only photo and is the main. Model front shots and a model back shot follow as fallback. Store A's grey crewneck has only model shots and a different bear costume. Store B is a hoodie. Campaign shots with a blazer (36) and the chest close-up (38) were skipped.",
+   "note": "No store has the exact tennis-bear version. Store A has the same heather grey crewneck with a large Polo Bear print, so it is the closest consistent studio set, but it has only one product-only front shot and no product-only back, so Store B is added as second store for more photos. The current photo is a clean studio front of the exact item, so it stays the main. Rejected: Store A's tight bear crop [5] (bear cut off), near-duplicate model shots [1], [6], [7], [8], Store B's cropped side [11] and full-figure shot [13] (bear cut off by framing), and the kids' versions from Stores C to H (different bears, child sizes).",
    "photo_score": 1,
    "prev": {
     "conf": 0.45,
@@ -13668,10 +15066,10 @@
     "store": "ralphlauren.com/women-clothing-sweatshirts/polo-bear-oversize-fleece-crewneck/100027466.html"
    },
    "set": "picked",
-   "src": [
-    "https://www.ralphlauren.com/women-clothing-sweatshirts/polo-bear-oversize-fleece-crewneck/100027466.html"
-   ],
-   "store": "ralphlauren.com/women-clothing-sweatshirts/polo-bear-oversize-fleece-crewneck/100027466.html",
+   "similar": true,
+   "src": [],
+   "store": "ralphlauren.com/men-clothing-sweatshirts/vintage-fit-polo-bear-sweatshirt/100098598.html",
+   "store2": "ssense.com/en-us/men/product/polo-ralph-lauren/gray-vintage-fit-polo-bear-sweatshirt/19518071",
    "v": 2
   },
   "7746864804": {
@@ -13767,24 +15165,99 @@
    "v": 2
   },
   "7775428235": {
-   "at": "2026-11-20T23:17:06+00:00",
+   "at": "2026-11-21T16:17:39+00:00",
    "colour": "White",
    "colour_match": true,
-   "conf": 0.35,
-   "cost": 0.01635,
+   "conf": 0.4,
+   "cost": 0.01824,
+   "current_bad": true,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
-   "dropped": [],
-   "gallery": [],
-   "keep_current_main": true,
-   "main": "current",
-   "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7775428235-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7775428235-m1.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7775428235-m2.webp"
+   "deep_pending": {
+    "ans": {
+     "colour": "White",
+     "colour_match": true,
+     "confidence": 0.4,
+     "current_bad": true,
+     "keep_current_main": false,
+     "model_name": "Prada Cotton Jersey T-Shirt White",
+     "note": "Store C has a short-sleeve white crew-neck tee with the same white triangle patch on the chest. No product-only shots exist in any store, so every photo shows a model. Photo 11 is the best front, 12 the back, and 10 the full-length view. Rejected: store A and D pocket tees, store B long sleeve, store H back-neck-only triangle, store G coloured triangle, and store D/F/E off-model items. Image 0 is a hanger shot with a tag in view, so it is bad as the main.",
+     "photos": [
+      {
+       "i": 11,
+       "person": true,
+       "view": "front"
+      },
+      {
+       "i": 12,
+       "person": true,
+       "view": "back"
+      },
+      {
+       "i": 10,
+       "person": true,
+       "view": "front"
+      },
+      {
+       "i": 13,
+       "person": true,
+       "view": "three_quarter"
+      }
+     ],
+     "set": "picked",
+     "similar": true,
+     "store": "C",
+     "store2": null
+    },
+    "num": {
+     "1": 1,
+     "10": 13,
+     "11": 14,
+     "12": 15,
+     "13": 16,
+     "14": 22,
+     "15": 24,
+     "16": 25,
+     "17": 27,
+     "18": 28,
+     "19": 29,
+     "2": 2,
+     "20": 30,
+     "21": 32,
+     "22": 33,
+     "23": 34,
+     "24": 36,
+     "25": 37,
+     "26": 38,
+     "27": 40,
+     "28": 41,
+     "29": 50,
+     "3": 3,
+     "30": 51,
+     "31": 52,
+     "32": 53,
+     "33": 54,
+     "34": 43,
+     "35": 44,
+     "36": 45,
+     "37": 46,
+     "4": 4,
+     "5": 6,
+     "6": 8,
+     "7": 9,
+     "8": 10,
+     "9": 11
+    }
+   },
+   "dropped": [
+    "11 model: upload failed <HTTPError 544: '<none>'>",
+    "12 model: upload failed <HTTPError 544: '<none>'>",
+    "10 model: upload failed <HTTPError 544: '<none>'>"
    ],
-   "model_name": "Prada Cropped Cotton Jersey T-Shirt with Zip Neckline (triangle logo plate)",
-   "note": "No store has the exact version: none shows the zip-placket neckline or the cropped fit. Store B's white short-sleeve crew tee with a chest triangle plate is the closest design, so it is used as a very close fallback. Its only usable shots are on a model (the tight crops and the cardigan layering were rejected), so store C supplies the second set of extra photos. Store A's logo sits on the back neck label, Store D is a tank top, Store E has puff sleeves and a ruffled collar, and Store F is a drawstring sweatshirt, so they were rejected. The current photo stays the main.",
+   "gallery": [],
+   "main": null,
+   "model": [],
+   "model_name": "Prada Cotton Jersey T-Shirt White",
+   "note": "Store C has a short-sleeve white crew-neck tee with the same white triangle patch on the chest. No product-only shots exist in any store, so every photo shows a model. Photo 11 is the best front, 12 the back, and 10 the full-length view. Rejected: store A and D pocket tees, store B long sleeve, store H back-neck-only triangle, store G coloured triangle, and store D/F/E off-model items. Image 0 is a hanger shot with a tag in view, so it is bad as the main.",
    "photo_score": 1,
    "prev": {
     "conf": 0.35,
@@ -13799,33 +15272,110 @@
     "set": "picked",
     "store": "prada.com/no/en/p/jersey-t-shirt/35838_15ZG_F0009_S_OOO"
    },
-   "set": "picked",
-   "src": [
-    "https://www.prada.com/no/en/p/jersey-t-shirt/35838_15ZG_F0009_S_OOO",
-    "https://www.prada.com/us/en/p/jersey-t-shirt/35838_15ZG_F0AA1_S_OOO"
-   ],
-   "store": "prada.com/no/en/p/jersey-t-shirt/35838_15ZG_F0009_S_OOO",
-   "store2": "prada.com/us/en/p/jersey-t-shirt/35838_15ZG_F0AA1_S_OOO",
+   "set": "none",
+   "similar": true,
+   "src": [],
+   "store": "mytheresa.com/gb/en/men/prada-cotton-jersey-t-shirt-white-p01151759",
    "v": 2
   },
   "7776762026": {
-   "at": "2026-11-20T20:24:48+00:00",
+   "at": "2026-11-21T15:40:06+00:00",
    "colour": "yellow gold",
    "colour_match": true,
-   "conf": 0.75,
-   "cost": 0.02373,
+   "conf": 0.85,
+   "cost": 0.01776,
+   "current_bad": true,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
+   "deep_pending": {
+    "ans": {
+     "colour": "yellow gold",
+     "colour_match": true,
+     "confidence": 0.85,
+     "current_bad": true,
+     "keep_current_main": false,
+     "model_name": "Cartier LOVE Bracelet (yellow gold)",
+     "note": "Store F has the exact yellow gold LOVE bracelet with clean cream-background studio shots (front, 3/4, flat front) plus one wrist model shot, giving four good photos so no second store is needed. Rejected the duplicates (31, 32, 33), the box, papers, pouch and care kit (27-30, 34). Store G was passed over: its photos look rose-toned rather than yellow gold. Current photo 0 is a boxed shot, so it is bad as the main.",
+     "photos": [
+      {
+       "i": 23,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 25,
+       "person": false,
+       "view": "three_quarter"
+      },
+      {
+       "i": 26,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 24,
+       "person": true,
+       "view": "front"
+      }
+     ],
+     "set": "picked",
+     "similar": false,
+     "store": "F",
+     "store2": null
+    },
+    "num": {
+     "1": 0,
+     "10": 15,
+     "11": 17,
+     "12": 18,
+     "13": 21,
+     "14": 22,
+     "15": 23,
+     "16": 24,
+     "17": 25,
+     "18": 27,
+     "19": 28,
+     "2": 1,
+     "20": 29,
+     "21": 30,
+     "22": 31,
+     "23": 39,
+     "24": 40,
+     "25": 41,
+     "26": 42,
+     "27": 43,
+     "28": 44,
+     "29": 45,
+     "3": 3,
+     "30": 46,
+     "31": 47,
+     "32": 48,
+     "33": 49,
+     "34": 50,
+     "35": 51,
+     "36": 52,
+     "37": 53,
+     "38": 54,
+     "39": 55,
+     "4": 4,
+     "40": 56,
+     "5": 7,
+     "6": 9,
+     "7": 10,
+     "8": 11,
+     "9": 14
+    }
+   },
    "dropped": [
-    "28 closeup: item touches the frame"
+    "23 front: upload failed <HTTPError 544: '<none>'>",
+    "25 three_quarter: upload failed <HTTPError 429: 'Too Many Requests'>"
    ],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7776762026-1.webp"
+   "gallery": [],
+   "main": null,
+   "model": [
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7776762026-dm0.webp"
    ],
-   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7776762026-0.webp",
-   "model": [],
    "model_name": "Cartier LOVE Bracelet (yellow gold)",
-   "note": "Store A has a consistent cream-background studio set with yellow gold and matching Cartier/Au 750 engravings, but only 3 unique product shots. Rejected duplicates (1/9, 3/10, 4/11, 5/12), box and packaging shots (5, 6, 7, 8), and the tight wrist crop (2). Store D (yellow gold, white studio backgrounds) supplies the extra photos: 21, 28 (screw close-up) and 23. Rejected D's homemade and box shots (22, 25, 26, 27) and the diamond version (19, 20, 24 were similar but skipped to avoid near-duplicates). Store B looks rose gold, so it was not used.",
+   "note": "Store F has the exact yellow gold LOVE bracelet with clean cream-background studio shots (front, 3/4, flat front) plus one wrist model shot, giving four good photos so no second store is needed. Rejected the duplicates (31, 32, 33), the box, papers, pouch and care kit (27-30, 34). Store G was passed over: its photos look rose-toned rather than yellow gold. Current photo 0 is a boxed shot, so it is bad as the main.",
    "photo_score": 2,
    "prev": {
     "conf": 0.75,
@@ -13838,12 +15388,12 @@
     "set": "picked",
     "store": "jewelsaficionado.com/collections/designer-jewelry/products/cartier-love-bracelet-yellow-gold-b6067517"
    },
-   "set": "picked",
+   "set": "model only",
+   "similar": false,
    "src": [
     "https://jewelsaficionado.com/collections/designer-jewelry/products/cartier-love-bracelet-yellow-gold-b6067517"
    ],
    "store": "jewelsaficionado.com/collections/designer-jewelry/products/cartier-love-bracelet-yellow-gold-b6067517",
-   "store2": "ebay.com",
    "v": 2
   },
   "7777817853": {
@@ -13879,27 +15429,27 @@
    "v": 2
   },
   "7777847657": {
-   "at": "2026-11-20T22:50:16+00:00",
-   "colour": "Black",
+   "at": "2026-11-21T15:44:54+00:00",
+   "colour": "Black Goyardine with black leather trim",
    "colour_match": true,
-   "conf": 0.85,
-   "cost": 0.01991,
+   "conf": 0.6,
+   "cost": 0.02227,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
    "dropped": [
-    "4 closeup: cut-out broke (item mostly removed)",
-    "8 closeup: item cut off by the frame"
+    "19 closeup: cut-out broke (item mostly removed)",
+    "23 closeup: item cut off by the frame"
    ],
    "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7777847657-0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7777847657-1.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7777847657-d0.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7777847657-d1.webp"
    ],
    "keep_current_main": true,
    "main": "current",
    "model": [],
-   "model_name": "Goyard Jouvence Pouch (GM)",
-   "note": "Store A has a complete consistent studio shoot of the black Jouvence pouch (front, back, side, corner close-up, interior). Its front shot matches image 0 and the current photo is already a clean studio front, so it stays the main. Rejected: duplicate front (10) and duplicate corner shots (5, 6, 7, 11), logo-only close-up (9), and the store's duplicate front of image 1. Store B, C and E show the MM/PM/GM variants with fewer photos, and no store was needed as a second source.",
-   "photo_score": 3,
+   "model_name": "Goyard Jouvence Pouch (GM/MM, size unconfirmed)",
+   "note": "Store D has black Goyardine with black trim matching image 0, on a clean cream studio background, with front, back, bottom, one corner close-up and the inside. Rejected: the logo-only close-up (24), duplicate front (25) and near-duplicate corners (20-22, 26). Store A, E and F use brown or orange-lined variants or have weaker sets (E shows duplicate and mostly similar shots, F has a mannequin hand and a label close-up). Store B has only 2 photos and store C is a suitcase. The listing title says GM, so the size may differ from image 0.",
+   "photo_score": 1,
    "prev": {
     "conf": 0.85,
     "gallery": [
@@ -13912,7 +15462,8 @@
     "set": "full",
     "store": "theclosetonlineshop.com/en-us/products/goyard-black-goyardine-jouvence-gm-pouch-bag"
    },
-   "set": "full",
+   "set": "picked",
+   "similar": false,
    "src": [
     "https://theclosetonlineshop.com/en-us/products/goyard-black-goyardine-jouvence-gm-pouch-bag"
    ],
@@ -14173,25 +15724,105 @@
    "v": 2
   },
   "7790144072": {
-   "at": "2026-11-20T19:13:12+00:00",
-   "colour": "Black with white outlined logo and sleeve graphics",
+   "at": "2026-11-21T15:35:48+00:00",
+   "colour": "Black",
    "colour_match": true,
-   "conf": 0.8,
-   "cost": 0.01971,
+   "conf": 0.85,
+   "cost": 0.02363,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 429: 'Too Many Requests'>",
+   "deep_pending": {
+    "ans": {
+     "colour": "Black",
+     "colour_match": true,
+     "confidence": 0.85,
+     "current_bad": false,
+     "keep_current_main": false,
+     "model_name": "Chrome Hearts Horseshoe Zip Hoodie",
+     "note": "Store B has a consistent white-background set of the exact hoodie (front, pocket detail, back) but only 3 usable product shots, so store D's front and back shots were added as store2. Rejected: store B label, logo and pocket close-ups (8-12, 5-7); store A (only a Grailed logo image); store C (no sleeve graphics, and a 'HANGZHOU' back print); store E (pink-print back, and a different chest print); store D label shots and duplicate back (21).",
+     "photos": [
+      {
+       "i": 2,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 4,
+       "person": false,
+       "view": "back"
+      },
+      {
+       "i": 3,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 22,
+       "person": false,
+       "view": "front"
+      },
+      {
+       "i": 23,
+       "person": false,
+       "view": "back"
+      }
+     ],
+     "set": "picked",
+     "similar": false,
+     "store": "B",
+     "store2": "D"
+    },
+    "num": {
+     "1": 10,
+     "10": 52,
+     "11": 53,
+     "12": 54,
+     "13": 55,
+     "14": 56,
+     "15": 57,
+     "16": 58,
+     "17": 59,
+     "18": 60,
+     "19": 61,
+     "2": 44,
+     "20": 62,
+     "21": 63,
+     "22": 64,
+     "23": 65,
+     "24": 66,
+     "25": 67,
+     "26": 68,
+     "27": 69,
+     "28": 70,
+     "29": 71,
+     "3": 45,
+     "30": 72,
+     "31": 73,
+     "32": 74,
+     "33": 75,
+     "34": 78,
+     "35": 79,
+     "36": 80,
+     "37": 81,
+     "38": 82,
+     "4": 46,
+     "5": 47,
+     "6": 48,
+     "7": 49,
+     "8": 50,
+     "9": 51
+    }
+   },
    "dropped": [
-    "9 closeup: item touches the frame"
+    "2 front: upload failed <HTTPError 544: '<none>'>",
+    "4 back: upload failed <HTTPError 544: '<none>'>"
    ],
-   "gallery": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7790144072-1.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7790144072-2.webp"
-   ],
-   "main": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7790144072-0.webp",
+   "gallery": [],
+   "main": null,
    "model": [],
    "model_name": "Chrome Hearts Horseshoe Zip Hoodie",
-   "note": "Store A has a consistent studio set of this exact hoodie (horseshoe chest logo, filigree sleeves, CH pocket). Its high-res front (1) beats the current 360px photo, and the back (3) and inside label (4) and size tag (9) are real-part shots. Rejected: the front duplicate (2), logo-only crops (5, 6), and the remaining tag photos. Stores B and C show different back graphics (HANGZHOU text, pink print), and store D's back is a different pink print design, so they were not chosen.",
-   "photo_score": 3,
+   "note": "Store B has a consistent white-background set of the exact hoodie (front, pocket detail, back) but only 3 usable product shots, so store D's front and back shots were added as store2. Rejected: store B label, logo and pocket close-ups (8-12, 5-7); store A (only a Grailed logo image); store C (no sleeve graphics, and a 'HANGZHOU' back print); store E (pink-print back, and a different chest print); store D label shots and duplicate back (21).",
+   "photo_score": 2,
    "prev": {
     "conf": 0.8,
     "gallery": [
@@ -14204,11 +15835,11 @@
     "set": "full",
     "store": "luxuryboxatl.com/products/chrome-hearts-horseshoe-floral-cross-zip-up-hoodie-black"
    },
-   "set": "full",
-   "src": [
-    "https://luxuryboxatl.com/products/chrome-hearts-horseshoe-floral-cross-zip-up-hoodie-black"
-   ],
+   "set": "none",
+   "similar": false,
+   "src": [],
    "store": "luxuryboxatl.com/products/chrome-hearts-horseshoe-floral-cross-zip-up-hoodie-black",
+   "store2": "luxuryboxatl.com/products/chrome-hearts-horseshoe-floral-cross-sleeve-zip-up-hoodie-black-white",
    "v": 2
   },
   "7796759733": {
@@ -14545,5 +16176,5 @@
    "v": 2
   }
  },
- "spent_usd": 12.2737
+ "spent_usd": 12.8397
 }
