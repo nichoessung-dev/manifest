@@ -1,5 +1,5 @@
 {
- "deep_spent_usd": 4.4119,
+ "deep_spent_usd": 4.4465,
  "items": {
   "4422702424": {
    "at": "2026-11-20T22:52:40+00:00",
@@ -7334,24 +7334,24 @@
    "v": 2
   },
   "7680484090": {
-   "at": "2026-11-20T23:11:09+00:00",
-   "colour": "Purple degradé (cream/white to purple)",
+   "at": "2026-11-21T15:19:38+00:00",
+   "colour": "White to purple degradé",
    "colour_match": true,
-   "conf": 0.85,
-   "cost": 0.01334,
+   "conf": 0.6,
+   "cost": 0.01807,
+   "current_bad": false,
    "deep": 1,
-   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [],
    "keep_current_main": true,
    "main": "current",
    "model": [
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680484090-m0.webp",
-    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680484090-m1.webp"
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680484090-dm0.webp",
+    "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7680484090-dm1.webp"
    ],
    "model_name": "Off-White Degradé Arrows Mohair Crewneck Sweater",
-   "note": "Store C is the only store selling the exact Off-White degradé arrows mohair crewneck. Its photos are all on a model, with no product-only shots, so the current back product photo (image 0) stays the main. I kept one front and one back model shot, which show the full sweater. Near-duplicates and the side crop (22) were dropped. Store A, B, D, E and F sell different designs or colours, so they were rejected.",
-   "photo_score": 2,
+   "note": "Store D has the only product-only shot in the wanted white-to-purple mohair colourway (plain front, no back shot). Store has fewer than 4 good photos, so store F's same-item model shots (back and front, full upper body) are added after it. Store F's chest-crop side shot and duplicate poses were skipped. Grey/black and navy versions from stores B and E, the sweatshirts from store A, and the lilac knits from stores G and H were rejected as other colours or designs.",
+   "photo_score": 1,
    "prev": {
     "conf": 0.85,
     "gallery": [],
@@ -7365,10 +7365,12 @@
     "store": "theluxelend.com/products/off-white-degrade-mohair-arrows-logo-sweater"
    },
    "set": "picked",
+   "similar": false,
    "src": [
     "https://theluxelend.com/products/off-white-degrade-mohair-arrows-logo-sweater"
    ],
-   "store": "theluxelend.com/products/off-white-degrade-mohair-arrows-logo-sweater",
+   "store": "goat.com",
+   "store2": "theluxelend.com/products/off-white-degrade-mohair-arrows-logo-sweater",
    "v": 2
   },
   "7680485842": {
@@ -8541,7 +8543,7 @@
    "conf": 0.9,
    "cost": 0.01486,
    "deep": 1,
-   "deep_error": "TimeoutError('The read operation timed out')",
+   "deep_error": "<HTTPError 544: '<none>'>",
    "dropped": [],
    "gallery": [
     "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7720211358-1.webp"
@@ -13198,5 +13200,5 @@
    "v": 2
   }
  },
- "spent_usd": 11.1494
+ "spent_usd": 11.184
 }
