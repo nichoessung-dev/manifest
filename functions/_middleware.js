@@ -62,10 +62,17 @@ const FB_INVITE = "AADAXV";
 const FB_SIGNUP = "https://m.mycnbox.com/pages/login/index?inviteCode=" + FB_INVITE;
 const FB_RE = /https:\/\/mycnbox\.com\/login\/main-login\?inviteCode=AACPYA|AACPYA|referId=" \+ AGENT_REFS\.mycnbox|referId="\+R\.mycnbox|referId=\$\{AGENT_REFS\.mycnbox\}|referId=\$\{REFS\.mycnbox\}|referId=LHYDVW/g;
 const fbSwap = m => m === "AACPYA" ? FB_INVITE : m.startsWith("https:") ? FB_SIGNUP : m.includes('"') ? `inviteCode=${FB_INVITE}"` : `inviteCode=${FB_INVITE}`;
+// 21 Nov 2026 (owner): the header logo on fb.* is the "FB × puro classico" lockup (logo-fb-wordmark.png, an alpha mask like
+// logo-wordmark.png, so it takes the ink colour in light and dark). The sizes beat the !important ones in index.html; 130px on
+// phones keeps the header row as it was.
+const FB_LOGO_CSS = '<style>html .brand-img{-webkit-mask-image:url(/logo-fb-wordmark.png);mask-image:url(/logo-fb-wordmark.png);' +
+  'height:30px!important;width:178px!important}@media(max-width:560px){html .brand-img{height:22px!important;width:130px!important}}</style>';
 async function fbRewrite(res) {
   const type = res.headers.get("content-type") || "";
   if (res.status !== 200 || !/html|javascript/i.test(type)) return res;
-  const out = new Response((await res.text()).replace(FB_RE, fbSwap), res);
+  let body = (await res.text()).replace(FB_RE, fbSwap);
+  if (/html/i.test(type)) body = body.replace(/<\/head>|<a class="brand"/, m => FB_LOGO_CSS + m);   // index.html leaves out </head>: then just before the logo
+  const out = new Response(body, res);
   for (const h of ["content-length", "content-encoding", "etag"]) out.headers.delete(h);
   return out;
 }

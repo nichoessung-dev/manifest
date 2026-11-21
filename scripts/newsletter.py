@@ -81,7 +81,29 @@ def hide(msg):
     """The job log of this repository is public: an error text is printed without any email address in it."""
     return re.sub(r"[\w.+%-]+@[\w-]+(?:\.[\w-]+)+", "<address>", str(msg))[:200]
 
+# fb.puroclassico.com (21 Nov 2026, owner): members who signed up on the partner's copy of the site (profiles.referred_by
+# "fbpartner", set by getRef() in index.html) get his MyCNBox invite code and fb.* links in every email. Same code as
+# FB_INVITE in functions/_middleware.js. If the list can't be read, everyone gets the normal email.
+FB_REF = "fbpartner"
+FB_INVITE = "AADAXV"
+FB_SIGNUP = "https://m.mycnbox.com/pages/login/index?inviteCode=" + FB_INVITE
+_fb_emails = None
+
+def fb_emails():
+    global _fb_emails
+    if _fb_emails is None:
+        try: _fb_emails = {(p.get("email") or "").lower() for p in sb_all("profiles?referred_by=eq.%s&select=email&order=id" % FB_REF)}
+        except Exception as e: print("fb members not readable (%s)" % hide(e)[:80]); _fb_emails = set()
+        print("fb partner members:", len(_fb_emails))
+    return _fb_emails
+
+def fb_swap(html):
+    html = html.replace(MYCNBOX_URL, FB_SIGNUP).replace("AACPYA", FB_INVITE)
+    return re.sub(r"https://(?:www\.)?puroclassico\.com", "https://fb.puroclassico.com", html)
+
 def brevo_send(to_email, subject, html, unsub=None, tag=None):
+    if to_email and to_email.lower() in fb_emails():
+        html, unsub = fb_swap(html), unsub and fb_swap(unsub)
     body = {"sender": {"name": "Puro Classico", "email": "news@puroclassico.com"},
             "to": [{"email": to_email}], "subject": subject, "htmlContent": html}
     # Brevo's statistics split by tag: welcome, ordering, mycnbox, newsletter, saved. A list adds more tags (the ordering
