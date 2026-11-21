@@ -44,7 +44,9 @@ When unsure, DROP. Fewer, perfect photos are better than many mixed ones.
 KEEP clean studio photos of the whole item: front, back, sides, sole/top for shoes, and full model photos of the item.
 Model photos go last. The main is the best clean product-only FRONT photo among the kept ones (never a model photo);
 for items whose design is on the back, the back is the main. A clean, sharp studio cut-out or white-background front of
-the same item is always better than photo 0. Main is 0 only if no kept candidate is a clean product-only front.
+the same item beats a seller photo (a flat-lay on a table, a hanger, a busy or grey background, a soft or dark photo).
+BUT if photo 0 is itself already a clean, sharp, straight-on studio front on a white or plain background, main is 0:
+keep it, and the new photos only add angles. A straight-on front always beats a 3/4 or side view for the main.
 
 The owner's full rules, for reference:
 {rules}
