@@ -633,9 +633,9 @@ def main():
     todo = [i for i in order if i in cands and i in by and (a.ids or cands[i].get("v") == 2) and (a.redo or not done(i))][:a.limit or None]
     if a.deep:  # searched by the deep pass and not re-picked yet (or --redo)
         # a find whose deep pick failed (deep_error: an upload refused) is picked again
-        # (or deep_pending: some uploads refused; the paid answer is reused, no second AI call)
-        ddone = lambda i: (log["items"].get(i) or {}).get("deep") == 1 and not (log["items"].get(i) or {}).get("deep_error") \
-            and not (log["items"].get(i) or {}).get("deep_pending")
+        # deep_pending (some uploads refused, the rest kept) counts as done: a redo would upload every photo again and
+        # meet the same refusals; the saved answer lets a later --redo run skip the AI call
+        ddone = lambda i: (log["items"].get(i) or {}).get("deep") == 1 and not (log["items"].get(i) or {}).get("deep_error")
         todo = [i for i in order if (cands.get(i) or {}).get("deep") and (a.redo or not ddone(i))][:a.limit or None]
     print(f"{len(todo)} finds to do; spent so far {base:.2f} USD (cap {a.max_total_usd})", flush=True)
     rows = []
