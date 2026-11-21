@@ -5008,6 +5008,12 @@ function _warmHooks(el,p){
   el.addEventListener("pointerleave",()=>{ clearTimeout(ht); clearTimeout(qt); el.__hov=0; const th=el.querySelector(".thumb.qc-on"); if(th) th.classList.remove("qc-on"); });
   el.addEventListener("pointerdown",e=>{ if(e.button>0||(e.target.closest&&e.target.closest(".fav,.buy-pill"))) return; clearTimeout(ht); pcWarm(p,true); });
 }
+/* store-gallery.json: {id: [file names in products/store/]}, loaded once, on the first product view */
+let __sgP=null;
+function storeGal(id){
+  if(!__sgP) __sgP=fetch("/store-gallery.json").then(r=>r.ok?r.json():{}).catch(()=>({}));
+  return __sgP.then(d=>(d[id]||[]).map(k=>location.origin+"/api/img?u="+encodeURIComponent("https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/"+k)));
+}
 function openDetail(p,fromHash){
   if(!fromHash){ try{ if(window.pcSearch&&state.q&&(_rlist.includes(p)||(drawer.__pplist||[]).includes(p))) pcSearch.open(); }catch(_){} }   /* search-log hook C: a search result was opened */
   _idle(()=>{ try{ if(sb&&p&&p.id){ if(!window.__pv)window.__pv=new Set(); if(!window.__pv.has(p.id)){ window.__pv.add(p.id); sb.from("product_views").insert({user_id:(ME?ME.id:null),product_id:p.id,brand:p.brand||null,cat:p.cat||null}).then(()=>{},()=>{}); } } }catch(e){} });   /* r7: after the first paint */
@@ -5025,6 +5031,10 @@ function openDetail(p,fromHash){
   overlay.classList.add("open"); drawer.classList.add("open"); drawer.__pid=p.id; document.body.style.overflow="hidden";
   const mode={m:(p.img?"listing":"qc")};
   const QCIMG={arr:null,loading:false,tap:false};   /* tap: photos on record but not cached, loaded when the visitor asks */
+  /* store photos (21 Nov 2026, owner): more angles of the find from real shops (store-gallery.json, scripts/apply_store_photos.py),
+     shown as a strip under the listing photo; LST.arr[0] is the listing photo itself */
+  const LST={arr:p.img?[p.img]:[],idx:0};
+  if(p.img) storeGal(p.id).then(a=>{ if(!live()||!a||!a.length) return; LST.arr=[p.img].concat(a); if(mode.m==="listing") gal(LST.idx||0); }).catch(()=>{});
   const qcArrOf=d=>(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails:((d&&Array.isArray(d.qc_preview)&&d.qc_preview.length)?d.qc_preview:null);
   const setMode=m=>{ mode.m=m; $$(".gtab",drawer).forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.mode===m))); };
   // No usable QC photos: hide the QC tab (and the tab bar if only one mode is left) and show the listing photo instead.
@@ -5061,7 +5071,8 @@ function openDetail(p,fromHash){
     const nq=gc.querySelector(".pc-noqc"); if(nq) nq.remove();
     if(isqc && QCIMG.arr && active>=QCIMG.arr.length) active=0;
     QCIMG.idx=active;
-    const mainUrl=isqc?(QCIMG.arr&&QCIMG.arr[active]):(mode.m==="listing"?bigOf(p.img):null);
+    if(!isqc){ if(active<0) active=LST.arr.length-1; if(active>=LST.arr.length) active=0; LST.idx=active; }
+    const mainUrl=isqc?(QCIMG.arr&&QCIMG.arr[active]):(mode.m==="listing"?bigOf(LST.arr[active]||p.img):null);
     /* same photo already showing (QC data arrived for the listing view): keep it, so it doesn't fade in a second time.
        r7: the card's photo shown at open counts as the same; the full-size one replaces it once it has loaded and decoded */
     const lo=!!(oldi&&!isqc&&mainUrl&&mainUrl===bigOf(p.img)&&oldi.dataset.lo==="1");
@@ -5102,9 +5113,9 @@ function openDetail(p,fromHash){
       if(QCIMG.tap) showTap(gc);
     } else { drawTile(gm,p,seed+active); }
     const th=drawer.querySelector("#thumbs");
-    const qcArr=QCIMG.arr;
+    const lstStrip=!isqc&&LST.arr.length>1, qcArr=lstStrip?LST.arr:QCIMG.arr;   /* listing view with store photos: their strip; otherwise the QC strip as before */
     /* rebuild the strip only when the photo list changes: rebuilding it on every tap replayed the fade-in on every thumbnail */
-    const thSig=(qcArr&&qcArr.length)?qcArr.slice(0,10).join("|"):"", thNew=th.__sig!==thSig;
+    const thSig=(qcArr&&qcArr.length)?(lstStrip?"l|":"q|")+qcArr.slice(0,10).join("|"):"", thNew=th.__sig!==thSig;
     if(thNew){ th.__sig=thSig; th.innerHTML=""; }
     // Only render REAL photo thumbnails (never placeholder tiles). Listing mode has a single image, so no strip.
     if(thNew&&qcArr&&qcArr.length){
@@ -5113,17 +5124,18 @@ function openDetail(p,fromHash){
         const u=qcArr[i]; if(!u)continue;
         /* each QC thumbnail is a real button (keyboard, screen readers) showing a 400px copy; the big view keeps the original */
         const tb=document.createElement("button"); tb.type="button"; tb.className="qcthumb-btn"; tb.__u=u;
-        tb.setAttribute("aria-label","QC photo "+(i+1)+" of "+n);
+        tb.setAttribute("aria-label",(lstStrip?"Photo ":"QC photo ")+(i+1)+" of "+n); tb.__i=i;
         tb.style.cssText="display:block;width:100%;padding:0;border:0;background:none;border-radius:10px;cursor:pointer";
         const im=document.createElement("img"); im.className="pthumb qcthumb"; im.loading="lazy"; im.src=thumbOf(u); im.alt="";
         im.style.cssText="width:100%;height:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block";
+        if(lstStrip){ tb.addEventListener("click",()=>{ gal(i); }); im.onerror=()=>{ tb.remove(); LST.arr=LST.arr.filter(x=>x!==u||x===p.img); th.__sig=null; if(mode.m==="listing") gal(0); }; tb.appendChild(im); th.appendChild(tb); continue; }
         tb.addEventListener("click",()=>{ if(mode.m!=="qc") setMode("qc"); gal(Math.max(0,(QCIMG.arr||[]).indexOf(u))); const nb=[...th.children].find(x=>x.__u===u); if(nb&&nb!==tb) nb.focus({preventScroll:true}); });   /* the strip was rebuilt (a photo was dropped): focus stays on this photo */
         im.onerror=()=>{ if(!im.dataset.r&&im.getAttribute("src")!==u){ im.dataset.r="1"; im.src=u; return; } tb.remove(); qcDrop(u); if(!th.children.length){ th.style.display="none"; if(!(QCIMG.arr&&QCIMG.arr.length)) noQC(); } };
         tb.appendChild(im); th.appendChild(tb);
       }
     }
     th.style.display=th.children.length?"":"none";
-    [...th.children].forEach(x=>{ const on=isqc&&x.__u===mainUrl; x.classList.toggle("on",on); if(on) x.setAttribute("aria-current","true"); else x.removeAttribute("aria-current"); });   /* ring and aria-current on the photo on show */
+    [...th.children].forEach(x=>{ const on=lstStrip?x.__i===active:(isqc&&x.__u===mainUrl); x.classList.toggle("on",on); if(on) x.setAttribute("aria-current","true"); else x.removeAttribute("aria-current"); });   /* ring and aria-current on the photo on show */
     if(isqc && QCIMG.arr===null && !QCIMG.loading && !QCIMG.tap){
       QCIMG.loading=true;
       (p.qc>0?qcFetch(p):Promise.resolve(null)).then(d=>{ if(!live()) return; QCIMG.loading=false; const arr=qcArrOf(d);
@@ -5144,6 +5156,7 @@ function openDetail(p,fromHash){
     gc.addEventListener("touchend",e=>{ if(x0===null) return; const t1=e.changedTouches[0], dx=t1.clientX-x0, dy=t1.clientY-y0; x0=null;
       if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy)) return;
       if(mode.m==="qc"&&QCIMG.arr&&QCIMG.arr.length>1){ gc.__dir=dx<0?"next":"prev"; gal((QCIMG.idx||0)+(dx<0?1:-1)); }
+      else if(mode.m==="listing"&&LST.arr.length>1){ gc.__dir=dx<0?"next":"prev"; gal((LST.idx||0)+(dx<0?1:-1)); }
     },{passive:true});
     gc.addEventListener("click",e=>{ const im=e.target.closest&&e.target.closest("img.pimg"); if(im&&im.src) __pcLB(im.src); });
   })();

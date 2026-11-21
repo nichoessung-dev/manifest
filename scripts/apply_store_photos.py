@@ -24,6 +24,7 @@ from apply_seller_photos import edit  # noqa: E402
 
 STORE = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/"
 GAL_JS = os.path.join(ROOT, "functions", "_lib", "store_gallery.js")
+GAL_JSON = os.path.join(ROOT, "store-gallery.json")
 MAX_GAL = 8
 
 
@@ -77,6 +78,9 @@ def write_gallery(gal, mains):
           % (json.dumps({k: [u[len(STORE):] for u in v] for k, v in sorted(gal.items())}, separators=(",", ":")),
              json.dumps(sorted(mains), separators=(",", ":"))))
     open(GAL_JS, "w", encoding="utf-8").write(js)
+    # the same angles for the app's product view (index.html storeGal()), fetched once when a find is opened
+    json.dump({k: [u[len(STORE):] for u in v] for k, v in sorted(gal.items())},
+              open(GAL_JSON, "w", encoding="utf-8"), separators=(",", ":"))
 
 
 def main(argv=None):
@@ -120,7 +124,7 @@ def main(argv=None):
                                "changes": [{"id": c[0], "field": c[1], "old": c[2], "new": c[3]} for c in applied]})
         save_json(logf, log)
     write_gallery(gal, mains)
-    print("written: index.html, %s, %s" % (os.path.relpath(GAL_JS, ROOT), os.path.relpath(logf, ROOT)))
+    print("written: index.html, %s, store-gallery.json, %s" % (os.path.relpath(GAL_JS, ROOT), os.path.relpath(logf, ROOT)))
     return 0
 
 
