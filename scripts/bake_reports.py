@@ -196,12 +196,12 @@ def merge_photo(out, photo, overrides, prev, now):
 
 
 def finalize(out, swaps):
-    """Pure (19 Nov 2026): a partner-swapped find is never hidden (it has a new, checked link), and "removed" lists only the
+    """Pure (19 Nov 2026): a partner-swapped find is never hidden by reports or the photo cleanup (only the owner's hide list) (it has a new, checked link), and "removed" lists only the
     finds members reported (by "reports"). Only those get the "removed after reports" notice; finds hidden by the photo
     cleanup or the owner's hide list just leave the grid, their pages stay normal."""
     sw = {str(k) for k in ((swaps or {}).get("swaps") or {})} if isinstance(swaps, dict) else set()
     out = dict(out)
-    out["items"] = [x for x in out["items"] if x["id"] not in sw]
+    out["items"] = [x for x in out["items"] if x["id"] not in sw or x.get("by") == "owner"]   # the owner's own hide wins (21 Nov)
     out["hidden"] = sorted({x["id"] for x in out["items"]})
     out["removed"] = sorted(x["id"] for x in out["items"] if x.get("by") == "reports")
     return out

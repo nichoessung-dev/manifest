@@ -137,6 +137,10 @@ class OwnerAndBrakes(unittest.TestCase):
         self.assertEqual(out["items"][0]["by"], "owner")
         self.assertEqual(run([], overrides={}, prev=out)["hidden"], [])  # taken out of "hide": back
 
+    def test_owner_hide_beats_swap(self):
+        out = B.finalize(run([], overrides={"hide": ["h1"]}), {"swaps": {"h1": {}}})
+        self.assertEqual(out["hidden"], ["h1"])
+
     def test_brake_on_mass_removal(self):
         rows = []
         for i in range(40):
