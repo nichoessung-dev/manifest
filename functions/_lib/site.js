@@ -4,6 +4,7 @@ import { ROWS, PREFIX, BUILT } from "./catalog.js";
 import * as COUNTS from "./counts.js";
 import * as SIG from "./signals.js";
 import { PQ } from "./photo_quality.js";
+import { SG_MAIN } from "./store_gallery.js";   // finds with a store main photo: the old photo-quality penalty no longer applies
 // Read through the namespace so a link_swaps.js written before SWAP_PRICE / SWAP_HIDE existed still loads.
 import * as LSW from "./link_swaps.js";
 import * as RD from "./rowdays.js";
@@ -87,7 +88,7 @@ export const statsLoaded = () => VIEWS_VER > 0;
 // A bad main photo (photo_quality.js, from the vision labels) ranks lower: views x (1 - 0.6 x score). Owner, 10 Nov 2026.
 // Partner-swapped finds (SWAPPED) get 1e15 on top, above any popularity (at most ~1e14), so they come first in every list
 // sorted by score(): the homepage cards, hubs, product page rows, search index, AI chat (owner, 12 Nov 2026: "insane priority").
-export const score = p => { const v = VIEWS[p.id] || [0, 0, 0, 0], q = PQ[p.id] || 0;
+export const score = p => { const v = VIEWS[p.id] || [0, 0, 0, 0], q = SG_MAIN.has(p.id) ? 0 : PQ[p.id] || 0;
   return (SWAPPED.has(p.id) ? 1e15 : 0) + Math.min(Math.floor((v[1] + v[2]) * (1 - 0.6 * q)), 99999) * 1e9 + Math.min(v[3], 999) * 1e6 + Math.min(v[0], 999) * 1e3 + p.best * 500 + Math.min(p.qc, 499); };
 // The same numbers for pages that print them (the "top picks" on brand hubs): [views all time, last 30 days, last 7 days, favourites].
 const NO_VIEWS = [0, 0, 0, 0];
@@ -156,7 +157,7 @@ export function idx() {
     if (l.length < 2 || l.some(baseIndexable)) continue;   // a name shared by 2+ listings, none of them indexable yet
     let best = null;
     for (const p of l) {
-      if (GONE.has(p.id) || !p.img || !brandSlug.has(p.brand) || (PQ[p.id] || 0) >= PICK_PQ_MAX) continue;
+      if (GONE.has(p.id) || !p.img || !brandSlug.has(p.brand) || (SG_MAIN.has(p.id) ? 0 : PQ[p.id] || 0) >= PICK_PQ_MAX) continue;
       if (!best) { best = p; continue; }
       const dv = (VIEWS[p.id] || NO_VIEWS)[0] - (VIEWS[best.id] || NO_VIEWS)[0];
       if (dv > 0 || (dv === 0 && realPrice(p) < realPrice(best))) best = p;
