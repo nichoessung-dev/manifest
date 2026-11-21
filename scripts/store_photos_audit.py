@@ -47,6 +47,11 @@ for items whose design is on the back, the back is the main. A clean, sharp stud
 the same item beats a seller photo (a flat-lay on a table, a hanger, a busy or grey background, a soft or dark photo).
 BUT if photo 0 is itself already a clean, sharp, straight-on studio front on a white or plain background, main is 0:
 keep it, and the new photos only add angles. A straight-on front always beats a 3/4 or side view for the main.
+Photo 0 is BAD (never keep it as main if any clean candidate exists) when it is: on a hanger or mannequin, a flat-lay or
+pile, a messy or washed-out cut-out (smeared edges, glare, ghosting), or shows a tag/hanger hook.
+For a set (tracksuit, two-piece), a clean studio front of the main piece is a fine main.
+Sneakers and shoes: the main is ONE shoe in clean side profile (toe pointing left or right); a pair at 3/4 or a back
+view goes after it.
 
 The owner's full rules, for reference:
 {rules}

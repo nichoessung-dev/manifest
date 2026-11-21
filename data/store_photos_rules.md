@@ -81,3 +81,10 @@
 35. Very close fallback: when no store has the exact version, a very close design of the same brand (same pattern,
     garment type and colours; small differences like collar or pocket shape) is used as extra photos after the current
     photo. Never a different pattern, colour or garment (Gucci GG knit zip cardigan, Stussy puffer).
+
+36. (21 Nov) Very similar items (same brand, kind, main colour, near-identical look) are fine when the photos are much better.
+37. Keep a clean, straight-on studio site photo as main; a straight front beats a 3/4 or side view.
+38. Seller photos on a hanger or mannequin, flat-lays, and washed-out cut-outs are bad mains: replace them.
+39. Sneakers: the main is one shoe in clean side profile, before any pair or back shot.
+40. A set (tracksuit): a clean studio front of the main piece is a fine main.
+41. Hide every Goyard wallet/cardholder except the green cardholder (899937684087).
