@@ -54,8 +54,8 @@ permissions:
   actions: write
 concurrency: store-photos-${{ inputs.shard || '0/1' }}
 env:
-  # 60 for the first pass (spent ~59.45) + ~27.6 for the deep pass (6 shards x deep_usd 4.6); the audit has its own cap
-  STORE_PHOTOS_TOTAL_USD: '87.1'
+  # 60 for the first pass (spent ~59.45) + ~27.2 deep pass + ~5 deep retry of the finds whose uploads Supabase refused; the audit has its own cap
+  STORE_PHOTOS_TOTAL_USD: '92'
 jobs:
   run:
     runs-on: ubuntu-latest

@@ -277,7 +277,18 @@ def upload(name, data):
     req = urllib.request.Request(SUPA + "/storage/v1/object/products/store/" + name, data=data, method="POST", headers={
         "User-Agent": UA, "Authorization": "Bearer " + key, "apikey": key, "Content-Type": "image/webp",
         "x-upsert": "true", "Cache-Control": "max-age=31536000"})
-    urllib.request.urlopen(req, timeout=60).read()
+    # Supabase throttles when six runners upload at once (21 Nov 2026: 429 and 544 for 689 finds whose AI call was
+    # already paid): back off and retry, about 4 minutes in all
+    waits = [3, 6, 12, 24, 45, 60, 90]
+    for k in range(len(waits) + 1):
+        try:
+            urllib.request.urlopen(req, timeout=60).read(); break
+        except urllib.error.HTTPError as e:
+            if e.code not in (408, 429, 500, 502, 503, 504, 520, 522, 524, 544) or k == len(waits): raise
+            time.sleep(waits[k])
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if k == len(waits): raise
+            time.sleep(waits[k])
     return PUB + name
 
 
@@ -611,7 +622,8 @@ def main():
     # only finds searched with their exact model name (collector v2), unless asked by id
     todo = [i for i in order if i in cands and i in by and (a.ids or cands[i].get("v") == 2) and (a.redo or not done(i))][:a.limit or None]
     if a.deep:  # searched by the deep pass and not re-picked yet (or --redo)
-        ddone = lambda i: (log["items"].get(i) or {}).get("deep") == 1
+        # a find whose deep pick failed (deep_error: an upload refused) is picked again
+        ddone = lambda i: (log["items"].get(i) or {}).get("deep") == 1 and not (log["items"].get(i) or {}).get("deep_error")
         todo = [i for i in order if (cands.get(i) or {}).get("deep") and (a.redo or not ddone(i))][:a.limit or None]
     print(f"{len(todo)} finds to do; spent so far {base:.2f} USD (cap {a.max_total_usd})", flush=True)
     rows = []
@@ -650,7 +662,7 @@ def main():
     sets = {}
     for r in finished: sets[r.get("set")] = sets.get(r.get("set"), 0) + 1
     if a.deep:
-        left = [i for i in order if not ((log["items"].get(i) or {}).get("deep") == 1)]
+        left = [i for i in order if not ((log["items"].get(i) or {}).get("deep") == 1 and not (log["items"].get(i) or {}).get("deep_error"))]
         print(f"deep remaining {len(left)} target finds not re-picked (shard {a.shard}); deep spend this shard "
               f"{a.deep_spent0 + spent:.4f} USD (share {a.deep_usd})")
     else:
