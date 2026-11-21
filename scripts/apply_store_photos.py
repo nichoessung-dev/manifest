@@ -59,6 +59,9 @@ def plan(items, audit, owner, hidden, only):
             mains.add(i)
             if p.get("img") != main:
                 changes.append((i, "img", p.get("img"), main, "store main"))
+        elif ok(p.get("img")):
+            # the site photo the audit kept is already a store photo (applied earlier): still a store main
+            mains.add(i); why["kept the earlier store main"] += 1
         else:
             why["kept the site photo as main"] += 1
         g = [u for u in extra + model if u != main][:MAX_GAL]
