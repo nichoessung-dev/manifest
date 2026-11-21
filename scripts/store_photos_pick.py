@@ -278,8 +278,8 @@ def upload(name, data):
         "User-Agent": UA, "Authorization": "Bearer " + key, "apikey": key, "Content-Type": "image/webp",
         "x-upsert": "true", "Cache-Control": "max-age=31536000"})
     # Supabase throttles when six runners upload at once (21 Nov 2026: 429 and 544 for 689 finds whose AI call was
-    # already paid): back off and retry, about 4 minutes in all
-    waits = [3, 6, 12, 24, 45, 60, 90]
+    # already paid): back off and retry, about 70 seconds per photo
+    waits = [3, 8, 20, 40]
     for k in range(len(waits) + 1):
         try:
             urllib.request.urlopen(req, timeout=60).read(); break
@@ -372,7 +372,13 @@ def process(p, entry, nm, a, call=None, prev=None):
             n += 1; num[n] = (k, im, host)
             content.append({"type": "text", "text": f"[{n}] store {L}, {im.width}x{im.height}"})
             content.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": jpg64(im)}})
-    ans, cost = claude(content)
+    cached = (prev or {}).get("deep_pending") if deep else None
+    if cached and all(str(i) in cached.get("num", {}) and num.get(i) and num[i][0] == cached["num"][str(i)]
+                      for i in [int(ph.get("i")) for ph in cached["ans"].get("photos") or [] if str(ph.get("i")).isdigit()]):
+        ans, cost = cached["ans"], 0.0   # the answer paid for before an upload was refused: no second AI call
+    else:
+        ans, cost = claude(content)
+    pending = {"ans": json.loads(json.dumps(ans)), "num": {str(n_): v[0] for n_, v in num.items()}}
     store = letters.get(str(ans.get("store") or "").strip().upper()[:1])
     store2 = letters.get(str(ans.get("store2") or "").strip().upper()[:1])
     rec = {"model_name": ans.get("model_name"), "colour": ans.get("colour"), "colour_match": bool(ans.get("colour_match")),
@@ -430,14 +436,18 @@ def process(p, entry, nm, a, call=None, prev=None):
         cut, why = cutout(im)
         if cut is None: rec["dropped"].append(f"{i} {view}: {why}"); continue
         name = f"{pid}-{'d' if deep else ''}{k_out}.webp"; k_out += 1   # deep pass: new names, the first pass's photos stay
-        url = name if a.dry else upload(name, webp(cut, 88))
+        try: url = name if a.dry else upload(name, webp(cut, 88))
+        except Exception as e:  # one refused upload drops that photo, not the whole find (the answer is kept)
+            k_out -= 1; rec["dropped"].append(f"{i} {view}: upload failed {e!r}"[:120]); rec["deep_pending"] = pending; continue
         if rec["main"] is None: rec["main"] = url; kind = "main"
         else: rec["gallery"].append(url); kind = view or "product"
         rec["src"].append(entry["p"][c[k][1]]); shown.append((kind, small(cut), host.split("/")[0]))
     for m, (i, k, im, host, view, _) in enumerate(pers):
         im = im.copy(); im.thumbnail((1600, 1600), Image.LANCZOS)
         name = f"{pid}-{'d' if deep else ''}m{m}.webp"
-        rec["model"].append(name if a.dry else upload(name, webp(im, 85)))
+        try: rec["model"].append(name if a.dry else upload(name, webp(im, 85)))
+        except Exception as e:
+            rec["dropped"].append(f"{i} model: upload failed {e!r}"[:120]); rec["deep_pending"] = pending; continue
         rec["src"].append(entry["p"][c[k][1]]); shown.append(("model", small(im), host.split("/")[0]))
     rec["src"] = list(dict.fromkeys(rec["src"]))
     if not rec["main"]: rec["set"] = "none" if not rec["model"] else "model only"
@@ -623,7 +633,9 @@ def main():
     todo = [i for i in order if i in cands and i in by and (a.ids or cands[i].get("v") == 2) and (a.redo or not done(i))][:a.limit or None]
     if a.deep:  # searched by the deep pass and not re-picked yet (or --redo)
         # a find whose deep pick failed (deep_error: an upload refused) is picked again
-        ddone = lambda i: (log["items"].get(i) or {}).get("deep") == 1 and not (log["items"].get(i) or {}).get("deep_error")
+        # (or deep_pending: some uploads refused; the paid answer is reused, no second AI call)
+        ddone = lambda i: (log["items"].get(i) or {}).get("deep") == 1 and not (log["items"].get(i) or {}).get("deep_error") \
+            and not (log["items"].get(i) or {}).get("deep_pending")
         todo = [i for i in order if (cands.get(i) or {}).get("deep") and (a.redo or not ddone(i))][:a.limit or None]
     print(f"{len(todo)} finds to do; spent so far {base:.2f} USD (cap {a.max_total_usd})", flush=True)
     rows = []
@@ -662,7 +674,7 @@ def main():
     sets = {}
     for r in finished: sets[r.get("set")] = sets.get(r.get("set"), 0) + 1
     if a.deep:
-        left = [i for i in order if not ((log["items"].get(i) or {}).get("deep") == 1 and not (log["items"].get(i) or {}).get("deep_error"))]
+        left = [i for i in order if not ddone(i)]
         print(f"deep remaining {len(left)} target finds not re-picked (shard {a.shard}); deep spend this shard "
               f"{a.deep_spent0 + spent:.4f} USD (share {a.deep_usd})")
     else:
