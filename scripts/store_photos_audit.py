@@ -26,11 +26,13 @@ only: it tells you which product and colour this is. It is often lower quality, 
 official store photos. A candidate showing the same front view as photo 0 is exactly what we want, never a duplicate.
 Photos 1 to {n} are candidate store photos (the store's own order). Judge every candidate on its own pixels.
 Photo 0 can differ from the real product in small details (a zip pull, a stitch, lighting, white balance): those do NOT
-make a candidate a different version. Drop for version or colour only when the design or colour is clearly different
-(another model, another pattern or logo placement, black vs navy, grey vs beige).
+make a candidate a different version. The owner prefers MUCH better photos of a very similar item over bad photos of
+the exact one: a very similar item (same brand, same kind of item, same main colour, near-identical look and silhouette)
+is fine. Drop only when a shopper would clearly see another item: another colour (black vs navy, grey vs beige), another
+pattern or print, a big logo where photo 0 has none, or a clearly different shape (cuffed jogger vs straight leg).
 
 DROP a candidate if ANY of these is true:
-- it is a different product, a different version, or a clearly different colour or shade than photo 0
+- it is clearly a different item or a clearly different colour than photo 0 (see above: very similar is fine)
 - it shows a label, tag, logo, print, stamp, scan or close-up detail instead of the whole item
 - the item is cut off by the frame, or the cut-out is broken: faded, washed-out, ghosted, smeared, missing parts, holes
 - it is blurry, low resolution, grainy, a screenshot, or has text/price/watermark overlays
