@@ -21,8 +21,13 @@ RULES = open(os.path.join(ROOT, "data", "store_photos_rules.md"), encoding="utf-
 SIDE = 512
 
 PROMPT = """You are the final quality check for product photos in a premium fashion catalogue.
-The item is listed as "{title}". Photo 0 is the photo the catalogue shows today: it defines the exact product and colour.
+The item is listed as "{title}". Photo 0 is the seller's photo of the item the catalogue shows today. It is a REFERENCE
+only: it tells you which product and colour this is. It is often lower quality, and the goal is to REPLACE it with clean
+official store photos. A candidate showing the same front view as photo 0 is exactly what we want, never a duplicate.
 Photos 1 to {n} are candidate store photos (the store's own order). Judge every candidate on its own pixels.
+Photo 0 can differ from the real product in small details (a zip pull, a stitch, lighting, white balance): those do NOT
+make a candidate a different version. Drop for version or colour only when the design or colour is clearly different
+(another model, another pattern or logo placement, black vs navy, grey vs beige).
 
 DROP a candidate if ANY of these is true:
 - it is a different product, a different version, or a clearly different colour or shade than photo 0
@@ -31,13 +36,13 @@ DROP a candidate if ANY of these is true:
 - it is blurry, low resolution, grainy, a screenshot, or has text/price/watermark overlays
 - it has props, boxes, packaging, other products, or is a lifestyle/campaign scene
 - it is a tight crop of a model (face or body cut so the item is not fully shown)
-- it is a near-duplicate of a photo you keep
+- it is a near-duplicate of another candidate you keep (photo 0 does not count)
 When unsure, DROP. Fewer, perfect photos are better than many mixed ones.
 
 KEEP clean studio photos of the whole item: front, back, sides, sole/top for shoes, and full model photos of the item.
 Model photos go last. The main is the best clean product-only FRONT photo among the kept ones (never a model photo);
-for items whose design is on the back, the back is the main. If no kept candidate is clearly better than photo 0,
-main is 0 (keep today's photo).
+for items whose design is on the back, the back is the main. A clean, sharp studio cut-out or white-background front of
+the same item is always better than photo 0. Main is 0 only if no kept candidate is a clean product-only front.
 
 The owner's full rules, for reference:
 {rules}
@@ -84,7 +89,7 @@ def audit(fid, rec, p):
     if not shown: return {"keep": [], "model": [], "main": "current", "why": "no candidate could be loaded", "cost": 0}
     title = p.get("title") or p.get("name") or fid
     content.append({"type": "text", "text": PROMPT.format(title=title, n=len(shown), rules=RULES)})
-    ans, cost = sp.claude(content, max_tokens=800)
+    ans, cost = sp.claude(content, max_tokens=4000)
     pick = lambda xs: [shown[i - 1] for i in xs if isinstance(i, int) and 1 <= i <= len(shown)]
     keep = pick(ans.get("keep") or [])
     model = [u for u in pick(ans.get("model") or []) if u in keep]
