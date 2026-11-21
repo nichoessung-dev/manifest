@@ -8,6 +8,10 @@ name: Store photos
 #          is done or the global budget (STORE_PHOTOS_TOTAL_USD, all runs together) is spent.
 #   shard  k/n runs only the finds of shard k of n (scripts/store_photos_shards.py), so n runs work in parallel; each
 #          shard writes its own files under data/store_photos/<k>-of-<n>/ and chains to the same shard
+#   deep   the second, deeper pass (owner, 21 Nov 2026) for the finds in ids_file (the weak photo sets): a search aimed
+#          at the brand's own store and the big retailers (about 6 Serper credits per find), added to the first pass's
+#          candidates, then a re-pick from old + new candidates (new photo names <id>-d<k>.webp, the first pass's stay).
+#          Each shard has its own AI share (deep_usd); chains itself until its targets are done
 #   name / pick   one step only (collect can also run in the Claude Code container: scripts/store_photos_collect.py)
 on:
   workflow_dispatch:
@@ -15,7 +19,7 @@ on:
       step:
         description: 'all (name + collect + pick, chains itself), name, or pick'
         type: choice
-        options: [all, pick, name]
+        options: [all, pick, name, deep]
         default: all
       limit:
         description: 'Finds this run (most viewed first, skipping finds already done)'
@@ -39,12 +43,19 @@ on:
       shard:
         description: 'k/n: only shard k of n (parallel runs, e.g. 0/6 .. 5/6); 0/1 = all finds'
         default: '0/1'
+      ids_file:
+        description: 'step=deep: file of target ids'
+        default: 'data/store_photos_deep_ids.txt'
+      deep_usd:
+        description: 'step=deep: AI budget of this shard, all its deep runs together (USD)'
+        default: '4.6'
 permissions:
   contents: write
   actions: write
 concurrency: store-photos-${{ inputs.shard || '0/1' }}
 env:
-  STORE_PHOTOS_TOTAL_USD: '60'
+  # 60 for the first pass (spent ~59.45) + ~27.6 for the deep pass (6 shards x deep_usd 4.6); the audit has its own cap
+  STORE_PHOTOS_TOTAL_USD: '87.1'
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -111,6 +122,25 @@ jobs:
           python -u scripts/store_photos_pick.py --shard "${{ inputs.shard || '0/1' }}" --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" \
             ${{ inputs.ids && format('--ids {0}', inputs.ids) || '' }} ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee -a out-store-photos.log
           bash /tmp/save.sh "photos"
+      - name: Deep search (brand store + big retailers, Serper)
+        if: inputs.step == 'deep'
+        env:
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+        run: |
+          set -o pipefail
+          python -u scripts/store_photos_collect.py --deep --ids-file "${{ inputs.ids_file }}" --shard "${{ inputs.shard || '0/1' }}" --limit "${{ inputs.limit }}" \
+            ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee -a out-store-photos.log
+          bash /tmp/save.sh "deep candidates"
+      - name: Deep re-pick (old + new candidates)
+        if: inputs.step == 'deep'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -o pipefail
+          python -u scripts/store_photos_pick.py --deep --ids-file "${{ inputs.ids_file }}" --deep-usd "${{ inputs.deep_usd }}" --shard "${{ inputs.shard || '0/1' }}" \
+            --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee -a out-store-photos.log
+          bash /tmp/save.sh "deep photos"
       - name: Keep the log with the sheet
         if: always()
         run: mkdir -p out/store-photos && cp out-store-photos.log out/store-photos/ || true
@@ -133,4 +163,18 @@ jobs:
           if [ "${left:-0}" -gt 0 ]; then
             gh workflow run store-photos.yml --ref "$GITHUB_REF_NAME" -f step=all -f limit="${{ inputs.limit }}" -f max_usd="${{ inputs.max_usd }}" -f shard="${{ inputs.shard || '0/1' }}"
             echo "started the next batch ($left finds left)"
+          fi
+      - name: Next deep batch
+        if: success() && inputs.step == 'deep' && inputs.chain == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if grep -q "global budget reached" out-store-photos.log; then echo "budget reached, stopping"; exit 0; fi
+          made=$(grep -oP 'summary: \K[0-9]+(?= finds, sets)' out-store-photos.log | tail -1)
+          if [ "${made:-0}" -eq 0 ]; then echo "this batch did no finds, stopping (see the log)"; exit 0; fi
+          left=$(grep -oP 'deep remaining \K[0-9]+(?= target)' out-store-photos.log | tail -1)
+          if [ "${left:-0}" -gt 0 ]; then
+            gh workflow run store-photos.yml --ref "$GITHUB_REF_NAME" -f step=deep -f limit="${{ inputs.limit }}" -f max_usd="${{ inputs.max_usd }}" \
+              -f shard="${{ inputs.shard }}" -f ids_file="${{ inputs.ids_file }}" -f deep_usd="${{ inputs.deep_usd }}"
+            echo "started the next deep batch ($left finds left)"
           fi

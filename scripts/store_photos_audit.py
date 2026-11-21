@@ -53,7 +53,7 @@ For a set (tracksuit, two-piece), a clean studio front of the main piece is a fi
 Sneakers and shoes: the main is ONE shoe in clean side profile (toe pointing left or right); a pair at 3/4 or a back
 view goes after it.
 
-The owner's full rules, for reference:
+{owner}The owner's full rules, for reference:
 {rules}
 
 Answer with JSON only:
@@ -80,9 +80,34 @@ def site_url(p):
     return sp.SITE + u if u.startswith("/") else u
 
 
-def audit(fid, rec, p):
-    cands = ([] if rec.get("main") in (None, "", "current") else [rec["main"]]) + list(rec.get("gallery") or []) + list(rec.get("model") or [])
-    cands = list(dict.fromkeys(cands))
+OWNER = os.path.join(ROOT, "data", "store_photos_owner.json")
+MAX_CANDS = 12
+
+
+def owner_text(call):
+    """The owner's call on this find (data/store_photos_owner.json), for the prompt."""
+    if not isinstance(call, dict): return ""
+    out = []
+    if call.get("drop_site"): out.append("Photo 0 is NOT this exact item: use it only for brand, kind and colour; main must be a candidate, never 0.")
+    if call.get("needs_main"): out.append("Photo 0 is a bad main: choose a clean candidate front as main if there is any.")
+    if call.get("needs_more"): out.append("Keep every good angle (front, back, sides, details, model photos).")
+    if call.get("search_as"): out.append(f"The item is: {call['search_as']}.")
+    if call.get("main") == "site": out.append("The owner keeps photo 0 as the main: main is 0.")
+    if call.get("note"): out.append(f"Owner's note: {call['note']}.")
+    return ("THE OWNER'S CALL ON THIS FIND (follow it): " + " ".join(out) + "\n\n") if out else ""
+
+
+def audit(fid, rec, p, prev=None, call=None):
+    """prev: this find's earlier audit result (--keep-prev): the photos it kept are candidates again, after the new ones,
+    so a deeper second pass never loses a good photo."""
+    cands = ([] if rec.get("main") in (None, "", "current") else [rec["main"]]) + list(rec.get("gallery") or [])
+    old = []
+    if prev:
+        old = ([] if prev.get("main") in (None, "", "current") else [prev["main"]]) + list(prev.get("gallery") or [])
+    cands = list(dict.fromkeys(cands + old))
+    prods = cands[:MAX_CANDS - min(3, len(rec.get("model") or []) + len((prev or {}).get("model") or []))]
+    models = list(dict.fromkeys(list(rec.get("model") or []) + list((prev or {}).get("model") or [])))
+    cands = list(dict.fromkeys(prods + models))[:MAX_CANDS]
     if not cands: return None
     base = img(site_url(p))
     content, shown = [], []
@@ -95,9 +120,9 @@ def audit(fid, rec, p):
         shown.append(u)
         content += [{"type": "text", "text": f"Photo {len(shown)}:"},
                     {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": sp.jpg64(im, SIDE)}}]
-    if not shown: return {"keep": [], "model": [], "main": "current", "why": "no candidate could be loaded", "cost": 0}
+    if not shown: return {"main": "current", "gallery": [], "model": [], "dropped": [], "why": "no candidate could be loaded", "cost": 0, "at": sp.now()}
     title = p.get("title") or p.get("name") or fid
-    content.append({"type": "text", "text": PROMPT.format(title=title, n=len(shown), rules=RULES)})
+    content.append({"type": "text", "text": PROMPT.format(title=title, n=len(shown), rules=RULES, owner=owner_text(call))})
     ans, cost = sp.claude(content, max_tokens=4000)
     pick = lambda xs: [shown[i - 1] for i in xs if isinstance(i, int) and 1 <= i <= len(shown)]
     keep = pick(ans.get("keep") or [])
@@ -116,13 +141,23 @@ def main():
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--ids", default="")
     ap.add_argument("--redo", action="store_true")
+    ap.add_argument("--ids-file", default="", help="a file of ids (comma or whitespace separated), added to --ids")
+    ap.add_argument("--keep-prev", action="store_true", help="the photos an earlier audit kept are candidates again")
     a = ap.parse_args()
+    if a.ids_file:
+        import re
+        with open(a.ids_file if os.path.isabs(a.ids_file) else os.path.join(ROOT, a.ids_file), encoding="utf-8") as f:
+            a.ids = ",".join([i for i in a.ids.split(",") if i] + [i for i in re.split(r"[\s,]+", f.read()) if i])
+    owner = load_json(OWNER, {}) or {}
+    hide = set((load_json(os.path.join(ROOT, "data", "report_overrides.json"), {}) or {}).get("hide") or [])
     by = {p["id"]: p for p in load_catalog()[1]}
     items = (load_json(sp.LOG, {}) or {}).get("items") or {}
     out = load_json(OUT, {"items": {}, "spent_usd": 0.0})
     stats = (load_json(os.path.join(ROOT, "data", "stats.json"), {}) or {}).get("p") or {}
     todo = [i for i in (a.ids.split(",") if a.ids else items) if i in items and i in by and (a.redo or i not in out["items"])]
-    todo = [i for i in todo if (items[i].get("main") not in (None, "", "current")) or items[i].get("gallery") or items[i].get("model")]
+    todo = [i for i in todo if i not in hide]
+    has = lambda r: bool(r) and ((r.get("main") not in (None, "", "current")) or r.get("gallery") or r.get("model"))
+    todo = [i for i in todo if has(items[i]) or (a.keep_prev and has(out["items"].get(i)))]
     todo.sort(key=lambda i: -(stats.get(i) or [0])[0])
     if a.limit: todo = todo[:a.limit]
     start = out.get("spent_usd", 0.0)
@@ -138,7 +173,11 @@ def main():
     def one(fid):
         if out.get("spent_usd", 0) >= a.max_usd: return
         try:
-            r = audit(fid, items[fid], by[fid])
+            prev = out["items"].get(fid) if a.keep_prev else None
+            if prev and prev.get("prev"): prev = prev["prev"]   # a re-run keeps comparing with the first audit
+            r = audit(fid, items[fid], by[fid], prev, owner.get(fid))
+            if r is not None and a.keep_prev and out["items"].get(fid):
+                r["prev"] = {k: v for k, v in (out["items"][fid].get("prev") or out["items"][fid]).items() if k in ("main", "gallery", "model", "why")}
         except Exception as e:
             print(f"{fid} error {e}", flush=True); return
         if r is None: return
@@ -147,6 +186,8 @@ def main():
             out["spent_usd"] = round(out.get("spent_usd", 0) + r["cost"], 4)
             done[0] += 1
             n_before = len(set(([] if items[fid].get("main") in (None, "", "current") else [items[fid]["main"]]) + (items[fid].get("gallery") or []) + (items[fid].get("model") or [])))
+            pv = r.get("prev") or {}
+            if pv: n_before = len(pv.get("gallery") or []) + len(pv.get("model") or []) + (pv.get("main") not in (None, "", "current"))
             n_after = len(r["gallery"]) + len(r["model"]) + (0 if r["main"] == "current" else 1)
             print(f"[{done[0]}/{len(todo)}] {fid} {n_before}->{n_after} main={'new' if r['main'] != 'current' else 'site'} | {r['why'][:110]}", flush=True)
             if done[0] % 25 == 0: save()

@@ -90,9 +90,10 @@ Rules:
   or hoodie's front, a shoe's outer side. Casebacks, soles and insides are fine as EXTRA photos after the main.
 - EXACT VERSION only: every detail must match image 0 (a different lining colour, pocket layout or logo = another
   product). The wanted colour if any store has it, else the brand's best known colour of the same model.
-- VERY CLOSE FALLBACK: when NO store has the exact version, a VERY close design of the same brand (same pattern, same
-  kind of garment, same colours, small differences like collar or pocket shape) may be used as extra photos with
-  "confidence" under 0.7 (so the current photo stays the main). Not a different pattern, colour or garment type (owner:
+- VERY SIMILAR IS FINE (owner, 21 Nov 2026, rule 36): MUCH better photos of a very similar item (same brand, same kind
+  of item, same main colour, near-identical look and silhouette) beat bad photos of the exact one. Use them and set
+  "similar": true (confidence stays about the exact version). Never another colour (black vs navy, grey vs beige),
+  another pattern or print, a big logo where image 0 has none, or a clearly different shape or garment type (owner:
   Gucci GG knit zip cardigan, Stussy puffer).
 - SECOND STORE (owner, 20 Nov 2026: "id like way more photos"): when the chosen store has FEWER THAN 4 good photos, also
   name a second store ("store2") with more photos of the SAME exact item in a matching style (similar background and
@@ -107,13 +108,21 @@ Rules:
   hand, phone flash), collages, several products in one frame (a pair of shoes is fine), packaging/boxes/bags/tags or props next to the item, text/price overlays,
   watermarks, size charts, swatches, packaging, cropped photos where the item is cut off by the frame, and loose
   detail crops (a logo alone). Close-ups are fine only inside a full set from the same shoot.
-- MAIN: the best product-only FRONT shot (no person, no hands). A 3/4 standing product shot (item shaped as if worn, on
-  an invisible mannequin) beats a flat lay; for shoes a clean side profile is the front. The main is NEVER a photo with
-  a person. For a set (tracksuit) the top alone may be the main.
-- KEEP THE CURRENT MAIN: image 0 is the find's photo on the site now. When image 0 is ALREADY a clean professional
-  studio product-only front shot (official-looking, sharp, item alone, no hanger/floor/hands) at least as good as the
-  chosen store's front, set "keep_current_main": true; the store's photos then follow it (owner on the Arc'teryx Beta LT:
-  the current official front shot stays the main).
+- MAIN: the best product-only FRONT shot (no person, no hands). A clean straight-on studio front beats a 3/4 or side
+  view (rule 37); a 3/4 standing product shot (item shaped as if worn, on an invisible mannequin) beats a flat lay. The
+  main is NEVER a photo with a person.
+- SNEAKERS AND SHOES (rule 39): the main is ONE shoe in clean side profile (toe pointing left or right), before any pair,
+  3/4, top, sole or back shot.
+- SETS (rule 40): for a set (tracksuit, two-piece) a clean studio front of the main piece (the top) is a fine main.
+- KEEP THE CURRENT MAIN (rule 37): image 0 is the find's photo on the site now. When image 0 is ALREADY a clean,
+  sharp, straight-on studio product-only front on a white or plain background (official-looking, item alone) at least
+  as good as the chosen store's front, set "keep_current_main": true; the store's photos then follow it (owner on the
+  Arc'teryx Beta LT: the current official front shot stays the main).
+- BAD CURRENT MAIN (rule 38): a seller photo on a hanger or mannequin, a flat-lay or pile, a washed-out or messy cut-out
+  (smeared edges, glare, ghosting), a tag or hanger hook in view, a busy room or floor: set "current_bad": true and never
+  keep it as the main when any clean front exists (an exact or very similar item).
+- THE OWNER wants every listing to look perfect: at the very least a very good main, and many angles (front, back, both
+  sides, 3/4, details, model photos).{owner}
 - "person": true for any photo where a person (or part of one: legs, hands, face) is visible; product shots on grey or
   coloured studio backgrounds are person: false.
 - MANY PHOTOS: list EVERY good product-only shot of the item in the chosen store(s), not a sample: front, 3/4, back, both
@@ -126,7 +135,26 @@ Answer with JSON only:
 {{"model_name": "exact product name", "colour": "colourway of the chosen photos", "store": "the store letter or null", "store2": "a second store letter or null (only when store has fewer than 4 good photos)",
 "set": "full" | "picked" | "none", "photos": [{{"i": number, "view": "front|three_quarter|back|side|closeup|sole|top",
 "person": true/false}}], "colour_match": true/false, "confidence": 0.0-1.0 (that the photos show the exact version),
+"similar": true/false (the photos show a very similar item, not the exact version), "current_bad": true/false,
 "keep_current_main": true/false, "note": "a few words: why this store, what was rejected"}}"""
+
+OWNER = os.path.join(ROOT, "data", "store_photos_owner.json")
+DEEP_SHOW = 48     # deep pass: at most this many candidates shown to the picker (cost), up to 12 per store, 8 stores
+DEEP_LOAD = 90     # and at most this many downloaded
+
+
+def owner_text(call):
+    """The owner's own call on this find (data/store_photos_owner.json), as prompt lines."""
+    if not call: return ""
+    out = []
+    if call.get("drop_site"): out.append("Image 0 is NOT this exact item (the owner): use it only for the brand, kind and colour; "
+                                         "the main must be a store photo, never keep_current_main.")
+    if call.get("needs_main"): out.append("The owner says the current photo is a bad main: find a clean product-only front.")
+    if call.get("needs_more"): out.append("The owner asks for many more angles: front, back, sides, details, model photos.")
+    if call.get("search_as"): out.append(f"The owner says the item is: {call['search_as']}.")
+    if call.get("main") == "site": out.append("The owner keeps the current photo as the main: keep_current_main true.")
+    if call.get("note"): out.append(f"Owner's note: {call['note']}.")
+    return ("\n- THIS FIND (owner's call, follow it): " + " ".join(out)) if out else ""
 
 
 def now(): return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -259,8 +287,9 @@ def colour_of(title):
     return " / ".join(hit[:2]) if hit else "the colour in image 0 (else the brand's best known colour)"
 
 
-def load_cands(entry):
-    """[(index in c, PIL image)] for candidates that download, are large enough and sharp."""
+def load_cands(entry, n_max=None):
+    """[(index in c, PIL image)] for candidates that download, are large enough and sharp. Kept at most 1600 px (the
+    cut-out and model photos never need more), so a find with 90 candidates holds well under a gigabyte."""
     c = entry["c"]
 
     def one(k):
@@ -268,11 +297,12 @@ def load_cands(entry):
             im = open_img(fetch(c[k][0]))
             if max(im.size) < MIN_SIDE or min(im.size) < 400: return None
             if sharpness(im) < SHARP_MIN: return None
+            if max(im.size) > 1600: im.thumbnail((1600, 1600), Image.LANCZOS)
             return k, im
         except Exception:
             return None
     with ThreadPoolExecutor(8) as ex:
-        return [r for r in ex.map(one, range(len(c))) if r]
+        return [r for r in ex.map(one, range(min(len(c), n_max or len(c)))) if r]
 
 
 def dhash(im, n=12):
@@ -288,9 +318,12 @@ def same_photo(a_im, b_im):
     except Exception: return False
 
 
-def process(p, entry, nm, a):
+def process(p, entry, nm, a, call=None, prev=None):
+    """call: the owner's per-find call (data/store_photos_owner.json); prev: the first pass's record (deep pass)."""
     c = entry["c"]
-    got = load_cands(entry)
+    deep = bool(getattr(a, "deep", False))
+    call = call or {}
+    got = load_cands(entry, DEEP_LOAD if deep else None)
     before = current_photo(p)
     if not got: return {"v": 2, "error": "no usable candidates", "at": now(), "set": "none"}, [], before
     # groups as the collector made them: a page with its own gallery is one photoshoot, loose hits group by store
@@ -300,11 +333,23 @@ def process(p, entry, nm, a):
         pg = entry["p"][c[k][1]]
         key = host_of(pg) + urllib.parse.urlsplit(pg).path if c[k][1] in gal_pages else host_of(pg)
         stores.setdefault(key, []).append((k, im))
-    nm = nm or {}
+    if deep:  # the new deep-search groups first, then the store the first pass chose, then the rest; capped for cost
+        n_new = (entry.get("deep") or {}).get("n", 0)
+        prev_store = (prev or {}).get("store")
+        rank = lambda kv: (0 if kv[1][0][0] < n_new else (1 if kv[0] == prev_store else 2), kv[1][0][0])
+        kept, total = {}, 0
+        for key, ims in sorted(stores.items(), key=rank)[:8]:
+            ims = ims[:min(12, DEEP_SHOW - total)]
+            if not ims: break
+            kept[key] = ims; total += len(ims)
+        stores = kept
+    nm = dict(nm or {})
+    if call.get("search_as"): nm["name"] = call["search_as"]
     content = [{"type": "text", "text": PICK_PROMPT.format(title=p.get("title"), brand=p.get("brand"), cat=p.get("cat"),
                                                            name=nm.get("name") or entry.get("name") or "unknown",
                                                            details=nm.get("details") or "see image 0",
-                                                           colour=nm.get("colour") or colour_of(p.get("title")))},
+                                                           colour=nm.get("colour") or colour_of(p.get("title")),
+                                                           owner=owner_text(call))},
                {"type": "text", "text": "[0] current photo"},
                {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": jpg64(before)}}]
     num, letters = {}, {}
@@ -321,7 +366,8 @@ def process(p, entry, nm, a):
     store2 = letters.get(str(ans.get("store2") or "").strip().upper()[:1])
     rec = {"model_name": ans.get("model_name"), "colour": ans.get("colour"), "colour_match": bool(ans.get("colour_match")),
            "conf": ans.get("confidence"), "note": ans.get("note"), "set": ans.get("set") or "none", "store": store,
-           "v": 2, "cost": round(cost, 5), "at": now(), "main": None, "gallery": [], "model": [], "src": [], "dropped": []}
+           "v": 2, "cost": round(cost, 5), "at": now(), "main": None, "gallery": [], "model": [], "src": [], "dropped": [],
+           "similar": bool(ans.get("similar")), "current_bad": bool(ans.get("current_bad"))}
     chosen, seen = [], set()
     for ph in ans.get("photos") or []:
         try: i = int(ph.get("i"))
@@ -354,7 +400,16 @@ def process(p, entry, nm, a):
         conf = max(conf, 0.9); rec["conf"] = conf; rec["same_as_current"] = True
     weak = conf < 0.7
     rec["photo_score"] = 0 if not chosen else (1 if weak else (3 if rec["set"] == "full" else 2))
-    if weak and chosen: ans["keep_current_main"] = True
+    # the current photo as main: rule 37 (a clean straight-on studio site photo stays), rule 38 (a hanger, mannequin,
+    # flat-lay or washed-out seller photo is replaced), rule 36 (a very similar item with much better photos may replace
+    # a bad one), rule 24 (an unsure match that is not even very similar never replaces it); the owner's call wins
+    bad_now = bool(ans.get("current_bad")) or bool(call.get("needs_main")) or bool(call.get("drop_site"))
+    if call.get("main") == "site": keep_now = True
+    elif call.get("drop_site"): keep_now = False
+    elif bad_now: keep_now = not (not weak or ans.get("similar") or conf >= 0.4)
+    else: keep_now = ans.get("keep_current_main") is True or (weak and not ans.get("similar"))
+    if weak and chosen and not deep: keep_now = keep_now or not bad_now
+    ans["keep_current_main"] = bool(keep_now and chosen)
     if ans.get("keep_current_main") is True:   # rule 21: the site's own clean front shot stays the main
         rec["main"] = "current"; rec["keep_current_main"] = True
         prod = [x for x in prod if x[4] not in ("front", "three_quarter")]   # rule 17: no second front
@@ -363,20 +418,25 @@ def process(p, entry, nm, a):
     for i, k, im, host, view, _ in prod:
         cut, why = cutout(im)
         if cut is None: rec["dropped"].append(f"{i} {view}: {why}"); continue
-        name = f"{pid}-{k_out}.webp"; k_out += 1
+        name = f"{pid}-{'d' if deep else ''}{k_out}.webp"; k_out += 1   # deep pass: new names, the first pass's photos stay
         url = name if a.dry else upload(name, webp(cut, 88))
         if rec["main"] is None: rec["main"] = url; kind = "main"
         else: rec["gallery"].append(url); kind = view or "product"
-        rec["src"].append(entry["p"][c[k][1]]); shown.append((kind, cut, host.split("/")[0]))
+        rec["src"].append(entry["p"][c[k][1]]); shown.append((kind, small(cut), host.split("/")[0]))
     for m, (i, k, im, host, view, _) in enumerate(pers):
         im = im.copy(); im.thumbnail((1600, 1600), Image.LANCZOS)
-        name = f"{pid}-m{m}.webp"
+        name = f"{pid}-{'d' if deep else ''}m{m}.webp"
         rec["model"].append(name if a.dry else upload(name, webp(im, 85)))
-        rec["src"].append(entry["p"][c[k][1]]); shown.append(("model", im, host.split("/")[0]))
+        rec["src"].append(entry["p"][c[k][1]]); shown.append(("model", small(im), host.split("/")[0]))
     rec["src"] = list(dict.fromkeys(rec["src"]))
     if not rec["main"]: rec["set"] = "none" if not rec["model"] else "model only"
     elif rec["set"] == "full" and not rec["gallery"]: rec["set"] = "picked"
     return rec, shown, before
+
+
+def small(im):
+    """A sheet-sized copy (the sheets show 420 px at most): the run keeps these for every find until the end."""
+    im = im.copy(); im.thumbnail((420, 420)); return im
 
 
 def font(sz):
@@ -468,6 +528,9 @@ def over_budget(a, base, base_shard):
     """The reason to stop, or None: the run's cap, the global cap (all shards), or this shard's share of it."""
     if spent >= a.max_usd: return f"run budget reached ({spent:.3f} USD), limit reached"
     if base + spent >= a.max_total_usd: return "global budget reached"
+    if getattr(a, "deep", False):  # the deep pass has its own share per shard (deep_usd), on top of the first pass's spend
+        if a.deep_spent0 + spent >= a.deep_usd: return f"global budget reached (this shard's deep share, {a.deep_usd:.2f} USD)"
+        return None
     n = a.shard_t[1]
     if n > 1 and base_shard + spent >= a.max_total_usd / n: return f"global budget reached (this shard's share, {a.max_total_usd / n:.2f} USD)"
     return None
@@ -511,6 +574,9 @@ def main():
     ap.add_argument("--redo", action="store_true")
     ap.add_argument("--dry", action="store_true", help="no uploads (names only)")
     ap.add_argument("--shard", default="0/1", help="k/n: only the finds of shard k of n (see store_photos_shards.py)")
+    ap.add_argument("--deep", action="store_true", help="the second, deeper pass: re-pick the --ids-file finds from old + new candidates")
+    ap.add_argument("--ids-file", default="")
+    ap.add_argument("--deep-usd", type=float, default=4.6, help="deep pass: this shard's AI budget, all its deep runs together")
     a = ap.parse_args()
     a.shard_t = shards.parse(a.shard)
     by = {p["id"]: p for p in load_catalog()[1]}
@@ -523,16 +589,30 @@ def main():
     order = [i for i in a.ids.split(",") if i] if a.ids else [i for i in partner_order(by, a.shard_t) if i in cands]
     base, base_shard = total_spent(), shards.spent_shard(a.shard_t)
     own_spent0 = own.get("spent_usd", 0)
+    a.deep_spent0 = own.get("deep_spent_usd", 0.0)
+    owner = load_json(OWNER, {}) or {}
+    if a.deep:
+        hide = set((load_json(os.path.join(ROOT, "data", "report_overrides.json"), {}) or {}).get("hide") or [])
+        want = []
+        with open(a.ids_file if os.path.isabs(a.ids_file) else os.path.join(ROOT, a.ids_file), encoding="utf-8") as f:
+            want = [i for i in re.split(r"[\s,]+", f.read()) if i]
+        stats = (load_json(os.path.join(ROOT, "data", "stats.json"), {}) or {}).get("p") or {}
+        order = sorted({i for i in want if i in by and i not in hide and shards.mine(i, a.shard_t)},
+                       key=lambda i: (-(stats.get(i) or [0])[0], i))
 
     def save_own():
         if a.dry: return
         own["spent_usd"] = round(own_spent0 + spent, 4)
+        if a.deep: own["deep_spent_usd"] = round(a.deep_spent0 + spent, 4)
         os.makedirs(os.path.dirname(own_path), exist_ok=True)
         save_json(own_path, own)
     # a find whose search came back empty (Brave out of searches, 20 Nov 2026) is not done: it is picked again
     done = lambda i: (log["items"].get(i) or {}).get("v") == 2 and (log["items"].get(i) or {}).get("error") != "no usable candidates"
     # only finds searched with their exact model name (collector v2), unless asked by id
     todo = [i for i in order if i in cands and i in by and (a.ids or cands[i].get("v") == 2) and (a.redo or not done(i))][:a.limit or None]
+    if a.deep:  # searched by the deep pass and not re-picked yet (or --redo)
+        ddone = lambda i: (log["items"].get(i) or {}).get("deep") == 1
+        todo = [i for i in order if (cands.get(i) or {}).get("deep") and (a.redo or not ddone(i))][:a.limit or None]
     print(f"{len(todo)} finds to do; spent so far {base:.2f} USD (cap {a.max_total_usd})", flush=True)
     rows = []
     os.makedirs(OUT, exist_ok=True)
@@ -541,10 +621,19 @@ def main():
         if stop: print(stop); break
         p = by[i]
         try:
-            rec, shown, before = process(p, cands[i], names.get(i), a)
+            call = owner.get(i) if isinstance(owner.get(i), dict) else None
+            prev = log["items"].get(i) or {}
+            rec, shown, before = process(p, cands[i], names.get(i), a, call, prev)
+            if a.deep:
+                rec["deep"] = 1
+                prev = prev.get("prev") or {k: prev.get(k) for k in ("main", "gallery", "model", "store", "set", "conf", "model_name") if k in prev}
+                rec["prev"] = prev   # the first pass's set, kept for the audit and for going back
         except Exception as e:
             print(f"  {i} failed: {e!r}", flush=True)
             rec, shown, before = {"v": 2, "error": repr(e)[:200], "at": now(), "set": "none"}, [], None
+            if a.deep:  # the first pass's set stays; marked done so a chained batch does not retry it forever
+                old = log["items"].get(i) or {}
+                rec = dict(old, deep=1, deep_error=repr(e)[:200], prev=old.get("prev") or {k: old.get(k) for k in ("main", "gallery", "model", "store", "set", "conf", "model_name") if k in old})
         log["items"][i] = rec; own["items"][i] = rec
         if n % 10 == 0: save_own()  # a run that is stopped keeps what it has done
         rows.append((p, rec, before, shown))
@@ -560,8 +649,13 @@ def main():
     finished = [r for _, r, _, _ in rows]
     sets = {}
     for r in finished: sets[r.get("set")] = sets.get(r.get("set"), 0) + 1
-    left = [i for i in partner_order(by, a.shard_t) if not done(i)]
-    print(f"remaining {len(left)} partner finds without v2 store photos (shard {a.shard})")
+    if a.deep:
+        left = [i for i in order if not ((log["items"].get(i) or {}).get("deep") == 1)]
+        print(f"deep remaining {len(left)} target finds not re-picked (shard {a.shard}); deep spend this shard "
+              f"{a.deep_spent0 + spent:.4f} USD (share {a.deep_usd})")
+    else:
+        left = [i for i in partner_order(by, a.shard_t) if not done(i)]
+        print(f"remaining {len(left)} partner finds without v2 store photos (shard {a.shard})")
     print(f"summary: {len(finished)} finds, sets {sets}, {spent:.4f} USD this run ({spent / max(1, len(finished)):.4f} per find), "
           f"{base + spent:.2f} USD in total (cap {a.max_total_usd})")
 

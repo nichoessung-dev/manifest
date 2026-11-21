@@ -21,6 +21,14 @@ on:
       model:
         description: 'Model for the check'
         default: 'claude-haiku-5-5'
+      ids_file:
+        description: 'Only the ids in this file (optional, e.g. data/store_photos_deep_ids.txt)'
+        default: ''
+      keep_prev:
+        description: 'The photos an earlier audit kept are candidates again (yes/no; for the deep pass)'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
 permissions:
   contents: write
 concurrency: store-photos-audit
@@ -39,7 +47,8 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           STORE_PHOTOS_MODEL: ${{ inputs.model }}
         run: |
-          python scripts/store_photos_audit.py --limit "${{ inputs.limit }}" --ids "${{ inputs.ids }}" --max-usd "${{ inputs.max_usd }}" ${{ inputs.redo == 'yes' && '--redo' || '' }} 2>&1 | tee out-audit.log
+          python scripts/store_photos_audit.py --limit "${{ inputs.limit }}" --ids "${{ inputs.ids }}" --max-usd "${{ inputs.max_usd }}" ${{ inputs.redo == 'yes' && '--redo' || '' }} \
+            ${{ inputs.ids_file && format('--ids-file {0}', inputs.ids_file) || '' }} ${{ inputs.keep_prev == 'yes' && '--keep-prev' || '' }} 2>&1 | tee out-audit.log
       - name: Save
         if: always()
         run: |
