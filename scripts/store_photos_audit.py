@@ -58,14 +58,14 @@ Answer with JSON only:
 lock = threading.Lock()
 
 
-def img(u, cache={}):
-    if u in cache: return cache[u]
+def img(u):
+    # no cache: the runner ran out of memory holding thousands of full-size photos (exit 143, 21 Nov 2026)
     try:
         im = Image.open(io.BytesIO(sp.fetch(u))).convert("RGBA")
+        im.thumbnail((SIDE * 2, SIDE * 2))
+        return im
     except Exception:
-        im = None
-    cache[u] = im
-    return im
+        return None
 
 
 def site_url(p):
