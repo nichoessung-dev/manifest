@@ -41,8 +41,11 @@ export const MODELS3 = [
 
 export const GUIDES3 = {
   "what-is-a-rep-spreadsheet": {
-    title: "Rep Spreadsheet 2026: 9,000+ Finds, 2,000+ With QC Photos",
-    desc: "A searchable rep spreadsheet: 9,000+ Weidian, Taobao and 1688 finds, 2,000+ with buyer QC photos, one-tap links for 5 agents. Plus how to use one in 4 steps.",
+    // 22 Nov 2026 (SEO check): the title read like the homepage ("9,000+ Finds, 2,000+ With QC Photos"), so Google showed this
+    // guide for "rep spreadsheet" in place of the spreadsheet itself. It keeps "Rep Spreadsheet 2026" first (it ranks for
+    // "reps spreadsheet 2026" and "what is a rep spreadsheet") and now says what the page is: the explainer.
+    title: "Rep Spreadsheet 2026: What It Is and How to Use One",
+    desc: "What a rep spreadsheet is, how to use one in 4 steps and what makes a good one. Ours lists 9,000+ Weidian, Taobao and 1688 finds, 2,000+ with QC photos.",
     h1: "Rep spreadsheet: what it is and how to use one",
     updated: "2026-10-28",   // the day this text was revised; change it only when it is revised again
     body: `<p class="lead">A <strong>rep spreadsheet</strong> is a curated list of product links from Chinese marketplaces (Weidian, Taobao and 1688), usually with photos, prices and links that open each item in a shopping agent. Most started as Google Sheets; Puro Classico is a searchable <a href="/">rep spreadsheet</a> with 9,000+ finds.</p>

@@ -463,7 +463,7 @@ html.hub .v9-hero-in{align-items:flex-start;text-align:left}
 // lead: one short plain-text sentence under the h1. filters: [[text, url, class?]] for the one row of related links.
 // shop: { label, links } for the agent logo row (hxShop). groups: [[title, [[text, url]]]] for the About section's link
 // lists. intro and extra (HTML) and the FAQ are page 1 only, in the About section under the grid.
-function hub({ path, n, list, title, desc, h1, intro = "", lead = "", trail, filters = [], shop = null, groups = [], top = "", extra = "", faq = null, total = null, ldCount = undefined, idxFirst = false, facts = [], full = "", aboutTitle = "" }) {
+function hub({ path, n, list, title, desc, h1, intro = "", lead = "", trail, filters = [], shop = null, groups = [], top = "", extra = "", faq = null, total = null, ldCount = undefined, idxFirst = false, facts = [], full = "", aboutTitle = "", key = "" }) {
   const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
   if (n < 1 || n > pages) return null;
   // idxFirst (brand and category hubs, 28 Oct 2026): page 1 is the app with the 60 most viewed. From page 2 on, the finds
@@ -487,11 +487,31 @@ ${n === 1 ? top : ""}${grid(slice, 4)}
 ${pager(path, n, pages)}
 ${about}</div>`;
   const ld = [bc.data, listLd(h1, url, slice, ldCount)]; if (n === 1 && faq && faq.length) ld.push(faqLd(faq));
-  // Pages 2+ (28 Oct 2026): the page number goes before the site name ("...: Page 2 · Puro Classico", not "... · Puro
-  // Classico: Page 2", which also stopped page() from trimming long titles), and the description names the page, so
-  // pages 2..N no longer share one description.
-  return page({ title: fitTitle(n > 1 ? title.replace(/( [·|] Puro Classico)?$/, `: Page ${n}$1`) : title), desc: n > 1 && !/^Page \d/.test(desc) ? `Page ${n}: ${desc}` : desc,
-    path: url, body, jsonld: ld, image: slice[0] ? imgSrc(slice[0]) : undefined, extraHead: HX_CSS });
+  const meta = n > 1 ? pageNMeta({ key: key || h1, n, slice, from: (n - 1) * PER_PAGE + 1, N: total || list.length }) : { title: fitTitle(title), desc };
+  return page({ title: meta.title, desc: meta.desc, path: url, body, jsonld: ld, image: slice[0] ? imgSrc(slice[0]) : undefined, extraHead: HX_CSS });
+}
+// Pages 2+ of a list (22 Nov 2026, SEO check): a title and a description of their own, made from the finds on that page.
+// Before, page N had page 1's title plus ": Page N" and a near-copy of page 1's description, and Google showed some of them
+// in place of page 1 (page 8 of the 1688 spreadsheet for "1688 spreadsheet", page 2 of Acne Studios for "acne studios
+// reps"). The list's own words (key: "Acne Studios Reps", "Weidian Spreadsheet") stay first, so a page N that already
+// ranks keeps them; what follows is what only that page has: its brands (or item types on a one-brand list), its prices
+// and how many of its finds are marked with buyer QC photos. Canonicals stay on the page itself.
+function pageNMeta({ key, n, slice, from, N }) {
+  const top = f => { const m = new Map(); for (const p of slice) { const k = f(p); if (k) m.set(k, (m.get(k) || 0) + 1); } return [...m].sort((a, b) => b[1] - a[1]).map(x => x[0]); };
+  const brands = top(p => p.brand), kinds = top(p => (CATS[p.cat] || {}).name || p.cat);
+  const names = brands.length > 1 ? brands : kinds.length > 1 ? kinds : [];
+  const to = from + slice.length - 1, prices = typicalPrices(slice), q = slice.filter(p => p.qc >= 1).length;
+  const base = `${key}, Page ${n}`;
+  let title = base, i = 0;
+  if (names.length) { while (i < names.length && `${base}: ${names.slice(0, i + 1).join(", ")}`.length <= 60) i++; if (i) title = `${base}: ${names.slice(0, i).join(", ")}`; }
+  else { const pr = priceRange(slice).replace(/^(\S+) to \1$/, "$1"); if (pr && `${base}: ${pr}`.length <= 60) title = `${base}: ${pr}`; }
+  const span = from === to ? `${nf(from)} of ${nf(N)}` : `${nf(from)} to ${nf(to)} of ${nf(N)}`;
+  const lead = /finds$/i.test(key) ? `${key} ${span}` : `${key}, ${from === to ? "find" : "finds"} ${span}`;
+  const qc = q ? `, ${nf(q)} marked with buyer QC photos` : "";
+  const say = (k, withQc) => `${lead}${k && names.length ? `: ${andList(names.slice(0, k))}` : ""}${prices}${withQc ? qc : ""}. Open any of them in your agent.`;
+  const opts = [[4, 1], [3, 1], [2, 1], [4, 0], [3, 0], [2, 0], [0, 1], [0, 0]].map(([k, w]) => say(k, w));
+  const desc = opts.find(x => x.length <= 160) || `${lead}${prices}.`;
+  return { title, desc };
 }
 
 // ------------------------------------------------------------------ brand hubs: facts, top picks, related brands
@@ -802,7 +822,7 @@ export function renderBrand(s, n) {
     lead: `${N} ${b} finds from Weidian, Taobao and 1688, most viewed first.`, aboutTitle: `About ${b} reps`,
     filters: modelLinks.map(x => [...x, "hot"]).concat(catLinks, relLinks), shop: { links: agentLinks },
     groups: [["Best reps by model", modelLinks], ["Categories", catLinks], [relTitle, relLinks], [`Buy ${b} with your agent`, agentLinks]],
-    top: BRAND_CSS + brandPicksHtml(f, best), extra, faq: brandFaq(f, best), ldCount: f.n, idxFirst: true, full: b });
+    top: BRAND_CSS + brandPicksHtml(f, best), extra, faq: brandFaq(f, best), ldCount: f.n, idxFirst: true, full: b, key: `${b} Reps` });
 }
 
 export function renderCategory(s, n) {
@@ -817,7 +837,7 @@ export function renderCategory(s, n) {
   return hub({ path: "/category/" + s, n, list, title: `Rep ${meta.name} Spreadsheet 2026: ${list.length.toLocaleString("en-US")} Finds · Puro Classico`,
     desc: n > 1 ? `Page ${n} of the ${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds on Puro Classico${priceRange(list) ? `, with prices (${priceRange(list)})` : ""}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.`
       : `${list.length.toLocaleString("en-US")} ${meta.name.toLowerCase()} rep finds with prices and agent links${q1 ? `, ${q1.toLocaleString("en-US")} marked as having buyer QC photos` : ""}, sorted by most viewed.`,
-    h1: meta.h, intro: CAT_INTRO[c] || "", trail: [["Home", "/"], [meta.name, "/category/" + s]], idxFirst: true, full: meta.name,
+    h1: meta.h, intro: CAT_INTRO[c] || "", trail: [["Home", "/"], [meta.name, "/category/" + s]], idxFirst: true, full: meta.name, key: `Rep ${meta.name}`,
     lead: `${nf(list.length)} ${meta.name.toLowerCase()} finds from Weidian, Taobao and 1688, most viewed first.`, aboutTitle: `About ${meta.name.toLowerCase()} reps`,
     filters: brandLinks.concat(catLinks), shop: { links: agentLinks },
     groups: [[`Top brands in ${meta.name.toLowerCase()}`, brandLinks], ["Other categories", catLinks], [`${meta.name} on your agent`, agentLinks]] });
@@ -904,7 +924,7 @@ export function renderOldMoney(n) {
   const brandLinks = brands.map(b => [b, `/brand/${brandSlug.get(b)}`]), agentLinks = AGENT_BRAND_AGENTS.map(k => [`Old money on ${AGENTS[k].name}`, `/${k}-spreadsheet/old-money`]);
   return hub({ path: "/old-money", n, list, title: `Old Money Spreadsheet 2026: ${list.length.toLocaleString("en-US")} Quiet Luxury Rep Finds | Puro Classico`,
     desc: `${list.length.toLocaleString("en-US")} old money and quiet luxury rep finds from Ralph Lauren, Loro Piana, Lacoste, Moncler, Golden Goose and more, each with MyCNBox, KakoBuy and Oopbuy links.`,
-    h1: "Old money & quiet luxury reps", intro: OLD_MONEY.intro, trail: [["Home", "/"], ["Old money", "/old-money"]],
+    h1: "Old money & quiet luxury reps", key: "Old Money Reps", intro: OLD_MONEY.intro, trail: [["Home", "/"], ["Old money", "/old-money"]],
     lead: "Cashmere knits, polos, loafers and clean sneakers from the quiet luxury brands, most viewed first.", aboutTitle: "About old money reps",
     filters: [["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Grisch spreadsheet", "/grisch-spreadsheet"]].concat(brandLinks),
     shop: { links: agentLinks },
@@ -927,7 +947,7 @@ export function renderNew(n) {
     `<p>New finds often have no buyer QC photos yet. Check the seller's photos and measurements, and the QC photos your agent takes at its warehouse before you ship: see <a href="/guides/how-to-qc">how to read QC photos</a>.</p>`;
   return hub({ path: "/new", n, list, title: `New Rep Finds 2026: The Latest ${nf(list.length)} Added | Puro Classico`,
     desc: `The ${nf(list.length)} newest finds on the Puro Classico rep spreadsheet, newest first, with prices and one-tap links for ${AGENT_N} agents.`,
-    h1: "New finds", lead: "The latest finds added to the spreadsheet, newest first.", intro, aboutTitle: "About new finds",
+    h1: "New finds", key: "New Rep Finds", lead: "The latest finds added to the spreadsheet, newest first.", intro, aboutTitle: "About new finds",
     trail: [["Home", "/"], ["New finds", "/new"]], filters: brandLinks.concat(catLinks),
     groups: [["Brands with new finds", brandLinks], ["Categories", catLinks]], facts: ["Newest first"], ldCount: list.length });
 }
@@ -977,7 +997,7 @@ export function renderModel(s, n) {
     desc: [`${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}. Check in QC: ${m.qc[0]}, then ${m.qc[1]}.`,
       `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}. Check in QC: ${m.qc[0]}.`,
       `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}, with what to check in QC.`].find(x => x.length <= 160) || `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}.`,
-    h1: `Best ${t} reps`, intro, facts: ["Ranked by views"], trail: [["Home", "/"], ["Best reps", "/best"], [m.name, "/best/" + s]], faq,
+    h1: `Best ${t} reps`, key: `Best ${t} Reps`, intro, facts: ["Ranked by views"], trail: [["Home", "/"], ["Best reps", "/best"], [m.name, "/best/" + s]], faq,
     lead: m.intro, aboutTitle: `About ${m.name} reps`, filters: hubLinks.concat(modelLinks),
     groups: [[hubs.length === 1 ? `More ${hubs[0]}` : "Brands on this page", hubLinks], ["More models", modelLinks]] });
 }
@@ -1569,7 +1589,7 @@ export function renderPlat(key, n) {
     .concat(platOthers(key), [["QC finder spreadsheet", "/qc-spreadsheet"], [`How to buy from ${name}`, `/guides/how-to-buy-from-${key}`]]);
   return hub({ path: s.path, n, list: f.list, title: s.title,
     desc: n > 1 ? `Page ${n} of the ${nf(f.n)} ${name} rep finds on Puro Classico${pr ? `, with prices (${pr})` : ""}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.` : s.desc,
-    h1: s.h, lead: s.sub, trail: s.crumbs, filters, faq: s.faq, idxFirst: true, full: name, ldCount: f.n,
+    h1: s.h, lead: s.sub, trail: s.crumbs, filters, faq: s.faq, idxFirst: true, full: name, key: `${name} Spreadsheet`, ldCount: f.n,
     shop: { links: s.chips[1][1] }, groups: s.chips, aboutTitle: `About ${name} finds` });
 }
 
