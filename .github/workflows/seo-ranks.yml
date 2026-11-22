@@ -10,6 +10,9 @@ on:
       sample:
         description: Sitemap URLs looked up one by one for the index estimate
         default: '60'
+      index_by_name:
+        description: 'Only the second index check ("P,O": product and other pages of the last sample); empty runs everything'
+        default: ''
 permissions:
   contents: write
 concurrency:
@@ -24,9 +27,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python scripts/seo_ranks.py --budget "${{ github.event.inputs.budget }}" --sample "${{ github.event.inputs.sample }}"
+      - run: python scripts/seo_ranks.py --budget "$BUDGET" --sample "$SAMPLE" ${IBN:+--index-by-name "$IBN"}
         env:
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          BUDGET: ${{ github.event.inputs.budget }}
+          SAMPLE: ${{ github.event.inputs.sample }}
+          IBN: ${{ github.event.inputs.index_by_name }}
       - name: Commit
         run: |
           git add data/seo_ranks.json

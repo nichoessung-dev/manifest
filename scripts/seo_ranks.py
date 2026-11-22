@@ -131,13 +131,78 @@ def kind(u):
     return "other"
 
 
+def same_url(a, b):
+    n = lambda u: re.sub(r"^https?://(www\.)?", "", (u or "").split("#")[0].split("?")[0]).rstrip("/").lower()
+    return n(a) == n(b)
+
+
+def page_name(u):
+    """The words a page is known by in Google: its <title> up to the colon or ' Rep' (product pages)."""
+    try:
+        t = urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=40).read().decode("utf-8", "replace")
+    except Exception:
+        return None
+    m = re.search(r"<title>(.*?)</title>", t, re.S)
+    if not m:
+        return None
+    import html as H
+    t = H.unescape(m.group(1)).strip()
+    t = t.split(" | ")[0]
+    if "/product/" in u:
+        t = re.split(r" \(| Rep[:| ]", t)[0]
+    else:
+        t = t.split(":")[0]
+    return t.strip()[:80] or None
+
+
+def index_by_name(s, out, n_product, n_other):
+    """Second index check: search site:puroclassico.com "<page name>" and look for the exact URL. The site:<full URL>
+    lookups above miss pages that clearly rank, so this one is used for the estimate. Control pages that rank for a
+    tracked search are checked the same way, to show the method finds pages that are indexed."""
+    old = out["index"].get("sample") or []
+    prod = [x for x in old if x["kind"] == "product"][:n_product]
+    other = [x for x in old if x["kind"] != "product"]
+    rnd = random.Random(7); rnd.shuffle(other); other = other[:n_other]
+    ranked = []
+    for q, v in out.get("ranks", {}).items():
+        for m in ("us", "gb"):
+            u = (v.get(m) or {}).get("url")
+            if u and u not in ranked: ranked.append(u)
+    controls = [{"kind": "control", "url": u} for u in ranked[:5]]
+    res = []
+    for x in controls + [{"kind": y["kind"], "url": y["url"]} for y in prod + other]:
+        name = page_name(x["url"])
+        if not name:
+            res.append({**x, "name": None, "indexed": None}); continue
+        d = s.search('site:puroclassico.com "%s"' % name.replace('"', ""), "us", "en", num=10)
+        links = [l for _, l, _ in read_results(d, 0)]
+        res.append({**x, "name": name, "indexed": any(same_url(l, x["url"]) for l in links), "returned": links[:10]})
+    out["index"]["sample_by_name"] = res
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--budget", type=int, default=600)
     ap.add_argument("--sample", type=int, default=60, help="sitemap URLs checked one by one for the index estimate")
+    ap.add_argument("--index-by-name", default="", help="P,O: only the second index check on P product and O other pages "
+                    "of the earlier sample, added to data/seo_ranks.json")
     a = ap.parse_args(argv)
     key = os.environ.get("SERPER_API_KEY") or sys.exit("no SERPER_API_KEY")
     s = Serper(key, a.budget - 5)
+    if a.index_by_name:
+        out = json.load(open(OUT))
+        p, o = (int(x) for x in a.index_by_name.split(","))
+        try:
+            index_by_name(s, out, p, o)
+        except Budget:
+            out["notes"].append("budget reached during the second index check")
+        out["credits_used"] = out.get("credits_used", 0) + s.used
+        out["requests"] = out.get("requests", 0) + s.calls
+        out["index_by_name_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        json.dump(out, open(OUT, "w"), indent=1, ensure_ascii=False)
+        r = out["index"]["sample_by_name"]
+        print("index by name: %d checked, %d found, %d credits this run" % (len(r), sum(1 for x in r if x.get("indexed")), s.used))
+        return
     kw = {g: v for g, v in json.load(open(KW)).items() if not g.startswith("_")}
     queries = [(g, q) for g, qs in kw.items() for q in qs]
     out = {"generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "markets": [m for m, _ in MARKETS],
