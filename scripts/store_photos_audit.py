@@ -149,9 +149,10 @@ def main():
                     "others keep the earlier audit's photos as candidates (like --keep-prev)")
     a = ap.parse_args()
     hints = {k: v for k, v in load_json(os.path.join(ROOT, "data", "store_photos_pass2.json"), {}).items() if not k.startswith("_")} if a.pass2 else {}
-    if a.pass2:
+    if a.pass2:   # the re-picked pass-2 finds (only those of --ids when given, e.g. the "fresh" ones with a stronger model)
         lg = (load_json(sp.LOG, {}) or {}).get("items") or {}
-        a.ids = ",".join(i for i in hints if (lg.get(i) or {}).get("deep_pass") == 2)
+        only = set(i for i in a.ids.split(",") if i)
+        a.ids = ",".join(i for i in hints if (lg.get(i) or {}).get("deep_pass") == 2 and (not only or i in only))
         a.redo = True
     if a.ids_file:
         import re
