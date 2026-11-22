@@ -4,6 +4,18 @@ Every SEO change to the site, newest first: what changed, why, which URLs, and h
 decisions: data/seo_ranks.json (Google positions and the index check of 22 Nov 2026, scripts/seo_ranks.py) and
 data/seo_page_clicks.json (buy clicks per page by visit source, scripts/seo_page_clicks.py).
 
+## 22 Nov 2026: 86 agent copies of brand pages point at the brand page
+
+- What: 86 of the 170 agent x brand pages (for example /lovegobuy-spreadsheet/adidas, /mycnbox-spreadsheet/moncler) now
+  have a canonical to /brand/<brand> and left sitemap-pages.xml. The other 84, which Google visitors buy from, keep their
+  own canonical. The 25 agent x style pages (old money, grisch, shoes, QC, budget) are unchanged. List and rule:
+  functions/_lib/seo_canon.js.
+- Why: each lists the same finds as its brand page with 65 to 67% of the same text. None of the 86 had a buy click from a
+  Google visitor in 60 days (data/seo_page_clicks.json) or a Google position in data/seo_ranks.json, while the kept 84 had
+  3,250 Google buy clicks between them. The canonical gathers their signals on the brand page.
+- URLs: the 86 paths in functions/_lib/seo_canon.js.
+- Undo: empty AGENT_BRAND_CANON in functions/_lib/seo_canon.js (pages, canonicals and sitemap go back as they were).
+
 ## 22 Nov 2026: pages 2 and up of every list get their own title and description
 
 - What: page N of a brand, category, Weidian/Taobao/1688, old money, new finds or best model list now has a title like

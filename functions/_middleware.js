@@ -392,7 +392,7 @@ async function route(ctx) {
 async function hubApp(ctx, url, spec) {
   const asset = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "GET", headers: ctx.request.headers }));
   if (!asset.ok) return asset;
-  const canon = "https://www.puroclassico.com" + spec.path;
+  const canon = "https://www.puroclassico.com" + (spec.canonical || spec.path);   // spec.canonical: an agent x brand page that points at its brand page (seo_canon.js)
   const { cards, more, top } = await serverCards(ctx, url.origin, spec);
   // The page's own first find (the first card shown, dead listings skipped) as its preview image (28 Oct 2026): Google
   // reads og:image and primaryImageOfPage as the preferred thumbnail, and the site banner says nothing about a KakoBuy or
