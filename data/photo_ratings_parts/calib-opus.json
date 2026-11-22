@@ -1,0 +1,485 @@
+{
+"ratings": {
+"4444618699": {
+"at": "2026-11-22T18:07:44+00:00",
+"conf": 0.7,
+"cost": 0.02082,
+"model": "claude-opus-5-5",
+"n": 4,
+"photos": [
+{
+"i": 1,
+"issue": "",
+"ok": true
+},
+{
+"i": 2,
+"issue": "upscaled, soft with jagged cut-out edges",
+"ok": false
+},
+{
+"i": 3,
+"issue": "upscaled, soft, haloed cut-out",
+"ok": false
+},
+{
+"i": 4,
+"issue": "upscaled, soft, rough cut-out edges",
+"ok": false
+}
+],
+"tags": [
+"lowq"
+],
+"why": "1 is a clean side profile and passes. 2-4 are low-res images upscaled to 1200 px, with soft detail and jagged cut-out edges; replace them with native high-res pair, back and sole shots."
+},
+"6716583439": {
+"at": "2026-11-22T18:07:41+00:00",
+"conf": 0.72,
+"cost": 0.0203,
+"model": "claude-opus-5-5",
+"n": 4,
+"photos": [
+{
+"i": 1,
+"issue": "",
+"ok": true
+},
+{
+"i": 2,
+"issue": "upscaled, soft with jagged cut-out edges",
+"ok": false
+},
+{
+"i": 3,
+"issue": "upscaled, soft texture, rough cut-out",
+"ok": false
+},
+{
+"i": 4,
+"issue": "upscaled, soft, jagged cut-out edges",
+"ok": false
+}
+],
+"tags": [
+"lowq"
+],
+"why": "1 is a clean side main. 2, 3 and 4 look upscaled from small sources, with soft texture and jagged cut-out edges; they need sharp originals."
+},
+"724216889678": {
+"at": "2026-11-22T18:07:42+00:00",
+"conf": 0.8,
+"cost": 0.01752,
+"model": "claude-opus-5-5",
+"n": 2,
+"photos": [
+{
+"i": 1,
+"issue": "bad cut-out of seller photo, upscaled, smeared texture, hanging tag visible",
+"ok": false
+},
+{
+"i": 2,
+"issue": "different jacket (stock back shot of another model), low detail, tight model crop",
+"ok": false
+}
+],
+"tags": [
+"lowq",
+"few",
+"wrong"
+],
+"why": "1 is a rough cut-out of a seller photo with upscaling artifacts and a visible swing tag; reshoot clean on white. 2 appears to be a stock photo of a different puffer; replace with real back and detail shots for at least 3 photos."
+},
+"7563973209": {
+"at": "2026-11-22T18:07:41+00:00",
+"conf": 0.85,
+"cost": 0.01662,
+"model": "claude-opus-5-5",
+"n": 2,
+"photos": [
+{
+"i": 1,
+"issue": "",
+"ok": true
+},
+{
+"i": 2,
+"issue": "upscaled, soft and pixelated, rough cut-out edges, item small in frame",
+"ok": false
+}
+],
+"tags": [
+"lowq",
+"few"
+],
+"why": "1 is a clean side profile on white and passes. 2 is a low-res, soft upscale with a rough cut-out; replace it with a sharp 3/4 pair shot and add more angles (back, sole, top) to reach at least 3 usable photos."
+},
+"7630051831": {
+"at": "2026-11-22T18:07:40+00:00",
+"conf": 0.72,
+"cost": 0.0158,
+"model": "claude-opus-5-5",
+"n": 2,
+"photos": [
+{
+"i": 1,
+"issue": "",
+"ok": true
+},
+{
+"i": 2,
+"issue": "soft, upscaled from low-res source, face cropped",
+"ok": false
+}
+],
+"tags": [
+"few",
+"lowq"
+],
+"why": "1 is a clean studio flat front shot. 2 is a soft, upscaled model shot; replace it with a sharp original and add a back view to reach 3 usable photos."
+},
+"7664321016": {
+"at": "2026-11-22T18:07:44+00:00",
+"error": "not in the catalogue"
+},
+"7672262029": {
+"at": "2026-11-22T18:07:47+00:00",
+"conf": 0.8,
+"cost": 0.01535,
+"model": "claude-opus-5-5",
+"n": 2,
+"photos": [
+{
+"i": 1,
+"issue": "soft, upscaled-looking texture, rough cut-out edges",
+"ok": false
+},
+{
+"i": 2,
+"issue": "different product (Suitsupply cardigan, different collar/zip), tiny narrow image, jagged cut-out",
+"ok": false
+}
+],
+"tags": [
+"lowq",
+"few",
+"wrong"
+],
+"why": "1 is a flat-lay cut-out with soft, smeared knit texture and rough edges; reshoot in sharp studio quality. 2 is a different cardigan from another brand, low-res with a bad cut-out, so drop it. Add at least 2 more clean angles."
+},
+"7676197404": {
+"at": "2026-11-22T18:07:44+00:00",
+"conf": 0.88,
+"cost": 0.01458,
+"model": "claude-opus-5-5",
+"n": 1,
+"photos": [
+{
+"i": 1,
+"issue": "hanger main, ghosted background remnants (hanger, shoes), poor cut-out, soft",
+"ok": false
+}
+],
+"tags": [
+"lowq",
+"angle",
+"few"
+],
+"why": "1 is a hanger shot with a botched background removal leaving ghost shoes and a hanger. It needs a clean studio front shot plus at least 2 more angles."
+},
+"7677450957": {
+"at": "2026-11-22T18:07:47+00:00",
+"conf": 0.85,
+"cost": 0.01507,
+"model": "claude-opus-5-5",
+"n": 1,
+"photos": [
+{
+"i": 1,
+"issue": "hanger beside item, rough cut-out with grey fringe, wrinkled, soft upscaled texture",
+"ok": false
+}
+],
+"tags": [
+"lowq",
+"angle",
+"few"
+],
+"why": "1 is a wrinkled flat-lay with a wooden hanger left in the frame and a rough cut-out edge. Needs a clean, pressed studio front without the hanger, plus back and detail shots to reach 3 photos."
+},
+"7680428812": {
+"at": "2026-11-22T18:07:44+00:00",
+"conf": 0.85,
+"cost": 0.01331,
+"model": "claude-opus-5-5",
+"n": 1,
+"photos": [
+{
+"i": 1,
+"issue": "rough cut-out with grey fringe and cropped strap, soft upscaled detail, tilted 3/4 angle",
+"ok": false
+}
+],
+"tags": [
+"lowq",
+"angle",
+"few"
+],
+"why": "1 is a soft, rough cut-out of a phone photo, taken at a tilted angle, with the strap fading out at the edges. Replace it with a sharp straight-on studio front and add at least 2 more angles (side, back, interior)."
+},
+"7717256995": {
+"at": "2026-11-22T18:07:44+00:00",
+"conf": 0.8,
+"cost": 0.01547,
+"model": "claude-opus-5-5",
+"n": 2,
+"photos": [
+{
+"i": 1,
+"issue": "",
+"ok": true
+},
+{
+"i": 2,
+"issue": "",
+"ok": true
+}
+],
+"tags": [
+"few"
+],
+"why": "1 is a clean studio front of the shirt and 2 is a clean full-length model shot; both pass. Only 2 photos, so add a back view or a detail shot to reach 3."
+},
+"7717262871": {
+"at": "2026-11-22T18:07:46+00:00",
+"conf": 0.72,
+"cost": 0.01479,
+"model": "claude-opus-5-5",
+"n": 1,
+"photos": [
+{
+"i": 1,
+"issue": "soft, upscaled with smeared texture and JPEG artifacts",
+"ok": false
+}
+],
+"tags": [
+"lowq",
+"few"
+],
+"why": "1 is a clean straight-on studio front, but it looks upscaled and soft, with smeared fabric texture and compression artifacts; replace it with a sharp original. Add a back view and detail shots to reach at least 3 photos."
+},
+"7720280550": {
+"at": "2026-11-22T18:07:45+00:00",
+"conf": 0.8,
+"cost": 0.02149,
+"model": "claude-opus-5-5",
+"n": 4,
+"photos": [
+{
+"i": 1,
+"issue": "different product: dropped-shoulder hoodie with grey embroidered compass badge, not the green patch item; looks like a fake, smeared upscaled texture",
+"ok": false
+},
+{
+"i": 2,
+"issue": "upscaled, soft and blurry",
+"ok": false
+},
+{
+"i": 3,
+"issue": "upscaled, soft texture",
+"ok": false
+},
+{
+"i": 4,
+"issue": "soft, upscaled; head cut off by the frame",
+"ok": false
+}
+],
+"tags": [
+"wrong",
+"lowq"
+],
+"why": "1 shows a different hoodie (grey embroidered badge, different cut) from the green-patch Stone Island in 2-4, so the set mixes products. 2-4 are soft, upscaled copies; use one consistent product with sharp original studio shots."
+},
+"7720312040": {
+"at": "2026-11-22T18:07:44+00:00",
+"conf": 0.85,
+"cost": 0.01515,
+"model": "claude-opus-5-5",
+"n": 1,
+"photos": [
+{
+"i": 1,
+"issue": "buckle close-up, belt cut off; upscaled smeared texture, rough cut-out",
+"ok": false
+}
+],
+"tags": [
+"lowq",
+"angle",
+"few"
+],
+"why": "1 is a tight close-up of the buckle with the strap cut off by the frame, and it looks upscaled with smeared, over-sharpened texture and a rough cut-out. Needs a clean studio shot of the whole belt plus at least 2 more angles."
+},
+"7728738210": {
+"at": "2026-11-22T18:07:43+00:00",
+"conf": 0.7,
+"cost": 0.02184,
+"model": "claude-opus-5-5",
+"n": 3,
+"photos": [
+{
+"i": 1,
+"issue": "soft, upscaled look with smeared texture and rough cut-out edges",
+"ok": false
+},
+{
+"i": 2,
+"issue": "different model: vertical chest zip, no yoke pocket",
+"ok": false
+},
+{
+"i": 3,
+"issue": "",
+"ok": true
+}
+],
+"tags": [
+"wrong",
+"lowq",
+"few"
+],
+"why": "Photo 2 shows a different Arc'teryx jacket (vertical chest zip pocket, no yoke) from the main in 1. Photo 1 is soft and upscaled with rough cut-out edges. Replace 1 with a sharp studio front, and use model shots of the same jacket."
+},
+"7735998928": {
+"at": "2026-11-22T18:07:47+00:00",
+"conf": 0.85,
+"cost": 0.01365,
+"model": "claude-opus-5-5",
+"n": 1,
+"photos": [
+{
+"i": 1,
+"issue": "bad cut-out with leftover grey hoop artifact on left, soft upscaled look, wrinkled flat-lay",
+"ok": false
+}
+],
+"tags": [
+"lowq",
+"few"
+],
+"why": "1 is a sloppy cut-out with a grey ring remnant on the left and soft, wrinkled fabric; needs a clean studio front shot. Only one photo, so add a back view and detail shots for at least 3."
+},
+"7755303278": {
+"at": "2026-11-22T18:07:41+00:00",
+"conf": 0.85,
+"cost": 0.01508,
+"model": "claude-opus-5-5",
+"n": 1,
+"photos": [
+{
+"i": 1,
+"issue": "folded close-up of back pocket and patch, whole item not shown; soft upscaled texture, rough cut-out",
+"ok": false
+}
+],
+"tags": [
+"lowq",
+"angle",
+"few"
+],
+"why": "1 is a folded detail shot of the back pocket and patch with soft, upscaled texture and a rough cut-out. Replace it with a clean full-length studio front, then add back and detail shots for at least 3 usable photos."
+},
+"7791151810": {
+"at": "2026-11-22T18:07:45+00:00",
+"conf": 0.68,
+"cost": 0.02042,
+"model": "claude-opus-5-5",
+"n": 4,
+"photos": [
+{
+"i": 1,
+"issue": "different hoodie: contrast drawcords and silver zip vs others; upscaled, soft texture, cut-out edge artifacts",
+"ok": false
+},
+{
+"i": 2,
+"issue": "",
+"ok": true
+},
+{
+"i": 3,
+"issue": "",
+"ok": true
+},
+{
+"i": 4,
+"issue": "",
+"ok": true
+}
+],
+"tags": [
+"lowq",
+"wrong"
+],
+"why": "Photo 1 shows a different hoodie (drawcords, metal zip, different cut) from 2-4 and looks upscaled with rough cut-out edges. Replace the main with photo 2 and keep 3 and 4."
+},
+"894876922963": {
+"at": "2026-11-22T18:07:41+00:00",
+"conf": 0.72,
+"cost": 0.0186,
+"model": "claude-opus-5-5",
+"n": 3,
+"photos": [
+{
+"i": 1,
+"issue": "",
+"ok": true
+},
+{
+"i": 2,
+"issue": "soft, upscaled, low detail",
+"ok": false
+},
+{
+"i": 3,
+"issue": "different product: lighter grey hoodie with kangaroo pocket, no Essentials logo; soft/upscaled",
+"ok": false
+}
+],
+"tags": [
+"lowq",
+"wrong",
+"few"
+],
+"why": "1 is a clean back shot and fine. 2 is soft and upscaled, needs a sharp front shot. 3 shows a different grey hoodie (pocket, tonal logo), so drop it and add matching angles to reach 3 usable photos."
+},
+"960508930674": {
+"at": "2026-11-22T18:07:40+00:00",
+"conf": 0.8,
+"cost": 0.0154,
+"model": "claude-opus-5-5",
+"n": 2,
+"photos": [
+{
+"i": 1,
+"issue": "",
+"ok": true
+},
+{
+"i": 2,
+"issue": "",
+"ok": true
+}
+],
+"tags": [
+"few"
+],
+"why": "1 is a clean studio flat front and 2 is a clean model shot, both usable. Only 2 photos; add a back view and a detail shot to reach 3+."
+}
+},
+"spent_usd": 0.32126
+}
