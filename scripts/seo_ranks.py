@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+"""Where puroclassico.com ranks on Google for the searches in data/seo_keywords.json, US and UK, via Serper.
+
+Writes data/seo_ranks.json: per search and market the position of our first result (top 100 where the budget allows),
+the ranking URL, every one of our URLs on the page, and the top 3 results (the competitors). Also an index check:
+site: searches and a random sample of sitemap URLs looked up one by one, to estimate how many pages Google has indexed.
+
+Runs in GitHub Actions (.github/workflows/seo-ranks.yml) with the SERPER_API_KEY secret. Stops before --budget
+credits (counted from the credits Serper reports per request).
+
+  python scripts/seo_ranks.py [--budget 600] [--sample 60]
+"""
+import argparse, json, os, random, re, sys, time, urllib.request, urllib.error
+from datetime import datetime, timezone
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT = os.path.join(ROOT, "data", "seo_ranks.json")
+KW = os.path.join(ROOT, "data", "seo_keywords.json")
+SITE = "https://www.puroclassico.com"
+MARKETS = [("us", "en"), ("gb", "en")]
+DEEP_GROUPS = ("brand", "head", "agent", "guide")       # searched past page 1 when we are not on it (paged mode)
+UA = {"User-Agent": "Mozilla/5.0 (compatible; PuroClassicoSEO/1.0)"}
+
+
+class Budget(Exception):
+    pass
+
+
+class Serper:
+    def __init__(self, key, budget):
+        self.key, self.budget, self.used, self.calls = key, budget, 0, 0
+
+    def search(self, q, gl, hl, num=10, page=1, cost_guess=1):
+        if self.used + cost_guess > self.budget:
+            raise Budget()
+        body = {"q": q, "gl": gl, "hl": hl, "num": num}
+        if page > 1:
+            body["page"] = page
+        req = urllib.request.Request("https://google.serper.dev/search", data=json.dumps(body).encode(),
+                                     headers={"X-API-KEY": self.key, "Content-Type": "application/json"})
+        last = None
+        for k in range(4):
+            try:
+                d = json.load(urllib.request.urlopen(req, timeout=40))
+                self.calls += 1
+                self.used += int(d.get("credits") or cost_guess)
+                return d
+            except urllib.error.HTTPError as e:
+                last = e
+                if e.code in (400, 401, 403):
+                    raise
+                time.sleep(2 + 3 * k)
+            except Exception as e:
+                last = e
+                time.sleep(2 + 3 * k)
+        raise last
+
+
+def ours(link):
+    try:
+        host = link.split("/")[2].lower()
+    except IndexError:
+        return False
+    return host == "puroclassico.com" or host.endswith(".puroclassico.com")
+
+
+def host_of(link):
+    try:
+        return link.split("/")[2].lower().removeprefix("www.")
+    except IndexError:
+        return ""
+
+
+def read_results(d, offset):
+    """[(absolute position, link, title)] of the organic results of one response (offset: results on earlier pages)."""
+    return [(offset + i + 1, r.get("link") or "", r.get("title") or "") for i, r in enumerate(d.get("organic") or [])]
+
+
+def features(d):
+    f = []
+    for k, name in (("answerBox", "answer box"), ("knowledgeGraph", "knowledge panel"), ("peopleAlsoAsk", "people also ask"),
+                    ("topStories", "top stories"), ("images", "images"), ("videos", "videos"), ("shopping", "shopping")):
+        if d.get(k):
+            f.append(name)
+    return f
+
+
+def rank(s, q, gl, hl, mode, depth, prev=None):
+    """One search in one market: our position (None = not in the results we read), how deep we looked, results.
+    prev: an earlier result for the same search, continued from the next page (paged mode)."""
+    res = [tuple(x) for x in (prev or {}).get("_res", [])]
+    seen_depth, feats = (prev or {}).get("checked_top", 0), (prev or {}).get("features", [])
+    if mode["num100"]:
+        d = s.search(q, gl, hl, num=100, cost_guess=mode["c100"])
+        res = read_results(d, 0); seen_depth = max(len(res), 10); feats = features(d)
+    else:
+        for page in range(seen_depth // 10 + 1, depth + 1):
+            d = s.search(q, gl, hl, num=10, page=page)
+            if page == 1:
+                feats = features(d)
+            got = read_results(d, (page - 1) * 10)
+            res += got; seen_depth = page * 10
+            if any(ours(l) for _, l, _ in got) or len(got) < 8:
+                break
+    mine = [(p, l, t) for p, l, t in res if ours(l)]
+    top = [{"pos": p, "domain": host_of(l), "url": l, "title": t} for p, l, t in res[:3]]
+    return {"pos": mine[0][0] if mine else None, "url": mine[0][1] if mine else None, "title": mine[0][2] if mine else None,
+            "all_ours": [[p, l] for p, l, _ in mine][:10], "checked_top": seen_depth, "top3": top, "features": feats,
+            "domains_top10": [host_of(l) for _, l, _ in res[:10]], "_res": [list(x) for x in res]}
+
+
+def sitemap_urls():
+    urls = []
+    for name in ("sitemap-pages.xml", "sitemap-products.xml"):
+        try:
+            t = urllib.request.urlopen(urllib.request.Request(SITE + "/" + name, headers=UA), timeout=60).read().decode()
+            urls += re.findall(r"<loc>([^<]+)</loc>", t)
+        except Exception as e:
+            print("sitemap", name, "not read:", e)
+    return urls
+
+
+def kind(u):
+    p = u.split("puroclassico.com", 1)[-1]
+    if p.startswith("/product/"): return "product"
+    if p.startswith("/brand/"): return "brand"
+    if p.startswith("/best/"): return "best"
+    if p.startswith("/category/"): return "category"
+    if p.startswith(("/guides", "/tools", "/how-to-order")): return "guide"
+    if re.match(r"^/[a-z0-9]+-spreadsheet", p): return "hub"
+    return "other"
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--budget", type=int, default=600)
+    ap.add_argument("--sample", type=int, default=60, help="sitemap URLs checked one by one for the index estimate")
+    a = ap.parse_args(argv)
+    key = os.environ.get("SERPER_API_KEY") or sys.exit("no SERPER_API_KEY")
+    s = Serper(key, a.budget - 5)
+    kw = {g: v for g, v in json.load(open(KW)).items() if not g.startswith("_")}
+    queries = [(g, q) for g, qs in kw.items() for q in qs]
+    out = {"generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "markets": [m for m, _ in MARKETS],
+           "ranks": {}, "index": {}, "notes": []}
+
+    # 1. Does num=100 still return 100 results, and what does it cost?
+    probe = s.search("weidian spreadsheet", "us", "en", num=100, cost_guess=2)
+    n100, c100 = len(probe.get("organic") or []), int(probe.get("credits") or 2)
+    reserve = a.sample + 12
+    mode = {"num100": n100 >= 40, "c100": c100, "probe_results": n100}
+    if mode["num100"] and len(queries) * len(MARKETS) * c100 + reserve > s.budget:
+        mode["num100_markets"] = ["us"]
+    out["mode"] = mode
+    print("probe: num=100 gave %d results for %d credits -> %s" % (n100, c100, "top 100 per search" if mode["num100"] else "pages of 10"))
+
+    # 2. Rankings. Page 1 everywhere first, then deeper where we are missing (paged mode), most important groups first.
+    try:
+        for g, q in queries:
+            for gl, hl in MARKETS:
+                m = dict(mode)
+                if mode["num100"] and gl not in mode.get("num100_markets", [gl]):
+                    m["num100"] = False
+                r = rank(s, q, gl, hl, m, depth=1)
+                r["group"] = g
+                out["ranks"].setdefault(q, {"group": g})[gl] = r
+        if not mode["num100"]:
+            for depth in (3, 5):
+                for g, q in queries:
+                    if g not in DEEP_GROUPS: continue
+                    for gl, hl in MARKETS:
+                        r0 = out["ranks"][q][gl]
+                        if r0["pos"] or r0["checked_top"] >= depth * 10 or len(r0["_res"]) < r0["checked_top"] - 2: continue
+                        if s.used + (depth - r0["checked_top"] // 10) + reserve > s.budget: continue
+                        r = rank(s, q, gl, hl, mode, depth=depth, prev=r0); r["group"] = g
+                        out["ranks"][q][gl] = r
+    except Budget:
+        out["notes"].append("budget reached during rankings")
+    for v in out["ranks"].values():
+        for m, r in v.items():
+            if m != "group": r.pop("_res", None)
+
+    # 3. Index: site: searches, then a fixed random sample of sitemap URLs looked up one by one.
+    try:
+        for q in ("site:puroclassico.com", "site:fb.puroclassico.com", "site:puroclassico.com -inurl:www",
+                  "site:puroclassico.com/product", "site:puroclassico.com/brand", "site:puroclassico.com/best"):
+            d = s.search(q, "us", "en", num=100 if mode["num100"] else 10, cost_guess=c100 if mode["num100"] else 1)
+            res = read_results(d, 0)
+            out["index"].setdefault("site", {})[q] = {"results": len(res), "urls": [l for _, l, _ in res][:100]}
+        urls = sitemap_urls()
+        out["index"]["sitemap_urls"] = len(urls)
+        by = {}
+        for u in urls: by.setdefault(kind(u), []).append(u)
+        out["index"]["sitemap_by_kind"] = {k: len(v) for k, v in by.items()}
+        rnd = random.Random(20261122)
+        want = {"product": 30, "brand": 8, "best": 6, "category": 4, "hub": 6, "guide": 6}
+        tot = sum(want.values()); sample = []
+        for k, n in want.items():
+            n = max(1, round(n * a.sample / tot)); pool = by.get(k, [])
+            sample += [(k, u) for u in rnd.sample(pool, min(n, len(pool)))]
+        checked = []
+        for k, u in sample:
+            d = s.search("site:" + u.split("://", 1)[1], "us", "en", num=10)
+            hit = any((l.rstrip("/") == u.rstrip("/")) or l.split("?")[0].rstrip("/") == u.rstrip("/") for _, l, _ in read_results(d, 0))
+            checked.append({"kind": k, "url": u, "indexed": hit})
+        out["index"]["sample"] = checked
+    except Budget:
+        out["notes"].append("budget reached during the index check")
+
+    out["credits_used"], out["requests"] = s.used, s.calls
+    json.dump(out, open(OUT, "w"), indent=1, ensure_ascii=False)
+    found = sum(1 for v in out["ranks"].values() for m, r in v.items() if m != "group" and r.get("pos"))
+    print("written %s: %d searches, %d positions found, %d credits, %d requests" % (OUT, len(out["ranks"]), found, s.used, s.calls))
+
+
+if __name__ == "__main__":
+    main()

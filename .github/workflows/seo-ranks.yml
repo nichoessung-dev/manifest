@@ -1,0 +1,38 @@
+name: SEO ranks
+# Google positions for the searches in data/seo_keywords.json (US and UK) and an index check, via Serper
+# (scripts/seo_ranks.py, SERPER_API_KEY secret). Writes data/seo_ranks.json. Run by hand; stops before the credit budget.
+on:
+  workflow_dispatch:
+    inputs:
+      budget:
+        description: Max Serper credits for this run
+        default: '600'
+      sample:
+        description: Sitemap URLs looked up one by one for the index estimate
+        default: '60'
+permissions:
+  contents: write
+concurrency:
+  group: seo-ranks
+  cancel-in-progress: false
+jobs:
+  ranks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python scripts/seo_ranks.py --budget "${{ github.event.inputs.budget }}" --sample "${{ github.event.inputs.sample }}"
+        env:
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+      - name: Commit
+        run: |
+          git add data/seo_ranks.json
+          if git diff --cached --quiet; then echo "no change"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "data: Google positions and index check (seo_ranks.json)"
+          for i in 1 2 3 4 5; do git pull --rebase && git push && exit 0; sleep $((i * 7)); done
+          exit 1
