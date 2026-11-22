@@ -6307,7 +6307,8 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
   }
   /* 22 Nov 2026 (SEO speed check): Google's script, button frame and font (about 210 KB) no longer load while the page
      itself is still loading. They start once the page has loaded and the browser is idle, or at once when the visitor
-     touches or types in the sign-in card (not on the focus the card sets itself when it opens). The account sheet opens
+     touches, clicks, types in or moves the mouse over the sign-in card (not on the focus the card sets itself when it
+     opens). The account sheet opens
      on a tap, so it still loads at once there. Until Google's button is drawn, ours runs the redirect flow as before. */
   let later=0;
   const whenLoaded=()=>{ if(st||later) return; later=1;
@@ -6317,7 +6318,10 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
     const go=()=>{ if(el.hidden) return; const b=document.getElementById(id);
       if(st===2&&b&&b.__slot&&b.__slot.__key!==look().key) unmount(b);   /* redraw in the current theme and language */
       if(!usable(b)) return; if(m==="gate"&&!st) whenLoaded(); else load(); if(st===2) mount(b); };
-    ["pointerover","pointerdown","touchstart","keydown"].forEach(n=>el.addEventListener(n,()=>{ if(!st&&!el.hidden&&usable(document.getElementById(id))) load(); },{passive:true}));
+    /* a real touch, press, key or mouse movement on the card; not pointerover, which Chrome also fires when the card opens
+       under a resting mouse pointer */
+    ["pointerdown","touchstart","keydown","pointermove"].forEach(n=>el.addEventListener(n,e=>{ if(n==="pointermove"&&!(e.movementX||e.movementY)) return;
+      if(!st&&!el.hidden&&usable(document.getElementById(id))) load(); },{passive:true}));
     try{ new MutationObserver(go).observe(el,{attributes:true,attributeFilter:["hidden"]}); }catch(e){}
     go(); });
 })();
