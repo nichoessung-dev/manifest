@@ -48,9 +48,12 @@ def base(u):
 
 def polished():
     """{file name: products/store2/ URL} of the store photos the polish step made AND verified: uploaded, no error,
-    and a store-copy source passed both same-photo checks (outline and interior). Model shots only where a larger store
+    a store-copy source passed both same-photo checks (outline and interior), and the regression check passed
+    (data/store_photos_polish_check.json: no part lost on white or ghosted items). Model shots only where a larger store
     copy was found. Finds whose rating fixes or audit changed later keep their other files."""
     out = {}
+    # the regression check (scripts/store_photos_polish_check.py): white and ghosted items whose polished copy lost parts
+    chk = load_json(os.path.join(ROOT, "data", "store_photos_polish_check.json"), {})
     for f in [os.path.join(ROOT, "data", "store_photos_polish.json")] + sorted(glob.glob(os.path.join(ROOT, "data", "store_photos_polish", "*.json"))):
         for r in (load_json(f, {}).get("items") or {}).values():
             if r.get("v") != POLISH_V: continue
@@ -59,6 +62,7 @@ def polished():
                 if re.search(r"-[a-z]?m\d+\.webp$", name):   # a model shot: the same photo at a larger size, never re-cut
                     if x.get("source") != "store" or x.get("match", 0) < 0.99: continue
                 elif x.get("source") == "store" and (x.get("same", 0) < 0.96 or "inside" not in x): continue
+                elif not (chk.get(name) or {}).get("ok"): continue
                 if x["url"] == STORE2 + name: out[name] = x["url"]
     return out
 
