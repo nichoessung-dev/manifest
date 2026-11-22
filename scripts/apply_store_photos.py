@@ -37,6 +37,9 @@ STORE2 = STORE.replace("/products/store/", "/products/store2/")
 POLISH_V = 3      # scripts/store_photos_polish.py VERSION whose results are used (3: interior same-photo check)
 
 
+MODEL_SHOT = re.compile(r"-[a-z]?m\d+\.webp$")
+
+
 def ok(u):
     return isinstance(u, str) and u.startswith(STORE)
 
@@ -83,6 +86,8 @@ def plan(items, audit, owner, hidden, only, fixes=None, pol=None):
         if i in hidden:
             why["hidden"] += 1; continue
         o = owner.get(i) or {}
+        if not o and (fixes.get(i) or {}).get("audit"):
+            r = fixes[i]["audit"]; why["rating fixes: earlier audit set restored"] += 1   # a pass-2 set that was worse
         main = r.get("main")
         main = main if ok(main) else None
         extra = [u for u in (r.get("gallery") or []) if ok(u)]
@@ -110,6 +115,8 @@ def plan(items, audit, owner, hidden, only, fixes=None, pol=None):
                 if old != nm:
                     why["rating fixes: angle promoted to main"] += 1
                 main = nm
+        if main and MODEL_SHOT.search(main):   # rule 8: the main is never a model photo; it goes with the model shots
+            model.insert(0, main); main = None; why["model shot kept off the main"] += 1
         if not main and ok(base(p.get("img"))):
             # the site photo the audit kept is already a store photo (applied earlier): still a store main
             main = base(p.get("img")); why["kept the earlier store main"] += 1

@@ -9,6 +9,8 @@ store-gallery.json order) and writes data/store_photos_fixes.json, which scripts
   drop      angles the rating failed for what they show (wrong item or colour, duplicate, hanger, mannequin, tilted,
             flat-lay, tight model crop, lifestyle, label or detail shot ...). Angles that only failed on quality (soft,
             rough cut-out) stay: the polish step (scripts/store_photos_polish.py) re-cuts them, and the re-rating decides.
+  audit     the find's audit set before pass 2 ({main, gallery, model}), used instead of today's audit entry: pass-2 sets
+            a review of the contact sheets found worse (another item, colour or version than the listing) or empty
   main      an angle promoted to the main photo (a clean straight-on product shot; shoes: a single-shoe side profile),
             chosen by eye from contact sheets when the rated main failed. The old main is dropped unless keep_old
             (then it follows as the first angle: e.g. a pair shot behind a new single-shoe side profile).
@@ -17,6 +19,7 @@ Only finds whose rating saw exactly the live set are used (a photo that failed t
 merged: earlier drops and promotions stay unless --reset. Owner calls (data/store_photos_owner.json) win over these.
 
   python scripts/store_photos_fixes.py [--promote file.txt] [--reset] [--write] [--pass2]
+                                       [--restore reasons.json --before audit_before.json]
   promote file: lines "<id> <file name> [keep]"
 """
 import argparse, collections, json, os, re, sys
@@ -93,6 +96,9 @@ def main(argv=None):
     ap.add_argument("--reset", action="store_true")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--pass2", action="store_true", help="also write the new-search targets, data/store_photos_pass2.json")
+    ap.add_argument("--restore", default="", help='JSON {"<reason>": [ids]}: these finds go back to their audit set in --before '
+                    "(a pass-2 set that a review found worse: another item or colour, or fewer photos)")
+    ap.add_argument("--before", default="", help="the audit file before pass 2 (git show <commit>:data/store_photos_audit.json)")
     a = ap.parse_args(argv)
     ratings = load_json(os.path.join(ROOT, "data", "photo_ratings.json"), {})
     gal = load_json(os.path.join(ROOT, "store-gallery.json"), {})
@@ -131,6 +137,16 @@ def main(argv=None):
             if not e["drop"]: e.pop("drop")
             e["why_main"] = "rated main failed; angle %s is a clean straight-on product shot (reviewed on a contact sheet)" % name
             c["mains promoted"] += 1
+    if a.restore:
+        before = (load_json(a.before, {}) or {}).get("items") or {}
+        for reason, ids in load_json(a.restore, {}).items():
+            for i in ids:
+                if i in owner: continue
+                b = before.get(i) or {}
+                fx.setdefault(i, {})["audit"] = {"main": b.get("main") or "current", "gallery": list(b.get("gallery") or []),
+                                                 "model": list(b.get("model") or [])}
+                fx[i]["why_audit"] = reason; fx[i]["at"] = now()
+                c["earlier audit set restored"] += 1
     print(dict(c))
     print("%d finds with fixes" % len(fx))
     if a.write:
