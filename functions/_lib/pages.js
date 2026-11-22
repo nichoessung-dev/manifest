@@ -118,11 +118,13 @@ const QC_LOAD_JS = '(function(){var w=document.currentScript.previousElementSibl
 // Store photos (21 Nov 2026, owner): more angles of the find from real shops (scripts/apply_store_photos.py ->
 // store_gallery.js). A row of thumbnails under the main photo; a tap shows the angle in the main square on every screen.
 const SG_PUB = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/";
+// "s2/<name>": the polished copy (scripts/store_photos_polish.py, pure white 1600 px) in products/store2/
+const sgUrl = k => k.startsWith("s2/") ? SG_PUB.replace("/store/", "/store2/") + k.slice(3) : SG_PUB + k;
 function storeThumbs(src, list, title) {
   const b = (u, i, own) => `<button type="button"${i ? "" : ' class="on"'}${own ? "" : ` data-u="${esc(thumbSrc(u).replace("width=400,quality=75", "width=1000,quality=80"))}"`} aria-label="${esc(title)} photo ${i + 1}"><img src="${esc(thumbSrc(u))}" data-o="${esc(u)}" alt="" width="72" height="72" loading="lazy" decoding="async" ${IMG_FALLBACK}></button>`;
   // data-u: a 1000 px copy from Cloudflare (about 35 KB instead of the 1200 px original), fetched in the background once the
   // page has loaded so a tap swaps at once
-  return `<div class="thumbs">${b(src, 0, true)}${list.map((k, i) => b(SITE + "/api/img?u=" + encodeURIComponent(SG_PUB + k), i + 1)).join("")}</div>` +
+  return `<div class="thumbs">${b(src, 0, true)}${list.map((k, i) => b(SITE + "/api/img?u=" + encodeURIComponent(sgUrl(k)), i + 1)).join("")}</div>` +
     '<script>addEventListener("load",function(){setTimeout(function(){[].forEach.call(document.querySelectorAll(".thumbs button[data-u]"),function(b){var i=new Image();i.decoding="async";i.src=b.getAttribute("data-u")})},300)})</script>';
 }
 

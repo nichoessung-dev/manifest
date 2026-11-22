@@ -48,7 +48,9 @@ STATE_DIR = os.path.join(ROOT, "data", "store_photos_polish")
 SIZE = 1600
 ESRGAN_BELOW = 1100      # real item resolution (long side) under which Real-ESRGAN is tried
 POOL_MAX = 70            # candidates looked at per find (src pages first)
-VERSION = 2              # 2: same-photo check after the cut-out, one store image per live photo
+VERSION = 3              # 2: same-photo check after the cut-out, one store image per live photo; 3: interior check
+                         #    (logos / prints inside the outline, not only the silhouette: a black sweater's back
+                         #    matched its front at 0.996, 22 Nov 2026)
 SHADOW = False           # contact shadow under shoes: tried in the pilot, it read as a grey smudge on pure white; off
 
 # fill by type: (share of the width, share of the height, centre y) the item may take; it is scaled to the tighter one
@@ -439,8 +441,9 @@ def live_photos(items):
     out = {}
     for p in items:
         u = p.get("img") or ""
-        names = [u[len(STORE):].split("?")[0]] if u.startswith(STORE) else []
-        names += [n for n in gal.get(p["id"], []) if n not in names]
+        names = [u[len(STORE):].split("?")[0]] if u.startswith(STORE) else [u[len(STORE2):].split("?")[0]] if u.startswith(STORE2) else []
+        # the live file in products/store/ is always the source, also where the site shows the polished copy (s2/)
+        names += [m for m in (n[3:] if n.startswith("s2/") else n for n in gal.get(p["id"], [])) if m not in names]
         if names: out[p["id"]] = names
     return out
 
@@ -555,6 +558,28 @@ def same_item(a, b, N=96):
 
 
 SAME_MIN = 0.96
+INNER_MIN = (0.78, 0.74)   # interior grey / interior detail correlation; pilot: same photos 0.82+ / 0.76+, front-vs-back 0.71 / 0.70
+
+
+def same_inside(a, b, N=160):
+    """(grey, detail) correlation of the two items INSIDE their outline (eroded 7 px at N px): the silhouette alone
+    cannot tell a plain back from a front with a logo. None when the item is too small to tell."""
+    from scipy import ndimage
+
+    def it(im):
+        g = on_white(im).convert("L"); m = np.asarray(g) < 243
+        ys, xs = np.where(m)
+        if not len(ys): return None
+        return np.asarray(g.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)).resize((N, N), Image.BILINEAR), dtype=np.float32)
+    x, y = it(a), it(b)
+    if x is None or y is None: return None
+    m = ndimage.binary_erosion((x < 243) & (y < 243), iterations=7)
+    if m.sum() < 300: return None
+
+    def corr(u, v):
+        u, v = u[m] - u[m].mean(), v[m] - v[m].mean()
+        return float(np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v) + 1e-6))
+    return corr(x, y), corr(x - ndimage.gaussian_filter(x, 3), y - ndimage.gaussian_filter(y, 3))
 
 
 def polish_photo(name, live_im, kind, src):
@@ -650,7 +675,11 @@ def do_find(p, names, entry, rec, a):
                 out, notes = polish_photo(name, live, kind, src)
                 if out is not None and src:
                     same = same_item(live, out); notes["same"] = round(same, 3)
+                    ins = same_inside(live, out)
+                    if ins: notes["inside"] = [round(ins[0], 3), round(ins[1], 3)]
                     if same < SAME_MIN: out, notes = None, {"error": f"store copy is another photo ({same:.2f})"}
+                    elif ins and (ins[0] < INNER_MIN[0] or ins[1] < INNER_MIN[1]):
+                        out, notes = None, {"error": f"store copy is another photo inside the outline ({ins[0]:.2f} / {ins[1]:.2f})"}
                 if out is None and src:   # the store copy failed: the live file as source
                     info["store_fail"] = notes.get("error"); out, notes = polish_photo(name, live, kind, None)
                     for k in ("src_url", "src_size", "match"): info.pop(k, None)

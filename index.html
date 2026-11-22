@@ -5008,11 +5008,11 @@ function _warmHooks(el,p){
   el.addEventListener("pointerleave",()=>{ clearTimeout(ht); clearTimeout(qt); el.__hov=0; const th=el.querySelector(".thumb.qc-on"); if(th) th.classList.remove("qc-on"); });
   el.addEventListener("pointerdown",e=>{ if(e.button>0||(e.target.closest&&e.target.closest(".fav,.buy-pill"))) return; clearTimeout(ht); pcWarm(p,true); });
 }
-/* store-gallery.json: {id: [file names in products/store/]}, loaded once, on the first product view */
+/* store-gallery.json: {id: [file names in products/store/, "s2/<name>" = the polished copy in products/store2/]}, loaded once, on the first product view */
 let __sgP=null;
 function storeGal(id){
   if(!__sgP) __sgP=fetch("/store-gallery.json").then(r=>r.ok?r.json():{}).catch(()=>({}));
-  return __sgP.then(d=>(d[id]||[]).map(k=>location.origin+"/api/img?u="+encodeURIComponent("https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/"+k)));
+  return __sgP.then(d=>(d[id]||[]).map(k=>location.origin+"/api/img?u="+encodeURIComponent("https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/"+(k.slice(0,3)==="s2/"?"store2/"+k.slice(3):"store/"+k))));
 }
 function openDetail(p,fromHash){
   if(!fromHash){ try{ if(window.pcSearch&&state.q&&(_rlist.includes(p)||(drawer.__pplist||[]).includes(p))) pcSearch.open(); }catch(_){} }   /* search-log hook C: a search result was opened */
