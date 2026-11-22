@@ -1,0 +1,77 @@
+name: Rate photos
+# AI rating of every listing's live photo set (scripts/rate_photos.py). Writes data/photo_ratings_parts/*.json only;
+# nothing on the live site changes.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'live (direct calls, for calibration) or batch (Batches API, half price)'
+        type: choice
+        options: ['live', 'batch']
+        default: 'live'
+      model:
+        description: 'Model'
+        default: 'claude-sonnet-5-5'
+      shards:
+        description: 'Parallel shards (batch mode: 1, 2, 4 or 8)'
+        type: choice
+        options: ['1', '2', '4', '8']
+        default: '1'
+      part:
+        description: 'Part name (live mode; empty = s<shard>)'
+        default: ''
+      limit:
+        description: 'Finds per shard (0 = all not rated yet)'
+        default: '0'
+      ids:
+        description: 'Only these ids (comma separated, optional)'
+        default: ''
+      max_usd:
+        description: 'Hard stop for AI spend, all parts together (USD)'
+        default: '25'
+      est_usd:
+        description: 'Expected cost per find at standard rates (budget check before starting)'
+        default: '0.006'
+permissions:
+  contents: write
+concurrency: rate-photos
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(inputs.shards == '8' && '[0,1,2,3,4,5,6,7]' || inputs.shards == '4' && '[0,1,2,3]' || inputs.shards == '2' && '[0,1]' || '[0]') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow anthropic
+      - name: Rate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python scripts/rate_photos.py --mode "${{ inputs.mode }}" --model "${{ inputs.model }}" \
+            --shard ${{ matrix.shard }} --shards ${{ inputs.shards }} --limit "${{ inputs.limit }}" --ids "${{ inputs.ids }}" \
+            --max-usd "${{ inputs.max_usd }}" --est-usd "${{ inputs.est_usd }}" ${{ inputs.part && format('--part {0}', inputs.part) || '' }} 2>&1 | tee out-rate.log
+      - name: Save
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          [ -d data/photo_ratings_parts ] || exit 0
+          git add data/photo_ratings_parts
+          git diff --cached --quiet && exit 0
+          git commit -q -m "data: photo ratings, shard ${{ matrix.shard }} [skip ci]"
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((RANDOM % 20 + 5))
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rate-photos-${{ matrix.shard }}
+          path: out-rate.log
