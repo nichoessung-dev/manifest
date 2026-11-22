@@ -4618,7 +4618,7 @@ function filtered0(noBrand){   /* noBrand: unsorted list matching every filter e
   if(_ex) return list;
   const s=state.sort; let _ord; const ord=id=>{ if(!_ord){ _ord=new Map(); ALL.forEach((x,i)=>_ord.set(x.id,i)); } return _ord.get(id); };
   if(s==="pop"&&_qm&&_qm.score){ const _sc=_qm.score; list.sort((a,b)=>(_sc.get(b)||0)-(_sc.get(a)||0)||popScore(b)-popScore(a)); return list; }   /* v9 search: relevance */
-  if(s==="foryou"){ const _fy=pcForYou(list); list.sort((a,b)=>(_fy.get(b)||0)-(_fy.get(a)||0));
+  if(s==="foryou"){ fyNeedAlso(); const _fy=pcForYou(list); list.sort((a,b)=>(_fy.get(b)||0)-(_fy.get(a)||0));
     /* variety at the top: the first 160 are re-picked one by one, each brand and item type costing more the more often it
        appeared in the last 8, so the sheet mixes what the visitor likes instead of showing one brand */
     const head=list.slice(0,160), tail=list.slice(160), out=[];
@@ -5889,7 +5889,8 @@ function pcTasteFilters(){
    fit learns which features tell their yes from their no. */
 /* item-to-item neighbours: finds that other members who liked the visitor's yes finds also liked (/also.js, data/also.json,
    pairs held by 3+ members, blended with content similarity). The strongest 60 yes finds are the anchors; a find next to
-   several of them adds up, softly capped. {} until the file is in (it loads after idle; pc:also below re-sorts). */
+   several of them adds up, softly capped. {} until the file is in (it loads on the first tap or scroll, or when For you
+   is picked; pc:also below re-sorts). */
 function fyNeighbours(yes){
   if(!window.pcAlso||!pcAlso.ok||!yes.length) return {};
   var raw=pcAlso.scoreFor(yes.slice().sort(function(a,b){ return b[1]-a[1]; }).slice(0,60)), out={};
@@ -5897,6 +5898,7 @@ function fyNeighbours(yes){
   return out;
 }
 window.addEventListener("pc:also",function(){ FY_MEMO={k:null,m:null}; try{ if(state.sort==="foryou") render(); }catch(e){} });
+function fyNeedAlso(){ try{ if(window.pcAlso&&!pcAlso.ok) pcAlso.load(); }catch(e){} }   /* For you uses the file: start it now */
 function fyModel(){
   var LR=null, T={}, fav=[]; try{ LR=JSON.parse(localStorage.getItem("pc.feed.lr")||"null"); }catch(e){} try{ T=JSON.parse(localStorage.getItem("pc.taste")||"{}")||{}; }catch(e){} try{ fav=JSON.parse(localStorage.getItem("manifest.faves")||"[]")||[]; }catch(e){}
   var favS=new Set((Array.isArray(fav)?fav:[]).map(String));
@@ -6210,7 +6212,8 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
   setTimeout(check,700);
 })();
 /* Google sign-in on our own origin (Google Identity Services + supabase signInWithIdToken), so Google's account screen names
-   puroclassico.com instead of the Supabase project host. The GIS script loads only when the gate or the account sheet opens.
+   puroclassico.com instead of the Supabase project host. The GIS script loads only when the gate or the account sheet opens
+   (the gate's after the page has loaded, see below).
    Google's own button takes the place of ours once it has rendered; until then, and whenever anything fails, ours stays and
    runs the redirect flow, oauth("google"). In-app browsers keep Google hidden (the gate block above). */
 (function(){
@@ -6302,10 +6305,19 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
       st=2; mountAll();
     }).catch(()=>off());
   }
+  /* 22 Nov 2026 (SEO speed check): Google's script, button frame and font (about 210 KB) no longer load while the page
+     itself is still loading. They start once the page has loaded and the browser is idle, or at once when the visitor
+     touches or types in the sign-in card (not on the focus the card sets itself when it opens). The account sheet opens
+     on a tap, so it still loads at once there. Until Google's button is drawn, ours runs the redirect flow as before. */
+  let later=0;
+  const whenLoaded=()=>{ if(st||later) return; later=1;
+    const idle=()=>{ if(window.requestIdleCallback) requestIdleCallback(load,{timeout:1500}); else setTimeout(load,800); };
+    if(document.readyState==="complete") idle(); else window.addEventListener("load",idle,{once:true}); };
   SLOTS.forEach(([m,id])=>{ const el=document.getElementById(m); if(!el) return;
     const go=()=>{ if(el.hidden) return; const b=document.getElementById(id);
       if(st===2&&b&&b.__slot&&b.__slot.__key!==look().key) unmount(b);   /* redraw in the current theme and language */
-      if(!usable(b)) return; load(); if(st===2) mount(b); };
+      if(!usable(b)) return; if(m==="gate"&&!st) whenLoaded(); else load(); if(st===2) mount(b); };
+    ["pointerover","pointerdown","touchstart","keydown"].forEach(n=>el.addEventListener(n,()=>{ if(!st&&!el.hidden&&usable(document.getElementById(id))) load(); },{passive:true}));
     try{ new MutationObserver(go).observe(el,{attributes:true,attributeFilter:["hidden"]}); }catch(e){}
     go(); });
 })();
@@ -6695,6 +6707,9 @@ function enhanceDrawer(p){
   wireDrawerSearch();
   const _tk=drawer.__tok;   /* r7: similar finds, the QC check and the browse grid wait for the first paint (and an idle moment) */
   _idle(()=>{ if(drawer.__tok===_tk) renderSimilar(p); });
+  /* 22 Nov 2026: the "also liked" file (also.js) loads on the first tap now, not on every page view, so it may still be on
+     its way when the first find opens: draw the row again once it is in, if this find is still open */
+  if(window.pcAlso&&!pcAlso.ok) pcAlso.load().then(()=>{ if(pcAlso.ok&&drawer.__tok===_tk) _idle(()=>{ if(drawer.__tok===_tk) renderSimilar(p); }); });
   // buy dropdown
   (function wireBuy(){
     const caret=$("#buy-dd-caret",drawer), menu=$("#buy-dd-menu",drawer);
@@ -7747,5 +7762,5 @@ try{var AC=null,AH=matchMedia("(hover: hover)"),afp=function(l){var p=l.querySel
 <script id="pc-search" src="/pcs.js?v=6f308bff"></script>
 <script src="/track.js?v=5" defer></script>
 <script src="/feedback.js?v=2" defer></script>
-<script src="/also.js?v=1" defer></script>
+<script src="/also.js?v=2" defer></script>
 <script src="/chat.js?v=7" defer></script>

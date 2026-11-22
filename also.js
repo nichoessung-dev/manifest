@@ -10,7 +10,8 @@
                              anchors: [[id, weight], ...] (or {id: weight}). Returns {id: summed weight * score} over
                              the anchors' neighbours, anchors themselves left out (opt.exclude: a Set or {id: 1} to
                              leave out more, opt.k: neighbours per anchor, default all).
-     pcAlso.load()           start loading now (otherwise it starts once the page is idle, or on the first get()).
+     pcAlso.load()           start loading now (otherwise it starts on the first tap, key press or scroll after the
+                             page has loaded, or on the first get()).
      window event "pc:also"  fired once the data is in, for pages that want to re-rank.
 
    Format (keep in step with bake_also.py encode() and functions/_lib/also.js): {"ids": [...], "n": [[d, c, ...], ...]};
@@ -76,14 +77,23 @@
   api._use = use;                                                 // tests only
   window.pcAlso = api;
 
-  // Lazy: after the page is idle (the file is about 300 KB compressed and nothing above the fold needs it).
-  // With Data Saver on, only when a page asks for it.
+  // Lazy (22 Nov 2026, SEO speed check): the file is about 500 KB over the wire and nothing on the first screen needs it,
+  // so it no longer loads on every page view once the page is idle. It starts on the visitor's first tap, click, key
+  // press or scroll after the page has loaded (they are browsing, so a find is about to open), or when a page asks for
+  // it (get(), load()). With Data Saver on, only when a page asks for it.
   var save = false;
   try { save = !!(navigator.connection && navigator.connection.saveData); } catch (e) {}
   if (save) return;
+  var EV = ["pointerdown", "keydown", "scroll", "touchstart"], armed = false;
   var go = function () {
-    if (window.requestIdleCallback) requestIdleCallback(function () { api.load(); }, { timeout: 4000 });
-    else setTimeout(api.load, 1500);
+    EV.forEach(function (n) { window.removeEventListener(n, go, true); });
+    if (state) return;
+    if (window.requestIdleCallback) requestIdleCallback(function () { api.load(); }, { timeout: 2000 });
+    else setTimeout(api.load, 300);
   };
-  if (document.readyState === "complete") go(); else window.addEventListener("load", go, { once: true });
+  var arm = function () {
+    if (armed) return; armed = true;
+    try { EV.forEach(function (n) { window.addEventListener(n, go, { capture: true, passive: true }); }); } catch (e) {}
+  };
+  try { if (document.readyState === "complete") arm(); else window.addEventListener("load", arm, { once: true }); } catch (e) {}
 })();
