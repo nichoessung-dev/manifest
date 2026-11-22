@@ -9,6 +9,8 @@ data/store_photos_owner.json, then:
   2. writes functions/_lib/store_gallery.js: the extra store angles and model shots per find, shown on the product page
      (pages.js), and the set of finds whose main is now a store photo (site.js leaves their old photo-quality penalty out)
 
+Rating fixes (data/store_photos_fixes.json, scripts/store_photos_fixes.py): angles to drop and an angle promoted to main,
+from the AI photo ratings; ignored on finds with an owner call.
 Owner calls: main "site" keeps the site photo as main, main "gallery0" makes angle 1 the main, drop_site never keeps
 the site photo (angle 1 becomes main when the AI kept the site photo). Hidden finds (data/report_overrides.json) are
 left alone. Report only unless --write.
@@ -32,8 +34,9 @@ def ok(u):
     return isinstance(u, str) and u.startswith(STORE)
 
 
-def plan(items, audit, owner, hidden, only):
+def plan(items, audit, owner, hidden, only, fixes=None):
     """(img changes, gallery map, main set, why-not counter)."""
+    fixes = fixes or {}
     idx = {p["id"]: p for p in items}
     changes, gal, mains, why = [], {}, set(), collections.Counter()
     for i, r in sorted(audit.items()):
@@ -56,6 +59,22 @@ def plan(items, audit, owner, hidden, only):
             main = extra.pop(0)
         if o.get("drop_site") and not main and extra:
             main = extra.pop(0)
+        fx = fixes.get(i) if not o else None    # the owner's own call on a find wins over the rating fixes
+        if fx:
+            drops = {STORE + n for n in fx.get("drop") or []}
+            if drops & set(extra + model):
+                why["rating fixes: angles dropped"] += len(drops & set(extra + model))
+            extra = [u for u in extra if u not in drops]
+            model = [u for u in model if u not in drops]
+            nm = STORE + fx["main"] if fx.get("main") else None
+            if nm and nm not in drops:
+                old = main or (p.get("img") if ok(p.get("img")) else None)
+                extra = [u for u in extra if u != nm]; model = [u for u in model if u != nm]
+                if fx.get("keep_old") and old and old != nm:
+                    extra.insert(0, old)
+                if old != nm:
+                    why["rating fixes: angle promoted to main"] += 1
+                main = nm
         if main:
             mains.add(i)
             if p.get("img") != main:
@@ -97,6 +116,7 @@ def main(argv=None):
     audit = load_json(os.path.join(ROOT, "data", "store_photos_audit.json"), {}).get("items") or {}
     owner = {k: v for k, v in load_json(os.path.join(ROOT, "data", "store_photos_owner.json"), {}).items() if not k.startswith("_")}
     hidden = set(map(str, load_json(os.path.join(ROOT, "data", "report_overrides.json"), {}).get("hide") or []))
+    fixes = {k: v for k, v in load_json(os.path.join(ROOT, "data", "store_photos_fixes.json"), {}).items() if not k.startswith("_")}
 
     if a.revert:
         idx = {p["id"]: p for p in items}
@@ -108,7 +128,7 @@ def main(argv=None):
                     changes.append((i, "img", c["new"], c["old"], "revert")); seen.add(i)
         gal, mains, why = {}, set(), collections.Counter()
     else:
-        changes, gal, mains, why = plan(items, audit, owner, hidden, only)
+        changes, gal, mains, why = plan(items, audit, owner, hidden, only, fixes)
     out, applied, failed = edit(raw, items, changes)
     print("%s: %d main photos switched, %d failed, %d finds with extra angles (%d photos); not switched: %s"
           % ("revert" if a.revert else "apply", len(applied), len(failed), len(gal), sum(map(len, gal.values())), dict(why)))
