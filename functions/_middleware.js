@@ -1,7 +1,7 @@
 // Routes the server-rendered SEO pages (hubs, guides, sitemaps) and turns the SPA's catch-all
 // "200 + homepage" for unknown paths into a real 404, so Google doesn't see soft-404 duplicates.
 import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT, liveCopy, newest, FINDS_PLUS, QC_PLUS, AGENT_NAMES_ALL } from "./_lib/site.js";
-import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
+import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderAbout, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
   sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL, renderPlat, fitTitle, renderNew, newFindsHtml, NEW_LINKS, HX_CSS } from "./_lib/pages.js";
 import { imgSrc, navKey, SWAP_VER } from "./_lib/site.js";
 import { reportedIds } from "./_lib/reported.js";
@@ -328,6 +328,7 @@ async function route(ctx) {
   const spec = hubSpec(path);
   if (spec) return keep(await hubApp(ctx, url, spec));
   if (path === "/brands") res = renderBrands();
+  else if (path === "/about") res = renderAbout();   // 22 Nov 2026 (SEO check): who runs the site and how finds are checked
   else if (path === "/guides") res = renderGuides();
   else if ((m = path.match(/^\/guides\/([a-z0-9-]+)$/))) res = renderGuide(m[1]);
   else if (path === "/best") res = renderModels();

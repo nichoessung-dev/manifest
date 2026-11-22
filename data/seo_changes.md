@@ -4,6 +4,24 @@ Every SEO change to the site, newest first: what changed, why, which URLs, and h
 decisions: data/seo_ranks.json (Google positions and the index check of 22 Nov 2026, scripts/seo_ranks.py) and
 data/seo_page_clicks.json (buy clicks per page by visit source, scripts/seo_page_clicks.py).
 
+## 22 Nov 2026: owner pages for the big searches, product pages, About page
+
+- QC finder: /tools/qc-checker is now the page for "qc finder" searches (title "QC Finder: Real Buyer QC Photos for Any Rep
+  Link", h1, description, the name in the tools lists and footers) with a 5-question FAQ and FAQPage data. The pages that
+  rank for "qc finder" are tools that find QC photos for a link, which is what this page does. /qc-spreadsheet became the
+  "QC Photos Spreadsheet" (title, h1, breadcrumb, links to it) so the two stop competing; neither ranked in the top 30 for
+  either search (data/seo_ranks.json). The link converter got a 4-question FAQ for "link converter" searches.
+- Rep spreadsheet: the footers on every page now link the homepage as "Rep spreadsheet" (it had only "Finds" and "Home"),
+  and the QC photos spreadsheet joined the footer list.
+- Product pages: a "What to check in the QC photos" list for each find (the model's own checklist when the find is on a
+  best model page, otherwise its category's), a link to its marketplace spreadsheet ("Weidian spreadsheet") in Details,
+  and alt text on the extra photo thumbnails. PRODUCT_TPL w86.
+- About page: /about (who runs the site under the brand name, how finds are checked, how the site is paid for, contact),
+  with AboutPage data, in the sitemap and both footers. The homepage Organization data lists the Discord as well as TikTok.
+- Undo: functions/_lib/pages.js (TOOL_SEO, TOOL_FAQ, TOOL_H1, the /qc-spreadsheet spec, CAT_QC and qcCheck, renderAbout,
+  the Marketplace line, storeThumbs alt), functions/_lib/site.js (footer, TOOL_LINKS), functions/_middleware.js (the /about
+  route), index.html (footer links, sameAs).
+
 ## 22 Nov 2026: 86 agent copies of brand pages point at the brand page
 
 - What: 86 of the 170 agent x brand pages (for example /lovegobuy-spreadsheet/adidas, /mycnbox-spreadsheet/moncler) now

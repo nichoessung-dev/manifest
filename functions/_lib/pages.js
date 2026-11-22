@@ -1,7 +1,7 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
 import { SITE, MYCNBOX_INVITE, BUILT, P, P_ALL, SWAP_HIDE, recBadge, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, thumbSrc, IMG_FALLBACK, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, colourBadge, GUIDE_LINKS, TOOL_LINKS, QC_ICON, origUrl,
-  TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell, ic, icTile, icSteps, more , QC_BANKED, newest, rowDays, AGENT_N, FINDS_PLUS, gone as goneOf} from "./site.js";
+  TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell, ic, icTile, icSteps, more , QC_BANKED, newest, rowDays, AGENT_N, FINDS_PLUS, QC_PLUS, gone as goneOf} from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, agentBrandCopy, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
 import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS as TOOLS0 } from "./content2.js";
 import { TOOLS9, TOOL_UI9, toolPage9 } from "./tools9.js";
@@ -87,7 +87,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w85";   // w85: SEO pass (22 Nov 2026): 86 agent x brand pages canonical to their brand page, so the edge copies are rebuilt; w84: polished store photos (pure white 1600 px cut-outs, products/store2/, 22 Nov 2026); w83: photo fixes from the AI ratings (wrong / hanger / duplicate angles dropped, better mains, 22 Nov 2026); w82: store angles preloaded as 1000 px copies (21 Nov 2026); w81: store photo angles under the main photo (store_gallery.js, 21 Nov 2026); w79: "Find my size" helper (size.js, 19 Nov 2026); w78: feedback pop-up for the most active visitors (feedback.js, 19 Nov 2026); w77: the removed notice only for member-reported finds, not photo-cleanup or owner hides (19 Nov 2026); w76: no Recommended badge on cards, 'Best batch' on the product page (18 Nov 2026); w75: brand hubs counted on all finds (15 Nov 2026); w74: in-text agent spreadsheet links (15 Nov 2026); w73: product shadow, no Swipe nav, baked finds count (15 Nov 2026); w72: cleaner tools block on the homepage (15 Nov 2026); w71: img/rl thumbs get ?c=1 (stale white resize cache, 15 Nov 2026); w70: pcs.js multilingual search words (15 Nov 2026); w69: subtle icon-only Recommended dot on cards (15 Nov 2026); w68: nicer Recommended tag, no photo blend in dark mode (ds.css v26); w67: partner swaps (12 Nov 2026): the partner item's price, swapped finds first, look-alike pages point to the swapped find; w65: hub layout v10 (compact head, one related-links row, agent logo row, About section under the grid; HX_CSS); w64: 16 agents in the buy menu, first 5 + "See more agents" (11 Nov 2026); w63: distinct agent page copy (AGENT_INTRO about/desc/faq, agentBrandCopy); w62: footer links to the Weidian, Taobao and 1688 spreadsheets, price ranges written "¥x to ¥y", titles fitted to 60 characters (fitTitle); w61: "Ask AI about this item" row, chat.js?v=7 (saved chats note), sharper agent logos; w60: no colour-count badge on cards (owner); w59: chat.js?v=6 (scrollable card row); w58: chat.js?v=5 (better answers); w57: no yen price next to the main price (owner); w56: product page like the app view (muted brand, Details folded, QC button only with stored photos); w55: chat.js?v=4 (pcChatAsk hook for the beta Ask box); w54: size answer beside the form on wide screens; w53: size estimator counts height for length, scrolls to the result; w52: pcs.js 5f23e99c (search: zero-result queries from the log, Nordic words, typo pass under 3 finds); w51: QC badge only for finds with stored QC photos (QC_BANKED); w50: chat.js?v=3 (messenger look; finds open in the app view);   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
+export const PRODUCT_TPL = "w86";   // w86: SEO pass (22 Nov 2026): what to check in QC for each find, its marketplace spreadsheet linked, photo alt text; w85: SEO pass (22 Nov 2026): 86 agent x brand pages canonical to their brand page, so the edge copies are rebuilt; w84: polished store photos (pure white 1600 px cut-outs, products/store2/, 22 Nov 2026); w83: photo fixes from the AI ratings (wrong / hanger / duplicate angles dropped, better mains, 22 Nov 2026); w82: store angles preloaded as 1000 px copies (21 Nov 2026); w81: store photo angles under the main photo (store_gallery.js, 21 Nov 2026); w79: "Find my size" helper (size.js, 19 Nov 2026); w78: feedback pop-up for the most active visitors (feedback.js, 19 Nov 2026); w77: the removed notice only for member-reported finds, not photo-cleanup or owner hides (19 Nov 2026); w76: no Recommended badge on cards, 'Best batch' on the product page (18 Nov 2026); w75: brand hubs counted on all finds (15 Nov 2026); w74: in-text agent spreadsheet links (15 Nov 2026); w73: product shadow, no Swipe nav, baked finds count (15 Nov 2026); w72: cleaner tools block on the homepage (15 Nov 2026); w71: img/rl thumbs get ?c=1 (stale white resize cache, 15 Nov 2026); w70: pcs.js multilingual search words (15 Nov 2026); w69: subtle icon-only Recommended dot on cards (15 Nov 2026); w68: nicer Recommended tag, no photo blend in dark mode (ds.css v26); w67: partner swaps (12 Nov 2026): the partner item's price, swapped finds first, look-alike pages point to the swapped find; w65: hub layout v10 (compact head, one related-links row, agent logo row, About section under the grid; HX_CSS); w64: 16 agents in the buy menu, first 5 + "See more agents" (11 Nov 2026); w63: distinct agent page copy (AGENT_INTRO about/desc/faq, agentBrandCopy); w62: footer links to the Weidian, Taobao and 1688 spreadsheets, price ranges written "¥x to ¥y", titles fitted to 60 characters (fitTitle); w61: "Ask AI about this item" row, chat.js?v=7 (saved chats note), sharper agent logos; w60: no colour-count badge on cards (owner); w59: chat.js?v=6 (scrollable card row); w58: chat.js?v=5 (better answers); w57: no yen price next to the main price (owner); w56: product page like the app view (muted brand, Details folded, QC button only with stored photos); w55: chat.js?v=4 (pcChatAsk hook for the beta Ask box); w54: size answer beside the form on wide screens; w53: size estimator counts height for length, scrolls to the result; w52: pcs.js 5f23e99c (search: zero-result queries from the log, Nordic words, typo pass under 3 finds); w51: QC badge only for finds with stored QC photos (QC_BANKED); w50: chat.js?v=3 (messenger look; finds open in the app view);   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -122,7 +122,7 @@ const SG_PUB = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/publi
 // "s2/<name>": the polished copy (scripts/store_photos_polish.py, pure white 1600 px) in products/store2/
 const sgUrl = k => k.startsWith("s2/") ? SG_PUB.replace("/store/", "/store2/") + k.slice(3) : SG_PUB + k;
 function storeThumbs(src, list, title) {
-  const b = (u, i, own) => `<button type="button"${i ? "" : ' class="on"'}${own ? "" : ` data-u="${esc(thumbSrc(u).replace("width=400,quality=75", "width=1000,quality=80"))}"`} aria-label="${esc(title)} photo ${i + 1}"><img src="${esc(thumbSrc(u))}" data-o="${esc(u)}" alt="" width="72" height="72" loading="lazy" decoding="async" ${IMG_FALLBACK}></button>`;
+  const b = (u, i, own) => `<button type="button"${i ? "" : ' class="on"'}${own ? "" : ` data-u="${esc(thumbSrc(u).replace("width=400,quality=75", "width=1000,quality=80"))}"`} aria-label="${esc(title)} photo ${i + 1}"><img src="${esc(thumbSrc(u))}" data-o="${esc(u)}" alt="${esc(title)} photo ${i + 1}" width="72" height="72" loading="lazy" decoding="async" ${IMG_FALLBACK}></button>`;
   // data-u: a 1000 px copy from Cloudflare (about 35 KB instead of the 1200 px original), fetched in the background once the
   // page has loaded so a tap swaps at once
   return `<div class="thumbs">${b(src, 0, true)}${list.map((k, i) => b(SITE + "/api/img?u=" + encodeURIComponent(sgUrl(k)), i + 1)).join("")}</div>` +
@@ -162,6 +162,44 @@ function ringAfter(key, list, p, k, skip = [], ok = () => true) {
 // opt.reported: the find was removed after member reports (data/reported.json, functions/product/[id].js): the page says so
 // instead of the buy box, has no buy bar and is noindex,follow. A look-alike of a partner-swapped find (SWAP_HIDE, site.js)
 // is shown the same way, with a link to the swapped find instead of the report notice.
+// What to check in QC (22 Nov 2026, SEO check): product pages had one general QC note for every find. Now each page lists what
+// to check for that find: the model's own checklist when the find is on a best model page (MODELS: m.qc), otherwise the list
+// for its category. Shown under "About this find", with a link to the full guide.
+const CAT_QC = {
+  Tops: ["Logo or print: size, placement and clean edges", "Stitching at the collar, cuffs and hem", "Fabric weight and colour next to retail photos", "The size tag against the seller's size chart"],
+  Outerwear: ["Logo patch or badge: shape, stitching and placement", "Zips and snaps: brand marks and smooth pulls", "Fill and loft on puffers (it should look full)", "Seams, pockets and the lining"],
+  Shoes: ["Shape from the side and the toe box", "Logo placement and stitching on the upper", "Sole, midsole and the size label inside", "The box and its label, if they matter to you"],
+  Pants: ["Waist and length against the seller's size chart", "Stitching, rivets and buttons", "Logo tabs and patches", "Colour and wash next to retail photos"],
+  Shorts: ["Waist and length against the seller's size chart", "Logo or print placement", "Stitching at the hem and pockets", "Fabric and colour"],
+  Bags: ["Shape and size against the listed measurements", "Hardware: engraving, colour and finish", "Stitching, edge paint and the lining", "Logo, pattern alignment and the heat stamp"],
+  Accessories: ["Engravings and logo marks", "Finish and colour of metal parts", "Stitching and edges on leather", "Size or length against the listing"],
+  Headwear: ["Logo embroidery: density and placement", "Shape of the crown and the brim", "Size band or strap", "Inside tags and stitching"],
+  Toys: ["Paint and print quality", "All parts in the box", "The box and its print"],
+};
+function qcCheck(p, model) {
+  const list = model && model.qc && model.qc.length ? model.qc : CAT_QC[p.cat] || null;
+  if (!list) return "";
+  const what = model ? esc(model.name) : esc(((CATS[p.cat] || {}).name || p.cat || "find").toLowerCase());
+  return `<h2>What to check in the QC photos</h2><p>What to look for on ${what}:</p><ul class="ic-list">${list.map(q => `<li>${ic(firstIcon(QC_ITEM_IC, q, "check-circle"), "sm")}<span>${esc(q)}</span></li>`).join("")}</ul>` +
+    `<p>Step by step: <a href="/guides/how-to-qc">how to read QC photos</a>. No buyer photos yet? Paste the link into the <a href="/tools/qc-checker">QC finder</a>, or wait for your agent's photos of your own item.</p>`;
+}
+// About page (22 Nov 2026, SEO check): who runs the site, how finds are checked, how it is paid for and how to reach us,
+// under the brand name only. AboutPage data names the Organization.
+export function renderAbout() {
+  const path = "/about", bc = crumbs([["Home", "/"], ["About", path]]);
+  const day = d => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  const body = `${bc.html}<article class="prose"><h1>About Puro Classico</h1>
+<p class="lead">Puro Classico is a free, searchable <a href="/">rep spreadsheet</a>: ${FINDS_PLUS} finds from Weidian, Taobao and 1688, each with the seller's listed price, buyer QC photos where they exist and links that open the listing in a shopping agent. We don't sell, stock or ship anything.</p>
+<h2>Where the finds come from</h2><p>Finds come from our own searches, from the community and from sellers we work with. Each one keeps the seller's listed price from the last catalogue update, so check the price in your agent before you pay. Lists by marketplace: the <a href="/weidian-spreadsheet">Weidian spreadsheet</a>, the <a href="/taobao-spreadsheet">Taobao spreadsheet</a> and the <a href="/1688-spreadsheet">1688 spreadsheet</a>.</p>
+<h2>How we check them</h2><ul>${LINKS_CHECKED ? `<li>Every Weidian link is checked each week. The last check, on ${day(LINKS_CHECKED)}, found ${GONE_COUNTS.dead.toLocaleString("en-US")} listings gone, which the spreadsheet hides, and ${GONE_COUNTS.sold.toLocaleString("en-US")} sold out.</li>` : ""}<li>${QC_PLUS} finds are marked as having buyer QC photos: real warehouse photos from earlier orders. The <a href="/tools/qc-checker">QC finder</a> looks them up for any link.</li><li>Members can report a find with a dead link, wrong photos or a bad seller. Finds that several members report are taken down.</li></ul>
+<p>The details: <a href="/guides/how-we-check">how we check the spreadsheet</a>.</p>
+<h2>How the site is paid for</h2><p>Buy buttons are affiliate links: when you order through them, the shopping agent may pay us a commission, at no extra cost to you. That is the only way the site earns money. We are not affiliated with any brand named on the site, and brand names describe the style of a listing.</p>
+<h2>Contact</h2><p>The quickest way to reach us is the <a href="/discord">Discord community</a>. To flag a problem with one find, use Report this find on its page.</p>
+</article>`;
+  const ld = [bc.data, { "@context": "https://schema.org", "@type": "AboutPage", name: "About Puro Classico", url: SITE + path,
+    mainEntity: { "@type": "Organization", "@id": SITE + "/#org", name: "Puro Classico", url: SITE + "/", logo: SITE + "/logo-mark.png", sameAs: ["https://www.tiktok.com/@puroclassico.com", "https://discord.gg/FUUsSCGqQf"] } }];
+  return page({ title: "About Puro Classico: Who We Are and How We Check Finds", desc: `Puro Classico is a free rep spreadsheet of ${FINDS_PLUS} Weidian, Taobao and 1688 finds. How finds are picked and checked, how the site is paid for and how to reach us.`, path, body, jsonld: ld });
+}
 export async function renderProduct(id, origin, opt = {}) {
   const { byId, byBrand, byCat } = idx();
   const p = byId.get(id);
@@ -269,12 +307,13 @@ export async function renderProduct(id, origin, opt = {}) {
     ${agentHubLine(p)}
     ${opts.length ? `<div class="opts"><span class="opts-l">${ic("tag", "sm")}Options</span><div class="chips">${opts.slice(0, 12).map(o => `<span>${esc(o)}</span>`).join("")}</div></div>` : ""}
     <details class="dcard dmore"><summary><h2 id="pd-details">Details</h2>${ic("chevron-down", "sm")}</summary>
-    <dl class="kv">${dtIcons(`<dt>Marketplace</dt><dd>${plat}</dd><dt>Category</dt><dd>${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(p.cat)}</dd>
+    <dl class="kv">${dtIcons(`<dt>Marketplace</dt><dd>${plat}${PLAT_HUBS[p.platform] ? ` · <a href="/${p.platform}-spreadsheet">${PLAT_HUBS[p.platform].name} spreadsheet</a>` : ""}</dd><dt>Category</dt><dd>${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(p.cat)}</dd>
       <dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc && QC_BANKED[p.id] ? "On record" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd>${productFacts(p, g, checked)}<dt>Spreadsheets</dt><dd>${sheets}</dd>`)}</dl></details>
     <p class="more"><a href="/#p/${encodeURIComponent(p.id)}">${ic("grid", "sm")}Open in the catalogue${ic("arrow-right", "sm")}</a></p>
   </div>
 </div>
 <h2>About this find</h2>${aboutFacts}<div class="prose">${about1}</div>${more("Read more", `<div class="prose">${aboutMore}</div>`)}
+${qcCheck(p, model)}
 <h2>How to buy it</h2>${icSteps([["cart", "Tap Buy"], ["ruler", "Pick size, pay"], ["camera", "Check QC, ship"]])}${more("Step by step", `<ol class="steps prose"><li>Tap <strong>Buy via MyCNBox</strong> (or your agent). The listing opens pre-filled.</li><li>Pick your size and colour, check our <a href="/guides/sizing">sizing guide</a>, and pay for the item plus delivery to the warehouse.</li><li>Check the QC photos (<a href="/guides/how-to-qc">what to look for</a>), then combine items into one parcel and ship. <a href="/how-to-order">Watch the 1:47 video</a>.</li></ol>`)}
 ${model ? `<div class="note" style="margin-top:22px">${ic("award", "sm")}Comparing batches? See all <a href="/best/${model.slug}">${model.list.length} ${esc(model.name)} rep listings</a> ranked by views.</div>` : ""}
 ${alsoRow}
@@ -1205,15 +1244,27 @@ $("rcx").addEventListener("click",function(){rq.clear();recent();});
 var q=TK.qs.get("u");if(q){inp.value=q.slice(0,2000);run(true);}else{sync();recent();}})();</script>`; },
 };
 const TRUST = { "qc-checker": [TK_TRUST.free, TK_TRUST.nosign], "link-converter": [TK_TRUST.free, TK_TRUST.nosign, TK_TRUST.nostore] };
-const TOOL_H1 = { "qc-checker": "Real QC Photos In One Click", "link-converter": "Any Link To Any Agent" };
-// 9 Nov 2026: the QC checker also targets "QC photo finder" and "QC finder" searches (title, the name in the h1, the
-// meta description); "QC checker" stays in the title, the breadcrumb and the tools lists. Copy in content2.js (TOOLS) is
-// unchanged: these win over it.
-const TOOL_SEO = { "qc-checker": { name: "QC Photo Finder", title: "QC Photo Finder & Checker: Real QC Photos for Any Rep Link",
-  desc: "Free QC photo finder: paste a Weidian, Taobao, 1688 or shopping agent link, or an item ID, to see real buyer QC photos from earlier orders before you buy." } };
+const TOOL_H1 = { "qc-checker": "Real QC Photos For Any Link", "link-converter": "Any Link To Any Agent" };
+// 22 Nov 2026 (SEO check): the QC tool is the page for "QC finder" searches, which want a tool that finds QC photos for a link
+// (the pages ranking for it are such tools). It is called QC Finder in its title, h1, the tools lists and the footer; the
+// QC photos spreadsheet (/qc-spreadsheet) keeps "QC photos". Copy in content2.js (TOOLS) is unchanged: these win over it.
+const TOOL_SEO = { "qc-checker": { name: "QC Finder", title: "QC Finder: Real Buyer QC Photos for Any Rep Link",
+  desc: "Free QC finder: paste a Weidian, Taobao, 1688 or shopping agent link, or an item ID, and see real buyer QC photos from earlier orders before you buy." } };
+// FAQs on the tool pages (22 Nov 2026, SEO check): questions people search with the tool's name, shown under the tool and as
+// FAQPage data.
+const TOOL_FAQ = {
+  "qc-checker": [["What is a QC finder?", "A QC finder shows quality check photos of a listing: photos that shopping agents took of the same item when earlier buyers ordered it. Paste a Weidian, Taobao, 1688 or agent link, or the item ID, and it shows the photos it can find."],
+    ["Where do the QC photos come from?", "From earlier orders of the same listing through shopping agents, which photograph every item at their warehouse. Nothing is taken from the seller's own photos."],
+    ["Why does a link show no QC photos?", "Nobody has ordered that listing through an agent yet, or the photos are not public. New listings often have none. When you order, your agent photographs your own item before it ships."],
+    ["Which links does the QC finder read?", "Weidian, Taobao, Tmall and 1688 product links, links from MyCNBox, KakoBuy, Oopbuy, LoveGoBuy, Sugargoo and other agents, and bare item IDs. Short links shared from an app have to be opened in a browser first."],
+    ["Is the QC finder free?", "Yes. It needs no account and keeps no record of the links you check."]],
+  "link-converter": [["How do I turn a Weidian link into an agent link?", "Paste the Weidian link into the converter. It reads the item ID and gives you a buy link for MyCNBox, KakoBuy, Oopbuy and the other agents, ready to open."],
+    ["Which links can I convert?", "Weidian, Taobao, Tmall and 1688 product links, links from most shopping agents (including old CNFans and Pandabuy links) and bare item IDs."],
+    ["Why does my link not convert?", "Short links shared from the Weidian or Taobao app hide the item ID. Open the link in a browser, copy the full link it leads to and paste that."],
+    ["Is the link converter free?", "Yes, and it needs no account. Agent links are affiliate links: we may earn a commission if you order, at no extra cost to you."]] };
 // Hub: the "before you buy" pair is wide and carries a real mini form; the flow strip is navigation only.
 const HUB_FORM = { "qc-checker": ["Check", "Product link or item ID"], "link-converter": ["Convert", "Weidian, Taobao, 1688 or agent link"] };
-const HUB_FLOW = [["Check The QC", "QC Checker", "/tools/qc-checker"], ["Get Your Buy Link", "Link Converter", "/tools/link-converter"],
+const HUB_FLOW = [["Check The QC", "QC Finder", "/tools/qc-checker"], ["Get Your Buy Link", "Link Converter", "/tools/link-converter"],
   ["Price The Shipping", "Shipping Calculator", "/tools/shipping-calculator"], ["Track It Home", "Parcel Tracker", "/tools/parcel-tracker"]];
 // Three feature pills per tool card (icon pass), each a fact the tool's own text states; the long description moves
 // into a <details> in the card.
@@ -1245,8 +1296,9 @@ export function renderTool(s) {
   const path = "/tools/" + s; const bc = crumbs([["Home", "/"], ["Tools", "/tools"], [t.name, path]]);
   const app = { "@context": "https://schema.org", "@type": "WebApplication", name: t.name + ": Puro Classico", url: SITE + path, applicationCategory: "UtilitiesApplication", operatingSystem: "Any", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, description: t.desc };
     const seo = TOOL_SEO[s] || {};
+  const faq = TOOL_FAQ[s] || null;
   return toolShell({ slug: s, name: seo.name || t.name, h1: TOOL_H1[s] || t.name, lead: t.lead, trust: TRUST[s] || [], ui: TOOL_UI[s](), about: t.about,
-    title: fitTitle(seo.title || t.title), desc: seo.desc || t.desc, jsonld: [bc.data, app], bc: bc.html });
+    faq: faq ? faqHtml(faq) : "", title: fitTitle(seo.title || t.title), desc: seo.desc || t.desc, jsonld: [bc.data, app].concat(faq ? [faqLd(faq)] : []), bc: bc.html });
 }
 
 // ------------------------------------------------------------------ guides
@@ -1385,7 +1437,7 @@ export function sitemapPages() {
     ...Object.values(CATS).map(c => "/category/" + c.slug), ...[...brandSlug.values()].map(s => "/brand/" + s),
     ...[...brandSlug].flatMap(([b, s]) => more("/brand/" + s, byBrand.get(b).length)),
     ...Object.entries(CATS).flatMap(([c, m]) => more("/category/" + m.slug, (byCat.get(c) || []).length)),
-    ...Object.keys(GUIDES).map(s => "/guides/" + s), "/best", ...models().map(m => "/best/" + m.slug), "/tools", ...Object.keys(TOOLS).map(s => "/tools/" + s), "/terms", "/privacy"];
+    ...Object.keys(GUIDES).map(s => "/guides/" + s), "/best", ...models().map(m => "/best/" + m.slug), "/tools", ...Object.keys(TOOLS).map(s => "/tools/" + s), "/about", "/terms", "/privacy"];
   // lastmod (12 Nov 2026, SEO check): 899 of 925 URLs said "today", which teaches Google to ignore the field. A list page now
   // gives the last day a find on its list was added or changed (rowdays.js); guides their own `updated` day; pages whose
   // change day is not known (tools, terms, how-to-order, a URL listFor() does not know) give none.
@@ -1579,7 +1631,7 @@ function platSpec(key) {
     aboutTitle: `About ${h.name} finds`, about: h.about(f),
     chips: [[`Top brands on ${h.name}`, f.brands.slice(0, 16).map(([b, k]) => [`${b} (${nf(k)})`, `/brand/${brandSlug.get(b)}`])],
             [`Buy ${h.name} finds with your agent`, Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["How to order", "/how-to-order"], [`How to buy from ${h.name}`, `/guides/how-to-buy-from-${key}`]])],
-            ["Spreadsheets by marketplace", platOthers(key).concat([["QC finder spreadsheet", "/qc-spreadsheet"], ["All finds", "/"]])]],
+            ["Spreadsheets by marketplace", platOthers(key).concat([["QC photos spreadsheet", "/qc-spreadsheet"], ["All finds", "/"]])]],
     faq: h.faq(f), f };
 }
 // Pages 2+ of a marketplace spreadsheet (page 1 is the app, hubSpec). Same list and order as the app's first page.
@@ -1587,7 +1639,7 @@ export function renderPlat(key, n) {
   if (!PLAT_KEYS.includes(key)) return null;
   const s = platSpec(key), f = s.f, name = PLAT_HUBS[key].name, { brandSlug } = idx(), pr = priceRange(f.list);
   const filters = f.brands.slice(0, 16).map(([b]) => [b, `/brand/${brandSlug.get(b)}`])
-    .concat(platOthers(key), [["QC finder spreadsheet", "/qc-spreadsheet"], [`How to buy from ${name}`, `/guides/how-to-buy-from-${key}`]]);
+    .concat(platOthers(key), [["QC photos spreadsheet", "/qc-spreadsheet"], [`How to buy from ${name}`, `/guides/how-to-buy-from-${key}`]]);
   return hub({ path: s.path, n, list: f.list, title: s.title,
     desc: n > 1 ? `Page ${n} of the ${nf(f.n)} ${name} rep finds on Puro Classico${pr ? `, with prices (${pr})` : ""}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.` : s.desc,
     h1: s.h, lead: s.sub, trail: s.crumbs, filters, faq: s.faq, idxFirst: true, full: name, key: `${name} Spreadsheet`, ldCount: f.n,
@@ -1614,19 +1666,20 @@ export function hubSpec(path) {
   // clicks, and no page answered it directly. Finds the catalogue marks as having buyer QC photos, on every agent.
   if (path === "/qc-spreadsheet") {
     const q1 = all.filter(p => p.qc >= 1).length, q2 = all.filter(p => p.qc >= 2).length, n = nf(q1);
-    // 9 Nov 2026: also aimed at "QC finder" and "QC photo finder" searches; "QC photos" stays in the title and h1.
-    return { path, preset: { qc: 1 }, h: "QC Finder: Finds With QC Photos",
+    // 22 Nov 2026 (SEO check): the QC photos spreadsheet. "QC finder" searches go to the QC finder tool, which is what they
+    // want (/tools/qc-checker); this page links to it.
+    return { path, preset: { qc: 1 }, h: "QC Photos Spreadsheet: Finds With Buyer QC Photos",
       sub: `${n} finds with buyer QC photos from earlier orders. Tap QC on a find to see real photos of the item before you buy.`,
-      title: `QC Finder Spreadsheet 2026: ${n} Finds With QC Photos | Puro Classico`,
-      desc: `QC finder for reps: ${n} finds marked as having buyer QC photos from earlier orders, with prices and one-tap links for MyCNBox, KakoBuy, Oopbuy and more.`,
-      crumbs: [["Home", "/"], ["QC finder spreadsheet", path]],
+      title: `QC Photos Spreadsheet 2026: ${n} Finds With Buyer QC Photos | Puro Classico`,
+      desc: `The QC photos spreadsheet: ${n} finds marked as having buyer QC photos from earlier orders, with prices and agent links. Any other link: use the QC finder.`,
+      crumbs: [["Home", "/"], ["QC photos spreadsheet", path]],
       chips: [["QC photos on your agent", AGENT_BRAND_AGENTS.map(k => [AGENTS[k].name, `/${k}-spreadsheet/qc`])],
-              ["Check QC photos yourself", [["How to read QC photos", "/guides/how-to-qc"], ["QC photo finder for any link", "/tools/qc-checker"]]],
+              ["Check QC photos yourself", [["How to read QC photos", "/guides/how-to-qc"], ["QC finder for any link", "/tools/qc-checker"]]],
               ["Agent spreadsheets", Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])], PLAT_CHIPS],
       faq: [["What are QC photos?", "QC (quality check) photos are real photos of the exact item a buyer ordered, taken by the shopping agent when it reaches the warehouse in China. They show the stitching, logos, colour and size tag before you pay for international shipping."],
             ["Where do these QC photos come from?", `From earlier buyers' orders of the same listing. Our catalogue marks ${n} finds as having them and stores the photo count for ${nf(q2)} of them. Open a find and tap QC to load them.`],
             ["Will I get QC photos of my own item?", "Yes. Your agent photographs your exact item at its warehouse before it ships, so you can return or exchange it if something is wrong."],
-            ["Can I find QC photos for a link that is not here?", "Yes. Paste a Weidian, Taobao, 1688 or shopping agent link, or just the item ID, into our QC photo finder. It shows buyer QC photos from earlier orders when anyone has bought that listing through an agent."],
+            ["Can I find QC photos for a link that is not here?", "Yes. Paste a Weidian, Taobao, 1688 or shopping agent link, or just the item ID, into our QC finder. It shows buyer QC photos from earlier orders when anyone has bought that listing through an agent."],
             ["What should I check in QC photos?", "Logo shape and placement, stitching, colour against retail photos, the size tag and any measurements. Our guide on how to read QC photos goes through it step by step."],
             ["Is the spreadsheet free?", "Yes. You only pay your agent for what you order and for shipping. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you."]] };
   }
@@ -1681,7 +1734,7 @@ export function hubSpec(path) {
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, path]],
       chips: [...(AGENT_BRAND_AGENTS.includes(key) ? [[`Browse on ${a.name}`, Object.keys(AGENT_STYLES).map(x => [AGENT_STYLES[x].name, `${path}/${x}`])]] : []),
               [`Popular brands on ${a.name}`, brands.slice(0, 16).map(b => [`${b} (${nf(byBrand.get(b).length)})`, `${path}/${brandSlug.get(b)}`])],
-              ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"], ["QC finder spreadsheet", "/qc-spreadsheet"]])], PLAT_CHIPS],
+              ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"], ["QC photos spreadsheet", "/qc-spreadsheet"]])], PLAT_CHIPS],
       faq: meta.faq || [[`What is the ${a.name} spreadsheet?`, `A searchable list of ${N} Weidian, Taobao and 1688 finds. Every find opens directly in ${a.name}, so there is nothing to copy or translate.`],
             [`How do I order with ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the warehouse. Check the QC photos, then ship your parcel.`],
             [`Is this the official ${a.name} spreadsheet?`, `No. Puro Classico is an independent spreadsheet. Ordering, payment, QC photos and shipping all happen on ${a.name}. Our links to ${a.name} are affiliate links: we may earn a commission if you order, at no extra cost to you.`],

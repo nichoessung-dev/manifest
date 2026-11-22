@@ -512,7 +512,7 @@ export const GUIDE_LINKS = [
 // first 7 of GUIDE_LINKS, which gave site-wide links to Taobao (153) and 1688 and none to the top three.
 export const FOOTER_GUIDES = ["/how-to-order", "/guides/what-is-a-rep-spreadsheet", "/guides/pandabuy-alternatives", "/guides/mycnbox-review",
   "/guides/how-to-buy-from-weidian", "/guides/how-to-qc", "/guides/best-shopping-agent"];
-export const TOOL_LINKS = [["QC Checker", "/tools/qc-checker"], ["Link Converter", "/tools/link-converter"], ["Shipping Calculator", "/tools/shipping-calculator"], ["Size Estimator", "/tools/size-estimator"], ["Parcel Tracker", "/tools/parcel-tracker"]];
+export const TOOL_LINKS = [["QC Finder", "/tools/qc-checker"], ["Link Converter", "/tools/link-converter"], ["Shipping Calculator", "/tools/shipping-calculator"], ["Size Estimator", "/tools/size-estimator"], ["Parcel Tracker", "/tools/parcel-tracker"]];
 
 // ------------------------------------------------------------------ v9 tools kit (shared by pages.js and tools9.js)
 // Markup helpers for the tool pages (styles: the "v9 tools kit" block in ds.css). One icon set for the homepage
@@ -604,10 +604,10 @@ function footer() {
 ${col("Categories", Object.values(CATS).filter(c => c.slug !== "toys").map(c => [c.name, "/category/" + c.slug]))}
 ${col("Brands", topBrands.slice(0, half))}
 ${col("More brands", topBrands.slice(half).concat([["All brands →", "/brands"]]))}
-${col("Spreadsheets", [["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Weidian spreadsheet", "/weidian-spreadsheet"], ["Taobao spreadsheet", "/taobao-spreadsheet"], ["1688 spreadsheet", "/1688-spreadsheet"], ["Old money spreadsheet", "/old-money"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Grisch spreadsheet", "/grisch-spreadsheet"]])}
+${col("Spreadsheets", [["Rep spreadsheet", "/"], ["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Weidian spreadsheet", "/weidian-spreadsheet"], ["Taobao spreadsheet", "/taobao-spreadsheet"], ["1688 spreadsheet", "/1688-spreadsheet"], ["Old money spreadsheet", "/old-money"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Grisch spreadsheet", "/grisch-spreadsheet"], ["QC photos spreadsheet", "/qc-spreadsheet"]])}
 ${col("Guides", FOOTER_GUIDES.map(u => GUIDE_LINKS.find(g => g[1] === u)).filter(Boolean).concat([["All guides →", "/guides"]]))}
 ${col("Tools & best reps", TOOL_LINKS.concat([["Best reps by model →", "/best"]]))}
-${col("Puro Classico", [["Browse all finds", "/"], ["How we check", "/guides/how-we-check"], ["Discord community", "/discord"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
+${col("Puro Classico", [["Browse all finds", "/"], ["About Puro Classico", "/about"], ["How we check", "/guides/how-we-check"], ["Discord community", "/discord"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
 </div></div><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents are affiliate links: we may earn a commission if you order, at no extra cost to you. Prices are shown as listed by the seller and can change.</p><p class="legal">© Puro Classico</p></div></footer>`;
 }
 
