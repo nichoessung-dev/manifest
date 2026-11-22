@@ -496,10 +496,19 @@ PASS2 = os.path.join(ROOT, "data", "store_photos_pass2.json")
 EU = ["miinto.no", "miinto.de", "zalando.no", "sneakersnstuff.com", "kickz.com", "careofcarl.com", "boozt.com", "breuninger.com"]
 
 
-def title_colour(title):
-    t = " " + (title or "").lower() + " "
-    hit = [c for c in sorted(COLOURS, key=len, reverse=True) if " " + c + " " in t]
-    return hit[0] if hit else ""
+def title_colour(title, brand=""):
+    """The colour(s) the title names, in title order ("Navy White" -> "navy/white"); brand words are not colours
+    (Off-White, Purple Brand). Pass 2 first took the longest match alone, so "Navy White" searched for white
+    (Golden Goose, 22 Nov 2026: 13 of 32 two-colour finds got another colourway)."""
+    t = " " + re.sub(r"[^a-z0-9/ -]", " ", (title or "").lower()) + " "
+    for b in (brand or "").lower().split("/"):
+        if b and any(c in b for c in COLOURS): t = t.replace(b.strip(), " ")
+    t = t.replace("off-white", " ").replace("purple brand", " ")
+    hits = []
+    for c in sorted(COLOURS, key=len, reverse=True):
+        k = t.find(" " + c + " ")
+        if k >= 0 and not any(c in h for _, h in hits): hits.append((k, c))
+    return "/".join(c for _, c in sorted(hits)[:2])
 
 
 def deep_collect(p, nm, entry, own_call=None, hint=None):

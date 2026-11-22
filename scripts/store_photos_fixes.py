@@ -69,7 +69,7 @@ def pass2(ratings, fx, owner):
         t = set(r.get("tags") or [])
         m = next((x for x in r.get("photos") or [] if x.get("i") == 1), {})
         store_main = "/products/store" in (p.get("img") or "")
-        col = title_colour(p.get("title"))
+        col = title_colour(p.get("title"), p.get("brand"))
         if "wrong" in t and m.get("ok") is False and WRONG_MAIN.search((m.get("issue") or "").lower()):
             title = p.get("title") or ""
             brand = p.get("brand") or ""
