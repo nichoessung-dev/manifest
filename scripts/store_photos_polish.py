@@ -14,8 +14,8 @@ For every live store photo of a find (catalogue "img" in products/store/ and the
      background colour is taken out of the semi-transparent edge (no halo), faint alpha is choked.
   3. sharpness: the item's real resolution is measured (a CDN or the old pipeline may have upscaled it); under the size
      it is shown at, Real-ESRGAN (scripts/restore.py models, realesr-general x4v3 + wdn) enlarges it, guarded: the result
-     shrunk back must match the input (mean diff on the item under 6, under 10 on the high-detail pixels where logos and
-     text are), else Lanczos. Then a light unsharp mask.
+     shrunk back must match the input, both blurred 1.2 px (mean diff on the item under 4.5, under 8 on the high-detail
+     pixels where logos and text are), else Lanczos. Then a light unsharp mask.
   4. framing: 1600 x 1600, flat #FFFFFF, item centred, fill by type (tops / outerwear 82% of the height, pants 86%,
      shoes 84% of the width a little below centre (a contact shadow was tried and is off: SHADOW), bags 78%, small
      accessories 70%), WebP q90.
@@ -48,7 +48,7 @@ STATE_DIR = os.path.join(ROOT, "data", "store_photos_polish")
 SIZE = 1600
 ESRGAN_BELOW = 1100      # real item resolution (long side) under which Real-ESRGAN is tried
 POOL_MAX = 70            # candidates looked at per find (src pages first)
-VERSION = 1
+VERSION = 2              # 2: same-photo check after the cut-out, one store image per live photo
 SHADOW = False           # contact shadow under shoes: tried in the pilot, it read as a grey smudge on pure white; off
 
 # fill by type: (share of the width, share of the height, centre y) the item may take; it is scaled to the tighter one
@@ -343,16 +343,21 @@ def esrgan(rgb, tw, th):
         if net is None: return lz, "lanczos (no Real-ESRGAN model)"
         sr = sr_tiled(net, rgb)
         out = sr.resize((tw, th), Image.LANCZOS)
-        back = np.asarray(out.resize(rgb.size, Image.LANCZOS), dtype=np.float32)
-        src = np.asarray(rgb, dtype=np.float32)
+        # the guard compares the result shrunk back with the input, both slightly blurred (1.2 px): the model's
+        # sharpening and JPEG clean-up then cancel out and only changed shapes count (a redrawn letter, a moved seam).
+        # Pilot, 22 Nov 2026: the plain diff rejected 16 of 31 clean results (Jordan swoosh, Moncler badge looked
+        # right at 100%); blurred, true results score under 4 / 7.1
+        blur = lambda im: np.asarray(im.filter(ImageFilter.GaussianBlur(1.2)), dtype=np.float32)
+        back, src = blur(out.resize(rgb.size, Image.LANCZOS)), blur(rgb)
         d = np.abs(back - src).max(axis=2)
-        item = src.min(axis=2) < 250                               # not the white around it
+        raw = np.asarray(rgb, dtype=np.float32)
+        item = raw.min(axis=2) < 250                               # not the white around it
         if item.sum() < 500: return lz, "lanczos (tiny item)"
         from scipy import ndimage
-        g = src.mean(axis=2); gm = np.hypot(ndimage.sobel(g, 0), ndimage.sobel(g, 1))
+        g = raw.mean(axis=2); gm = np.hypot(ndimage.sobel(g, 0), ndimage.sobel(g, 1))
         detail = item & (gm > np.percentile(gm[item], 90))         # logos, text, seams
         mad, mdet = float(d[item].mean()), float(d[detail].mean()) if detail.any() else 0.0
-        if mad > 6.0 or mdet > 10.0:
+        if mad > 4.5 or mdet > 8.0:
             return lz, f"lanczos (Real-ESRGAN rejected: diff {mad:.1f} / detail {mdet:.1f})"
         return out, f"Real-ESRGAN (diff {mad:.1f} / detail {mdet:.1f})"
     except Exception as e:
@@ -499,7 +504,7 @@ def upload(name, data, dry):
         time.sleep(waits[k])
 
 
-def find_source(live_im, is_model, pool, cache):
+def find_source(live_im, is_model, pool, cache, used=()):
     """(url, image, score) of the largest store copy of this exact photo, or None. cache: url -> image|None."""
     target = whole_sig(live_im) if is_model else item_sig(live_im, True)
     best = None
@@ -513,7 +518,7 @@ def find_source(live_im, is_model, pool, cache):
                 cache[u] = im
         for u, pg, rk in pool[start:start + 8]:
             im = cache.get(u)
-            if im is None or min(im.size) < 200: continue
+            if im is None or min(im.size) < 200 or u in used: continue
             key = ("w" if is_model else "i") + u
             if key not in cache: cache[key] = whole_sig(im) if is_model else item_sig(im, False)
             sc = match_score(target, cache[key])
@@ -531,7 +536,25 @@ def find_source(live_im, is_model, pool, cache):
         if max(big.size) <= max(im.size) * 1.05: continue
         if match_score(whole_sig(big), whole_sig(im)) > 0.93:
             u, im = v, big; break
-    return u, im, sc
+    return u, im, sc, best[0]
+
+
+def same_item(a, b, N=96):
+    """Correlation of the two items (each cropped to its own box, on white, grey 96 x 96): a polished photo must show
+    the very photo it replaces (pilot, 22 Nov 2026: a back view matched to the front of the same jacket scored 0.93-0.94,
+    a different jacket 0.85; true matches 0.97 and up)."""
+    def it(im):
+        g = on_white(im).convert("L"); m = np.asarray(g) < 243
+        ys, xs = np.where(m)
+        if not len(ys): return None
+        v = np.asarray(g.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)).resize((N, N), Image.BILINEAR), dtype=np.float32).ravel()
+        v = v - v.mean(); n = np.linalg.norm(v)
+        return v / n if n > 1e-6 else None
+    x, y = it(a), it(b)
+    return -1.0 if x is None or y is None else float(np.dot(x, y))
+
+
+SAME_MIN = 0.96
 
 
 def polish_photo(name, live_im, kind, src):
@@ -608,7 +631,7 @@ def model_photo(live_im, src):
 def do_find(p, names, entry, rec, a):
     kind = kind_of(p)
     pool = pool_for(p["id"], entry, rec)
-    cache = {}
+    cache, used = {}, set()
     res = {"v": VERSION, "kind": kind, "photos": {}, "at": now()}
     for name in names:
         info = {}
@@ -617,15 +640,20 @@ def do_find(p, names, entry, rec, a):
             live = open_any(data) if data else None
             if live is None: info["error"] = "live file did not download"; raise StopIteration
             is_model = bool(re.search(r"-d?m\d+\.webp$", name))
-            src = find_source(live if is_model else live.convert("RGBA"), is_model, pool, cache)
-            if src:
+            src = find_source(live if is_model else live.convert("RGBA"), is_model, pool, cache, used)
+            if src:   # one store image serves one live photo (two angles never become the same picture)
+                used.update({src[0], src[3]})
                 info.update(src_url=src[0], src_size=list(src[1].size), match=round(src[2], 3))
             if is_model:
                 out, notes = model_photo(live, src)
             else:
                 out, notes = polish_photo(name, live, kind, src)
+                if out is not None and src:
+                    same = same_item(live, out); notes["same"] = round(same, 3)
+                    if same < SAME_MIN: out, notes = None, {"error": f"store copy is another photo ({same:.2f})"}
                 if out is None and src:   # the store copy failed: the live file as source
                     info["store_fail"] = notes.get("error"); out, notes = polish_photo(name, live, kind, None)
+                    for k in ("src_url", "src_size", "match"): info.pop(k, None)
             info.update(notes)
             if out is None: raise StopIteration
             buf = io.BytesIO(); out.save(buf, "WEBP", quality=90, method=6); data = buf.getvalue()
