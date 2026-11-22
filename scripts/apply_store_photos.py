@@ -115,6 +115,13 @@ def plan(items, audit, owner, hidden, only, fixes=None, pol=None):
                 if old != nm:
                     why["rating fixes: angle promoted to main"] += 1
                 main = nm
+        if fx and fx.get("img"):   # back to the photo the find had before (a pass-2 main the re-rating found wrong)
+            if p.get("img") != fx["img"]:
+                changes.append((i, "img", p.get("img"), fx["img"], "earlier main restored")); why["rating fixes: earlier main restored"] += 1
+            if ok(base(fx["img"])): mains.add(i)
+            g = [two(u) for u in extra + model][:MAX_GAL]
+            if g: gal[i] = g
+            continue
         if main and MODEL_SHOT.search(main):   # rule 8: the main is never a model photo; it goes with the model shots
             model.insert(0, main); main = None; why["model shot kept off the main"] += 1
         if not main and ok(base(p.get("img"))):

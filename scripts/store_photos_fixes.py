@@ -9,6 +9,7 @@ store-gallery.json order) and writes data/store_photos_fixes.json, which scripts
   drop      angles the rating failed for what they show (wrong item or colour, duplicate, hanger, mannequin, tilted,
             flat-lay, tight model crop, lifestyle, label or detail shot ...). Angles that only failed on quality (soft,
             rough cut-out) stay: the polish step (scripts/store_photos_polish.py) re-cuts them, and the re-rating decides.
+  img       with audit: the main photo the find had before pass 2 (taken from data/store_photos_applied.json), put back
   audit     the find's audit set before pass 2 ({main, gallery, model}), used instead of today's audit entry: pass-2 sets
             a review of the contact sheets found worse (another item, colour or version than the listing) or empty
   main      an angle promoted to the main photo (a clean straight-on product shot; shoes: a single-shoe side profile),
@@ -147,6 +148,11 @@ def main(argv=None):
                                                  "model": list(b.get("model") or [])}
                 fx[i]["why_audit"] = reason; fx[i]["at"] = now()
                 c["earlier audit set restored"] += 1
+                # the main the find had before pass 2, when pass 2 had already put a new one live (data/store_photos_applied.json)
+                for bt in (load_json(os.path.join(ROOT, "data", "store_photos_applied.json"), {}).get("batches") or []):
+                    for ch in bt.get("changes") or []:
+                        if ch.get("id") == i and re.search(r"-e\d+\.webp", ch.get("new") or "") and not re.search(r"-e\d+\.webp", ch.get("old") or ""):
+                            fx[i]["img"] = ch["old"]
     print(dict(c))
     print("%d finds with fixes" % len(fx))
     if a.write:
