@@ -5034,7 +5034,11 @@ function openDetail(p,fromHash){
   /* store photos (21 Nov 2026, owner): more angles of the find from real shops (store-gallery.json, scripts/apply_store_photos.py),
      shown as a strip under the listing photo; LST.arr[0] is the listing photo itself */
   const LST={arr:p.img?[p.img]:[],idx:0};
-  if(p.img) storeGal(p.id).then(a=>{ if(!live()||!a||!a.length) return; LST.arr=[p.img].concat(a); if(mode.m==="listing") gal(LST.idx||0); }).catch(()=>{});
+  /* a 1000 px AVIF/WebP copy of each store photo (about 35 KB, the original is 1200 px), all fetched in the background as soon
+     as the view opens, so switching photos is instant; a tap before one has loaded shows its thumbnail until it has */
+  const bigL=u=>u===p.img?bigOf(u):cdnOf(u,1000,80);
+  if(p.img) storeGal(p.id).then(a=>{ if(!live()||!a||!a.length) return; LST.arr=[p.img].concat(a); if(mode.m==="listing") gal(LST.idx||0);
+    _idle(()=>{ if(live()) LST.pre=a.map(u=>{ const i=new Image(); i.decoding="async"; i.src=bigL(u); return i; }); }); }).catch(()=>{});
   const qcArrOf=d=>(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails:((d&&Array.isArray(d.qc_preview)&&d.qc_preview.length)?d.qc_preview:null);
   const setMode=m=>{ mode.m=m; $$(".gtab",drawer).forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.mode===m))); };
   // No usable QC photos: hide the QC tab (and the tab bar if only one mode is left) and show the listing photo instead.
@@ -5072,7 +5076,7 @@ function openDetail(p,fromHash){
     if(isqc && QCIMG.arr && active>=QCIMG.arr.length) active=0;
     QCIMG.idx=active;
     if(!isqc){ if(active<0) active=LST.arr.length-1; if(active>=LST.arr.length) active=0; LST.idx=active; }
-    const mainUrl=isqc?(QCIMG.arr&&QCIMG.arr[active]):(mode.m==="listing"?bigOf(LST.arr[active]||p.img):null);
+    const mainUrl=isqc?(QCIMG.arr&&QCIMG.arr[active]):(mode.m==="listing"?bigL(LST.arr[active]||p.img):null);
     /* same photo already showing (QC data arrived for the listing view): keep it, so it doesn't fade in a second time.
        r7: the card's photo shown at open counts as the same; the full-size one replaces it once it has loaded and decoded */
     const lo=!!(oldi&&!isqc&&mainUrl&&mainUrl===bigOf(p.img)&&oldi.dataset.lo==="1");
@@ -5084,7 +5088,9 @@ function openDetail(p,fromHash){
         hi.onload=()=>{ try{ hi.decode().then(swap,swap); }catch(e){ swap(); } }; hi.src=mainUrl; } }
     else if(mainUrl){
       gm.style.display="none";
-      const im=document.createElement("img"); im.className="pimg"+(dir?" from-"+dir:""); im.decoding="async"; im.loading="eager"; try{im.fetchPriority="high";}catch(e){} im.src=mainUrl; im.alt=isqc?("QC photo "+(active+1)+": "+p.title):altOf(p);
+      const im=document.createElement("img"); im.className="pimg"+(dir?" from-"+dir:""); im.decoding="async"; im.loading="eager"; try{im.fetchPriority="high";}catch(e){}
+      const pre=!isqc&&active>0&&LST.pre&&LST.pre[active-1];
+      if(pre&&!(pre.complete&&pre.naturalWidth)){ im.src=thumbOf(LST.arr[active]); pre.addEventListener("load",()=>{ if(im.isConnected) im.src=mainUrl; },{once:true}); } else im.src=mainUrl; im.alt=isqc?("QC photo "+(active+1)+": "+p.title):altOf(p);
       im.onerror=()=>{
         if(!isqc&&p.img&&im.src!==p.img&&!im.__orig){ im.__orig=1; im.src=p.img; return; }   /* the Cloudflare copy failed: the stored original */
         im.remove();
