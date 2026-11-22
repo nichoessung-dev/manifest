@@ -20,7 +20,7 @@ data/seo_page_clicks.json (buy clicks per page by visit source, scripts/seo_page
   with AboutPage data, in the sitemap and both footers. The homepage Organization data lists the Discord as well as TikTok.
 - Undo: functions/_lib/pages.js (TOOL_SEO, TOOL_FAQ, TOOL_H1, the /qc-spreadsheet spec, CAT_QC and qcCheck, renderAbout,
   the Marketplace line, storeThumbs alt), functions/_lib/site.js (footer, TOOL_LINKS), functions/_middleware.js (the /about
-  route), index.html (footer links, sameAs).
+  route), index.html (footer links, sameAs). Commit 18d65837.
 
 ## 22 Nov 2026: 86 agent copies of brand pages point at the brand page
 
@@ -33,6 +33,7 @@ data/seo_page_clicks.json (buy clicks per page by visit source, scripts/seo_page
   3,250 Google buy clicks between them. The canonical gathers their signals on the brand page.
 - URLs: the 86 paths in functions/_lib/seo_canon.js.
 - Undo: empty AGENT_BRAND_CANON in functions/_lib/seo_canon.js (pages, canonicals and sitemap go back as they were).
+  Commit e6852ce3.
 
 ## 22 Nov 2026: pages 2 and up of every list get their own title and description
 
@@ -45,7 +46,7 @@ data/seo_page_clicks.json (buy clicks per page by visit source, scripts/seo_page
 - URLs: /brand/<brand>/<n>, /category/<cat>/<n>, /weidian-spreadsheet/<n>, /taobao-spreadsheet/<n>, /1688-spreadsheet/<n>,
   /old-money/<n>, /new/<n>, /best/<model>/<n> (n of 2 and up).
 - Undo: functions/_lib/pages.js, hub(): put back `fitTitle(n > 1 ? title.replace(...": Page N") : title)` and the old
-  `Page ${n}: ${desc}` description, and drop pageNMeta() and the `key` arguments.
+  `Page ${n}: ${desc}` description, and drop pageNMeta() and the `key` arguments. Commit a2ac4199.
 
 ## 22 Nov 2026: the rep spreadsheet guide says what it is
 
@@ -53,7 +54,7 @@ data/seo_page_clicks.json (buy clicks per page by visit source, scripts/seo_page
   Spreadsheet 2026: 9,000+ Finds, 2,000+ With QC Photos") with a description to match.
 - Why: the old title read like the homepage, so the two pages competed for "rep spreadsheet". The guide ranks 3rd for
   "what is a rep spreadsheet" and 4th for "reps spreadsheet 2026", so "Rep Spreadsheet 2026" stays first in the title.
-- Undo: functions/_lib/content3.js, GUIDES3["what-is-a-rep-spreadsheet"].title and .desc.
+- Undo: functions/_lib/content3.js, GUIDES3["what-is-a-rep-spreadsheet"].title and .desc. Commit a2ac4199.
 
 ## 22 Nov 2026: hubs and the homepage load two heavy files later
 
@@ -62,7 +63,21 @@ data/seo_page_clicks.json (buy clicks per page by visit source, scripts/seo_page
   /also.js?v=2). Google's sign-in script, button and font (about 210 KB) load once the page has finished loading and the
   browser is idle, or at once when the visitor touches the sign-up card, instead of the moment the card opens (index.html).
   The similar finds row is drawn again when the related finds arrive after a find has opened.
-- Why: both loaded on every phone visit while the page itself was still loading. Measured with Playwright on a Pixel 5
-  profile, slow 4G, 4x CPU; numbers in the SEO report.
+- Why: both loaded on every phone visit while the page itself was still loading. Measured with Playwright (Pixel 5
+  profile, 150 ms round trip, 1.6 Mbps, 4x CPU slowdown, empty cache, median of 3): the Weidian hub fully loaded in
+  10.9 s instead of 11.9 s and moved 2,135 KB instead of 2,637 KB; the homepage 7.3 s instead of 11.0 s and 1,801 KB
+  instead of 2,386 KB. The main content showed at about 2.4 s before and after (both files already came after it).
+  The first version still started Google's script when the card opened under a resting mouse pointer (pointerover);
+  the second commit listens to real touches, clicks, keys and mouse moves only. Commits cdfa2555 and 2d9eabb0.
 - Undo: also.js: put back the idle loader at the end of the file (requestIdleCallback after "load") and /also.js?v=1;
   index.html: in the sign-in block call load() in go() for the gate again and drop whenLoaded().
+
+## Decided and left as it is (22 Nov 2026)
+
+- Pages 2 and up stay in sitemap-pages.xml: they now have titles and descriptions of their own, and one of them ranks
+  (/brand/acne-studios/2, 5th for "acne studios reps" in the US). Their canonicals point at themselves.
+- Product pages keep ItemPage data, not Product with Offer: Google's shopping policies exclude these listings.
+- IndexNow: every sitemap URL was sent on 22 Nov 2026 (workflow run "IndexNow", mode all) and the 86 agent pages that now
+  point at their brand page were sent separately.
+- For the owner: the sign-up card that covers the page a moment after a visitor arrives counts as an intrusive pop-up for
+  phone visitors from Google. Showing it from the second page view, or not to visitors from search, is the owner's call.
