@@ -94,6 +94,7 @@ def owner_text(call):
     if call.get("search_as"): out.append(f"The item is: {call['search_as']}.")
     if call.get("main") == "site": out.append("The owner keeps photo 0 as the main: main is 0.")
     if call.get("note"): out.append(f"Owner's note: {call['note']}.")
+    if call.get("colour"): out.append(f"STRICT COLOUR: the title says {call['colour']}: drop every photo of another colour.")
     return ("THE OWNER'S CALL ON THIS FIND (follow it): " + " ".join(out) + "\n\n") if out else ""
 
 
@@ -143,7 +144,15 @@ def main():
     ap.add_argument("--redo", action="store_true")
     ap.add_argument("--ids-file", default="", help="a file of ids (comma or whitespace separated), added to --ids")
     ap.add_argument("--keep-prev", action="store_true", help="the photos an earlier audit kept are candidates again")
+    ap.add_argument("--pass2", action="store_true", help="the finds of data/store_photos_pass2.json (22 Nov 2026): strict "
+                    "title colour; \"fresh\" finds (the live main is another item) never keep it or the earlier photos, the "
+                    "others keep the earlier audit's photos as candidates (like --keep-prev)")
     a = ap.parse_args()
+    hints = {k: v for k, v in load_json(os.path.join(ROOT, "data", "store_photos_pass2.json"), {}).items() if not k.startswith("_")} if a.pass2 else {}
+    if a.pass2:
+        lg = (load_json(sp.LOG, {}) or {}).get("items") or {}
+        a.ids = ",".join(i for i in hints if (lg.get(i) or {}).get("deep_pass") == 2)
+        a.redo = True
     if a.ids_file:
         import re
         with open(a.ids_file if os.path.isabs(a.ids_file) else os.path.join(ROOT, a.ids_file), encoding="utf-8") as f:
@@ -156,6 +165,7 @@ def main():
     stats = (load_json(os.path.join(ROOT, "data", "stats.json"), {}) or {}).get("p") or {}
     todo = [i for i in (a.ids.split(",") if a.ids else items) if i in items and i in by and (a.redo or i not in out["items"])]
     todo = [i for i in todo if i not in hide]
+    if a.pass2: todo = [i for i in todo if (out["items"].get(i) or {}).get("pass") != 2]   # resumable
     has = lambda r: bool(r) and ((r.get("main") not in (None, "", "current")) or r.get("gallery") or r.get("model"))
     todo = [i for i in todo if has(items[i]) or (a.keep_prev and has(out["items"].get(i)))]
     todo.sort(key=lambda i: -(stats.get(i) or [0])[0])
@@ -173,10 +183,18 @@ def main():
     def one(fid):
         if out.get("spent_usd", 0) >= a.max_usd: return
         try:
-            prev = out["items"].get(fid) if a.keep_prev else None
+            h = hints.get(fid) or {}
+            kp = (a.keep_prev or bool(h)) and h.get("mode") != "fresh"
+            prev = out["items"].get(fid) if kp else None
             if prev and prev.get("prev"): prev = prev["prev"]   # a re-run keeps comparing with the first audit
-            r = audit(fid, items[fid], by[fid], prev, owner.get(fid))
-            if r is not None and a.keep_prev and out["items"].get(fid):
+            call = owner.get(fid)
+            if h:
+                call = dict(call) if isinstance(call, dict) else {}
+                if h.get("colour"): call["colour"] = h["colour"]
+                if h.get("mode") == "fresh": call.setdefault("drop_site", True); call.setdefault("search_as", h.get("search_as"))
+            r = audit(fid, items[fid], by[fid], prev, call)
+            if r is not None and h: r["pass"] = 2
+            if r is not None and kp and out["items"].get(fid):
                 r["prev"] = {k: v for k, v in (out["items"][fid].get("prev") or out["items"][fid]).items() if k in ("main", "gallery", "model", "why")}
         except Exception as e:
             print(f"{fid} error {e}", flush=True); return

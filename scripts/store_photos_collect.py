@@ -488,18 +488,39 @@ def siblings(img):
 credits_used = [0]
 
 
-def deep_collect(p, nm, entry, own_call=None):
+# pass 2 (22 Nov 2026, from the AI photo ratings; data/store_photos_pass2.json): stricter matching. The colour is the
+# one in the find's TITLE when it names one; "fresh" finds (the rated main is a different item) are searched from scratch
+# with the title as the name and never keep the earlier candidates; finds already searched by the first deep pass get
+# other queries ("wide": no site filter, the exact name quoted, European stores) instead of the same ones again.
+PASS2 = os.path.join(ROOT, "data", "store_photos_pass2.json")
+EU = ["miinto.no", "miinto.de", "zalando.no", "sneakersnstuff.com", "kickz.com", "careofcarl.com", "boozt.com", "breuninger.com"]
+
+
+def title_colour(title):
+    t = " " + (title or "").lower() + " "
+    hit = [c for c in sorted(COLOURS, key=len, reverse=True) if " " + c + " " in t]
+    return hit[0] if hit else ""
+
+
+def deep_collect(p, nm, entry, own_call=None, hint=None):
     """The deep search for one find: returns the merged entry (new candidates first, then the first pass's)."""
     nm = nm or {}
     own_call = own_call or {}
-    name = re.sub(r"\s*\([^)]*\)", "", own_call.get("search_as") or nm.get("name") or (entry or {}).get("name") or p.get("title") or "").strip()
-    colour = (nm.get("colour") or "").strip() if not own_call.get("search_as") else ""
+    hint = hint or {}
+    wide = bool(hint) and bool((entry or {}).get("deep")) and hint.get("mode") != "fresh"
+    if hint.get("mode") == "fresh": entry = None          # never the earlier (mismatched) candidates
+    name = re.sub(r"\s*\([^)]*\)", "", own_call.get("search_as") or hint.get("search_as") or nm.get("name") or (entry or {}).get("name") or p.get("title") or "").strip()
+    colour = (hint.get("colour") or nm.get("colour") or "").strip() if not own_call.get("search_as") else ""
     base = name if not colour or colour.lower() in name.lower() else f"{name} {colour}"
     shoes = p.get("cat") == "Shoes" or re.search(r"(?i)sneaker|trainer|shoe|dunk|jordan \d|yeezy|air max|air force", name)
     r1, r2 = (SNEAK1, SNEAK2) if shoes else (RETAIL1, RETAIL2)
     bs = brand_site(p, name)
-    qs = [("images", f"{base} {sites(r1)}", 30), ("images", f"{base} {sites([bs] + r2)}", 30),
-          ("web", f"{base} {sites(r1)}", 10), ("web", f"{base} {sites([bs] + r2)}", 10)]
+    if wide:
+        exact = f'"{name}" {colour}'.strip() if colour and colour.lower() not in name.lower() else f'"{name}"'
+        qs = [("images", base, 30), ("images", f"{base} {sites(EU)}", 30), ("web", exact, 10), ("web", f"{base} {sites([bs] + EU[:3])}", 10)]
+    else:
+        qs = [("images", f"{base} {sites(r1)}", 30), ("images", f"{base} {sites([bs] + r2)}", 30),
+              ("web", f"{base} {sites(r1)}", 10), ("web", f"{base} {sites([bs] + r2)}", 10)]
     hits, web, pages_rank = [], [], {}
     for kind, q, num in qs:
         credits_used[0] += 2 if num > 10 else 1
@@ -552,6 +573,7 @@ def deep_collect(p, nm, entry, own_call=None):
     e["p"], e["c"] = pages, new + list(e.get("c") or [])
     e.setdefault("name", name)
     e["deep"] = {"n": len(new), "q": [q for _, q, _ in qs], "name": name}
+    if hint: e["deep"]["pass"] = 2; e["deep"]["mode"] = "fresh" if hint.get("mode") == "fresh" else ("wide" if wide else "deep")
     return e
 
 
@@ -588,13 +610,18 @@ def run_deep(a, shard, by, names):
     data = shards.merged("cands")["items"]
     owner = load_json(OWNER, {}) or {}
     hide = set((load_json(os.path.join(ROOT, "data", "report_overrides.json"), {}) or {}).get("hide") or [])
-    ids = [i for i in read_ids(a) if i in by and i not in hide and shards.mine(i, shard)]
-    todo = [i for i in ids if a.redo or not (data.get(i) or {}).get("deep")][:a.limit or None]
+    hints = {k: v for k, v in (load_json(PASS2, {}) if a.pass2 else {}).items() if not k.startswith("_")}
+    stats = (load_json(os.path.join(ROOT, "data", "stats.json"), {}) or {}).get("p") or {}
+    want = sorted(hints, key=lambda i: (-(stats.get(i) or [0])[0], i)) if a.pass2 else read_ids(a)
+    ids = [i for i in want if i in by and i not in hide and shards.mine(i, shard)]
+    level = 2 if a.pass2 else 1
+    searched = lambda i: bool((data.get(i) or {}).get("deep")) and ((data.get(i) or {}).get("deep") or {}).get("pass", 1) >= level
+    todo = [i for i in ids if a.redo or not searched(i)][:a.limit or None]
     print(f"deep search: {len(ids)} target finds in shard {a.shard}, {len(todo)} to search", flush=True)
     try:
         for n, i in enumerate(todo, 1):
             try:
-                e = deep_collect(by[i], names.get(i), data.get(i), owner.get(i) if isinstance(owner.get(i), dict) else None)
+                e = deep_collect(by[i], names.get(i), data.get(i), owner.get(i) if isinstance(owner.get(i), dict) else None, hints.get(i))
             except SystemExit:
                 raise
             except Exception as ex:
@@ -606,7 +633,8 @@ def run_deep(a, shard, by, names):
             if n % 10 == 0: save(own, out)
     finally:
         save(own, out)
-    left = len([i for i in ids if not ((shards.merged("cands")["items"].get(i) or {}).get("deep"))])
+    data = shards.merged("cands")["items"]
+    left = len([i for i in ids if not searched(i)])
     print(f"deep search done: {len(todo)} finds, serper credits used: {credits_used[0]} "
           f"({credits_used[0] / max(1, len(todo)):.1f} per find); deep remaining {left}")
 
@@ -642,6 +670,7 @@ def main():
     ap.add_argument("--shard", default="0/1", help="k/n: only the finds of shard k of n (see store_photos_shards.py)")
     ap.add_argument("--deep", action="store_true", help="the deeper second search (brand store + big retailers), added to the first pass")
     ap.add_argument("--ids-file", default="", help="a file of ids (comma or whitespace separated), with --deep")
+    ap.add_argument("--pass2", action="store_true", help="with --deep: the targets and hints of data/store_photos_pass2.json")
     a = ap.parse_args()
     shard = shards.parse(a.shard)
     ids, by = partner_ids(load_catalog()[1])

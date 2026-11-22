@@ -139,6 +139,10 @@ Answer with JSON only:
 "keep_current_main": true/false, "note": "a few words: why this store, what was rejected"}}"""
 
 OWNER = os.path.join(ROOT, "data", "store_photos_owner.json")
+# USD per 1M tokens (input, output), checked 22 Nov 2026. Until then every call was counted at 1 / 5 (Haiku 4.5's rate),
+# ten times Haiku 5.5's real price, so the spend recorded before pass 2 is about 10x what was really spent.
+PRICE = {"claude-haiku-5-5": (0.10, 0.50), "claude-sonnet-5-5": (2.0, 10.0), "claude-opus-5-5": (4.0, 20.0), "claude-haiku-4-5": (1.0, 5.0)}
+PASS2 = os.path.join(ROOT, "data", "store_photos_pass2.json")
 DEEP_SHOW = 48     # deep pass: at most this many candidates shown to the picker (cost), up to 12 per store, 8 stores
 DEEP_LOAD = 90     # and at most this many downloaded
 
@@ -154,6 +158,9 @@ def owner_text(call):
     if call.get("search_as"): out.append(f"The owner says the item is: {call['search_as']}.")
     if call.get("main") == "site": out.append("The owner keeps the current photo as the main: keep_current_main true.")
     if call.get("note"): out.append(f"Owner's note: {call['note']}.")
+    if call.get("rating"): out.append(f"The photo check of the live listing said: {call['rating']}.")
+    if call.get("colour"): out.append(f"STRICT COLOUR: the title says {call['colour']}; every photo must show the item in "
+                                      f"{call['colour']} (a close shade only if no store has that colour).")
     return ("\n- THIS FIND (owner's call, follow it): " + " ".join(out)) if out else ""
 
 
@@ -217,7 +224,8 @@ def claude(content, max_tokens=4000):
             if k == len(waits): raise
             time.sleep(waits[k])
     u = d.get("usage") or {}
-    cost = (u.get("input_tokens", 0) * 1.0 + u.get("output_tokens", 0) * 5.0) / 1e6
+    pi, po = PRICE.get(MODEL, (1.0, 5.0))
+    cost = (u.get("input_tokens", 0) * pi + u.get("output_tokens", 0) * po) / 1e6
     spent += cost
     txt = "".join(c.get("text", "") for c in d.get("content", []))
     m = re.search(r"\{.*\}", txt, re.S)
@@ -359,7 +367,7 @@ def process(p, entry, nm, a, call=None, prev=None):
     content = [{"type": "text", "text": PICK_PROMPT.format(title=p.get("title"), brand=p.get("brand"), cat=p.get("cat"),
                                                            name=nm.get("name") or entry.get("name") or "unknown",
                                                            details=nm.get("details") or "see image 0",
-                                                           colour=nm.get("colour") or colour_of(p.get("title")),
+                                                           colour=call.get("colour") or nm.get("colour") or colour_of(p.get("title")),
                                                            owner=owner_text(call))},
                {"type": "text", "text": "[0] current photo"},
                {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": jpg64(before)}}]
@@ -435,7 +443,7 @@ def process(p, entry, nm, a, call=None, prev=None):
     for i, k, im, host, view, _ in prod:
         cut, why = cutout(im)
         if cut is None: rec["dropped"].append(f"{i} {view}: {why}"); continue
-        name = f"{pid}-{'d' if deep else ''}{k_out}.webp"; k_out += 1   # deep pass: new names, the first pass's photos stay
+        name = f"{pid}-{(a.tag if deep else '')}{k_out}.webp"; k_out += 1   # deep pass: new names, the first pass's photos stay
         try: url = name if a.dry else upload(name, webp(cut, 88))
         except Exception as e:  # one refused upload drops that photo, not the whole find (the answer is kept)
             k_out -= 1; rec["dropped"].append(f"{i} {view}: upload failed {e!r}"[:120]); rec["deep_pending"] = pending; continue
@@ -444,7 +452,7 @@ def process(p, entry, nm, a, call=None, prev=None):
         rec["src"].append(entry["p"][c[k][1]]); shown.append((kind, small(cut), host.split("/")[0]))
     for m, (i, k, im, host, view, _) in enumerate(pers):
         im = im.copy(); im.thumbnail((1600, 1600), Image.LANCZOS)
-        name = f"{pid}-{'d' if deep else ''}m{m}.webp"
+        name = f"{pid}-{(a.tag if deep else '')}m{m}.webp"
         try: rec["model"].append(name if a.dry else upload(name, webp(im, 85)))
         except Exception as e:
             rec["dropped"].append(f"{i} model: upload failed {e!r}"[:120]); rec["deep_pending"] = pending; continue
@@ -598,7 +606,10 @@ def main():
     ap.add_argument("--deep", action="store_true", help="the second, deeper pass: re-pick the --ids-file finds from old + new candidates")
     ap.add_argument("--ids-file", default="")
     ap.add_argument("--deep-usd", type=float, default=4.6, help="deep pass: this shard's AI budget, all its deep runs together")
+    ap.add_argument("--pass2", action="store_true", help="with --deep: the targets and hints of data/store_photos_pass2.json, "
+                    "new photo names <id>-e<k>.webp (the live d<k> files are never overwritten)")
     a = ap.parse_args()
+    a.tag = "e" if a.pass2 else "d"
     a.shard_t = shards.parse(a.shard)
     by = {p["id"]: p for p in load_catalog()[1]}
     if a.name: return run_name(a, by)
@@ -615,8 +626,12 @@ def main():
     if a.deep:
         hide = set((load_json(os.path.join(ROOT, "data", "report_overrides.json"), {}) or {}).get("hide") or [])
         want = []
-        with open(a.ids_file if os.path.isabs(a.ids_file) else os.path.join(ROOT, a.ids_file), encoding="utf-8") as f:
-            want = [i for i in re.split(r"[\s,]+", f.read()) if i]
+        if a.pass2:
+            hints = {k: v for k, v in load_json(PASS2, {}).items() if not k.startswith("_")}
+            want = list(hints)
+        else:
+            with open(a.ids_file if os.path.isabs(a.ids_file) else os.path.join(ROOT, a.ids_file), encoding="utf-8") as f:
+                want = [i for i in re.split(r"[\s,]+", f.read()) if i]
         stats = (load_json(os.path.join(ROOT, "data", "stats.json"), {}) or {}).get("p") or {}
         order = sorted({i for i in want if i in by and i not in hide and shards.mine(i, a.shard_t)},
                        key=lambda i: (-(stats.get(i) or [0])[0], i))
@@ -635,8 +650,11 @@ def main():
         # a find whose deep pick failed (deep_error: an upload refused) is picked again
         # deep_pending (some uploads refused, the rest kept) counts as done: a redo would upload every photo again and
         # meet the same refusals; the saved answer lets a later --redo run skip the AI call
-        ddone = lambda i: (log["items"].get(i) or {}).get("deep") == 1 and not (log["items"].get(i) or {}).get("deep_error")
-        todo = [i for i in order if (cands.get(i) or {}).get("deep") and (a.redo or not ddone(i))][:a.limit or None]
+        lvl = 2 if a.pass2 else 1
+        ddone = lambda i: (log["items"].get(i) or {}).get("deep") == 1 and not (log["items"].get(i) or {}).get("deep_error") \
+            and (log["items"].get(i) or {}).get("deep_pass", 1) >= lvl
+        ready = lambda i: bool((cands.get(i) or {}).get("deep")) and ((cands.get(i) or {}).get("deep") or {}).get("pass", 1) >= lvl
+        todo = [i for i in order if ready(i) and (a.redo or not ddone(i))][:a.limit or None]
     print(f"{len(todo)} finds to do; spent so far {base:.2f} USD (cap {a.max_total_usd})", flush=True)
     rows = []
     os.makedirs(OUT, exist_ok=True)
@@ -647,9 +665,18 @@ def main():
         try:
             call = owner.get(i) if isinstance(owner.get(i), dict) else None
             prev = log["items"].get(i) or {}
+            if a.pass2:
+                h = hints.get(i) or {}
+                call = dict(call or {})
+                if h.get("colour"): call["colour"] = h["colour"]
+                if h.get("note"): call["rating"] = h["note"]
+                if h.get("mode") == "fresh":   # the live main is another item: never kept, never the reference for the design
+                    call.setdefault("drop_site", True); call.setdefault("search_as", h.get("search_as"))
+                if call.get("search_as"): names = dict(names); names[i] = dict(names.get(i) or {}, name=call["search_as"], details="see the title")
             rec, shown, before = process(p, cands[i], names.get(i), a, call, prev)
             if a.deep:
                 rec["deep"] = 1
+                if a.pass2: rec["deep_pass"] = 2
                 prev = prev.get("prev") or {k: prev.get(k) for k in ("main", "gallery", "model", "store", "set", "conf", "model_name") if k in prev}
                 rec["prev"] = prev   # the first pass's set, kept for the audit and for going back
         except Exception as e:

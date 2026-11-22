@@ -664,7 +664,7 @@ def do_find(p, names, entry, rec, a):
             data = fetch(STORE + name, tries=3)
             live = open_any(data) if data else None
             if live is None: info["error"] = "live file did not download"; raise StopIteration
-            is_model = bool(re.search(r"-d?m\d+\.webp$", name))
+            is_model = bool(re.search(r"-[a-z]?m\d+\.webp$", name))   # -m0, -dm0 (deep pass), -em0 (pass 2)
             src = find_source(live if is_model else live.convert("RGBA"), is_model, pool, cache, used)
             if src:   # one store image serves one live photo (two angles never become the same picture)
                 used.update({src[0], src[3]})
@@ -726,7 +726,9 @@ def main(argv=None):
     order = only or sorted(live, key=lambda i: (-(v.get(i) or [0])[0], i))
     order = [i for i in order if i in live and shards.mine(i, shard)]
     done = {} if a.redo else load_done()
-    todo = [i for i in order if i not in done][a.offset:a.offset + a.limit]
+    # done = every live photo of the find was polished (a find whose set changed later has new photos to do)
+    fin = lambda i: i in done and set(live[i]) <= set((done[i].get("photos") or {}))
+    todo = [i for i in order if not fin(i)][a.offset:a.offset + a.limit]
     print(f"polish: {len(order)} finds with store photos in this shard, {len(done)} done before, {len(todo)} now", flush=True)
     cands, log = load_cands(), load_log()
     sp = state_path(shard)
@@ -736,7 +738,11 @@ def main(argv=None):
     for n, i in enumerate(todo):
         p = by[i]
         print(f"[{n + 1}/{len(todo)}] {i} {p.get('title')} ({len(live[i])} photos, {kind_of(p)})", flush=True)
-        r = do_find(p, live[i], cands.get(i), log.get(i), a)
+        had = (done.get(i) or {}).get("photos") or {}
+        r = do_find(p, [x for x in live[i] if x not in had], cands.get(i), log.get(i), a)
+        if had:   # only the new photos of a find done before; its earlier results stay
+            r["photos"] = {**had, **r["photos"]}
+            r["done"] = r["done"] and (done.get(i) or {}).get("done", True)
         st["items"][i] = r; st["at"] = now()
         save_json(sp, st)
     ph = [x for i in todo for x in (st["items"].get(i) or {}).get("photos", {}).values()]
@@ -745,7 +751,8 @@ def main(argv=None):
              sum(1 for x in ph if x.get("source") == "store" and max(x.get("src_size") or [0]) > 1200),
              sum(1 for x in ph if str(x.get("up", "")).startswith("Real-ESRGAN")), sum(1 for x in ph if x.get("skip")),
              sum(1 for x in ph if not x.get("url") and not x.get("skip")), time.time() - t0), flush=True)
-    left = len([i for i in order if i not in load_done()])
+    done = load_done()
+    left = len([i for i in order if not fin(i)])
     print(f"polish remaining {left}", flush=True)
     return 0
 

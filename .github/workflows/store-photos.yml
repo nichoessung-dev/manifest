@@ -49,13 +49,20 @@ on:
       deep_usd:
         description: 'step=deep: AI budget of this shard, all its deep runs together (USD)'
         default: '4.6'
+      pass2:
+        description: 'step=deep: pass 2 from the AI photo ratings (targets + hints in data/store_photos_pass2.json, photos <id>-e<k>)'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
 permissions:
   contents: write
   actions: write
 concurrency: store-photos-${{ inputs.shard || '0/1' }}
 env:
   # 60 for the first pass (spent ~59.45) + ~27.2 deep pass + ~13.5 deep retries of the finds whose uploads Supabase refused (owner approved +$6, 21 Nov); the audit has its own cap
-  STORE_PHOTOS_TOTAL_USD: '99.6'
+  # pass 2 (22 Nov 2026): +12 USD. Until then calls were counted at Haiku 4.5's rate, ten times Haiku 5.5's real price,
+  # so the 99.6 above is about 10 USD really spent; from pass 2 the scripts count real prices (store_photos_pick.PRICE)
+  STORE_PHOTOS_TOTAL_USD: '111.6'
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -129,7 +136,7 @@ jobs:
         run: |
           set -o pipefail
           python -u scripts/store_photos_collect.py --deep --ids-file "${{ inputs.ids_file }}" --shard "${{ inputs.shard || '0/1' }}" --limit "${{ inputs.limit }}" \
-            ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee -a out-store-photos.log
+            ${{ inputs.redo == 'yes' && '--redo' || '' }} ${{ inputs.pass2 == 'yes' && '--pass2' || '' }} | tee -a out-store-photos.log
           bash /tmp/save.sh "deep candidates"
       - name: Deep re-pick (old + new candidates)
         if: inputs.step == 'deep'
@@ -139,7 +146,7 @@ jobs:
         run: |
           set -o pipefail
           python -u scripts/store_photos_pick.py --deep --ids-file "${{ inputs.ids_file }}" --deep-usd "${{ inputs.deep_usd }}" --shard "${{ inputs.shard || '0/1' }}" \
-            --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" ${{ inputs.redo == 'yes' && '--redo' || '' }} | tee -a out-store-photos.log
+            --limit "${{ inputs.limit }}" --max-usd "${{ inputs.max_usd }}" ${{ inputs.redo == 'yes' && '--redo' || '' }} ${{ inputs.pass2 == 'yes' && '--pass2' || '' }} | tee -a out-store-photos.log
           bash /tmp/save.sh "deep photos"
       - name: Keep the log with the sheet
         if: always()
@@ -175,6 +182,6 @@ jobs:
           left=$(grep -oP 'deep remaining \K[0-9]+(?= target)' out-store-photos.log | tail -1)
           if [ "${left:-0}" -gt 0 ]; then
             gh workflow run store-photos.yml --ref "$GITHUB_REF_NAME" -f step=deep -f limit="${{ inputs.limit }}" -f max_usd="${{ inputs.max_usd }}" \
-              -f shard="${{ inputs.shard }}" -f ids_file="${{ inputs.ids_file }}" -f deep_usd="${{ inputs.deep_usd }}"
+              -f shard="${{ inputs.shard }}" -f ids_file="${{ inputs.ids_file }}" -f deep_usd="${{ inputs.deep_usd }}" -f pass2="${{ inputs.pass2 }}"
             echo "started the next deep batch ($left finds left)"
           fi

@@ -16,7 +16,7 @@ store-gallery.json order) and writes data/store_photos_fixes.json, which scripts
 Only finds whose rating saw exactly the live set are used (a photo that failed to load shifts the numbers). Entries are
 merged: earlier drops and promotions stay unless --reset. Owner calls (data/store_photos_owner.json) win over these.
 
-  python scripts/store_photos_fixes.py [--promote file.txt] [--reset] [--write]
+  python scripts/store_photos_fixes.py [--promote file.txt] [--reset] [--write] [--pass2]
   promote file: lines "<id> <file name> [keep]"
 """
 import argparse, collections, json, os, re, sys
@@ -44,11 +44,55 @@ def base(n):
     return n[3:] if n.startswith("s2/") else n
 
 
+WRONG_MAIN = re.compile(r"differ|wrong|not the|another|not a |title says|colou?r|version|shade|replica|fake|counterfeit")
+
+
+def pass2(ratings, fx, owner):
+    """Targets of the new search (data/store_photos_pass2.json), most viewed first: "fresh" = the rated main is another
+    item than the title (searched from scratch with the title, the earlier photos never kept); "deep" = a weak set
+    (few / lowq / angle / wrong / hide) whose main is still the old site photo."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from catalog_common import load_catalog
+    from store_photos_collect import title_colour
+    by = {p["id"]: p for p in load_catalog()[1]}
+    hide = set(map(str, load_json(os.path.join(ROOT, "data", "report_overrides.json"), {}).get("hide") or []))
+    order = open(os.path.join(ROOT, "data", "photo_rate_ids.txt"), encoding="utf-8").read().split()
+    import store_photos_shards as shards
+    log = shards.merged("log")["items"]
+    out, c = {}, collections.Counter()
+    for i in order:
+        r, p = ratings.get(i), by.get(i)
+        if not r or not p or i in hide or (fx.get(i) or {}).get("main"): continue
+        t = set(r.get("tags") or [])
+        m = next((x for x in r.get("photos") or [] if x.get("i") == 1), {})
+        store_main = "/products/store" in (p.get("img") or "")
+        col = title_colour(p.get("title"))
+        if "wrong" in t and m.get("ok") is False and WRONG_MAIN.search((m.get("issue") or "").lower()):
+            title = p.get("title") or ""
+            brand = p.get("brand") or ""
+            sa = title if brand.lower() in title.lower() else f"{brand} {title}".strip()
+            words = [w for w in re.findall(r"[a-z0-9']+", sa.lower()) if w not in brand.lower().split() and w != col
+                     and w not in ("t", "shirt", "tee", "hoodie", "jacket", "sweater", "pants", "shorts", "polo", "cap", "bag", "sneakers")]
+            mn = (log.get(i) or {}).get("model_name") or ""
+            if len(words) < 2 and mn and brand.lower() in mn.lower():   # a vague title: the name the store pick found
+                sa = mn if not col or col in mn.lower() else f"{mn} {col}"
+            out[i] = {"mode": "fresh", "search_as": sa,
+                      "colour": col, "note": (m.get("issue") or "")[:200]}
+        elif t & {"few", "lowq", "angle", "wrong", "hide"} and not store_main:
+            out[i] = {"mode": "deep", "colour": col, "note": (r.get("why") or "")[:200]}
+        else:
+            continue
+        c[out[i]["mode"]] += 1
+    print("pass 2 targets:", dict(c))
+    return out
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--promote", default="")
     ap.add_argument("--reset", action="store_true")
     ap.add_argument("--write", action="store_true")
+    ap.add_argument("--pass2", action="store_true", help="also write the new-search targets, data/store_photos_pass2.json")
     a = ap.parse_args(argv)
     ratings = load_json(os.path.join(ROOT, "data", "photo_ratings.json"), {})
     gal = load_json(os.path.join(ROOT, "store-gallery.json"), {})
@@ -96,6 +140,15 @@ def main(argv=None):
         out.update(dict(sorted(fx.items())))
         save_json(FIXES, out)
         print("written", os.path.relpath(FIXES, ROOT))
+    if a.pass2:
+        t = pass2(ratings, fx, owner)
+        if a.write:
+            save_json(os.path.join(ROOT, "data", "store_photos_pass2.json"), dict(
+                {"_how": "Pass 2 search targets from the AI photo ratings (scripts/store_photos_fixes.py --pass2), most viewed "
+                         "first. fresh: the live main is another item; search from scratch with search_as, never keep the "
+                         "earlier photos. deep: a weak set with the old site photo as main. colour: the title's colour (strict)."},
+                **t))
+            print("written data/store_photos_pass2.json")
     return 0
 
 

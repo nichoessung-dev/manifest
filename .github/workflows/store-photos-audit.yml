@@ -29,6 +29,11 @@ on:
         type: choice
         options: ['no', 'yes']
         default: 'no'
+      pass2:
+        description: 'Pass 2 from the AI photo ratings: the finds re-picked with data/store_photos_pass2.json (yes/no)'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
 permissions:
   contents: write
 concurrency: store-photos-audit
@@ -48,7 +53,7 @@ jobs:
           STORE_PHOTOS_MODEL: ${{ inputs.model }}
         run: |
           python scripts/store_photos_audit.py --limit "${{ inputs.limit }}" --ids "${{ inputs.ids }}" --max-usd "${{ inputs.max_usd }}" ${{ inputs.redo == 'yes' && '--redo' || '' }} \
-            ${{ inputs.ids_file && format('--ids-file {0}', inputs.ids_file) || '' }} ${{ inputs.keep_prev == 'yes' && '--keep-prev' || '' }} 2>&1 | tee out-audit.log
+            ${{ inputs.ids_file && format('--ids-file {0}', inputs.ids_file) || '' }} ${{ inputs.keep_prev == 'yes' && '--keep-prev' || '' }} ${{ inputs.pass2 == 'yes' && '--pass2' || '' }} 2>&1 | tee out-audit.log
       - name: Save
         if: always()
         run: |
