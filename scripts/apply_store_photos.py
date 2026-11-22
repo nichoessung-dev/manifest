@@ -20,7 +20,7 @@ polish step made and verified one; gallery entries "s2/<name>" (pages.js, index.
 
   python scripts/apply_store_photos.py [--ids 1,2] [--write] [--no-polish] [--revert data/store_photos_applied.json]
 """
-import argparse, collections, glob, json, os, sys
+import argparse, collections, glob, json, os, re, sys
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -56,7 +56,9 @@ def polished():
             if r.get("v") != POLISH_V: continue
             for name, x in (r.get("photos") or {}).items():
                 if not x.get("url") or x.get("error") or x.get("upload_error") or x.get("skip"): continue
-                if x.get("source") == "store" and (x.get("same", 0) < 0.96 or "inside" not in x): continue
+                if re.search(r"-[a-z]?m\d+\.webp$", name):   # a model shot: the same photo at a larger size, never re-cut
+                    if x.get("source") != "store" or x.get("match", 0) < 0.99: continue
+                elif x.get("source") == "store" and (x.get("same", 0) < 0.96 or "inside" not in x): continue
                 if x["url"] == STORE2 + name: out[name] = x["url"]
     return out
 
