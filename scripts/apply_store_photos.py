@@ -15,9 +15,12 @@ Owner calls: main "site" keeps the site photo as main, main "gallery0" makes ang
 the site photo (angle 1 becomes main when the AI kept the site photo). Hidden finds (data/report_overrides.json) are
 left alone. Report only unless --write.
 
-  python scripts/apply_store_photos.py [--ids 1,2] [--write] [--revert data/store_photos_applied.json]
+Polished copies (scripts/store_photos_polish.py, products/store2/, pure white 1600 px) replace a store photo wherever the
+polish step made and verified one; gallery entries "s2/<name>" (pages.js, index.html storeGal). --no-polish goes back.
+
+  python scripts/apply_store_photos.py [--ids 1,2] [--write] [--no-polish] [--revert data/store_photos_applied.json]
 """
-import argparse, collections, json, os, sys
+import argparse, collections, glob, json, os, sys
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -30,13 +33,39 @@ GAL_JSON = os.path.join(ROOT, "store-gallery.json")
 MAX_GAL = 8
 
 
+STORE2 = STORE.replace("/products/store/", "/products/store2/")
+POLISH_V = 3      # scripts/store_photos_polish.py VERSION whose results are used (3: interior same-photo check)
+
+
 def ok(u):
     return isinstance(u, str) and u.startswith(STORE)
 
 
-def plan(items, audit, owner, hidden, only, fixes=None):
+def base(u):
+    """The products/store/ URL of a photo, also when the site shows its polished products/store2/ copy."""
+    return STORE + u[len(STORE2):] if isinstance(u, str) and u.startswith(STORE2) else u
+
+
+def polished():
+    """{file name: products/store2/ URL} of the store photos the polish step made AND verified: uploaded, no error,
+    and a store-copy source passed both same-photo checks (outline and interior). Model shots only where a larger store
+    copy was found. Finds whose rating fixes or audit changed later keep their other files."""
+    out = {}
+    for f in [os.path.join(ROOT, "data", "store_photos_polish.json")] + sorted(glob.glob(os.path.join(ROOT, "data", "store_photos_polish", "*.json"))):
+        for r in (load_json(f, {}).get("items") or {}).values():
+            if r.get("v") != POLISH_V: continue
+            for name, x in (r.get("photos") or {}).items():
+                if not x.get("url") or x.get("error") or x.get("upload_error") or x.get("skip"): continue
+                if x.get("source") == "store" and (x.get("same", 0) < 0.96 or "inside" not in x): continue
+                if x["url"] == STORE2 + name: out[name] = x["url"]
+    return out
+
+
+def plan(items, audit, owner, hidden, only, fixes=None, pol=None):
     """(img changes, gallery map, main set, why-not counter)."""
     fixes = fixes or {}
+    pol = pol or {}
+    two = lambda u: pol.get(u[len(STORE):], u) if ok(u) else u   # the polished copy where there is one
     idx = {p["id"]: p for p in items}
     changes, gal, mains, why = [], {}, set(), collections.Counter()
     for i, r in sorted(audit.items()):
@@ -68,37 +97,44 @@ def plan(items, audit, owner, hidden, only, fixes=None):
             model = [u for u in model if u not in drops]
             nm = STORE + fx["main"] if fx.get("main") else None
             if nm and nm not in drops:
-                old = main or (p.get("img") if ok(p.get("img")) else None)
+                old = main or (base(p.get("img")) if ok(base(p.get("img"))) else None)
                 extra = [u for u in extra if u != nm]; model = [u for u in model if u != nm]
                 if fx.get("keep_old") and old and old != nm:
                     extra.insert(0, old)
                 if old != nm:
                     why["rating fixes: angle promoted to main"] += 1
                 main = nm
+        if not main and ok(base(p.get("img"))):
+            # the site photo the audit kept is already a store photo (applied earlier): still a store main
+            main = base(p.get("img")); why["kept the earlier store main"] += 1
         if main:
             mains.add(i)
-            if p.get("img") != main:
-                changes.append((i, "img", p.get("img"), main, "store main"))
-        elif ok(p.get("img")):
-            # the site photo the audit kept is already a store photo (applied earlier): still a store main
-            mains.add(i); why["kept the earlier store main"] += 1
+            if p.get("img") != two(main):
+                changes.append((i, "img", p.get("img"), two(main), "store main"))
+                if two(main) != main: why["main: polished copy"] += 1
         else:
             why["kept the site photo as main"] += 1
-        g = [u for u in extra + model if u != main][:MAX_GAL]
+        g = [two(u) for u in extra + model if u != main][:MAX_GAL]
+        why["angles: polished copy"] += sum(1 for u in g if u.startswith(STORE2))
         if g:
             gal[i] = g
     return changes, gal, mains, why
+
+
+def rel(u):
+    """A gallery entry: the file name in products/store/, or "s2/<name>" for the polished copy in products/store2/."""
+    return "s2/" + u[len(STORE2):] if u.startswith(STORE2) else u[len(STORE):]
 
 
 def write_gallery(gal, mains):
     js = ("// GENERATED by scripts/apply_store_photos.py from data/store_photos_audit.json. Do not edit by hand.\n"
           "// SG: extra store photos per find for the product page. SG_MAIN: finds whose main photo is a store photo.\n"
           "export const SG = %s;\nexport const SG_MAIN = new Set(%s);\n"
-          % (json.dumps({k: [u[len(STORE):] for u in v] for k, v in sorted(gal.items())}, separators=(",", ":")),
+          % (json.dumps({k: [rel(u) for u in v] for k, v in sorted(gal.items())}, separators=(",", ":")),
              json.dumps(sorted(mains), separators=(",", ":"))))
     open(GAL_JS, "w", encoding="utf-8").write(js)
     # the same angles for the app's product view (index.html storeGal()), fetched once when a find is opened
-    json.dump({k: [u[len(STORE):] for u in v] for k, v in sorted(gal.items())},
+    json.dump({k: [rel(u) for u in v] for k, v in sorted(gal.items())},
               open(GAL_JSON, "w", encoding="utf-8"), separators=(",", ":"))
 
 
@@ -107,6 +143,7 @@ def main(argv=None):
     ap.add_argument("--ids", default="")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--revert", default="")
+    ap.add_argument("--no-polish", action="store_true", help="the products/store/ files even where a polished copy exists")
     a = ap.parse_args(argv)
     index = os.path.join(ROOT, "index.html")
     logf = os.path.join(ROOT, "data", "store_photos_applied.json")
@@ -128,7 +165,8 @@ def main(argv=None):
                     changes.append((i, "img", c["new"], c["old"], "revert")); seen.add(i)
         gal, mains, why = {}, set(), collections.Counter()
     else:
-        changes, gal, mains, why = plan(items, audit, owner, hidden, only, fixes)
+        pol = {} if a.no_polish else polished()
+        changes, gal, mains, why = plan(items, audit, owner, hidden, only, fixes, pol)
     out, applied, failed = edit(raw, items, changes)
     print("%s: %d main photos switched, %d failed, %d finds with extra angles (%d photos); not switched: %s"
           % ("revert" if a.revert else "apply", len(applied), len(failed), len(gal), sum(map(len, gal.values())), dict(why)))

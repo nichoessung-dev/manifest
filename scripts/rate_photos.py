@@ -186,9 +186,9 @@ def spent_all():
 
 
 def merge():
-    """data/photo_ratings.json from the shard parts (s*.json)."""
+    """data/photo_ratings.json from the shard parts (s*.json), then the re-ratings (r*.json: r2s0 ...), which win."""
     out = {}
-    for f in sorted(glob.glob(os.path.join(PARTS, "s*.json"))):
+    for f in sorted(glob.glob(os.path.join(PARTS, "s*.json"))) + sorted(glob.glob(os.path.join(PARTS, "r*.json"))):
         for i, r in json.load(open(f, encoding="utf-8")).get("ratings", {}).items():
             if "tags" in r: out[i] = {k: r[k] for k in ("tags", "why", "conf", "photos", "n", "model", "at")}
     json.dump(out, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=1, sort_keys=True)
@@ -211,9 +211,12 @@ def main():
     a = ap.parse_args()
     if a.mode == "merge": return merge()
     ids = [i for i in open(IDS, encoding="utf-8").read().split() if i]
-    if a.ids: ids = [i for i in a.ids.split(",") if i]
+    if a.ids.startswith("@"):   # a file of ids (re-rating the finds a fix changed)
+        ids = [i for i in open(os.path.join(ROOT, a.ids[1:]), encoding="utf-8").read().split() if i]
+    elif a.ids: ids = [i for i in a.ids.split(",") if i]
     ids = ids[a.shard::a.shards]
-    path, part = load_part(a.part or f"s{a.shard}")
+    # a named part with several shards: one file per shard (r2s0, r2s1 ...), so parallel shards never write the same file
+    path, part = load_part((a.part + (str(a.shard) if a.shards > 1 else "")) if a.part else f"s{a.shard}")
     client = anthropic.Anthropic(max_retries=8)
     batch = a.mode == "batch"
 
