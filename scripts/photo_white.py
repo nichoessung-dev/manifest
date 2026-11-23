@@ -110,9 +110,13 @@ _hr = {}
 MEAN, STD = np.array([0.485, 0.456, 0.406], np.float32), np.array([0.229, 0.224, 0.225], np.float32)
 
 
-def matte_hr(rgb, model, size=2048):
+HR_SIZE = int(os.environ.get("PHOTO_WHITE_HR_SIZE", "2048"))
+
+
+def matte_hr(rgb, model, size=None):
     """BiRefNet_HR / BiRefNet_HR-matting (trained at 2048 x 2048) on the CPU. One of them in memory at a time: a 2048 px
-    pass needs about 9 GB (a runner was shut down with both loaded, 23 Nov 2026)."""
+    pass needs about 9 GB (a runner was shut down with both loaded, 23 Nov 2026); PHOTO_WHITE_HR_SIZE runs it smaller."""
+    size = size or HR_SIZE
     import gc, torch
     from transformers import AutoModelForImageSegmentation
     if model not in _hr:

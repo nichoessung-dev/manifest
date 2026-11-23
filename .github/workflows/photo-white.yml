@@ -25,6 +25,9 @@ on:
       max_minutes:
         description: 'Stop starting new photos after this many minutes'
         default: '300'
+      hr_size:
+        description: 'Size the HR BiRefNets run at (2048 = as trained; smaller needs less memory)'
+        default: '2048'
       retry:
         description: 'Also redo the photos not fixed before (not those the photo itself rules out); all = redo every photo'
         type: choice
@@ -45,6 +48,7 @@ jobs:
       MAXMIN: ${{ inputs.max_minutes || '300' }}
       RETRY: ${{ inputs.retry || 'no' }}
       HF_HUB_DISABLE_TELEMETRY: '1'
+      PHOTO_WHITE_HR_SIZE: ${{ inputs.hr_size || '2048' }}
     steps:
       - name: Check inputs
         run: |
@@ -53,6 +57,7 @@ jobs:
           [[ -z "$IDS" || "$IDS" =~ ^[0-9,\ ]+$ ]] || { echo "::error::bad ids"; exit 1; }
           [[ "$MODELS" =~ ^[a-z0-9,-]+$ ]] || { echo "::error::bad models"; exit 1; }
           [[ "$MAXMIN" =~ ^[0-9]{1,3}$ ]] || { echo "::error::bad max_minutes"; exit 1; }
+          [[ "$PHOTO_WHITE_HR_SIZE" =~ ^[0-9]{3,4}$ ]] || { echo "::error::bad hr_size"; exit 1; }
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
