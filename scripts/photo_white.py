@@ -19,9 +19,9 @@ Per photo:
   1. source   a, b: the store image the live file was cut from, found again among the find's candidates
               (store_photos_polish.find_source, on the un-premultiplied live file), then the live file itself.
               c: the site file. Live store files are read through the site's edge cache (/api/img), never from Supabase.
-  2. cut-out  birefnet-general and isnet-general-use (rembg, best edge first, as in the polish step), then BiRefNet_HR
-              and BiRefNet_HR-matting (2048 px, PyTorch, HuggingFace at pinned revisions) for what those two cannot do
-              (white on white, glossy, see-through). Each matte is tidied like the polish step (specks out, enclosed gaps
+  2. cut-out  BiRefNet first (birefnet-general, rembg), then BiRefNet_HR and BiRefNet_HR-matting (2048 px, PyTorch,
+              HuggingFace at pinned revisions) for what it cannot do (white on white, glossy, see-through), and
+              isnet-general-use only as the fallback. Each matte is tidied like the polish step (specks out, enclosed gaps
               decided, fringe choked, a hanger hook above a garment trimmed), the background colour is taken out of the
               edge, and the item is framed by store_photos_polish.place (1600 x 1600 #FFFFFF, fill by type, guarded
               Real-ESRGAN, light sharpening), WebP q90.
@@ -61,7 +61,7 @@ SHEETS = os.path.join(ROOT, "out", "photo-white")
 VERSION = 1
 SIZE = sp.SIZE
 MODEL_SHOT = re.compile(r"-[a-z]?m\d+\.webp$")
-MODELS = ["birefnet-general", "isnet-general-use", "birefnet-hr", "birefnet-hr-matting"]
+MODELS = ["birefnet-general", "birefnet-hr", "birefnet-hr-matting", "isnet-general-use"]
 HF = {"birefnet-hr": ("ZhengPeng7/BiRefNet_HR", "a7a562f6fd16021180f2f4348f4de003a2d3d1e1"),               # MIT
       "birefnet-hr-matting": ("ZhengPeng7/BiRefNet_HR-matting", "5d6b6f8adcb5b417c871b1d84ceaae9871355b7f")}
 FRAME_MAX = 0.25        # polish rule: more than 25% of a border is item -> the photo crops the item
@@ -433,24 +433,16 @@ def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, mod
     except Exception as e:
         rec["crop_err"] = str(e)[:80]
     sub = src_rgb.crop(crop)
-    fails, raws, secs = [], {}, {}
-    for m in [m for m in models if m in ("birefnet-general", "isnet-general-use")]:
+    fails, cands = [], {}
+
+    def attempt(m):
+        """Matte, frame and gate checks, framing, every check. Returns (photo or None, record entry)."""
         t = time.time()
         try:
-            raws[m] = matte(sub, m); secs[m] = round(time.time() - t, 1)
+            raw = matte(sub, m)
         except Exception as e:
-            fails.append(f"{m}: {str(e)[:60]}")
-    # best edge first (store_photos_polish.polish_photo), then the slow HR mattes
-    queue = sorted(raws, key=lambda m: -sp.edge_score(sp.clean_alpha(raws[m], sub, bg)[0], sub)) + [m for m in models if m in HF]
-    for m in queue:
-        if m in HF and not hr_worth(rec["tried"]):
-            rec["hr"] = "skipped: the fast cut-outs failed for a reason a finer matte does not change"; break
-        t = time.time()
-        try:
-            raw = raws[m] if m in raws else matte(sub, m)
-        except Exception as e:
-            fails.append(f"{m}: {str(e)[:60]}"); continue
-        r = {"model": m, "s": secs.get(m, round(time.time() - t, 1))}
+            return None, {"model": m, "why": f"{m}: {str(e)[:60]}"}, None
+        r = {"model": m, "s": round(time.time() - t, 1)}
         full = Image.new("L", src_rgb.size, 0); full.paste(raw, crop[:2])
         fr = frame_share(full)
         if fr > FRAME_MAX:
@@ -459,19 +451,47 @@ def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, mod
             bad = gate(full, several)
             if bad: r["why"] = "gate: " + "; ".join(bad)
         if "why" in r:
-            rec["tried"].append(r); fails.append(r["why"]); log(f"      {tag} {m}: {r['why']}"); continue
+            log(f"      {tag} {m}: {r['why']}"); return None, r, None
         out, notes, pl = compose(src_rgb, full, bg, kind, garment)
         if out is None:
-            r["why"] = notes.get("error"); rec["tried"].append(r); fails.append(r["why"]); continue
+            r["why"] = notes.get("error"); return None, r, None
         ok, why, ck = judge(g, ref, supp, out, pl, src_rgb.size, reg, clip, live_alpha)
         r.update(ck); r.update({k: v for k, v in notes.items() if k in ("clean", "hook", "up", "real_px", "shown_px")})
         if not ok: r["why"] = why
-        rec["tried"].append(r)
         log(f"      {tag} {m}: {'OK' if ok else why}  {json.dumps(ck)}")
-        if ok:
-            rec.update(model=m, checks=ck, notes={k: v for k, v in notes.items() if k != "edge"})
-            return out, rec
-        fails.append(why)
+        return (out if ok else None), r, notes
+
+    def done(m, out, r, notes):
+        rec["tried"].append(r)
+        if out is not None:
+            rec.update(model=m, checks={k: v for k, v in r.items() if k not in ("model", "s", "clean", "hook", "up", "real_px", "shown_px")},
+                       notes={k: v for k, v in (notes or {}).items() if k != "edge"})
+            return True
+        fails.append(r.get("why")); return False
+    # BiRefNet first (birefnet-general), then the HR / matting BiRefNets for what it cannot do (white on white, glossy,
+    # see-through), isnet-general-use only as the fallback. isnet is tried right after birefnet-general as a probe (it
+    # is fast): when both fail the same way the photo or its reference is the problem and the slow HR mattes are skipped,
+    # but its result is only used when no BiRefNet passes.
+    fast = [m for m in models if m == "birefnet-general"]
+    probe = [m for m in models if m == "isnet-general-use"]
+    slow = [m for m in models if m in HF]
+    for m in fast:
+        out, r, notes = attempt(m)
+        if done(m, out, r, notes): return out, rec
+    fallback = None
+    for m in probe:
+        out, r, notes = attempt(m)
+        r["fallback"] = True
+        if out is not None: fallback = (m, out, r, notes)
+        else: rec["tried"].append(r); fails.append(r.get("why"))
+    if slow and not hr_worth(rec["tried"] + ([fallback[2]] if fallback else [])):
+        rec["hr"] = "skipped: the fast cut-outs failed for a reason a finer matte does not change"; slow = []
+    for m in slow:
+        out, r, notes = attempt(m)
+        if done(m, out, r, notes): return out, rec
+    if fallback:
+        m, out, r, notes = fallback
+        done(m, out, r, notes); return out, rec
     rec["why"] = fails[-1] if fails else "no cut-out"
     return None, rec
 
@@ -481,7 +501,7 @@ def hr_worth(tried):
     Not when the photo crops the item, or when two different mattes fail the same way with the same numbers (the
     photo or its reference is the problem, not the matte)."""
     if not tried: return True
-    if all(str(t.get("why", "")).startswith("item cut off") for t in tried): return False
+    if all(str(t.get("why", "")).startswith("item cut off") for t in tried if t.get("why")): return False
     if len(tried) >= 2:
         a, b = tried[0], tried[1]
         if a.get("why") and b.get("why") and a["why"].split("(")[0] == b["why"].split("(")[0] and \
