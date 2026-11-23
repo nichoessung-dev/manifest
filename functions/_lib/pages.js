@@ -1,7 +1,7 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
 import { SITE, MYCNBOX_INVITE, BUILT, P, P_ALL, SWAP_HIDE, recBadge, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, thumbSrc, IMG_FALLBACK, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, colourBadge, GUIDE_LINKS, TOOL_LINKS, QC_ICON, origUrl,
-  TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell, ic, icTile, icSteps, more , QC_BANKED, newest, rowDays, AGENT_N, FINDS_PLUS, QC_PLUS, gone as goneOf, shown as findShown} from "./site.js";
+  TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell, ic, icTile, icSteps, more , QC_BANKED, newest, rowDays, AGENT_N, FINDS_PLUS, QC_PLUS, gone as goneOf, shown as findShown, hiddenVer} from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, agentBrandCopy, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
 import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS as TOOLS0 } from "./content2.js";
 import { TOOLS9, TOOL_UI9, toolPage9 } from "./tools9.js";
@@ -1494,7 +1494,8 @@ function listFor(u) {
   if (["/", "/brands", "/best", "/cnfans-spreadsheet"].includes(base) || (m = base.match(/^\/([a-z0-9]+)-spreadsheet$/)) && AGENT_INTRO[m[1]]) return P;
   if ((m = base.match(/^\/brand\/([a-z0-9-]+)$/))) return byBrand.get(slugBrand.get(m[1])) || null;
   if ((m = base.match(/^\/category\/([a-z0-9-]+)$/))) return own(CAT_BY_SLUG, m[1]) ? byCat.get(CAT_BY_SLUG[m[1]]) || null : null;
-  if ((m = base.match(/^\/best\/([a-z0-9-]+)$/))) { const x = models().find(y => y.slug === m[1]); return x ? x.list : null; }
+  if ((m = base.match(/^\/best\/([a-z0-9-]+)$/))) { const x = models().find(y => y.slug === m[1]); return x ? modelList(x) : null; }
+  if ((m = base.match(/^\/(weidian|taobao|1688)-spreadsheet$/))) return platFacts(m[1]).list;
   if (base === "/old-money") { const set = new Set(OLD_MONEY.brands); return P.filter(p => set.has(p.brand)); }
   const spec = hubSpec(base); return spec ? hubList(spec).list : null;
 }
@@ -1607,7 +1608,14 @@ const inBudget = (p, max) => !isPH(p.cny) && p.cny <= max;
 // the page renders. Facts only: no fees, delivery times or claims about agents beyond what the guides already say, the
 // agents are never ranked, and MyCNBox stays the default buy button.
 const PLAT_KEYS = ["weidian", "taobao", "1688"];
+// Kept per catalogue index and hidden set (23 Nov 2026): the sitemap asks for it once per page of each marketplace list.
+const _pf = new Map(); let _pfIdx = null, _pfVer = -1;
 function platFacts(key) {
+  if (_pfIdx !== idx() || _pfVer !== hiddenVer()) { _pf.clear(); _pfIdx = idx(); _pfVer = hiddenVer(); }
+  if (!_pf.has(key)) _pf.set(key, platFactsNew(key));
+  return _pf.get(key);
+}
+function platFactsNew(key) {
   const { brandSlug } = idx(), all = idx().all.filter(findShown);   // 23 Nov 2026: visible finds only, as the app shows them
   const list = all.filter(p => p.platform === key), n = list.length;
   const priced = list.map(p => p.cny).filter(x => !isPH(x)).sort((a, b) => a - b);
