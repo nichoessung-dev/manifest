@@ -1,5 +1,5 @@
 {
- "at": "2026-11-23T19:27:29+00:00",
+ "at": "2026-11-23T20:54:38+00:00",
  "items": {
   "d:1071986485754": {
    "at": "2026-11-23T17:31:52+00:00",
@@ -40,7 +40,7 @@
    "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:2683276337": {
-   "at": "2026-11-23T16:42:00+00:00",
+   "at": "2026-11-23T19:35:18+00:00",
    "flag": "no original",
    "group": "d",
    "id": "2683276337",
@@ -83,10 +83,11 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:3288018867": {
-   "at": "2026-11-23T17:36:58+00:00",
+   "at": "2026-11-23T20:14:48+00:00",
    "detect": {
-    "lost_old": 0.0446,
-    "s": 11.9
+    "hanger": 0.0009,
+    "lost_old": 0.0441,
+    "s": 10.9
    },
    "flag": "lost parts",
    "group": "d",
@@ -99,7 +100,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/3288018867.webp",
    "originals": 1,
-   "s": 240,
+   "s": 167,
    "source": "original",
    "src_size": [
     1080,
@@ -109,79 +110,79 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": 0.06,
-     "corr": 0.702,
+     "ar": 0.178,
+     "corr": 0.629,
      "fid": 5.36,
      "inside": [
       0.999,
-      0.997
+      0.998
      ],
-     "lost": 0.1399,
+     "lost": 0.1692,
      "model": "birefnet-general",
      "old_kept": 0.9936,
      "real_px": 1004,
-     "s": 23.9,
-     "same": 0.737,
-     "shadow": 0.0086,
+     "s": 18.8,
+     "same": 0.674,
+     "shadow": 0.0057,
      "shown_px": 1344,
      "up": "Real-ESRGAN (diff 3.3 / detail 6.1)",
-     "why": "another photo or a changed outline (outline 0.74 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.67 < 0.96)"
     },
     {
      "fallback": true,
      "model": "isnet-general-use",
-     "s": 1.8,
+     "s": 1.0,
      "why": "item cut off by the photo's frame (51% of a border)"
     },
     {
      "added": 0.0,
-     "ar": 0.061,
-     "corr": 0.703,
+     "ar": 0.177,
+     "corr": 0.63,
      "fid": 5.35,
      "inside": [
       0.999,
-      0.997
+      0.998
      ],
-     "lost": 0.1416,
+     "lost": 0.1707,
      "model": "birefnet-hr",
      "old_kept": 0.9928,
      "real_px": 1003,
-     "s": 79.4,
-     "same": 0.736,
-     "shadow": 0.0085,
+     "s": 55.0,
+     "same": 0.673,
+     "shadow": 0.0057,
      "shown_px": 1344,
      "up": "Real-ESRGAN (diff 3.3 / detail 6.0)",
-     "why": "another photo or a changed outline (outline 0.74 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.67 < 0.96)"
     },
     {
      "added": 0.0,
-     "ar": 0.134,
+     "ar": 0.242,
      "clean": [
       "1 specks out"
      ],
-     "corr": 0.615,
+     "corr": 0.566,
      "fid": 5.13,
      "inside": [
       0.999,
       0.998
      ],
-     "lost": 0.1383,
+     "lost": 0.1713,
      "model": "birefnet-hr-matting",
      "old_kept": 0.99,
      "real_px": 1069,
-     "s": 79.7,
-     "same": 0.696,
-     "shadow": 0.0124,
+     "s": 54.4,
+     "same": 0.635,
+     "shadow": 0.0057,
      "shown_px": 1344,
      "up": "Real-ESRGAN (diff 3.2 / detail 5.9)",
-     "why": "another photo or a changed outline (outline 0.70 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.63 < 0.96)"
     }
    ],
    "v": 2,
-   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.70 < 0.96)"
+   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.63 < 0.96)"
   },
   "d:3385423690": {
-   "at": "2026-11-23T17:40:59+00:00",
+   "at": "2026-11-23T20:17:47+00:00",
    "flag": "no original",
    "group": "d",
    "id": "3385423690",
@@ -198,7 +199,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:4266605214": {
-   "at": "2026-11-23T17:07:18+00:00",
+   "at": "2026-11-23T19:49:56+00:00",
    "flag": "no original",
    "group": "d",
    "id": "4266605214",
@@ -210,7 +211,7 @@
    "ok": false,
    "old": "/img/p/4266605214.webp",
    "originals": 1,
-   "s": 6,
+   "s": 5,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -241,7 +242,7 @@
    "why": "intact: the old cut-out has the whole item (0.6% not in it)"
   },
   "d:4435629932": {
-   "at": "2026-11-23T17:06:16+00:00",
+   "at": "2026-11-23T19:48:53+00:00",
    "flag": "no original",
    "group": "d",
    "id": "4435629932",
@@ -253,7 +254,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/4435629932.webp?v=1789503452",
    "originals": 1,
-   "s": 4,
+   "s": 5,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -336,7 +337,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:5476265819": {
-   "at": "2026-11-23T17:12:10+00:00",
+   "at": "2026-11-23T19:53:12+00:00",
    "flag": "no original",
    "group": "d",
    "id": "5476265819",
@@ -348,7 +349,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/5476265819.webp?v=1789503452",
    "originals": 1,
-   "s": 6,
+   "s": 5,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -429,7 +430,7 @@
    "why": "no original photo to compare with (not a Weidian listing)"
   },
   "d:6589699372": {
-   "at": "2026-11-23T17:09:14+00:00",
+   "at": "2026-11-23T19:52:58+00:00",
    "flag": "no original",
    "group": "d",
    "id": "6589699372",
@@ -441,7 +442,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/6589699372.webp?v=1789514345",
    "originals": 1,
-   "s": 5,
+   "s": 6,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -510,7 +511,7 @@
    "why": "no original photo to compare with (not a Weidian listing)"
   },
   "d:6753835491": {
-   "at": "2026-11-23T17:15:03+00:00",
+   "at": "2026-11-23T19:57:02+00:00",
    "flag": "no original",
    "group": "d",
    "id": "6753835491",
@@ -522,13 +523,17 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/6753835491.webp",
    "originals": 2,
-   "s": 9,
+   "s": 8,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:6753867321": {
-   "at": "2026-11-23T17:14:54+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T19:56:53+00:00",
+   "detect": {
+    "lost_old": 0.0012,
+    "s": 11.2
+   },
+   "flag": "intact",
    "group": "d",
    "id": "6753867321",
    "match": {
@@ -539,9 +544,14 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/6753867321.webp",
    "originals": 2,
-   "s": 10,
+   "s": 19,
+   "src_size": [
+    1170,
+    1097
+   ],
+   "src_url": "https://si.geilicdn.com/open1819515500-252808396-70800000018b5ec2f44b0a22d595_1170_1097.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:679385234602": {
    "at": "2026-11-23T17:59:16+00:00",
@@ -606,7 +616,7 @@
    "why": "no original photo to compare with (not a Weidian listing)"
   },
   "d:7237228645": {
-   "at": "2026-11-23T16:57:28+00:00",
+   "at": "2026-11-23T19:43:08+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7237228645",
@@ -623,7 +633,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7238210078": {
-   "at": "2026-11-23T17:07:45+00:00",
+   "at": "2026-11-23T19:50:32+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7238210078",
@@ -635,12 +645,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7238210078.webp",
    "originals": 1,
-   "s": 6,
+   "s": 4,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7238641912": {
-   "at": "2026-11-23T16:58:35+00:00",
+   "at": "2026-11-23T19:44:07+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7238641912",
@@ -652,12 +662,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7238641912.webp",
    "originals": 1,
-   "s": 10,
+   "s": 4,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7268007747": {
-   "at": "2026-11-23T17:40:54+00:00",
+   "at": "2026-11-23T20:17:42+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7268007747",
@@ -669,13 +679,17 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7268007747.webp",
    "originals": 5,
-   "s": 21,
+   "s": 20,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7294857785": {
-   "at": "2026-11-23T17:07:23+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T19:50:14+00:00",
+   "detect": {
+    "lost_old": 0.0062,
+    "s": 11.5
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7294857785",
    "match": {
@@ -686,9 +700,14 @@
    "ok": false,
    "old": "/img/p/7294857785.webp",
    "originals": 1,
-   "s": 5,
+   "s": 18,
+   "src_size": [
+    1179,
+    1126
+   ],
+   "src_url": "https://si.geilicdn.com/wdseller1527186771-3ff500000192d7bc87930a239846_1179_1126.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.6% not in it)"
   },
   "d:7298494844": {
    "at": "2026-11-23T17:09:51+00:00",
@@ -741,7 +760,7 @@
    "why": "no original photo to compare with (not a Weidian listing)"
   },
   "d:7323869410": {
-   "at": "2026-11-23T17:14:28+00:00",
+   "at": "2026-11-23T19:56:34+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7323869410",
@@ -758,7 +777,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7338540445": {
-   "at": "2026-11-23T17:51:34+00:00",
+   "at": "2026-11-23T20:25:53+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7338540445",
@@ -770,7 +789,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7338540445.webp",
    "originals": 3,
-   "s": 12,
+   "s": 11,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -787,7 +806,7 @@
    "why": "no original photo to compare with (not a Weidian listing)"
   },
   "d:7452472159": {
-   "at": "2026-11-23T17:32:13+00:00",
+   "at": "2026-11-23T20:11:01+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7452472159",
@@ -799,12 +818,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7452472159.webp",
    "originals": 1,
-   "s": 16,
+   "s": 5,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7454419712": {
-   "at": "2026-11-23T17:30:41+00:00",
+   "at": "2026-11-23T20:10:51+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7454419712",
@@ -816,7 +835,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7454419712.webp",
    "originals": 1,
-   "s": 7,
+   "s": 5,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -847,7 +866,7 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7460109779": {
-   "at": "2026-11-23T17:51:05+00:00",
+   "at": "2026-11-23T20:25:26+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7460109779",
@@ -864,24 +883,24 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7468835566": {
-   "at": "2026-11-23T17:08:14+00:00",
+   "at": "2026-11-23T19:51:23+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7468835566",
    "match": {
-    "colour": 44.92,
-    "ncc": 0.3993,
-    "url": "https://si.geilicdn.com/open1647327121-1234478995-1f1b00000196cb09c4740a231226_791_791.jpg"
+    "colour": 47.63,
+    "ncc": 0.47,
+    "url": "https://si.geilicdn.com/open1647327121-1234478995-191b00000196cb09d6ba0a8133b0_781_781.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7468835566.webp",
    "originals": 12,
-   "s": 29,
+   "s": 50,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7484546882": {
-   "at": "2026-11-23T16:43:56+00:00",
+   "at": "2026-11-23T19:38:56+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7484546882",
@@ -893,24 +912,24 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7484546882.webp",
    "originals": 1,
-   "s": 55,
+   "s": 54,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7493490523": {
-   "at": "2026-11-23T17:17:56+00:00",
+   "at": "2026-11-23T19:58:06+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7493490523",
    "match": {
-    "colour": 59.81,
-    "ncc": 0.1686,
-    "url": "https://si.geilicdn.com/pcitem1963031416-169b0000019db515b9f60a23057e_1080_1080.jpg"
+    "colour": 74.46,
+    "ncc": 0.1714,
+    "url": "https://si.geilicdn.com/pcitem1963031416-45e90000019db51b32940a2394a4_1440_1440.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7493490523.webp?v=1789514345",
    "originals": 12,
-   "s": 29,
+   "s": 44,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -941,8 +960,13 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7512677169": {
-   "at": "2026-11-23T16:40:59+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T19:35:04+00:00",
+   "detect": {
+    "hanger": 0.0003,
+    "lost_old": 0.0073,
+    "s": 43.0
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7512677169",
    "match": {
@@ -953,9 +977,14 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7512677169.webp",
    "originals": 12,
-   "s": 74,
+   "s": 109,
+   "src_size": [
+    1440,
+    1920
+   ],
+   "src_url": "https://si.geilicdn.com/open1749574397-1234478995-356900000198388967bc0a231226_1440_1920.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.7% not in it)"
   },
   "d:7520332138": {
    "at": "2026-11-23T17:18:12+00:00",
@@ -1088,7 +1117,7 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7568192821": {
-   "at": "2026-11-23T17:07:39+00:00",
+   "at": "2026-11-23T19:50:28+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7568192821",
@@ -1287,7 +1316,7 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7569519773": {
-   "at": "2026-11-23T18:42:33+00:00",
+   "at": "2026-11-23T20:42:47+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7569519773",
@@ -1299,7 +1328,7 @@
    "ok": false,
    "old": "/img/rl/7569519773.webp",
    "originals": 1,
-   "s": 5,
+   "s": 4,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -1382,8 +1411,12 @@
    "why": "intact: the old cut-out has the whole item (0.5% not in it)"
   },
   "d:7571309128": {
-   "at": "2026-11-23T18:44:50+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:43:01+00:00",
+   "detect": {
+    "lost_old": 0.0009,
+    "s": 10.4
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7571309128",
    "match": {
@@ -1394,9 +1427,14 @@
    "ok": false,
    "old": "/img/rl/7571309128.webp",
    "originals": 1,
-   "s": 4,
+   "s": 14,
+   "src_size": [
+    1000,
+    1000
+   ],
+   "src_url": "https://pruerjpeywhiehnivuku.supabase.co/storage/v1/object/public/img/items/1777292709845-karn4xpuar.png",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7571325420": {
    "at": "2026-11-23T18:44:29+00:00",
@@ -1451,7 +1489,7 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7571374839": {
-   "at": "2026-11-23T17:07:30+00:00",
+   "at": "2026-11-23T19:50:20+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7571374839",
@@ -1468,7 +1506,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7571379203": {
-   "at": "2026-11-23T17:43:52+00:00",
+   "at": "2026-11-23T20:17:54+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7571379203",
@@ -1480,7 +1518,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7571379203.webp",
    "originals": 1,
-   "s": 8,
+   "s": 7,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -1693,7 +1731,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7571736033": {
-   "at": "2026-11-23T18:57:31+00:00",
+   "at": "2026-11-23T20:44:06+00:00",
    "checks": {
     "added": 0.0,
     "ar": 0.0,
@@ -1710,7 +1748,7 @@
    },
    "detect": {
     "lost_old": 0.0918,
-    "s": 12.1
+    "s": 11.0
    },
    "file": "img/white/recut/7571736033.webp",
    "flag": "lost parts",
@@ -1734,7 +1772,7 @@
    "ok": true,
    "old": "/img/rl/7571736033.webp",
    "originals": 1,
-   "s": 46,
+   "s": 36,
    "source": "original",
    "src_size": [
     2000,
@@ -1758,7 +1796,7 @@
      "model": "birefnet-general",
      "old_kept": 1.0,
      "real_px": 605,
-     "s": 24.4,
+     "s": 18.7,
      "same": 0.999,
      "shadow": 0.0077,
      "shown_px": 1376,
@@ -1924,10 +1962,10 @@
    "why": "intact: the old cut-out has the whole item (0.4% not in it)"
   },
   "d:7573549356": {
-   "at": "2026-11-23T19:03:58+00:00",
+   "at": "2026-11-23T20:47:04+00:00",
    "detect": {
     "lost_old": 0.2425,
-    "s": 12.1
+    "s": 12.9
    },
    "flag": "lost parts",
    "group": "d",
@@ -1940,7 +1978,7 @@
    "ok": false,
    "old": "/img/rl/7573549356.webp",
    "originals": 1,
-   "s": 249,
+   "s": 173,
    "source": "original",
    "src_size": [
     2000,
@@ -1965,7 +2003,7 @@
      "model": "birefnet-general",
      "old_kept": 1.0,
      "real_px": 1016,
-     "s": 23.9,
+     "s": 19.1,
      "same": 0.999,
      "shadow": 0.0125,
      "shown_px": 1120,
@@ -1975,7 +2013,7 @@
     {
      "fallback": true,
      "model": "isnet-general-use",
-     "s": 1.8,
+     "s": 1.0,
      "why": "gate: hazy mask (16% half-transparent away from the item)"
     },
     {
@@ -1991,7 +2029,7 @@
      "model": "birefnet-hr",
      "old_kept": 1.0,
      "real_px": 1016,
-     "s": 80.1,
+     "s": 55.2,
      "same": 0.999,
      "shadow": 0.0135,
      "shown_px": 1120,
@@ -2015,7 +2053,7 @@
      "model": "birefnet-hr-matting",
      "old_kept": 1.0,
      "real_px": 1016,
-     "s": 80.8,
+     "s": 53.5,
      "same": 0.998,
      "shadow": 0.0139,
      "shown_px": 1120,
@@ -2183,7 +2221,7 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7581618669": {
-   "at": "2026-11-23T17:06:12+00:00",
+   "at": "2026-11-23T19:48:49+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7581618669",
@@ -2195,7 +2233,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7581618669.webp",
    "originals": 10,
-   "s": 27,
+   "s": 40,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -2252,7 +2290,7 @@
    "why": "intact: the old cut-out has the whole item (0.4% not in it)"
   },
   "d:7590879974": {
-   "at": "2026-11-23T17:07:35+00:00",
+   "at": "2026-11-23T19:50:24+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7590879974",
@@ -2269,7 +2307,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7606688375": {
-   "at": "2026-11-23T17:19:28+00:00",
+   "at": "2026-11-23T19:58:46+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7606688375",
@@ -2281,7 +2319,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7606688375.webp?v=1789514345",
    "originals": 5,
-   "s": 25,
+   "s": 20,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -2312,7 +2350,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7612267693": {
-   "at": "2026-11-23T18:59:15+00:00",
+   "at": "2026-11-23T20:44:11+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7612267693",
@@ -2324,7 +2362,7 @@
    "ok": false,
    "old": "/img/rl/7612267693.webp",
    "originals": 1,
-   "s": 6,
+   "s": 5,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -2745,19 +2783,19 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7619598841": {
-   "at": "2026-11-23T17:13:08+00:00",
+   "at": "2026-11-23T19:54:51+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7619598841",
    "match": {
-    "colour": 68.95,
-    "ncc": 0.2518,
-    "url": "https://si.geilicdn.com/pcitem901858814557-42a40000018f8989e2b70a8134f0_800_600.jpg"
+    "colour": 59.98,
+    "ncc": 0.2727,
+    "url": "https://si.geilicdn.com/pcitem901858814557-3f390000018f8989e82a0a2301b4_800_600.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7619598841.webp",
    "originals": 10,
-   "s": 24,
+   "s": 37,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -2788,7 +2826,7 @@
    "why": "intact: the old cut-out has the whole item (0.4% not in it)"
   },
   "d:7620980689": {
-   "at": "2026-11-23T17:16:24+00:00",
+   "at": "2026-11-23T19:57:10+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7620980689",
@@ -2800,7 +2838,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7620980689.webp?v=1789503452",
    "originals": 2,
-   "s": 9,
+   "s": 8,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -3065,7 +3103,7 @@
    "why": "intact: the old cut-out has the whole item (1.5% not in it)"
   },
   "d:7635194118": {
-   "at": "2026-11-23T17:07:12+00:00",
+   "at": "2026-11-23T19:49:51+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7635194118",
@@ -3077,7 +3115,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7635194118.webp?v=1789514345",
    "originals": 1,
-   "s": 6,
+   "s": 5,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -3290,7 +3328,7 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7637630092": {
-   "at": "2026-11-23T17:13:40+00:00",
+   "at": "2026-11-23T19:55:43+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7637630092",
@@ -3302,7 +3340,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7637630092.webp",
    "originals": 12,
-   "s": 32,
+   "s": 51,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -3333,8 +3371,12 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7638778177": {
-   "at": "2026-11-23T18:46:10+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:43:16+00:00",
+   "detect": {
+    "lost_old": 0.0028,
+    "s": 10.8
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7638778177",
    "match": {
@@ -3345,9 +3387,14 @@
    "ok": false,
    "old": "/img/rl/7638778177.webp",
    "originals": 1,
-   "s": 5,
+   "s": 15,
+   "src_size": [
+    1000,
+    1000
+   ],
+   "src_url": "https://pruerjpeywhiehnivuku.supabase.co/storage/v1/object/public/img/items/1775730951603-5cxqcp8ehy.png",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7638985288": {
    "at": "2026-11-23T17:53:53+00:00",
@@ -3376,19 +3423,19 @@
    "why": "intact: the old cut-out has the whole item (0.7% not in it)"
   },
   "d:7639282714": {
-   "at": "2026-11-23T17:40:10+00:00",
+   "at": "2026-11-23T20:17:17+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7639282714",
    "match": {
-    "colour": 96.64,
-    "ncc": 0.3972,
-    "url": "https://si.geilicdn.com/open1690135229-1234478995-5c770000019889a1e2ed0a231226_1594_1594.jpg"
+    "colour": 106.58,
+    "ncc": 0.4219,
+    "url": "https://si.geilicdn.com/open1690135229-1234478995-259b0000019889a1e9780aa043f9_1594_1594.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7639282714.webp",
    "originals": 12,
-   "s": 38,
+   "s": 53,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -3471,7 +3518,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7644500341": {
-   "at": "2026-11-23T17:04:49+00:00",
+   "at": "2026-11-23T19:48:09+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7644500341",
@@ -3488,7 +3535,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7653825159": {
-   "at": "2026-11-23T17:52:00+00:00",
+   "at": "2026-11-23T20:25:59+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7653825159",
@@ -3500,12 +3547,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7653825159.webp",
    "originals": 1,
-   "s": 7,
+   "s": 6,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7653839009": {
-   "at": "2026-11-23T17:59:04+00:00",
+   "at": "2026-11-23T20:29:57+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7653839009",
@@ -3522,7 +3569,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7653872473": {
-   "at": "2026-11-23T17:59:16+00:00",
+   "at": "2026-11-23T20:30:10+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7653872473",
@@ -3534,12 +3581,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7653872473.webp",
    "originals": 1,
-   "s": 5,
+   "s": 6,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7653876475": {
-   "at": "2026-11-23T17:58:57+00:00",
+   "at": "2026-11-23T20:29:51+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7653876475",
@@ -3556,7 +3603,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7656799288": {
-   "at": "2026-11-23T17:55:03+00:00",
+   "at": "2026-11-23T20:26:10+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7656799288",
@@ -3568,12 +3615,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7656799288.webp",
    "originals": 1,
-   "s": 5,
+   "s": 4,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7656822856": {
-   "at": "2026-11-23T17:51:10+00:00",
+   "at": "2026-11-23T20:25:30+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7656822856",
@@ -3590,7 +3637,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7656830760": {
-   "at": "2026-11-23T17:59:11+00:00",
+   "at": "2026-11-23T20:30:04+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7656830760",
@@ -3607,7 +3654,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7656836734": {
-   "at": "2026-11-23T17:51:17+00:00",
+   "at": "2026-11-23T20:25:37+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7656836734",
@@ -3624,7 +3671,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7656856394": {
-   "at": "2026-11-23T17:53:37+00:00",
+   "at": "2026-11-23T20:26:06+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7656856394",
@@ -3636,12 +3683,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7656856394.webp",
    "originals": 1,
-   "s": 8,
+   "s": 7,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7656885980": {
-   "at": "2026-11-23T17:58:53+00:00",
+   "at": "2026-11-23T20:29:46+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7656885980",
@@ -3710,7 +3757,7 @@
    "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7672269749": {
-   "at": "2026-11-23T19:16:41+00:00",
+   "at": "2026-11-23T20:49:28+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7672269749",
@@ -3722,7 +3769,7 @@
    "ok": false,
    "old": "/img/fr/7672269749.webp",
    "originals": 4,
-   "s": 18,
+   "s": 17,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -3805,7 +3852,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7672729249": {
-   "at": "2026-11-23T19:18:07+00:00",
+   "at": "2026-11-23T20:50:29+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7672729249",
@@ -3817,7 +3864,7 @@
    "ok": false,
    "old": "/img/fr/7672729249.webp",
    "originals": 2,
-   "s": 13,
+   "s": 12,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -3874,7 +3921,7 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7673327681": {
-   "at": "2026-11-23T16:53:24+00:00",
+   "at": "2026-11-23T19:41:30+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7673327681",
@@ -3886,7 +3933,7 @@
    "ok": false,
    "old": "/img/fr/7673327681.webp",
    "originals": 9,
-   "s": 20,
+   "s": 28,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -3943,7 +3990,7 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7675196566": {
-   "at": "2026-11-23T19:17:07+00:00",
+   "at": "2026-11-23T20:50:17+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7675196566",
@@ -3955,7 +4002,7 @@
    "ok": false,
    "old": "/img/fr/7675196566.webp",
    "originals": 12,
-   "s": 25,
+   "s": 48,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -4038,19 +4085,19 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7675758584": {
-   "at": "2026-11-23T19:20:37+00:00",
+   "at": "2026-11-23T20:51:24+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7675758584",
    "match": {
-    "colour": 52.42,
-    "ncc": 0.2155,
-    "url": "https://si.geilicdn.com/pcitem901940024420-578700000198935968b40a811411_1440_1920.jpg"
+    "colour": 44.72,
+    "ncc": 0.2627,
+    "url": "https://si.geilicdn.com/pcitem901940024420-09fd000001989359e2bd0a2303ee_1440_1920.jpg"
    },
    "ok": false,
    "old": "/img/fr/7675758584.webp",
    "originals": 12,
-   "s": 29,
+   "s": 56,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -4081,7 +4128,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7675790052": {
-   "at": "2026-11-23T19:21:40+00:00",
+   "at": "2026-11-23T20:52:06+00:00",
    "checks": {
     "added": 0.0,
     "ar": 0.0,
@@ -4098,7 +4145,7 @@
    },
    "detect": {
     "lost_old": 0.1135,
-    "s": 12.0
+    "s": 10.8
    },
    "file": "img/white/recut/7675790052.webp",
    "flag": "lost parts",
@@ -4119,7 +4166,7 @@
    "ok": true,
    "old": "/img/fr/7675790052.webp",
    "originals": 9,
-   "s": 63,
+   "s": 42,
    "source": "original",
    "src_size": [
     1000,
@@ -4140,7 +4187,7 @@
      "model": "birefnet-general",
      "old_kept": 1.0,
      "real_px": 262,
-     "s": 24.1,
+     "s": 18.3,
      "same": 0.999,
      "shadow": 0.0058,
      "shown_px": 1344,
@@ -4228,7 +4275,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7676209194": {
-   "at": "2026-11-23T19:16:05+00:00",
+   "at": "2026-11-23T20:49:11+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7676209194",
@@ -4240,7 +4287,7 @@
    "ok": false,
    "old": "/img/fr/7676209194.webp",
    "originals": 8,
-   "s": 23,
+   "s": 34,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -4323,7 +4370,7 @@
    "why": "intact: the old cut-out has the whole item (1.5% not in it)"
   },
   "d:7676295936": {
-   "at": "2026-11-23T16:52:07+00:00",
+   "at": "2026-11-23T19:41:02+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7676295936",
@@ -4335,7 +4382,7 @@
    "ok": false,
    "old": "/img/fr/7676295936.webp",
    "originals": 12,
-   "s": 41,
+   "s": 45,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -4470,11 +4517,11 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7677513715": {
-   "at": "2026-11-23T16:50:56+00:00",
+   "at": "2026-11-23T19:40:17+00:00",
    "checks": {
     "added": 0.0,
-    "ar": 0.05,
-    "corr": 0.816,
+    "ar": 0.027,
+    "corr": 0.826,
     "fid": 3.33,
     "inside": [
      0.999,
@@ -4487,7 +4534,7 @@
    },
    "detect": {
     "lost_old": 0.5696,
-    "s": 11.7
+    "s": 10.7
    },
    "file": "img/white/recut/7677513715.webp",
    "flag": "lost parts",
@@ -4508,7 +4555,7 @@
    "ok": true,
    "old": "/img/fr/7677513715.webp",
    "originals": 12,
-   "s": 74,
+   "s": 60,
    "source": "original",
    "src_size": [
     800,
@@ -4518,8 +4565,8 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": 0.05,
-     "corr": 0.816,
+     "ar": 0.027,
+     "corr": 0.826,
      "fid": 3.33,
      "inside": [
       0.999,
@@ -4529,7 +4576,7 @@
      "model": "birefnet-general",
      "old_kept": 1.0,
      "real_px": 643,
-     "s": 40.1,
+     "s": 31.3,
      "same": 0.997,
      "shadow": 0.0,
      "shown_px": 1344,
@@ -4539,8 +4586,13 @@
    "v": 2
   },
   "d:7680364125": {
-   "at": "2026-11-23T17:44:35+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:18:36+00:00",
+   "detect": {
+    "hanger": 0.0006,
+    "lost_old": 0.0009,
+    "s": 16.1
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7680364125",
    "match": {
@@ -4551,13 +4603,22 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7680364125.webp",
    "originals": 5,
-   "s": 28,
+   "s": 43,
+   "src_size": [
+    1440,
+    1440
+   ],
+   "src_url": "https://si.geilicdn.com/open1673430013-1234478995-35c60000019898c51e810a8115c2_1440_1440.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7680379382": {
-   "at": "2026-11-23T19:11:55+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:48:37+00:00",
+   "detect": {
+    "lost_old": 0.0019,
+    "s": 15.8
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7680379382",
    "match": {
@@ -4568,9 +4629,14 @@
    "ok": false,
    "old": "/img/fr/7680379382.webp",
    "originals": 12,
-   "s": 31,
+   "s": 72,
+   "src_size": [
+    1080,
+    1080
+   ],
+   "src_url": "https://si.geilicdn.com/open1836032619-252808396-0b1c0000019bfd3efc720a22d249_1080_1080.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7680395198": {
    "at": "2026-11-23T19:11:24+00:00",
@@ -4625,7 +4691,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7680395410": {
-   "at": "2026-11-23T19:10:45+00:00",
+   "at": "2026-11-23T20:47:25+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7680395410",
@@ -4637,7 +4703,7 @@
    "ok": false,
    "old": "/img/fr/7680395410.webp",
    "originals": 3,
-   "s": 13,
+   "s": 10,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -4694,7 +4760,7 @@
    "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7680499900": {
-   "at": "2026-11-23T19:10:32+00:00",
+   "at": "2026-11-23T20:47:15+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7680499900",
@@ -4706,12 +4772,12 @@
    "ok": false,
    "old": "/img/fr/7680499900.webp",
    "originals": 3,
-   "s": 12,
+   "s": 11,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7686554991": {
-   "at": "2026-11-23T17:12:16+00:00",
+   "at": "2026-11-23T19:53:17+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7686554991",
@@ -4728,7 +4794,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7687027044": {
-   "at": "2026-11-23T17:58:48+00:00",
+   "at": "2026-11-23T20:29:41+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7687027044",
@@ -4740,12 +4806,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7687027044.webp",
    "originals": 1,
-   "s": 5,
+   "s": 6,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7692227165": {
-   "at": "2026-11-23T17:57:48+00:00",
+   "at": "2026-11-23T20:27:55+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7692227165",
@@ -4757,12 +4823,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7692227165.webp",
    "originals": 12,
-   "s": 30,
+   "s": 62,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7697704121": {
-   "at": "2026-11-23T17:06:58+00:00",
+   "at": "2026-11-23T19:49:40+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7697704121",
@@ -4774,13 +4840,17 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7697704121.webp",
    "originals": 1,
-   "s": 6,
+   "s": 5,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7699789473": {
-   "at": "2026-11-23T17:44:40+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:18:58+00:00",
+   "detect": {
+    "lost_old": 0.0003,
+    "s": 15.1
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7699789473",
    "match": {
@@ -4791,12 +4861,17 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7699789473.webp",
    "originals": 1,
-   "s": 5,
+   "s": 22,
+   "src_size": [
+    1440,
+    1440
+   ],
+   "src_url": "https://si.geilicdn.com/open1831483949-1831483949-049a0000019cb46055c80a8133b0_1440_1440.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7700260915": {
-   "at": "2026-11-23T17:07:06+00:00",
+   "at": "2026-11-23T19:49:46+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7700260915",
@@ -4808,7 +4883,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7700260915.webp?v=1789514345",
    "originals": 1,
-   "s": 8,
+   "s": 7,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -4839,7 +4914,7 @@
    "why": "intact: the old cut-out has the whole item (0.4% not in it)"
   },
   "d:7702665999": {
-   "at": "2026-11-23T17:09:09+00:00",
+   "at": "2026-11-23T19:52:52+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7702665999",
@@ -4851,29 +4926,29 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7702665999.webp",
    "originals": 12,
-   "s": 27,
+   "s": 49,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7702771005": {
-   "at": "2026-11-23T16:58:25+00:00",
+   "at": "2026-11-23T19:44:03+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7702771005",
    "match": {
-    "colour": 86.48,
-    "ncc": 0.3433,
-    "url": "https://si.geilicdn.com/open1763239363-1234478995-36d5000001989fcaff4b0a231226_1080_810.jpg"
+    "colour": 67.16,
+    "ncc": 0.3934,
+    "url": "https://si.geilicdn.com/open1763239363-1234478995-3060000001989fcb05070a8115c2_1440_1920.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7702771005.webp",
    "originals": 12,
-   "s": 32,
+   "s": 44,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7702851951": {
-   "at": "2026-11-23T16:57:33+00:00",
+   "at": "2026-11-23T19:43:13+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7702851951",
@@ -4885,7 +4960,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7702851951.webp",
    "originals": 1,
-   "s": 6,
+   "s": 5,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -4916,7 +4991,7 @@
    "why": "intact: the old cut-out has the whole item (0.4% not in it)"
   },
   "d:7705284267": {
-   "at": "2026-11-23T16:57:22+00:00",
+   "at": "2026-11-23T19:43:02+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7705284267",
@@ -4928,7 +5003,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7705284267.webp",
    "originals": 10,
-   "s": 36,
+   "s": 52,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -5491,8 +5566,12 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7712769048": {
-   "at": "2026-11-23T18:34:23+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:42:33+00:00",
+   "detect": {
+    "lost_old": 0.0028,
+    "s": 10.8
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7712769048",
    "match": {
@@ -5503,9 +5582,14 @@
    "ok": false,
    "old": "/img/rl/7712769048.webp",
    "originals": 1,
-   "s": 4,
+   "s": 14,
+   "src_size": [
+    816,
+    816
+   ],
+   "src_url": "https://pruerjpeywhiehnivuku.supabase.co/storage/v1/object/public/img/items/1793016098742-ucov02a94w.png",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7712790274": {
    "at": "2026-11-23T18:36:44+00:00",
@@ -5820,7 +5904,7 @@
    "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7717229211": {
-   "at": "2026-11-23T18:25:45+00:00",
+   "at": "2026-11-23T20:38:42+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7717229211",
@@ -5832,7 +5916,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7717229211.webp",
    "originals": 2,
-   "s": 11,
+   "s": 10,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -5889,7 +5973,7 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7717235225": {
-   "at": "2026-11-23T18:27:15+00:00",
+   "at": "2026-11-23T20:39:35+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7717235225",
@@ -5901,7 +5985,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7717235225.webp",
    "originals": 12,
-   "s": 29,
+   "s": 52,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -6166,21 +6250,30 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7717270677": {
-   "at": "2026-11-23T18:23:28+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:38:33+00:00",
+   "detect": {
+    "lost_old": 0.0001,
+    "s": 10.7
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7717270677",
    "match": {
-    "colour": 15.96,
-    "ncc": 0.3824,
-    "url": "https://si.geilicdn.com/pcitem902053027310-17460000019f63e5123e0a2103bd-unadjust_800_800.png"
+    "colour": 2.67,
+    "ncc": 0.9613,
+    "url": "https://si.geilicdn.com/pcitem901940024420-4b9100000198543a19fa0a8133cc_1284_1284.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7717270677.webp",
    "originals": 12,
-   "s": 21,
+   "s": 54,
+   "src_size": [
+    1284,
+    1284
+   ],
+   "src_url": "https://si.geilicdn.com/pcitem901940024420-4b9100000198543a19fa0a8133cc_1284_1284.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7717274771": {
    "at": "2026-11-23T18:03:12+00:00",
@@ -6339,7 +6432,7 @@
    "why": "intact: the old cut-out has the whole item (0.5% not in it)"
   },
   "d:7717296465": {
-   "at": "2026-11-23T18:16:32+00:00",
+   "at": "2026-11-23T20:33:28+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7717296465",
@@ -6351,7 +6444,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7717296465.webp",
    "originals": 4,
-   "s": 17,
+   "s": 16,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -6512,8 +6605,12 @@
    "why": "intact: the old cut-out has the whole item (0.9% not in it)"
   },
   "d:7717322039": {
-   "at": "2026-11-23T18:17:54+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:34:00+00:00",
+   "detect": {
+    "lost_old": 0.001,
+    "s": 10.8
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7717322039",
    "match": {
@@ -6524,9 +6621,14 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7717322039.webp",
    "originals": 5,
-   "s": 22,
+   "s": 32,
+   "src_size": [
+    800,
+    800
+   ],
+   "src_url": "https://si.geilicdn.com/pcitem901937441120-11a20000019f69a085040a2315ef_800_800.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7717331807": {
    "at": "2026-11-23T18:24:44+00:00",
@@ -6581,7 +6683,7 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7718193025": {
-   "at": "2026-11-23T17:32:58+00:00",
+   "at": "2026-11-23T20:12:01+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7718193025",
@@ -6593,7 +6695,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7718193025.webp",
    "originals": 3,
-   "s": 17,
+   "s": 14,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -6676,25 +6778,29 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7720203486": {
-   "at": "2026-11-23T18:14:45+00:00",
+   "at": "2026-11-23T20:33:12+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7720203486",
    "match": {
-    "colour": 142.7,
-    "ncc": 0.1491,
-    "url": "https://si.geilicdn.com/pcitem901940024420-25de00000197a0f55ef20a23038e_1080_1080.jpg"
+    "colour": 5.92,
+    "ncc": 0.2565,
+    "url": "https://si.geilicdn.com/pcitem901940024420-2bcf00000197a0f5e9080a20e284_1080_1080.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7720203486.webp",
    "originals": 12,
-   "s": 24,
+   "s": 47,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7720215218": {
-   "at": "2026-11-23T18:00:33+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:30:59+00:00",
+   "detect": {
+    "lost_old": 0.0001,
+    "s": 11.0
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7720215218",
    "match": {
@@ -6705,9 +6811,14 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7720215218.webp",
    "originals": 9,
-   "s": 25,
+   "s": 48,
+   "src_size": [
+    800,
+    800
+   ],
+   "src_url": "https://si.geilicdn.com/pcitem901908522262-634b00000194f893d7990a2301b4_800_800.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7720217332": {
    "at": "2026-11-23T18:24:05+00:00",
@@ -6996,7 +7107,7 @@
    "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7720268532": {
-   "at": "2026-11-23T18:22:51+00:00",
+   "at": "2026-11-23T20:37:39+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7720268532",
@@ -7008,7 +7119,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7720268532.webp",
    "originals": 7,
-   "s": 26,
+   "s": 30,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -7117,10 +7228,10 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7720304168": {
-   "at": "2026-11-23T18:21:54+00:00",
+   "at": "2026-11-23T20:37:09+00:00",
    "detect": {
     "lost_old": 0.0785,
-    "s": 11.9
+    "s": 10.8
    },
    "flag": "lost parts",
    "group": "d",
@@ -7133,7 +7244,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7720304168.webp",
    "originals": 12,
-   "s": 240,
+   "s": 189,
    "source": "original",
    "src_size": [
     800,
@@ -7144,87 +7255,87 @@
     {
      "added": 0.0,
      "ar": 0.094,
-     "corr": 0.722,
+     "corr": 0.711,
      "fid": 2.49,
      "inside": [
       1.0,
       0.998
      ],
-     "lost": 0.0997,
+     "lost": 0.1177,
      "model": "birefnet-general",
      "old_kept": 0.9985,
      "real_px": 751,
-     "s": 24.3,
-     "same": 0.876,
-     "shadow": 0.0218,
+     "s": 18.5,
+     "same": 0.844,
+     "shadow": 0.0214,
      "shown_px": 1120,
      "up": "Real-ESRGAN (diff 2.2 / detail 5.8)",
-     "why": "another photo or a changed outline (outline 0.88 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.84 < 0.96)"
     },
     {
      "added": 0.0,
      "ar": 0.132,
-     "corr": 0.647,
+     "corr": 0.633,
      "fallback": true,
      "fid": 2.6,
      "inside": [
       1.0,
       0.998
      ],
-     "lost": 0.051,
+     "lost": 0.0707,
      "model": "isnet-general-use",
      "old_kept": 0.9982,
      "real_px": 773,
-     "s": 1.8,
-     "same": 0.874,
-     "shadow": 0.0226,
+     "s": 0.9,
+     "same": 0.84,
+     "shadow": 0.0221,
      "shown_px": 1120,
      "up": "Real-ESRGAN (diff 2.5 / detail 6.3)",
-     "why": "another photo or a changed outline (outline 0.87 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.84 < 0.96)"
     },
     {
      "added": 0.0,
      "ar": 0.096,
-     "corr": 0.722,
+     "corr": 0.71,
      "fid": 2.45,
      "inside": [
       1.0,
       0.998
      ],
-     "lost": 0.1004,
+     "lost": 0.1186,
      "model": "birefnet-hr",
      "old_kept": 0.998,
      "real_px": 751,
-     "s": 80.7,
-     "same": 0.876,
-     "shadow": 0.0227,
+     "s": 52.6,
+     "same": 0.844,
+     "shadow": 0.0222,
      "shown_px": 1120,
      "up": "Real-ESRGAN (diff 2.2 / detail 5.9)",
-     "why": "another photo or a changed outline (outline 0.88 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.84 < 0.96)"
     },
     {
      "added": 0.0,
      "ar": 0.094,
-     "corr": 0.724,
+     "corr": 0.712,
      "fid": 2.46,
      "inside": [
       1.0,
       0.998
      ],
-     "lost": 0.1089,
+     "lost": 0.1268,
      "model": "birefnet-hr-matting",
      "old_kept": 0.9991,
      "real_px": 751,
-     "s": 79.9,
-     "same": 0.875,
-     "shadow": 0.0219,
+     "s": 53.2,
+     "same": 0.843,
+     "shadow": 0.0214,
      "shown_px": 1120,
      "up": "Real-ESRGAN (diff 2.2 / detail 6.0)",
-     "why": "another photo or a changed outline (outline 0.87 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.84 < 0.96)"
     }
    ],
    "v": 2,
-   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.87 < 0.96)"
+   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.84 < 0.96)"
   },
   "d:7720306138": {
    "at": "2026-11-23T18:12:09+00:00",
@@ -7305,7 +7416,7 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7720319864": {
-   "at": "2026-11-23T18:13:11+00:00",
+   "at": "2026-11-23T20:32:25+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7720319864",
@@ -7317,7 +7428,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7720319864.webp",
    "originals": 3,
-   "s": 12,
+   "s": 13,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -7400,10 +7511,10 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7720327712": {
-   "at": "2026-11-23T18:04:11+00:00",
+   "at": "2026-11-23T20:31:34+00:00",
    "detect": {
     "lost_old": 0.3496,
-    "s": 11.8
+    "s": 10.9
    },
    "flag": "lost parts",
    "group": "d",
@@ -7417,7 +7528,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7720327712.webp",
    "originals": 12,
-   "s": 43,
+   "s": 35,
    "source": "original",
    "src_size": [
     800,
@@ -7427,13 +7538,13 @@
    "tried": [
     {
      "model": "birefnet-general",
-     "s": 24.2,
+     "s": 18.7,
      "why": "item cut off by the photo's frame (41% of a border)"
     },
     {
      "fallback": true,
      "model": "isnet-general-use",
-     "s": 1.8,
+     "s": 1.0,
      "why": "item cut off by the photo's frame (41% of a border)"
     }
    ],
@@ -7467,7 +7578,7 @@
    "why": "intact: the old cut-out has the whole item (0.4% not in it)"
   },
   "d:7723745822": {
-   "at": "2026-11-23T17:08:42+00:00",
+   "at": "2026-11-23T19:52:03+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7723745822",
@@ -7479,12 +7590,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7723745822.webp",
    "originals": 10,
-   "s": 29,
+   "s": 40,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7728168527": {
-   "at": "2026-11-23T17:51:22+00:00",
+   "at": "2026-11-23T20:25:42+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7728168527",
@@ -7709,8 +7820,12 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7732952715": {
-   "at": "2026-11-23T16:55:28+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T19:41:54+00:00",
+   "detect": {
+    "lost_old": 0.0034,
+    "s": 15.9
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7732952715",
    "match": {
@@ -7721,9 +7836,14 @@
    "ok": false,
    "old": "/img/fr/7732952715.webp",
    "originals": 2,
-   "s": 8,
+   "s": 25,
+   "src_size": [
+    800,
+    800
+   ],
+   "src_url": "https://si.geilicdn.com/open1836032619-252808396-08690000019d7c89b34c0a8133b0_800_800.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7734130695": {
    "at": "2026-11-23T19:22:27+00:00",
@@ -8128,10 +8248,10 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7740192746": {
-   "at": "2026-11-23T19:26:24+00:00",
+   "at": "2026-11-23T20:54:38+00:00",
    "detect": {
     "lost_old": 0.0742,
-    "s": 11.9
+    "s": 10.7
    },
    "flag": "lost parts",
    "group": "d",
@@ -8144,7 +8264,7 @@
    "ok": false,
    "old": "/img/fr/7740192746.webp",
    "originals": 2,
-   "s": 221,
+   "s": 152,
    "source": "original",
    "src_size": [
     800,
@@ -8165,7 +8285,7 @@
      "model": "birefnet-general",
      "old_kept": 1.0,
      "real_px": 550,
-     "s": 23.9,
+     "s": 18.4,
      "same": 0.747,
      "shadow": 0.0309,
      "shown_px": 1376,
@@ -8186,7 +8306,7 @@
      "model": "isnet-general-use",
      "old_kept": 1.0,
      "real_px": 550,
-     "s": 1.8,
+     "s": 1.0,
      "same": 0.684,
      "shadow": 0.0309,
      "shown_px": 1376,
@@ -8206,7 +8326,7 @@
      "model": "birefnet-hr",
      "old_kept": 1.0,
      "real_px": 549,
-     "s": 80.2,
+     "s": 53.2,
      "same": 0.751,
      "shadow": 0.0307,
      "shown_px": 1376,
@@ -8226,7 +8346,7 @@
      "model": "birefnet-hr-matting",
      "old_kept": 1.0,
      "real_px": 550,
-     "s": 80.3,
+     "s": 54.1,
      "same": 0.744,
      "shadow": 0.0309,
      "shown_px": 1376,
@@ -8342,7 +8462,7 @@
    "why": "intact: the old cut-out has the whole item (1.3% not in it)"
   },
   "d:7746864804": {
-   "at": "2026-11-23T17:12:43+00:00",
+   "at": "2026-11-23T19:54:15+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7746864804",
@@ -8354,7 +8474,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7746864804.webp?v=1789514345",
    "originals": 12,
-   "s": 28,
+   "s": 57,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -8411,7 +8531,7 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7753227558": {
-   "at": "2026-11-23T17:56:07+00:00",
+   "at": "2026-11-23T20:26:15+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7753227558",
@@ -8423,28 +8543,50 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7753227558.webp",
    "originals": 1,
-   "s": 5,
+   "s": 4,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7753519145": {
-   "at": "2026-11-23T18:10:58+00:00",
+   "at": "2026-11-23T20:32:12+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": -0.002,
+    "corr": 0.998,
+    "fid": 3.71,
+    "inside": [
+     1.0,
+     0.999
+    ],
+    "lost": 0.0,
+    "old_kept": 0.9996,
+    "same": 1.0,
+    "shadow": 0.0
+   },
    "detect": {
     "lost_old": 0.0853,
-    "s": 12.0
+    "s": 10.9
    },
+   "file": "img/white/recut/7753519145.webp",
    "flag": "lost parts",
    "group": "d",
    "id": "7753519145",
+   "kb": 65,
    "match": {
     "colour": 3.1,
     "ncc": 0.9901,
     "url": "https://si.geilicdn.com/pcitem901976728963-021f0000019db9c3caf00a22d1a4_800_800.jpg"
    },
-   "ok": false,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 612,
+    "shown_px": 1376,
+    "up": "Real-ESRGAN (diff 3.4 / detail 7.7)"
+   },
+   "ok": true,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7753519145.webp",
    "originals": 5,
-   "s": 221,
+   "s": 38,
    "source": "original",
    "src_size": [
     800,
@@ -8454,8 +8596,8 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": 0.107,
-     "corr": 0.665,
+     "ar": -0.002,
+     "corr": 0.998,
      "fid": 3.71,
      "inside": [
       1.0,
@@ -8465,82 +8607,34 @@
      "model": "birefnet-general",
      "old_kept": 0.9996,
      "real_px": 612,
-     "s": 24.2,
-     "same": 0.997,
+     "s": 18.9,
+     "same": 1.0,
      "shadow": 0.0,
      "shown_px": 1376,
-     "up": "Real-ESRGAN (diff 3.4 / detail 7.7)",
-     "why": "shape changed (aspect +0.11): a part was lost or added"
-    },
-    {
-     "fallback": true,
-     "model": "isnet-general-use",
-     "s": 1.8,
-     "why": "gate: hazy mask (31% half-transparent away from the item)"
-    },
-    {
-     "added": 0.0,
-     "ar": 0.107,
-     "corr": 0.665,
-     "fid": 3.72,
-     "inside": [
-      1.0,
-      0.999
-     ],
-     "lost": 0.0,
-     "model": "birefnet-hr",
-     "old_kept": 0.9997,
-     "real_px": 612,
-     "s": 80.1,
-     "same": 0.997,
-     "shadow": 0.0,
-     "shown_px": 1376,
-     "up": "Real-ESRGAN (diff 3.4 / detail 7.7)",
-     "why": "shape changed (aspect +0.11): a part was lost or added"
-    },
-    {
-     "added": 0.0,
-     "ar": 0.109,
-     "corr": 0.664,
-     "fid": 3.72,
-     "inside": [
-      1.0,
-      0.999
-     ],
-     "lost": 0.0,
-     "model": "birefnet-hr-matting",
-     "old_kept": 1.0,
-     "real_px": 612,
-     "s": 80.2,
-     "same": 0.997,
-     "shadow": 0.0,
-     "shown_px": 1376,
-     "up": "Real-ESRGAN (diff 3.4 / detail 7.7)",
-     "why": "shape changed (aspect +0.11): a part was lost or added"
+     "up": "Real-ESRGAN (diff 3.4 / detail 7.7)"
     }
    ],
-   "v": 2,
-   "why": "lost parts, not fixed: shape changed (aspect +0.11): a part was lost or added"
+   "v": 2
   },
   "d:7767067051": {
-   "at": "2026-11-23T17:58:42+00:00",
+   "at": "2026-11-23T20:29:36+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7767067051",
    "match": {
-    "colour": 85.1,
-    "ncc": 0.2281,
-    "url": "https://si.geilicdn.com/open1694808699-1234478995-3aae0000019e3a3b47d40a8133b0_800_800.jpg"
+    "colour": 25.03,
+    "ncc": 0.2595,
+    "url": "https://si.geilicdn.com/open1694808699-1234478995-3ad60000019e3a3b6d7a0a8133b0_800_800.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7767067051.webp",
    "originals": 12,
-   "s": 27,
+   "s": 49,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7767958501": {
-   "at": "2026-11-23T17:39:32+00:00",
+   "at": "2026-11-23T20:16:24+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7767958501",
@@ -8552,7 +8646,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7767958501.webp",
    "originals": 7,
-   "s": 29,
+   "s": 34,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -8609,19 +8703,19 @@
    "why": "intact: the old cut-out has the whole item (0.9% not in it)"
   },
   "d:7772539625": {
-   "at": "2026-11-23T17:58:15+00:00",
+   "at": "2026-11-23T20:28:47+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7772539625",
    "match": {
-    "colour": 90.17,
-    "ncc": 0.1963,
-    "url": "https://si.geilicdn.com/open1705166133-1234478995-76e7000001956f8ff8d70aa0834c_645_645.jpg"
+    "colour": 150.84,
+    "ncc": 0.2047,
+    "url": "https://si.geilicdn.com/open1705166133-1234478995-770f000001956f900aff0aa0834c_645_645.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7772539625.webp",
    "originals": 12,
-   "s": 27,
+   "s": 52,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -8678,7 +8772,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7775323163": {
-   "at": "2026-11-23T17:50:06+00:00",
+   "at": "2026-11-23T20:25:19+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7775323163",
@@ -8690,7 +8784,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7775323163.webp",
    "originals": 12,
-   "s": 21,
+   "s": 36,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -8721,24 +8815,24 @@
    "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7775370853": {
-   "at": "2026-11-23T17:46:57+00:00",
+   "at": "2026-11-23T20:21:14+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7775370853",
    "match": {
-    "colour": 109.77,
-    "ncc": 0.1519,
-    "url": "https://si.geilicdn.com/open1823866485-1234478995-4bfd000001957576e6580a8115c2_1080_1440.jpg"
+    "colour": 152.92,
+    "ncc": 0.1842,
+    "url": "https://si.geilicdn.com/open1823866485-1234478995-482b000001957576f84b0aa08290_1200_1200.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7775370853.webp",
    "originals": 10,
-   "s": 20,
+   "s": 39,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7775403307": {
-   "at": "2026-11-23T17:47:28+00:00",
+   "at": "2026-11-23T20:22:06+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7775403307",
@@ -8750,12 +8844,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7775403307.webp",
    "originals": 12,
-   "s": 31,
+   "s": 52,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7775404691": {
-   "at": "2026-11-23T17:25:04+00:00",
+   "at": "2026-11-23T20:05:37+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7775404691",
@@ -8767,12 +8861,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7775404691.webp",
    "originals": 3,
-   "s": 17,
+   "s": 14,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7775416479": {
-   "at": "2026-11-23T16:41:10+00:00",
+   "at": "2026-11-23T19:35:13+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7775416479",
@@ -8784,12 +8878,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7775416479.webp",
    "originals": 2,
-   "s": 11,
+   "s": 9,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7775444479": {
-   "at": "2026-11-23T17:28:30+00:00",
+   "at": "2026-11-23T20:09:19+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7775444479",
@@ -8801,24 +8895,24 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7775444479.webp",
    "originals": 9,
-   "s": 28,
+   "s": 39,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7775485869": {
-   "at": "2026-11-23T17:21:18+00:00",
+   "at": "2026-11-23T20:01:08+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7775485869",
    "match": {
-    "colour": 128.93,
-    "ncc": 0.2857,
-    "url": "https://si.geilicdn.com/pcitem1842056477-6a040000018e4dcc9b260a22d160_1440_1920.jpg"
+    "colour": 129.92,
+    "ncc": 0.3978,
+    "url": "https://si.geilicdn.com/pcitem1842056477-6b4e0000018e4dccc3100a23954a_1442_1922.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7775485869.webp",
    "originals": 12,
-   "s": 26,
+   "s": 45,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -8901,7 +8995,7 @@
    "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7776190861": {
-   "at": "2026-11-23T17:49:00+00:00",
+   "at": "2026-11-23T20:23:53+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7776190861",
@@ -8913,12 +9007,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7776190861.webp",
    "originals": 12,
-   "s": 27,
+   "s": 49,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7776234509": {
-   "at": "2026-11-23T17:25:35+00:00",
+   "at": "2026-11-23T20:06:07+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7776234509",
@@ -8930,7 +9024,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7776234509.webp",
    "originals": 7,
-   "s": 32,
+   "s": 30,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -8961,7 +9055,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7776267895": {
-   "at": "2026-11-23T17:26:36+00:00",
+   "at": "2026-11-23T20:07:18+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7776267895",
@@ -8973,7 +9067,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7776267895.webp",
    "originals": 2,
-   "s": 10,
+   "s": 9,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -9030,8 +9124,12 @@
    "why": "intact: the old cut-out has the whole item (1.8% not in it)"
   },
   "d:7776618380": {
-   "at": "2026-11-23T17:46:03+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:20:35+00:00",
+   "detect": {
+    "lost_old": 0.0012,
+    "s": 11.0
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7776618380",
    "match": {
@@ -9042,9 +9140,14 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7776618380.webp",
    "originals": 12,
-   "s": 27,
+   "s": 60,
+   "src_size": [
+    1080,
+    1080
+   ],
+   "src_url": "https://si.geilicdn.com/open1793500867-1234478995-6e980000019892db8e3d0a22d249_1080_1080.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7776658028": {
    "at": "2026-11-23T17:27:43+00:00",
@@ -9099,7 +9202,7 @@
    "why": "intact: the old cut-out has the whole item (4.0% not in it)"
   },
   "d:7776785674": {
-   "at": "2026-11-23T17:49:45+00:00",
+   "at": "2026-11-23T20:24:43+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7776785674",
@@ -9111,12 +9214,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7776785674.webp",
    "originals": 12,
-   "s": 30,
+   "s": 49,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7777375677": {
-   "at": "2026-11-23T17:12:00+00:00",
+   "at": "2026-11-23T19:53:03+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7777375677",
@@ -9133,7 +9236,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7777796405": {
-   "at": "2026-11-23T17:24:47+00:00",
+   "at": "2026-11-23T20:05:23+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7777796405",
@@ -9145,12 +9248,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7777796405.webp",
    "originals": 12,
-   "s": 29,
+   "s": 68,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7777817853": {
-   "at": "2026-11-23T17:26:10+00:00",
+   "at": "2026-11-23T20:07:09+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7777817853",
@@ -9162,7 +9265,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7777817853.webp",
    "originals": 12,
-   "s": 31,
+   "s": 58,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -9193,7 +9296,7 @@
    "why": "intact: the old cut-out has the whole item (0.6% not in it)"
   },
   "d:7778238818": {
-   "at": "2026-11-23T17:25:39+00:00",
+   "at": "2026-11-23T20:06:11+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7778238818",
@@ -9210,7 +9313,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7778380856": {
-   "at": "2026-11-23T17:21:30+00:00",
+   "at": "2026-11-23T20:01:19+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7778380856",
@@ -9227,7 +9330,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7778407042": {
-   "at": "2026-11-23T17:23:16+00:00",
+   "at": "2026-11-23T20:02:20+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7778407042",
@@ -9239,12 +9342,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7778407042.webp",
    "originals": 12,
-   "s": 23,
+   "s": 45,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7778408936": {
-   "at": "2026-11-23T17:20:09+00:00",
+   "at": "2026-11-23T19:59:39+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7778408936",
@@ -9256,12 +9359,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7778408936.webp",
    "originals": 12,
-   "s": 23,
+   "s": 53,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7778429806": {
-   "at": "2026-11-23T17:45:37+00:00",
+   "at": "2026-11-23T20:19:35+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7778429806",
@@ -9273,7 +9376,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7778429806.webp",
    "originals": 12,
-   "s": 21,
+   "s": 36,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -9304,24 +9407,24 @@
    "why": "intact: the old cut-out has the whole item (0.7% not in it)"
   },
   "d:7778440540": {
-   "at": "2026-11-23T17:28:56+00:00",
+   "at": "2026-11-23T20:10:07+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7778440540",
    "match": {
-    "colour": 68.43,
-    "ncc": 0.6704,
-    "url": "https://si.geilicdn.com/open1629140231-1234478995-1fc30000019da650e7660aa08269_800_800.jpg"
+    "colour": 63.99,
+    "ncc": 0.678,
+    "url": "https://si.geilicdn.com/open1629140231-1234478995-0f140000019da650ec2a0a8115c2_800_800.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7778440540.webp",
    "originals": 12,
-   "s": 26,
+   "s": 48,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7778444370": {
-   "at": "2026-11-23T17:21:49+00:00",
+   "at": "2026-11-23T20:01:36+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7778444370",
@@ -9333,12 +9436,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7778444370.webp",
    "originals": 4,
-   "s": 18,
+   "s": 16,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7778843617": {
-   "at": "2026-11-23T17:48:32+00:00",
+   "at": "2026-11-23T20:23:05+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7778843617",
@@ -9350,7 +9453,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7778843617.webp",
    "originals": 11,
-   "s": 30,
+   "s": 58,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -9407,8 +9510,12 @@
    "why": "intact: the old cut-out has the whole item (0.6% not in it)"
   },
   "d:7779151270": {
-   "at": "2026-11-23T16:43:01+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T19:38:02+00:00",
+   "detect": {
+    "lost_old": 0.0058,
+    "s": 10.8
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7779151270",
    "match": {
@@ -9419,12 +9526,17 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7779151270.webp",
    "originals": 12,
-   "s": 27,
+   "s": 61,
+   "src_size": [
+    800,
+    800
+   ],
+   "src_url": "https://si.geilicdn.com/pcitem1950647899-103e0000019811136a4c0a2395e5_800_800.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.6% not in it)"
   },
   "d:7779205536": {
-   "at": "2026-11-23T17:24:18+00:00",
+   "at": "2026-11-23T20:04:15+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7779205536",
@@ -9436,13 +9548,17 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7779205536.webp",
    "originals": 12,
-   "s": 28,
+   "s": 51,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7779233128": {
-   "at": "2026-11-23T17:20:52+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:00:22+00:00",
+   "detect": {
+    "lost_old": 0.0107,
+    "s": 11.2
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7779233128",
    "match": {
@@ -9453,12 +9569,17 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7779233128.webp",
    "originals": 7,
-   "s": 28,
+   "s": 43,
+   "src_size": [
+    1080,
+    1080
+   ],
+   "src_url": "https://si.geilicdn.com/open1623462477-1234478995-5bcc00000196b60cd4100a231226_1080_1080.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (1.1% not in it)"
   },
   "d:7779239140": {
-   "at": "2026-11-23T17:29:30+00:00",
+   "at": "2026-11-23T20:10:46+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7779239140",
@@ -9470,12 +9591,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7779239140.webp",
    "originals": 12,
-   "s": 19,
+   "s": 39,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7779255624": {
-   "at": "2026-11-23T17:23:44+00:00",
+   "at": "2026-11-23T20:03:19+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7779255624",
@@ -9487,7 +9608,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7779255624.webp",
    "originals": 12,
-   "s": 28,
+   "s": 59,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -9544,7 +9665,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7779264634": {
-   "at": "2026-11-23T17:27:02+00:00",
+   "at": "2026-11-23T20:08:01+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7779264634",
@@ -9556,12 +9677,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7779264634.webp",
    "originals": 12,
-   "s": 27,
+   "s": 43,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7779268584": {
-   "at": "2026-11-23T17:23:50+00:00",
+   "at": "2026-11-23T20:03:25+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7779268584",
@@ -9578,7 +9699,7 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7779296152": {
-   "at": "2026-11-23T17:27:25+00:00",
+   "at": "2026-11-23T20:08:39+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7779296152",
@@ -9590,7 +9711,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7779296152.webp",
    "originals": 12,
-   "s": 23,
+   "s": 38,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -9633,7 +9754,7 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7780706818": {
-   "at": "2026-11-23T17:19:03+00:00",
+   "at": "2026-11-23T19:58:26+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7780706818",
@@ -9754,7 +9875,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7782123358": {
-   "at": "2026-11-23T17:40:33+00:00",
+   "at": "2026-11-23T20:17:22+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7782123358",
@@ -9766,12 +9887,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7782123358.webp",
    "originals": 1,
-   "s": 5,
+   "s": 6,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7782203912": {
-   "at": "2026-11-23T17:31:57+00:00",
+   "at": "2026-11-23T20:10:56+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7782203912",
@@ -9826,10 +9947,10 @@
    "why": "intact: the old cut-out has the whole item (0.4% not in it)"
   },
   "d:7785968002": {
-   "at": "2026-11-23T17:04:31+00:00",
+   "at": "2026-11-23T19:47:52+00:00",
    "detect": {
     "lost_old": 0.0736,
-    "s": 11.4
+    "s": 10.8
    },
    "flag": "lost parts",
    "group": "d",
@@ -9842,7 +9963,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7785968002.webp",
    "originals": 9,
-   "s": 208,
+   "s": 150,
    "source": "original",
    "src_size": [
     800,
@@ -9855,28 +9976,28 @@
      "anchored": [
       "top"
      ],
-     "ar": -0.088,
-     "corr": 0.411,
+     "ar": 0.021,
+     "corr": 0.545,
      "fid": 1.97,
      "inside": [
       0.996,
       0.976
      ],
-     "lost": 0.0047,
+     "lost": 0.0046,
      "model": "birefnet-general",
      "old_kept": 0.9958,
      "real_px": 315,
-     "s": 23.2,
-     "same": 0.871,
-     "shadow": 0.0126,
+     "s": 18.6,
+     "same": 0.881,
+     "shadow": 0.0123,
      "shown_px": 1312,
      "up": "Real-ESRGAN (diff 1.6 / detail 2.3)",
-     "why": "another photo or a changed outline (outline 0.87 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.88 < 0.96)"
     },
     {
      "fallback": true,
      "model": "isnet-general-use",
-     "s": 1.6,
+     "s": 0.9,
      "why": "gate: hazy mask (10% half-transparent away from the item)"
     },
     {
@@ -9884,50 +10005,50 @@
      "anchored": [
       "top"
      ],
-     "ar": -0.094,
-     "corr": 0.405,
+     "ar": 0.015,
+     "corr": 0.536,
      "fid": 2.32,
      "inside": [
       0.994,
-      0.967
+      0.966
      ],
-     "lost": 0.0044,
+     "lost": 0.0043,
      "model": "birefnet-hr",
      "old_kept": 1.0,
      "real_px": 245,
-     "s": 81.3,
-     "same": 0.873,
-     "shadow": 0.0126,
+     "s": 56.5,
+     "same": 0.882,
+     "shadow": 0.0123,
      "shown_px": 1312,
      "up": "Real-ESRGAN (diff 1.7 / detail 2.4)",
-     "why": "another photo or a changed outline (outline 0.87 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.88 < 0.96)"
     },
     {
      "added": 0.0,
      "anchored": [
       "top"
      ],
-     "ar": -0.089,
-     "corr": 0.407,
+     "ar": 0.019,
+     "corr": 0.566,
      "fid": 2.28,
      "inside": [
       0.994,
       0.967
      ],
-     "lost": 0.0061,
+     "lost": 0.0062,
      "model": "birefnet-hr-matting",
      "old_kept": 0.9999,
      "real_px": 245,
-     "s": 79.8,
-     "same": 0.872,
-     "shadow": 0.0129,
+     "s": 54.8,
+     "same": 0.882,
+     "shadow": 0.0125,
      "shown_px": 1312,
      "up": "Real-ESRGAN (diff 1.7 / detail 2.3)",
-     "why": "another photo or a changed outline (outline 0.87 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.88 < 0.96)"
     }
    ],
    "v": 2,
-   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.87 < 0.96)"
+   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.88 < 0.96)"
   },
   "d:7787120160": {
    "at": "2026-11-23T16:57:53+00:00",
@@ -9956,7 +10077,7 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7788026193": {
-   "at": "2026-11-23T17:00:59+00:00",
+   "at": "2026-11-23T19:45:18+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7788026193",
@@ -9968,7 +10089,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7788026193.webp",
    "originals": 4,
-   "s": 25,
+   "s": 17,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -9999,7 +10120,7 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7788604528": {
-   "at": "2026-11-23T17:04:44+00:00",
+   "at": "2026-11-23T19:48:04+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7788604528",
@@ -10011,12 +10132,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7788604528.webp",
    "originals": 3,
-   "s": 13,
+   "s": 12,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7789112948": {
-   "at": "2026-11-23T17:14:24+00:00",
+   "at": "2026-11-23T19:56:29+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7789112948",
@@ -10028,29 +10149,29 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7789112948.webp?v=1789503452",
    "originals": 12,
-   "s": 26,
+   "s": 47,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7790144072": {
-   "at": "2026-11-23T16:59:05+00:00",
+   "at": "2026-11-23T19:44:57+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7790144072",
    "match": {
-    "colour": 33.2,
-    "ncc": 0.2875,
-    "url": "https://si.geilicdn.com/open1637009347-1637009347-35130000019e19b2fdbe0a22d249_1080_1080.jpg"
+    "colour": 32.12,
+    "ncc": 0.298,
+    "url": "https://si.geilicdn.com/open1637009347-1637009347-0d9f0000019e19b31c5c0a8133b0_1080_720.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7790144072.webp",
    "originals": 12,
-   "s": 30,
+   "s": 50,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7790970942": {
-   "at": "2026-11-23T17:37:18+00:00",
+   "at": "2026-11-23T20:15:02+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7790970942",
@@ -10062,29 +10183,50 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7790970942.webp",
    "originals": 3,
-   "s": 19,
+   "s": 14,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7791151812": {
-   "at": "2026-11-23T17:57:02+00:00",
+   "at": "2026-11-23T20:26:53+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": 0.004,
+    "corr": 0.999,
+    "fid": 1.85,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0,
+    "old_kept": 1.0,
+    "same": 1.0,
+    "shadow": 0.0024
+   },
    "detect": {
     "lost_old": 0.1631,
-    "s": 11.8
+    "s": 11.1
    },
+   "file": "img/white/recut/7791151812.webp",
    "flag": "lost parts",
    "group": "d",
-   "hr": "skipped: the fast cut-outs failed for a reason a finer matte does not change",
    "id": "7791151812",
+   "kb": 143,
    "match": {
     "colour": 8.9,
     "ncc": 0.9836,
     "url": "https://si.geilicdn.com/open1620179513-252808396-72690000018f57b5af690a8133b5_800_800.jpg"
    },
-   "ok": false,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 759,
+    "shown_px": 1120,
+    "up": "lanczos (Real-ESRGAN rejected: diff 4.6 / detail 6.5)"
+   },
+   "ok": true,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7791151812.webp",
    "originals": 12,
-   "s": 56,
+   "s": 38,
    "source": "original",
    "src_size": [
     800,
@@ -10094,8 +10236,8 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": 0.074,
-     "corr": 0.542,
+     "ar": 0.004,
+     "corr": 0.999,
      "fid": 1.85,
      "inside": [
       1.0,
@@ -10105,43 +10247,17 @@
      "model": "birefnet-general",
      "old_kept": 1.0,
      "real_px": 759,
-     "s": 24.6,
-     "same": 0.917,
-     "shadow": 0.0007,
+     "s": 18.7,
+     "same": 1.0,
+     "shadow": 0.0024,
      "shown_px": 1120,
-     "up": "lanczos (Real-ESRGAN rejected: diff 4.6 / detail 6.5)",
-     "why": "another photo or a changed outline (outline 0.92 < 0.96)"
-    },
-    {
-     "added": 0.0,
-     "ar": 0.072,
-     "clean": [
-      "4 gaps filled"
-     ],
-     "corr": 0.544,
-     "fallback": true,
-     "fid": 1.85,
-     "inside": [
-      1.0,
-      1.0
-     ],
-     "lost": 0.0002,
-     "model": "isnet-general-use",
-     "old_kept": 1.0,
-     "real_px": 759,
-     "s": 1.8,
-     "same": 0.918,
-     "shadow": 0.0016,
-     "shown_px": 1120,
-     "up": "lanczos (Real-ESRGAN rejected: diff 4.6 / detail 6.6)",
-     "why": "another photo or a changed outline (outline 0.92 < 0.96)"
+     "up": "lanczos (Real-ESRGAN rejected: diff 4.6 / detail 6.5)"
     }
    ],
-   "v": 2,
-   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.92 < 0.96)"
+   "v": 2
   },
   "d:7794428461": {
-   "at": "2026-11-23T17:12:05+00:00",
+   "at": "2026-11-23T19:53:07+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7794428461",
@@ -10314,7 +10430,7 @@
    "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7796613079": {
-   "at": "2026-11-23T18:41:15+00:00",
+   "at": "2026-11-23T20:42:39+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7796613079",
@@ -10326,7 +10442,7 @@
    "ok": false,
    "old": "/img/rl/7796613079.webp",
    "originals": 1,
-   "s": 7,
+   "s": 6,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -10747,7 +10863,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7799594896": {
-   "at": "2026-11-23T18:41:39+00:00",
+   "at": "2026-11-23T20:42:43+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7799594896",
@@ -10759,7 +10875,7 @@
    "ok": false,
    "old": "/img/rl/7799594896.webp",
    "originals": 1,
-   "s": 5,
+   "s": 4,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -10842,8 +10958,12 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7799690872": {
-   "at": "2026-11-23T16:48:26+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T19:39:17+00:00",
+   "detect": {
+    "lost_old": 0.0059,
+    "s": 14.2
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7799690872",
    "match": {
@@ -10854,9 +10974,14 @@
    "ok": false,
    "old": "/img/rl/7799690872.webp",
    "originals": 1,
-   "s": 7,
+   "s": 20,
+   "src_size": [
+    2000,
+    2000
+   ],
+   "src_url": "https://pruerjpeywhiehnivuku.supabase.co/storage/v1/object/public/img/items/1775225313495-blpai2rg4fc.png",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.6% not in it)"
   },
   "d:7799696594": {
    "at": "2026-11-23T19:09:15+00:00",
@@ -10937,7 +11062,7 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7799854143": {
-   "at": "2026-11-23T17:06:52+00:00",
+   "at": "2026-11-23T19:49:35+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7799854143",
@@ -10949,7 +11074,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7799854143.webp",
    "originals": 7,
-   "s": 36,
+   "s": 41,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -10980,8 +11105,12 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7800630508": {
-   "at": "2026-11-23T18:47:01+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:43:30+00:00",
+   "detect": {
+    "lost_old": 0.0124,
+    "s": 11.0
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7800630508",
    "match": {
@@ -10992,9 +11121,14 @@
    "ok": false,
    "old": "/img/rl/7800630508.webp",
    "originals": 1,
-   "s": 5,
+   "s": 15,
+   "src_size": [
+    1000,
+    1000
+   ],
+   "src_url": "https://pruerjpeywhiehnivuku.supabase.co/storage/v1/object/public/img/items/1775331915262-s2jj5dclds.png",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (1.2% not in it)"
   },
   "d:7800667996": {
    "at": "2026-11-23T18:49:33+00:00",
@@ -11075,8 +11209,12 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7804174383": {
-   "at": "2026-11-23T16:42:34+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T19:37:02+00:00",
+   "detect": {
+    "lost_old": 0.0039,
+    "s": 11.8
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7804174383",
    "match": {
@@ -11087,9 +11225,14 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7804174383.webp",
    "originals": 12,
-   "s": 34,
+   "s": 104,
+   "src_size": [
+    1280,
+    1280
+   ],
+   "src_url": "https://si.geilicdn.com/open1690862179-252808396-19a70000019d361cca380a231226_1280_1280.jpg",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.4% not in it)"
   },
   "d:7807525165": {
    "at": "2026-11-23T17:44:07+00:00",
@@ -11144,7 +11287,7 @@
    "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7807711569": {
-   "at": "2026-11-23T16:38:47+00:00",
+   "at": "2026-11-23T19:33:15+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7807711569",
@@ -11156,7 +11299,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7807711569.webp?v=1789503452",
    "originals": 12,
-   "s": 58,
+   "s": 43,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -11317,19 +11460,19 @@
    "why": "intact: the old cut-out has the whole item (0.8% not in it)"
   },
   "d:7818463556": {
-   "at": "2026-11-23T16:37:49+00:00",
+   "at": "2026-11-23T19:32:32+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7818463556",
    "match": {
-    "colour": 184.91,
-    "ncc": 0.3067,
-    "url": "https://si.geilicdn.com/pcitem2031486675-72850000019fb37467af0a2301b4_800_800.jpg"
+    "colour": 153.91,
+    "ncc": 0.323,
+    "url": "https://si.geilicdn.com/pcitem2031486675-4e8c0000019fb3746b910a20e672_800_800.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7818463556.webp?v=1789514345",
    "originals": 12,
-   "s": 21,
+   "s": 42,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -11412,8 +11555,12 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7822325990": {
-   "at": "2026-11-23T18:29:52+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:40:44+00:00",
+   "detect": {
+    "lost_old": 0.0017,
+    "s": 15.9
+   },
+   "flag": "intact",
    "group": "d",
    "id": "7822325990",
    "match": {
@@ -11424,29 +11571,86 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7822325990.webp",
    "originals": 12,
-   "s": 28,
+   "s": 70,
+   "src_size": [
+    800,
+    800
+   ],
+   "src_url": "https://si.geilicdn.com/pcitem901976728963-54d00000019fc1ab1a3b0a2303ee-unadjust_800_800.png",
    "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7822375848": {
-   "at": "2026-11-23T18:30:16+00:00",
-   "flag": "no original",
+   "at": "2026-11-23T20:41:42+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": 0.003,
+    "corr": 0.991,
+    "fid": 3.65,
+    "inside": [
+     1.0,
+     0.999
+    ],
+    "lost": 0.0003,
+    "old_kept": 0.9965,
+    "same": 0.998,
+    "shadow": 0.0016
+   },
+   "detect": {
+    "lost_old": 0.0438,
+    "s": 10.9
+   },
+   "file": "img/white/recut/7822375848.webp",
+   "flag": "lost parts",
    "group": "d",
    "id": "7822375848",
+   "kb": 107,
    "match": {
-    "colour": 6.6,
-    "ncc": 0.9424,
-    "url": "https://si.geilicdn.com/pcitem901976728963-30ef0000019fc6d8f52d0a2394a4-unadjust_800_800.png"
+    "colour": 10.49,
+    "ncc": 0.9582,
+    "url": "https://si.geilicdn.com/pcitem901976728963-112f0000019fc6d614ce0a81347d_1280_1292.jpg"
    },
-   "ok": false,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 1215,
+    "shown_px": 1248,
+    "up": "lanczos"
+   },
+   "ok": true,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7822375848.webp",
    "originals": 7,
-   "s": 24,
-   "v": 2,
-   "why": "the listing's photos no longer include the photo it was cut from"
+   "s": 58,
+   "source": "original",
+   "src_size": [
+    1280,
+    1292
+   ],
+   "src_url": "https://si.geilicdn.com/pcitem901976728963-112f0000019fc6d614ce0a81347d_1280_1292.jpg",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.003,
+     "corr": 0.991,
+     "fid": 3.65,
+     "inside": [
+      1.0,
+      0.999
+     ],
+     "lost": 0.0003,
+     "model": "birefnet-general",
+     "old_kept": 0.9965,
+     "real_px": 1215,
+     "s": 18.2,
+     "same": 0.998,
+     "shadow": 0.0016,
+     "shown_px": 1248,
+     "up": "lanczos"
+    }
+   ],
+   "v": 2
   },
   "d:7822521712": {
-   "at": "2026-11-23T17:01:03+00:00",
+   "at": "2026-11-23T19:45:22+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7822521712",
@@ -11463,36 +11667,36 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7822778756": {
-   "at": "2026-11-23T17:32:41+00:00",
+   "at": "2026-11-23T20:11:48+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7822778756",
    "match": {
-    "colour": 58.56,
-    "ncc": 0.262,
-    "url": "https://si.geilicdn.com/pcitem2071174386-07bf0000019e72e5eb7f0a2304aa_1280_720.jpg"
+    "colour": 151.78,
+    "ncc": 0.2686,
+    "url": "https://si.geilicdn.com/pcitem901892823537-75c400000192a7be2ac00a23057e_800_800.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7822778756.webp",
    "originals": 12,
-   "s": 28,
+   "s": 47,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7822870796": {
-   "at": "2026-11-23T17:37:59+00:00",
+   "at": "2026-11-23T20:15:50+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7822870796",
    "match": {
-    "colour": 78.51,
-    "ncc": 0.267,
-    "url": "https://si.geilicdn.com/pcitem1966334875-4f970000019fd21c87a50a8133cc_800_800.jpg"
+    "colour": 77.16,
+    "ncc": 0.2993,
+    "url": "https://si.geilicdn.com/pcitem1966334875-5e920000019fd21cc9460a2103bd_1080_1080.jpg"
    },
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7822870796.webp",
    "originals": 12,
-   "s": 26,
+   "s": 48,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -11549,7 +11753,7 @@
    "why": "intact: the old cut-out has the whole item (0.4% not in it)"
   },
   "d:7828009109": {
-   "at": "2026-11-23T16:57:38+00:00",
+   "at": "2026-11-23T19:43:18+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7828009109",
@@ -11561,12 +11765,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7828009109.webp?v=1789514345",
    "originals": 1,
-   "s": 5,
+   "s": 6,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7837963071": {
-   "at": "2026-11-23T16:59:10+00:00",
+   "at": "2026-11-23T19:45:02+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7837963071",
@@ -11578,7 +11782,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7837963071.webp?v=1789514345",
    "originals": 1,
-   "s": 5,
+   "s": 4,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
@@ -11609,7 +11813,7 @@
    "why": "intact: the old cut-out has the whole item (3.1% not in it)"
   },
   "d:7841253907": {
-   "at": "2026-11-23T17:17:11+00:00",
+   "at": "2026-11-23T19:57:22+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7841253907",
@@ -11768,7 +11972,7 @@
    "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7852019194": {
-   "at": "2026-11-23T16:56:46+00:00",
+   "at": "2026-11-23T19:42:10+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7852019194",
@@ -11780,12 +11984,12 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7852019194.webp",
    "originals": 4,
-   "s": 19,
+   "s": 16,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7852363507": {
-   "at": "2026-11-23T18:31:30+00:00",
+   "at": "2026-11-23T20:42:19+00:00",
    "flag": "no original",
    "group": "d",
    "id": "7852363507",
@@ -11797,7 +12001,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7852363507.webp",
    "originals": 12,
-   "s": 20,
+   "s": 36,
    "v": 2,
    "why": "the listing's photos no longer include the photo it was cut from"
   },
