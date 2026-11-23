@@ -1005,7 +1005,10 @@ def do_recut(p, old, labels, models, log):
         for s in grow: marg[s] += 0.6
         grown += grow
     old_solid = ndimage.binary_erosion(old_a >= 230, iterations=2)
-    drop = hanger_above(dm & ~(old_a >= 64), old_supp, old_a)
+    # a hanger only above clothes (a top, trousers, shorts). Above sunglasses, a bag or a shoe a thin piece is a temple,
+    # a handle or a strap, and lost (23 Nov 2026: a Burberry sunglasses temple was taken for a hanger)
+    drop = hanger_above(dm & ~(old_a >= 64), old_supp, old_a) if kind in ("top", "pants", "shorts") \
+        else np.zeros(dm.shape, bool)
     dm = dm & ~drop
     lost_old = float((dm & ~(old_a >= 64)).sum() / max(1, dm.sum()))
     rec["detect"] = {"lost_old": round(lost_old, 4), "s": round(time.time() - t, 1)}
