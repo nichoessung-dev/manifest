@@ -58,7 +58,7 @@ TARGETS = os.path.join(ROOT, "data", "photo_white_targets.json")
 STATE_DIR = os.path.join(ROOT, "data", "photo_white")
 OUT = {"store": os.path.join(ROOT, "img", "white", "store"), "rl": os.path.join(ROOT, "img", "white", "rl")}
 SHEETS = os.path.join(ROOT, "out", "photo-white")
-VERSION = 1
+VERSION = 2            # 2: band frame check, anchored framing where the photo's frame cuts the item
 SIZE = sp.SIZE
 MODEL_SHOT = re.compile(r"-[a-z]?m\d+\.webp$")
 MODELS = ["birefnet-general", "birefnet-hr", "birefnet-hr-matting", "isnet-general-use"]
@@ -142,9 +142,65 @@ def trim_hook(alpha):
     return Image.fromarray(a), True
 
 
-def frame_share(alpha):
+def touches(alpha):
+    """{side: share of that side that is item}, read on a band along the photo's edge (0.6% of its size, at least 2 px;
+    the polish step reads the outer 2 px, which a thin white line along the edge can hide)."""
     m = np.asarray(alpha) >= 128
-    return float(max(m[:2].mean(), m[-2:].mean(), m[:, :2].mean(), m[:, -2:].mean()))
+    h, w = m.shape; b = max(2, round(0.006 * max(h, w)))
+    return {"top": float(m[:b].mean(axis=1).max()), "bottom": float(m[-b:].mean(axis=1).max()),
+            "left": float(m[:, :b].mean(axis=0).max()), "right": float(m[:, -b:].mean(axis=0).max())}
+
+
+def frame_share(alpha):
+    return max(touches(alpha).values())
+
+
+TOUCH_MIN = 0.004       # more of a side than this is item: the photo's own frame cuts the item there
+
+
+def layout(w, h, kind, touch):
+    """(tw, th, x0, y0, anchored sides) of an item w x h in the 1600 px photo: the polish step's framing (fill by type),
+    except that where the photo's own frame cuts the item (a watch bracelet, a cable, trouser legs running out of the
+    picture) that side stays on the edge of the new photo, as in the original, instead of ending in a flat cut in mid-air.
+    Top and bottom are kept on the edge alone or together; left and right only together (a sleeve tip touching one
+    side leaves the item centred)."""
+    fw, fh, cy = sp.FILL[kind]
+    t = {k: v > TOUCH_MIN for k, v in (touch or {}).items()}
+    top, bot, lr = t.get("top"), t.get("bottom"), t.get("left") and t.get("right")
+    s = min(fw * SIZE / w, fh * SIZE / h)
+    if top and bot: s = SIZE / h
+    if lr: s = min(SIZE / w, SIZE / h) if (top and bot) else SIZE / w
+    s = min(s, SIZE / w, SIZE / h)
+    tw, th = max(1, round(w * s)), max(1, round(h * s))
+    x0 = (SIZE - tw) // 2
+    if top and not bot: y0 = 0
+    elif bot and not top: y0 = SIZE - th
+    elif top and bot: y0 = (SIZE - th) // 2
+    else: y0 = max(0, min(SIZE - th, round(SIZE * cy - th / 2)))
+    anchored = [k for k in ("top", "bottom") if t.get(k)] + (["left", "right"] if lr else [])
+    return tw, th, x0, y0, anchored
+
+
+def place(rgb, alpha, kind, notes, touch):
+    """store_photos_polish.place (enlarging with the guarded Real-ESRGAN below 1100 px real size, light sharpening,
+    #FFFFFF canvas) with layout() for the position. Returns (photo, (x0, y0, tw, th))."""
+    from PIL import ImageFilter
+    w, h = rgb.size
+    tw, th, x0, y0, anchored = layout(w, h, kind, touch)
+    if anchored: notes["anchored"] = anchored
+    es = sp.eff_scale(rgb, alpha)
+    real = max(w, h) * es
+    notes["real_px"] = round(real); notes["shown_px"] = max(tw, th)
+    if real < sp.ESRGAN_BELOW and max(tw, th) > real * 1.08:
+        inp = rgb if es >= 0.97 else rgb.resize((max(8, round(w * es)), max(8, round(h * es))), Image.LANCZOS)
+        big, notes["up"] = sp.esrgan(inp, tw, th)
+    else:
+        big = rgb.resize((tw, th), Image.LANCZOS)
+        notes["up"] = "lanczos" if max(tw, th) > max(w, h) else "downscale"
+    big = big.filter(ImageFilter.UnsharpMask(radius=0.9, percent=40, threshold=2))
+    canvas = Image.new("RGB", (SIZE, SIZE), (255, 255, 255))
+    canvas.paste(big, (x0, y0), alpha.resize((tw, th), Image.LANCZOS))
+    return canvas, (x0, y0, tw, th)
 
 
 def gate(alpha, several):
@@ -180,20 +236,14 @@ def compose(src_rgb, al, bg, kind, garment):
         if cut: notes["hook"] = "trimmed"
     b = sp.alpha_box(al, 8)
     if not b: return None, {"error": "empty cut-out", **notes}, None
+    touch = touches(al)
     rgb = sp.decontaminate(src_rgb, al, bg)
     pad = 2
     b = (max(0, b[0] - pad), max(0, b[1] - pad), min(rgb.width, b[2] + pad), min(rgb.height, b[3] + pad))
     rgb, al = rgb.crop(b), al.crop(b)
     flat = Image.composite(rgb, Image.new("RGB", rgb.size, (255, 255, 255)), al)
-    out = sp.place(flat, al, kind, notes)
-    # the placement place() used (same arithmetic)
-    fw, fh, cy = sp.FILL[kind]
-    w, h = flat.size
-    s = min(fw * SIZE / w, fh * SIZE / h)
-    tw, th = max(1, round(w * s)), max(1, round(h * s))
-    x0 = (SIZE - tw) // 2
-    y0 = max(0, min(SIZE - th, round(SIZE * cy - th / 2)))
-    return out, notes, {"box": b, "xy": (x0, y0, tw, th), "flat": flat, "alpha": al}
+    out, xy = place(flat, al, kind, notes, touch)
+    return out, notes, {"box": b, "xy": xy, "flat": flat, "alpha": al}
 
 
 def back_to_source(out, pl, size):
@@ -496,7 +546,7 @@ def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, mod
                 ok2, why2, ck2 = judge(g, ref, supp, out2, pl2, src_rgb.size, reg, clip, live_alpha, bgmask, bg)
                 r["esrgan_fid"] = ck.get("fid")
                 out, notes, pl, ok, why, ck = out2, notes2, pl2, ok2, why2, ck2
-        r.update(ck); r.update({k: v for k, v in notes.items() if k in ("clean", "hook", "up", "real_px", "shown_px")})
+        r.update(ck); r.update({k: v for k, v in notes.items() if k in ("clean", "hook", "up", "real_px", "shown_px", "anchored")})
         if not ok: r["why"] = why
         log(f"      {tag} {m}: {'OK' if ok else why}  {json.dumps(ck)}")
         return (out if ok else None), r, notes
@@ -504,7 +554,7 @@ def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, mod
     def done(m, out, r, notes):
         rec["tried"].append(r)
         if out is not None:
-            rec.update(model=m, checks={k: v for k, v in r.items() if k not in ("model", "s", "clean", "hook", "up", "real_px", "shown_px")},
+            rec.update(model=m, checks={k: v for k, v in r.items() if k not in ("model", "s", "clean", "hook", "up", "real_px", "shown_px", "anchored", "fallback", "esrgan_fid")},
                        notes={k: v for k, v in (notes or {}).items() if k != "edge"})
             return True
         fails.append(r.get("why")); return False
