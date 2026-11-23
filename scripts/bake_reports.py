@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Decide which finds are removed after member reports and write data/reported.json.
 
-Runs in GitHub Actions (.github/workflows/reports.yml) with the SUPABASE_SERVICE_KEY secret. Reads the last 30 days of
+Runs in GitHub Actions (.github/workflows/reports.yml) with the SUPABASE_SERVICE_KEY secret; --offline reads no
+reports (see main()). Reads the last 30 days of
 table product_reports (written only by functions/api/report.js), the 30-day views in data/stats.json and the owner's
 data/report_overrides.json. Writes data/reported.json:
   {"updated": ..., "rule": {...}, "hidden": [ids], "items": [removed finds], "watch": [reported, not removed], "held": n}
@@ -226,23 +227,31 @@ def read_json(path, default):
 
 
 def main():
+    # --offline (23 Nov 2026, the database not answering): no reports are read; the finds removed after reports stay
+    # removed (they are sticky anyway) and the watch list stays as it was, but the photo hides (data/photo_hidden.json)
+    # and the owner's overrides are applied, so a find whose photo was fixed comes back without the database.
+    offline = "--offline" in sys.argv[1:]
     key = os.environ.get("SUPABASE_SERVICE_KEY")
-    if not key:
+    if not key and not offline:
         print("SUPABASE_SERVICE_KEY not set"); return 1
     now = datetime.datetime.now(datetime.timezone.utc)
     since = (now - datetime.timedelta(days=WINDOW_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    try:
-        rows = fetch_all(key, "product_reports?select=product_id,reason,user_id,account_created,verified,ip_hash,net_hash,tok_hash,created_at"
-                              f"&created_at=gte.{since}&order=created_at.asc")
-    except urllib.error.HTTPError as e:
-        if e.code == 404:                                 # the table is not there yet (SQL.md not run): nothing reported
-            print("product_reports not found (run SQL.md); no reports"); rows = []
-        else:
-            print("reports not read:", e.code, str(e.read()[:200])); return 1
+    rows = []
+    if not offline:
+        try:
+            rows = fetch_all(key, "product_reports?select=product_id,reason,user_id,account_created,verified,ip_hash,net_hash,tok_hash,created_at"
+                                  f"&created_at=gte.{since}&order=created_at.asc")
+        except urllib.error.HTTPError as e:
+            if e.code == 404:                                 # the table is not there yet (SQL.md not run): nothing reported
+                print("product_reports not found (run SQL.md); no reports"); rows = []
+            else:
+                print("reports not read:", e.code, str(e.read()[:200])); return 1
     stats = read_json(STATS, {}).get("p") or {}
     views30 = {str(k): (v[1] if isinstance(v, list) and len(v) > 1 else 0) for k, v in stats.items()}
     prev = read_json(OUT, {})
     out = decide(rows, views30, read_json(OVR, {}), prev if isinstance(prev, dict) else {}, now)
+    if offline and isinstance(prev, dict):
+        out["watch"], out["held"] = prev.get("watch") or [], prev.get("held", 0)
     out = merge_photo(out, read_json(PHOTO, {}), read_json(OVR, {}), prev if isinstance(prev, dict) else {}, now)
     out = finalize(out, read_json(SWAPS, {}))
     strip = lambda d: json.dumps({k: v for k, v in d.items() if k != "updated"}, sort_keys=True)

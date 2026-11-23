@@ -113,7 +113,7 @@ def jpg(url, side):
 
 def build(fid, p, gal):
     """The user content for one find, or (None, reason) when the main photo cannot be loaded."""
-    urls = [(p.get("img") or "", MAIN_SIDE)] + [((STORE.replace("/store/", "/store2/") + n[3:]) if n.startswith("s2/") else STORE + n, ANGLE_SIDE) for n in (gal.get(fid) or [])[:MAX_ANGLES]]
+    urls = [(p.get("img") or "", MAIN_SIDE)] + [((STORE.replace("/store/", "/store2/") + n[3:]) if n.startswith("s2/") else ("/img/white/store/" + n[2:]) if n.startswith("w/") else STORE + n, ANGLE_SIDE) for n in (gal.get(fid) or [])[:MAX_ANGLES]]
     content, shown, fails = [], 0, []
     for k, (u, side) in enumerate(urls):
         try:
