@@ -679,32 +679,26 @@
   "why": "Photo 1 looks upscaled and soft with a faint grey ghost shadow at the bottom; replace it with a sharp clean studio front shot. Only 2 photos, so add more usable angles (back, detail)."
  },
  "7569458663": {
-  "at": "2026-11-22T23:49:24+00:00",
-  "conf": 0.55,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.85,
   "model": "claude-sonnet-5-5",
-  "n": 3,
+  "n": 2,
   "photos": [
    {
     "i": 1,
-    "issue": "pattern cut off at right edge and left leg, looks cropped/stretched; edges soft",
-    "ok": false
+    "issue": "",
+    "ok": true
    },
    {
     "i": 2,
     "issue": "",
     "ok": true
-   },
-   {
-    "i": 3,
-    "issue": "",
-    "ok": true
    }
   ],
   "tags": [
-   "lowq",
-   "angle"
+   "few"
   ],
-  "why": "Photo 1 is a tight, slightly stretched crop with wreath prints cut off at the edges and soft detail; replace it with a clean full-item front shot. Photo 2 is the back view and 3 is a fine model shot."
+  "why": "Only 2 usable photos; a good set needs at least 3. Add another angle such as a front view, waistband or cuff detail of the joggers."
  },
  "7569955125": {
   "at": "2026-11-22T23:54:46+00:00",
@@ -1217,29 +1211,23 @@
   "why": "Only one photo is provided, so add at least 2 more clean angles (back, detail of the logo). Photo 1 is soft and the background is not pure white, so replace it with a sharper clean studio front shot."
  },
  "7641028770": {
-  "at": "2026-11-22T23:54:46+00:00",
+  "at": "2026-11-23T00:00:17+00:00",
   "conf": 0.8,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "hanger top visible at collar, polo has different collar/logo design than photo 2; edges look rough",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "different product: plain back polo with tricolor tab, not the printed-collar polo in 1",
+    "issue": "hanger top visible at the collar, soft upscaled look, cut-out edges slightly fuzzy",
     "ok": false
    }
   ],
   "tags": [
+   "lowq",
    "angle",
-   "wrong",
-   "few",
-   "lowq"
+   "few"
   ],
-  "why": "1 shows a hanger tip at the collar and a printed-collar polo that does not match 2, which is a different plain polo on a model. Use a clean studio front and back of the same polo, and add at least one more angle."
+  "why": "Photo 1 still shows part of a hanger behind the collar and looks soft, so it needs a clean studio front shot without the hanger. Only one photo is provided, so add at least two more clean angles (back, detail)."
  },
  "7641123646": {
   "at": "2026-11-22T23:48:33+00:00",
@@ -2685,27 +2673,21 @@
   "why": "Clean white-background front main, plus a back and a full-length studio model shot, all sharp and consistent in colour and product. Store-ready."
  },
  "7672194849": {
-  "at": "2026-11-22T23:54:45+00:00",
-  "conf": 0.8,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.85,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
     "issue": "",
     "ok": true
-   },
-   {
-    "i": 2,
-    "issue": "bottom view only, no strap or handle visible, weak extra angle",
-    "ok": false
    }
   ],
   "tags": [
-   "few",
-   "angle"
+   "few"
   ],
-  "why": "Only 2 photos and photo 2 is just the base of the bag, so fewer than 3 usable photos. Add a side or 3/4 view and a back or interior shot."
+  "why": "Photo 1 is a clean, sharp straight-on cut-out on white and passes QA, but it is the only photo. Add at least two more clean angles (side, back, interior or strap detail) to reach 3 usable photos."
  },
  "7672196807": {
   "at": "2026-11-22T23:48:22+00:00",
@@ -4619,28 +4601,21 @@
   "why": "Photo 1 looks like a soft, smeared render and the sole logo is cut off at the left edge, so replace it with a clean official side shot (or use photo 2 as main). Photos 2-4 are fine."
  },
  "7672275651": {
-  "at": "2026-11-22T23:48:33+00:00",
+  "at": "2026-11-23T00:00:17+00:00",
   "conf": 0.8,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "low resolution 568px, soft, rough cut-out edges",
-    "ok": false
-   },
-   {
-    "i": 2,
     "issue": "",
     "ok": true
    }
   ],
   "tags": [
-   "lowq",
-   "few",
-   "dup"
+   "few"
   ],
-  "why": "Photo 1 is only 568px and soft with a rough cut-out; it is also a near-identical front shot to 2. Only 1 usable photo, so add sharp alternate angles (back, label/print detail) and replace photo 1."
+  "why": "Only one photo, and it is a clean cut-out front shot on white. Add at least two more angles, such as the back and a detail or fabric close-up."
  },
  "7672275805": {
   "at": "2026-11-22T23:49:03+00:00",
@@ -5179,28 +5154,22 @@
   "why": "Clean official-style set: front cut-out on white, back view with label, and a full-length model shot. All photos show the same black cargo shorts and are sharp."
  },
  "7672683101": {
-  "at": "2026-11-22T23:54:46+00:00",
-  "conf": 0.85,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.72,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "cut-out with grey fringe and jagged edges; shows a different shoe (three stripes, mesh) than photo 2",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "different shoe model (750 print, different design); tight model crop on legs",
+    "issue": "rough cut-out with grey halo on the heel tab and tongue, ghosted edges, looks like a knock-off with a mixed brand logo",
     "ok": false
    }
   ],
   "tags": [
    "lowq",
-   "wrong",
    "few"
   ],
-  "why": "Photo 1 and 2 show two different shoes, so the set mismatches. Photo 1 has a rough cut-out edge, photo 2 is a tight lifestyle crop; reshoot both of the same product and add more angles (at least 3 clean photos)."
+  "why": "Only 1 photo, so add at least 2 more clean angles (opposite side, front/back, sole). Photo 1 needs a cleaner cut-out, with no grey fringe around the heel tab or tongue."
  },
  "7672683103": {
   "at": "2026-11-22T23:48:22+00:00",
@@ -7014,37 +6983,31 @@
   "why": "Photo 1 has a leftover hanger hook inside the hood; retouch it out and reshoot flat or on a ghost mannequin. Only one photo, so add back, detail and logo angles to reach 3 usable photos."
  },
  "7672772585": {
-  "at": "2026-11-22T23:48:30+00:00",
-  "conf": 0.75,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.6,
   "model": "claude-sonnet-5-5",
-  "n": 4,
+  "n": 3,
   "photos": [
    {
     "i": 1,
-    "issue": "low resolution 716px, soft edges; adult hoodie with different bear design",
+    "issue": "upscaled, smeared texture, soft edges and bear logo, jagged cut-out edges",
     "ok": false
    },
    {
     "i": 2,
-    "issue": "",
-    "ok": true
+    "issue": "upscaled, soft and smeared, halo on cut-out edges",
+    "ok": false
    },
    {
     "i": 3,
     "issue": "",
     "ok": true
-   },
-   {
-    "i": 4,
-    "issue": "",
-    "ok": true
    }
   ],
   "tags": [
-   "lowq",
-   "wrong"
+   "lowq"
   ],
-  "why": "Photo 1 is an adult-style hoodie with a different bear outfit and white drawstrings and is only 716 px, while 2-4 show the kids hoodie. Replace 1 with a clean high-res front shot of the same product as 2-4."
+  "why": "Photos 1 and 2 look upscaled with a smeared texture, a blurry bear logo and a rough cut-out edge; replace them with sharp originals. Photo 3 is a fine model shot."
  },
  "7672772589": {
   "at": "2026-11-22T23:54:45+00:00",
@@ -9048,20 +9011,20 @@
   "why": "Clean white-background front main, plus full model shot and back view of the same black jacket; all sharp and store-ready."
  },
  "7673207305": {
-  "at": "2026-11-22T23:54:45+00:00",
-  "conf": 0.8,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.6,
   "model": "claude-sonnet-5-5",
   "n": 4,
   "photos": [
    {
     "i": 1,
-    "issue": "bad cut-out: ghosted grey halo/shadow around shoe edges, smudged remnants near heel tabs and toe",
+    "issue": "cut-out edges ghosted and hazy near heel and toe, soft upscaled look, white fringe",
     "ok": false
    },
    {
     "i": 2,
-    "issue": "",
-    "ok": true
+    "issue": "ghosted shadow and smeared edges around toe, soft",
+    "ok": false
    },
    {
     "i": 3,
@@ -9077,7 +9040,7 @@
   "tags": [
    "lowq"
   ],
-  "why": "Photo 1 has a messy cut-out with ghosted grey halo and leftover smudges around the shoes; redo the background removal or use the clean side view (2) as main. Photos 2-4 are clean."
+  "why": "Photo 1 has a hazy, ghosted cut-out edge at the heel and a soft look, and photo 2 has smeared ghost shadow edges near the toes; redo these cut-outs cleanly. Photos 3 and 4 are acceptable."
  },
  "7673207317": {
   "at": "2026-11-22T23:49:21+00:00",
@@ -9593,28 +9556,21 @@
   "why": "Only 2 photos, so at least one more clean angle is needed (back or detail). Photo 1 looks upscaled with a smeared logo and soft edges; replace it with a sharp studio front shot."
  },
  "7673235083": {
-  "at": "2026-11-22T23:54:45+00:00",
+  "at": "2026-11-23T00:00:17+00:00",
   "conf": 0.8,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "dark, flat lighting with soft, low-detail texture; background-removed cut-out looks like a marketplace image, legs slightly skewed",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "different jeans: skinny fit with small black patches, not the distressed crystal-patch pair in 1",
-    "ok": false
+    "issue": "",
+    "ok": true
    }
   ],
   "tags": [
-   "lowq",
-   "wrong",
    "few"
   ],
-  "why": "Photo 1 is dark and soft, with little detail visible in the black denim. Photo 2 shows different, skinny jeans with minimal distressing, so it does not match photo 1. Only 2 photos, so add clean front, back and detail shots of the actual pair."
+  "why": "Only one photo (1), a clean front flat shot on white, so the set has fewer than 3 usable photos. Add back, detail and side angles."
  },
  "7673235103": {
   "at": "2026-11-22T23:48:22+00:00",
@@ -10134,29 +10090,23 @@
   "why": "Photo 1 shows two shoes overlapping with leftover box and a rough cut-out edge; needs a clean single-shoe side or 3/4 view on white. Only one photo, add at least two more clean angles."
  },
  "7673252819": {
-  "at": "2026-11-22T23:54:46+00:00",
-  "conf": 0.8,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.9,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "tilted flat-lay on a glass table, cluttered home background, tags attached",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "back view of a different black tee, no Fendi logo visible, likely different product; small and low-res",
+    "issue": "flat-lay on a glass table with a cluttered home background, tilted and skewed, hang tags in view, sleeve edge smeared",
     "ok": false
    }
   ],
   "tags": [
    "lowq",
    "angle",
-   "few",
-   "wrong"
+   "few"
   ],
-  "why": "1 is a tilted flat-lay on a table with a cluttered background; it needs a clean straight-on studio shot. 2 is a back view of a model in a different, unbranded tee, so replace it. Only 2 photos in total, and neither passes."
+  "why": "Photo 1 is a tilted flat-lay on a table with a cluttered background and needs a clean straight-on studio shot on white. The listing has only one photo, so add front, back and detail angles."
  },
  "7673254769": {
   "at": "2026-11-22T23:49:03+00:00",
@@ -13677,29 +13627,23 @@
   "why": "1 combines front and back views in one image, so use a single clean front shot as the main and make the back its own photo. Only one photo in total; add more angles and detail shots."
  },
  "7675182756": {
-  "at": "2026-11-22T23:54:46+00:00",
-  "conf": 0.8,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.85,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "pants laid on a plexiglass stand with a magazine page in the background, bad cut-out, cluttered, odd angle",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "all black back view, does not match the black/grey pants in photo 1",
+    "issue": "joggers draped on a clear stand with a magazine spread in the background; skewed angle, cluttered, leftover background",
     "ok": false
    }
   ],
   "tags": [
    "lowq",
    "angle",
-   "few",
-   "wrong"
+   "few"
   ],
-  "why": "1 is a messy flat-lay with a magazine and clutter behind; needs a clean studio front shot. 2 shows all-black pants (no grey panel), so it does not match the title or photo 1; replace it and add more angles."
+  "why": "1 shows the joggers draped over a clear riser with a magazine page behind them, so the angle is skewed and the background is cluttered. It needs a clean studio front shot on white, plus at least 2 more clean angles."
  },
  "7675182918": {
   "at": "2026-11-22T23:49:03+00:00",
@@ -16574,15 +16518,15 @@
   "why": "Only one photo, so the set has too few usable images; add front, back, detail and label shots. Photo 1 is a flat-lay of a white tee on white with weak edge definition and garbled print text, so it needs a cleaner studio shot."
  },
  "7675705362": {
-  "at": "2026-11-22T23:48:30+00:00",
-  "conf": 0.6,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.82,
   "model": "claude-sonnet-5-5",
   "n": 5,
   "photos": [
    {
     "i": 1,
-    "issue": "pair shown from a high 3/4 front angle, cropped tight to the frame; not a clean side view",
-    "ok": false
+    "issue": "",
+    "ok": true
    },
    {
     "i": 2,
@@ -16606,9 +16550,9 @@
    }
   ],
   "tags": [
-   "angle"
+   "good"
   ],
-  "why": "Photo 1 is an awkward top-down pair shot with a slightly rough cut-out; use the clean side view in 3 as the main. Photos 2-5 are fine as extra angles."
+  "why": "Clean white-background side-view main with crisp cut-out edges, plus front, back, sole and on-foot shots, all the same grey 2002R. Store-ready as is."
  },
  "7675707376": {
   "at": "2026-11-22T23:49:24+00:00",
@@ -16713,28 +16657,22 @@
   "why": "Only one photo; the main is a clean front flat shot on white, but at least 2 more clean angles (back, detail, label) are needed to reach 3 usable photos."
  },
  "7675711296": {
-  "at": "2026-11-22T23:54:45+00:00",
-  "conf": 0.85,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.8,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "counterfeit-looking polo with fake 'DAFANGKE' label, cluttered logos; wrinkled, cheap look, soft edges",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "different product: plain oversized polo on model, no logos; not the same shirt as photo 1",
+    "issue": "soft, smeared texture with halo around cut-out edges; wrinkled hem; counterfeit-looking label and logos",
     "ok": false
    }
   ],
   "tags": [
    "lowq",
-   "wrong",
    "few"
   ],
-  "why": "Photo 1 is a wrinkled knock-off polo with a different brand label and multiple crests, and photo 2 shows a different plain oversized polo on a model. Replace both with clean photos of the same genuine item and add more angles."
+  "why": "Only photo 1 is provided, so the set has fewer than 3 usable photos. Photo 1 is a soft cut-out with a cheap look; it needs a sharp clean studio front shot plus back and detail angles."
  },
  "7675711298": {
   "at": "2026-11-22T23:54:45+00:00",
@@ -18289,27 +18227,21 @@
   "why": "Only 2 usable photos; a store needs at least 3. Add another angle such as a side view, sleeve or label detail, or a close-up of the embroidery."
  },
  "7675766484": {
-  "at": "2026-11-22T23:54:46+00:00",
-  "conf": 0.6,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.9,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
     "issue": "",
     "ok": true
-   },
-   {
-    "i": 2,
-    "issue": "back view is a paler pink than the front, different colour or lighting",
-    "ok": false
    }
   ],
   "tags": [
-   "few",
-   "wrong"
+   "few"
   ],
-  "why": "Only 2 photos, so the set is short of 3 usable ones. Photo 1 is a clean main. Photo 2 shows a paler pink than photo 1, so reshoot or colour-match it, and add a detail or side shot."
+  "why": "Photo 1 is a clean, sharp front cut-out on white and passes QA, but it is the only photo. Add at least two more usable angles, such as the back, a detail of the cable knit and a model shot."
  },
  "7675766486": {
   "at": "2026-11-22T23:48:22+00:00",
@@ -20204,37 +20136,31 @@
   "why": "Photo 1 is a clean, sharp studio main on white, but it is the only photo. Add at least 2 more angles such as the buckle close-up, full length and back."
  },
  "7676185428": {
-  "at": "2026-11-22T23:49:29+00:00",
-  "conf": 0.6,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.55,
   "model": "claude-sonnet-5-5",
-  "n": 4,
+  "n": 3,
   "photos": [
    {
     "i": 1,
-    "issue": "front-on shoe view, not a clean side or 3/4 shot; worn soles, white spikes ghosted at the sides",
-    "ok": false
+    "issue": "",
+    "ok": true
    },
    {
     "i": 2,
-    "issue": "",
-    "ok": true
+    "issue": "back view shows scuffed, dirty, worn spikes and sole; looks used",
+    "ok": false
    },
    {
     "i": 3,
     "issue": "",
     "ok": true
-   },
-   {
-    "i": 4,
-    "issue": "",
-    "ok": true
    }
   ],
   "tags": [
-   "lowq",
-   "angle"
+   "lowq"
   ],
-  "why": "Photo 1 is a head-on shot with messy edges and ghosted white spikes at the sides; use the clean side view (3) as the main, or reshoot a clean 3/4 view. Photos 2-4 are fine."
+  "why": "Main 1 is a clean side cut-out and is fine. Photo 2 is a back view with visible dirt and wear and a slightly cluttered pair crop; replace it with a cleaner back or 3/4 shot. Photo 3 sole shot is acceptable."
  },
  "7676185446": {
   "at": "2026-11-22T23:49:29+00:00",
@@ -20672,31 +20598,27 @@
   "why": "Only 2 photos, so at least one more clean angle (back, sole, or other side) is needed. Photo 1 looks soft and upscaled with a rough cut-out, so replace it with a sharper studio side shot."
  },
  "7676207210": {
-  "at": "2026-11-22T23:49:21+00:00",
-  "conf": 0.55,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.6,
   "model": "claude-sonnet-5-5",
-  "n": 3,
+  "n": 2,
   "photos": [
    {
     "i": 1,
-    "issue": "soft, slightly blurry edges, upscaled look; item small in frame with lots of white padding",
+    "issue": "back view as main, not a front shot",
     "ok": false
    },
    {
     "i": 2,
     "issue": "",
     "ok": true
-   },
-   {
-    "i": 3,
-    "issue": "",
-    "ok": true
    }
   ],
   "tags": [
-   "lowq"
+   "few",
+   "angle"
   ],
-  "why": "Photo 1 looks soft with slightly fuzzy cut-out edges; replace with a sharp, clean front shot of the pants. Photos 2 and 3 are fine, but the model shot appears to be a different brand style, so verify it matches the product."
+  "why": "Only 2 photos, so add at least one more clean angle (front or side). 1 shows the back of the pants as the main; swap in a front studio shot of the pants."
  },
  "7676207212": {
   "at": "2026-11-22T23:48:22+00:00",
@@ -24901,27 +24823,21 @@
   "why": "Photo 1 is a tilted flat-lay that looks soft and upscaled. Needs a straight-on clean studio front shot, plus at least 2 more sharp angles (back, detail)."
  },
  "7677460447": {
-  "at": "2026-11-22T23:54:45+00:00",
-  "conf": 0.72,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.85,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "white fringe and ghosting on right strap, cut-out artifacts",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "hazy glare/smudge over bag, cut-out edges rough, colour darker plum than photo 1",
-    "ok": false
+    "issue": "",
+    "ok": true
    }
   ],
   "tags": [
-   "few",
-   "lowq"
+   "few"
   ],
-  "why": "Only 2 photos and neither is clean. 1 has a white patch behind the right strap from a bad cut-out; 2 has haze over the bag and a darker colour. Redo the cut-outs and add more angles (back, interior, base)."
+  "why": "Photo 1 is a clean, sharp front-facing cut-out on white and would pass as a main. The listing has only 1 photo, so it needs at least 2 more clean angles (side, interior, strap/detail)."
  },
  "7677460479": {
   "at": "2026-11-22T23:48:33+00:00",
@@ -28465,15 +28381,15 @@
   "why": "1 is shot on a hanger with the hanger top and wire visible; it needs a clean studio front or ghost-mannequin shot with no hanger. Only one photo, so add back, detail and label angles to reach at least 3."
  },
  "7680456318": {
-  "at": "2026-11-22T23:49:29+00:00",
-  "conf": 0.6,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.8,
   "model": "claude-sonnet-5-5",
-  "n": 4,
+  "n": 3,
   "photos": [
    {
     "i": 1,
-    "issue": "soft, upscaled look with logo smudged/blurred; charm and keyring differ from other photos",
-    "ok": false
+    "issue": "",
+    "ok": true
    },
    {
     "i": 2,
@@ -28484,18 +28400,12 @@
     "i": 3,
     "issue": "",
     "ok": true
-   },
-   {
-    "i": 4,
-    "issue": "",
-    "ok": true
    }
   ],
   "tags": [
-   "lowq",
-   "wrong"
+   "good"
   ],
-  "why": "Photo 1 looks soft and upscaled with a blurred logo plate, and it shows a keyring charm and different strap hardware than photos 2-4, so it may be a different variant; replace it with a clean studio front shot matching 2-4."
+  "why": "Clean studio 3/4 main, a clean straight-on back view and a full model shot, all sharp and consistent with the same black Guess bag. Set is store-ready."
  },
  "7680456496": {
   "at": "2026-11-22T23:49:21+00:00",
@@ -31205,33 +31115,21 @@
   "why": "Photo 1 is a clean studio shot of the CK One bottle on white, but it is the only photo. Add at least 2 more angles (back, box, side) to reach 3 usable photos."
  },
  "7717266755": {
-  "at": "2026-11-22T23:54:45+00:00",
-  "conf": 0.72,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.8,
   "model": "claude-sonnet-5-5",
-  "n": 3,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "washed out, soft, faded logo, hang tag left on collar, patch has no yellow compass, differs from 2 and 3",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "bluish cast, side view with soft edges, item small in frame",
-    "ok": false
-   },
-   {
-    "i": 3,
-    "issue": "tight model crop, face cut off",
-    "ok": false
+    "issue": "",
+    "ok": true
    }
   ],
   "tags": [
-   "lowq",
-   "angle",
-   "wrong"
+   "few"
   ],
-  "why": "Photo 1 is a soft, washed-out image with a hang tag, a centre chest print and a different patch, so it shows a different product from 2 and 3, which have a plain chest. Replace it with a clean front shot of the same sweatshirt, fix the colour on 2, and use a full model shot instead of the tight crop in 3."
+  "why": "Photo 1 is a clean straight-on white sweatshirt on a white background and would pass as a main, but it is the only photo. Add at least 2 more angles (back, detail of the sleeve badge, or a model shot)."
  },
  "7717266761": {
   "at": "2026-11-22T23:48:22+00:00",
@@ -31287,28 +31185,21 @@
   "why": "Photo 1 is a clean straight-on cut-out on white and passes, but it is the only photo. Add at least two more usable angles (back, detail, model shot)."
  },
  "7717270699": {
-  "at": "2026-11-22T23:54:46+00:00",
-  "conf": 0.6,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.8,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "hang tag left on neck, looks like a replica-style render; yellowish cream, soft detail",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "different product/model source: plain back view of a different, off-white tee, low resolution (591 px wide)",
-    "ok": false
+    "issue": "",
+    "ok": true
    }
   ],
   "tags": [
-   "lowq",
-   "wrong",
    "few"
   ],
-  "why": "Only 2 photos, and 2 is a back shot of a different-looking off-white tee from another source (low res). 1 has a dangling hang tag and a different cream shade; needs a clean official front shot plus matching back and detail shots."
+  "why": "Only photo 1 is provided, a clean straight-on cut-out on white. Add at least two more angles (back, detail, fabric) to reach 3 usable photos."
  },
  "7717272725": {
   "at": "2026-11-22T23:49:21+00:00",
@@ -35124,31 +35015,28 @@
   "why": "Only one photo, which is a clean front product shot on white. Add at least two more clean angles, such as back and a detail or fabric close-up."
  },
  "7720288472": {
-  "at": "2026-11-22T23:48:22+00:00",
-  "conf": 0.68,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.6,
   "model": "claude-sonnet-5-5",
-  "n": 3,
+  "n": 2,
   "photos": [
    {
     "i": 1,
-    "issue": "upscaled, soft smeared texture, dark and low contrast, rough cut-out edges",
+    "issue": "main shows open main compartment, not a clean closed front view",
     "ok": false
    },
    {
     "i": 2,
-    "issue": "",
-    "ok": true
-   },
-   {
-    "i": 3,
-    "issue": "",
-    "ok": true
+    "issue": "back view looks like a different, slimmer backpack with no side buckles",
+    "ok": false
    }
   ],
   "tags": [
-   "lowq"
+   "angle",
+   "few",
+   "wrong"
   ],
-  "why": "Photo 1 is soft and upscaled with a rough cut-out and a dark, muddy look; replace it with a sharp studio front shot like photos 2 and 3. Photos 2 and 3 are clean."
+  "why": "1 is shown open with the interior exposed; replace it with a clean closed front shot. 2 appears to be a different, slimmer model than 1, so use a back view of the same bag. Only 2 photos in total, so add more angles."
  },
  "7720290446": {
   "at": "2026-11-22T23:49:03+00:00",
@@ -38117,28 +38005,23 @@
   "why": "1 is a tilted flat-lay with leftover background frame pieces and looks like a different, unbranded-style jersey than the official Adidas shirt in 2; needs a clean straight-on studio front. Only 2 photos, add more clean angles."
  },
  "7732132791": {
-  "at": "2026-11-22T23:49:29+00:00",
-  "conf": 0.8,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.7,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "bad cut-out: white and grey background remnants and ghosted shapes around the shirt, dark edge shadow on the right side, tilted",
+    "issue": "back view as main, soft upscaled look, only one photo",
     "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "",
-    "ok": true
    }
   ],
   "tags": [
    "lowq",
-   "few",
-   "wrong"
+   "angle",
+   "few"
   ],
-  "why": "Photo 1 has a broken cut-out with leftover white and grey shapes and edge shadows; redo it with a clean white studio background. Only 2 photos, and only photo 2 passes, so add a clean front and more angles. The back shot looks like a slightly different shade and cut than the front, so check they are the same jersey."
+  "why": "1 shows only the back of the jersey as the main, with a soft, slightly upscaled look; use a clean sharp front view as main. Add front and detail angles to reach at least 3 usable photos."
  },
  "7732136671": {
   "at": "2026-11-22T23:48:30+00:00",
@@ -39178,29 +39061,23 @@
   "why": "Photo 1 is a clean 3/4 studio cut-out with crisp edges, photo 2 shows the back, and photo 3 is a clean official model shot of the same navy pinstripe jersey. The set is store-ready."
  },
  "7733032421": {
-  "at": "2026-11-22T23:54:46+00:00",
+  "at": "2026-11-23T00:00:17+00:00",
   "conf": 0.8,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "tilted flat-lay on a cluttered background with white shapes, item cropped short and skewed",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "different jersey: plain back view, different cut and fabric from the main, looks soft and upscaled",
+    "issue": "tilted flat-lay on a cluttered grey-white geometric backdrop, item skewed and cropped-looking, not a clean studio shot",
     "ok": false
    }
   ],
   "tags": [
    "angle",
    "lowq",
-   "few",
-   "wrong"
+   "few"
   ],
-  "why": "1 is a skewed flat-lay on a busy background; reshoot as a clean straight-on studio front. 2 shows a different, plain jersey that does not match 1; replace it, and add more matching angles to reach at least 3."
+  "why": "Photo 1 is a skewed flat-lay on a busy backdrop; it needs a clean straight-on studio shot or a clean cut-out on white. Only one photo, so add at least 2 more clean angles (back, detail)."
  },
  "7733032423": {
   "at": "2026-11-22T23:49:21+00:00",
@@ -50098,19 +49975,14 @@
   "why": "Only photo 1 exists, so the set has fewer than 3 usable photos. Photo 1 looks upscaled and soft with a washed-out cut-out; replace it with a sharp official studio front shot and add back and detail angles."
  },
  "7738958594": {
-  "at": "2026-11-22T23:54:45+00:00",
-  "conf": 0.82,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.88,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "leftover grey background lines and arc fragments around the cut-out, flat-lay with stray shapes",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "back view model crop cut off at the thighs, awkward pose, shirt barely shown",
+    "issue": "leftover grey background lines and arc around the shirt, bad cut-out; shirt tilted and shot at an angle",
     "ok": false
    }
   ],
@@ -50119,7 +49991,7 @@
    "angle",
    "few"
   ],
-  "why": "1 has leftover grey line shapes from the original background and is a skewed flat-lay; needs a clean cut-out front shot. 2 is a cropped back view with the head turned; only 2 photos in total, add a clean front, back and detail shot."
+  "why": "Photo 1 has leftover grey pitch-line graphics from the original background and the shirt is skewed; it needs a clean white-background straight-on cut-out. Only one photo, so add a back view and a detail shot to reach at least 3."
  },
  "7738966434": {
   "at": "2026-11-22T23:54:46+00:00",
@@ -53879,29 +53751,23 @@
   "why": "Photo 1 is a clean straight-on cut-out on white and would pass as a main, but it is the only photo. Add at least 2 more clean angles (back, detail, side) to reach 3 usable photos."
  },
  "7778426834": {
-  "at": "2026-11-22T23:54:45+00:00",
+  "at": "2026-11-23T00:00:17+00:00",
   "conf": 0.8,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
-    "issue": "hanger top visible, soft upscaled look, white-on-white cut-out with fringe",
-    "ok": false
-   },
-   {
-    "i": 2,
-    "issue": "different shirt: model back view, off-white and no logo, likely a different product; odd 575x1600 crop",
+    "issue": "on a hanger with hanger top visible, soft upscaled look, white-on-white cut-out with halo edges",
     "ok": false
    }
   ],
   "tags": [
-   "angle",
    "lowq",
-   "few",
-   "wrong"
+   "angle",
+   "few"
   ],
-  "why": "1 shows the hanger and looks soft and upscaled; it needs a clean studio front shot with no hanger. 2 is a model back view of a different off-white shirt, so replace it with matching angles of this item. Only 2 photos, and neither passes."
+  "why": "1 is a hanger shot with the hanger hook still visible and a soft, upscaled look on a white cut-out. Needs a clean studio front shot plus at least two more angles (back, detail)."
  },
  "7778427816": {
   "at": "2026-11-22T23:49:29+00:00",
@@ -55047,32 +54913,28 @@
   "why": "Photo 1 is a clean, sharp studio shot of the folded scarf on white, but it is the only photo. Add at least two more clean angles, such as a close-up of the weave and fringe and the full length laid out."
  },
  "7822738392": {
-  "at": "2026-11-22T23:54:46+00:00",
-  "conf": 0.7,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.6,
   "model": "claude-sonnet-5-5",
-  "n": 3,
+  "n": 2,
   "photos": [
    {
     "i": 1,
-    "issue": "different back print (photo of woman with dog), shows back only; soft, jagged cut-out edges",
+    "issue": "back print shot, edges look slightly soft/jagged cut-out; possibly different design than photo 2",
     "ok": false
    },
    {
     "i": 2,
-    "issue": "different print: California Grown back graphic, not matching photo 1",
-    "ok": false
-   },
-   {
-    "i": 3,
     "issue": "",
     "ok": true
    }
   ],
   "tags": [
+   "few",
    "wrong",
    "lowq"
   ],
-  "why": "Photo 1 shows a different graphic (woman with dog) than photos 2 and 3 (California Grown), so it is a different product; its cut-out also looks soft and rough. Replace 1 with the matching front/back shot of the California Grown tee, and photo 2 should match 3 as the back view."
+  "why": "Photo 1 shows the back with a dog/woman graphic, while photo 2 shows the front with a California Crown print, which may be a different shirt. Only 2 photos, so add a clean front main and more angles of the same shirt."
  },
  "7822782406": {
   "at": "2026-11-22T23:54:45+00:00",
@@ -55368,27 +55230,21 @@
   "why": "Both photos are clean, sharp cut-outs of the same hoodie (back and front), but only 2 usable photos. Add at least one more angle, such as a detail or side view."
  },
  "926432872742": {
-  "at": "2026-11-22T23:54:46+00:00",
-  "conf": 0.8,
+  "at": "2026-11-23T00:00:17+00:00",
+  "conf": 0.85,
   "model": "claude-sonnet-5-5",
-  "n": 2,
+  "n": 1,
   "photos": [
    {
     "i": 1,
     "issue": "",
     "ok": true
-   },
-   {
-    "i": 2,
-    "issue": "different product: collared overshirt without hood, not the hooded jacket in 1",
-    "ok": false
    }
   ],
   "tags": [
-   "wrong",
    "few"
   ],
-  "why": "Photo 2 shows a collared overshirt with no hood, so it does not match the hooded jacket in photo 1; replace it with a back or detail shot of the same jacket. Only 1 usable photo, so add at least 2 more angles of the hooded jacket."
+  "why": "Photo 1 is a clean straight-on cut-out on white and would pass as a main. Only one photo is provided, so add at least two more angles (back, detail, side) to reach 3 usable photos."
  },
  "935096845323": {
   "at": "2026-11-22T23:48:31+00:00",
