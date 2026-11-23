@@ -2676,6 +2676,15 @@ html .card .thumb img.qch{object-fit:cover!important;mix-blend-mode:normal!impor
    it is useless and iPhone Safari can paint a white box behind blended cut-outs inside the rounded photo boxes. Off in dark mode. */
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(.card .thumb img,.thumb .pimg,.ftile img,.ftile .fimg,.sim-thumb img,.gmain img,.gmain .pimg,.thumbs .qcthumb-btn img,.pcs-well img){mix-blend-mode:normal!important}}
 :root[data-theme="dark"] :is(.card .thumb img,.thumb .pimg,.ftile img,.ftile .fimg,.sim-thumb img,.gmain img,.gmain .pimg,.thumbs .qcthumb-btn img,.pcs-well img){mix-blend-mode:normal!important}
+/* 23 Nov 2026 (owner): in dark mode every product photo sits on a white tile, like a studio shelf. White-background photos and
+   cut-outs then look the same (no white boxes next to floating ones) and black items stay visible. On white, multiply is safe
+   again (the iPhone white box above is white anyway). QC photos keep their own look. */
+:root[data-theme="dark"] :is(.card .thumb,.gmain,.sim-thumb,.ftile,.pcs-well){--well:#fff;--ink:#111;--muted:#5c5c5c;background:#fff!important}
+:root[data-theme="dark"] :is(.card .thumb img,.thumb .pimg,.ftile img,.ftile .fimg,.sim-thumb img,.gmain img,.gmain .pimg,.pcs-well img):not(.qch):not([alt^="QC photo"]){mix-blend-mode:multiply!important;filter:none!important;border-radius:0!important}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) :is(.card .thumb,.gmain,.sim-thumb,.ftile,.pcs-well){--well:#fff;--ink:#111;--muted:#5c5c5c;background:#fff!important}
+  :root:not([data-theme="light"]) :is(.card .thumb img,.thumb .pimg,.ftile img,.ftile .fimg,.sim-thumb img,.gmain img,.gmain .pimg,.pcs-well img):not(.qch):not([alt^="QC photo"]){mix-blend-mode:multiply!important;filter:none!important;border-radius:0!important}
+}
 /* round 9 (31 Oct 2026): compact tool sections on phones (QC, size/track teasers, Free Tools, 3 steps). CSS only, phones only,
    every word stays in the DOM and visible (descriptions are clamped, not hidden); tap targets stay 44px. Desktop untouched. */
 @media (max-width:560px){
