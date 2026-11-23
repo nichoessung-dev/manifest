@@ -1306,11 +1306,11 @@ header.h .hprefs-l{display:flex;align-items:center;min-height:36px;padding:0 10p
 .ci img,.pimg img{filter:drop-shadow(0 6px 10px rgba(20,16,10,.16)) drop-shadow(0 1px 2px rgba(20,16,10,.08))}
 [data-theme="dark"] :is(.ci img,.pimg img){filter:drop-shadow(0 8px 14px rgba(0,0,0,.55)) drop-shadow(0 1px 3px rgba(0,0,0,.35))}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(.ci img,.pimg img){filter:drop-shadow(0 8px 14px rgba(0,0,0,.55)) drop-shadow(0 1px 3px rgba(0,0,0,.35))}}
-/* 23 Nov 2026 (owner): in dark mode every product photo sits on a white tile, like a studio shelf. White-background photos and
+/* 23 Nov 2026 (owner): in dark mode every product photo sits on a light grey tile (#DEDEDE, owner pick 23 Nov 2026), like a studio shelf. White-background photos and
    cut-outs then look the same (no white boxes next to floating ones) and black items stay visible. QC photos keep their look. */
-:root[data-theme="dark"] :is(.ci,.hub-p2 .ci,.pimg,.thumbs > a,.thumbs > button){background:#fff}
-:root[data-theme="dark"] :is(.ci img,.pimg img,.thumbs img):not([alt^="QC photo"]){mix-blend-mode:multiply;filter:none;border-radius:0}
+:root[data-theme="dark"] :is(.ci,.hub-p2 .ci,.pimg,.thumbs > a,.thumbs > button){background:#DEDEDE}
+:root[data-theme="dark"] :is(.ci img,.pimg img,.thumbs img):not([alt^="QC photo"]){mix-blend-mode:normal;filter:brightness(.8706);border-radius:0}
 @media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) :is(.ci,.hub-p2 .ci,.pimg,.thumbs > a,.thumbs > button){background:#fff}
-  :root:not([data-theme="light"]) :is(.ci img,.pimg img,.thumbs img):not([alt^="QC photo"]){mix-blend-mode:multiply;filter:none;border-radius:0}
+  :root:not([data-theme="light"]) :is(.ci,.hub-p2 .ci,.pimg,.thumbs > a,.thumbs > button){background:#DEDEDE}
+  :root:not([data-theme="light"]) :is(.ci img,.pimg img,.thumbs img):not([alt^="QC photo"]){mix-blend-mode:normal;filter:brightness(.8706);border-radius:0}
 }
