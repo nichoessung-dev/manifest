@@ -76,6 +76,7 @@ FRAME_MAX = 0.25        # polish rule: more than 25% of a border is item -> the 
 LOST_MAX = {"a": 0.02, "b": 0.02, "c": 0.01, "d": 0.01}
 OLD_KEPT_MIN = 0.97     # d: the new cut-out keeps at least this share of what the old one showed solidly
 LOST_FLAG = 0.04        # d: the old cut-out misses more than this share of the item (the original's matte): re-cut
+DETECT = os.environ.get("PHOTO_WHITE_DETECT", "birefnet-general-lite")   # d: the matte that shows what the item covers
 FID_MAX = 4.0           # clean_photos.py: the item's own pixels may differ by at most 4 of 255 on average
 RESTORED_MAX = 0.08     # a, b: parts the old cut-out lost (not white, not background) the new one may have back
 AR_MAX, CORR_MIN = 0.08, 0.6    # store_photos_polish_check.py
@@ -971,12 +972,15 @@ def do_recut(p, old, labels, models, log):
     if not ob: return None, dict(rec, flag="no original", why="the old cut-out does not line up")
     w, h = ob[2] - ob[0], ob[3] - ob[1]
     # the region of the original the old cut-out covers, widened 20% each side. Where the item runs out of it on a side
-    # that is not the photo's own edge (a lost chain loop or strap reaching further), that side is widened and the item
-    # looked at again: the region must never cut the item (23 Nov 2026: a chain cut flat at the frame by the region)
+    # that is not the photo's own edge (a lost chain loop, strap or sleeve reaching further), that side is widened and
+    # the item looked at again: the region must never cut the item (23 Nov 2026: a chain and a sole cut flat at the
+    # frame by the region). The quick matte does not see a white part on a white background, so for a find that will
+    # be cut again the cut-out's own first model (birefnet-general) decides too.
     marg = {"left": 0.2, "top": 0.2, "right": 0.2, "bottom": 0.2}
     grown = []
     t = time.time()
-    for _ in range(3):
+
+    def region():
         roi = (max(0, ob[0] - round(marg["left"] * w)), max(0, ob[1] - round(marg["top"] * h)),
                min(im.width, ob[2] + round(marg["right"] * w)), min(im.height, ob[3] + round(marg["bottom"] * h)))
         src = im.crop(roi)
@@ -995,22 +999,35 @@ def do_recut(p, old, labels, models, log):
         except Exception:
             keep = old_supp.copy()
         keep = ndimage.binary_dilation(keep, iterations=max(3, round(0.02 * max(src.size))))
-        # what the item really covers: a quick matte of the original
-        det = keep_pieces(matte(src, "birefnet-general-lite"), keep)
-        dm = np.asarray(det) >= 128
-        grow = [s for s, band, edge in (("left", dm[:, :2], roi[0] == 0), ("top", dm[:2], roi[1] == 0),
-                                         ("right", dm[:, -2:], roi[2] == im.width), ("bottom", dm[-2:], roi[3] == im.height))
+        return roi, src, old_a, old_supp, keep
+
+    def runs_out(m, roi):
+        # the band touches() reads: an item this close to a side of the region is laid out on that side as if the
+        # photo cut it there (a whole sole 4 px above the region's edge was set on the bottom of the frame)
+        b = max(2, round(0.006 * max(m.shape)))
+        return [s for s, band, edge in (("left", m[:, :b], roi[0] == 0), ("top", m[:b], roi[1] == 0),
+                                         ("right", m[:, -b:], roi[2] == im.width), ("bottom", m[-b:], roi[3] == im.height))
                 if band.any() and not edge]
+
+    for k in range(4):
+        roi, src, old_a, old_supp, keep = region()
+        # what the item really covers: a quick matte of the original (PHOTO_WHITE_DETECT: another model for a find
+        # whose white body the quick matte cannot see on a white background either, e.g. birefnet-hr)
+        dm = np.asarray(keep_pieces(matte(src, DETECT), keep)) >= 128
+        # a hanger only above clothes (a top, trousers, shorts). Above sunglasses, a bag or a shoe a thin piece is a
+        # temple, a handle or a strap, and lost (23 Nov 2026: a Burberry sunglasses temple was taken for a hanger)
+        drop = hanger_above(dm & ~(old_a >= 64), old_supp, old_a) if kind in ("top", "pants", "shorts") \
+            else np.zeros(dm.shape, bool)
+        lost_old = float(((dm & ~drop) & ~(old_a >= 64)).sum() / max(1, (dm & ~drop).sum()))
+        if k == 3: break
+        grow = runs_out(dm, roi)
+        if not grow and lost_old > LOST_FLAG:
+            grow = runs_out(np.asarray(keep_pieces(matte(src, "birefnet-general"), keep)) >= 128, roi)
         if not grow: break
         for s in grow: marg[s] += 0.6
         grown += grow
     old_solid = ndimage.binary_erosion(old_a >= 230, iterations=2)
-    # a hanger only above clothes (a top, trousers, shorts). Above sunglasses, a bag or a shoe a thin piece is a temple,
-    # a handle or a strap, and lost (23 Nov 2026: a Burberry sunglasses temple was taken for a hanger)
-    drop = hanger_above(dm & ~(old_a >= 64), old_supp, old_a) if kind in ("top", "pants", "shorts") \
-        else np.zeros(dm.shape, bool)
     dm = dm & ~drop
-    lost_old = float((dm & ~(old_a >= 64)).sum() / max(1, dm.sum()))
     rec["detect"] = {"lost_old": round(lost_old, 4), "s": round(time.time() - t, 1)}
     if drop.any(): rec["detect"]["hanger"] = round(float(drop.sum() / max(1, dm.sum())), 4)
     if grown: rec["detect"]["grown"] = grown
