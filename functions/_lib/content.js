@@ -33,7 +33,8 @@ export const CAT_INTRO = {
 //   Sugargoo: home page (5 free photos, 100-day storage, 2,000+ routes); help pages "Service & Fee Instruction" and
 //            "Commodity Storage Timeline"; notices "¥800 New User Coupon Pack" and "Union Handling Fee" (EU, 1 Nov 2026);
 //            blog.sugargoo.com/?p=14031 (ordering and QC); App Store listing.
-//   New-user offers: checked by the owner on 9 Nov 2026. Link formats: AGENTS in site.js (what our buttons open).
+//   New-user offers: checked by the owner on 9 Nov 2026. Oopbuy's re-read on 23 Nov 2026 (its sign-up offer and its
+//            estimation page banner: ¥3,500 bundle plus 15% off shipping, where it had said 30% off). Link formats: AGENTS in site.js (what our buttons open).
 // Rules: facts only (no fee or number without a source), no ranking of agents against each other, no em or en dashes.
 const STEPS = items => `<ol class="steps ic-steps-list">${items.map(([i, h, t]) => `<li>${icTile(i)}<strong>${h}</strong> ${t}</li>`).join("")}</ol>`;
 const GLANCE = items => `<ul>${items.map(([h, t]) => `<li><strong>${h}:</strong> ${t}</li>`).join("")}</ul>`;
@@ -102,11 +103,11 @@ export const AGENT_INTRO = {
           ["What is the KakoBuy invite code?", "w5war. Signing up with it unlocks up to $410 in new-user coupons, split into smaller coupons with minimum spends."]] },
 
   oopbuy: { title: "Oopbuy Spreadsheet 2026", lede: "Oopbuy links for every find: the item opens on Oopbuy with the marketplace and item ID already set.",
-    body: `<p>Oopbuy buys from Weidian, Taobao and 1688 for you, keeps your items in its warehouse and ships them together in one parcel. Its help centre says nothing is charged apart from the item (with the seller's delivery to the warehouse), international shipping and a customs declaration fee of generally ¥8 per parcel. Value-added services are optional.</p><p>New Oopbuy users get a ¥3,500 coupon bundle plus a 30% off coupon (a minimum spend applies). Every find on this page opens directly on Oopbuy, so you can claim the coupons and place your first order in the same visit.</p>`,
+    body: `<p>Oopbuy buys from Weidian, Taobao and 1688 for you, keeps your items in its warehouse and ships them together in one parcel. Its help centre says nothing is charged apart from the item (with the seller's delivery to the warehouse), international shipping and a customs declaration fee of generally ¥8 per parcel. Value-added services are optional.</p><p>New Oopbuy users get a ¥3,500 coupon bundle plus 15% off shipping, as Oopbuy's sign-up offer read on 23 Nov 2026 (minimum spends apply). Every find on this page opens directly on Oopbuy, so you can claim the coupons and place your first order in the same visit.</p>`,
     desc: (N, Q) => `The Oopbuy spreadsheet: ${N} rep finds with direct Oopbuy links, ${Q} marked as having QC photos. Oopbuy's fees, 90-day storage, packing tips and returns.`,
     about: [
       ["How to order on Oopbuy", STEPS([
-        ["gift", "Register and collect your coupons.", "Oopbuy's own tutorial puts \"get your coupon\" straight after registering: a ¥3,500 bundle plus a 30% off coupon with a minimum spend."],
+        ["gift", "Register and collect your coupons.", "Oopbuy's own tutorial puts \"get your coupon\" straight after registering: a ¥3,500 bundle plus 15% off shipping (the offer on 23 Nov 2026), with minimum spends."],
         ["cart", "Tap Buy via Oopbuy.", "Select style, size and quantity, add your details and pay; the order then shows under \"View order\"."],
         ["camera", "Read the inspection photos.", "On arrival Oopbuy checks quantity, colour, size and other specifications, then takes the item out of the courier box and repacks it in an Oopbuy self-sealing bag. Some items, such as oversized ones, stay in their original box."],
         ["box", "Create a waybill in My Warehouse.", "Wait until every item you want in the parcel is in stock, select them all, choose packing and insurance, and pay the estimated shipping."],
@@ -130,7 +131,7 @@ export const AGENT_INTRO = {
           ["Can I return an item on Oopbuy?", "You can request a return or exchange within 5 days (120 hours) after the order shows \"Stocked in\". The final decision is the seller's, and you pay the return shipping."],
           ["How long does Oopbuy shipping take?", "About 15 to 30 days from submitting the parcel to delivery, depending on the destination, according to Oopbuy's help centre."],
           ["Which payment methods does Oopbuy accept?", "Oopbuy's help centre lists account top-up, international credit cards, PayPal and Klarna (read 9 November 2026)."],
-          ["What do new Oopbuy users get?", "A ¥3,500 new-user coupon bundle plus a 30% off coupon. A minimum spend applies, and the coupons are claimed after registering."]] },
+          ["What do new Oopbuy users get?", "A ¥3,500 new-user coupon bundle plus 15% off shipping, as Oopbuy showed it on 23 Nov 2026. Minimum spends apply, and the coupons are claimed after registering."]] },
 
   lovegobuy: { title: "LoveGoBuy Spreadsheet 2026", lede: "LoveGoBuy links for every find, with what LoveGoBuy's own help centre says about storage, QC and costs.",
     body: `<p>LoveGoBuy is a shopping agent for Weidian, Taobao, Tmall and 1688. On its own site you search by keyword, paste a product link or upload a photo to find a matching item. From Puro Classico you skip that step: each find opens on LoveGoBuy's product page with the platform and item ID filled in.</p><p>Its help centre breaks the cost down as the item price with domestic delivery, international shipping and a customs declaration charge of generally ¥8 per parcel. New users can claim up to $141 in new-user shipping coupons: a set of freight coupons with different minimum spends, plus a 30% off shipping coupon.</p>`,
@@ -292,7 +293,7 @@ const AGENT_BRAND = {
       about: [
         [`${d.b} on Oopbuy, in numbers`, `<p class="lead">${d.N} ${B} reps on Oopbuy${d.lo ? `, ${abPrice(d)}` : ""}: each find opens on Oopbuy with the marketplace and item ID already set.</p>
 <p>On Oopbuy the most viewed ${B} find opens as ${abWrap(`oopbuy.com/product/${d.exPlat}/${d.exId}`)}. Across the list there are ${abPlat(d)}, ${abCats(d)}.</p>${abTop(d, "Most opened this month:")}${abHub(d, "oopbuy", "Oopbuy", s)}`],
-        [`How to order ${d.b} on Oopbuy`, abSteps([["gift", "Register and get your coupon.", "A ¥3,500 new-user bundle plus a 30% off coupon (minimum spend applies)."],
+        [`How to order ${d.b} on Oopbuy`, abSteps([["gift", "Register and get your coupon.", "A ¥3,500 new-user bundle plus 15% off shipping (minimum spends apply)."],
           ["cart", `Tap Buy via Oopbuy on a ${B} find.`, "Select style, size and quantity, then pay."],
           ["camera", "Check the photos within 5 days.", "That is the return window after the item is stocked in."],
           ["box", "Create a waybill in My Warehouse.", "Storage is free for 90 days; pay the estimated shipping, then the actual cost after packing in My Shipments."]])],

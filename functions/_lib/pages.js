@@ -1,7 +1,7 @@
 // Server-rendered SEO pages. Each renderer returns a Response (or null when the route doesn't exist -> 404).
 import { SITE, MYCNBOX_INVITE, BUILT, P, P_ALL, SWAP_HIDE, recBadge, idx, indexable, gone, LINKS_CHECKED, GONE_COUNTS, views, score, CATS, CAT_BY_SLUG, AGENTS, esc, slug, money, isPH, imgSrc, thumbSrc, IMG_FALLBACK, productUrl, brandUrl, catUrl,
   grid, crumbs, pager, page, card, colourBadge, GUIDE_LINKS, TOOL_LINKS, QC_ICON, origUrl,
-  TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell, ic, icTile, icSteps, more , QC_BANKED, newest, rowDays, AGENT_N, FINDS_PLUS, QC_PLUS, gone as goneOf} from "./site.js";
+  TK_ICONS, TK_I, TOOL_ONE, TK_TRUST, TK_JS, tkHero, tkCopyBtn, toolShell, ic, icTile, icSteps, more , QC_BANKED, newest, rowDays, AGENT_N, FINDS_PLUS, QC_PLUS, gone as goneOf, shown as findShown} from "./site.js";
 import { CAT_INTRO, AGENT_INTRO, agentBrandCopy, OLD_MONEY, BRAND_INTRO as BRAND_INTRO1, GUIDES as GUIDES1 } from "./content.js";
 import { BRAND_INTRO2, MODELS as MODELS2, GUIDES2, TOOLS as TOOLS0 } from "./content2.js";
 import { TOOLS9, TOOL_UI9, toolPage9 } from "./tools9.js";
@@ -11,14 +11,20 @@ import { itemTypeOf, typeGrams, boxedGrams, fmtGrams } from "./weights.js";
 const TOOLS = Object.fromEntries(Object.entries(Object.assign({}, TOOLS0, TOOLS9)).filter(([k]) => k !== "weight-estimator"));
 import { MODELS3, GUIDES3, MODEL_TERM as MODEL_TERM3 } from "./content3.js";
 import { MODELS4, MODEL_TERM4 } from "./content4.js";
+import { MODELS5, MODEL_TERM5 } from "./content5.js";
+import { SHIP_READ, SHIP_TO, SHIP_LINES, MYCNBOX_SHIP } from "./shipping_lines.js";
 import { ensureAlso, alsoOf } from "./also.js";
 import { SG } from "./store_gallery.js";
 import { AGENT_BRAND_CANON } from "./seo_canon.js";
 // The day each shown price was confirmed on the live Weidian listing (scripts/prices.py, the Prices workflow, owner
 // 23 Nov 2026: "a lot of the prices is not accurate"). Read through the namespace so an older file still loads.
 import * as PCK from "./price_checks.js";
-const MODELS = MODELS2.concat(MODELS3, MODELS4);
-const MODEL_TERM = Object.assign({}, MODEL_TERM3, MODEL_TERM4);
+const MODELS = MODELS2.concat(MODELS3, MODELS4, MODELS5);
+const MODEL_TERM = Object.assign({}, MODEL_TERM3, MODEL_TERM4, MODEL_TERM5);
+// Model pages of the 23 Nov 2026 batch (content5.js) count and list only the finds a visitor can see (shown() in site.js, findShown here);
+// the earlier pages keep their lists as they were.
+const VIS_ONLY = new Set(MODELS5.map(m => m.slug));
+export const modelList = m => { if (!VIS_ONLY.has(m.slug)) return m.list; const l = m.list.filter(findShown); return l.length ? l : m.list; };
 const BRAND_INTRO = Object.assign({}, BRAND_INTRO2, BRAND_INTRO1);
 const GUIDES = Object.assign({}, GUIDES1, GUIDES2, GUIDES3);
 const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);   // a slug from the URL must be the object's own key: "constructor" is a key of every plain object, and not a guide
@@ -45,6 +51,29 @@ export function models() {
   return _models;
 }
 export function modelFor(p) { return models().find(m => m.list.some(x => x.id === p.id)) || null; }
+// The model pages most like this one (23 Nov 2026): the ones that share its main category or one of its three biggest
+// brands, biggest first, then the rest in their usual order. Before, every model page linked the same first 14 models.
+export function relatedModels(m, k) {
+  const top = l => { const c = new Map(); for (const p of l) c.set(p, (c.get(p) || 0) + 1); return [...c].sort((a, b) => b[1] - a[1]).map(x => x[0]); };
+  const mine = modelList(m), cat = top(mine.map(p => p.cat))[0], brands = new Set(top(mine.map(p => p.brand).filter(Boolean)).slice(0, 3));
+  const rest = models().filter(x => x.slug !== m.slug);
+  const near = rest.filter(x => { const l = modelList(x); return top(l.map(p => p.cat))[0] === cat || l.slice(0, 40).some(p => brands.has(p.brand)); })
+    .sort((a, b) => modelList(b).length - modelList(a).length);
+  return near.concat(rest.filter(x => !near.includes(x))).slice(0, k);
+}
+// The model pages of one category, biggest first: the ones whose finds are mostly (60%+) in it.
+export function modelsInCat(c, k = 12) {
+  return models().map(x => [x, modelList(x)]).filter(([, l]) => l.filter(p => p.cat === c).length >= 0.6 * l.length)
+    .sort((a, b) => b[1].length - a[1].length).slice(0, k).map(([x]) => x);
+}
+// A brand page links a model page when the brand has a find on it; a cross-brand page (brandMin in content5.js) only when
+// the brand has that many of its finds there and is one of the three brands with the most of them.
+const modelOnBrand = (m, b) => {
+  if (!m.brandMin) return m.list.some(p => p.brand === b);
+  const c = new Map(); for (const p of modelList(m)) if (p.brand) c.set(p.brand, (c.get(p.brand) || 0) + 1);
+  const k = c.get(b) || 0, ahead = [...c.values()].filter(n => n > k).length;
+  return k >= m.brandMin && ahead < 3;
+};
 
 const PER_PAGE = 60;
 // The catalogue date as people write it ("8 Oct 2026"), the format the guides and the hub FAQs already use.
@@ -90,7 +119,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w95";   // w95: prices from the live Weidian listings, the cheapest real variant, and the day each price was checked (Price check row, 23 Nov 2026); w94: the size card is always open with the recommended size and the seller's chart as a table (size.js v3, 23 Nov 2026); w93: the dark mode photo tiles are light grey #DEDEDE (owner pick, ds.css v33) and the MyCNBox button says "Up to $500 coupons" instead of "Most popular" (23 Nov 2026); w92: dark mode puts product photos on white tiles (ds.css v32, 23 Nov 2026); w91: white cut-outs for the store photos the polish step skipped (23 Nov 2026); w90: 10 more mains from passing angles after the re-rating (22 Nov 2026); w89: angles the re-rating failed dropped, 8 wrong pass-2 mains back to their earlier photo (22 Nov 2026); w88: the new pass-2 store photos polished too (22 Nov 2026); w87: new store photo sets for weak and wrong-item finds (pass 2, 22 Nov 2026); w86: SEO pass (22 Nov 2026): what to check in QC for each find, its marketplace spreadsheet linked, photo alt text; w85: SEO pass (22 Nov 2026): 86 agent x brand pages canonical to their brand page, so the edge copies are rebuilt; w84: polished store photos (pure white 1600 px cut-outs, products/store2/, 22 Nov 2026); w83: photo fixes from the AI ratings (wrong / hanger / duplicate angles dropped, better mains, 22 Nov 2026); w82: store angles preloaded as 1000 px copies (21 Nov 2026); w81: store photo angles under the main photo (store_gallery.js, 21 Nov 2026); w79: "Find my size" helper (size.js, 19 Nov 2026); w78: feedback pop-up for the most active visitors (feedback.js, 19 Nov 2026); w77: the removed notice only for member-reported finds, not photo-cleanup or owner hides (19 Nov 2026); w76: no Recommended badge on cards, 'Best batch' on the product page (18 Nov 2026); w75: brand hubs counted on all finds (15 Nov 2026); w74: in-text agent spreadsheet links (15 Nov 2026); w73: product shadow, no Swipe nav, baked finds count (15 Nov 2026); w72: cleaner tools block on the homepage (15 Nov 2026); w71: img/rl thumbs get ?c=1 (stale white resize cache, 15 Nov 2026); w70: pcs.js multilingual search words (15 Nov 2026); w69: subtle icon-only Recommended dot on cards (15 Nov 2026); w68: nicer Recommended tag, no photo blend in dark mode (ds.css v26); w67: partner swaps (12 Nov 2026): the partner item's price, swapped finds first, look-alike pages point to the swapped find; w65: hub layout v10 (compact head, one related-links row, agent logo row, About section under the grid; HX_CSS); w64: 16 agents in the buy menu, first 5 + "See more agents" (11 Nov 2026); w63: distinct agent page copy (AGENT_INTRO about/desc/faq, agentBrandCopy); w62: footer links to the Weidian, Taobao and 1688 spreadsheets, price ranges written "¥x to ¥y", titles fitted to 60 characters (fitTitle); w61: "Ask AI about this item" row, chat.js?v=7 (saved chats note), sharper agent logos; w60: no colour-count badge on cards (owner); w59: chat.js?v=6 (scrollable card row); w58: chat.js?v=5 (better answers); w57: no yen price next to the main price (owner); w56: product page like the app view (muted brand, Details folded, QC button only with stored photos); w55: chat.js?v=4 (pcChatAsk hook for the beta Ask box); w54: size answer beside the form on wide screens; w53: size estimator counts height for length, scrolls to the result; w52: pcs.js 5f23e99c (search: zero-result queries from the log, Nordic words, typo pass under 3 finds); w51: QC badge only for finds with stored QC photos (QC_BANKED); w50: chat.js?v=3 (messenger look; finds open in the app view);   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
+export const PRODUCT_TPL = "w96";   // w96: SEO pass (23 Nov 2026): 36 more /best model pages (content5.js) linked from product, brand and category pages, visible-only counts on the marketplace, QC and agent spreadsheets, agent shipping lines, new finds this week, QC spreadsheet and QC finder sections, CNFans status; w95: prices from the live Weidian listings, the cheapest real variant, and the day each price was checked (Price check row, 23 Nov 2026); w94: the size card is always open with the recommended size and the seller's chart as a table (size.js v3, 23 Nov 2026); w93: the dark mode photo tiles are light grey #DEDEDE (owner pick, ds.css v33) and the MyCNBox button says "Up to $500 coupons" instead of "Most popular" (23 Nov 2026); w92: dark mode puts product photos on white tiles (ds.css v32, 23 Nov 2026); w91: white cut-outs for the store photos the polish step skipped (23 Nov 2026); w90: 10 more mains from passing angles after the re-rating (22 Nov 2026); w89: angles the re-rating failed dropped, 8 wrong pass-2 mains back to their earlier photo (22 Nov 2026); w88: the new pass-2 store photos polished too (22 Nov 2026); w87: new store photo sets for weak and wrong-item finds (pass 2, 22 Nov 2026); w86: SEO pass (22 Nov 2026): what to check in QC for each find, its marketplace spreadsheet linked, photo alt text; w85: SEO pass (22 Nov 2026): 86 agent x brand pages canonical to their brand page, so the edge copies are rebuilt; w84: polished store photos (pure white 1600 px cut-outs, products/store2/, 22 Nov 2026); w83: photo fixes from the AI ratings (wrong / hanger / duplicate angles dropped, better mains, 22 Nov 2026); w82: store angles preloaded as 1000 px copies (21 Nov 2026); w81: store photo angles under the main photo (store_gallery.js, 21 Nov 2026); w79: "Find my size" helper (size.js, 19 Nov 2026); w78: feedback pop-up for the most active visitors (feedback.js, 19 Nov 2026); w77: the removed notice only for member-reported finds, not photo-cleanup or owner hides (19 Nov 2026); w76: no Recommended badge on cards, 'Best batch' on the product page (18 Nov 2026); w75: brand hubs counted on all finds (15 Nov 2026); w74: in-text agent spreadsheet links (15 Nov 2026); w73: product shadow, no Swipe nav, baked finds count (15 Nov 2026); w72: cleaner tools block on the homepage (15 Nov 2026); w71: img/rl thumbs get ?c=1 (stale white resize cache, 15 Nov 2026); w70: pcs.js multilingual search words (15 Nov 2026); w69: subtle icon-only Recommended dot on cards (15 Nov 2026); w68: nicer Recommended tag, no photo blend in dark mode (ds.css v26); w67: partner swaps (12 Nov 2026): the partner item's price, swapped finds first, look-alike pages point to the swapped find; w65: hub layout v10 (compact head, one related-links row, agent logo row, About section under the grid; HX_CSS); w64: 16 agents in the buy menu, first 5 + "See more agents" (11 Nov 2026); w63: distinct agent page copy (AGENT_INTRO about/desc/faq, agentBrandCopy); w62: footer links to the Weidian, Taobao and 1688 spreadsheets, price ranges written "¥x to ¥y", titles fitted to 60 characters (fitTitle); w61: "Ask AI about this item" row, chat.js?v=7 (saved chats note), sharper agent logos; w60: no colour-count badge on cards (owner); w59: chat.js?v=6 (scrollable card row); w58: chat.js?v=5 (better answers); w57: no yen price next to the main price (owner); w56: product page like the app view (muted brand, Details folded, QC button only with stored photos); w55: chat.js?v=4 (pcChatAsk hook for the beta Ask box); w54: size answer beside the form on wide screens; w53: size estimator counts height for length, scrolls to the result; w52: pcs.js 5f23e99c (search: zero-result queries from the log, Nordic words, typo pass under 3 finds); w51: QC badge only for finds with stored QC photos (QC_BANKED); w50: chat.js?v=3 (messenger look; finds open in the app view);   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
 // by mid-month, leaving none for people. A page without cached photos gets a "Show QC photos" button that looks them
@@ -320,7 +349,7 @@ export async function renderProduct(id, origin, opt = {}) {
 <h2>About this find</h2>${aboutFacts}<div class="prose">${about1}</div>${more("Read more", `<div class="prose">${aboutMore}</div>`)}
 ${qcCheck(p, model)}
 <h2>How to buy it</h2>${icSteps([["cart", "Tap Buy"], ["ruler", "Pick size, pay"], ["camera", "Check QC, ship"]])}${more("Step by step", `<ol class="steps prose"><li>Tap <strong>Buy via MyCNBox</strong> (or your agent). The listing opens pre-filled.</li><li>Pick your size and colour, check our <a href="/guides/sizing">sizing guide</a>, and pay for the item plus delivery to the warehouse.</li><li>Check the QC photos (<a href="/guides/how-to-qc">what to look for</a>), then combine items into one parcel and ship. <a href="/how-to-order">Watch the 1:47 video</a>.</li></ol>`)}
-${model ? `<div class="note" style="margin-top:22px">${ic("award", "sm")}Comparing batches? See all <a href="/best/${model.slug}">${model.list.length} ${esc(model.name)} rep listings</a> ranked by views.</div>` : ""}
+${model ? `<div class="note" style="margin-top:22px">${ic("award", "sm")}Comparing batches? See all <a href="/best/${model.slug}">${modelList(model).length} ${esc(model.name)} rep listings</a> ranked by views.</div>` : ""}
 ${alsoRow}
 ${sameBrand.length ? `<div class="sh"><h2>More ${esc(p.brand)} finds</h2><a class="vm" href="${bUrl}">All ${byBrand.get(p.brand).length.toLocaleString("en-US")} ${esc(p.brand)} reps on the spreadsheet${ic("arrow-right", "sm")}</a></div>${grid(sameBrand)}` : ""}
 ${sameCat.length ? `<div class="sh"><h2>Similar ${esc((cat.name || p.cat).toLowerCase())}</h2>${cUrl ? `<a class="vm" href="${cUrl}">All ${esc((cat.name || p.cat).toLowerCase())}${ic("arrow-right", "sm")}</a>` : ""}</div>${grid(sameCat)}` : ""}
@@ -444,6 +473,9 @@ html.hub .v9-hero-in{align-items:flex-start;text-align:left}
 .hx-hero .hx-row{margin-top:6px}
 .hx-about{margin:56px 0 0;padding:40px 0 16px;border-top:1px solid var(--line)}
 .hx-title{margin:0 0 24px;font-size:24px;line-height:1.25;letter-spacing:-.02em;text-wrap:balance}
+.hx-about table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;margin:12px 0;font-size:14px;line-height:1.4;font-variant-numeric:tabular-nums}
+.hx-about th,.hx-about td{padding:7px 14px 7px 0;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.hx-about th{font-weight:600;color:var(--ink);white-space:nowrap}
 .hx-cols{display:grid;gap:40px}
 @media (min-width:900px){.hx-cols{grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:72px}.hx-cols.solo{grid-template-columns:1fr}.hx-cols.solo .hx-side{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));column-gap:48px}}
 .hx-main{max-width:68ch;min-width:0;color:var(--ink-2);font-size:16px;line-height:1.65}
@@ -853,7 +885,7 @@ export function renderBrand(s, n) {
   const best = bestHub(f);
   const cats = [...new Set(list.map(p => p.cat))].filter(c => CATS[c]);
   const intro = (BRAND_INTRO[b] || "") + brandFactsHtml(f);
-  const bm = models().filter(m => m.list.some(p => p.brand === b));
+  const bm = models().filter(m => modelOnBrand(m, b));
   let related = relatedBrands(b), relTitle = "Related brands", relNote = `<p class="pkn">Brands on the spreadsheet with a similar mix of item types and prices.</p>`;
   if (related.length < 4) {   // nothing really similar (a watch or toy brand, say): the largest hubs, under a heading that does not claim more
     related = [...brandSlug.keys()].filter(x => x !== b).sort((x, y) => byBrand.get(y).length - byBrand.get(x).length).slice(0, 10); relTitle = "Other brands"; relNote = "";
@@ -1019,9 +1051,9 @@ ${Object.keys(groups).sort().map(L => `<h2>${L}</h2><div class="chips">${groups[
 // ------------------------------------------------------------------ model pages ("best X rep")
 export function renderModels() {
   const bc = crumbs([["Home", "/"], ["Best reps", "/best"]]);
-  const ms = models().slice().sort((a, b) => b.list.length - a.list.length);
+  const ms = models().slice().sort((a, b) => modelList(b).length - modelList(a).length);
   const body = `${bc.html}<h1>Best reps by model</h1><p class="lead">Every listing of the most popular models side by side, ranked by what buyers actually view. Compare batches, prices and QC before you order.</p>
-<div class="g">${ms.map(m => { const p = m.list[0]; const src = imgSrc(p); return `<a class="c" href="/best/${m.slug}"><span class="ci">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(m.name)}" width="300" height="300" loading="lazy" decoding="async" ${IMG_FALLBACK}>` : ""}</span><span class="cb"><span class="ct">${esc(m.name)}</span><span class="cbr">${m.list.length} listings</span></span></a>`; }).join("")}</div>`;
+<div class="g">${ms.map(m => { const l = modelList(m), p = l[0]; const src = imgSrc(p); return `<a class="c" href="/best/${m.slug}"><span class="ci">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(m.name)}" width="300" height="300" loading="lazy" decoding="async" ${IMG_FALLBACK}>` : ""}</span><span class="cb"><span class="ct">${esc(m.name)}</span><span class="cbr">${l.length} listings</span></span></a>`; }).join("")}</div>`;
   return page({ title: "Best Reps by Model (2026): Compare Batches & QC · Puro Classico", desc: "Compare every listing of the most popular rep models: Air Jordan 1, Samba, Golden Goose, Moncler, Nuptse and more, ranked by views.", path: "/best", body, jsonld: [bc.data] });
 }
 // The icon for one "What to check in QC" line (first match wins).
@@ -1029,13 +1061,13 @@ const QC_ITEM_IC = [[/toe|shape|silhouette|sole/i, "shoe"], [/logo|print|swoosh|
   [/size|label|tag/i, "ruler"], [/colou?r/i, "palette"], [/zip|hardware|buckle|metal/i, "watch"], [/leather|material|knit|fabric|texture/i, "layers"]];
 export function renderModel(s, n) {
   const m = models().find(x => x.slug === s); if (!m) return null;
-  const list = m.list;
+  const list = modelList(m);
   const pr = priceRange(list);
   // The model's short intro is the lead under the h1; the rest of the copy and the QC checklist are in the About section
   // under the grid (v10). "Ranked by views" joins the facts line next to the count and the price range.
   const intro = `<p>Below are all ${list.length} ${esc(m.name)} listings on Puro Classico, ranked by how often buyers view them. Listed prices: ${pr} before shipping.</p>` +
     `${hIc("h3", "camera", "What to check in QC")}<ul class="ic-list">${m.qc.map(q => `<li>${ic(firstIcon(QC_ITEM_IC, q, "check-circle"), "sm")}<span>${esc(q)}</span></li>`).join("")}</ul>`;
-  const others = models().filter(x => x.slug !== s).slice(0, 14);
+  const others = relatedModels(m, 14);
   const t = MODEL_TERM[s] || m.name;
   // Link up to the hub of each brand these listings belong to (a brand needs 3 of them, or all of them; at most 6 brands).
   const { byBrand, brandSlug } = idx();
@@ -1302,6 +1334,26 @@ export function renderTools() {
     itemListElement: TOOL_LINKS.map(([n, u], i) => ({ "@type": "ListItem", position: i + 1, name: n, url: SITE + u })) };
   return page({ title: "Free Rep Tools: QC Photo Finder, Link Converter & More · Puro Classico", desc: "Free tools for buying reps through agents: QC photo checker, link converter, shipping calculator, size estimator and parcel tracker.", path: "/tools", body, jsonld: [bc.data, list] });
 }
+// What each agent's warehouse check covers, from the same help-centre pages as the agent spreadsheets (content.js
+// AGENT_INTRO: MyCNBox read 10 Oct 2026, the others 9 Nov 2026). Shown on the QC finder (23 Nov 2026, SEO pass).
+const AGENT_QC = [
+  ["mycnbox", "4 standard photos per item, within one business day of it reaching the warehouse", "Detailed and multi-angle photos are a paid add-on, picked when you order"],
+  ["kakobuy", "The item's appearance: model, style and size", "Clothing, bags, suitcases and shoes are opened; sealed items are checked from the outside"],
+  ["oopbuy", "Quantity, colour, size and other specifications, then the item is repacked", "Colour difference and size error are outside its check"],
+  ["lovegobuy", "Colour, large damage, stains, size, model and version number", "Size is read from the label; exact measurements are outside the check"],
+  ["sugargoo", "5 free photos; style, quantity, colour, size and model", "Sealed packages are not opened, only compared from the outside"]];
+// The QC finder's own data (23 Nov 2026, SEO pass): the searches for "qc finder" and "qc photos reps" are answered by tools
+// with QC photo lookups and finds that have them. Under the tool: each agent's warehouse check, and the visible finds with
+// the most buyer QC photos on record (p.qc >= 2 is the photo count stored when the row was imported, so "on record").
+function qcFinderExtra() {
+  const vis = idx().all.filter(p => p.qc >= 1 && findShown(p)), most = vis.filter(p => p.qc >= 2 && p.img).sort((a, b) => b.qc - a.qc || score(b) - score(a)).slice(0, 12);
+  const agents = `<section class="prose">${hIc("h2", "users", "QC photos on each agent")}<p>Whichever agent you order through photographs your own item when it reaches its warehouse in China, before anything ships. What the check covers differs:</p>` +
+    `<table><tr><th>Agent</th><th>What the warehouse check covers</th><th>Worth knowing</th></tr>${AGENT_QC.map(([k, what, note]) => `<tr><td><a href="/${k}-spreadsheet">${esc(AGENTS[k].name)}</a></td><td>${esc(what)}</td><td>${esc(note)}</td></tr>`).join("")}</table>` +
+    `<p style="font-size:13px;color:var(--muted)">From each agent's help centre (MyCNBox read 10 Oct 2026, the others 9 Nov 2026). Our links to agents are affiliate links.</p></section>`;
+  const finds = most.length ? `<section class="prose">${hIc("h2", "camera", "Finds with the most buyer QC photos")}<p>The finds on the spreadsheet with the most buyer QC photos on record. Open one and tap QC to see them, or browse all ${nf(vis.length)} finds with QC photos in the <a href="/qc-spreadsheet">QC spreadsheet</a>.</p>` +
+    `<ul>${most.map(p => `<li><a href="${productUrl(p)}#qc">${p.brand && !p.title.toLowerCase().startsWith(p.brand.toLowerCase()) ? esc(p.brand) + " " : ""}${esc(p.title)}</a>: ${nf(p.qc)} QC photos on record, ${money(p.cny)}</li>`).join("")}</ul></section>` : "";
+  return agents + finds;
+}
 export function renderTool(s) {
   if (own(TOOL_UI9, s)) return toolPage9(s, TOOL_CSS);
   const t = own(TOOLS, s) && own(TOOL_UI, s) ? TOOLS[s] : null; if (!t) return null;
@@ -1310,7 +1362,8 @@ export function renderTool(s) {
     const seo = TOOL_SEO[s] || {};
   const faq = TOOL_FAQ[s] || null;
   return toolShell({ slug: s, name: seo.name || t.name, h1: TOOL_H1[s] || t.name, lead: t.lead, trust: TRUST[s] || [], ui: TOOL_UI[s](), about: t.about,
-    faq: faq ? faqHtml(faq) : "", title: fitTitle(seo.title || t.title), desc: seo.desc || t.desc, jsonld: [bc.data, app].concat(faq ? [faqLd(faq)] : []), bc: bc.html });
+    faq: faq ? faqHtml(faq) : "", title: fitTitle(seo.title || t.title), desc: seo.desc || t.desc, jsonld: [bc.data, app].concat(faq ? [faqLd(faq)] : []), bc: bc.html,
+    extra: s === "qc-checker" ? qcFinderExtra() : "" });
 }
 
 // ------------------------------------------------------------------ guides
@@ -1375,11 +1428,18 @@ export function renderGuide(s) {
   if (s === "what-is-a-rep-spreadsheet") {
     const day = d => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
     const half = l => { const u = l.filter(p => !isPH(p.cny)).sort((x, y) => x.cny - y.cny); return u.length ? money(u[Math.floor((u.length - 1) / 2)].cny) : "Ask seller"; };
-    const rows = Object.entries(CATS).filter(([, m]) => m.slug !== "toys").map(([c, m]) => [m, byCat.get(c) || []]).filter(([, l]) => l.length >= 20).sort((x, y) => y[1].length - x[1].length);
-    stats = `<h2>What is in this rep spreadsheet</h2><p>Counted from the catalogue, last updated ${day(BUILT)}: ${nf(all.length)} finds, ${nf(all.filter(p => p.qc >= 1).length)} of them marked as having buyer QC photos from earlier orders.` +
+    // 23 Nov 2026 (SEO pass): the page Google shows for "rep spreadsheet", so it opens with the spreadsheet itself: its most
+    // viewed finds (with buy buttons) right under the intro, then the counts (finds a visitor can see), then this week's new
+    // finds. The "Popular finds" grid at the end of other guides is left out here.
+    const vis = all.filter(findShown);
+    const rows = Object.entries(CATS).filter(([, m]) => m.slug !== "toys").map(([c, m]) => [m, (byCat.get(c) || []).filter(findShown)]).filter(([, l]) => l.length >= 20).sort((x, y) => y[1].length - x[1].length);
+    const fresh = freshAbout()[0];
+    stats = `<h2>Popular finds right now</h2><p>The top of the spreadsheet in its Most popular order, where views in the last 30 days count most. Tap Buy to open a find in MyCNBox, or open it to see the other agents and its QC photos.</p>${grid(vis.slice(0, 8))}<p><a class="btn light" href="/">Open all ${nf(vis.length)} finds${ic("arrow-right", "sm")}</a></p>` +
+      `<h2>What is in this rep spreadsheet</h2><p>Counted from the catalogue, last updated ${day(BUILT)}: ${nf(vis.length)} finds, ${nf(vis.filter(p => p.qc >= 1).length)} of them marked as having buyer QC photos from earlier orders.` +
       (LINKS_CHECKED ? ` Our weekly link check last ran on ${day(LINKS_CHECKED)} and found ${nf(GONE_COUNTS.dead)} Weidian listings gone, which the spreadsheet hides, and ${nf(GONE_COUNTS.sold)} sold out.` : "") + `</p>` +
       `<table><tr><th>Category</th><th>Finds</th><th>Half listed at or under</th><th>Marked with QC photos</th></tr>` +
-      rows.map(([m, l]) => `<tr><td><a href="/category/${m.slug}">${ic(CAT_SLUG_IC[m.slug] || "grid", "sm")}${esc(m.name)}</a></td><td>${nf(l.length)}</td><td>${half(l)}</td><td>${nf(l.filter(p => p.qc >= 1).length)}</td></tr>`).join("") + `</table>`;
+      rows.map(([m, l]) => `<tr><td><a href="/category/${m.slug}">${ic(CAT_SLUG_IC[m.slug] || "grid", "sm")}${esc(m.name)}</a></td><td>${nf(l.length)}</td><td>${half(l)}</td><td>${nf(l.filter(p => p.qc >= 1).length)}</td></tr>`).join("") + `</table>` +
+      (fresh ? `<h2>${esc(fresh[0])}</h2>${fresh[1]}` : "");
   }
   // Table of contents (28 Oct 2026): ids on the guide's h2s and, with 3 or more, an "On this page" list after the intro, so
   // long guides can be skimmed and Google can offer "Jump to" links. The date reads "10 Oct 2026", like the rest of the site,
@@ -1393,9 +1453,10 @@ export function renderGuide(s) {
   const updTxt = upd ? (/^\d{4}-\d{2}-\d{2}$/.test(g.updated) ? `${ic("clock", "sm")}<time datetime="${esc(g.updated)}">Updated ${esc(upd)}</time>` : `${ic("clock", "sm")}Updated ${esc(upd)}`) : "";
   const how = s !== "how-we-check" && own(GUIDES, "how-we-check") ? ` · <a href="/guides/how-we-check">${ic("shield", "sm")}How we check</a>` : "";
   const body = `${bc.html}<article class="prose"><span class="eyebrow pill">Guide${updTxt ? ` · ${updTxt}` : ""}</span><h1>${esc(g.h1)}</h1>${(tocHtml ? text.replace("<h2 id=", tocHtml + "<h2 id=") : text).replace(/^(\s*<p class="lead">[\s\S]*?<\/p>)?/, (m) => m + `<p class="byline">By Puro Classico${how}</p>`)}${g.faq ? faqHtml(g.faq) : ""}</article>
-${(() => { const w = g.finds || {}, l = all.filter(p => (!w.platform || p.platform === w.platform) && (!w.qc || p.qc >= w.qc));
+${s === "what-is-a-rep-spreadsheet" ? "" : (() => { const w = g.finds || {}, l = all.filter(p => (!w.platform || p.platform === w.platform) && (!w.qc || p.qc >= w.qc) && findShown(p));
+  // 23 Nov 2026: the button names the marketplace spreadsheet ("Open the Weidian spreadsheet"), the words that page is searched by
   return `${hIc("h2", "flame", w.platform ? `Popular ${esc({ weidian: "Weidian", taobao: "Taobao", "1688": "1688" }[w.platform] || w.platform)} finds` : w.qc ? "Popular finds with QC photos" : "Popular finds")}${grid((l.length >= 8 ? l : all).slice(0, 8))}` +
-    (w.platform && PLAT_HUBS[w.platform] ? `<p><a class="btn light" href="/${w.platform}-spreadsheet">See all ${nf(l.length)} ${esc(PLAT_HUBS[w.platform].name)} finds${ic("arrow-right", "sm")}</a></p>` : ""); })()}
+    (w.platform && PLAT_HUBS[w.platform] ? `<p><a class="btn light" href="/${w.platform}-spreadsheet">Open the ${esc(PLAT_HUBS[w.platform].name)} spreadsheet: ${nf(l.length)} finds${ic("arrow-right", "sm")}</a></p>` : ""); })()}
 ${hIc("h2", "book", "More guides")}<div class="chips">${GUIDE_LINKS.filter(([, u]) => u !== path).map(([t, u]) => `<a href="${u}">${ic(guideIcon(u), "sm")}${esc(t)}</a>`).join("")}</div>`;
   const art = { "@context": "https://schema.org", "@type": "Article", headline: g.h1, description: g.desc, dateModified: g.updated || undefined, url: SITE + path,
     author: { "@type": "Organization", name: "Puro Classico", url: SITE + "/" }, publisher: { "@type": "Organization", name: "Puro Classico", logo: { "@type": "ImageObject", url: SITE + "/logo-mark.png" } }, publishingPrinciples: own(GUIDES, "how-we-check") ? SITE + "/guides/how-we-check" : undefined };
@@ -1442,7 +1503,7 @@ export function sitemapPages() {
   // Pages 2+ of the brand and category hubs (21 Oct 2026): real lists that were linked from nowhere. Agent and agent x brand
   // hubs are left out: their pages 2+ repeat the same finds with other buy buttons.
   const more = (base, n) => Array.from({ length: Math.max(0, Math.ceil(n / PER_PAGE) - 1) }, (_, i) => `${base}/${i + 2}`);
-  const platN = k => P.filter(p => p.platform === k).length;
+  const platN = k => P.filter(p => p.platform === k && findShown(p)).length;   // as renderPlat counts its pages (23 Nov 2026)
   const urls = ["/", "/new", ...more("/new", NEW_MAX), "/how-to-order", "/brands", "/guides", "/old-money", "/stockholm-spreadsheet", "/grisch-spreadsheet", ...Object.keys(AGENT_INTRO).map(k => `/${k}-spreadsheet`), "/cnfans-spreadsheet", "/qc-spreadsheet",
     ...PLAT_KEYS.map(k => `/${k}-spreadsheet`), ...PLAT_KEYS.flatMap(k => more(`/${k}-spreadsheet`, platN(k))),
     ...AGENT_BRAND_AGENTS.flatMap(k => agentBrands().map(b => `/${k}-spreadsheet/${brandSlug.get(b)}`)).filter(u => !AGENT_BRAND_CANON.has(u)), ...AGENT_BRAND_AGENTS.flatMap(k => Object.keys(AGENT_STYLES).map(x => `/${k}-spreadsheet/${x}`)),
@@ -1481,8 +1542,11 @@ export function sitemapProducts(skip) {   // skip: ids removed after reports (th
 // /old-money, so it gets no page here and the two never compete).
 // CNFans has shown a maintenance page instead of its shop since 8 Oct 2026 (checked by hand on the date below).
 // scripts/health_check.py warns when cnfans.com changes: then update this date and the /cnfans-spreadsheet copy, or remove it.
-export const CNFANS = { checked: "22 Oct 2026" };
-const CNFANS_FAQ = ["Does this spreadsheet work with CNFans?", `CNFans showed a maintenance notice when we checked on ${CNFANS.checked}. Every find here opens in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo, and our link converter turns old CNFans links into links for those agents.`];
+// 23 Nov 2026: the daily site check (scripts/health_check.py) found the maintenance page until 16 Nov 2026, and since
+// 18 Nov 2026 cnfans.com has not loaded at all. That check now warns when the site loads again: then update this and the copy.
+export const CNFANS = { maintenance: "8 Oct 2026", maintenanceTo: "16 Nov 2026", down: "18 Nov 2026", checked: "23 Nov 2026" };
+const CNFANS_STATUS = `cnfans.com showed a maintenance page in our daily checks from ${CNFANS.maintenance} to ${CNFANS.maintenanceTo}, and since ${CNFANS.down} it has not loaded at all (last checked ${CNFANS.checked})`;
+const CNFANS_FAQ = ["Does this spreadsheet work with CNFans?", `No. ${CNFANS_STATUS}. Every find here opens in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo, and our link converter turns old CNFans links into links for those agents.`];
 const STYLE_HUBS = {
   stockholm: { name: "Stockholm style", h: "Stockholm Style Spreadsheet",
     brands: ["Ralph Lauren", "Moncler", "Stone Island", "Lacoste", "Acne Studios", "Ami", "Burberry", "Golden Goose", "Loro Piana", "Arc'teryx",
@@ -1544,7 +1608,7 @@ const inBudget = (p, max) => !isPH(p.cny) && p.cny <= max;
 // agents are never ranked, and MyCNBox stays the default buy button.
 const PLAT_KEYS = ["weidian", "taobao", "1688"];
 function platFacts(key) {
-  const { all, brandSlug } = idx();
+  const { brandSlug } = idx(), all = idx().all.filter(findShown);   // 23 Nov 2026: visible finds only, as the app shows them
   const list = all.filter(p => p.platform === key), n = list.length;
   const priced = list.map(p => p.cny).filter(x => !isPH(x)).sort((a, b) => a - b);
   const count = (get, ok) => { const m = new Map(); for (const p of list) { const k = get(p); if (ok(k)) m.set(k, (m.get(k) || 0) + 1); } return [...m].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]))); };
@@ -1640,7 +1704,7 @@ function platSpec(key) {
     sub: `${N} finds from ${h.name}, most viewed first, each with a one-tap buy link for your shopping agent.`, linkCheck: key === "weidian",
     title: `${h.name} Spreadsheet 2026: ${N} Rep Finds | Puro Classico`, desc: h.desc(f),
     crumbs: [["Home", "/"], [`${h.name} spreadsheet`, path]],
-    aboutTitle: `About ${h.name} finds`, about: h.about(f),
+    aboutTitle: `About ${h.name} finds`, about: h.about(f).concat(freshAbout(null, key)),
     chips: [[`Top brands on ${h.name}`, f.brands.slice(0, 16).map(([b, k]) => [`${b} (${nf(k)})`, `/brand/${brandSlug.get(b)}`])],
             [`Buy ${h.name} finds with your agent`, Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["How to order", "/how-to-order"], [`How to buy from ${h.name}`, `/guides/how-to-buy-from-${key}`]])],
             ["Spreadsheets by marketplace", platOthers(key).concat([["QC photos spreadsheet", "/qc-spreadsheet"], ["All finds", "/"]])]],
@@ -1656,6 +1720,45 @@ export function renderPlat(key, n) {
     desc: n > 1 ? `Page ${n} of the ${nf(f.n)} ${name} rep finds on Puro Classico${pr ? `, with prices (${pr})` : ""}. Open any listing on MyCNBox, KakoBuy, Oopbuy or your agent.` : s.desc,
     h1: s.h, lead: s.sub, trail: s.crumbs, filters, faq: s.faq, idxFirst: true, full: name, key: `${name} Spreadsheet`, ldCount: f.n,
     shop: { links: s.chips[1][1] }, groups: s.chips, aboutTitle: `About ${name} finds` });
+}
+
+// ------------------------------------------------------------------ agent and marketplace pages: shipping lines, new finds
+// (23 Nov 2026, SEO pass) Each agent spreadsheet gets that agent's own shipping lines and prices (shipping_lines.js, read
+// from its estimator) or, for MyCNBox, the delivery figures it publishes; and the agent and marketplace spreadsheets say how
+// many finds were added in the last 7 days, with the newest ones (opened on that agent on its own page).
+const usd = x => "$" + (+x).toFixed(2);
+const dayRange = (a, b, unit) => (a === b ? `${a}` : `${a} to ${b}`) + " " + unit;
+function shipAbout(key, name) {
+  const t = SHIP_LINES[key];
+  if (t) {
+    const rows = Object.entries(SHIP_TO).filter(([c]) => (t.rows[c] || []).length).map(([c, to]) => t.rows[c].map((r, i) => `<tr>${i ? "<td></td>" : `<td>${esc(to)}</td>`}<td>${esc(r[0])}</td><td>${usd(r[1])}</td><td>${dayRange(r[2], r[3], t.days)}</td></tr>`).join("")).join("");
+    return [[`${name} shipping lines and prices`, `<p>What ${esc(t.src)} quoted on ${SHIP_READ} for a 1 kg parcel of branded clothing: the three cheapest lines to each country and the fastest one. List prices in US dollars before coupons; a bulky parcel can cost more on lines that charge for box size.</p>` +
+      `<table><tr><th>To</th><th>Line</th><th>1 kg</th><th>Delivery</th></tr>${rows}</table>` +
+      `<p>Prices and lines change often, so check ${esc(name)}'s estimator before you send a parcel. For other weights, the <a href="/tools/shipping-calculator">shipping calculator</a> gives a ballpark and <a href="/guides/shipping-lines">shipping lines explained</a> says what tax-free, EMS and express lines mean.</p>`]];
+  }
+  if (key === "mycnbox") {
+    const m = MYCNBOX_SHIP;
+    return [["MyCNBox shipping: real parcels and times", `<p>MyCNBox publishes its own delivery figures on its homepage. On ${m.read} they read: ${m.avgDays} days from dispatch to delivery on average (${m.china} in China, ${m.customs} in customs, ${m.dest} in the destination country), ${usd(m.perKg)} per kg on parcels averaging ${m.avgKg} kg, ${m.inspected}% of parcels inspected by customs and ${m.delivered}% delivered.</p>` +
+      `<table><tr><th>To</th><th>Line</th><th>Parcel</th><th>Per kg</th><th>Days</th></tr>${m.samples.map(([to, line, price, d, kg]) => `<tr><td>${esc(to)}</td><td>${esc(line)}</td><td>${usd(price)}</td><td>${usd(kg)}</td><td>${d}</td></tr>`).join("")}</table>` +
+      `<p>These are parcels MyCNBox shows as real samples. In the week of ${m.week.from} to ${m.week.to}, its figures show sellers dispatching ${m.week.purchaseH} hours after MyCNBox paid, on average, items reaching the warehouse ${m.week.toWarehouseH} hours later, the QC check taking about ${Math.round(m.week.qcMin)} minutes and parcels packed ${m.week.packedH} hours after they were submitted.</p>` +
+      `<p>MyCNBox's own shipping calculator needs an account. For a ballpark without one, try our <a href="/tools/shipping-calculator">shipping calculator</a>.</p>`]];
+  }
+  return [];
+}
+// New finds of the last 7 days (rowdays.js: the day a row first appeared in the catalogue), counted among the finds a
+// visitor can see, and the 8 newest. agent: each find also gets a buy link for that agent.
+function freshAbout(agent = null, plat = null) {
+  const now = Date.now(), since = new Date(now - 7 * 864e5).toISOString().slice(0, 10);
+  const pool = idx().all.filter(p => findShown(p) && (!plat || p.platform === plat));
+  const added = pool.filter(p => { const r = rowDays(p); return r && r.added && r.added >= since; });
+  const days = [...new Set(added.map(p => rowDays(p).added))].sort().map(dayOf);
+  const list = newest(8, null, null, plat).filter(findShown);
+  if (!list.length) return [];
+  const a = agent && AGENTS[agent], what = plat ? `${PLAT_HUBS[plat] ? PLAT_HUBS[plat].name + " " : ""}finds` : "finds";
+  const lead = added.length ? `<p>${nf(added.length)} ${what} were added to the spreadsheet in the last 7 days (on ${andList(days)}). The newest:</p>` : `<p>No ${what} were added in the last 7 days. The newest:</p>`;
+  return [[plat ? `New ${PLAT_HUBS[plat] ? PLAT_HUBS[plat].name : ""} finds this week` : "New finds this week", lead +
+    `<ul>${list.map(p => `<li><a href="${productUrl(p)}">${p.brand && !p.title.toLowerCase().startsWith(p.brand.toLowerCase()) ? esc(p.brand) + " " : ""}${esc(p.title)}</a>, ${money(p.cny)}${a ? ` · <a href="${esc(a.build(p))}" target="_blank" rel="sponsored nofollow noopener">open on ${esc(a.name)}</a>` : ""}</li>`).join("")}</ul>` +
+    `<p><a href="/new">All new finds</a></p>`]];
 }
 
 export function hubSpec(path) {
@@ -1677,14 +1780,20 @@ export function hubSpec(path) {
   // QC photos spreadsheet (25 Oct 2026): Search Console showed "qc photos" 391 times in 28 days at position 8.4 with no
   // clicks, and no page answered it directly. Finds the catalogue marks as having buyer QC photos, on every agent.
   if (path === "/qc-spreadsheet") {
-    const q1 = all.filter(p => p.qc >= 1).length, q2 = all.filter(p => p.qc >= 2).length, n = nf(q1);
+    const vis = all.filter(p => p.qc >= 1 && findShown(p)), q1 = vis.length, q2 = vis.filter(p => p.qc >= 2).length, n = nf(q1);
     // 22 Nov 2026 (SEO check): the QC photos spreadsheet. "QC finder" searches go to the QC finder tool, which is what they
     // want (/tools/qc-checker); this page links to it.
-    return { path, preset: { qc: 1 }, h: "QC Photos Spreadsheet: Finds With Buyer QC Photos",
+    // 23 Nov 2026 (SEO pass): it is the page for "qc spreadsheet" (title and h1 start with those words), it counts only the
+    // finds a visitor can see, and its About block has the QC checklist for each item type and its finds by category.
+    const byCatQ = Object.entries(CATS).filter(([c, m]) => m.slug !== "toys" && CAT_QC[c]).map(([c, m]) => [c, m, vis.filter(p => p.cat === c)]).filter(([, , l]) => l.length).sort((a, b) => b[2].length - a[2].length);
+    return { path, preset: { qc: 1 }, h: "QC Spreadsheet: Finds With Buyer QC Photos",
       sub: `${n} finds with buyer QC photos from earlier orders. Tap QC on a find to see real photos of the item before you buy.`,
-      title: `QC Photos Spreadsheet 2026: ${n} Finds With Buyer QC Photos | Puro Classico`,
-      desc: `The QC photos spreadsheet: ${n} finds marked as having buyer QC photos from earlier orders, with prices and agent links. Any other link: use the QC finder.`,
-      crumbs: [["Home", "/"], ["QC photos spreadsheet", path]],
+      title: `QC Spreadsheet 2026: ${n} Finds With Buyer QC Photos | Puro Classico`,
+      desc: `The QC spreadsheet: ${n} rep finds with buyer QC photos from earlier orders, with prices, agent links and what to check for each item type.`,
+      crumbs: [["Home", "/"], ["QC spreadsheet", path]],
+      aboutTitle: "About the QC spreadsheet",
+      about: [["What is in the QC spreadsheet", `<p>${n} finds that our catalogue marks as having buyer QC photos from earlier orders, ${nf(q2)} of them with the number of photos on record. By category: ${andList(byCatQ.map(([, m, l]) => `<a href="/category/${m.slug}">${esc(m.name.toLowerCase())}</a> (${nf(l.length)})`))}. For a link that is not on the spreadsheet, paste it into the <a href="/tools/qc-checker">QC finder</a>.</p>`],
+        ...byCatQ.slice(0, 6).map(([c, m]) => [`What to check in QC photos of ${m.name.toLowerCase()}`, `<ul>${CAT_QC[c].map(x => `<li>${esc(x)}</li>`).join("")}</ul>`])],
       chips: [["QC photos on your agent", AGENT_BRAND_AGENTS.map(k => [AGENTS[k].name, `/${k}-spreadsheet/qc`])],
               ["Check QC photos yourself", [["How to read QC photos", "/guides/how-to-qc"], ["QC finder for any link", "/tools/qc-checker"]]],
               ["Agent spreadsheets", Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])], PLAT_CHIPS],
@@ -1697,15 +1806,26 @@ export function hubSpec(path) {
   }
   if (path === "/cnfans-spreadsheet") {
     const N = FINDS_PLUS;
+    // 23 Nov 2026 (SEO pass): what happened to CNFans, with dates, and the agents to use instead, side by side with the
+    // facts their spreadsheets already give (content.js AGENT_INTRO: help centres read 9 Nov 2026, MyCNBox 10 Oct 2026).
+    const ALT = [["mycnbox", "4 photos per item", "90 days", "Coupons up to $500 with invite code AACPYA"], ["kakobuy", "Model, style and size checked", "100 days", "Coupons up to $410 with invite code w5war"],
+      ["oopbuy", "Quantity, colour and size checked", "90 days", "¥3,500 coupon bundle and 15% off shipping"], ["lovegobuy", "Colour, damage, size and model checked", "60 days", "Shipping coupons up to $141"],
+      ["sugargoo", "5 free photos per item", "100 days", "¥800 coupon pack"]];
     return { path, preset: {}, h: "CNFans Spreadsheet",
-      sub: `CNFans showed a maintenance notice when we checked on ${CNFANS.checked}. All ${N} finds here open in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo.`,
+      sub: `cnfans.com has not loaded since ${CNFANS.down}. All ${N} finds here open in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo.`,
       title: `CNFans Spreadsheet 2026: ${N} Finds for Working Agents | Puro Classico`,
-      desc: `CNFans showed a maintenance notice on ${CNFANS.checked}. ${N} finds that open in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo, plus an old-link converter.`,
+      desc: `CNFans has not loaded since ${CNFANS.down}. ${N} finds that open in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo, the agents compared, and an old-link converter.`,
       crumbs: [["Home", "/"], ["CNFans spreadsheet", path]],
+      aboutTitle: "CNFans and the agents to use instead",
+      about: [["What happened to CNFans", `<p>${CNFANS_STATUS[0].toUpperCase() + CNFANS_STATUS.slice(1)}. We check it every day and will update this page when that changes. This page cannot help with orders or balances already on CNFans; it shows where the same finds can be ordered now.</p>`],
+        ["Where to order instead", `<p>Every find on this spreadsheet opens in these agents. What each one says about its warehouse check, free storage and new-user offer:</p>` +
+          `<table><tr><th>Agent</th><th>QC check</th><th>Free storage</th><th>New users</th></tr>${ALT.map(([k, qc, st, off]) => `<tr><td><a href="/${k}-spreadsheet">${esc(AGENTS[k].name)}</a></td><td>${esc(qc)}</td><td>${esc(st)}</td><td>${esc(off)}</td></tr>`).join("")}</table>` +
+          `<p style="font-size:13px;color:var(--muted)">From each agent's help centre and sign-up offer (MyCNBox read 10 Oct 2026, the others 9 Nov 2026). Coupons come with minimum spends. Our links to agents are affiliate links.</p>`],
+        ["Your old CNFans links", `<p>A CNFans product link holds the Weidian, Taobao or 1688 item it points to. Paste it into the <a href="/tools/link-converter">link converter</a> and it gives you the same item on MyCNBox, KakoBuy, Oopbuy and the other agents. Agents that closed or paused before CNFans are listed in <a href="/guides/pandabuy-alternatives">Pandabuy alternatives</a>.</p>`]],
       chips: [["Use your old CNFans links", [["Link converter", "/tools/link-converter"], ["Agents that closed or paused", "/guides/pandabuy-alternatives"]]],
               ["Agent spreadsheets that open every find", Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])],
               ["Spreadsheets by style", [["Grisch spreadsheet", "/grisch-spreadsheet"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Old money spreadsheet", "/old-money"]]], PLAT_CHIPS],
-      faq: [["Is CNFans down?", `When we checked cnfans.com on ${CNFANS.checked}, it showed a website maintenance notice instead of the shop. We will update this page when that changes.`],
+      faq: [["Is CNFans down?", `Yes, as far as we can see: ${CNFANS_STATUS}. We will update this page when that changes.`],
             ["Do my old CNFans links still work?", "Paste an old CNFans product link into our link converter. It reads the Weidian, Taobao or 1688 item from the link and opens the same item in another agent."],
             ["How do I switch from CNFans to another agent?", "Open a find, tap the buy button for the agent you want, create a free account there and pay for the item plus delivery to the warehouse. The seller and the item stay the same; only the agent that buys, checks and ships it changes."],
             ["Is this the official CNFans spreadsheet?", "No. Puro Classico is an independent spreadsheet and is not affiliated with CNFans. Our links to other agents are affiliate links: we may earn a commission if you order, at no extra cost to you."]] };
@@ -1713,8 +1833,8 @@ export function hubSpec(path) {
   if ((m = path.match(AGENT_STYLE_RE))) {
     const key = m[1], s = m[2], a = AGENTS[key], st = AGENT_STYLES[s];
     const have = st.brands ? st.brands().filter(b => byBrand.has(b)) : null;
-    const count = have ? have.reduce((t, b) => t + byBrand.get(b).length, 0) : st.qc ? all.filter(p => p.qc >= st.qc).length
-      : st.pmax ? all.filter(p => inBudget(p, st.pmax)).length : (byCat.get(st.cat) || []).length;
+    const count = have ? have.reduce((t, b) => t + byBrand.get(b).length, 0) : st.qc ? all.filter(p => p.qc >= st.qc && findShown(p)).length
+      : st.pmax ? all.filter(p => inBudget(p, st.pmax) && findShown(p)).length : (byCat.get(st.cat) || []).length;
     const n = nf(count), low = s === "shoes" ? "shoe" : st.name.toLowerCase();
     const preset = have ? { agent: key, brands: have.map(b => slug(b)) } : st.qc ? { agent: key, qc: st.qc } : st.pmax ? { agent: key, pmax: st.pmax } : { agent: key, cat: st.cat };
     return { path, preset,
@@ -1724,7 +1844,7 @@ export function hubSpec(path) {
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, `/${key}-spreadsheet`], [st.name, path]],
       chips: [[`${st.name} on other agents`, AGENT_BRAND_AGENTS.filter(k => k !== key).map(k => [AGENTS[k].name, `/${k}-spreadsheet/${s}`]).concat([st.parent])],
               [`More on ${a.name}`, Object.keys(AGENT_STYLES).filter(x => x !== s).map(x => [AGENT_STYLES[x].name, `/${key}-spreadsheet/${x}`]).concat([[`${a.name} spreadsheet`, `/${key}-spreadsheet`]])]],
-      faq: (st.faq ? st.faq(a.name, n, nf(all.filter(p => p.qc >= 2).length)) : [[`How do I order ${low} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the ${a.name} warehouse. Check the QC photos there, then ship your parcel.`],
+      faq: (st.faq ? st.faq(a.name, n, nf(all.filter(p => p.qc >= 2 && findShown(p)).length)) : [[`How do I order ${low} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the ${a.name} warehouse. Check the QC photos there, then ship your parcel.`],
             [s === "shoes" ? `How do I get the right size on ${a.name}?` : "What should I buy first?", st.first]])
             .concat([["Is the spreadsheet free?", `Yes. You only pay ${a.name} for what you order and for shipping. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you.`]]) };
   }
@@ -1734,14 +1854,14 @@ export function hubSpec(path) {
     // Agent hubs bring most of the search clicks, but page 1 (this app view) carried 3 short answers while the written intro
     // and how-to only reached pages 2+ (22 Oct 2026). They go in the block under the app, numbers worked out here.
     const day = d => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-    const qc1 = all.filter(p => p.qc >= 1).length, qc2 = all.filter(p => p.qc >= 2).length, weidian = all.filter(p => p.platform === "weidian").length;
+    const qc1 = all.filter(p => p.qc >= 1 && findShown(p)).length, qc2 = all.filter(p => p.qc >= 2 && findShown(p)).length, weidian = all.filter(p => p.platform === "weidian").length;
     const howTo = agentHowTo({ ...a, key }).replace(/^\s*<h2>[^<]*<\/h2>\s*/, "")
       .replace('<ol class="steps">', '<ol style="margin:10px 0 0;padding-left:20px;color:var(--muted);font-size:14.5px;line-height:1.6">');
     // The MyCNBox intro says "our most-used agent" and repeats the coupon offer; how agents are ranked is the owner's call,
     // so this page uses a plain description for it.
     const what = key === "mycnbox" ? "<p>MyCNBox is a shopping agent: you pay MyCNBox for the item and the short delivery to its warehouse in China, it buys from the Weidian, Taobao or 1688 seller, takes QC photos when the item arrives, and ships your items together in one parcel when you are ready. Each find here opens the exact listing inside MyCNBox.</p>" : meta.body;
     return { path, preset: { agent: key }, h: `${a.name} Spreadsheet`, sub: `${N} finds, each with a one-tap ${a.name} buy button.`,
-      aboutTitle: `How the ${a.name} spreadsheet works`, about: [[`What is ${a.name}?`, what]].concat(meta.about || [[`How to order from the ${a.name} spreadsheet`, howTo]]),
+      aboutTitle: `How the ${a.name} spreadsheet works`, about: [[`What is ${a.name}?`, what]].concat(meta.about || [[`How to order from the ${a.name} spreadsheet`, howTo]], shipAbout(key, a.name), freshAbout(key)),
       title: `${meta.title}: ${N} Finds | Puro Classico`, desc: meta.desc ? meta.desc(N, nf(qc1)) : `The ${a.name} spreadsheet: ${N} rep finds with prices and one-tap ${a.name} links, ${nf(qc1)} marked as having buyer QC photos.${LINKS_CHECKED ? " Weidian links checked every week." : ""}`,
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, path]],
       chips: [...(AGENT_BRAND_AGENTS.includes(key) ? [[`Browse on ${a.name}`, Object.keys(AGENT_STYLES).map(x => [AGENT_STYLES[x].name, `${path}/${x}`])]] : []),
@@ -1784,7 +1904,7 @@ export function hubSpec(path) {
     // the app, as the agent hubs' intro did on 22 Oct. Title and description keep to catalogue data (rules above brandFacts):
     // the half-way listed price (the lowest listed price is often a deposit or placeholder), the main item type when it is
     // more than half the list, and how many finds are marked as having QC photos (no QC words when there are none).
-    const f = brandFacts(b), bm = models().filter(x => x.list.some(p => p.brand === b));
+    const f = brandFacts(b), bm = models().filter(x => modelOnBrand(x, b));
     const t0 = f.types[0], share = t0 && !t0[0].startsWith("other") ? t0[1].length / f.n : 0;
     const half = f.med ? `, half listed at ${money(f.med.cny)} or less` : "", qcN = f.q1 ? `, ${nf(f.q1)} marked as having QC photos` : "";
     const main = share === 1 ? `, all ${t0[0]}` : share > 0.5 ? `, mostly ${t0[0]}` : "", tail = " Buy via MyCNBox, KakoBuy, Oopbuy or your agent.";
@@ -1807,6 +1927,8 @@ export function hubSpec(path) {
       title: `Rep ${meta.name} Spreadsheet 2026: ${n} Finds | Puro Classico`, desc: `${n} ${meta.name.toLowerCase()} rep finds${q1 ? `, ${nf(q1)} marked as having buyer QC photos` : ""}, most viewed first. Buy via MyCNBox, KakoBuy, Oopbuy or your agent.`,
       crumbs: [["Home", "/"], [meta.name, path]],
       chips: [[`Top brands in ${meta.name.toLowerCase()}`, top.map(b => [b, `/brand/${brandSlug.get(b)}`])],
+              // 23 Nov 2026: the model pages of this category (the best X reps pages), so each one is linked from its hub
+              ...(() => { const bm = modelsInCat(c); return bm.length ? [["Best reps by model", bm.map(x => [`Best ${MODEL_TERM[x.slug] || x.name} reps`, `/best/${x.slug}`]).concat([["All models", "/best"]])]] : []; })(),
               ["Other categories", Object.values(CATS).filter(x => x.slug !== s && x.slug !== "toys").map(x => [x.name, `/category/${x.slug}`])]],
       // CAT_INTRO was only on renderCategory's page 1, which this app view replaced (28 Oct 2026).
       aboutTitle: `About ${meta.name.toLowerCase()} reps`, about: CAT_INTRO[c] ? [[`Buying ${meta.name.toLowerCase()} reps`, CAT_INTRO[c]]] : [],
@@ -1818,7 +1940,7 @@ export function hubSpec(path) {
 // Icons for the hub-seo block (styles: index.html): h2s by title, about summaries by question.
 const HUB_H2_IC = [[/^About/, "info"], [/Best reps by model/, "award"], [/with your agent|on your agent|agents?\b/i, "users"], [/Related brands|Top brands|Brands in the/, "tag"],
   [/Other categories/, "grid"], [/Browse page by page/, "layers"], [/More old money|More /, "layers"], [/marketplace/i, "store"], [/^FAQ$/, "help"]];
-const HUB_SUM_IC = [[/^What to check/, "camera"], [/in numbers/, "chart"], [/^Buying|^Ordering|order from|step by step/i, "cart"], [/^What is/, "info"],
+const HUB_SUM_IC = [[/shipping lines and prices|shipping: real parcels/i, "truck"], [/^New .*finds this week$/, "flame"], [/^What to check/, "camera"], [/in numbers/, "chart"], [/^Buying|^Ordering|order from|step by step/i, "cart"], [/^What is/, "info"],
   [/link looks like/, "link"], [/^How to buy/, "cart"], [/QC photos/, "camera"], [/^Sizing/, "ruler"], [/^Shipping/, "truck"], [/^Minimum/, "box"], [/^Why|^Taobao or|^Taobao, /, "store"]];
 export function hubParts(spec, more = "", skip = null) {
   const bc = crumbs(spec.crumbs);
@@ -1855,9 +1977,9 @@ export const APP_CARDS = PER_PAGE;
 export function hubList(spec) {
   const { all, byBrand, byCat, slugBrand } = idx();
   const pr = spec ? spec.preset : {};
-  if (pr.plat) return { list: all.filter(p => p.platform === pr.plat), base: `/${pr.plat}-spreadsheet` };
-  if (pr.qc) return { list: all.filter(p => p.qc >= pr.qc), base: null };
-  if (pr.pmax) return { list: all.filter(p => inBudget(p, pr.pmax)), base: null };
+  if (pr.plat) return { list: all.filter(p => p.platform === pr.plat && findShown(p)), base: `/${pr.plat}-spreadsheet` };
+  if (pr.qc) return { list: all.filter(p => p.qc >= pr.qc && findShown(p)), base: null };
+  if (pr.pmax) return { list: all.filter(p => inBudget(p, pr.pmax) && findShown(p)), base: null };
   if (pr.brands) { const want = new Set(pr.brands); return { list: [...byBrand].filter(([b]) => want.has(slug(b))).flatMap(([, l]) => l).sort((a, b) => score(b) - score(a)), base: null }; }
   if (pr.brand) return { list: byBrand.get(slugBrand.get(pr.brand)) || [], base: pr.agent ? null : "/brand/" + pr.brand };
   if (pr.cat) return { list: byCat.get(pr.cat) || [], base: !pr.agent && CATS[pr.cat] ? "/category/" + CATS[pr.cat].slug : null };

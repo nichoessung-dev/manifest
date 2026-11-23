@@ -93,14 +93,15 @@ def postiz():
     return "OK", "Postiz API answers (%d without a key, as expected)" % st
 
 def cnfans():
-    """/cnfans-spreadsheet says CNFans shows a maintenance page (CNFANS in functions/_lib/pages.js): warn when that changes."""
+    """/cnfans-spreadsheet says cnfans.com has not loaded since 18 Nov 2026, after a maintenance page from 8 Oct to 16 Nov
+    (CNFANS in functions/_lib/pages.js, 23 Nov 2026): warn when it loads again, whatever it shows."""
     try:
         st, _, body = req("https://cnfans.com/", headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"}, timeout=20)
-    except Exception: return "WARN", "could not reach cnfans.com"
+    except Exception: return "OK", "cnfans.com still does not load, as /cnfans-spreadsheet says"
     m = re.search(rb"<title>(.*?)</title>", body or b"", re.S | re.I)
     title = m.group(1).decode("utf-8", "replace").strip() if m else "(no title, status %d)" % st
-    if "aintenance" in title: return "OK", "CNFans still shows its maintenance page"
-    return "WARN", 'CNFans title is now "%s": update CNFANS in functions/_lib/pages.js and the /cnfans-spreadsheet copy' % title[:60]
+    if "aintenance" in title: return "WARN", "cnfans.com loads again and shows a maintenance page: update CNFANS in functions/_lib/pages.js and the /cnfans-spreadsheet copy"
+    return "WARN", 'cnfans.com loads again, title "%s": update CNFANS in functions/_lib/pages.js and the /cnfans-spreadsheet copy' % title[:60]
 
 def buy_clicks():
     """Buy-click tracking (track.js -> /api/click -> Supabase, counted by the Stats job into dashboard.json)."""
