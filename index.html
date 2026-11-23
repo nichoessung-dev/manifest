@@ -6210,7 +6210,16 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
     const open=()=>{ if(!signedIn()) showGate(); };
     try{ sb.auth.getSession().then(r=>{ if(r&&r.data&&r.data.session) return; open(); },open); }catch(e){ open(); }
   };
-  setTimeout(check,700);
+  /* 23 Nov 2026 (owner): never over the first page a visitor sees. Google counts a sign-up card that covers the page on a
+     phone visitor's first view as an intrusive pop-up, so the gate waits for the 2nd page view: a later page load
+     (pc.views counts them) or a move inside the app on this one (a find opened, another section, a search, the back button). */
+  let views=1; try{ views=(+localStorage.getItem("pc.views")||0)+1; localStorage.setItem("pc.views",String(views)); }catch(e){}
+  if(views>=2){ setTimeout(check,700); return; }
+  const here=()=>location.pathname+location.search+location.hash, first=here();
+  let iv=0;
+  const moved=()=>{ if(here()===first) return; clearInterval(iv); window.removeEventListener("hashchange",moved); window.removeEventListener("popstate",moved); setTimeout(check,700); };
+  window.addEventListener("hashchange",moved); window.addEventListener("popstate",moved);
+  iv=setInterval(moved,1000);   /* opening a find (pushState to /product/<id>) fires no event */
 })();
 /* Google sign-in on our own origin (Google Identity Services + supabase signInWithIdToken), so Google's account screen names
    puroclassico.com instead of the Supabase project host. The GIS script loads only when the gate or the account sheet opens

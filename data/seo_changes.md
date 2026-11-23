@@ -4,6 +4,15 @@ Every SEO change to the site, newest first: what changed, why, which URLs, and h
 decisions: data/seo_ranks.json (Google positions and the index check of 22 Nov 2026, scripts/seo_ranks.py) and
 data/seo_page_clicks.json (buy clicks per page by visit source, scripts/seo_page_clicks.py).
 
+## 23 Nov 2026: the sign-up card waits for the second page view
+
+- What: the sign-up card (the gate in index.html) no longer opens over the first page a visitor sees. It opens on the
+  second page view: a later page load (counted in localStorage "pc.views") or a move inside the app on the first page (a
+  find opened, another section, a search, the back button). Everything else about it is unchanged (once per browser).
+- Why: the owner's call on the open point below. Google counts a card that covers the page on a phone visitor's first view
+  as an intrusive pop-up. The first page now stays clean, and the Google sign-in files load later on first visits too.
+- Undo: index.html, the end of the "entry auth gate" block: put back `setTimeout(check,700);` in place of the pc.views lines.
+
 ## 22 Nov 2026: owner pages for the big searches, product pages, About page
 
 - QC finder: /tools/qc-checker is now the page for "qc finder" searches (title "QC Finder: Real Buyer QC Photos for Any Rep
@@ -79,5 +88,4 @@ data/seo_page_clicks.json (buy clicks per page by visit source, scripts/seo_page
 - Product pages keep ItemPage data, not Product with Offer: Google's shopping policies exclude these listings.
 - IndexNow: every sitemap URL was sent on 22 Nov 2026 (workflow run "IndexNow", mode all) and the 86 agent pages that now
   point at their brand page were sent separately.
-- For the owner: the sign-up card that covers the page a moment after a visitor arrives counts as an intrusive pop-up for
-  phone visitors from Google. Showing it from the second page view, or not to visitors from search, is the owner's call.
+- The sign-up card: decided 23 Nov 2026 (owner), it waits for the second page view (see above).
