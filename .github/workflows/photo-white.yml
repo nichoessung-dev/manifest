@@ -25,6 +25,11 @@ on:
       max_minutes:
         description: 'Stop starting new photos after this many minutes'
         default: '300'
+      retry:
+        description: 'Also redo the photos not fixed before (not those the photo itself rules out)'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
 permissions:
   contents: read
 concurrency: photo-white-${{ inputs.shard || '0/1' }}
@@ -38,6 +43,7 @@ jobs:
       IDS: ${{ inputs.ids }}
       MODELS: ${{ inputs.models || 'birefnet-general,isnet-general-use,birefnet-hr,birefnet-hr-matting' }}
       MAXMIN: ${{ inputs.max_minutes || '300' }}
+      RETRY: ${{ inputs.retry || 'no' }}
       HF_HUB_DISABLE_TELEMETRY: '1'
     steps:
       - name: Check inputs
@@ -82,7 +88,8 @@ jobs:
         run: |
           set -o pipefail
           IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
-          python -u scripts/photo_white.py --shard "$SHARD" --group "$GROUP" --models "$MODELS" --max-minutes "$MAXMIN" $IDA 2>&1 \
+          RT=""; [ "$RETRY" = "yes" ] && RT="--retry"
+          python -u scripts/photo_white.py --shard "$SHARD" --group "$GROUP" --models "$MODELS" --max-minutes "$MAXMIN" $IDA $RT 2>&1 \
             | grep -v -i -E 'warning|warn\(' | tee photo-white.log
       - name: Keep the log with the files
         if: always()

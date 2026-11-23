@@ -361,7 +361,7 @@ def same_inside_shared(a, b, N=160):
     return _ncc(x[m], y[m]), _ncc((x - ndimage.gaussian_filter(x, 3))[m], (y - ndimage.gaussian_filter(y, 3))[m])
 
 
-def judge(g, ref, supp, out, pl, src_size, reg, clip, live_alpha=None):
+def judge(g, ref, supp, out, pl, src_size, reg, clip, live_alpha=None, bgmask=None):
     """Every check against the reference (the live photo on white), both photos lined up in the reference's frame.
     reg: where the live photo sits in a store source (None when the source is the reference itself). clip: compare the
     outline only where the live cut-out shows the item, so white parts the old cut-out lost and the new one has back do
@@ -398,8 +398,16 @@ def judge(g, ref, supp, out, pl, src_size, reg, clip, live_alpha=None):
     if ar is not None: ck["ar"], ck["corr"] = round(ar, 3), round(corr, 3)
     lost, _ = lost_share(refn, view, supp & ~shadow); ck["lost"] = round(lost, 4)
     item = np.asarray(alpha) >= 128
-    far = ~ndimage.binary_dilation(supp, iterations=2 * r)
-    added = float((item & far & (np.asarray(view.convert("RGB")).min(axis=2) < 200)).sum() / max(1, item.sum()))
+    if bgmask is not None:     # c: the plain background the flood fill found (model-free) must not be kept where it
+        # shows. A white background kept on white is invisible, and on a white item the fill runs into the item itself
+        # (a white sleeve's shading), so only a background that is not white counts.
+        mask, colour = bgmask
+        src = np.asarray(back_to_source(out, pl, src_size).convert("RGB"), dtype=np.int16)
+        added = 0.0 if min(colour) >= 240 else \
+            float((item & ndimage.binary_erosion(mask, iterations=r) & (src.min(axis=2) < 243)).sum() / max(1, item.sum()))
+    else:                      # a, b: anything not white far from the live cut-out
+        far = ~ndimage.binary_dilation(supp, iterations=2 * r)
+        added = float((item & far & (np.asarray(view.convert("RGB")).min(axis=2) < 200)).sum() / max(1, item.sum()))
     ck["added"] = round(added, 4)
     ck["fid"] = round(fidelity(out, pl), 2)
     if same < sp.SAME_MIN: return False, f"another photo or a changed outline (outline {same:.2f} < {sp.SAME_MIN})", ck
@@ -420,7 +428,7 @@ def full_alpha(pl, size):
 
 
 # ---------------------------------------------------------------- one photo
-def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, models, mcache, tag, log, live_alpha=None):
+def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, models, mcache, tag, log, live_alpha=None, bgmask=None):
     """Cut-outs of one source, best first, until one passes every check. Returns (photo, record) or (None, record)."""
     rec = {"tried": []}
     # matting region: the item with a margin (faster, finer), from a quick isnet pass and the border difference
@@ -458,7 +466,18 @@ def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, mod
         out, notes, pl = compose(src_rgb, full, bg, kind, garment)
         if out is None:
             r["why"] = notes.get("error"); return None, r, None
-        ok, why, ck = judge(g, ref, supp, out, pl, src_rgb.size, reg, clip, live_alpha)
+        ok, why, ck = judge(g, ref, supp, out, pl, src_rgb.size, reg, clip, live_alpha, bgmask)
+        if not ok and why.startswith("item pixels changed") and str(notes.get("up", "")).startswith("Real-ESRGAN"):
+            # the enlarged copy is what changed the pixels: the same cut-out enlarged plainly (Lanczos) instead
+            keep, sp.ESRGAN_BELOW = sp.ESRGAN_BELOW, 0
+            try:
+                out2, notes2, pl2 = compose(src_rgb, full, bg, kind, garment)
+            finally:
+                sp.ESRGAN_BELOW = keep
+            if out2 is not None:
+                ok2, why2, ck2 = judge(g, ref, supp, out2, pl2, src_rgb.size, reg, clip, live_alpha, bgmask)
+                r["esrgan_fid"] = ck.get("fid")
+                out, notes, pl, ok, why, ck = out2, notes2, pl2, ok2, why2, ck2
         r.update(ck); r.update({k: v for k, v in notes.items() if k in ("clean", "hook", "up", "real_px", "shown_px")})
         if not ok: r["why"] = why
         log(f"      {tag} {m}: {'OK' if ok else why}  {json.dumps(ck)}")
@@ -505,6 +524,8 @@ def hr_worth(tried):
     photo or its reference is the problem, not the matte)."""
     if not tried: return True
     if all(str(t.get("why", "")).startswith("item cut off") for t in tried if t.get("why")): return False
+    first = str(tried[0].get("why", ""))
+    if first.startswith("item pixels changed") or first.startswith("item cut off"): return False   # not the matte
     if len(tried) >= 2:
         a, b = tried[0], tried[1]
         if a.get("why") and b.get("why") and a["why"].split("(")[0] == b["why"].split("(")[0] and \
@@ -643,13 +664,21 @@ def do_rl(p, path, labels, models, log):
     kind = sp.kind_of(p); garment = p.get("cat") in GARMENT
     several = bool(lab.get("is_set")) or bool(set(lab.get("photo_issues") or []) & {"multiple_views", "multiple_items"}) \
         or bool(re.search(r"(?i)\b(sets?|tracksuits?|pairs?|kit)\b", p.get("title") or "")) or kind == "shoe"
-    out, r = try_source("c", rgb, bg, ref, supp, None, False, kind, garment, several, models, {}, "site", log)
+    out, r = try_source("c", rgb, bg, ref, supp, None, False, kind, garment, several, models, {}, "site", log, None, (bgmask, bg))
     rec = {"source": "site", "bg": [int(x) for x in bg], **r}
     if out is not None: rec.update(model=r["model"], checks=r["checks"])
     return out, rec
 
 
 # ---------------------------------------------------------------- run
+def retryable(rec):
+    """A photo not fixed before whose reason a new run can change (not: a person / box / collage in the photo, an item
+    the photo crops, a source that is gone)."""
+    w = str(rec.get("why") or "")
+    return not rec.get("ok") and not w.startswith("needs a new photo") and "cut off by the photo" not in w \
+        and "missing" not in w
+
+
 def state_path(shard):
     k, n = shard
     return os.path.join(STATE_DIR, f"{k}-of-{n}.json")
@@ -700,6 +729,7 @@ def main(argv=None):
     ap.add_argument("--models", default=",".join(MODELS))
     ap.add_argument("--redo", action="store_true")
     ap.add_argument("--max-minutes", type=float, default=0, help="stop starting new photos after this many minutes")
+    ap.add_argument("--retry", action="store_true", help="also do the photos not fixed before, unless the photo itself is the problem")
     a = ap.parse_args(argv)
     shard = shards.parse(a.shard)
     groups = set(a.group.split(","))
@@ -717,7 +747,7 @@ def main(argv=None):
             if not shards.mine(i, shard) or i not in items: continue
             if g in ("a", "b") and MODEL_SHOT.search(x): continue          # never a model shot
             key = x if g != "c" else i
-            if key in done: continue
+            if key in done and not (a.retry and retryable(done[key])): continue
             jobs.append((i, g, key, x))
     if a.limit: jobs = jobs[:a.limit]
     print(f"photo_white: {len(jobs)} photos in shard {a.shard} ({', '.join(sorted(groups))}), {len(done)} done before", flush=True)
