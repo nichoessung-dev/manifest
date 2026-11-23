@@ -107,8 +107,9 @@ def main():
     bg = ((load(os.path.join(ROOT, "data", "photo_background.json"), {}) or {}).get("photos") or {})
     for p in items:
         pid = str(p.get("id")); f = bg.get(pid)
-        if f and pid not in why and (p.get("img") or "").split("?")[0].endswith(f.split("?")[0]): why[pid] = ["background"]
-        if f: gone.add(pid)
+        same = bool(f) and (p.get("img") or "").split("?")[0].endswith(f.split("?")[0])
+        if same and pid not in why: why[pid] = ["background"]
+        if same: gone.add(pid)            # a find whose photo changed is back, and competes for duplicates again
     why.update(dupes(items, gone, swapped, pq, views))
     for pid in swapped: why.pop(pid, None)            # a partner-swapped find is never hidden (owner: the ones we want people to buy)
     counts = {}

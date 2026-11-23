@@ -44,8 +44,8 @@ def now(): return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
 def base(n):
-    """File name without the polished-copy prefix (s2/)."""
-    return n[3:] if n.startswith("s2/") else n
+    """File name without the polished-copy prefix (s2/) or the white cut-out prefix (w/)."""
+    return n[3:] if n.startswith("s2/") else n[2:] if n.startswith("w/") else n
 
 
 WRONG_MAIN = re.compile(r"differ|wrong|not the|another|not a |title says|colou?r|version|shade|replica|fake|counterfeit")

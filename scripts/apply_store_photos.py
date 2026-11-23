@@ -17,8 +17,11 @@ left alone. Report only unless --write.
 
 Polished copies (scripts/store_photos_polish.py, products/store2/, pure white 1600 px) replace a store photo wherever the
 polish step made and verified one; gallery entries "s2/<name>" (pages.js, index.html storeGal). --no-polish goes back.
+White cut-outs (scripts/photo_white.py, 23 Nov 2026: the store photos the polish step skipped, mostly white or see-through
+items, cut out again on #FFFFFF and verified) replace the rest, from the site's own files: img/white/store/<name>, main
+"img" "/img/white/store/<name>", gallery entries "w/<name>". --no-white goes back.
 
-  python scripts/apply_store_photos.py [--ids 1,2] [--write] [--no-polish] [--revert data/store_photos_applied.json]
+  python scripts/apply_store_photos.py [--ids 1,2] [--write] [--no-polish] [--no-white] [--revert data/store_photos_applied.json]
 """
 import argparse, collections, glob, json, os, re, sys
 from datetime import datetime, timezone
@@ -35,6 +38,8 @@ MAX_GAL = 8
 
 STORE2 = STORE.replace("/products/store/", "/products/store2/")
 POLISH_V = 3      # scripts/store_photos_polish.py VERSION whose results are used (3: interior same-photo check)
+WHITE = "/img/white/store/"   # scripts/photo_white.py: verified white cut-outs in the site's own files
+WHITE_V = 2       # scripts/photo_white.py VERSION whose results are used (2: band frame check, anchored framing)
 
 
 MODEL_SHOT = re.compile(r"-[a-z]?m\d+\.webp$")
@@ -45,8 +50,11 @@ def ok(u):
 
 
 def base(u):
-    """The products/store/ URL of a photo, also when the site shows its polished products/store2/ copy."""
-    return STORE + u[len(STORE2):] if isinstance(u, str) and u.startswith(STORE2) else u
+    """The products/store/ URL of a photo, also when the site shows its polished products/store2/ copy or its white
+    cut-out (img/white/store/)."""
+    if isinstance(u, str) and u.startswith(STORE2): return STORE + u[len(STORE2):]
+    if isinstance(u, str) and u.startswith(WHITE): return STORE + u[len(WHITE):]
+    return u
 
 
 def polished():
@@ -67,6 +75,18 @@ def polished():
                 elif x.get("source") == "store" and (x.get("same", 0) < 0.96 or "inside" not in x): continue
                 elif not (chk.get(name) or {}).get("ok"): continue
                 if x["url"] == STORE2 + name: out[name] = x["url"]
+    return out
+
+
+def white():
+    """{file name: "/img/white/store/<name>"} of the white cut-outs scripts/photo_white.py made AND verified (every check
+    passed: outline, interior, regression, fidelity; data/photo_white/*.json "ok") whose file is in the site."""
+    out = {}
+    for f in sorted(glob.glob(os.path.join(ROOT, "data", "photo_white", "*.json"))):
+        for name, r in (load_json(f, {}).get("items") or {}).items():
+            if r.get("v") != WHITE_V or not r.get("ok") or r.get("group") not in ("a", "b"): continue
+            if r.get("file") == "img/white/store/" + name and os.path.isfile(os.path.join(ROOT, r["file"])):
+                out[name] = WHITE + name
     return out
 
 
@@ -142,8 +162,11 @@ def plan(items, audit, owner, hidden, only, fixes=None, pol=None):
 
 
 def rel(u):
-    """A gallery entry: the file name in products/store/, or "s2/<name>" for the polished copy in products/store2/."""
-    return "s2/" + u[len(STORE2):] if u.startswith(STORE2) else u[len(STORE):]
+    """A gallery entry: the file name in products/store/, "s2/<name>" for the polished copy in products/store2/, or
+    "w/<name>" for the white cut-out in img/white/store/."""
+    if u.startswith(STORE2): return "s2/" + u[len(STORE2):]
+    if u.startswith(WHITE): return "w/" + u[len(WHITE):]
+    return u[len(STORE):]
 
 
 def write_gallery(gal, mains):
@@ -164,6 +187,7 @@ def main(argv=None):
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--revert", default="")
     ap.add_argument("--no-polish", action="store_true", help="the products/store/ files even where a polished copy exists")
+    ap.add_argument("--no-white", action="store_true", help="no white cut-outs (img/white/store/) either")
     a = ap.parse_args(argv)
     index = os.path.join(ROOT, "index.html")
     logf = os.path.join(ROOT, "data", "store_photos_applied.json")
@@ -186,6 +210,8 @@ def main(argv=None):
         gal, mains, why = {}, set(), collections.Counter()
     else:
         pol = {} if a.no_polish else polished()
+        if not a.no_white:   # a verified polished copy wins; the white cut-outs cover the photos the polish step skipped
+            pol.update({n: u for n, u in white().items() if n not in pol})
         changes, gal, mains, why = plan(items, audit, owner, hidden, only, fixes, pol)
     out, applied, failed = edit(raw, items, changes)
     print("%s: %d main photos switched, %d failed, %d finds with extra angles (%d photos); not switched: %s"

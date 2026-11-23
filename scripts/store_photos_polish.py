@@ -41,6 +41,7 @@ import store_photos_shards as shards  # noqa: E402
 SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co"
 STORE = SUPA + "/storage/v1/object/public/products/store/"
 STORE2 = SUPA + "/storage/v1/object/public/products/store2/"
+WHITE = "/img/white/store/"   # scripts/photo_white.py: white cut-outs of store photos in the site's own files
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36"
 OUT = os.path.join(ROOT, "out", "store-polish")
 STATE = os.path.join(ROOT, "data", "store_photos_polish.json")
@@ -441,9 +442,11 @@ def live_photos(items):
     out = {}
     for p in items:
         u = p.get("img") or ""
-        names = [u[len(STORE):].split("?")[0]] if u.startswith(STORE) else [u[len(STORE2):].split("?")[0]] if u.startswith(STORE2) else []
-        # the live file in products/store/ is always the source, also where the site shows the polished copy (s2/)
-        names += [m for m in (n[3:] if n.startswith("s2/") else n for n in gal.get(p["id"], [])) if m not in names]
+        names = [u[len(STORE):].split("?")[0]] if u.startswith(STORE) else [u[len(STORE2):].split("?")[0]] if u.startswith(STORE2) else \
+            [u[len(WHITE):].split("?")[0]] if u.startswith(WHITE) else []
+        # the live file in products/store/ is always the source, also where the site shows the polished copy (s2/) or
+        # the white cut-out of scripts/photo_white.py (w/)
+        names += [m for m in (n[3:] if n.startswith("s2/") else n[2:] if n.startswith("w/") else n for n in gal.get(p["id"], [])) if m not in names]
         if names: out[p["id"]] = names
     return out
 

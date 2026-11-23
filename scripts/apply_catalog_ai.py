@@ -2,7 +2,7 @@
 """Apply the vision labels (data/catalog_ai.json) to the catalogue in index.html: only confident changes that pass the
 category and title rules, as surgical string edits inside the pc-catalog JSON (same format, same order, nothing else touched).
 
-  python scripts/apply_catalog_ai.py [--cats] [--titles] [--reorder-colour] [--photos] [--write]
+  python scripts/apply_catalog_ai.py [--cats] [--titles] [--reorder-colour] [--photos] [--white] [--write]
                                      [--min-cat 0.8] [--min-title 0.85] [--min-new-words 0.9] [--allow-design] [--ids 1,2]
                                      [--review data/catalog_ai_review.json] [--report data/catalog_ai_apply.md]
                                      [--csv out/changes.csv] [--revert data/catalog_ai_applied.json]
@@ -15,6 +15,10 @@ category and title rules, as surgical string edits inside the pc-catalog JSON (s
                     Every renderer (grid, product page, feed, search, chat cards, OG image) reads "img", so nothing else
                     changes; the Supabase URL goes through /api/img and Cloudflare resizing like today.
   --verify          with --photos: check that each cleaned file answers 200 before switching to it
+  --white           point "img" of every RepLibrary find whose white cut-out is ready (scripts/photo_white.py, group c:
+                    every check passed, data/photo_white/*.json "ok") at its site file "/img/white/rl/<id>.webp", only
+                    where the find still shows the photo it was made from. photo_hide.py stops hiding a find for its
+                    background once "img" no longer shows the old file (data/photo_background.json). --revert puts it back.
   --write           really write index.html (without it: report only)
   --revert F        put back the old values recorded in F (the applied log of an earlier run)
   --review F        human review decisions (data/catalog_ai_review.json): {"cat": {id: cat}, "cat_hold": {id: why},
@@ -22,7 +26,7 @@ category and title rules, as surgical string edits inside the pc-catalog JSON (s
 
 Every write appends the old and new values to data/catalog_ai_applied.json, so any batch can be reverted.
 """
-import argparse, collections, csv, json, os, re, sys, unicodedata, urllib.request
+import argparse, collections, csv, glob, json, os, re, sys, unicodedata, urllib.request
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -411,6 +415,7 @@ def main():
     ap.add_argument("--reorder-colour", action="store_true")
     ap.add_argument("--photos", action="store_true")
     ap.add_argument("--verify", action="store_true")
+    ap.add_argument("--white", action="store_true")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--min-cat", type=float, default=0.80)
     ap.add_argument("--min-title", type=float, default=0.85)
@@ -483,6 +488,23 @@ def main():
                     bad += 1; continue
                 changes.append((i, "img", p.get("img"), url, "pc2 v%s" % ph.get("v")))
             whys["photos"] = {"cleaned file missing (not switched)": bad} if bad else {}
+        if a.white:
+            why = collections.Counter()
+            for f in sorted(glob.glob(os.path.join(ROOT, "data", "photo_white", "*.json"))):
+                for key, r in (load_json(f, {}).get("items") or {}).items():
+                    if r.get("group") != "c" or r.get("v") != 2: continue    # scripts/photo_white.py VERSION
+                    i = r.get("id")
+                    if only and i not in only: continue
+                    if not r.get("ok"): why["no white cut-out (could not fix)"] += 1; continue
+                    p = idx.get(i)
+                    if not p: why["not in the catalogue"] += 1; continue
+                    new = "/" + (r.get("file") or "")
+                    if not re.fullmatch(r"/img/white/rl/[0-9A-Za-z_-]{1,40}\.webp", new) or not os.path.isfile(os.path.join(ROOT, new.lstrip("/"))):
+                        why["file missing"] += 1; continue
+                    if p.get("img") == new: why["already shown"] += 1; continue
+                    if p.get("img") != r.get("old"): why["the find shows another photo now"] += 1; continue
+                    changes.append((i, "img", p.get("img"), new, "white cut-out (%s)" % r.get("model")))
+            whys["white cut-outs"] = why
 
     for k, w in whys.items():
         print(k + ":", dict(w))
