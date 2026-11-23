@@ -110,15 +110,18 @@ MEAN, STD = np.array([0.485, 0.456, 0.406], np.float32), np.array([0.229, 0.224,
 
 
 def matte_hr(rgb, model, size=2048):
-    """BiRefNet_HR / BiRefNet_HR-matting (trained at 2048 x 2048) on the CPU."""
-    import torch
+    """BiRefNet_HR / BiRefNet_HR-matting (trained at 2048 x 2048) on the CPU. One of them in memory at a time: a 2048 px
+    pass needs about 9 GB (a runner was shut down with both loaded, 23 Nov 2026)."""
+    import gc, torch
     from transformers import AutoModelForImageSegmentation
     if model not in _hr:
+        _hr.clear(); gc.collect()
         repo, rev = HF[model]
         _hr[model] = AutoModelForImageSegmentation.from_pretrained(repo, revision=rev, trust_remote_code=True).eval().float()
     x = (np.asarray(rgb.convert("RGB").resize((size, size), Image.BILINEAR), np.float32) / 255.0 - MEAN) / STD
     with torch.inference_mode():
         p = _hr[model](torch.from_numpy(np.ascontiguousarray(x.transpose(2, 0, 1))).unsqueeze(0))[-1].sigmoid()[0, 0].numpy()
+    del x; gc.collect()
     return Image.fromarray((p * 255).round().astype(np.uint8)).resize(rgb.size, Image.LANCZOS)
 
 
