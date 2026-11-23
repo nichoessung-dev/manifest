@@ -6,6 +6,14 @@ data/seo_ranks_markets.json (the spreadsheet searches in ten countries, 23 Nov 2
 searches of the model pages added on 23 Nov 2026, checked before they existed) and data/seo_page_clicks.json (buy clicks
 per page by visit source and country, buy clicks per find, site searches; scripts/seo_page_clicks.py).
 
+## 23 Nov 2026: the Chrome Hearts "jewellery" page is named for what it lists
+
+- What: /best/chrome-hearts-jewelry is now "Best Chrome Hearts Cross Reps" (title, h1, intro and QC checklist). The URL stays.
+- Why: its pattern matches "cross", so 62 of its 75 listings are cross-print clothing, not jewellery, while the page ranks
+  for "chrome hearts reps" (5th UK, 9th US on 23 Nov). The owner chose to rename it to match rather than cut it to about 10
+  jewellery finds.
+- Undo: functions/_lib/content3.js, the "chrome-hearts-jewelry" entries in MODELS3 and MODEL_TERM.
+
 ## 23 Nov 2026: the spreadsheet searches, 34 model pages, agent shipping lines
 
 The baseline, taken before these changes (Serper, 467 credits): data/seo_ranks_markets.json has the 16 spreadsheet searches
