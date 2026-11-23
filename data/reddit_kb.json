@@ -1,46 +1,46 @@
 {
-"updated": "2026-11-16T15:48:26Z",
+"updated": "2026-11-23T18:12:50Z",
 "note": "Short tips in our own words from public posts on rep subreddits (scripts/reddit_kb.py). No usernames or quotes. Read by functions/_lib/reddit_kb.js for the chat assistant.",
 "sources": {
 "FashionReps": {
 "posts": 12,
-"via": "feed",
-"facts": 16
+"via": "archive",
+"facts": 12
 },
 "QualityReps": {
 "posts": 12,
-"via": "feed",
-"facts": 21
+"via": "archive",
+"facts": 20
 },
 "Repsneakers": {
 "posts": 12,
-"via": "feed",
-"facts": 8
+"via": "archive",
+"facts": 19
 },
 "DesignerReps": {
 "posts": 12,
-"via": "feed",
-"facts": 15
+"via": "archive",
+"facts": 18
 },
 "CloseToRetail": {
 "posts": 12,
-"via": "feed",
-"facts": 17
+"via": "archive",
+"facts": 18
 },
 "WeidianWarriors": {
 "posts": 12,
-"via": "feed",
-"facts": 20
+"via": "archive",
+"facts": 21
 },
 "Kakobuy": {
 "posts": 12,
-"via": "feed",
-"facts": 4
+"via": "archive",
+"facts": 20
 },
 "MyCNBox": {
-"posts": 3,
-"via": "feed",
-"facts": 3
+"posts": 8,
+"via": "archive",
+"facts": 20
 }
 },
 "runs": [
@@ -70,6 +70,15 @@
 "tokens_in": 35327,
 "tokens_out": 8951,
 "usd": 0.008
+},
+{
+"date": "2026-11-23T18:12:50Z",
+"model": "claude-haiku-5-5",
+"new": 148,
+"kept": 150,
+"tokens_in": 40935,
+"tokens_out": 12371,
+"usd": 0.0103
 }
 ],
 "facts": [
@@ -89,6 +98,40 @@
 "in": [
 "2026-W45:CloseToRetail",
 "2026-W46:CloseToRetail"
+]
+},
+{
+"t": "Commenters say George and Black Cat are middlemen working with mass-production factories, so quality varies between batches even from the same seller.",
+"topic": "batches",
+"keys": [
+"black cat",
+"made by george",
+"batch"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 3,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Several shoppers say shipping costs rise during peak order season near Christmas, so ordering earlier can help keep costs down.",
+"topic": "seasonal",
+"keys": [
+"shipping",
+"christmas",
+"peak season"
+],
+"sub": "Kakobuy",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 3,
+"in": [
+"2026-W48:Kakobuy"
 ]
 },
 {
@@ -155,6 +198,987 @@
 "sup": 3,
 "in": [
 "2026-W45:CloseToRetail"
+]
+},
+{
+"t": "Several posts warn that replica prices far below normal retail on a brand can be a red flag. Be wary of a Supreme box logo offered at an unusually low price.",
+"topic": "scams",
+"keys": [
+"supreme",
+"box logo"
+],
+"sub": "FashionReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:FashionReps"
+]
+},
+{
+"t": "Commenters suggest asking for QC photos and checking the seller's record before ordering, especially for an unfamiliar store.",
+"topic": "sellers",
+"keys": [
+"qc",
+"seller"
+],
+"sub": "FashionReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:FashionReps"
+]
+},
+{
+"t": "Several posts ask others to verify QC on items before shipping, which suggests community members commonly check pieces from a sample photo first.",
+"topic": "qc",
+"keys": [
+"qc",
+"shipping"
+],
+"sub": "FashionReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:FashionReps"
+]
+},
+{
+"t": "Many posts include only a link and no reviews, so a seller's yupoo catalog alone does not show how accurate the items are.",
+"topic": "sellers",
+"keys": [
+"yupoo"
+],
+"sub": "FashionReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:FashionReps"
+]
+},
+{
+"t": "Reviewers suggest sharing your height and weight alongside in-hand photos, since fit comparisons are far more useful with those stats.",
+"topic": "sizing",
+"keys": [
+"review",
+"in hands"
+],
+"sub": "QualityReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:QualityReps"
+]
+},
+{
+"t": "Several people say a single-seller mass catalogue of old money clothes is often a garbage market; community members want low-volume specialist sellers instead.",
+"topic": "sellers",
+"keys": [
+"old money",
+"99team",
+"topselect"
+],
+"sub": "QualityReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:QualityReps"
+]
+},
+{
+"t": "Commenters warn that huge catalogues of old money items are often bought from resellers, and that review sections may be botted or paid.",
+"topic": "scams",
+"keys": [
+"old money",
+"reviews"
+],
+"sub": "QualityReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:QualityReps"
+]
+},
+{
+"t": "Commenters say the WWTOP and similar GAT comparisons show clear differences in laces, stitching and outsole compared to retail, so near-identical claims are often disputed.",
+"topic": "qc",
+"keys": [
+"gat",
+"wwtop",
+"mvt",
+"sneakers"
+],
+"sub": "QualityReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:QualityReps"
+]
+},
+{
+"t": "People caution that comparing sizes across different model years or sizes is not a fair way to judge a batch.",
+"topic": "batches",
+"keys": [
+"gat",
+"wwtop",
+"sneakers"
+],
+"sub": "QualityReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:QualityReps"
+]
+},
+{
+"t": "Some community members say MVT GAT samples they handled had poor quality, while others debate whether rep GATs are better than originals.",
+"topic": "batches",
+"keys": [
+"gat",
+"mvt"
+],
+"sub": "QualityReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:QualityReps"
+]
+},
+{
+"t": "Buyers advise asking a seller for internal bag photos and QC photos before buying, since a lack of them can be a warning sign.",
+"topic": "qc",
+"keys": [
+"ch bag",
+"bags",
+"qc photos"
+],
+"sub": "QualityReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:QualityReps"
+]
+},
+{
+"t": "Community members say some sellers can be highly rated overall while individual pieces still vary, so judge each item on its own QC.",
+"topic": "sellers",
+"keys": [
+"ch bag",
+"sellers"
+],
+"sub": "QualityReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:QualityReps"
+]
+},
+{
+"t": "Buyers note that some sneaker and clothing items use retail-level shoelace thickness and stitching as a quick check point against replicas.",
+"topic": "qc",
+"keys": [
+"sneakers",
+"laces",
+"stitching"
+],
+"sub": "QualityReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:QualityReps"
+]
+},
+{
+"t": "Several people say spammy QC-only feeds have made the sub harder to browse; look past repetitive photo posts for detailed reviews before judging a seller.",
+"topic": "other",
+"keys": [
+"qc",
+"sellers"
+],
+"sub": "Repsneakers",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Repsneakers"
+]
+},
+{
+"t": "Scam warnings are common here: several newcomers report many sites feel like scams, so vet sellers via community reviews before paying.",
+"topic": "scams",
+"keys": [
+"sellers"
+],
+"sub": "Repsneakers",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Repsneakers"
+]
+},
+{
+"t": "Several posters mention that tariffs and import fees have raised prices, which changes how people weigh buying reps now.",
+"topic": "other",
+"keys": [
+"shipping"
+],
+"sub": "Repsneakers",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Repsneakers"
+]
+},
+{
+"t": "Several posters say heavy canvas bags like keepalls can collapse when empty; a removable bottom shaper helps keep the shape.",
+"topic": "materials",
+"keys": [
+"keepall",
+"canvas",
+"goyard",
+"boston"
+],
+"sub": "DesignerReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:DesignerReps"
+]
+},
+{
+"t": "Posters in a Guangzhou trip thread say that stocks at the lower floors of Kinbo can be lower-grade, and the community suggests the better stock is found higher up.",
+"topic": "other",
+"keys": [
+"kinbo",
+"guangzhou"
+],
+"sub": "DesignerReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:DesignerReps"
+]
+},
+{
+"t": "Several people in a Guangzhou thread say tourist-facing markets charge inflated prices and that ordering through trusted sellers to your hotel is often better.",
+"topic": "sellers",
+"keys": [
+"guangzhou",
+"kinbo",
+"watch market"
+],
+"sub": "DesignerReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:DesignerReps"
+]
+},
+{
+"t": "Community members say raids can shut down markets in Guangzhou for a period of weeks after they happen, so check if shops are open before traveling.",
+"topic": "seasonal",
+"keys": [
+"guangzhou",
+"kinbo"
+],
+"sub": "DesignerReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:DesignerReps"
+]
+},
+{
+"t": "Posters warn that in-person booth sellers often add a markup, while sellers with large stock may give lower prices.",
+"topic": "sellers",
+"keys": [
+"guangzhou",
+"watch market"
+],
+"sub": "DesignerReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:DesignerReps"
+]
+},
+{
+"t": "Commenters on a Gucci leather jacket thread asked about contacts sent by private message, which is a common sign of a risky seller; verify before paying.",
+"topic": "scams",
+"keys": [
+"gucci",
+"leather jacket"
+],
+"sub": "DesignerReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:DesignerReps"
+]
+},
+{
+"t": "Community members ask to compare QC photos with the item in hand, and some say a final judgment should wait until the item arrives.",
+"topic": "qc",
+"keys": [
+"qc",
+"photos"
+],
+"sub": "DesignerReps",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:DesignerReps"
+]
+},
+{
+"t": "Several commenters say the GOD jacket size guidance is hard to get without asking; sellers often post size charts in an image, so check the last image or ask for measurements before ordering.",
+"topic": "sizing",
+"keys": [
+"god",
+"jacket",
+"size chart"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Some shoppers say Chrome Hearts-style leather goods from Cola run small; one commenter advised sizing down, while another with a 44 foot found sizing down once too big. Check your own foot measurements.",
+"topic": "sizing",
+"keys": [
+"cola",
+"boots",
+"leather strike",
+"shoes"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Community members report that Painter's sizing tends to run smaller than other sellers, and that his Asian-market measurements may not match retail charts.",
+"topic": "sizing",
+"keys": [
+"painter",
+"hoodie",
+"vest"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Several people warn that George's products often have logo placement errors and measurements that are off; some say quality is inconsistent between batches.",
+"topic": "qc",
+"keys": [
+"made by george",
+"prada",
+"miu miu"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Commenters note Painter's patch alignment can be visibly off on vests; check logos and patch straightness closely in QC photos before accepting an item.",
+"topic": "qc",
+"keys": [
+"painter",
+"vest",
+"patches"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Several commenters say some sellers send reject units through agents because agents rarely leave bad reviews; buying directly from a seller's store may reduce this.",
+"topic": "sellers",
+"keys": [
+"painter",
+"weidian",
+"agents"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Some shoppers report that a proxy's pre-ship QC photos helped them spot issues; ask your agent for detailed QC photos before shipping.",
+"topic": "qc",
+"keys": [
+"proxy",
+"qc photos",
+"weibi"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Several people say God's listings sometimes omit brand tags while the seller says otherwise; one buyer reports GOD Gucci denim jackets had Gucci tags. Verify tags in listing photos.",
+"topic": "qc",
+"keys": [
+"god",
+"chrome hearts",
+"tags",
+"gucci"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Several people say GOD pre-sale items may sell out fast, and buying through the seller's Weidian store directly can earn VIP points for future discounts.",
+"topic": "ordering",
+"keys": [
+"god",
+"weidian",
+"vip"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Commenters warn that some proxies quote different prices for the same GOD item and that delivery dates for outerwear often slip; the community says the quality is good but timing is unreliable.",
+"topic": "shipping",
+"keys": [
+"god",
+"maya",
+"moncler",
+"proxy"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Several commenters warn that many Weidian stores claim to be GOD; verify the seller is the official account before paying, as lookalike stores may exist.",
+"topic": "scams",
+"keys": [
+"god",
+"weidian",
+"fake store"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Several commenters say Chitu is well regarded for leather work, while others praise Red Rabbit for Chrome Hearts jewelry finishing; opinions vary and many consider both top tier.",
+"topic": "sellers",
+"keys": [
+"chitu",
+"red rabbit",
+"chrome hearts",
+"leather"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Commenters say the BC wool down jacket is not designed for rain, and sizing advice from commenters varies, so check the official size chart and measurements.",
+"topic": "materials",
+"keys": [
+"bc",
+"wool",
+"down jacket"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Several shoppers say Painter's fabric on some garments is stiff and not breathable, and his Prada shirt quality may have declined.",
+"topic": "materials",
+"keys": [
+"painter",
+"prada",
+"lv polo"
+],
+"sub": "CloseToRetail",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:CloseToRetail"
+]
+},
+{
+"t": "Some users say Yupoo size charts help choose sizes better than guessing your usual size, especially for tall buyers. Check measurements before ordering.",
+"topic": "sizing",
+"keys": [
+"yupoo",
+"tall",
+"measurements"
+],
+"sub": "WeidianWarriors",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:WeidianWarriors"
+]
+},
+{
+"t": "When using an agent, paste the Weidian product link into the search bar rather than the Yupoo link, which agents often can't read.",
+"topic": "ordering",
+"keys": [
+"yupoo",
+"weidian",
+"agents"
+],
+"sub": "WeidianWarriors",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:WeidianWarriors"
+]
+},
+{
+"t": "Several posters say a seller's batch of a model is the best version available, but reviews vary and comparing QC photos across sources is common.",
+"topic": "batches",
+"keys": [
+"batch",
+"qc"
+],
+"sub": "WeidianWarriors",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:WeidianWarriors"
+]
+},
+{
+"t": "Commenters warn that broken or repeatedly changing links on a seller's post can be a sign to be cautious before paying.",
+"topic": "scams",
+"keys": [
+"links",
+"seller"
+],
+"sub": "WeidianWarriors",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:WeidianWarriors"
+]
+},
+{
+"t": "A few reviewers say reps of many common Nike and similar shoes are easier to find than in larger sizes, and that big-foot sizing is often limited to one batch.",
+"topic": "sizing",
+"keys": [
+"nike",
+"batch",
+"big feet"
+],
+"sub": "WeidianWarriors",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:WeidianWarriors"
+]
+},
+{
+"t": "Reviewers note that shipping cost to some countries can make a deal unworthwhile, so compare total landed cost before buying.",
+"topic": "shipping",
+"keys": [
+"shipping",
+"cost"
+],
+"sub": "WeidianWarriors",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:WeidianWarriors"
+]
+},
+{
+"t": "Several reviewers say knitwear and suede dry best in shade or on a delicate setting rather than in direct sun.",
+"topic": "materials",
+"keys": [
+"knit",
+"suede",
+"care"
+],
+"sub": "WeidianWarriors",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:WeidianWarriors"
+]
+},
+{
+"t": "Reviewers say a lot of tall buyers report sizing up on jackets and pants, and to double check size charts before buying.",
+"topic": "sizing",
+"keys": [
+"jacket",
+"jeans",
+"tall"
+],
+"sub": "WeidianWarriors",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:WeidianWarriors"
+]
+},
+{
+"t": "Community members note that embroidery is a common QC checkpoint, and clean stitching is a good sign on tees and hoodies.",
+"topic": "qc",
+"keys": [
+"embroidery",
+"hoodie",
+"tee"
+],
+"sub": "WeidianWarriors",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:WeidianWarriors"
+]
+},
+{
+"t": "Many shoppers say they size up on tops, often going XL or XXL on tees, because replica sizing can run small and shrinks after washing.",
+"topic": "sizing",
+"keys": [
+"tshirt",
+"hoodie",
+"tops",
+"replica"
+],
+"sub": "Kakobuy",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Kakobuy"
+]
+},
+{
+"t": "Some members say most size charts look like normal sizes, but a few report charts that are copied from other items or missing, so compare measurements yourself.",
+"topic": "sizing",
+"keys": [
+"size chart",
+"tops"
+],
+"sub": "Kakobuy",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Kakobuy"
+]
+},
+{
+"t": "Several members say that when an item goes out of stock after you order, the refund can be processed automatically and the item may not be sent, so message the seller right after ordering.",
+"topic": "sellers",
+"keys": [
+"refund",
+"out of stock"
+],
+"sub": "Kakobuy",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Kakobuy"
+]
+},
+{
+"t": "Users warn that some sellers or agents cancel and refund orders without asking, so keep messages with sellers as proof if a dispute happens.",
+"topic": "sellers",
+"keys": [
+"refund",
+"cancel"
+],
+"sub": "Kakobuy",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Kakobuy"
+]
+},
+{
+"t": "Community members say returns are hard to get once a long time has passed, so raise QC or quantity problems with the agent quickly.",
+"topic": "agents",
+"keys": [
+"return",
+"qc"
+],
+"sub": "Kakobuy",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Kakobuy"
+]
+},
+{
+"t": "Some shoppers say Chinese tracking often shows no updates for a long stretch, and that parcels may only update again once they reach the destination country.",
+"topic": "shipping",
+"keys": [
+"tracking",
+"canada post",
+"warehouse"
+],
+"sub": "Kakobuy",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Kakobuy"
+]
+},
+{
+"t": "Members suggest checking third-party tracking tools rather than relying only on the agent's tracking page when a parcel seems stuck at the warehouse.",
+"topic": "shipping",
+"keys": [
+"tracking",
+"17track",
+"cnemstack"
+],
+"sub": "Kakobuy",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Kakobuy"
+]
+},
+{
+"t": "Some shoppers say CN-EMS is a reasonable default line, while UPS Duty-Free can be faster but is often considered expensive.",
+"topic": "shipping",
+"keys": [
+"cn-ems",
+"ups duty-free"
+],
+"sub": "Kakobuy",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Kakobuy"
+]
+},
+{
+"t": "To estimate shipping before paying, members suggest checking each item's weight and dimensions on the product page or through a weight-lookup tool, but some say many listings don't show these details.",
+"topic": "ordering",
+"keys": [
+"weight",
+"shipping estimate"
+],
+"sub": "Kakobuy",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Kakobuy"
+]
+},
+{
+"t": "Some members say the agent's delay on replies is common, so ask support for updates on your parcel and expect slow responses.",
+"topic": "agents",
+"keys": [
+"support",
+"delay"
+],
+"sub": "Kakobuy",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:Kakobuy"
+]
+},
+{
+"t": "Several posters say Y63 or GAP-style boxy shirts often run baggy, so some size down a step for a closer fit.",
+"topic": "sizing",
+"keys": [
+"boxy shirt",
+"y63",
+"gap"
+],
+"sub": "MyCNBox",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:MyCNBox"
+]
+},
+{
+"t": "Several posters compare Top Goosey and similar sellers as making the best Whyndam-style batches, while noting even good replicas usually fall short of top batches.",
+"topic": "batches",
+"keys": [
+"top goosey",
+"whyndam",
+"warm"
+],
+"sub": "MyCNBox",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:MyCNBox"
+]
+},
+{
+"t": "Some posters say the MyCNBox review wall was removed from the app after an update, while others note reviews remain on the website and FindQC is linked with MyCNBox.",
+"topic": "agents",
+"keys": [
+"mycnbox",
+"findqc",
+"review wall"
+],
+"sub": "MyCNBox",
+"date": "2026-11-23",
+"first": "2026-11-23",
+"seen": 1,
+"sup": 2,
+"in": [
+"2026-W48:MyCNBox"
 ]
 },
 {
@@ -1563,1036 +2587,6 @@
 "sup": 2,
 "in": [
 "2026-W45:FashionReps"
-]
-},
-{
-"t": "Reports on the ON Cloudtilt-style sneakers say the midsole foam often feels firmer and heavier than retail, a common complaint across sneaker replicas.",
-"topic": "materials",
-"keys": [
-"on",
-"cloudtilt",
-"midsole",
-"foam",
-"sneakers"
-],
-"sub": "FashionReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:FashionReps"
-]
-},
-{
-"t": "A few users say rep sneakers can outlast retail, while others find them firmer; expect a different feel rather than an exact match.",
-"topic": "materials",
-"keys": [
-"sneakers",
-"foam",
-"retail"
-],
-"sub": "FashionReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:FashionReps"
-]
-},
-{
-"t": "Several shoppers say a Salomon XT-6 batch's waterproofing faded after a few rains, and some note the DWR coating may wear off quickly.",
-"topic": "qc",
-"keys": [
-"salomon",
-"xt-6",
-"gore-tex",
-"dwr"
-],
-"sub": "FashionReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:FashionReps"
-]
-},
-{
-"t": "Some Gtbuy shoppers report quick service, good QC photos and that splitting large hauls into parcels with insurance worked without loss.",
-"topic": "agents",
-"keys": [
-"gtbuy",
-"insurance",
-"parcels"
-],
-"sub": "FashionReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:FashionReps"
-]
-},
-{
-"t": "Several users report their packages arrived with green customs tape, and some believe this is standard; others report no issues with it.",
-"topic": "shipping",
-"keys": [
-"customs",
-"tape",
-"packages"
-],
-"sub": "FashionReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:FashionReps"
-]
-},
-{
-"t": "Some commenters warn that buying large quantities of the same item may draw customs attention in the EU, while personal-use amounts are generally tolerated.",
-"topic": "shipping",
-"keys": [
-"customs",
-"eu",
-"personal use"
-],
-"sub": "FashionReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:FashionReps"
-]
-},
-{
-"t": "The community rates the Arc'teryx Atom and House of Errors knits from certain batches highly for value, though opinions on quality vary.",
-"topic": "sellers",
-"keys": [
-"arcteryx",
-"atom",
-"house of errors",
-"knit"
-],
-"sub": "FashionReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:FashionReps"
-]
-},
-{
-"t": "Reviewers say that X/GX-type Salomon XT-6 batches are well received for casual wear, though some say the waterproofing claim is only partly effective.",
-"topic": "batches",
-"keys": [
-"salomon",
-"xt-6",
-"gx"
-],
-"sub": "FashionReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:FashionReps"
-]
-},
-{
-"t": "Some people warn that vendor contact details posted in comments can be risky, and reviewers recommend confirming sellers through official channels.",
-"topic": "scams",
-"keys": [
-"seller",
-"whatsapp",
-"yupoo"
-],
-"sub": "FashionReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:FashionReps"
-]
-},
-{
-"t": "Several posters say the ERD Violator leather jacket fits true to size in some batches but can run snug in the chest; check pit-to-pit against retail before buying.",
-"topic": "sizing",
-"keys": [
-"erd",
-"violator",
-"rmism",
-"leather jacket"
-],
-"sub": "QualityReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:QualityReps"
-]
-},
-{
-"t": "The community rates the zymade batch of the ERD Violator highly, with reviewers praising its shade, details and overall finish.",
-"topic": "batches",
-"keys": [
-"zymade",
-"erd",
-"violator"
-],
-"sub": "QualityReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:QualityReps"
-]
-},
-{
-"t": "Some reviewers feel the leather pebbling on the Violator is heavier than retail, so compare the grain photos against retail before committing.",
-"topic": "qc",
-"keys": [
-"erd",
-"violator",
-"leather jacket",
-"zymade"
-],
-"sub": "QualityReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:QualityReps"
-]
-},
-{
-"t": "A commenter says a seller named xing had bad experiences for them, and another warns that orders from that seller went wrong; check seller history before paying.",
-"topic": "sellers",
-"keys": [
-"xing",
-"seller"
-],
-"sub": "QualityReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:QualityReps"
-]
-},
-{
-"t": "Several commenters say the BLCG Runner batch comparison is a hot topic, with the community debating which batch has better glue and outsole finish.",
-"topic": "batches",
-"keys": [
-"blcg",
-"runner",
-"xa batch",
-"outsole"
-],
-"sub": "QualityReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:QualityReps"
-]
-},
-{
-"t": "Several posts this week are sales listings with contact numbers. Treat listing posts as ads, not reviews, and check seller claims yourself before buying.",
-"topic": "scams",
-"keys": [
-"uncle bryan",
-"uncle lin"
-],
-"sub": "Repsneakers",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:Repsneakers"
-]
-},
-{
-"t": "Commenters suggest double-boxing luggage before shipping to agents, and say agents should send QC or warehouse photos on arrival so damage can be traced.",
-"topic": "shipping",
-"keys": [
-"luggage",
-"double box",
-"warehouse",
-"qc photos"
-],
-"sub": "DesignerReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:DesignerReps"
-]
-},
-{
-"t": "Several people report 99Team has been quick at QC and dispatch but slow to reply and update after payment; others say fulfilment took months.",
-"topic": "sellers",
-"keys": [
-"99team",
-"response time",
-"delays"
-],
-"sub": "DesignerReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:DesignerReps"
-]
-},
-{
-"t": "Commenters say 45 in one shoe size listing should be about 30 cm, and that 46 may need a larger size; check the seller's measurement chart before ordering.",
-"topic": "sizing",
-"keys": [
-"brunello cucinelli",
-"shoe size",
-"measurements"
-],
-"sub": "DesignerReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:DesignerReps"
-]
-},
-{
-"t": "Some commenters doubt that a cheap listing of cashmere scarves is really 100% cashmere and say it is hard for buyers to verify fiber content.",
-"topic": "materials",
-"keys": [
-"cashmere",
-"burberry scarf",
-"fabric"
-],
-"sub": "DesignerReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:DesignerReps"
-]
-},
-{
-"t": "A commenter says the community finds the batches of one seller strong on QC but warns that the same seller was slow with order updates.",
-"topic": "batches",
-"keys": [
-"99team",
-"qc",
-"updates"
-],
-"sub": "DesignerReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:DesignerReps"
-]
-},
-{
-"t": "Several people say the RMISM PRD Buffalo explorer leather is right but the front and back pattern can look nearly blank. Check QC photos for pattern on both sides before approving.",
-"topic": "qc",
-"keys": [
-"rmism",
-"prd",
-"buffalo explorer",
-"leather"
-],
-"sub": "CloseToRetail",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:CloseToRetail"
-]
-},
-{
-"t": "Logo tags are a key QC point on Prada-style windbreakers. Commenters advise asking for close logo photos before shipping.",
-"topic": "qc",
-"keys": [
-"985made",
-"prada",
-"windbreaker",
-"logo"
-],
-"sub": "CloseToRetail",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:CloseToRetail"
-]
-},
-{
-"t": "Some members say proxy services can be a helpful option for orders, but search carefully. Shoppers have struggled to find proxy accounts by handle on WeChat, so confirm the exact ID.",
-"topic": "agents",
-"keys": [
-"wechat",
-"proxy"
-],
-"sub": "CloseToRetail",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:CloseToRetail"
-]
-},
-{
-"t": "Several people warn that some WeChat handles shared in posts lead to unrelated accounts. Verify any contact before sending payment.",
-"topic": "scams",
-"keys": [
-"wechat",
-"proxy",
-"handle"
-],
-"sub": "CloseToRetail",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:CloseToRetail"
-]
-},
-{
-"t": "Several shoppers say a God Family TB wool zip sweater and CH sweatshirt passed pre-shipment QC well, and the community talks about them favorably.",
-"topic": "batches",
-"keys": [
-"god family",
-"tb",
-"wool",
-"ch",
-"sweatshirt"
-],
-"sub": "CloseToRetail",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:CloseToRetail"
-]
-},
-{
-"t": "Some shoppers say leather quality can be excellent and soft, but batch differences are common. Compare your piece to other reviews from the same batch when possible.",
-"topic": "batches",
-"keys": [
-"leather",
-"rmism",
-"erd",
-"mkszy"
-],
-"sub": "CloseToRetail",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:CloseToRetail"
-]
-},
-{
-"t": "Several posters say GTBUY's shipping was quick and their QC photos were clear, with no problems reported on large hauls.",
-"topic": "shipping",
-"keys": [
-"gtbuy"
-],
-"sub": "WeidianWarriors",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:WeidianWarriors"
-]
-},
-{
-"t": "Commenters asked sellers for size charts on the Bape waffle; posters suggest checking the title and links, since charts are not always included in the weidian listing.",
-"topic": "sizing",
-"keys": [
-"bape",
-"waffle"
-],
-"sub": "WeidianWarriors",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:WeidianWarriors"
-]
-},
-{
-"t": "Several reviewers say Bape slides fit true to a usual size, with some recommending the smallest size if you wear a standard size.",
-"topic": "sizing",
-"keys": [
-"bape",
-"slides"
-],
-"sub": "WeidianWarriors",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:WeidianWarriors"
-]
-},
-{
-"t": "Several reviewers say GTBUY's haul prices included insurance and that large parcels were consolidated well.",
-"topic": "agents",
-"keys": [
-"gtbuy",
-"insurance"
-],
-"sub": "WeidianWarriors",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:WeidianWarriors"
-]
-},
-{
-"t": "Posters advise checking a seller's size chart before ordering, since it may only appear on the yupoo page, not the weidian listing.",
-"topic": "ordering",
-"keys": [
-"yupoo",
-"weidian",
-"sizing"
-],
-"sub": "WeidianWarriors",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:WeidianWarriors"
-]
-},
-{
-"t": "Community members ask sellers for size and measurement details before buying, and recommend comparing fit pics from reviewers of similar height and weight.",
-"topic": "sizing",
-"keys": [
-"fit pics",
-"measurements"
-],
-"sub": "WeidianWarriors",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:WeidianWarriors"
-]
-},
-{
-"t": "Several commenters ask about fit before buying the Ralph Lauren down jacket and the Gallery Dept long sleeve. Check size charts and ask in the community before ordering.",
-"topic": "sizing",
-"keys": [
-"ralph lauren",
-"gallery dept",
-"down jacket"
-],
-"sub": "Kakobuy",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:Kakobuy"
-]
-},
-{
-"t": "Some posters share fit and quality notes after receiving their haul. Read recent unboxing comments before deciding on a shirt or sweater.",
-"topic": "qc",
-"keys": [
-"unboxing",
-"sweater",
-"t shirt"
-],
-"sub": "Kakobuy",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:Kakobuy"
-]
-},
-{
-"t": "Several unboxing posts show close-up photos of stitching and logos. Inspect logo placement and embroidery against reference photos before accepting a delivery.",
-"topic": "qc",
-"keys": [
-"hoodie",
-"logo",
-"embroidery"
-],
-"sub": "Kakobuy",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:Kakobuy"
-]
-},
-{
-"t": "Several unboxing videos note that archive or distressed pieces look different than their listing images. Expect wear effects to vary between batches.",
-"topic": "batches",
-"keys": [
-"distressed",
-"archive",
-"denim"
-],
-"sub": "Kakobuy",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:Kakobuy"
-]
-},
-{
-"t": "Winter haul posts show many fleece, down and sherpa pieces. Fleece and sherpa are common picks for cold months; check pilling and lining quality on arrival.",
-"topic": "seasonal",
-"keys": [
-"fleece",
-"sherpa",
-"patagonia"
-],
-"sub": "Kakobuy",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:Kakobuy"
-]
-},
-{
-"t": "Several winter hauls feature heavy down jackets from popular brands. Check fill and stitching lines on puffers since they are a frequent point of comparison.",
-"topic": "materials",
-"keys": [
-"down jacket",
-"the north face",
-"moncler"
-],
-"sub": "Kakobuy",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 1,
-"sup": 2,
-"in": [
-"2026-W45:Kakobuy"
-]
-},
-{
-"t": "A buyer reported roughly five days from purchase to warehouse for a Balenciaga-style runner order, which may help set expectations on processing time.",
-"topic": "shipping",
-"keys": [
-"balenciaga",
-"runners",
-"cola"
-],
-"sub": "CloseToRetail",
-"date": "2026-11-09",
-"first": "2026-11-07",
-"seen": 2,
-"sup": 1,
-"in": [
-"2026-W45:CloseToRetail",
-"2026-W46:CloseToRetail"
-]
-},
-{
-"t": "One reviewer found the ERD Nouveau leather jacket ran large in size L and suggested sizing down to S or M for a closer fit.",
-"topic": "sizing",
-"keys": [
-"erd",
-"nouveau",
-"violator",
-"rmism",
-"leather jacket"
-],
-"sub": "QualityReps",
-"date": "2026-11-07",
-"first": "2026-11-07",
-"seen": 2,
-"sup": 1,
-"in": [
-"2026-W45:QualityReps",
-"2026-W45:CloseToRetail"
-]
-},
-{
-"t": "A UGG reviewer says if you have wide feet, ordering one size up may be more comfortable; another reviewer says the same shoe fits true to size.",
-"topic": "sizing",
-"keys": [
-"ugg",
-"wide feet"
-],
-"sub": "FashionReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:FashionReps"
-]
-},
-{
-"t": "Saucony Omni 9 reviewer says they run true to size; a 41EU buyer went with their usual size without problems.",
-"topic": "sizing",
-"keys": [
-"saucony",
-"omni 9"
-],
-"sub": "FashionReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:FashionReps"
-]
-},
-{
-"t": "New down puffers can look flat on arrival because the fill is compressed in shipping; airing them out for a while lets the fill recover.",
-"topic": "qc",
-"keys": [
-"puffer",
-"down",
-"tnf",
-"nuptse"
-],
-"sub": "FashionReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:FashionReps"
-]
-},
-{
-"t": "A reviewer noted the water repellent coating on a Nuptse-style puffer may wear off over time with use; not suited to heavy rain.",
-"topic": "materials",
-"keys": [
-"nuptse",
-"puffer",
-"dwr"
-],
-"sub": "FashionReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:FashionReps"
-]
-},
-{
-"t": "Tasman-style slippers reviewed as close to retail shape, with tiny imperfections visible only up close; the community sees the lining as warm and comfortable.",
-"topic": "qc",
-"keys": [
-"ugg",
-"tasman",
-"slippers"
-],
-"sub": "FashionReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:FashionReps"
-]
-},
-{
-"t": "Some shoppers say an agent's shipping estimate of 7 to 14 days can run long for some locations; one buyer reported 15 days.",
-"topic": "shipping",
-"keys": [
-"superbuy",
-"shipping"
-],
-"sub": "FashionReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:FashionReps"
-]
-},
-{
-"t": "A commenter noted that when several items in a haul come from one seller, that may point to a consistent seller; check reviews of that seller before ordering.",
-"topic": "sellers",
-"keys": [
-"seller"
-],
-"sub": "FashionReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:FashionReps"
-]
-},
-{
-"t": "Some shoppers search for items on Yupoo or Weidian first, then look up the shop on Reddit to see if people trust it.",
-"topic": "sellers",
-"keys": [
-"yupoo",
-"weidian"
-],
-"sub": "FashionReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:FashionReps"
-]
-},
-{
-"t": "Commenters say a Saucony-style runner is comfortable for daily wear and that a month-long wear report is useful before buying the same pair.",
-"topic": "qc",
-"keys": [
-"saucony"
-],
-"sub": "FashionReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:FashionReps"
-]
-},
-{
-"t": "A reviewer said a 3-in-1 North Face style jacket fit true to size, with the outer shell slightly roomy alone but fitting well over a hoodie.",
-"topic": "sizing",
-"keys": [
-"north face",
-"3 in 1",
-"jacket"
-],
-"sub": "FashionReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:FashionReps"
-]
-},
-{
-"t": "A commenter reported the Stone Island style jacket and some items from a DHL line landed fine after the November shipping change, though experiences vary.",
-"topic": "shipping",
-"keys": [
-"dhl",
-"stone island"
-],
-"sub": "FashionReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:FashionReps"
-]
-},
-{
-"t": "Several commenters say the RMISM Wyatt bag restocks only occasionally, so checking the seller page often is the way to catch one.",
-"topic": "batches",
-"keys": [
-"rmism",
-"wyatt",
-"prda"
-],
-"sub": "QualityReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:QualityReps"
-]
-},
-{
-"t": "A 3RD long sleeve reviewer found extra fabric at the front hem, so the fit ran like a regular long sleeve rather than the cropped retail cut. Check proportions before buying.",
-"topic": "sizing",
-"keys": [
-"3rd",
-"greatest love of all"
-],
-"sub": "QualityReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:QualityReps"
-]
-},
-{
-"t": "Reviewers say RO Megalace mules run about a full size big and feel heavier than many sandals. Consider sizing down.",
-"topic": "sizing",
-"keys": [
-"ro",
-"megalace",
-"mules"
-],
-"sub": "QualityReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:QualityReps"
-]
-},
-{
-"t": "A 3RD flare trouser reviewer noted the fabric wrinkles easily, which is worth knowing for a travel or office wardrobe.",
-"topic": "materials",
-"keys": [
-"3rd",
-"flare trousers"
-],
-"sub": "QualityReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:QualityReps"
-]
-},
-{
-"t": "Commenters say the MVT Gats show a visible gap between the first eyelets and leather curvature, a common telltale sign of reps.",
-"topic": "qc",
-"keys": [
-"mvt",
-"gats",
-"eyelets"
-],
-"sub": "QualityReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:QualityReps"
-]
-},
-{
-"t": "Some commenters report the WWTOP seller's own stitching drew criticism recently, so check recent QC photos before ordering.",
-"topic": "qc",
-"keys": [
-"wwtop"
-],
-"sub": "QualityReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:QualityReps"
-]
-},
-{
-"t": "Some users say the Paris Moon zip hoodie's mud staining looks off, with stains more visible on hems in natural light. Compare photos in daylight.",
-"topic": "qc",
-"keys": [
-"paris moon",
-"ligmamade",
-"hoodie"
-],
-"sub": "QualityReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:QualityReps"
-]
-},
-{
-"t": "Commenters warn that a seller who sells an item at a private sale price may not be a strong seller choice, and say pieces can be scarce to buy.",
-"topic": "sellers",
-"keys": [
-"ligmamade",
-"paris moon"
-],
-"sub": "QualityReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:QualityReps"
-]
-},
-{
-"t": "A Balenciaga Venom boot commenter reported a seller refused payment through Superbuy, so check whether your agent accepts the seller before paying.",
-"topic": "scams",
-"keys": [
-"balenciaga",
-"venom",
-"superbuy"
-],
-"sub": "QualityReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:QualityReps"
-]
-},
-{
-"t": "RMISM is described by one commenter as better than most sellers but noticeably more expensive, and their sizes sell out quickly.",
-"topic": "sellers",
-"keys": [
-"rmism"
-],
-"sub": "QualityReps",
-"date": "2026-11-16",
-"first": "2026-11-16",
-"seen": 1,
-"sup": 1,
-"in": [
-"2026-W47:QualityReps"
 ]
 }
 ]
