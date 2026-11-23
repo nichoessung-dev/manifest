@@ -9,6 +9,12 @@ Targets (data/photo_white_targets.json):
   b  extra store angles (not model shots) with the same problem
   c  finds whose main photo (img/rl/<id>.webp) still shows its background (data/photo_background.json); photo_hide.py
      hides them until the photo file changes
+  d  every visible find whose main photo is a transparent cut-out (products/pc, img/rl, img/fr, img/p, img/p2): the
+     photo it was cut from is found again (RepLibrary's own image, the seller photo, or the Weidian listing's photos)
+     and lined up; a quick matte of it (birefnet-general-lite) shows what the item really covers. When the old cut-out
+     misses more than 4% of that (owner, 23 Nov 2026: "remove backgrounds without making the item / product cropped"),
+     the item is cut out again from the original with the checks of group c against the original photo, plus: nothing
+     the old cut-out showed may go. Writes img/white/recut/<id>.webp.
 Model shots (people, -m0 / -dm0) and QC photos are never touched.
 
 Why the old store cut-outs look grey: their RGB is premultiplied by alpha (the cut-out was composited on black), but WebP
@@ -56,7 +62,8 @@ import store_photos_shards as shards  # noqa: E402
 EDGE = "https://www.puroclassico.com/api/img?u="
 TARGETS = os.path.join(ROOT, "data", "photo_white_targets.json")
 STATE_DIR = os.path.join(ROOT, "data", "photo_white")
-OUT = {"store": os.path.join(ROOT, "img", "white", "store"), "rl": os.path.join(ROOT, "img", "white", "rl")}
+OUT = {"store": os.path.join(ROOT, "img", "white", "store"), "rl": os.path.join(ROOT, "img", "white", "rl"),
+       "recut": os.path.join(ROOT, "img", "white", "recut")}
 SHEETS = os.path.join(ROOT, "out", "photo-white")
 VERSION = 2            # 2: band frame check, anchored framing where the photo's frame cuts the item
 SIZE = sp.SIZE
@@ -65,7 +72,9 @@ MODELS = ["birefnet-general", "birefnet-hr", "birefnet-hr-matting", "isnet-gener
 HF = {"birefnet-hr": ("ZhengPeng7/BiRefNet_HR", "a7a562f6fd16021180f2f4348f4de003a2d3d1e1"),               # MIT
       "birefnet-hr-matting": ("ZhengPeng7/BiRefNet_HR-matting", "5d6b6f8adcb5b417c871b1d84ceaae9871355b7f")}
 FRAME_MAX = 0.25        # polish rule: more than 25% of a border is item -> the photo crops the item
-LOST_MAX = {"a": 0.02, "b": 0.02, "c": 0.01}
+LOST_MAX = {"a": 0.02, "b": 0.02, "c": 0.01, "d": 0.01}
+OLD_KEPT_MIN = 0.97     # d: the new cut-out keeps at least this share of what the old one showed solidly
+LOST_FLAG = 0.04        # d: the old cut-out misses more than this share of the item (the original's matte): re-cut
 FID_MAX = 4.0           # clean_photos.py: the item's own pixels may differ by at most 4 of 255 on average
 RESTORED_MAX = 0.08     # a, b: parts the old cut-out lost (not white, not background) the new one may have back
 AR_MAX, CORR_MIN = 0.08, 0.6    # store_photos_polish_check.py
@@ -424,7 +433,7 @@ def same_inside_shared(a, b, N=160):
     return _ncc(x[m], y[m]), _ncc((x - ndimage.gaussian_filter(x, 3))[m], (y - ndimage.gaussian_filter(y, 3))[m])
 
 
-def judge(g, ref, supp, out, pl, src_size, reg, clip, live_alpha=None, bgmask=None, bgcol=None):
+def judge(g, ref, supp, out, pl, src_size, reg, clip, live_alpha=None, bgmask=None, bgcol=None, old_core=None):
     """Every check against the reference (the live photo on white), both photos lined up in the reference's frame.
     reg: where the live photo sits in a store source (None when the source is the reference itself). clip: compare the
     outline only where the live cut-out shows the item, so white parts the old cut-out lost and the new one has back do
@@ -479,6 +488,8 @@ def judge(g, ref, supp, out, pl, src_size, reg, clip, live_alpha=None, bgmask=No
         added = float((extra & near_bg).sum() / max(1, item.sum()))
         ck["restored"] = round(float((extra & ~near_bg).sum() / max(1, item.sum())), 4)
     ck["added"] = round(added, 4)
+    if old_core is not None and old_core.any():     # d: everything the old cut-out showed solidly is still there
+        ck["old_kept"] = round(float(item[old_core].mean()), 4)
     ck["fid"] = round(fidelity(out, pl), 2)
     if same < sp.SAME_MIN: return False, f"another photo or a changed outline (outline {same:.2f} < {sp.SAME_MIN})", ck
     if ins and (ins[0] < sp.INNER_MIN[0] or ins[1] < sp.INNER_MIN[1]):
@@ -490,6 +501,8 @@ def judge(g, ref, supp, out, pl, src_size, reg, clip, live_alpha=None, bgmask=No
     if added > 0.01: return False, f"something kept around the item ({100 * added:.1f}% of the new cut-out)", ck
     if ck.get("restored", 0) > RESTORED_MAX:
         return False, f"much more than the live photo shows ({100 * ck['restored']:.1f}% of the new cut-out)", ck
+    if ck.get("old_kept", 1) < OLD_KEPT_MIN:
+        return False, f"drops part of what the old cut-out showed ({100 * (1 - ck['old_kept']):.1f}%)", ck
     if ck["fid"] > FID_MAX: return False, f"item pixels changed (fidelity {ck['fid']:.1f} > {FID_MAX})", ck
     return True, "", ck
 
@@ -500,8 +513,11 @@ def full_alpha(pl, size):
 
 
 # ---------------------------------------------------------------- one photo
-def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, models, mcache, tag, log, live_alpha=None, bgmask=None):
-    """Cut-outs of one source, best first, until one passes every check. Returns (photo, record) or (None, record)."""
+def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, models, mcache, tag, log, live_alpha=None, bgmask=None,
+               keep=None, old_core=None):
+    """Cut-outs of one source, best first, until one passes every check. Returns (photo, record) or (None, record).
+    keep (d): only the pieces of the matte that touch this region stay (the item, not the other products of a collage).
+    old_core (d): what the old cut-out showed solidly; the new one must keep it."""
     rec = {"tried": []}
     # matting region: the item with a margin (faster, finer), from a quick isnet pass and the border difference
     crop = (0, 0, src_rgb.width, src_rgb.height)
@@ -527,6 +543,8 @@ def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, mod
             return None, {"model": m, "why": f"{m}: {str(e)[:60]}"}, None
         r = {"model": m, "s": round(time.time() - t, 1)}
         full = Image.new("L", src_rgb.size, 0); full.paste(raw, crop[:2])
+        if keep is not None:
+            full = keep_pieces(full, keep)
         fr = frame_share(full)
         if fr > FRAME_MAX:
             r["why"] = f"item cut off by the photo's frame ({100 * fr:.0f}% of a border)"
@@ -538,16 +556,16 @@ def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, mod
         out, notes, pl = compose(src_rgb, full, bg, kind, garment)
         if out is None:
             r["why"] = notes.get("error"); return None, r, None
-        ok, why, ck = judge(g, ref, supp, out, pl, src_rgb.size, reg, clip, live_alpha, bgmask, bg)
+        ok, why, ck = judge(g, ref, supp, out, pl, src_rgb.size, reg, clip, live_alpha, bgmask, bg, old_core)
         if not ok and why.startswith("item pixels changed") and str(notes.get("up", "")).startswith("Real-ESRGAN"):
             # the enlarged copy is what changed the pixels: the same cut-out enlarged plainly (Lanczos) instead
-            keep, sp.ESRGAN_BELOW = sp.ESRGAN_BELOW, 0
+            below, sp.ESRGAN_BELOW = sp.ESRGAN_BELOW, 0
             try:
                 out2, notes2, pl2 = compose(src_rgb, full, bg, kind, garment)
             finally:
-                sp.ESRGAN_BELOW = keep
+                sp.ESRGAN_BELOW = below
             if out2 is not None:
-                ok2, why2, ck2 = judge(g, ref, supp, out2, pl2, src_rgb.size, reg, clip, live_alpha, bgmask, bg)
+                ok2, why2, ck2 = judge(g, ref, supp, out2, pl2, src_rgb.size, reg, clip, live_alpha, bgmask, bg, old_core)
                 r["esrgan_fid"] = ck.get("fid")
                 out, notes, pl, ok, why, ck = out2, notes2, pl2, ok2, why2, ck2
         r.update(ck); r.update({k: v for k, v in notes.items() if k in ("clean", "hook", "up", "real_px", "shown_px", "anchored")})
@@ -742,6 +760,218 @@ def do_rl(p, path, labels, models, log):
     return out, rec
 
 
+# ---------------------------------------------------------------- group d: cut-outs that lost part of the item
+WD_API = "https://thor.weidian.com/detail/getItemSkuInfo/1.0?param="
+WD_HEAD = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
+           "Referer": "https://weidian.com/"}
+_wd_next = [0.0]
+_srcs = {}
+
+
+def keep_pieces(alpha, keep):
+    """Only the pieces of a matte that touch the keep region (the item, not the other products of a collage)."""
+    from scipy import ndimage
+    a = np.asarray(alpha)
+    lab, n = ndimage.label(a >= 64)
+    if n <= 1: return alpha
+    hit = set(np.unique(lab[keep & (lab > 0)])) - {0}
+    if not hit: return alpha
+    return Image.fromarray(np.where(np.isin(lab, list(hit)) | (a < 64) & ndimage.binary_dilation(np.isin(lab, list(hit)), iterations=3), a, 0).astype(np.uint8))
+
+
+def wd_get(url, api=False):
+    """A Weidian request (the item API is paced like check_links.py: one at a time, 0.4 s apart)."""
+    import urllib.request
+    if api:
+        wait = _wd_next[0] - time.time()
+        if wait > 0: time.sleep(wait)
+        _wd_next[0] = time.time() + 0.4
+    for k in range(3):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=WD_HEAD), timeout=30) as r: return r.read()
+        except Exception:
+            time.sleep(2 + 4 * k)
+    return None
+
+
+def weidian_photos(item_id):
+    """The listing's photos (main picture, option pictures, SKU pictures), main first, deduped, at most 12."""
+    data = wd_get(WD_API + urllib.parse.quote(json.dumps({"itemId": str(item_id)})), api=True)
+    try:
+        res = (json.loads(data) or {}).get("result") or {}
+    except Exception:
+        return []
+    out = []
+    def add(u):
+        if isinstance(u, str) and u.startswith("http") and "geilicdn" in u:
+            u = u.split("?")[0]
+            if u not in out: out.append(u)
+    add(res.get("itemMainPic"))
+    for at in res.get("attrList") or []:
+        for v in (at or {}).get("attrValues") or []:
+            if isinstance(v, dict): add(v.get("img"))
+    for sk in res.get("skuInfos") or []:
+        si = (sk or {}).get("skuInfo") if isinstance((sk or {}).get("skuInfo"), dict) else sk
+        if isinstance(si, dict): add(si.get("img"))
+    return out[:12]
+
+
+def original_urls(p, old):
+    """Where the photo the old cut-out was made from can be: RepLibrary's own image (scripts/rl_import.json src), the
+    seller photo (data/seller_photos.json src), else the Weidian listing's photos."""
+    if not _srcs:
+        try:
+            _srcs["rl"] = {str(x.get("id")): x.get("src") for x in load_json(os.path.join(ROOT, "scripts", "rl_import.json"), []) if x.get("src")}
+        except Exception:
+            _srcs["rl"] = {}
+        _srcs["p2"] = {k: v.get("src") for k, v in (load_json(os.path.join(ROOT, "data", "seller_photos.json"), {}).get("items") or {}).items()
+                       if v.get("src")}
+    i = p["id"]
+    if old.startswith("/img/rl/") and _srcs["rl"].get(i): return [_srcs["rl"][i]]
+    if old.startswith("/img/p2/") and _srcs["p2"].get(i): return [_srcs["p2"][i]]
+    if p.get("platform") == "weidian": return weidian_photos(p.get("itemId") or i)
+    return []
+
+
+def load_old(old):
+    """The live cut-out (RGBA, straight colours) and where it was read."""
+    from mirror_photos import mirror_path
+    if old.startswith("/img/"):
+        f = os.path.join(ROOT, old.lstrip("/").split("?")[0])
+    else:
+        mp = mirror_path(old); f = os.path.join(ROOT, mp.lstrip("/")) if mp else ""
+    if f and os.path.isfile(f):
+        im = Image.open(f); im.load()
+    else:
+        im = fetch_edge(old) if "supabase" in old else None
+        if im is None: return None
+    im = im.convert("RGBA")
+    a = np.asarray(im, dtype=np.int16)
+    semi = (a[..., 3] > 20) & (a[..., 3] < 235)
+    # premultiplied files (rembg's plain cut-out, e.g. img/fr): no half-transparent pixel is brighter than its alpha
+    if semi.sum() > 200 and float((a[..., :3].max(axis=2)[semi] > a[..., 3][semi] + 25).mean()) < 0.02:
+        im = unpremul(im)
+    return im
+
+
+def proposals(im):
+    """Rough boxes where an item may sit in a photo: the whole photo's item box and the 3 biggest separate things in it
+    (a collage: the big product and the small ones)."""
+    from scipy import ndimage
+    out = [store_box(im)]
+    a = np.asarray(im.resize((256, round(256 * im.height / im.width)) if im.width >= im.height else (round(256 * im.width / im.height), 256)), np.int16)
+    m = np.abs(a - sp.border_bg(a.astype(np.float32))[None, None, :]).max(axis=2) > 25
+    m = ndimage.binary_closing(m, iterations=3)
+    lab, n = ndimage.label(m)
+    if n:
+        areas = ndimage.sum(m, lab, range(1, n + 1))
+        k = im.width / a.shape[1]
+        for j in np.argsort(-areas)[:3]:
+            if areas[j] < 0.02 * m.size: continue
+            ys, xs = np.where(lab == j + 1)
+            b = (int(xs.min() * k), int(ys.min() * k), int((xs.max() + 1) * k), int((ys.max() + 1) * k))
+            if b not in out: out.append(b)
+    return out
+
+
+def find_original(lu, ref, core, supp, urls, log):
+    """The listing photo the old cut-out was made from, lined up with the old cut-out's solid pixels (register: grey
+    correlation >= 0.95, colour difference <= 14). Returns ((url, image, reg) or None, best score seen)."""
+    best = None
+    for u in urls[:6]:
+        data = wd_get(u) if "geilicdn" in u else sp.fetch(u, timeout=40)
+        im = sp.open_any(data, cap=2600) if data else None
+        if im is None: continue
+        im = sp.on_white(im) if im.mode in ("RGBA", "LA", "P") else im.convert("RGB")
+        if min(im.size) < 200: continue
+        for sb in proposals(im)[:3]:
+            try:
+                reg = register(ref, core, supp, im, sb)
+            except Exception as e:
+                log(f"      register: {str(e)[:60]}"); reg = None
+            if reg and (best is None or reg[3] > best[2][3]): best = (u, im, reg)
+            if best and best[2][3] >= 0.97: break
+        if best and best[2][3] >= 0.97: break
+    score = None if not best else {"ncc": best[2][3], "colour": best[2][4], "url": best[0]}
+    if not best or best[2][3] < 0.95 or best[2][4] > 14: return None, score
+    return best, score
+
+
+def old_in_source(img, reg, size):
+    """An image of the old cut-out's frame shown in the source photo's frame (source = a * old + (bx, by))."""
+    a, bx, by = reg[:3]
+    return img.transform(size, Image.AFFINE, (1 / a, 0, -bx / a, 0, 1 / a, -by / a), Image.BILINEAR,
+                         fillcolor=0 if img.mode == "L" else (255, 255, 255))
+
+
+def do_recut(p, old, labels, models, log):
+    """Group d: a live cut-out that may have lost part of the item. The photo it was made from is found again and lined
+    up; a quick matte of it shows what the item really covers; when the old cut-out misses more than LOST_FLAG of that,
+    the item is cut out again from the original (every check of group c, against the original photo, plus: nothing
+    the old cut-out showed may go). Records: flag "intact" / "lost parts" / "no original"."""
+    from scipy import ndimage
+    from scipy.spatial import ConvexHull
+    lu = load_old(old)
+    if lu is None: return None, {"flag": "no old photo", "why": "the live photo could not be read"}
+    ref_old = sp.on_white(lu); supp = item_support(ref_rgba=lu); core = solid_core(lu)
+    lab = labels.get(p["id"]) or {}
+    kind = sp.kind_of(p); garment = p.get("cat") in GARMENT
+    several = bool(lab.get("is_set")) or bool(set(lab.get("photo_issues") or []) & {"multiple_views", "multiple_items"}) \
+        or bool(re.search(r"(?i)\b(sets?|tracksuits?|pairs?|kit|earrings?|socks)\b", p.get("title") or "")) or kind in ("shoe", "small")
+    urls = original_urls(p, old)
+    rec = {"originals": len(urls)}
+    if not urls: return None, dict(rec, flag="no original", why="no original photo to compare with (not a Weidian listing)")
+    found, score = find_original(lu, ref_old, core, supp, urls, log)
+    rec["match"] = score
+    if not found: return None, dict(rec, flag="no original", why="the listing's photos no longer include the photo it was cut from")
+    u, im, reg = found
+    rec["src_url"] = u; rec["src_size"] = list(im.size)
+    # the region of the original the old cut-out covers, widened 20% each side
+    oa = old_in_source(lu.getchannel("A"), reg, im.size)
+    ob = bbox(np.asarray(oa) >= 128)
+    if not ob: return None, dict(rec, flag="no original", why="the old cut-out does not line up")
+    w, h = ob[2] - ob[0], ob[3] - ob[1]
+    roi = (max(0, ob[0] - round(0.2 * w)), max(0, ob[1] - round(0.2 * h)), min(im.width, ob[2] + round(0.2 * w)), min(im.height, ob[3] + round(0.2 * h)))
+    src = im.crop(roi)
+    old_a = np.asarray(oa.crop(roi))
+    old_supp = old_a >= 26
+    old_solid = ndimage.binary_erosion(old_a >= 230, iterations=2)
+    # keep region: the old cut-out's outline (convex hull) and a margin: a lost part lies inside it, another product of
+    # a collage lies outside
+    ys, xs = np.nonzero(old_supp)
+    keep = np.zeros(old_supp.shape, bool)
+    try:
+        hull = ConvexHull(np.stack([xs, ys], 1))
+        from PIL import ImageDraw
+        km = Image.new("L", (src.width, src.height), 0)
+        ImageDraw.Draw(km).polygon([(float(xs[v]), float(ys[v])) for v in hull.vertices], fill=255)
+        keep = np.asarray(km) > 0
+    except Exception:
+        keep = old_supp.copy()
+    keep = ndimage.binary_dilation(keep, iterations=max(3, round(0.02 * max(src.size))))
+    # what the item really covers: a quick matte of the original
+    t = time.time()
+    det = keep_pieces(matte(src, "birefnet-general-lite"), keep)
+    dm = np.asarray(det) >= 128
+    lost_old = float((dm & ~(old_a >= 64)).sum() / max(1, dm.sum()))
+    rec["detect"] = {"lost_old": round(lost_old, 4), "s": round(time.time() - t, 1)}
+    if lost_old <= LOST_FLAG:
+        return None, dict(rec, flag="intact", why=f"intact: the old cut-out has the whole item ({100 * lost_old:.1f}% not in it)")
+    rec["flag"] = "lost parts"
+    log(f"      old cut-out misses {100 * lost_old:.1f}% of the item: cut out again from {u[-50:]}")
+    bg = sp.border_bg(np.asarray(src, dtype=np.float32))
+    ref, bgmask, _ = flat_bg(src)
+    region = ndimage.binary_dilation(keep, iterations=max(3, round(0.03 * max(src.size))))
+    ref = Image.fromarray(np.where(region[..., None], np.asarray(ref), 255).astype(np.uint8))
+    sup = item_support(ref_rgb=src, bgmask=bgmask | ~region, bg=bg)
+    out, r = try_source("d", src, bg, ref, sup, None, False, kind, garment, several, models, {}, "orig", log, None,
+                        (bgmask, bg), keep=keep, old_core=old_solid)
+    rec.update({"source": "original", **r})
+    if out is not None: rec.update(model=r["model"], checks=r["checks"])
+    else: rec["why"] = "lost parts, not fixed: " + str(r.get("why"))
+    return out, rec
+
+
 # ---------------------------------------------------------------- run
 def retryable(rec):
     """A photo not fixed before whose reason a new run can change (not: a person / box / collage in the photo, an item
@@ -812,13 +1042,14 @@ def main(argv=None):
     only = set(a.ids.replace(" ", "").split(",")) - {""}
     done = {} if a.redo else load_done()
     jobs = []                       # (id, group, key, name or path)
-    for g in ("a", "b", "c"):
+    for g in ("a", "b", "c", "d"):
         if g not in groups: continue
         for i, x in tg.get(g) or []:
             if only and i not in only: continue
             if not shards.mine(i, shard) or i not in items: continue
             if g in ("a", "b") and MODEL_SHOT.search(x): continue          # never a model shot
-            key = x if g != "c" else i
+            if g == "d" and items[i].get("img") != x: continue              # the find shows another photo now
+            key = x if g in ("a", "b") else ("d:" + i) if g == "d" else i
             if key in done and not (a.retry and retryable(done[key])): continue
             jobs.append((i, g, key, x))
     if a.limit: jobs = jobs[:a.limit]
@@ -837,6 +1068,8 @@ def main(argv=None):
         try:
             if g == "c":
                 out, rec = do_rl(p, x, labels, models, lambda s: print(s, flush=True))
+            elif g == "d":
+                out, rec = do_recut(p, x, labels, models, lambda s: print(s, flush=True))
             else:
                 if i not in pools: pools[i], caches[i], useds[i] = sp.pool_for(i, cands.get(i), logs.get(i)), {}, set()
                 out, rec = do_store(p, g, x, pools[i], caches[i], useds[i], models, lambda s: print(s, flush=True))
@@ -844,10 +1077,11 @@ def main(argv=None):
             out, rec = None, {"why": "error: " + repr(e)[:160]}
         rec.update(v=VERSION, id=i, group=g, at=now(), s=round(time.time() - t))
         if g == "c": rec["old"] = "/" + x
+        elif g == "d": rec["old"] = x
         else: rec["old"] = sp.STORE + x
         if out is not None:
-            folder = "rl" if g == "c" else "store"
-            fn = (i + ".webp") if g == "c" else x
+            folder = {"c": "rl", "d": "recut"}.get(g, "store")
+            fn = (i + ".webp") if g in ("c", "d") else x
             os.makedirs(OUT[folder], exist_ok=True)
             buf = io.BytesIO(); out.save(buf, "WEBP", quality=90, method=6); data = buf.getvalue()
             open(os.path.join(OUT[folder], fn), "wb").write(data)
@@ -858,7 +1092,8 @@ def main(argv=None):
         save_json(sp_, st)
         print(f"   -> {'OK ' + rec.get('file', '') if rec['ok'] else 'NOT FIXED: ' + str(rec.get('why'))} ({rec['s']} s)", flush=True)
         try:
-            before = on_well(Image.open(os.path.join(ROOT, x)) if g == "c" else (fetch_edge(sp.STORE + x) or Image.new("RGB", (8, 8))))
+            if g == "d" and rec.get("flag") != "lost parts": raise StopIteration
+            before = on_well(Image.open(os.path.join(ROOT, x)) if g == "c" else load_old(x) if g == "d" else (fetch_edge(sp.STORE + x) or Image.new("RGB", (8, 8))))
             rows.append((f"{g} {key}", before, out, (rec.get("model") or "") + " " + json.dumps(rec.get("checks") or {})[:70] if rec["ok"] else str(rec.get("why"))))
         except Exception:
             pass
