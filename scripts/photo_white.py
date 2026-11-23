@@ -11,10 +11,11 @@ Targets (data/photo_white_targets.json):
      hides them until the photo file changes
   d  every visible find whose main photo is a transparent cut-out (products/pc, img/rl, img/fr, img/p, img/p2): the
      photo it was cut from is found again (RepLibrary's own image, the seller photo, or the Weidian listing's photos)
-     and lined up; a quick matte of it (birefnet-general-lite) shows what the item really covers. When the old cut-out
-     misses more than 4% of that (owner, 23 Nov 2026: "remove backgrounds without making the item / product cropped"),
-     the item is cut out again from the original with the checks of group c against the original photo, plus: nothing
-     the old cut-out showed may go. Writes img/white/recut/<id>.webp.
+     and lined up (MATCH); a quick matte of it (birefnet-general-lite) shows what the item really covers (a hanger
+     above the item that the old cut-out took out does not count, and stays out). When the old cut-out misses more
+     than 4% of that (owner, 23 Nov 2026: "remove backgrounds without making the item / product cropped"), the item is
+     cut out again from the original with the checks of group c against the original photo (the whole item, the lost
+     parts included, as the reference), plus: nothing the old cut-out showed may go. Writes img/white/recut/<id>.webp.
 Model shots (people, -m0 / -dm0) and QC photos are never touched.
 
 Why the old store cut-outs look grey: their RGB is premultiplied by alpha (the cut-out was composited on black), but WebP
@@ -514,10 +515,11 @@ def full_alpha(pl, size):
 
 # ---------------------------------------------------------------- one photo
 def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, models, mcache, tag, log, live_alpha=None, bgmask=None,
-               keep=None, old_core=None):
+               keep=None, old_core=None, drop=None):
     """Cut-outs of one source, best first, until one passes every check. Returns (photo, record) or (None, record).
     keep (d): only the pieces of the matte that touch this region stay (the item, not the other products of a collage).
-    old_core (d): what the old cut-out showed solidly; the new one must keep it."""
+    old_core (d): what the old cut-out showed solidly; the new one must keep it.
+    drop (d): never part of the new cut-out (a hanger above the item the old cut-out had taken out)."""
     rec = {"tried": []}
     # matting region: the item with a margin (faster, finer), from a quick isnet pass and the border difference
     crop = (0, 0, src_rgb.width, src_rgb.height)
@@ -545,6 +547,8 @@ def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, mod
         full = Image.new("L", src_rgb.size, 0); full.paste(raw, crop[:2])
         if keep is not None:
             full = keep_pieces(full, keep)
+        if drop is not None and drop.any():
+            full = Image.fromarray(np.where(drop, 0, np.asarray(full)).astype(np.uint8))
         fr = frame_share(full)
         if fr > FRAME_MAX:
             r["why"] = f"item cut off by the photo's frame ({100 * fr:.0f}% of a border)"
@@ -874,11 +878,21 @@ def proposals(im):
     return out
 
 
+MATCH = ((0.95, 14.0), (0.92, 20.0))   # (grey correlation at least, colour difference at most): the same photo. The
+# old cut-outs were often made from an enlarged, sharpened or colour-lifted copy of the listing photo, which lowers both
+# a little (checked by eye on 23 Nov 2026: every pair from 0.92 up was the same photo); another photo of the item (other
+# angle or pose) does not line up and scores far lower.
+
+
+def same_photo(ncc, colour):
+    return any(ncc >= n and colour <= c for n, c in MATCH)
+
+
 def find_original(lu, ref, core, supp, urls, log):
-    """The listing photo the old cut-out was made from, lined up with the old cut-out's solid pixels (register: grey
-    correlation >= 0.95, colour difference <= 14). Returns ((url, image, reg) or None, best score seen)."""
+    """The listing photo the old cut-out was made from, lined up with the old cut-out's solid pixels (register, MATCH).
+    Returns ((url, image, reg) or None, best score seen)."""
     best = None
-    for u in urls[:6]:
+    for u in urls[:12]:
         data = wd_get(u) if "geilicdn" in u else sp.fetch(u, timeout=40)
         im = sp.open_any(data, cap=2600) if data else None
         if im is None: continue
@@ -889,11 +903,13 @@ def find_original(lu, ref, core, supp, urls, log):
                 reg = register(ref, core, supp, im, sb)
             except Exception as e:
                 log(f"      register: {str(e)[:60]}"); reg = None
-            if reg and (best is None or reg[3] > best[2][3]): best = (u, im, reg)
-            if best and best[2][3] >= 0.97: break
-        if best and best[2][3] >= 0.97: break
+            # a pair that passes the match rule beats one that does not, then the higher correlation
+            if reg and (best is None or (same_photo(reg[3], reg[4]), reg[3]) > (same_photo(best[2][3], best[2][4]), best[2][3])):
+                best = (u, im, reg)
+            if best and best[2][3] >= 0.97 and same_photo(best[2][3], best[2][4]): break
+        if best and best[2][3] >= 0.97 and same_photo(best[2][3], best[2][4]): break
     score = None if not best else {"ncc": best[2][3], "colour": best[2][4], "url": best[0]}
-    if not best or best[2][3] < 0.95 or best[2][4] > 14: return None, score
+    if not best or not same_photo(best[2][3], best[2][4]): return None, score
     return best, score
 
 
@@ -902,6 +918,30 @@ def old_in_source(img, reg, size):
     a, bx, by = reg[:3]
     return img.transform(size, Image.AFFINE, (1 / a, 0, -bx / a, 0, 1 / a, -by / a), Image.BILINEAR,
                          fillcolor=0 if img.mode == "L" else (255, 255, 255))
+
+
+def hanger_above(lost, old_supp, old_a):
+    """The pieces of the item matte the old cut-out does not show that sit above it and look like a hanger (a hook, a
+    clip bar, a string): short, thin or sparse. The old cut-out took them out on purpose; they are not a lost part and
+    the new cut-out leaves them out too. A lost hood or collar is wide, tall and solid, and stays."""
+    from scipy import ndimage
+    drop = np.zeros(lost.shape, bool)
+    rows = np.nonzero(old_supp.any(axis=1))[0]; cols = np.nonzero(old_supp.any(axis=0))[0]
+    if not len(rows) or not lost.any(): return drop
+    top, oh, ow = rows[0], rows[-1] - rows[0] + 1, cols[-1] - cols[0] + 1
+    lab, n = ndimage.label(lost)
+    for j in range(1, n + 1):
+        c = lab == j
+        ys, xs = np.nonzero(c)
+        if len(ys) < 20 or (ys < top).mean() < 0.5: continue
+        above = c[:top]
+        ay, ax = np.nonzero(above)
+        if not len(ay): continue
+        hh, ww = top - ay.min(), ax.max() - ax.min() + 1
+        fill = above.sum() / max(1, hh * ww)
+        if hh < 0.08 * oh or fill < 0.4 or ww < 0.2 * ow:
+            drop |= ndimage.binary_dilation(c, iterations=3) & ~(old_a >= 128)
+    return drop
 
 
 def do_recut(p, old, labels, models, log):
@@ -953,19 +993,24 @@ def do_recut(p, old, labels, models, log):
     t = time.time()
     det = keep_pieces(matte(src, "birefnet-general-lite"), keep)
     dm = np.asarray(det) >= 128
+    drop = hanger_above(dm & ~(old_a >= 64), old_supp, old_a)
+    dm = dm & ~drop
     lost_old = float((dm & ~(old_a >= 64)).sum() / max(1, dm.sum()))
     rec["detect"] = {"lost_old": round(lost_old, 4), "s": round(time.time() - t, 1)}
+    if drop.any(): rec["detect"]["hanger"] = round(float(drop.sum() / max(1, dm.sum())), 4)
     if lost_old <= LOST_FLAG:
         return None, dict(rec, flag="intact", why=f"intact: the old cut-out has the whole item ({100 * lost_old:.1f}% not in it)")
     rec["flag"] = "lost parts"
     log(f"      old cut-out misses {100 * lost_old:.1f}% of the item: cut out again from {u[-50:]}")
     bg = sp.border_bg(np.asarray(src, dtype=np.float32))
     ref, bgmask, _ = flat_bg(src)
-    region = ndimage.binary_dilation(keep, iterations=max(3, round(0.03 * max(src.size))))
+    # the reference: the original photo around the whole item, the parts the old cut-out lost included (they lie
+    # outside its outline when a whole sleeve or half the body went), without a hanger the old cut-out had taken out
+    region = ndimage.binary_dilation(keep | dm, iterations=max(3, round(0.03 * max(src.size)))) & ~drop
     ref = Image.fromarray(np.where(region[..., None], np.asarray(ref), 255).astype(np.uint8))
     sup = item_support(ref_rgb=src, bgmask=bgmask | ~region, bg=bg)
     out, r = try_source("d", src, bg, ref, sup, None, False, kind, garment, several, models, {}, "orig", log, None,
-                        (bgmask, bg), keep=keep, old_core=old_solid)
+                        (bgmask, bg), keep=keep, old_core=old_solid, drop=drop)
     rec.update({"source": "original", **r})
     if out is not None: rec.update(model=r["model"], checks=r["checks"])
     else: rec["why"] = "lost parts, not fixed: " + str(r.get("why"))
@@ -975,7 +1020,10 @@ def do_recut(p, old, labels, models, log):
 # ---------------------------------------------------------------- run
 def retryable(rec):
     """A photo not fixed before whose reason a new run can change (not: a person / box / collage in the photo, an item
-    the photo crops, a source that is gone)."""
+    the photo crops, a source that is gone). d: every find flagged for lost parts (fixed or not: the newest rules decide)
+    and every find whose listing photos were read but not matched."""
+    if rec.get("group") == "d":
+        return rec.get("flag") == "lost parts" or (rec.get("flag") == "no original" and bool(rec.get("originals")))
     w = str(rec.get("why") or "")
     return not rec.get("ok") and not w.startswith("needs a new photo") and "cut off by the photo" not in w \
         and "missing" not in w
