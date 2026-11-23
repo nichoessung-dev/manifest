@@ -1,0 +1,1177 @@
+{
+ "at": "2026-11-23T09:35:23+00:00",
+ "items": {
+  "7569486381": {
+   "at": "2026-11-23T09:16:37+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.001,
+    "corr": 1.0,
+    "fid": 3.76,
+    "inside": [
+     0.998,
+     0.994
+    ],
+    "lost": 0.0,
+    "same": 1.0,
+    "shadow": 0.0
+   },
+   "file": "img/white/rl/7569486381.webp",
+   "group": "c",
+   "id": "7569486381",
+   "kb": 217,
+   "model": "birefnet-general",
+   "notes": {
+    "anchored": [
+     "bottom"
+    ],
+    "real_px": 967,
+    "shown_px": 1312,
+    "up": "Real-ESRGAN (diff 3.7 / detail 3.7)"
+   },
+   "ok": true,
+   "old": "/img/rl/7569486381.webp",
+   "s": 97,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "anchored": [
+      "bottom"
+     ],
+     "ar": 0.001,
+     "corr": 1.0,
+     "fid": 3.76,
+     "inside": [
+      0.998,
+      0.994
+     ],
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "real_px": 967,
+     "s": 40.5,
+     "same": 1.0,
+     "shadow": 0.0,
+     "shown_px": 1312,
+     "up": "Real-ESRGAN (diff 3.7 / detail 3.7)"
+    }
+   ],
+   "v": 2
+  },
+  "7572481327": {
+   "at": "2026-11-23T09:17:06+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": -0.001,
+    "corr": 0.999,
+    "fid": 2.79,
+    "inside": [
+     0.999,
+     0.996
+    ],
+    "lost": 0.0007,
+    "same": 1.0,
+    "shadow": 0.0052
+   },
+   "file": "img/white/rl/7572481327.webp",
+   "group": "c",
+   "id": "7572481327",
+   "kb": 57,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 672,
+    "shown_px": 1376,
+    "up": "Real-ESRGAN (diff 2.0 / detail 6.5)"
+   },
+   "ok": true,
+   "old": "/img/rl/7572481327.webp",
+   "s": 29,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": -0.001,
+     "corr": 0.999,
+     "fid": 2.79,
+     "inside": [
+      0.999,
+      0.996
+     ],
+     "lost": 0.0007,
+     "model": "birefnet-general",
+     "real_px": 672,
+     "s": 22.5,
+     "same": 1.0,
+     "shadow": 0.0052,
+     "shown_px": 1376,
+     "up": "Real-ESRGAN (diff 2.0 / detail 6.5)"
+    }
+   ],
+   "v": 2
+  },
+  "7573551578": {
+   "at": "2026-11-23T09:20:54+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "group": "c",
+   "id": "7573551578",
+   "ok": false,
+   "old": "/img/rl/7573551578.webp",
+   "s": 228,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": -0.015,
+     "corr": 0.452,
+     "fid": 4.51,
+     "lost": 0.0066,
+     "model": "birefnet-general",
+     "real_px": 341,
+     "s": 22.1,
+     "same": 0.99,
+     "shadow": 0.0345,
+     "shown_px": 1312,
+     "up": "Real-ESRGAN (diff 3.5 / detail 7.3)",
+     "why": "looks different from the live photo (correlation 0.45)"
+    },
+    {
+     "fallback": true,
+     "model": "isnet-general-use",
+     "s": 2.2,
+     "why": "gate: 8 separate pieces; main piece only 33%; hazy mask (85% half-transparent away from the item)"
+    },
+    {
+     "added": 0.0,
+     "ar": -0.016,
+     "corr": 0.457,
+     "fid": 4.5,
+     "lost": 0.0064,
+     "model": "birefnet-hr",
+     "real_px": 340,
+     "s": 95.6,
+     "same": 0.99,
+     "shadow": 0.0337,
+     "shown_px": 1312,
+     "up": "Real-ESRGAN (diff 3.5 / detail 7.2)",
+     "why": "looks different from the live photo (correlation 0.46)"
+    },
+    {
+     "added": 0.0,
+     "ar": -0.017,
+     "corr": 0.457,
+     "fid": 4.56,
+     "lost": 0.0067,
+     "model": "birefnet-hr-matting",
+     "real_px": 341,
+     "s": 101.1,
+     "same": 0.99,
+     "shadow": 0.0338,
+     "shown_px": 1312,
+     "up": "Real-ESRGAN (diff 3.5 / detail 7.3)",
+     "why": "looks different from the live photo (correlation 0.46)"
+    }
+   ],
+   "v": 2,
+   "why": "looks different from the live photo (correlation 0.46)"
+  },
+  "7573658112": {
+   "at": "2026-11-23T09:21:23+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.001,
+    "corr": 1.0,
+    "fid": 1.81,
+    "inside": [
+     0.999,
+     0.999
+    ],
+    "lost": 0.0086,
+    "same": 1.0,
+    "shadow": 0.0003
+   },
+   "file": "img/white/rl/7573658112.webp",
+   "group": "c",
+   "id": "7573658112",
+   "kb": 29,
+   "model": "birefnet-general",
+   "notes": {
+    "anchored": [
+     "left",
+     "right"
+    ],
+    "real_px": 560,
+    "shown_px": 1600,
+    "up": "Real-ESRGAN (diff 1.2 / detail 5.6)"
+   },
+   "ok": true,
+   "old": "/img/rl/7573658112.webp",
+   "s": 29,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "anchored": [
+      "left",
+      "right"
+     ],
+     "ar": 0.001,
+     "corr": 1.0,
+     "fid": 1.81,
+     "inside": [
+      0.999,
+      0.999
+     ],
+     "lost": 0.0086,
+     "model": "birefnet-general",
+     "real_px": 560,
+     "s": 22.6,
+     "same": 1.0,
+     "shadow": 0.0003,
+     "shown_px": 1600,
+     "up": "Real-ESRGAN (diff 1.2 / detail 5.6)"
+    }
+   ],
+   "v": 2
+  },
+  "7574397184": {
+   "at": "2026-11-23T09:21:54+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": -0.001,
+    "corr": 1.0,
+    "fid": 0.75,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0,
+    "same": 1.0,
+    "shadow": 0.0012
+   },
+   "file": "img/white/rl/7574397184.webp",
+   "group": "c",
+   "id": "7574397184",
+   "kb": 86,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 1043,
+    "shown_px": 1376,
+    "up": "lanczos"
+   },
+   "ok": true,
+   "old": "/img/rl/7574397184.webp",
+   "s": 32,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": -0.001,
+     "corr": 1.0,
+     "esrgan_fid": 4.25,
+     "fid": 0.75,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "real_px": 1043,
+     "s": 22.4,
+     "same": 1.0,
+     "shadow": 0.0012,
+     "shown_px": 1376,
+     "up": "lanczos"
+    }
+   ],
+   "v": 2
+  },
+  "7622079730": {
+   "at": "2026-11-23T09:22:20+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "group": "c",
+   "hr": "skipped: the fast cut-outs failed for a reason a finer matte does not change",
+   "id": "7622079730",
+   "ok": false,
+   "old": "/img/rl/7622079730.webp",
+   "s": 25,
+   "source": "site",
+   "tried": [
+    {
+     "model": "birefnet-general",
+     "s": 22.6,
+     "why": "item cut off by the photo's frame (41% of a border)"
+    },
+    {
+     "fallback": true,
+     "model": "isnet-general-use",
+     "s": 1.4,
+     "why": "item cut off by the photo's frame (37% of a border)"
+    }
+   ],
+   "v": 2,
+   "why": "item cut off by the photo's frame (37% of a border)"
+  },
+  "7636812728": {
+   "at": "2026-11-23T09:22:20+00:00",
+   "group": "c",
+   "id": "7636812728",
+   "ok": false,
+   "old": "/img/rl/7636812728.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (collage_or_grid): a cut-out cannot take that out"
+  },
+  "7645767351": {
+   "at": "2026-11-23T09:22:48+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.001,
+    "corr": 0.998,
+    "fid": 2.55,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0001,
+    "same": 1.0,
+    "shadow": 0.0
+   },
+   "file": "img/white/rl/7645767351.webp",
+   "group": "c",
+   "id": "7645767351",
+   "kb": 75,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 735,
+    "shown_px": 1120,
+    "up": "lanczos (Real-ESRGAN rejected: diff 6.9 / detail 7.0)"
+   },
+   "ok": true,
+   "old": "/img/rl/7645767351.webp",
+   "s": 28,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.001,
+     "corr": 0.998,
+     "fid": 2.55,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0001,
+     "model": "birefnet-general",
+     "real_px": 735,
+     "s": 22.6,
+     "same": 1.0,
+     "shadow": 0.0,
+     "shown_px": 1120,
+     "up": "lanczos (Real-ESRGAN rejected: diff 6.9 / detail 7.0)"
+    }
+   ],
+   "v": 2
+  },
+  "7796601427": {
+   "at": "2026-11-23T09:22:48+00:00",
+   "group": "c",
+   "id": "7796601427",
+   "ok": false,
+   "old": "/img/rl/7796601427.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (worn_by_person): a cut-out cannot take that out"
+  },
+  "7796637363": {
+   "at": "2026-11-23T09:22:48+00:00",
+   "group": "c",
+   "id": "7796637363",
+   "ok": false,
+   "old": "/img/rl/7796637363.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (collage_or_grid): a cut-out cannot take that out"
+  },
+  "7796678081": {
+   "at": "2026-11-23T09:22:48+00:00",
+   "group": "c",
+   "id": "7796678081",
+   "ok": false,
+   "old": "/img/rl/7796678081.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (packaging_or_box): a cut-out cannot take that out"
+  },
+  "7796707699": {
+   "at": "2026-11-23T09:23:18+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.001,
+    "corr": 0.993,
+    "fid": 0.71,
+    "lost": 0.001,
+    "same": 0.999,
+    "shadow": 0.0014
+   },
+   "file": "img/white/rl/7796707699.webp",
+   "group": "c",
+   "id": "7796707699",
+   "kb": 41,
+   "model": "birefnet-general",
+   "notes": {
+    "clean": [
+     "6 gaps filled"
+    ],
+    "real_px": 742,
+    "shown_px": 1120,
+    "up": "lanczos (Real-ESRGAN rejected: diff 4.5 / detail 6.0)"
+   },
+   "ok": true,
+   "old": "/img/rl/7796707699.webp",
+   "s": 30,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.001,
+     "clean": [
+      "6 gaps filled"
+     ],
+     "corr": 0.993,
+     "fid": 0.71,
+     "lost": 0.001,
+     "model": "birefnet-general",
+     "real_px": 742,
+     "s": 22.6,
+     "same": 0.999,
+     "shadow": 0.0014,
+     "shown_px": 1120,
+     "up": "lanczos (Real-ESRGAN rejected: diff 4.5 / detail 6.0)"
+    }
+   ],
+   "v": 2
+  },
+  "7796709741": {
+   "at": "2026-11-23T09:23:18+00:00",
+   "group": "c",
+   "id": "7796709741",
+   "ok": false,
+   "old": "/img/rl/7796709741.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (worn_by_person): a cut-out cannot take that out"
+  },
+  "7796751621": {
+   "at": "2026-11-23T09:23:43+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.001,
+    "corr": 0.996,
+    "fid": 2.77,
+    "inside": [
+     0.998,
+     0.959
+    ],
+    "lost": 0.01,
+    "same": 0.999,
+    "shadow": 0.0114
+   },
+   "file": "img/white/rl/7796751621.webp",
+   "group": "c",
+   "id": "7796751621",
+   "kb": 21,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 296,
+    "shown_px": 1120,
+    "up": "Real-ESRGAN (diff 2.2 / detail 6.4)"
+   },
+   "ok": true,
+   "old": "/img/rl/7796751621.webp",
+   "s": 25,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.001,
+     "corr": 0.996,
+     "fid": 2.77,
+     "inside": [
+      0.998,
+      0.959
+     ],
+     "lost": 0.01,
+     "model": "birefnet-general",
+     "real_px": 296,
+     "s": 22.1,
+     "same": 0.999,
+     "shadow": 0.0114,
+     "shown_px": 1120,
+     "up": "Real-ESRGAN (diff 2.2 / detail 6.4)"
+    }
+   ],
+   "v": 2
+  },
+  "7799591464": {
+   "at": "2026-11-23T09:24:09+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.009,
+    "corr": 0.992,
+    "fid": 0.65,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0005,
+    "same": 1.0,
+    "shadow": 0.0084
+   },
+   "file": "img/white/rl/7799591464.webp",
+   "group": "c",
+   "id": "7799591464",
+   "kb": 35,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 379,
+    "shown_px": 1120,
+    "up": "lanczos (Real-ESRGAN rejected: diff 3.4 / detail 11.3)"
+   },
+   "ok": true,
+   "old": "/img/rl/7799591464.webp",
+   "s": 26,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.009,
+     "corr": 0.992,
+     "fid": 0.65,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0005,
+     "model": "birefnet-general",
+     "real_px": 379,
+     "s": 22.0,
+     "same": 1.0,
+     "shadow": 0.0084,
+     "shown_px": 1120,
+     "up": "lanczos (Real-ESRGAN rejected: diff 3.4 / detail 11.3)"
+    }
+   ],
+   "v": 2
+  },
+  "7799597330": {
+   "at": "2026-11-23T09:28:18+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "group": "c",
+   "id": "7799597330",
+   "ok": false,
+   "old": "/img/rl/7799597330.webp",
+   "s": 249,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.0,
+     "clean": [
+      "1 specks out",
+      "23 gaps filled"
+     ],
+     "corr": 0.982,
+     "fid": 4.74,
+     "inside": [
+      1.0,
+      0.999
+     ],
+     "lost": 0.0291,
+     "model": "birefnet-general",
+     "real_px": 953,
+     "s": 21.8,
+     "same": 0.988,
+     "shadow": 0.0126,
+     "shown_px": 1120,
+     "up": "lanczos (Real-ESRGAN rejected: diff 6.7 / detail 7.7)",
+     "why": "part of the item lost (2.9% of it turned white)"
+    },
+    {
+     "fallback": true,
+     "model": "isnet-general-use",
+     "s": 2.2,
+     "why": "gate: hazy mask (27% half-transparent away from the item)"
+    },
+    {
+     "added": 0.0,
+     "ar": 0.001,
+     "clean": [
+      "1 specks out",
+      "33 gaps filled"
+     ],
+     "corr": 0.994,
+     "fid": 4.92,
+     "inside": [
+      1.0,
+      0.999
+     ],
+     "lost": 0.0189,
+     "model": "birefnet-hr",
+     "real_px": 953,
+     "s": 103.8,
+     "same": 0.996,
+     "shadow": 0.0079,
+     "shown_px": 1120,
+     "up": "lanczos (Real-ESRGAN rejected: diff 6.8 / detail 7.7)",
+     "why": "part of the item lost (1.9% of it turned white)"
+    },
+    {
+     "model": "birefnet-hr-matting",
+     "s": 102.3,
+     "why": "gate: hazy mask (41% half-transparent away from the item)"
+    }
+   ],
+   "v": 2,
+   "why": "gate: hazy mask (41% half-transparent away from the item)"
+  },
+  "7799607192": {
+   "at": "2026-11-23T09:28:43+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.002,
+    "corr": 0.999,
+    "fid": 1.52,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0009,
+    "same": 1.0,
+    "shadow": 0.0
+   },
+   "file": "img/white/rl/7799607192.webp",
+   "group": "c",
+   "id": "7799607192",
+   "kb": 88,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 1289,
+    "shown_px": 1344,
+    "up": "lanczos"
+   },
+   "ok": true,
+   "old": "/img/rl/7799607192.webp",
+   "s": 26,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.002,
+     "corr": 0.999,
+     "fid": 1.52,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0009,
+     "model": "birefnet-general",
+     "real_px": 1289,
+     "s": 22.8,
+     "same": 1.0,
+     "shadow": 0.0,
+     "shown_px": 1344,
+     "up": "lanczos"
+    }
+   ],
+   "v": 2
+  },
+  "7799678486": {
+   "at": "2026-11-23T09:28:44+00:00",
+   "group": "c",
+   "id": "7799678486",
+   "ok": false,
+   "old": "/img/rl/7799678486.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (collage_or_grid): a cut-out cannot take that out"
+  },
+  "7799680132": {
+   "at": "2026-11-23T09:28:44+00:00",
+   "group": "c",
+   "id": "7799680132",
+   "ok": false,
+   "old": "/img/rl/7799680132.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (collage_or_grid, worn_by_person): a cut-out cannot take that out"
+  },
+  "7799711706": {
+   "at": "2026-11-23T09:29:10+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": -0.005,
+    "corr": 0.998,
+    "fid": 3.17,
+    "inside": [
+     1.0,
+     0.995
+    ],
+    "lost": 0.0057,
+    "same": 0.999,
+    "shadow": 0.0081
+   },
+   "file": "img/white/rl/7799711706.webp",
+   "group": "c",
+   "id": "7799711706",
+   "kb": 58,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 505,
+    "shown_px": 1248,
+    "up": "Real-ESRGAN (diff 2.5 / detail 6.0)"
+   },
+   "ok": true,
+   "old": "/img/rl/7799711706.webp",
+   "s": 27,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": -0.005,
+     "corr": 0.998,
+     "fid": 3.17,
+     "inside": [
+      1.0,
+      0.995
+     ],
+     "lost": 0.0057,
+     "model": "birefnet-general",
+     "real_px": 505,
+     "s": 22.4,
+     "same": 0.999,
+     "shadow": 0.0081,
+     "shown_px": 1248,
+     "up": "Real-ESRGAN (diff 2.5 / detail 6.0)"
+    }
+   ],
+   "v": 2
+  },
+  "7855845636": {
+   "at": "2026-11-23T09:29:36+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.013,
+    "corr": 0.992,
+    "fid": 0.77,
+    "inside": [
+     0.999,
+     0.998
+    ],
+    "lost": 0.0,
+    "same": 0.996,
+    "shadow": 0.0
+   },
+   "file": "img/white/rl/7855845636.webp",
+   "group": "c",
+   "id": "7855845636",
+   "kb": 165,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 1109,
+    "shown_px": 1365,
+    "up": "lanczos"
+   },
+   "ok": true,
+   "old": "/img/rl/7855845636.webp",
+   "s": 25,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.013,
+     "corr": 0.992,
+     "fid": 0.77,
+     "inside": [
+      0.999,
+      0.998
+     ],
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "real_px": 1109,
+     "s": 22.5,
+     "same": 0.996,
+     "shadow": 0.0,
+     "shown_px": 1365,
+     "up": "lanczos"
+    }
+   ],
+   "v": 2
+  },
+  "7857340853": {
+   "at": "2026-11-23T09:29:36+00:00",
+   "group": "c",
+   "id": "7857340853",
+   "ok": false,
+   "old": "/img/rl/7857340853.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (worn_by_person): a cut-out cannot take that out"
+  },
+  "7857475629": {
+   "at": "2026-11-23T09:30:17+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.007,
+    "corr": 0.988,
+    "fid": 1.8,
+    "inside": [
+     0.999,
+     0.997
+    ],
+    "lost": 0.0004,
+    "same": 1.0,
+    "shadow": 0.0171
+   },
+   "file": "img/white/rl/7857475629.webp",
+   "group": "c",
+   "id": "7857475629",
+   "kb": 72,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 874,
+    "shown_px": 1312,
+    "up": "Real-ESRGAN (diff 1.6 / detail 4.0)"
+   },
+   "ok": true,
+   "old": "/img/rl/7857475629.webp",
+   "s": 41,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.007,
+     "corr": 0.988,
+     "fid": 1.8,
+     "inside": [
+      0.999,
+      0.997
+     ],
+     "lost": 0.0004,
+     "model": "birefnet-general",
+     "real_px": 874,
+     "s": 30.2,
+     "same": 1.0,
+     "shadow": 0.0171,
+     "shown_px": 1312,
+     "up": "Real-ESRGAN (diff 1.6 / detail 4.0)"
+    }
+   ],
+   "v": 2
+  },
+  "7858125771": {
+   "at": "2026-11-23T09:34:13+00:00",
+   "bg": [
+    254,
+    254,
+    254
+   ],
+   "group": "c",
+   "id": "7858125771",
+   "ok": false,
+   "old": "/img/rl/7858125771.webp",
+   "s": 235,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "anchored": [
+      "left",
+      "right"
+     ],
+     "ar": 0.021,
+     "corr": 0.885,
+     "fid": 2.96,
+     "inside": [
+      0.998,
+      0.984
+     ],
+     "lost": 0.0146,
+     "model": "birefnet-general",
+     "real_px": 638,
+     "s": 22.2,
+     "same": 0.971,
+     "shadow": 0.2508,
+     "shown_px": 1600,
+     "up": "Real-ESRGAN (diff 1.8 / detail 3.6)",
+     "why": "part of the item lost (1.5% of it turned white)"
+    },
+    {
+     "fallback": true,
+     "model": "isnet-general-use",
+     "s": 1.2,
+     "why": "gate: hazy mask (44% half-transparent away from the item)"
+    },
+    {
+     "added": 0.0,
+     "anchored": [
+      "left",
+      "right"
+     ],
+     "ar": 0.021,
+     "corr": 0.886,
+     "fid": 2.95,
+     "inside": [
+      0.998,
+      0.984
+     ],
+     "lost": 0.0147,
+     "model": "birefnet-hr",
+     "real_px": 638,
+     "s": 101.5,
+     "same": 0.971,
+     "shadow": 0.252,
+     "shown_px": 1600,
+     "up": "Real-ESRGAN (diff 1.8 / detail 3.6)",
+     "why": "part of the item lost (1.5% of it turned white)"
+    },
+    {
+     "added": 0.0,
+     "anchored": [
+      "left",
+      "right"
+     ],
+     "ar": 0.021,
+     "corr": 0.887,
+     "fid": 2.94,
+     "inside": [
+      0.998,
+      0.984
+     ],
+     "lost": 0.0148,
+     "model": "birefnet-hr-matting",
+     "real_px": 638,
+     "s": 101.4,
+     "same": 0.971,
+     "shadow": 0.2528,
+     "shown_px": 1600,
+     "up": "Real-ESRGAN (diff 1.8 / detail 3.6)",
+     "why": "part of the item lost (1.5% of it turned white)"
+    }
+   ],
+   "v": 2,
+   "why": "part of the item lost (1.5% of it turned white)"
+  },
+  "7860284894": {
+   "at": "2026-11-23T09:34:14+00:00",
+   "group": "c",
+   "id": "7860284894",
+   "ok": false,
+   "old": "/img/rl/7860284894.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (worn_by_person): a cut-out cannot take that out"
+  },
+  "7875534052": {
+   "at": "2026-11-23T09:34:42+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.0,
+    "corr": 0.999,
+    "fid": 1.71,
+    "inside": [
+     0.997,
+     0.993
+    ],
+    "lost": 0.002,
+    "same": 1.0,
+    "shadow": 0.0073
+   },
+   "file": "img/white/rl/7875534052.webp",
+   "group": "c",
+   "id": "7875534052",
+   "kb": 36,
+   "model": "birefnet-general",
+   "notes": {
+    "anchored": [
+     "left",
+     "right"
+    ],
+    "real_px": 560,
+    "shown_px": 1600,
+    "up": "Real-ESRGAN (diff 1.7 / detail 5.6)"
+   },
+   "ok": true,
+   "old": "/img/rl/7875534052.webp",
+   "s": 28,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "anchored": [
+      "left",
+      "right"
+     ],
+     "ar": 0.0,
+     "corr": 0.999,
+     "fid": 1.71,
+     "inside": [
+      0.997,
+      0.993
+     ],
+     "lost": 0.002,
+     "model": "birefnet-general",
+     "real_px": 560,
+     "s": 22.4,
+     "same": 1.0,
+     "shadow": 0.0073,
+     "shown_px": 1600,
+     "up": "Real-ESRGAN (diff 1.7 / detail 5.6)"
+    }
+   ],
+   "v": 2
+  },
+  "7888974545": {
+   "at": "2026-11-23T09:35:23+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "group": "c",
+   "hr": "skipped: the fast cut-outs failed for a reason a finer matte does not change",
+   "id": "7888974545",
+   "ok": false,
+   "old": "/img/rl/7888974545.webp",
+   "s": 41,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": -0.0,
+     "clean": [
+      "2 specks out",
+      "18 gaps filled"
+     ],
+     "corr": 0.995,
+     "fid": 1.05,
+     "inside": [
+      0.965,
+      0.966
+     ],
+     "lost": 0.0395,
+     "model": "birefnet-general",
+     "real_px": 931,
+     "s": 22.3,
+     "same": 0.998,
+     "shadow": 0.0041,
+     "shown_px": 1120,
+     "up": "lanczos (Real-ESRGAN rejected: diff 5.0 / detail 7.0)",
+     "why": "part of the item lost (4.0% of it turned white)"
+    },
+    {
+     "added": 0.0,
+     "ar": 0.001,
+     "clean": [
+      "1 specks out",
+      "1 gaps filled"
+     ],
+     "corr": 0.995,
+     "fallback": true,
+     "fid": 1.15,
+     "inside": [
+      0.992,
+      0.991
+     ],
+     "lost": 0.0104,
+     "model": "isnet-general-use",
+     "real_px": 933,
+     "s": 1.2,
+     "same": 0.999,
+     "shadow": 0.0154,
+     "shown_px": 1120,
+     "up": "lanczos (Real-ESRGAN rejected: diff 5.4 / detail 7.9)",
+     "why": "part of the item lost (1.0% of it turned white)"
+    }
+   ],
+   "v": 2,
+   "why": "part of the item lost (1.0% of it turned white)"
+  }
+ }
+}

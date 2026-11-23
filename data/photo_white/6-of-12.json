@@ -1,0 +1,1111 @@
+{
+ "at": "2026-11-23T09:33:30+00:00",
+ "items": {
+  "7571698971": {
+   "at": "2026-11-23T09:16:24+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.001,
+    "corr": 1.0,
+    "fid": 0.9,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0,
+    "same": 1.0,
+    "shadow": 0.0
+   },
+   "file": "img/white/rl/7571698971.webp",
+   "group": "c",
+   "id": "7571698971",
+   "kb": 58,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 704,
+    "shown_px": 1315,
+    "up": "lanczos (Real-ESRGAN rejected: diff 2.4 / detail 9.4)"
+   },
+   "ok": true,
+   "old": "/img/rl/7571698971.webp",
+   "s": 92,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.001,
+     "corr": 1.0,
+     "fid": 0.9,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "real_px": 704,
+     "s": 39.8,
+     "same": 1.0,
+     "shadow": 0.0,
+     "shown_px": 1315,
+     "up": "lanczos (Real-ESRGAN rejected: diff 2.4 / detail 9.4)"
+    }
+   ],
+   "v": 2
+  },
+  "7572507143": {
+   "at": "2026-11-23T09:20:39+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "group": "c",
+   "id": "7572507143",
+   "ok": false,
+   "old": "/img/rl/7572507143.webp",
+   "s": 255,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.003,
+     "corr": 0.998,
+     "fid": 2.07,
+     "inside": [
+      0.999,
+      0.996
+     ],
+     "lost": 0.0174,
+     "model": "birefnet-general",
+     "real_px": 360,
+     "s": 23.5,
+     "same": 0.999,
+     "shadow": 0.0295,
+     "shown_px": 1312,
+     "up": "Real-ESRGAN (diff 2.1 / detail 4.8)",
+     "why": "part of the item lost (1.7% of it turned white)"
+    },
+    {
+     "fallback": true,
+     "model": "isnet-general-use",
+     "s": 1.6,
+     "why": "gate: hazy mask (51% half-transparent away from the item)"
+    },
+    {
+     "added": 0.0,
+     "ar": 0.01,
+     "corr": 0.987,
+     "fid": 2.06,
+     "inside": [
+      0.999,
+      0.996
+     ],
+     "lost": 0.0179,
+     "model": "birefnet-hr",
+     "real_px": 358,
+     "s": 111.3,
+     "same": 0.998,
+     "shadow": 0.0298,
+     "shown_px": 1313,
+     "up": "Real-ESRGAN (diff 2.1 / detail 4.8)",
+     "why": "part of the item lost (1.8% of it turned white)"
+    },
+    {
+     "added": 0.0,
+     "ar": 0.004,
+     "corr": 0.997,
+     "fid": 2.05,
+     "inside": [
+      0.999,
+      0.996
+     ],
+     "lost": 0.0179,
+     "model": "birefnet-hr-matting",
+     "real_px": 360,
+     "s": 108.4,
+     "same": 0.998,
+     "shadow": 0.0368,
+     "shown_px": 1312,
+     "up": "Real-ESRGAN (diff 2.1 / detail 4.9)",
+     "why": "part of the item lost (1.8% of it turned white)"
+    }
+   ],
+   "v": 2,
+   "why": "part of the item lost (1.8% of it turned white)"
+  },
+  "7573561346": {
+   "at": "2026-11-23T09:21:09+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.001,
+    "corr": 0.997,
+    "fid": 0.7,
+    "inside": [
+     1.0,
+     0.999
+    ],
+    "lost": 0.0,
+    "same": 0.999,
+    "shadow": 0.0147
+   },
+   "file": "img/white/rl/7573561346.webp",
+   "group": "c",
+   "id": "7573561346",
+   "kb": 36,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 641,
+    "shown_px": 1376,
+    "up": "lanczos (Real-ESRGAN rejected: diff 2.5 / detail 8.3)"
+   },
+   "ok": true,
+   "old": "/img/rl/7573561346.webp",
+   "s": 29,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.001,
+     "corr": 0.997,
+     "fid": 0.7,
+     "inside": [
+      1.0,
+      0.999
+     ],
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "real_px": 641,
+     "s": 23.7,
+     "same": 0.999,
+     "shadow": 0.0147,
+     "shown_px": 1376,
+     "up": "lanczos (Real-ESRGAN rejected: diff 2.5 / detail 8.3)"
+    }
+   ],
+   "v": 2
+  },
+  "7573606606": {
+   "at": "2026-11-23T09:21:40+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.002,
+    "corr": 0.998,
+    "fid": 2.73,
+    "inside": [
+     0.999,
+     0.995
+    ],
+    "lost": 0.0072,
+    "same": 0.999,
+    "shadow": 0.0077
+   },
+   "file": "img/white/rl/7573606606.webp",
+   "group": "c",
+   "id": "7573606606",
+   "kb": 60,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 716,
+    "shown_px": 1376,
+    "up": "Real-ESRGAN (diff 2.0 / detail 6.4)"
+   },
+   "ok": true,
+   "old": "/img/rl/7573606606.webp",
+   "s": 31,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.002,
+     "corr": 0.998,
+     "fid": 2.73,
+     "inside": [
+      0.999,
+      0.995
+     ],
+     "lost": 0.0072,
+     "model": "birefnet-general",
+     "real_px": 716,
+     "s": 23.7,
+     "same": 0.999,
+     "shadow": 0.0077,
+     "shown_px": 1376,
+     "up": "Real-ESRGAN (diff 2.0 / detail 6.4)"
+    }
+   ],
+   "v": 2
+  },
+  "7574411162": {
+   "at": "2026-11-23T09:22:13+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.009,
+    "corr": 0.987,
+    "fid": 3.3,
+    "inside": [
+     0.988,
+     0.977
+    ],
+    "lost": 0.0002,
+    "same": 1.0,
+    "shadow": 0.0236
+   },
+   "file": "img/white/rl/7574411162.webp",
+   "group": "c",
+   "id": "7574411162",
+   "kb": 118,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 701,
+    "shown_px": 1312,
+    "up": "Real-ESRGAN (diff 3.6 / detail 6.4)"
+   },
+   "ok": true,
+   "old": "/img/rl/7574411162.webp",
+   "s": 33,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.009,
+     "corr": 0.987,
+     "fid": 3.3,
+     "inside": [
+      0.988,
+      0.977
+     ],
+     "lost": 0.0002,
+     "model": "birefnet-general",
+     "real_px": 701,
+     "s": 23.5,
+     "same": 1.0,
+     "shadow": 0.0236,
+     "shown_px": 1312,
+     "up": "Real-ESRGAN (diff 3.6 / detail 6.4)"
+    }
+   ],
+   "v": 2
+  },
+  "7574428786": {
+   "at": "2026-11-23T09:22:47+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.0,
+    "corr": 1.0,
+    "fid": 1.26,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0,
+    "same": 1.0,
+    "shadow": 0.0002
+   },
+   "file": "img/white/rl/7574428786.webp",
+   "group": "c",
+   "id": "7574428786",
+   "kb": 123,
+   "model": "birefnet-general",
+   "notes": {
+    "anchored": [
+     "bottom"
+    ],
+    "real_px": 806,
+    "shown_px": 1312,
+    "up": "lanczos (Real-ESRGAN rejected: diff 4.8 / detail 7.6)"
+   },
+   "ok": true,
+   "old": "/img/rl/7574428786.webp",
+   "s": 34,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "anchored": [
+      "bottom"
+     ],
+     "ar": 0.0,
+     "corr": 1.0,
+     "fid": 1.26,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "real_px": 806,
+     "s": 23.2,
+     "same": 1.0,
+     "shadow": 0.0002,
+     "shown_px": 1312,
+     "up": "lanczos (Real-ESRGAN rejected: diff 4.8 / detail 7.6)"
+    }
+   ],
+   "v": 2
+  },
+  "7574487830": {
+   "at": "2026-11-23T09:23:31+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.009,
+    "corr": 0.976,
+    "fid": 1.41,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0,
+    "same": 0.999,
+    "shadow": 0.0138
+   },
+   "file": "img/white/rl/7574487830.webp",
+   "group": "c",
+   "id": "7574487830",
+   "kb": 325,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 1081,
+    "shown_px": 1312,
+    "up": "lanczos (Real-ESRGAN rejected: diff 4.8 / detail 5.4)"
+   },
+   "ok": true,
+   "old": "/img/rl/7574487830.webp",
+   "s": 44,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.009,
+     "corr": 0.976,
+     "fid": 1.41,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "real_px": 1081,
+     "s": 23.6,
+     "same": 0.999,
+     "shadow": 0.0138,
+     "shown_px": 1312,
+     "up": "lanczos (Real-ESRGAN rejected: diff 4.8 / detail 5.4)"
+    }
+   ],
+   "v": 2
+  },
+  "7641061598": {
+   "at": "2026-11-23T09:24:02+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.0,
+    "corr": 1.0,
+    "fid": 0.33,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0,
+    "same": 1.0,
+    "shadow": 0.0
+   },
+   "file": "img/white/rl/7641061598.webp",
+   "group": "c",
+   "id": "7641061598",
+   "kb": 69,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 521,
+    "shown_px": 1248,
+    "up": "lanczos"
+   },
+   "ok": true,
+   "old": "/img/rl/7641061598.webp",
+   "s": 30,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.0,
+     "corr": 1.0,
+     "esrgan_fid": 4.12,
+     "fid": 0.33,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "real_px": 521,
+     "s": 23.5,
+     "same": 1.0,
+     "shadow": 0.0,
+     "shown_px": 1248,
+     "up": "lanczos"
+    }
+   ],
+   "v": 2
+  },
+  "7645792879": {
+   "at": "2026-11-23T09:24:30+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "group": "c",
+   "hr": "skipped: the fast cut-outs failed for a reason a finer matte does not change",
+   "id": "7645792879",
+   "ok": false,
+   "old": "/img/rl/7645792879.webp",
+   "s": 28,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "anchored": [
+      "top"
+     ],
+     "ar": 0.001,
+     "clean": [
+      "1 gaps filled"
+     ],
+     "corr": 0.998,
+     "fid": 6.41,
+     "lost": 0.0021,
+     "model": "birefnet-general",
+     "real_px": 1137,
+     "s": 23.6,
+     "same": 0.999,
+     "shadow": 0.0006,
+     "shown_px": 1120,
+     "up": "downscale",
+     "why": "item pixels changed (fidelity 6.4 > 4.0)"
+    },
+    {
+     "fallback": true,
+     "model": "isnet-general-use",
+     "s": 1.6,
+     "why": "gate: hazy mask (20% half-transparent away from the item)"
+    }
+   ],
+   "v": 2,
+   "why": "gate: hazy mask (20% half-transparent away from the item)"
+  },
+  "7645793325": {
+   "at": "2026-11-23T09:25:09+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.001,
+    "corr": 0.999,
+    "fid": 2.13,
+    "lost": 0.001,
+    "same": 1.0,
+    "shadow": 0.0074
+   },
+   "file": "img/white/rl/7645793325.webp",
+   "group": "c",
+   "id": "7645793325",
+   "kb": 56,
+   "model": "birefnet-general",
+   "notes": {
+    "anchored": [
+     "top"
+    ],
+    "clean": [
+     "1 gaps filled"
+    ],
+    "real_px": 942,
+    "shown_px": 1120,
+    "up": "lanczos (Real-ESRGAN rejected: diff 7.2 / detail 9.5)"
+   },
+   "ok": true,
+   "old": "/img/rl/7645793325.webp",
+   "s": 39,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "anchored": [
+      "top"
+     ],
+     "ar": 0.001,
+     "clean": [
+      "1 gaps filled"
+     ],
+     "corr": 0.999,
+     "fid": 2.13,
+     "lost": 0.001,
+     "model": "birefnet-general",
+     "real_px": 942,
+     "s": 23.3,
+     "same": 1.0,
+     "shadow": 0.0074,
+     "shown_px": 1120,
+     "up": "lanczos (Real-ESRGAN rejected: diff 7.2 / detail 9.5)"
+    }
+   ],
+   "v": 2
+  },
+  "7796647253": {
+   "at": "2026-11-23T09:25:39+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "group": "c",
+   "hr": "skipped: the fast cut-outs failed for a reason a finer matte does not change",
+   "id": "7796647253",
+   "ok": false,
+   "old": "/img/rl/7796647253.webp",
+   "s": 29,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": -0.002,
+     "corr": 0.997,
+     "fid": 3.7,
+     "inside": [
+      0.999,
+      0.986
+     ],
+     "lost": 0.0386,
+     "model": "birefnet-general",
+     "real_px": 234,
+     "s": 23.6,
+     "same": 0.999,
+     "shadow": 0.0133,
+     "shown_px": 1120,
+     "up": "Real-ESRGAN (diff 2.1 / detail 7.3)",
+     "why": "part of the item lost (3.9% of it turned white)"
+    },
+    {
+     "added": 0.0,
+     "ar": 0.0,
+     "corr": 0.998,
+     "fallback": true,
+     "fid": 3.72,
+     "inside": [
+      0.999,
+      0.987
+     ],
+     "lost": 0.0388,
+     "model": "isnet-general-use",
+     "real_px": 236,
+     "s": 1.6,
+     "same": 0.999,
+     "shadow": 0.0133,
+     "shown_px": 1120,
+     "up": "Real-ESRGAN (diff 2.2 / detail 7.3)",
+     "why": "part of the item lost (3.9% of it turned white)"
+    }
+   ],
+   "v": 2,
+   "why": "part of the item lost (3.9% of it turned white)"
+  },
+  "7796652463": {
+   "at": "2026-11-23T09:26:15+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": -0.0,
+    "corr": 0.997,
+    "fid": 1.27,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0,
+    "same": 1.0,
+    "shadow": 0.0
+   },
+   "file": "img/white/rl/7796652463.webp",
+   "group": "c",
+   "id": "7796652463",
+   "kb": 200,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 929,
+    "shown_px": 1120,
+    "up": "lanczos (Real-ESRGAN rejected: diff 8.5 / detail 10.4)"
+   },
+   "ok": true,
+   "old": "/img/rl/7796652463.webp",
+   "s": 36,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": -0.0,
+     "corr": 0.997,
+     "fid": 1.27,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "real_px": 929,
+     "s": 23.7,
+     "same": 1.0,
+     "shadow": 0.0,
+     "shown_px": 1120,
+     "up": "lanczos (Real-ESRGAN rejected: diff 8.5 / detail 10.4)"
+    }
+   ],
+   "v": 2
+  },
+  "7796688165": {
+   "at": "2026-11-23T09:26:15+00:00",
+   "group": "c",
+   "id": "7796688165",
+   "ok": false,
+   "old": "/img/rl/7796688165.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (collage_or_grid, packaging_or_box): a cut-out cannot take that out"
+  },
+  "7796696009": {
+   "at": "2026-11-23T09:26:42+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "group": "c",
+   "hr": "skipped: the fast cut-outs failed for a reason a finer matte does not change",
+   "id": "7796696009",
+   "ok": false,
+   "old": "/img/rl/7796696009.webp",
+   "s": 27,
+   "source": "site",
+   "tried": [
+    {
+     "model": "birefnet-general",
+     "s": 23.2,
+     "why": "item cut off by the photo's frame (34% of a border)"
+    },
+    {
+     "fallback": true,
+     "model": "isnet-general-use",
+     "s": 1.6,
+     "why": "item cut off by the photo's frame (32% of a border)"
+    }
+   ],
+   "v": 2,
+   "why": "item cut off by the photo's frame (32% of a border)"
+  },
+  "7797668065": {
+   "at": "2026-11-23T09:30:43+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "group": "c",
+   "id": "7797668065",
+   "ok": false,
+   "old": "/img/rl/7797668065.webp",
+   "s": 241,
+   "source": "site",
+   "tried": [
+    {
+     "model": "birefnet-general",
+     "s": 23.3,
+     "why": "gate: 10 separate pieces"
+    },
+    {
+     "fallback": true,
+     "model": "isnet-general-use",
+     "s": 1.6,
+     "why": "gate: 6 separate pieces; hazy mask (14% half-transparent away from the item)"
+    },
+    {
+     "model": "birefnet-hr",
+     "s": 108.0,
+     "why": "gate: 11 separate pieces"
+    },
+    {
+     "model": "birefnet-hr-matting",
+     "s": 106.2,
+     "why": "gate: 8 separate pieces; hazy mask (41% half-transparent away from the item)"
+    }
+   ],
+   "v": 2,
+   "why": "gate: 8 separate pieces; hazy mask (41% half-transparent away from the item)"
+  },
+  "7799613192": {
+   "at": "2026-11-23T09:31:13+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.004,
+    "corr": 0.999,
+    "fid": 0.2,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0,
+    "same": 1.0,
+    "shadow": 0.0083
+   },
+   "file": "img/white/rl/7799613192.webp",
+   "group": "c",
+   "id": "7799613192",
+   "kb": 51,
+   "model": "birefnet-general",
+   "notes": {
+    "anchored": [
+     "left",
+     "right"
+    ],
+    "real_px": 562,
+    "shown_px": 1600,
+    "up": "lanczos"
+   },
+   "ok": true,
+   "old": "/img/rl/7799613192.webp",
+   "s": 30,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "anchored": [
+      "left",
+      "right"
+     ],
+     "ar": 0.004,
+     "corr": 0.999,
+     "esrgan_fid": 4.05,
+     "fid": 0.2,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "real_px": 562,
+     "s": 23.9,
+     "same": 1.0,
+     "shadow": 0.0083,
+     "shown_px": 1600,
+     "up": "lanczos"
+    }
+   ],
+   "v": 2
+  },
+  "7799636834": {
+   "at": "2026-11-23T09:31:13+00:00",
+   "group": "c",
+   "id": "7799636834",
+   "ok": false,
+   "old": "/img/rl/7799636834.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (packaging_or_box): a cut-out cannot take that out"
+  },
+  "7799644800": {
+   "at": "2026-11-23T09:31:49+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.0,
+    "corr": 1.0,
+    "fid": 0.74,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0004,
+    "same": 1.0,
+    "shadow": 0.0
+   },
+   "file": "img/white/rl/7799644800.webp",
+   "group": "c",
+   "hr": "skipped: the fast cut-outs failed for a reason a finer matte does not change",
+   "id": "7799644800",
+   "kb": 111,
+   "model": "isnet-general-use",
+   "notes": {
+    "anchored": [
+     "bottom"
+    ],
+    "clean": [
+     "2 gaps filled"
+    ],
+    "real_px": 789,
+    "shown_px": 1312,
+    "up": "lanczos"
+   },
+   "ok": true,
+   "old": "/img/rl/7799644800.webp",
+   "s": 36,
+   "source": "site",
+   "tried": [
+    {
+     "model": "birefnet-general",
+     "s": 23.7,
+     "why": "item cut off by the photo's frame (49% of a border)"
+    },
+    {
+     "added": 0.0,
+     "anchored": [
+      "bottom"
+     ],
+     "ar": 0.0,
+     "clean": [
+      "2 gaps filled"
+     ],
+     "corr": 1.0,
+     "esrgan_fid": 4.29,
+     "fallback": true,
+     "fid": 0.74,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0004,
+     "model": "isnet-general-use",
+     "real_px": 789,
+     "s": 1.8,
+     "same": 1.0,
+     "shadow": 0.0,
+     "shown_px": 1312,
+     "up": "lanczos"
+    }
+   ],
+   "v": 2
+  },
+  "7799662864": {
+   "at": "2026-11-23T09:32:18+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.01,
+    "corr": 0.985,
+    "fid": 1.51,
+    "inside": [
+     0.999,
+     0.997
+    ],
+    "lost": 0.003,
+    "same": 1.0,
+    "shadow": 0.0011
+   },
+   "file": "img/white/rl/7799662864.webp",
+   "group": "c",
+   "id": "7799662864",
+   "kb": 28,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 378,
+    "shown_px": 1368,
+    "up": "Real-ESRGAN (diff 1.4 / detail 4.6)"
+   },
+   "ok": true,
+   "old": "/img/rl/7799662864.webp",
+   "s": 28,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.01,
+     "corr": 0.985,
+     "fid": 1.51,
+     "inside": [
+      0.999,
+      0.997
+     ],
+     "lost": 0.003,
+     "model": "birefnet-general",
+     "real_px": 378,
+     "s": 23.7,
+     "same": 1.0,
+     "shadow": 0.0011,
+     "shown_px": 1368,
+     "up": "Real-ESRGAN (diff 1.4 / detail 4.6)"
+    }
+   ],
+   "v": 2
+  },
+  "7799683934": {
+   "at": "2026-11-23T09:32:55+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": -0.0,
+    "corr": 0.997,
+    "fid": 2.08,
+    "lost": 0.0,
+    "same": 0.999,
+    "shadow": 0.0014
+   },
+   "file": "img/white/rl/7799683934.webp",
+   "group": "c",
+   "id": "7799683934",
+   "kb": 58,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 896,
+    "shown_px": 1120,
+    "up": "lanczos (Real-ESRGAN rejected: diff 4.7 / detail 10.4)"
+   },
+   "ok": true,
+   "old": "/img/rl/7799683934.webp",
+   "s": 37,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": -0.0,
+     "corr": 0.997,
+     "fid": 2.08,
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "real_px": 896,
+     "s": 23.6,
+     "same": 0.999,
+     "shadow": 0.0014,
+     "shown_px": 1120,
+     "up": "lanczos (Real-ESRGAN rejected: diff 4.7 / detail 10.4)"
+    }
+   ],
+   "v": 2
+  },
+  "7818225835": {
+   "at": "2026-11-23T09:33:30+00:00",
+   "bg": [
+    255,
+    255,
+    255
+   ],
+   "checks": {
+    "added": 0.0,
+    "ar": 0.0,
+    "corr": 0.998,
+    "fid": 1.05,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0005,
+    "same": 1.0,
+    "shadow": 0.0001
+   },
+   "file": "img/white/rl/7818225835.webp",
+   "group": "c",
+   "id": "7818225835",
+   "kb": 64,
+   "model": "birefnet-general",
+   "notes": {
+    "clean": [
+     "1 gaps filled"
+    ],
+    "real_px": 852,
+    "shown_px": 1120,
+    "up": "lanczos (Real-ESRGAN rejected: diff 5.4 / detail 8.1)"
+   },
+   "ok": true,
+   "old": "/img/rl/7818225835.webp",
+   "s": 34,
+   "source": "site",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.0,
+     "clean": [
+      "1 gaps filled"
+     ],
+     "corr": 0.998,
+     "fid": 1.05,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0005,
+     "model": "birefnet-general",
+     "real_px": 852,
+     "s": 23.8,
+     "same": 1.0,
+     "shadow": 0.0001,
+     "shown_px": 1120,
+     "up": "lanczos (Real-ESRGAN rejected: diff 5.4 / detail 8.1)"
+    }
+   ],
+   "v": 2
+  },
+  "7860324972": {
+   "at": "2026-11-23T09:33:30+00:00",
+   "group": "c",
+   "id": "7860324972",
+   "ok": false,
+   "old": "/img/rl/7860324972.webp",
+   "s": 0,
+   "v": 2,
+   "why": "needs a new photo (collage_or_grid): a cut-out cannot take that out"
+  }
+ }
+}

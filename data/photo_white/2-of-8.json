@@ -1,0 +1,1071 @@
+{
+ "at": "2026-11-23T09:41:41+00:00",
+ "items": {
+  "7673311955-0.webp": {
+   "at": "2026-11-23T09:17:26+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": -0.014,
+    "corr": 0.973,
+    "fid": 1.18,
+    "inside": [
+     0.997,
+     0.983
+    ],
+    "lost": 0.0056,
+    "restored": 0.0112,
+    "same": 0.994,
+    "shadow": 0.0225
+   },
+   "file": "img/white/store/7673311955-0.webp",
+   "group": "a",
+   "id": "7673311955",
+   "kb": 111,
+   "match": {
+    "colour": 6.35,
+    "looked": 1,
+    "ncc": 0.9883,
+    "url": "https://cdn.shopify.com/s/files/1/0506/1009/products/DJ5982-1.jpg?v=1618942507"
+   },
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 744,
+    "shown_px": 1344,
+    "up": "lanczos (Real-ESRGAN rejected: diff 5.4 / detail 8.2)"
+   },
+   "ok": true,
+   "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7673311955-0.webp",
+   "s": 40,
+   "source": "store",
+   "src_size": [
+    1000,
+    1000
+   ],
+   "src_url": "https://cdn.shopify.com/s/files/1/0506/1009/products/DJ5982-1.jpg?v=1618942507",
+   "store": {
+    "checks": {
+     "added": 0.0,
+     "ar": -0.014,
+     "corr": 0.973,
+     "fid": 1.18,
+     "inside": [
+      0.997,
+      0.983
+     ],
+     "lost": 0.0056,
+     "restored": 0.0112,
+     "same": 0.994,
+     "shadow": 0.0225
+    },
+    "model": "birefnet-general",
+    "notes": {
+     "real_px": 744,
+     "shown_px": 1344,
+     "up": "lanczos (Real-ESRGAN rejected: diff 5.4 / detail 8.2)"
+    },
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": -0.014,
+      "corr": 0.973,
+      "fid": 1.18,
+      "inside": [
+       0.997,
+       0.983
+      ],
+      "lost": 0.0056,
+      "model": "birefnet-general",
+      "real_px": 744,
+      "restored": 0.0112,
+      "s": 23.2,
+      "same": 0.994,
+      "shadow": 0.0225,
+      "shown_px": 1344,
+      "up": "lanczos (Real-ESRGAN rejected: diff 5.4 / detail 8.2)"
+     }
+    ]
+   },
+   "v": 2
+  },
+  "7675153310-0.webp": {
+   "at": "2026-11-23T09:28:38+00:00",
+   "group": "a",
+   "id": "7675153310",
+   "live": {
+    "tried": [
+     {
+      "model": "birefnet-general",
+      "s": 23.6,
+      "why": "gate: 10 separate pieces"
+     },
+     {
+      "fallback": true,
+      "model": "isnet-general-use",
+      "s": 1.8,
+      "why": "gate: item too small / mask nearly empty; hazy mask (35% half-transparent away from the item)"
+     },
+     {
+      "model": "birefnet-hr",
+      "s": 112.7,
+      "why": "gate: item too small / mask nearly empty; hazy mask (65% half-transparent away from the item)"
+     },
+     {
+      "model": "birefnet-hr-matting",
+      "s": 108.7,
+      "why": "gate: item too small / mask nearly empty; hazy mask (94% half-transparent away from the item)"
+     }
+    ],
+    "why": "gate: item too small / mask nearly empty; hazy mask (94% half-transparent away from the item)"
+   },
+   "match": null,
+   "ok": false,
+   "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675153310-0.webp",
+   "s": 270,
+   "v": 2,
+   "why": "no store copy lined up; live file: gate: item too small / mask nearly empty; hazy mask (94% half-transparent away from the item)"
+  },
+  "7675216396-d0.webp": {
+   "at": "2026-11-23T09:24:08+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": 0.002,
+    "corr": 0.982,
+    "fid": 1.3,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0,
+    "restored": 0.0009,
+    "same": 0.999,
+    "shadow": 0.0005
+   },
+   "file": "img/white/store/7675216396-d0.webp",
+   "group": "a",
+   "id": "7675216396",
+   "kb": 207,
+   "live": {
+    "checks": {
+     "added": 0.0,
+     "ar": 0.002,
+     "corr": 0.982,
+     "fid": 1.3,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0,
+     "restored": 0.0009,
+     "same": 0.999,
+     "shadow": 0.0005
+    },
+    "model": "birefnet-general",
+    "notes": {
+     "real_px": 1033,
+     "shown_px": 1344,
+     "up": "lanczos"
+    },
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": 0.002,
+      "corr": 0.982,
+      "esrgan_fid": 5.98,
+      "fid": 1.3,
+      "inside": [
+       1.0,
+       1.0
+      ],
+      "lost": 0.0,
+      "model": "birefnet-general",
+      "real_px": 1033,
+      "restored": 0.0009,
+      "s": 23.7,
+      "same": 0.999,
+      "shadow": 0.0005,
+      "shown_px": 1344,
+      "up": "lanczos"
+     }
+    ]
+   },
+   "match": {
+    "colour": 5.63,
+    "looked": 10,
+    "ncc": 0.9632,
+    "url": "https://assets.burberry.com/is/image/Burberryltd/C85DE202-5518-4746-AB3C-B78527559206?$BBY_V3_UNSHARP_SL_1$&wid=2001&hei=2000"
+   },
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 1033,
+    "shown_px": 1344,
+    "up": "lanczos"
+   },
+   "ok": true,
+   "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7675216396-d0.webp",
+   "s": 402,
+   "source": "live",
+   "src_size": [
+    2001,
+    2000
+   ],
+   "src_url": "https://assets.burberry.com/is/image/Burberryltd/C85DE202-5518-4746-AB3C-B78527559206?$BBY_V3_UNSHARP_SL_1$&wid=2001&hei=2000",
+   "store": {
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": 0.002,
+      "corr": 0.952,
+      "fid": 3.97,
+      "inside": [
+       0.932,
+       0.94
+      ],
+      "lost": 0.0311,
+      "model": "birefnet-general",
+      "real_px": 964,
+      "restored": 0.0114,
+      "s": 23.7,
+      "same": 0.968,
+      "shadow": 0.0021,
+      "shown_px": 1344,
+      "up": "Real-ESRGAN (diff 2.6 / detail 3.6)",
+      "why": "part of the item lost (3.1% of it turned white)"
+     },
+     {
+      "fallback": true,
+      "model": "isnet-general-use",
+      "s": 1.7,
+      "why": "gate: hazy mask (53% half-transparent away from the item)"
+     },
+     {
+      "added": 0.0,
+      "ar": 0.002,
+      "corr": 0.952,
+      "fid": 3.97,
+      "inside": [
+       0.932,
+       0.94
+      ],
+      "lost": 0.0316,
+      "model": "birefnet-hr",
+      "real_px": 964,
+      "restored": 0.0115,
+      "s": 109.6,
+      "same": 0.967,
+      "shadow": 0.0022,
+      "shown_px": 1344,
+      "up": "Real-ESRGAN (diff 2.6 / detail 3.6)",
+      "why": "part of the item lost (3.2% of it turned white)"
+     },
+     {
+      "added": 0.0,
+      "ar": 0.002,
+      "corr": 0.952,
+      "fid": 3.97,
+      "inside": [
+       0.932,
+       0.94
+      ],
+      "lost": 0.0311,
+      "model": "birefnet-hr-matting",
+      "real_px": 964,
+      "restored": 0.0115,
+      "s": 108.9,
+      "same": 0.967,
+      "shadow": 0.0017,
+      "shown_px": 1344,
+      "up": "Real-ESRGAN (diff 2.5 / detail 3.6)",
+      "why": "part of the item lost (3.1% of it turned white)"
+     }
+    ],
+    "why": "part of the item lost (3.1% of it turned white)"
+   },
+   "v": 2
+  },
+  "7676276172-e1.webp": {
+   "at": "2026-11-23T09:34:24+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": 0.002,
+    "corr": 0.981,
+    "fid": 3.84,
+    "inside": [
+     1.0,
+     0.999
+    ],
+    "lost": 0.0,
+    "restored": 0.003,
+    "same": 0.995,
+    "shadow": 0.011
+   },
+   "file": "img/white/store/7676276172-e1.webp",
+   "group": "a",
+   "id": "7676276172",
+   "kb": 125,
+   "live": {
+    "checks": {
+     "added": 0.0,
+     "ar": 0.002,
+     "corr": 0.981,
+     "fid": 3.84,
+     "inside": [
+      1.0,
+      0.999
+     ],
+     "lost": 0.0,
+     "restored": 0.003,
+     "same": 0.995,
+     "shadow": 0.011
+    },
+    "model": "birefnet-general",
+    "notes": {
+     "real_px": 1035,
+     "shown_px": 1344,
+     "up": "Real-ESRGAN (diff 2.7 / detail 5.3)"
+    },
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": 0.002,
+      "corr": 0.981,
+      "fid": 3.84,
+      "inside": [
+       1.0,
+       0.999
+      ],
+      "lost": 0.0,
+      "model": "birefnet-general",
+      "real_px": 1035,
+      "restored": 0.003,
+      "s": 24.7,
+      "same": 0.995,
+      "shadow": 0.011,
+      "shown_px": 1344,
+      "up": "Real-ESRGAN (diff 2.7 / detail 5.3)"
+     }
+    ]
+   },
+   "match": {
+    "colour": 5.69,
+    "looked": 1,
+    "ncc": 0.9913,
+    "url": "https://www.mytheresa.com/image/1094/1238/100/43/P00948239_d1.jpg"
+   },
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 1035,
+    "shown_px": 1344,
+    "up": "Real-ESRGAN (diff 2.7 / detail 5.3)"
+   },
+   "ok": true,
+   "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7676276172-e1.webp",
+   "s": 346,
+   "source": "live",
+   "src_size": [
+    1094,
+    1237
+   ],
+   "src_url": "https://www.mytheresa.com/image/1094/1238/100/43/P00948239_d1.jpg",
+   "store": {
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": -0.0,
+      "corr": 0.973,
+      "fid": 3.79,
+      "inside": [
+       0.962,
+       0.981
+      ],
+      "lost": 0.0145,
+      "model": "birefnet-general",
+      "real_px": 1063,
+      "restored": 0.0951,
+      "s": 25.6,
+      "same": 0.986,
+      "shadow": 0.0048,
+      "shown_px": 1344,
+      "up": "Real-ESRGAN (diff 2.4 / detail 5.1)",
+      "why": "much more than the live photo shows (9.5% of the new cut-out)"
+     },
+     {
+      "fallback": true,
+      "model": "isnet-general-use",
+      "s": 1.7,
+      "why": "gate: hazy mask (13% half-transparent away from the item)"
+     },
+     {
+      "added": 0.0,
+      "ar": -0.001,
+      "corr": 0.971,
+      "fid": 3.8,
+      "inside": [
+       0.962,
+       0.981
+      ],
+      "lost": 0.0147,
+      "model": "birefnet-hr",
+      "real_px": 1063,
+      "restored": 0.0951,
+      "s": 111.3,
+      "same": 0.986,
+      "shadow": 0.0025,
+      "shown_px": 1344,
+      "up": "Real-ESRGAN (diff 2.4 / detail 5.2)",
+      "why": "much more than the live photo shows (9.5% of the new cut-out)"
+     },
+     {
+      "added": 0.0,
+      "ar": 0.002,
+      "corr": 0.973,
+      "fid": 3.79,
+      "inside": [
+       0.962,
+       0.981
+      ],
+      "lost": 0.0147,
+      "model": "birefnet-hr-matting",
+      "real_px": 1063,
+      "restored": 0.0952,
+      "s": 109.4,
+      "same": 0.986,
+      "shadow": 0.0019,
+      "shown_px": 1344,
+      "up": "Real-ESRGAN (diff 2.4 / detail 5.2)",
+      "why": "much more than the live photo shows (9.5% of the new cut-out)"
+     }
+    ],
+    "why": "much more than the live photo shows (9.5% of the new cut-out)"
+   },
+   "v": 2
+  },
+  "7717276545-e0.webp": {
+   "at": "2026-11-23T09:16:46+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": -0.001,
+    "corr": 0.998,
+    "fid": 1.99,
+    "inside": [
+     0.997,
+     0.992
+    ],
+    "lost": 0.0034,
+    "restored": 0.0,
+    "same": 0.998,
+    "shadow": 0.0
+   },
+   "file": "img/white/store/7717276545-e0.webp",
+   "group": "a",
+   "id": "7717276545",
+   "kb": 32,
+   "match": {
+    "colour": 1.67,
+    "looked": 1,
+    "ncc": 0.9906,
+    "url": "https://www.juniorcouture.com/dw/image/v2/BGHV_PRD/on/demandware.static/-/Sites-master-catalog/default/dw60aeda67/images/BUR-8108468/BUR-8108468-A1464-1.jpg?sw=1500&sh=1500"
+   },
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 814,
+    "shown_px": 1376,
+    "up": "Real-ESRGAN (diff 1.9 / detail 3.2)"
+   },
+   "ok": true,
+   "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7717276545-e0.webp",
+   "s": 105,
+   "source": "store",
+   "src_size": [
+    2400,
+    2400
+   ],
+   "src_url": "https://www.juniorcouture.com/dw/image/v2/BGHV_PRD/on/demandware.static/-/Sites-master-catalog/default/dw60aeda67/images/BUR-8108468/BUR-8108468-A1464-1.jpg?sw=2400&q=95",
+   "store": {
+    "checks": {
+     "added": 0.0,
+     "ar": -0.001,
+     "corr": 0.998,
+     "fid": 1.99,
+     "inside": [
+      0.997,
+      0.992
+     ],
+     "lost": 0.0034,
+     "restored": 0.0,
+     "same": 0.998,
+     "shadow": 0.0
+    },
+    "model": "birefnet-general",
+    "notes": {
+     "real_px": 814,
+     "shown_px": 1376,
+     "up": "Real-ESRGAN (diff 1.9 / detail 3.2)"
+    },
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": -0.001,
+      "corr": 0.998,
+      "fid": 1.99,
+      "inside": [
+       0.997,
+       0.992
+      ],
+      "lost": 0.0034,
+      "model": "birefnet-general",
+      "real_px": 814,
+      "restored": 0.0,
+      "s": 40.9,
+      "same": 0.998,
+      "shadow": 0.0,
+      "shown_px": 1376,
+      "up": "Real-ESRGAN (diff 1.9 / detail 3.2)"
+     }
+    ]
+   },
+   "v": 2
+  },
+  "7731051455-0.webp": {
+   "at": "2026-11-23T09:41:41+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": -0.065,
+    "corr": 0.912,
+    "fid": 0.61,
+    "inside": [
+     0.995,
+     0.983
+    ],
+    "lost": 0.016,
+    "restored": 0.0122,
+    "same": 0.992,
+    "shadow": 0.0063
+   },
+   "file": "img/white/store/7731051455-0.webp",
+   "group": "b",
+   "id": "7731051455",
+   "kb": 157,
+   "match": {
+    "colour": 3.77,
+    "looked": 7,
+    "ncc": 0.9968,
+    "url": "https://cdn.shopify.com/s/files/1/0318/2932/8008/files/Zinedine_Zidane_10_France_Adidas_1998_World_Cup_Away_Jersey_-_Vintage_Retro_Les_Bleus_Kit_MENS_back_f9880167-09ee-4934-bf83-577c04c6f562.png?v=1771051154"
+   },
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 1635,
+    "shown_px": 1376,
+    "up": "downscale"
+   },
+   "ok": true,
+   "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7731051455-0.webp",
+   "s": 52,
+   "source": "store",
+   "src_size": [
+    2000,
+    2000
+   ],
+   "src_url": "https://cdn.shopify.com/s/files/1/0318/2932/8008/files/Zinedine_Zidane_10_France_Adidas_1998_World_Cup_Away_Jersey_-_Vintage_Retro_Les_Bleus_Kit_MENS_back_f9880167-09ee-4934-bf83-577c04c6f562.png?v=1771051154",
+   "store": {
+    "checks": {
+     "added": 0.0,
+     "ar": -0.065,
+     "corr": 0.912,
+     "fid": 0.61,
+     "inside": [
+      0.995,
+      0.983
+     ],
+     "lost": 0.016,
+     "restored": 0.0122,
+     "same": 0.992,
+     "shadow": 0.0063
+    },
+    "model": "birefnet-general",
+    "notes": {
+     "real_px": 1635,
+     "shown_px": 1376,
+     "up": "downscale"
+    },
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": -0.065,
+      "corr": 0.912,
+      "fid": 0.61,
+      "inside": [
+       0.995,
+       0.983
+      ],
+      "lost": 0.016,
+      "model": "birefnet-general",
+      "real_px": 1635,
+      "restored": 0.0122,
+      "s": 24.3,
+      "same": 0.992,
+      "shadow": 0.0063,
+      "shown_px": 1376,
+      "up": "downscale"
+     }
+    ]
+   },
+   "v": 2
+  },
+  "7736026386-d0.webp": {
+   "at": "2026-11-23T09:38:31+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": 0.0,
+    "corr": 1.0,
+    "fid": 0.99,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0,
+    "restored": 0.0,
+    "same": 1.0,
+    "shadow": 0.0
+   },
+   "file": "img/white/store/7736026386-d0.webp",
+   "group": "a",
+   "id": "7736026386",
+   "kb": 70,
+   "live": {
+    "checks": {
+     "added": 0.0,
+     "ar": 0.0,
+     "corr": 1.0,
+     "fid": 0.99,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0,
+     "restored": 0.0,
+     "same": 1.0,
+     "shadow": 0.0
+    },
+    "model": "birefnet-general",
+    "notes": {
+     "real_px": 777,
+     "shown_px": 1312,
+     "up": "lanczos (Real-ESRGAN rejected: diff 2.9 / detail 8.8)"
+    },
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": 0.0,
+      "corr": 1.0,
+      "fid": 0.99,
+      "inside": [
+       1.0,
+       1.0
+      ],
+      "lost": 0.0,
+      "model": "birefnet-general",
+      "real_px": 777,
+      "restored": 0.0,
+      "s": 24.2,
+      "same": 1.0,
+      "shadow": 0.0,
+      "shown_px": 1312,
+      "up": "lanczos (Real-ESRGAN rejected: diff 2.9 / detail 8.8)"
+     }
+    ]
+   },
+   "match": null,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 777,
+    "shown_px": 1312,
+    "up": "lanczos (Real-ESRGAN rejected: diff 2.9 / detail 8.8)"
+   },
+   "ok": true,
+   "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736026386-d0.webp",
+   "s": 48,
+   "source": "live",
+   "v": 2
+  },
+  "7736071876-d0.webp": {
+   "at": "2026-11-23T09:35:36+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": 0.029,
+    "corr": 0.962,
+    "fid": 2.72,
+    "inside": [
+     0.999,
+     0.997
+    ],
+    "lost": 0.0003,
+    "restored": 0.0094,
+    "same": 0.996,
+    "shadow": 0.0
+   },
+   "file": "img/white/store/7736071876-d0.webp",
+   "group": "a",
+   "id": "7736071876",
+   "kb": 48,
+   "live": {
+    "checks": {
+     "added": 0.0,
+     "ar": 0.029,
+     "corr": 0.962,
+     "fid": 2.72,
+     "inside": [
+      0.999,
+      0.997
+     ],
+     "lost": 0.0003,
+     "restored": 0.0094,
+     "same": 0.996,
+     "shadow": 0.0
+    },
+    "model": "birefnet-general",
+    "notes": {
+     "real_px": 856,
+     "shown_px": 1312,
+     "up": "Real-ESRGAN (diff 2.6 / detail 6.8)"
+    },
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": 0.029,
+      "corr": 0.962,
+      "fid": 2.72,
+      "inside": [
+       0.999,
+       0.997
+      ],
+      "lost": 0.0003,
+      "model": "birefnet-general",
+      "real_px": 856,
+      "restored": 0.0094,
+      "s": 24.8,
+      "same": 0.996,
+      "shadow": 0.0,
+      "shown_px": 1312,
+      "up": "Real-ESRGAN (diff 2.6 / detail 6.8)"
+     }
+    ]
+   },
+   "match": {
+    "colour": 5.2,
+    "looked": 1,
+    "ncc": 0.894,
+    "url": "https://img01.ztat.net/article/spp-media-p1/9af323dec23647f2babe52f6b2d03ccc/d78675d1054541eca4dc52d54a2afe9c.jpg?imwidth=1800&filter=packshot"
+   },
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 856,
+    "shown_px": 1312,
+    "up": "Real-ESRGAN (diff 2.6 / detail 6.8)"
+   },
+   "ok": true,
+   "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736071876-d0.webp",
+   "s": 71,
+   "source": "live",
+   "v": 2
+  },
+  "7736077748-d0.webp": {
+   "at": "2026-11-23T09:37:42+00:00",
+   "group": "a",
+   "id": "7736077748",
+   "live": {
+    "hr": "skipped: the fast cut-outs failed for a reason a finer matte does not change",
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": 0.088,
+      "clean": [
+       "2 specks out"
+      ],
+      "corr": 0.821,
+      "fid": 3.96,
+      "inside": [
+       0.996,
+       0.993
+      ],
+      "lost": 0.0002,
+      "model": "birefnet-general",
+      "real_px": 805,
+      "restored": 0.0,
+      "s": 24.2,
+      "same": 1.0,
+      "shadow": 0.0076,
+      "shown_px": 1312,
+      "up": "Real-ESRGAN (diff 3.1 / detail 6.1)",
+      "why": "shape changed (aspect +0.09): a part was lost or added"
+     },
+     {
+      "added": 0.0,
+      "ar": 0.088,
+      "clean": [
+       "1 gaps filled"
+      ],
+      "corr": 0.818,
+      "fallback": true,
+      "fid": 3.93,
+      "inside": [
+       0.996,
+       0.992
+      ],
+      "lost": 0.0017,
+      "model": "isnet-general-use",
+      "real_px": 804,
+      "restored": 0.0,
+      "s": 1.8,
+      "same": 0.998,
+      "shadow": 0.0077,
+      "shown_px": 1312,
+      "up": "Real-ESRGAN (diff 3.1 / detail 6.2)",
+      "why": "shape changed (aspect +0.09): a part was lost or added"
+     }
+    ],
+    "why": "shape changed (aspect +0.09): a part was lost or added"
+   },
+   "match": {
+    "colour": 4.66,
+    "looked": 7,
+    "ncc": 0.9527,
+    "url": "https://vintagefootball.shop/wp-content/uploads/2022/08/big_5_e3ea54db-212e-495d-bd11-460a8e2a83f8.jpg"
+   },
+   "ok": false,
+   "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7736077748-d0.webp",
+   "s": 126,
+   "src_size": [
+    800,
+    800
+   ],
+   "src_url": "https://vintagefootball.shop/wp-content/uploads/2022/08/big_5_e3ea54db-212e-495d-bd11-460a8e2a83f8.jpg",
+   "store": {
+    "hr": "skipped: the fast cut-outs failed for a reason a finer matte does not change",
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": 0.089,
+      "clean": [
+       "2 specks out"
+      ],
+      "corr": 0.827,
+      "fid": 3.82,
+      "inside": [
+       0.99,
+       0.977
+      ],
+      "lost": 0.0052,
+      "model": "birefnet-general",
+      "real_px": 699,
+      "restored": 0.0,
+      "s": 24.4,
+      "same": 0.999,
+      "shadow": 0.0026,
+      "shown_px": 1312,
+      "up": "Real-ESRGAN (diff 2.9 / detail 5.6)",
+      "why": "shape changed (aspect +0.09): a part was lost or added"
+     },
+     {
+      "added": 0.0,
+      "ar": 0.089,
+      "clean": [
+       "1 gaps filled"
+      ],
+      "corr": 0.825,
+      "fallback": true,
+      "fid": 3.83,
+      "inside": [
+       0.99,
+       0.977
+      ],
+      "lost": 0.0065,
+      "model": "isnet-general-use",
+      "real_px": 701,
+      "restored": 0.0,
+      "s": 1.7,
+      "same": 0.999,
+      "shadow": 0.0016,
+      "shown_px": 1312,
+      "up": "Real-ESRGAN (diff 2.9 / detail 5.8)",
+      "why": "shape changed (aspect +0.09): a part was lost or added"
+     }
+    ],
+    "why": "shape changed (aspect +0.09): a part was lost or added"
+   },
+   "v": 2,
+   "why": "store copy: shape changed (aspect +0.09): a part was lost or added; live file: shape changed (aspect +0.09): a part was lost or added"
+  },
+  "7737252104-0.webp": {
+   "at": "2026-11-23T09:40:48+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": -0.003,
+    "corr": 0.992,
+    "fid": 3.31,
+    "inside": [
+     0.99,
+     0.975
+    ],
+    "lost": 0.012,
+    "restored": 0.0059,
+    "same": 0.992,
+    "shadow": 0.0
+   },
+   "file": "img/white/store/7737252104-0.webp",
+   "group": "a",
+   "id": "7737252104",
+   "kb": 60,
+   "match": {
+    "colour": 3.19,
+    "looked": 12,
+    "ncc": 0.9906,
+    "url": "https://img-va.myshopline.com/image/store/1786117415972/292c80d647a3d02594176c062a6e9806_900x.png?h=1080&q=70&w=1080"
+   },
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 540,
+    "shown_px": 1312,
+    "up": "Real-ESRGAN (diff 2.8 / detail 6.5)"
+   },
+   "ok": true,
+   "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7737252104-0.webp",
+   "s": 61,
+   "source": "store",
+   "src_size": [
+    900,
+    900
+   ],
+   "src_url": "https://img-va.myshopline.com/image/store/1786117415972/292c80d647a3d02594176c062a6e9806_900x.png?h=1080&q=70&w=1080",
+   "store": {
+    "checks": {
+     "added": 0.0,
+     "ar": -0.003,
+     "corr": 0.992,
+     "fid": 3.31,
+     "inside": [
+      0.99,
+      0.975
+     ],
+     "lost": 0.012,
+     "restored": 0.0059,
+     "same": 0.992,
+     "shadow": 0.0
+    },
+    "model": "birefnet-general",
+    "notes": {
+     "real_px": 540,
+     "shown_px": 1312,
+     "up": "Real-ESRGAN (diff 2.8 / detail 6.5)"
+    },
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": -0.003,
+      "corr": 0.992,
+      "fid": 3.31,
+      "inside": [
+       0.99,
+       0.975
+      ],
+      "lost": 0.012,
+      "model": "birefnet-general",
+      "real_px": 540,
+      "restored": 0.0059,
+      "s": 24.2,
+      "same": 0.992,
+      "shadow": 0.0,
+      "shown_px": 1312,
+      "up": "Real-ESRGAN (diff 2.8 / detail 6.5)"
+     }
+    ]
+   },
+   "v": 2
+  },
+  "7740976390-e0.webp": {
+   "at": "2026-11-23T09:39:46+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": 0.001,
+    "corr": 0.987,
+    "fid": 0.46,
+    "inside": [
+     0.99,
+     0.985
+    ],
+    "lost": 0.0056,
+    "restored": 0.0003,
+    "same": 0.987,
+    "shadow": 0.0011
+   },
+   "file": "img/white/store/7740976390-e0.webp",
+   "group": "a",
+   "id": "7740976390",
+   "kb": 135,
+   "match": {
+    "colour": 4.07,
+    "looked": 1,
+    "ncc": 0.9834,
+    "url": "https://www.subsidesports.com/media/catalog/product/cache/7eb369f27775f2db92648609527c34e5/2/c/2cfbc3811fa7ff4a15ca1f6b2133f21e2e4d90d4d3c71cf93972ea2af501b7cc.jpeg"
+   },
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 1457,
+    "shown_px": 1312,
+    "up": "downscale"
+   },
+   "ok": true,
+   "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/store/7740976390-e0.webp",
+   "s": 75,
+   "source": "store",
+   "src_size": [
+    2000,
+    2000
+   ],
+   "src_url": "https://www.subsidesports.com/media/catalog/product/cache/7eb369f27775f2db92648609527c34e5/2/c/2cfbc3811fa7ff4a15ca1f6b2133f21e2e4d90d4d3c71cf93972ea2af501b7cc.jpeg",
+   "store": {
+    "checks": {
+     "added": 0.0,
+     "ar": 0.001,
+     "corr": 0.987,
+     "fid": 0.46,
+     "inside": [
+      0.99,
+      0.985
+     ],
+     "lost": 0.0056,
+     "restored": 0.0003,
+     "same": 0.987,
+     "shadow": 0.0011
+    },
+    "model": "birefnet-general",
+    "notes": {
+     "real_px": 1457,
+     "shown_px": 1312,
+     "up": "downscale"
+    },
+    "tried": [
+     {
+      "added": 0.0,
+      "ar": 0.001,
+      "corr": 0.987,
+      "fid": 0.46,
+      "inside": [
+       0.99,
+       0.985
+      ],
+      "lost": 0.0056,
+      "model": "birefnet-general",
+      "real_px": 1457,
+      "restored": 0.0003,
+      "s": 23.9,
+      "same": 0.987,
+      "shadow": 0.0011,
+      "shown_px": 1312,
+      "up": "downscale"
+     }
+    ]
+   },
+   "v": 2
+  }
+ }
+}
