@@ -102,8 +102,9 @@ export const gone = p => GONE.get(p.id) || null;               // "dead" | "sold
 // answer). Counts in the titles and copy of the marketplace, QC and agent spreadsheets used P and said "13,770 Weidian
 // finds" where the app shows about 10,000. functions/_middleware.js hands the hidden set over (setHidden) before it
 // renders those pages; without it (a failed read) shown() only leaves out gone listings.
-let HIDDEN = null;
-export const setHidden = s => { HIDDEN = s && s.size ? s : null; };
+let HIDDEN = null, HIDDEN_VER = 0;
+export const setHidden = s => { const n = s && s.size ? s : null; if (n !== HIDDEN) { HIDDEN = n; HIDDEN_VER++; } };
+export const hiddenVer = () => HIDDEN_VER;   // moves when another hidden set comes in: caches built on shown() key on it
 export const shown = p => GONE.get(p.id) !== "dead" && !(HIDDEN && HIDDEN.has(String(p.id)));
 export const LINKS_CHECKED = CHECKED;                          // date of that link check (YYYY-MM-DD)
 export const GONE_COUNTS = { dead: DEAD.length, sold: SOLD_OUT.length };   // what that check found, for page copy
