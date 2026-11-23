@@ -7,8 +7,8 @@
    2. No chart: the same estimate as /tools/size-estimator (functions/_lib/tools9.js sizeFor), one size up for Chinese
       sizing, matched to the listing's own size names.
    window.pcSize.mount(el, {id, cat, g}) fills el. Clothes and shoes only.
-   23 Nov 2026 (owner: "a size chart and a recommended size for every visitor"): always open, the size up front once height
-   and weight are known, and the seller's chart as a table with that size highlighted (was a folded "Find my size" row). */
+   23 Nov 2026 (owner): the size step at sign-up (ask) and a subtle "We recommend size L" note on clothes (mount); see below.
+   The note opens to the reason and the seller's chart. Replaces the "Find my size" row. */
 (function () {
   "use strict";
   var KEY = "pc.body", CATS = { Tops: "top", Outerwear: "jacket", Pants: "pants", Shorts: "pants", Shoes: "shoes" };
@@ -39,14 +39,16 @@
     var flat = d && d.m === "flat";
     if (kind === "shoes" && !b.eu) return { size: "", chart: false, ask: true, why: "Add your usual EU shoe size above. Height alone is not enough for shoes." };
     if (rows.length) {
-      var hw = rows.filter(function (r) { return r[1].h0 && r[1].w0; });
+      // the seller's recommended height and/or weight per size (23 Nov 2026: weight-only charts count too; many give only weight)
+      var hw = rows.filter(function (r) { return r[1].h0 || r[1].w0; });
+      if (hw.length >= 2 && hw.filter(function (r) { return r[1].w0; }).length < hw.length && hw.filter(function (r) { return r[1].h0; }).length < hw.length) hw = [];
       if (hw.length >= 2 && kind !== "shoes") {
         var best = null, bs = 1e9, sc = [];
-        hw.forEach(function (r, i) { var m = r[1], s = dist(b.h, m.h0, m.h1 || m.h0) / 3 + dist(b.w, m.w0, m.w1 || m.w0) / 2; sc.push(s); if (s < bs - 0.01) { bs = s; best = i; } });
+        hw.forEach(function (r, i) { var m = r[1], s = (m.h0 ? dist(b.h, m.h0, m.h1 || m.h0) / 3 : 0) + (m.w0 ? dist(b.w, m.w0, m.w1 || m.w0) / 2 : 0); sc.push(s); if (s < bs - 0.01) { bs = s; best = i; } });
         var near = best + 1 < hw.length && sc[best + 1] - bs < 0.6 ? hw[best + 1][0] : "";
         var j = Math.max(0, Math.min(hw.length - 1, best + (b.fit === "l" ? 1 : 0)));
         var m = hw[best][1];
-        return { size: hw[j][0], chart: true, why: "The seller's chart suggests " + esc(hw[best][0]) + " for " + Math.round(m.h0) + " to " + Math.round(m.h1 || m.h0) + " cm and " + Math.round(m.w0) + " to " + Math.round(m.w1 || m.w0) + " kg." + (j !== best ? " One size up for a loose fit." : near && b.fit !== "l" ? " You're between " + esc(hw[best][0]) + " and " + esc(near) + ": take " + esc(near) + " if you like more room." : "") };
+        return { size: hw[j][0], chart: true, why: "The seller's chart suggests " + esc(hw[best][0]) + " for " + (m.h0 ? Math.round(m.h0) + " to " + Math.round(m.h1 || m.h0) + " cm" : "") + (m.h0 && m.w0 ? " and " : "") + (m.w0 ? Math.round(m.w0) + " to " + Math.round(m.w1 || m.w0) + " kg" : "") + "." + (j !== best ? " One size up for a loose fit." : near && b.fit !== "l" ? " You're between " + esc(hw[best][0]) + " and " + esc(near) + ": take " + esc(near) + " if you like more room." : "") };
       }
       if (kind === "shoes" && b.eu) {
         var same = rows.filter(function (r) { return Math.abs(parseFloat(r[0]) - b.eu) < 0.01 && r[1].ft; })[0];
@@ -94,34 +96,47 @@
     return { size: label, chart: false, why: "You'd be " + L[x] + " in EU/US sizes. Chinese sizes run about one size small, so go one up." };
   }
 
-  /* The card (owner, 23 Nov 2026: "a size chart and a recommended size for every visitor based on weight and height").
-     Always open under the buy button. First time: height and weight right there. After that: "Recommended: L" on every
-     find, the fit, and the seller's size chart as a table with that size highlighted. */
-  var CSS = ".pcsz{min-width:0;max-width:100%;box-sizing:border-box;margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink)}" +
-    ".pcsz-hd{display:flex;align-items:center;gap:10px;min-height:32px}.pcsz-hd .ic{width:28px;height:28px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;flex:none}" +
-    ".pcsz-t{margin:0;font-size:15px;font-weight:600;line-height:1.2}.pcsz-edit{margin:-6px -4px -6px auto;min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}" +
-    ".pcsz-sub{margin:6px 0 0;font-size:13px;line-height:1.45;color:var(--muted)}" +
-    ".pcsz-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:12px}.pcsz-g label{min-width:0;display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}" +
-    ".pcsz-in{min-width:0;display:flex;align-items:center;gap:4px;box-sizing:border-box;height:44px;padding:0 12px;border:1px solid var(--line-2,var(--line));border-radius:12px;background:var(--surface)}" +
-    ".pcsz-in:focus-within{border-color:var(--ink)}.pcsz-in input{flex:1;min-width:0;width:100%;padding:0;border:0;background:none;color:var(--ink);font:inherit;font-size:16px;outline:none}.pcsz-in span{color:var(--muted);font-size:13px}" +
-    ".pcsz-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}" +
-    ".pcsz-seg{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--surface-2)}.pcsz-seg button{min-height:38px;padding:0 14px;border:0;border-radius:999px;background:none;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}" +
-    ".pcsz-seg button.on{background:var(--fill,var(--ink));color:var(--fill-ink,#fff)}.pcsz-u{min-height:44px;margin-left:auto;padding:0 2px;border:0;background:none;color:var(--muted);font:inherit;font-size:12px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}" +
-    ".pcsz-res{margin-top:12px;padding:14px;border-radius:12px;background:var(--surface-2)}.pcsz-rec{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}" +
-    ".pcsz-rl{font-size:13px;color:var(--muted)}.pcsz-rec b{font-size:26px;line-height:1.1}.pcsz-for{font-size:13px;color:var(--muted)}" +
-    ".pcsz-why{margin:6px 0 0;font-size:13px;line-height:1.45}.pcsz-src{margin:6px 0 0;font-size:12px;line-height:1.45;color:var(--muted)}" +
-    ".pcsz-ch{margin-top:14px}.pcsz-chh{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px;font-size:14px;font-weight:600}.pcsz-chh span{font-size:12px;font-weight:400;color:var(--muted)}" +
-    ".pcsz-tw{max-width:100%;margin-top:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px}" +
-    ".pcsz table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}.pcsz th,.pcsz td{padding:9px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line);color:var(--ink)}" +
-    ".pcsz thead th{font-size:12px;font-weight:500;color:var(--muted);background:var(--surface-2)}.pcsz tbody tr:last-child>*{border-bottom:0}.pcsz tbody th{font-weight:600}" +
-    ".pcsz tr.on>*{background:color-mix(in srgb,var(--ink) 9%,transparent)}.pcsz tr.on th small{margin-left:6px;font-size:11px;font-weight:500;color:var(--muted)}" +
-    ".pcsz-sold{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:var(--muted)}" +
-    ".pcsz-sold i{font-style:normal;min-width:36px;height:32px;box-sizing:border-box;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2,var(--line));border-radius:8px;font-size:13px;color:var(--ink)}" +
-    ".pcsz-sold i.on{background:var(--fill,var(--ink));color:var(--fill-ink,#fff);border-color:transparent}";
+  /* 23 Nov 2026 (owner: "a step in the signup where we ask for weight and height once, and then a subtle 'we recommend
+     size X' on every product"): ask() is that step (height, weight, fit; app: right after sign-up, and once for members who
+     signed up before), mount() the one-line note on a find. The size stays on the device ("pc.body"); "pc.size.asked" means
+     the step was shown. Clothes only: height and weight can't size shoes. Signed out, the note invites a sign-up. */
+  var AUTH_KEY = "sb-uptpghuduqjqmrxwatbm-auth-token";
+  function member() {
+    try { if (typeof ME !== "undefined" && ME) return true; } catch (e) {}
+    try { var s = JSON.parse(localStorage.getItem(AUTH_KEY) || "null"); return !!(s && (s.user || (s.currentSession && s.currentSession.user))); } catch (e) { return false; }
+  }
+  function valid(b) { return !!b && b.h >= 130 && b.h <= 220 && b.w >= 35 && b.w <= 200; }
+  function bodyText(b) {
+    var imp = b.u === "i", fit = (FIT[b.fit] || FIT.r).t.toLowerCase();
+    var h = imp ? Math.floor(b.h / 2.54 / 12) + " ft " + Math.round((b.h / 2.54) % 12) + " in" : Math.round(b.h) + " cm";
+    return h + ", " + (imp ? Math.round(b.w / 0.4536) + " lb" : Math.round(b.w) + " kg") + ", " + fit + " fit";
+  }
   var RULER = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4z"/><path d="m7.5 10.5 2 2M10.5 7.5l2 2M13.5 4.5l2 2M4.5 13.5l2 2"/></svg>';
-  // chart columns in this order; ranges (height, weight) show as "170-180"
-  var COLS = [["h", "Height"], ["w", "Weight"], ["ch", "Chest"], ["sh", "Shoulder"], ["le", "Length"], ["wa", "Waist"], ["hi", "Hip"], ["in", "Inseam"], ["ft", "Foot"]];
-  function num(x, imp, kg) { if (x == null || x === "") return ""; var v = imp ? (kg ? x / 0.4536 : x / 2.54) : x; v = Math.round(v * 10) / 10; return String(v).replace(/\.0$/, ""); }
+  var CHEV = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  var CSS = ".pcrec-w{margin:8px 0 -4px}.pcrec{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:-6px 0;padding:0;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}" +
+    ".pcrec b{color:var(--ink);font-weight:600}.pcrec svg{flex:none}.pcrec[aria-expanded=true] .pcrec-c{transform:rotate(180deg)}.pcrec-ask span{text-decoration:underline;text-underline-offset:3px}" +
+    "@media (hover:hover){.pcrec:hover{color:var(--ink)}}.pcrec:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:6px}" +
+    ".pcrec-d{margin:8px 0 4px;padding:12px 14px;border-radius:12px;background:var(--surface-2);color:var(--ink);font-size:13px;line-height:1.45}.pcrec-d p{margin:0 0 6px}.pcrec-s{color:var(--muted);font-size:12px}" +
+    ".pcrec-e{min-height:40px;margin-top:2px;padding:0;border:0;background:none;color:var(--ink);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}" +
+    ".pcrec-d .pcsz-tw{max-width:100%;margin:8px 0 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;background:var(--surface)}" +
+    ".pcrec-d table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}.pcrec-d th,.pcrec-d td{padding:7px 9px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line)}" +
+    ".pcrec-d thead th{font-weight:500;color:var(--muted)}.pcrec-d tbody tr:last-child>*{border-bottom:0}.pcrec-d tr.on>*{background:color-mix(in srgb,var(--ink) 9%,transparent);font-weight:600}" +
+    ".pcsz-ov{position:fixed;inset:0;z-index:96;display:grid;place-items:center;padding:20px;overflow-y:auto;background:rgba(10,10,10,.55);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}" +
+    ".pcsz-m{box-sizing:border-box;width:min(400px,calc(100vw - 32px));padding:26px 22px 18px;border-radius:22px;background:var(--surface,#fff);color:var(--ink,#111);box-shadow:0 30px 80px rgba(0,0,0,.35)}" +
+    ".pcsz-m h2{margin:0;font-size:20px;line-height:1.2}.pcsz-sub{margin:8px 0 0;font-size:14px;line-height:1.45;color:var(--muted)}" +
+    ".pcsz-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:16px}.pcsz-g label{min-width:0;display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}" +
+    ".pcsz-in{min-width:0;display:flex;align-items:center;gap:4px;box-sizing:border-box;height:46px;padding:0 12px;border:1px solid var(--line-2,var(--line));border-radius:12px;background:var(--surface)}" +
+    ".pcsz-in:focus-within{border-color:var(--ink)}.pcsz-in input{flex:1;min-width:0;width:100%;padding:0;border:0;background:none;color:var(--ink);font:inherit;font-size:16px;outline:none}.pcsz-in span{color:var(--muted);font-size:13px}" +
+    ".pcsz-fl{margin:14px 0 6px;font-size:12px;color:var(--muted)}.pcsz-seg{display:flex;gap:2px;padding:3px;border-radius:999px;background:var(--surface-2)}" +
+    ".pcsz-seg button{flex:1;min-height:40px;padding:0 10px;border:0;border-radius:999px;background:none;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}.pcsz-seg button.on{background:var(--fill,var(--ink));color:var(--fill-ink,#fff)}" +
+    ".pcsz-u{min-height:40px;margin-top:4px;padding:0;border:0;background:none;color:var(--muted);font:inherit;font-size:12px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}" +
+    ".pcsz-save{display:block;width:100%;height:48px;margin-top:10px;border:0;border-radius:999px;background:var(--fill,var(--ink));color:var(--fill-ink,#fff);font:inherit;font-size:15px;font-weight:600;cursor:pointer}.pcsz-save:disabled{opacity:.4;cursor:default}" +
+    ".pcsz-skip{display:block;margin:4px auto 0;min-height:44px;padding:0 12px;border:0;background:none;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}@media (hover:hover){.pcsz-skip:hover{color:var(--ink)}}" +
+    ".pcsz-note{margin:2px 0 0;font-size:12px;color:var(--muted);text-align:center}";
+  function css() { if (!document.getElementById("pcsz-css")) { var st = document.createElement("style"); st.id = "pcsz-css"; st.textContent = CSS; document.head.appendChild(st); } }
+  // the seller's chart, shown when the note is opened; ranges (height, weight) as "170-180"
+  var COLS = [["h", "Height"], ["w", "Weight"], ["ch", "Chest"], ["sh", "Shoulder"], ["le", "Length"], ["wa", "Waist"], ["hi", "Hip"], ["in", "Inseam"]];
+  function num(x, imp, kg) { var v = imp ? (kg ? x / 0.4536 : x / 2.54) : x; v = Math.round(v * 10) / 10; return String(v).replace(/\.0$/, ""); }
   function cell(m, k, imp) {
     if (k === "h") return m.h0 ? num(m.h0, imp) + (m.h1 && m.h1 !== m.h0 ? "-" + num(m.h1, imp) : "") : "";
     if (k === "w") return m.w0 ? num(m.w0, imp, 1) + (m.w1 && m.w1 !== m.w0 ? "-" + num(m.w1, imp, 1) : "") : "";
@@ -132,79 +147,99 @@
     var cols = COLS.filter(function (c) { return rows.some(function (r) { return cell(r[1], c[0], imp) !== ""; }); });
     if (!cols.length) return "";
     var mode = d.m === "flat" ? ", measured flat" : d.m === "round" ? ", measured all the way round" : d.m === "body" ? ", body measurements" : "";
-    var units = imp ? "inches" + (cols.some(function (c) { return c[0] === "w"; }) ? " and lb" : "") : "cm" + (cols.some(function (c) { return c[0] === "w"; }) ? " and kg" : "");
     var mine = size ? norm(size) : "";
-    return '<div class="pcsz-ch"><div class="pcsz-chh">Size chart<span>From the seller, in ' + units + mode + '</span></div><div class="pcsz-tw"><table><thead><tr><th scope="col">Size</th>' +
-      cols.map(function (c) { return '<th scope="col">' + c[1] + "</th>"; }).join("") + "</tr></thead><tbody>" +
-      rows.map(function (r) { var on = mine && norm(r[0]) === mine; return "<tr" + (on ? ' class="on"' : "") + '><th scope="row">' + esc(r[0]) + (on ? "<small>Yours</small>" : "") + "</th>" +
-        cols.map(function (c) { return "<td>" + (cell(r[1], c[0], imp) || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div></div>";
+    return '<p class="pcrec-s">The seller\'s size chart, in ' + (imp ? "inches" : "cm") + (cols.some(function (c) { return c[0] === "w"; }) ? (imp ? " and lb" : " and kg") : "") + mode + ".</p>" +
+      '<div class="pcsz-tw"><table><thead><tr><th scope="col">Size</th>' + cols.map(function (c) { return '<th scope="col">' + c[1] + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      rows.map(function (r) { return "<tr" + (mine && norm(r[0]) === mine ? ' class="on"' : "") + '><th scope="row">' + esc(r[0]) + "</th>" + cols.map(function (c) { return "<td>" + cell(r[1], c[0], imp) + "</td>"; }).join("") + "</tr>"; }).join("") +
+      "</tbody></table></div>";
   }
-  function soldHtml(d, size) {
-    var sold = ((d && d.s) || []).filter(function (s) { return s && s.length <= 8; }); if (!sold.length || (d && d.c && d.c.length >= 2)) return "";
-    var mine = size ? norm(size) : "";
-    return '<div class="pcsz-sold"><span>Sizes this listing sells:</span>' + sold.slice(0, 16).map(function (s) { return "<i" + (mine && norm(s) === mine ? ' class="on"' : "") + ">" + esc(s) + "</i>"; }).join("") + "</div>";
+  function signUp() {
+    if (typeof openAuth === "function") { try { openAuth(); return; } catch (e) {} }
+    location.href = "/?signin=1";
   }
 
+  // the one-line note on a find
   function mount(el, p) {
-    var kind = CATS[p && p.cat]; if (!el || !kind || el.getAttribute("data-pcsz")) return; el.setAttribute("data-pcsz", "1");
-    if (!document.getElementById("pcsz-css")) { var st = document.createElement("style"); st.id = "pcsz-css"; st.textContent = CSS; document.head.appendChild(st); }
-    var b = store(), imp = b.u === "i", fit = b.fit || "r", data = null, loaded = false, shoe = kind === "shoes";
-    var ok = function () { return b.h >= 130 && b.h <= 220 && b.w >= 35 && b.w <= 200 && (!shoe || b.eu >= 33); };
-    var editing = !ok();
-    el.className = "pcsz";
-    el.innerHTML = '<div class="pcsz-hd"><span class="ic">' + RULER + '</span><h3 class="pcsz-t">Your size</h3><button type="button" class="pcsz-edit" hidden>Edit</button></div>' +
-      '<div class="pcsz-f"></div><div class="pcsz-out" aria-live="polite"></div><div class="pcsz-c"></div>';
-    var edit = el.querySelector(".pcsz-edit"), fbox = el.querySelector(".pcsz-f"), out = el.querySelector(".pcsz-out"), cbox = el.querySelector(".pcsz-c");
-    function bodyText() {
-      var h = imp ? Math.floor(b.h / 2.54 / 12) + " ft " + Math.round((b.h / 2.54) % 12) + " in" : Math.round(b.h) + " cm";
-      var w = imp ? Math.round(b.w / 0.4536) + " lb" : Math.round(b.w) + " kg";
-      return "For " + h + ", " + w + (shoe && b.eu ? ", EU " + b.eu : "") + ", " + FIT[fit].t.toLowerCase() + " fit";
+    var kind = CATS[p && p.cat]; if (!el || !kind || kind === "shoes" || el.getAttribute("data-pcsz")) return; el.setAttribute("data-pcsz", "1");
+    css(); el.className = "pcrec-w";
+    var data = null, loaded = false, open = false;
+    function render() {
+      var b = store();
+      if (!valid(b)) {
+        var signed = member();
+        el.innerHTML = '<button type="button" class="pcrec pcrec-ask">' + RULER + "<span>" + (signed ? "Get your size on every find" : "Sign up to see your size") + "</span></button>";
+        el.firstChild.addEventListener("click", function () { if (member()) ask(); else signUp(); });
+        return;
+      }
+      if (!loaded) { el.innerHTML = ""; return; }
+      var r = pick(kind, { h: b.h, w: b.w, fit: b.fit || "r", eu: b.eu }, data);
+      if (!r || r.ask || !r.size) { el.innerHTML = ""; return; }
+      el.innerHTML = '<button type="button" class="pcrec" aria-expanded="' + open + '">' + RULER + "<span>We recommend size <b>" + esc(r.size) + '</b></span><span class="pcrec-c">' + CHEV + "</span></button>" +
+        '<div class="pcrec-d"' + (open ? "" : " hidden") + "><p>" + r.why + '</p><p class="pcrec-s">' + (r.chart ? "From this listing's size chart" : "An estimate: this listing has no size chart we could read, so when in doubt ask the seller through your agent") +
+        ". For " + bodyText(b) + ".</p>" + (r.chart ? chartHtml(data, r.size, b.u === "i") : "") + '<button type="button" class="pcrec-e">Change my size</button></div>';
+      var btn = el.querySelector(".pcrec"), d = el.querySelector(".pcrec-d");
+      btn.addEventListener("click", function () { open = d.hidden; d.hidden = !open; btn.setAttribute("aria-expanded", open ? "true" : "false"); });
+      el.querySelector(".pcrec-e").addEventListener("click", function () { ask(); });
     }
-    function segHtml() { return '<div class="pcsz-seg" role="group" aria-label="Fit">' + ["s", "r", "l"].map(function (k) { return '<button type="button" data-fit="' + k + '" aria-pressed="' + (k === fit) + '"' + (k === fit ? ' class="on"' : "") + ">" + FIT[k].t + "</button>"; }).join("") + "</div>"; }
-    function wireSeg(box) { [].forEach.call(box.querySelectorAll("[data-fit]"), function (x) { x.addEventListener("click", function () { fit = x.getAttribute("data-fit"); if (ok()) { b.fit = fit; save(b); } [].forEach.call(box.querySelectorAll("[data-fit]"), function (y) { var on = y === x; y.classList.toggle("on", on); y.setAttribute("aria-pressed", on); }); result(); }); }); }
+    function onSize() { if (!el.isConnected) { window.removeEventListener("pc-size", onSize); return; } render(); }
+    window.addEventListener("pc-size", onSize);
+    render();
+    load(p.id).then(function (d) { data = d; loaded = true; render(); });
+  }
+
+  // the size step: height, weight and fit, once
+  function ask() {
+    css(); if (document.getElementById("pcsz-ask")) return;
+    var b = store(), imp = b.u === "i", fit = b.fit || "r", prev = document.activeElement;
+    var ov = document.createElement("div"); ov.id = "pcsz-ask"; ov.className = "pcsz-ov";
+    ov.innerHTML = '<div class="pcsz-m" role="dialog" aria-modal="true" aria-labelledby="pcsz-h"><h2 id="pcsz-h">Get your size on every find</h2>' +
+      '<p class="pcsz-sub">Tell us your height, weight and how you like things to fit. We\'ll show the size to pick on every find.</p><div class="pcsz-f"></div>' +
+      '<button type="button" class="pcsz-save" disabled>Save my size</button><button type="button" class="pcsz-skip">Skip for now</button><p class="pcsz-note">Saved on this device. You can change it on any find.</p></div>';
+    document.body.appendChild(ov);
+    var box = ov.querySelector(".pcsz-f"), saveBtn = ov.querySelector(".pcsz-save");
+    function v(k) { var i = box.querySelector('[data-k="' + k + '"]'); return i ? parseFloat(String(i.value).replace(",", ".")) : NaN; }
+    function read() {
+      var h = imp ? (v("ft") * 12 + (v("in") || 0)) * 2.54 : v("h"), w = imp ? v("w") * 0.4536 : v("w");
+      return { h: Math.round(h) || 0, w: Math.round(w * 10) / 10 || 0, fit: fit, u: imp ? "i" : "", eu: b.eu || 0 };
+    }
     function form() {
-      edit.hidden = true;
-      fbox.innerHTML = '<p class="pcsz-sub">Enter it once and every find shows your size. Saved on this device only.</p><div class="pcsz-g">' +
+      var cur = read();
+      box.innerHTML = '<div class="pcsz-g">' +
         (imp ? '<label>Height<div class="pcsz-in"><input inputmode="numeric" data-k="ft" placeholder="5" aria-label="Height, feet"><span>ft</span><input inputmode="numeric" data-k="in" placeholder="10" aria-label="Height, inches"><span>in</span></div></label>'
           : '<label>Height<div class="pcsz-in"><input inputmode="numeric" data-k="h" placeholder="178"><span>cm</span></div></label>') +
-        '<label>Weight<div class="pcsz-in"><input inputmode="numeric" data-k="w" placeholder="' + (imp ? "165" : "75") + '"><span>' + (imp ? "lb" : "kg") + "</span></div></label>" +
-        (shoe ? '<label style="grid-column:1/-1">Your usual shoe size (EU)<div class="pcsz-in"><input inputmode="decimal" data-k="eu" placeholder="43"><span>EU</span></div></label>' : "") + "</div>" +
-        '<div class="pcsz-row">' + segHtml() + '<button type="button" class="pcsz-u">' + (imp ? "Use cm and kg" : "Use ft and lb") + "</button></div>";
-      var v = function (k) { var i = fbox.querySelector('[data-k="' + k + '"]'); return i ? parseFloat(String(i.value).replace(",", ".")) : NaN; };
-      var set = function (k, x) { var i = fbox.querySelector('[data-k="' + k + '"]'); if (i && x) i.value = x; };
-      if (b.h) { if (imp) { var t = b.h / 2.54; set("ft", Math.floor(t / 12)); set("in", Math.round(t % 12)); } else set("h", Math.round(b.h)); }
-      if (b.w) set("w", Math.round(imp ? b.w / 0.4536 : b.w));
-      if (b.eu) set("eu", b.eu);
-      function read() {
-        var h = imp ? (v("ft") * 12 + (v("in") || 0)) * 2.54 : v("h"), w = imp ? v("w") * 0.4536 : v("w"), eu = v("eu");
-        b = { h: Math.round(h) || 0, w: Math.round(w * 10) / 10 || 0, fit: fit, u: imp ? "i" : "", eu: eu >= 33 && eu <= 50 ? eu : (b.eu || 0) };
-        if (ok()) save(b);
-        result();
-      }
-      [].forEach.call(fbox.querySelectorAll("input"), function (i) { i.addEventListener("input", read); });
-      wireSeg(fbox);
-      fbox.querySelector(".pcsz-u").addEventListener("click", function () { imp = !imp; b.u = imp ? "i" : ""; if (ok()) save(b); form(); result(); });
+        '<label>Weight<div class="pcsz-in"><input inputmode="numeric" data-k="w" placeholder="' + (imp ? "165" : "75") + '"><span>' + (imp ? "lb" : "kg") + "</span></div></label></div>" +
+        '<button type="button" class="pcsz-u">' + (imp ? "Use cm and kg" : "Use ft and lb") + '</button><p class="pcsz-fl">How do you like things to fit?</p>' +
+        '<div class="pcsz-seg" role="group" aria-label="Fit">' + ["s", "r", "l"].map(function (k) { return '<button type="button" data-fit="' + k + '" aria-pressed="' + (k === fit) + '"' + (k === fit ? ' class="on"' : "") + ">" + FIT[k].t + "</button>"; }).join("") + "</div>";
+      var src = valid(cur) ? cur : b, set = function (k, x) { var i = box.querySelector('[data-k="' + k + '"]'); if (i && x) i.value = x; };
+      if (src.h) { if (imp) { var t = src.h / 2.54; set("ft", Math.floor(t / 12)); set("in", Math.round(t % 12)); } else set("h", Math.round(src.h)); }
+      if (src.w) set("w", Math.round(imp ? src.w / 0.4536 : src.w));
+      [].forEach.call(box.querySelectorAll("input"), function (i) { i.addEventListener("input", check); });
+      [].forEach.call(box.querySelectorAll("[data-fit]"), function (x) { x.addEventListener("click", function () { fit = x.getAttribute("data-fit");
+        [].forEach.call(box.querySelectorAll("[data-fit]"), function (y) { var on = y === x; y.classList.toggle("on", on); y.setAttribute("aria-pressed", on ? "true" : "false"); }); }); });
+      box.querySelector(".pcsz-u").addEventListener("click", function () { imp = !imp; form(); });
+      check();
     }
-    function summary() {
-      edit.hidden = false;
-      fbox.innerHTML = '<div class="pcsz-row">' + segHtml() + "</div>";
-      wireSeg(fbox);
+    function check() { saveBtn.disabled = !valid(read()); }
+    function key(e) {
+      if (e.key === "Escape") { e.stopImmediatePropagation(); close(false); return; }
+      if (e.key !== "Tab") return;
+      var f = [].filter.call(ov.querySelectorAll("button,input"), function (x) { return !x.disabled && x.offsetParent !== null; }); if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
-    function result() {
-      var r = ok() && loaded ? pick(kind, { h: b.h, w: b.w, fit: fit, eu: b.eu }, data) : null;
-      if (!ok()) out.innerHTML = "";
-      else if (!loaded) out.innerHTML = '<div class="pcsz-res"><p class="pcsz-src">Checking the seller\'s size chart...</p></div>';
-      else if (r.ask || !r.size) out.innerHTML = '<div class="pcsz-res"><p class="pcsz-why">' + r.why + "</p></div>";
-      else out.innerHTML = '<div class="pcsz-res"><div class="pcsz-rec"><span class="pcsz-rl">Recommended</span><b>' + esc(r.size) + '</b><span class="pcsz-for">' + bodyText() + "</span></div>" +
-        '<p class="pcsz-why">' + r.why + '</p><p class="pcsz-src">' + (r.chart ? "Based on this listing's size chart." : "An estimate: this listing has no size chart we could read. When in doubt, ask the seller through your agent.") + "</p></div>";
-      var size = r && !r.ask ? r.size : "";
-      cbox.innerHTML = loaded ? chartHtml(data, size, imp) + soldHtml(data, size) : "";
+    function close(saved) {
+      try { localStorage.setItem("pc.size.asked", "1"); } catch (e) {}
+      document.removeEventListener("keydown", key, true); ov.remove();
+      try { if (prev && prev.focus) prev.focus({ preventScroll: true }); } catch (e) {}
+      if (saved) try { window.dispatchEvent(new Event("pc-size")); } catch (e) {}
     }
-    edit.addEventListener("click", function () { editing = true; form(); result(); var f = fbox.querySelector("input"); if (f) try { f.focus({ preventScroll: true }); } catch (e) {} });
-    if (editing) form(); else summary();
-    result();
-    load(p.id).then(function (d) { data = d; loaded = true; result(); });
+    saveBtn.addEventListener("click", function () { var nb = read(); if (!valid(nb)) return; save(nb); close(true); });
+    ov.querySelector(".pcsz-skip").addEventListener("click", function () { close(false); });
+    ov.addEventListener("click", function (e) { if (e.target === ov) close(false); });
+    document.addEventListener("keydown", key, true);
+    form();
+    var f0 = box.querySelector("input"); if (f0) try { f0.focus({ preventScroll: true }); } catch (e) {}
   }
-  window.pcSize = { mount: mount, pick: pick };
+  window.pcSize = { mount: mount, pick: pick, ask: ask };
   [].forEach.call(document.querySelectorAll("[data-pcsz-id]"), function (el) { mount(el, { id: el.getAttribute("data-pcsz-id"), cat: el.getAttribute("data-pcsz-cat") }); });
 })();

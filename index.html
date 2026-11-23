@@ -4970,15 +4970,36 @@ function pcBetaAsk(p){
   /* owner, 9 Nov 2026: "when clicking ask ai it should ask straight away" */
   drawer.querySelector("#pc-ask").addEventListener("click",()=>{ const q=`Tell me about the ${p.title}: is it worth it, and what should I check before I buy?`; if(!(window.pcChatAsk&&window.pcChatAsk(q))) toast("The assistant is not available right now."); });
 }
-/* "Find my size" (size.js, 19 Nov 2026): height and weight to a size, from the seller's chart when there is one.
-   Clothes and shoes only; size.js is loaded the first time a find view needs it. */
+/* Size (size.js). 23 Nov 2026 (owner: "a step in the signup where we ask for weight and height once, and then a subtle
+   'we recommend size X' on every product"): a one-line note under the price on clothes (no shoes), and the size step once
+   for members: right after signing up, or on the next visit for members who signed up before. size.js loads when needed. */
+function pcSizeLoad(cb){
+  if(window.pcSize){ cb(); return; }
+  let s=document.getElementById("pcsz-js");
+  if(!s){ s=document.createElement("script"); s.id="pcsz-js"; s.src="/size.js?v=4"; s.async=true; document.head.appendChild(s); }
+  s.addEventListener("load",cb);
+}
 function pcSizeRow(p){
-  if(!/^(Tops|Outerwear|Pants|Shorts|Shoes)$/.test(p.cat||"")) return;
-  const bb=drawer.querySelector(".buy-block"); if(!bb||bb.querySelector(".agents[hidden]")) return;
+  if(!/^(Tops|Outerwear|Pants|Shorts)$/.test(p.cat||"")) return;
+  const pr=drawer.querySelector(".d-price"); if(!pr) return;
   let el=drawer.querySelector("#pc-size"); if(el) el.remove();
-  el=document.createElement("div"); el.id="pc-size"; bb.insertAdjacentElement("afterend",el);
-  const go=()=>{ try{ window.pcSize.mount(el,{id:p.id,cat:p.cat}); }catch(e){} };
-  if(window.pcSize) go(); else { let s=document.getElementById("pcsz-js"); if(!s){ s=document.createElement("script"); s.id="pcsz-js"; s.src="/size.js?v=3"; s.async=true; document.head.appendChild(s); } s.addEventListener("load",go); }
+  el=document.createElement("div"); el.id="pc-size"; pr.insertAdjacentElement("afterend",el);
+  pcSizeLoad(()=>{ try{ window.pcSize.mount(el,{id:p.id,cat:p.cat}); }catch(e){} });
+}
+function pcSizeAskSoon(){
+  let asked=null, body=null; try{ asked=localStorage.getItem("pc.size.asked"); body=localStorage.getItem("pc.body"); }catch(e){}
+  if(asked||body) return;
+  let tries=0;
+  const go=()=>{
+    if(!ME) return;
+    try{ if(localStorage.getItem("pc.size.asked")||localStorage.getItem("pc.body")) return; }catch(e){}
+    /* never on top of another dialog (the sign-up card, the MyCNBox welcome, a QC photo) or an open find: try again a bit later */
+    const busy=(drawer&&drawer.classList.contains("open"))||document.body.classList.contains("pp-open")||!!document.querySelector(".pc-qclb.on")||
+      [].some.call(document.querySelectorAll('[aria-modal="true"]:not([hidden])'),m=>!m.inert&&m.getClientRects().length>0&&getComputedStyle(m).visibility!=="hidden");
+    if(busy){ if(++tries<90) setTimeout(go,2000); return; }
+    pcSizeLoad(()=>{ try{ window.pcSize.ask(); }catch(e){} });
+  };
+  setTimeout(go,1800);
 }
 function pcBetaQc(p){
   const tok=drawer.__tok;
@@ -5510,6 +5531,7 @@ async function onUser(u){
     let merged=null; try{ merged=localStorage.getItem("pc.fav.merged"); }catch(e){}
     if(merged!==ME.id){ await mergeLocalToServer(); try{ localStorage.setItem("pc.fav.merged",ME.id); }catch(e){} }   /* local saves go up once, at sign-in */
     await loadServerFaves(); syncProfile(); pcAgentSave(); restoreReturnHash(); updateAuthUI(); softRender();
+    try{ pcSizeAskSoon(); }catch(e){}   /* the size step once (size.js) */
   } else if(!ME&&_authUid!==null){
     _authUid=null; try{ localStorage.removeItem("pc.fav.merged"); }catch(e){} loadLocalFaves(); updateAuthUI(); softRender();
   } else updateAuthUI();
