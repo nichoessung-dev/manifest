@@ -18,6 +18,9 @@ on:
       max_usd:
         description: 'Hard stop for AI spend this run (USD)'
         default: '5'
+      cats:
+        description: 'Only these categories, comma separated (empty = all); only visible finds then'
+        default: ''
       save:
         description: 'Save to the site (data/sizes.json)'
         type: boolean
@@ -37,6 +40,7 @@ jobs:
       TARGET: ${{ inputs.target }}
       IDS: ${{ inputs.ids }}
       MAX_USD: ${{ inputs.max_usd }}
+      CATS: ${{ inputs.cats }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,6 +51,7 @@ jobs:
           [[ "$TARGET" =~ ^[0-9]{1,6}$ ]] || { echo "::error::target must be a number"; exit 1; }
           [[ "$MAX_USD" =~ ^[0-9]{1,4}(\.[0-9]{1,2})?$ ]] || { echo "::error::max_usd must be a number"; exit 1; }
           [[ -z "$IDS" || "$IDS" =~ ^[0-9A-Za-z_,\ -]+$ ]] || { echo "::error::bad ids"; exit 1; }
+          [[ -z "$CATS" || "$CATS" =~ ^[A-Za-z,\ ]+$ ]] || { echo "::error::bad cats"; exit 1; }
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -58,7 +63,8 @@ jobs:
           set -o pipefail
           IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
           DONE=""; [ "${{ inputs.save }}" = "true" ] && DONE="--done data/sizes.json"
-          python -u scripts/listing_details.py --limit "$LIMIT" --max-usd "$MAX_USD" --max-minutes 100 $DONE $IDA | tee out-ld.log
+          CA=""; [ -n "$CATS" ] && CA="--cats ${CATS// /} --visible"
+          python -u scripts/listing_details.py --limit "$LIMIT" --max-usd "$MAX_USD" --max-minutes 100 $DONE $IDA $CA | tee out-ld.log
           mkdir -p out/listing-details; cp data/listing_details.json out/listing-details/ 2>/dev/null || true
       - name: Save sizes
         if: inputs.save
@@ -82,7 +88,7 @@ jobs:
           N=$(python -c "import json;print(len(json.load(open('data/sizes.json'))['items']))")
           echo "finds read so far: $N of $TARGET"
           if [ "$N" -lt "$TARGET" ] && grep -q "limit reached\|Weidian finds" out-ld.log && ! grep -q "^0 Weidian finds" out-ld.log; then
-            gh workflow run listing-details.yml --ref "$GITHUB_REF_NAME" -f limit="$LIMIT" -f target="$TARGET" -f max_usd="$MAX_USD" -f save=true
+            gh workflow run listing-details.yml --ref "$GITHUB_REF_NAME" -f limit="$LIMIT" -f target="$TARGET" -f max_usd="$MAX_USD" -f cats="$CATS" -f save=true
           fi
       - name: Keep report
         if: always()

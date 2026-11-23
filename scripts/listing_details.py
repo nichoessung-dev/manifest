@@ -150,11 +150,19 @@ def main():
     ap.add_argument("--max-usd", type=float, default=3); ap.add_argument("--redo", action="store_true")
     ap.add_argument("--done", default="", help="also skip the ids in this file's items (data/sizes.json)")
     ap.add_argument("--max-minutes", type=float, default=0)
+    ap.add_argument("--cats", default="", help="only these categories, comma separated (23 Nov 2026: Tops,Outerwear,Pants,Shorts,Shoes for the size helper)")
+    ap.add_argument("--visible", action="store_true", help="skip finds hidden on the site (data/reported.json)")
     a = ap.parse_args()
     _, items, _, _ = load_catalog()
     st = (json.load(open(os.path.join(ROOT, "data", "stats.json"))) if os.path.exists(os.path.join(ROOT, "data", "stats.json")) else {}).get("p") or {}
     views = lambda i: (st.get(i) or [0, 0])[1] if isinstance(st.get(i), list) and len(st.get(i)) > 1 else 0
     wdn = [p for p in items if p.get("platform") == "weidian"]
+    if a.cats:
+        cats = {c.strip() for c in a.cats.split(",") if c.strip()}; wdn = [p for p in wdn if p.get("cat") in cats]
+    if a.visible:
+        try: gone = set(map(str, json.load(open(os.path.join(ROOT, "data", "reported.json"))).get("hidden") or []))
+        except Exception: gone = set()
+        wdn = [p for p in wdn if str(p["id"]) not in gone]
     log = json.load(open(LOG)) if os.path.exists(LOG) else {"items": {}}
     done = log.setdefault("items", {})
     skip = set()
