@@ -1314,3 +1314,17 @@ header.h .hprefs-l{display:flex;align-items:center;min-height:36px;padding:0 10p
   :root:not([data-theme="light"]) :is(.ci,.hub-p2 .ci,.pimg,.thumbs > a,.thumbs > button){background:#DEDEDE}
   :root:not([data-theme="light"]) :is(.ci img,.pimg img,.thumbs img):not([alt^="QC photo"]){mix-blend-mode:normal;filter:brightness(.8706);border-radius:0}
 }
+/* 23 Nov 2026 (owner: "make it match the app"): the product page reads like the app's find view. "Buy through your agent"
+   over the button, the similar finds as a swipeable row right under the find, the spreadsheet links and Details lower down. */
+.pd-bl{margin:18px 0 8px;font-size:13px;color:var(--muted)}
+.psim{margin:36px 0 8px}.psim h2{margin:0 0 12px}
+.psim-r{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(128px,1fr);gap:12px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:2px 0 8px;scrollbar-width:none}
+.psim-r::-webkit-scrollbar{display:none}
+.psim-t{display:flex;flex-direction:column;gap:6px;min-width:0;scroll-snap-align:start;color:var(--ink);text-decoration:none}
+.psim-n{font-size:12.5px;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.psim-p{font-size:13px;font-weight:600}
+@media (hover:hover){.psim-t:hover .psim-n{text-decoration:underline}}
+@media (max-width:640px){.psim-r{grid-auto-columns:40%}}
+.pd-more{margin:18px 0 0}.pd-more .pd-hubs{margin-top:0!important}
+/* the photo stays in view beside a long buy column (size chart); not with a QC photo grid under it, which could be taller than the screen */
+@media (min-width:901px){.pd-media:not(:has(.qcs)){position:sticky;top:84px;align-self:start}}

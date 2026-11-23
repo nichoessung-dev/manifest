@@ -277,7 +277,13 @@ export async function renderProduct(id, origin, opt = {}) {
     shownIds.add(x.id); alsoList.push(x); if (co) alsoCo++;
     if (alsoList.length >= 8) break;
   }
-  const alsoRow = alsoList.length >= 4 ? `<div class="sh"><h2>${alsoCo >= 3 ? "People also liked" : "You might also like"}</h2></div>${grid(alsoList)}` : "";
+  // 23 Nov 2026 (owner: "make it match the app"): these finds sit right under the find as the app's swipeable
+  // "Similar finds" row (was a grid of cards further down, after the how-to-buy steps).
+  const alsoRow = alsoList.length >= 4 ? `<section class="psim"><h2>${alsoCo >= 3 ? "People also liked" : "Similar finds"}</h2><div class="psim-r">${alsoList.map(x => {
+    const s = imgSrc(x);
+    return `<a class="psim-t" href="${productUrl(x)}"><span class="ci">${s ? `<img src="${esc(thumbSrc(s))}" data-o="${esc(s)}" alt="${esc(x.title)}" width="200" height="200" loading="lazy" decoding="async" ${IMG_FALLBACK}>` : ""}</span>` +
+      `<span class="psim-n">${esc(x.title)}</span><span class="psim-p">${money(x.cny)}</span></a>`;
+  }).join("")}</div></section>` : "";
   const about1 = `<p>The <strong>${esc(p.title)}</strong> is listed on ${plat}${realSeller ? ` by ${esc(realSeller)}` : ""}, in our ${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(cat.name || p.cat)} section${p.brand ? ` (${esc(p.brand)} style)` : ""}.` +
     (isPH(p.cny) ? ` The seller shows a placeholder price (¥${p.cny}), so ask them for the real price before ordering.` : ` The listed price is ¥${p.cny} (about ${money(p.cny)}) before shipping.`) +
     (opts.length ? ` Listed option${opts.length > 1 ? "s" : ""}: ${esc(opts.slice(0, 8).join(", "))}${opts.length > 8 ? "…" : ""}.` : "") + `</p>`;
@@ -306,22 +312,24 @@ export async function renderProduct(id, origin, opt = {}) {
     <h1>${esc(p.title)}</h1>${statRow(p)}
     ${swapOf ? "" : recBadge(p, false, "inline") ? `<p style="margin:10px 0 0">${recBadge(p, false, "inline").replace("margin-left:10px;", "")}</p>` : ""}
     <div class="price">${money(p.cny)}<small>${isPH(p.cny) ? "placeholder price · ask seller" : "before shipping" + (priceChecked(p) ? ` · checked ${dayShort(priceChecked(p))}` : "")}</small></div>
+    <p class="pd-bl">Buy through your agent</p>
     ${buyBox}
     ${!rep && /^(Tops|Outerwear|Pants|Shorts|Shoes)$/.test(p.cat || "") ? `<div data-pcsz-id="${esc(p.id)}" data-pcsz-cat="${esc(p.cat)}"></div><script src="/size.js?v=3" defer></script>` : ""}
     ${askRow(p)}
-    ${agentHubLine(p)}
     ${opts.length ? `<div class="opts"><span class="opts-l">${ic("tag", "sm")}Options</span><div class="chips">${opts.slice(0, 12).map(o => `<span>${esc(o)}</span>`).join("")}</div></div>` : ""}
+  </div>
+</div>
+${alsoRow}
+<h2>About this find</h2>${aboutFacts}<div class="prose">${about1}</div>${more("Read more", `<div class="prose">${aboutMore}</div>`)}
+<div class="pd-more">${agentHubLine(p)}
     <details class="dcard dmore"><summary><h2 id="pd-details">Details</h2>${ic("chevron-down", "sm")}</summary>
     <dl class="kv">${dtIcons(`<dt>Marketplace</dt><dd>${plat}${PLAT_HUBS[p.platform] ? ` · <a href="/${p.platform}-spreadsheet">${PLAT_HUBS[p.platform].name} spreadsheet</a>` : ""}</dd><dt>Category</dt><dd>${cUrl ? `<a href="${cUrl}">${esc(cat.name)}</a>` : esc(p.cat)}</dd>
       <dt>QC photos</dt><dd>${qcs.length ? qcs.length + " shown" : (p.qc && QC_BANKED[p.id] ? "On record" : "None yet")}</dd><dt>Item ID</dt><dd>${esc(p.itemId || p.id)}</dd>${productFacts(p, g, checked)}<dt>Spreadsheets</dt><dd>${sheets}</dd>`)}</dl></details>
     <p class="more"><a href="/#p/${encodeURIComponent(p.id)}">${ic("grid", "sm")}Open in the catalogue${ic("arrow-right", "sm")}</a></p>
-  </div>
 </div>
-<h2>About this find</h2>${aboutFacts}<div class="prose">${about1}</div>${more("Read more", `<div class="prose">${aboutMore}</div>`)}
 ${qcCheck(p, model)}
 <h2>How to buy it</h2>${icSteps([["cart", "Tap Buy"], ["ruler", "Pick size, pay"], ["camera", "Check QC, ship"]])}${more("Step by step", `<ol class="steps prose"><li>Tap <strong>Buy via MyCNBox</strong> (or your agent). The listing opens pre-filled.</li><li>Pick your size and colour, check our <a href="/guides/sizing">sizing guide</a>, and pay for the item plus delivery to the warehouse.</li><li>Check the QC photos (<a href="/guides/how-to-qc">what to look for</a>), then combine items into one parcel and ship. <a href="/how-to-order">Watch the 1:47 video</a>.</li></ol>`)}
 ${model ? `<div class="note" style="margin-top:22px">${ic("award", "sm")}Comparing batches? See all <a href="/best/${model.slug}">${model.list.length} ${esc(model.name)} rep listings</a> ranked by views.</div>` : ""}
-${alsoRow}
 ${sameBrand.length ? `<div class="sh"><h2>More ${esc(p.brand)} finds</h2><a class="vm" href="${bUrl}">All ${byBrand.get(p.brand).length.toLocaleString("en-US")} ${esc(p.brand)} reps on the spreadsheet${ic("arrow-right", "sm")}</a></div>${grid(sameBrand)}` : ""}
 ${sameCat.length ? `<div class="sh"><h2>Similar ${esc((cat.name || p.cat).toLowerCase())}</h2>${cUrl ? `<a class="vm" href="${cUrl}">All ${esc((cat.name || p.cat).toLowerCase())}${ic("arrow-right", "sm")}</a>` : ""}</div>${grid(sameCat)}` : ""}
 ${buyBar}`;
