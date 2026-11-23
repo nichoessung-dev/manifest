@@ -10,6 +10,9 @@ ever pinged it, so new finds reached those engines only when their crawler happe
       brand hubs, and the main hubs whose server cards follow the view counts (homepage, agent and style spreadsheets).
   python scripts/indexnow.py all [--dry]
       every URL in the live sitemaps, for a site-wide change (run by hand, not on a schedule).
+  python scripts/indexnow.py list FILE [--dry]
+      the paths (or full URLs) in FILE, one per line, # for comments: the pages a hand-made change touched, including
+      pages that now redirect (23 Nov 2026).
 
 Only real changes are sent: the engines stop trusting a site that pings unchanged pages.
 """
@@ -102,7 +105,12 @@ def submit(urls, dry):
 def main():
     args = sys.argv[1:]
     mode = args[0] if args else "changed"
-    urls = sitemap("sitemap-pages.xml") + sitemap("sitemap-products.xml") if mode == "all" else changed_urls(args)
+    if mode == "list":
+        rows = [l.strip() for l in open(args[1], encoding="utf-8") if l.strip() and not l.lstrip().startswith("#")]
+        urls = [u if u.startswith("http") else SITE + u for u in rows]
+        urls = [u for u in urls if u.startswith(SITE + "/")]   # this host only (IndexNow answers 422 otherwise)
+    else:
+        urls = sitemap("sitemap-pages.xml") + sitemap("sitemap-products.xml") if mode == "all" else changed_urls(args)
     sys.exit(0 if submit(urls, "--dry" in args) else 1)
 
 if __name__ == "__main__":
