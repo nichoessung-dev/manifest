@@ -1,5 +1,5 @@
 {
- "at": "2026-11-23T22:18:38+00:00",
+ "at": "2026-11-23T22:45:49+00:00",
  "items": {
   "d:1036212846291": {
    "at": "2026-11-23T17:27:30+00:00",
@@ -2344,14 +2344,16 @@
    "why": "intact: the old cut-out has the whole item (2.3% not in it)"
   },
   "d:7612864497": {
-   "at": "2026-11-23T21:01:58+00:00",
+   "at": "2026-11-23T22:36:24+00:00",
    "detect": {
-    "lost_old": 0.0966,
-    "s": 13.3
+    "grown": [
+     "bottom"
+    ],
+    "lost_old": 0.1441,
+    "s": 18.4
    },
    "flag": "lost parts",
    "group": "d",
-   "hr": "skipped: the fast cut-outs failed for a reason a finer matte does not change",
    "id": "7612864497",
    "match": {
     "colour": 1.46,
@@ -2361,7 +2363,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7612864497.webp",
    "originals": 2,
-   "s": 50,
+   "s": 173,
    "source": "original",
    "src_size": [
     641,
@@ -2370,34 +2372,50 @@
    "src_url": "https://si.geilicdn.com/pcitem1999511207-1ef50000019f03ad61f90a23047e-unadjust_641_641.png",
    "tried": [
     {
+     "added": 0.0,
+     "anchored": [
+      "bottom"
+     ],
+     "ar": -0.15,
+     "clean": [
+      "2 specks out"
+     ],
+     "corr": 0.66,
+     "fid": 1.85,
+     "inside": [
+      0.985,
+      0.955
+     ],
+     "lost": 0.0849,
      "model": "birefnet-general",
-     "s": 26.7,
-     "why": "item cut off by the photo's frame (35% of a border)"
+     "old_kept": 1.0,
+     "real_px": 300,
+     "s": 15.8,
+     "same": 0.886,
+     "shadow": 0.0263,
+     "shown_px": 1280,
+     "up": "Real-ESRGAN (diff 2.2 / detail 7.5)",
+     "why": "another photo or a changed outline (outline 0.89 < 0.96)"
     },
     {
-     "added": 0.0,
-     "ar": 0.117,
-     "corr": 0.638,
      "fallback": true,
-     "fid": 1.77,
-     "inside": [
-      0.97,
-      0.935
-     ],
-     "lost": 0.0886,
      "model": "isnet-general-use",
-     "old_kept": 1.0,
-     "real_px": 237,
-     "s": 2.1,
-     "same": 0.854,
-     "shadow": 0.0256,
-     "shown_px": 1280,
-     "up": "Real-ESRGAN (diff 2.2 / detail 7.6)",
-     "why": "another photo or a changed outline (outline 0.85 < 0.96)"
+     "s": 0.8,
+     "why": "gate: hazy mask (15% half-transparent away from the item)"
+    },
+    {
+     "model": "birefnet-hr",
+     "s": 66.8,
+     "why": "item cut off by the photo's frame (40% of a border)"
+    },
+    {
+     "model": "birefnet-hr-matting",
+     "s": 66.6,
+     "why": "item cut off by the photo's frame (40% of a border)"
     }
    ],
    "v": 2,
-   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.85 < 0.96)"
+   "why": "lost parts, not fixed: item cut off by the photo's frame (40% of a border)"
   },
   "d:7612878511": {
    "at": "2026-11-23T20:59:34+00:00",
@@ -3325,10 +3343,13 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7637982832": {
-   "at": "2026-11-23T21:36:41+00:00",
+   "at": "2026-11-23T22:42:42+00:00",
    "detect": {
-    "lost_old": 0.1251,
-    "s": 13.9
+    "grown": [
+     "right"
+    ],
+    "lost_old": 0.1298,
+    "s": 19.3
    },
    "flag": "lost parts",
    "group": "d",
@@ -3341,7 +3362,7 @@
    "ok": false,
    "old": "/img/rl/7637982832.webp",
    "originals": 1,
-   "s": 273,
+   "s": 195,
    "source": "original",
    "src_size": [
     2000,
@@ -3351,20 +3372,20 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": 0.004,
-     "corr": 0.998,
-     "fid": 3.89,
+     "ar": 0.005,
+     "corr": 0.997,
+     "fid": 3.88,
      "inside": [
       0.999,
       0.995
      ],
-     "lost": 0.01,
+     "lost": 0.0101,
      "model": "birefnet-general",
      "old_kept": 0.9964,
-     "real_px": 734,
-     "s": 27.1,
+     "real_px": 760,
+     "s": 16.7,
      "same": 0.999,
-     "shadow": 0.0266,
+     "shadow": 0.0267,
      "shown_px": 1344,
      "up": "Real-ESRGAN (diff 2.4 / detail 6.0)",
      "why": "part of the item lost (1.0% of it turned white)"
@@ -3372,45 +3393,48 @@
     {
      "fallback": true,
      "model": "isnet-general-use",
-     "s": 2.1,
-     "why": "gate: hazy mask (75% half-transparent away from the item)"
+     "s": 1.5,
+     "why": "gate: hazy mask (29% half-transparent away from the item)"
     },
     {
      "added": 0.0,
-     "ar": 0.004,
-     "corr": 0.998,
-     "fid": 3.86,
-     "inside": [
-      0.999,
-      0.995
-     ],
-     "lost": 0.01,
-     "model": "birefnet-hr",
-     "old_kept": 0.9959,
-     "real_px": 735,
-     "s": 95.6,
-     "same": 0.999,
-     "shadow": 0.0266,
-     "shown_px": 1344,
-     "up": "Real-ESRGAN (diff 2.4 / detail 6.0)",
-     "why": "part of the item lost (1.0% of it turned white)"
-    },
-    {
-     "added": 0.0,
-     "ar": 0.004,
-     "corr": 0.998,
+     "ar": 0.005,
+     "corr": 0.997,
      "fid": 3.85,
      "inside": [
       0.999,
       0.995
      ],
      "lost": 0.01,
-     "model": "birefnet-hr-matting",
-     "old_kept": 0.9955,
-     "real_px": 735,
-     "s": 95.0,
+     "model": "birefnet-hr",
+     "old_kept": 0.996,
+     "real_px": 761,
+     "s": 69.4,
      "same": 0.999,
-     "shadow": 0.027,
+     "shadow": 0.0268,
+     "shown_px": 1344,
+     "up": "Real-ESRGAN (diff 2.4 / detail 6.0)",
+     "why": "part of the item lost (1.0% of it turned white)"
+    },
+    {
+     "added": 0.0,
+     "ar": 0.003,
+     "clean": [
+      "1 gaps filled"
+     ],
+     "corr": 0.998,
+     "fid": 3.84,
+     "inside": [
+      0.999,
+      0.995
+     ],
+     "lost": 0.0101,
+     "model": "birefnet-hr-matting",
+     "old_kept": 0.9956,
+     "real_px": 757,
+     "s": 68.6,
+     "same": 0.999,
+     "shadow": 0.0271,
      "shown_px": 1344,
      "up": "Real-ESRGAN (diff 2.4 / detail 6.1)",
      "why": "part of the item lost (1.0% of it turned white)"
@@ -4765,10 +4789,10 @@
    "why": "intact: the old cut-out has the whole item (0.7% not in it)"
   },
   "d:7675168908": {
-   "at": "2026-11-23T22:06:20+00:00",
+   "at": "2026-11-23T22:45:49+00:00",
    "detect": {
     "lost_old": 0.0927,
-    "s": 13.4
+    "s": 9.6
    },
    "flag": "lost parts",
    "group": "d",
@@ -4781,7 +4805,7 @@
    "ok": false,
    "old": "/img/fr/7675168908.webp",
    "originals": 6,
-   "s": 273,
+   "s": 187,
    "source": "original",
    "src_size": [
     800,
@@ -4805,7 +4829,7 @@
      "model": "birefnet-general",
      "old_kept": 1.0,
      "real_px": 508,
-     "s": 26.7,
+     "s": 16.1,
      "same": 0.988,
      "shadow": 0.0151,
      "shown_px": 1248,
@@ -4830,7 +4854,7 @@
      "model": "isnet-general-use",
      "old_kept": 1.0,
      "real_px": 448,
-     "s": 2.0,
+     "s": 0.8,
      "same": 0.941,
      "shadow": 0.0164,
      "shown_px": 1248,
@@ -4850,11 +4874,11 @@
       0.995,
       0.98
      ],
-     "lost": 0.1282,
+     "lost": 0.1283,
      "model": "birefnet-hr",
      "old_kept": 1.0,
      "real_px": 508,
-     "s": 94.7,
+     "s": 70.5,
      "same": 0.988,
      "shadow": 0.0156,
      "shown_px": 1248,
@@ -4878,7 +4902,7 @@
      "model": "birefnet-hr-matting",
      "old_kept": 1.0,
      "real_px": 448,
-     "s": 95.2,
+     "s": 68.3,
      "same": 0.988,
      "shadow": 0.0153,
      "shown_px": 1248,
@@ -7017,10 +7041,13 @@
    "why": "intact: the old cut-out has the whole item (1.2% not in it)"
   },
   "d:7717280571": {
-   "at": "2026-11-23T21:06:53+00:00",
+   "at": "2026-11-23T22:39:26+00:00",
    "detect": {
-    "lost_old": 0.2383,
-    "s": 13.2
+    "grown": [
+     "right"
+    ],
+    "lost_old": 0.2395,
+    "s": 19.0
    },
    "flag": "lost parts",
    "group": "d",
@@ -7033,7 +7060,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7717280571.webp",
    "originals": 12,
-   "s": 246,
+   "s": 183,
    "source": "original",
    "src_size": [
     800,
@@ -7043,11 +7070,11 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": -0.023,
+     "ar": -0.063,
      "clean": [
       "7 gaps filled"
      ],
-     "corr": -0.061,
+     "corr": -0.065,
      "fid": 2.97,
      "inside": [
       1.0,
@@ -7057,28 +7084,28 @@
      "model": "birefnet-general",
      "old_kept": 0.3312,
      "real_px": 420,
-     "s": 27.5,
-     "same": 0.995,
+     "s": 16.1,
+     "same": 0.996,
      "shadow": 0.0191,
      "shown_px": 1312,
      "up": "Real-ESRGAN (diff 3.3 / detail 7.6)",
-     "why": "looks different from the live photo (correlation -0.06)"
+     "why": "looks different from the live photo (correlation -0.07)"
     },
     {
      "fallback": true,
      "model": "isnet-general-use",
-     "s": 2.1,
+     "s": 0.8,
      "why": "gate: hazy mask (13% half-transparent away from the item)"
     },
     {
      "model": "birefnet-hr",
-     "s": 94.0,
+     "s": 69.3,
      "why": "gate: hazy mask (11% half-transparent away from the item)"
     },
     {
      "added": 0.0,
-     "ar": -0.183,
-     "corr": 0.156,
+     "ar": -0.226,
+     "corr": 0.084,
      "fid": 3.65,
      "inside": [
       1.0,
@@ -7088,16 +7115,16 @@
      "model": "birefnet-hr-matting",
      "old_kept": 0.7187,
      "real_px": 445,
-     "s": 95.3,
+     "s": 69.8,
      "same": 0.995,
      "shadow": 0.001,
      "shown_px": 1312,
      "up": "Real-ESRGAN (diff 2.9 / detail 6.8)",
-     "why": "shape changed (aspect -0.18): a part was lost or added"
+     "why": "shape changed (aspect -0.23): a part was lost or added"
     }
    ],
    "v": 2,
-   "why": "lost parts, not fixed: shape changed (aspect -0.18): a part was lost or added"
+   "why": "lost parts, not fixed: shape changed (aspect -0.23): a part was lost or added"
   },
   "d:7717282649": {
    "at": "2026-11-23T18:32:45+00:00",
@@ -9827,11 +9854,14 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7775434807": {
-   "at": "2026-11-23T20:28:13+00:00",
+   "at": "2026-11-23T22:32:41+00:00",
    "detect": {
-    "hanger": 0.0002,
-    "lost_old": 0.1588,
-    "s": 13.0
+    "grown": [
+     "left",
+     "right"
+    ],
+    "lost_old": 0.1867,
+    "s": 18.8
    },
    "flag": "lost parts",
    "group": "d",
@@ -9844,7 +9874,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7775434807.webp",
    "originals": 12,
-   "s": 242,
+   "s": 185,
    "source": "original",
    "src_size": [
     1080,
@@ -9854,85 +9884,73 @@
    "tried": [
     {
      "added": 0.0,
-     "anchored": [
-      "left",
-      "right"
-     ],
-     "ar": -0.001,
-     "corr": 0.996,
-     "fid": 2.19,
+     "ar": -0.002,
+     "corr": 0.997,
+     "fid": 2.17,
      "inside": [
-      0.992,
-      0.988
+      0.995,
+      0.992
      ],
-     "lost": 0.0155,
+     "lost": 0.0145,
      "model": "birefnet-general",
      "old_kept": 1.0,
-     "real_px": 294,
-     "s": 25.8,
+     "real_px": 358,
+     "s": 15.7,
      "same": 0.997,
-     "shadow": 0.0075,
-     "shown_px": 1600,
-     "up": "Real-ESRGAN (diff 2.0 / detail 4.5)",
-     "why": "part of the item lost (1.5% of it turned white)"
+     "shadow": 0.0086,
+     "shown_px": 1376,
+     "up": "Real-ESRGAN (diff 2.1 / detail 4.3)",
+     "why": "part of the item lost (1.4% of it turned white)"
     },
     {
      "fallback": true,
      "model": "isnet-general-use",
-     "s": 1.9,
-     "why": "gate: hazy mask (100% half-transparent away from the item)"
+     "s": 1.6,
+     "why": "gate: hazy mask (38% half-transparent away from the item)"
     },
     {
      "added": 0.0,
-     "anchored": [
-      "left",
-      "right"
-     ],
-     "ar": -0.001,
-     "corr": 0.996,
-     "fid": 2.19,
+     "ar": -0.003,
+     "corr": 0.997,
+     "fid": 2.17,
      "inside": [
-      0.992,
-      0.988
+      0.995,
+      0.992
      ],
-     "lost": 0.0157,
+     "lost": 0.0161,
      "model": "birefnet-hr",
      "old_kept": 1.0,
-     "real_px": 294,
-     "s": 94.3,
+     "real_px": 357,
+     "s": 71.2,
      "same": 0.997,
      "shadow": 0.0075,
-     "shown_px": 1600,
-     "up": "Real-ESRGAN (diff 2.0 / detail 4.5)",
+     "shown_px": 1376,
+     "up": "Real-ESRGAN (diff 2.1 / detail 4.4)",
      "why": "part of the item lost (1.6% of it turned white)"
     },
     {
      "added": 0.0,
-     "anchored": [
-      "left",
-      "right"
-     ],
-     "ar": 0.0,
-     "corr": 0.991,
-     "fid": 2.22,
+     "ar": -0.002,
+     "corr": 0.996,
+     "fid": 2.18,
      "inside": [
-      0.992,
-      0.988
+      0.995,
+      0.992
      ],
-     "lost": 0.0148,
+     "lost": 0.0157,
      "model": "birefnet-hr-matting",
-     "old_kept": 0.9953,
-     "real_px": 294,
-     "s": 94.1,
-     "same": 0.992,
-     "shadow": 0.0069,
-     "shown_px": 1600,
-     "up": "Real-ESRGAN (diff 2.0 / detail 4.5)",
-     "why": "part of the item lost (1.5% of it turned white)"
+     "old_kept": 1.0,
+     "real_px": 357,
+     "s": 68.3,
+     "same": 0.997,
+     "shadow": 0.0073,
+     "shown_px": 1376,
+     "up": "Real-ESRGAN (diff 2.1 / detail 4.3)",
+     "why": "part of the item lost (1.6% of it turned white)"
     }
    ],
    "v": 2,
-   "why": "lost parts, not fixed: part of the item lost (1.5% of it turned white)"
+   "why": "lost parts, not fixed: part of the item lost (1.6% of it turned white)"
   },
   "d:7775435839": {
    "at": "2026-11-23T17:45:47+00:00",
@@ -10013,11 +10031,10 @@
    "why": "intact: the old cut-out has the whole item (2.0% not in it)"
   },
   "d:7776164747": {
-   "at": "2026-11-23T19:36:20+00:00",
+   "at": "2026-11-23T22:29:36+00:00",
    "detect": {
-    "hanger": 0.0247,
-    "lost_old": 0.0498,
-    "s": 63.1
+    "lost_old": 0.0672,
+    "s": 43.8
    },
    "flag": "lost parts",
    "group": "d",
@@ -10031,7 +10048,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7776164747.webp",
    "originals": 4,
-   "s": 137,
+   "s": 94,
    "source": "original",
    "src_size": [
     1440,
@@ -10041,55 +10058,55 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": 0.117,
+     "ar": 0.032,
      "clean": [
       "5 gaps filled"
      ],
-     "corr": 0.785,
-     "fid": 1.43,
+     "corr": 0.844,
+     "fid": 1.47,
      "inside": [
       0.999,
       0.996
      ],
-     "lost": 0.2681,
+     "lost": 0.3849,
      "model": "birefnet-general",
      "old_kept": 0.9885,
      "real_px": 1367,
-     "s": 44.0,
-     "same": 0.768,
-     "shadow": 0.0101,
+     "s": 30.3,
+     "same": 0.78,
+     "shadow": 0.0087,
      "shown_px": 1248,
      "up": "downscale",
-     "why": "another photo or a changed outline (outline 0.77 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.78 < 0.96)"
     },
     {
      "added": 0.0,
-     "ar": 0.111,
+     "ar": 0.028,
      "clean": [
       "3 specks out",
-      "30 gaps filled"
+      "34 gaps filled"
      ],
-     "corr": 0.772,
+     "corr": 0.836,
      "fallback": true,
-     "fid": 1.29,
+     "fid": 1.32,
      "inside": [
       0.998,
-      0.992
+      0.994
      ],
-     "lost": 0.28,
+     "lost": 0.3955,
      "model": "isnet-general-use",
      "old_kept": 0.9887,
      "real_px": 1369,
-     "s": 2.1,
-     "same": 0.768,
-     "shadow": 0.0101,
+     "s": 1.0,
+     "same": 0.78,
+     "shadow": 0.0087,
      "shown_px": 1248,
      "up": "downscale",
-     "why": "another photo or a changed outline (outline 0.77 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.78 < 0.96)"
     }
    ],
    "v": 2,
-   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.77 < 0.96)"
+   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.78 < 0.96)"
   },
   "d:7776167243": {
    "at": "2026-11-23T18:09:06+00:00",
@@ -10849,11 +10866,14 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7785437144": {
-   "at": "2026-11-23T20:36:07+00:00",
+   "at": "2026-11-23T22:33:31+00:00",
    "detect": {
+    "grown": [
+     "right"
+    ],
     "hanger": 0.0007,
-    "lost_old": 0.2297,
-    "s": 13.4
+    "lost_old": 0.2433,
+    "s": 19.3
    },
    "flag": "lost parts",
    "group": "d",
@@ -10867,7 +10887,7 @@
    "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7785437144.webp",
    "originals": 6,
-   "s": 65,
+   "s": 50,
    "source": "original",
    "src_size": [
     1179,
@@ -10877,50 +10897,50 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": -0.113,
-     "corr": 0.635,
+     "ar": -0.137,
+     "corr": 0.626,
      "fid": 2.21,
-     "hook": "trimmed",
-     "inside": [
-      0.999,
-      0.997
-     ],
-     "lost": 0.2275,
-     "model": "birefnet-general",
-     "old_kept": 0.9998,
-     "real_px": 715,
-     "s": 26.5,
-     "same": 0.544,
-     "shadow": 0.0065,
-     "shown_px": 1312,
-     "up": "Real-ESRGAN (diff 1.7 / detail 3.9)",
-     "why": "another photo or a changed outline (outline 0.54 < 0.96)"
-    },
-    {
-     "added": 0.0,
-     "ar": -0.115,
-     "corr": 0.634,
-     "fallback": true,
-     "fid": 2.22,
      "hook": "trimmed",
      "inside": [
       0.998,
       0.997
      ],
-     "lost": 0.2276,
+     "lost": 0.2411,
+     "model": "birefnet-general",
+     "old_kept": 0.9998,
+     "real_px": 715,
+     "s": 17.2,
+     "same": 0.52,
+     "shadow": 0.0064,
+     "shown_px": 1312,
+     "up": "Real-ESRGAN (diff 1.7 / detail 3.9)",
+     "why": "another photo or a changed outline (outline 0.52 < 0.96)"
+    },
+    {
+     "added": 0.0,
+     "ar": -0.137,
+     "corr": 0.628,
+     "fallback": true,
+     "fid": 2.22,
+     "hook": "trimmed",
+     "inside": [
+      0.999,
+      0.997
+     ],
+     "lost": 0.2412,
      "model": "isnet-general-use",
      "old_kept": 0.9999,
      "real_px": 715,
-     "s": 2.1,
-     "same": 0.544,
-     "shadow": 0.0071,
+     "s": 0.8,
+     "same": 0.52,
+     "shadow": 0.0069,
      "shown_px": 1312,
      "up": "Real-ESRGAN (diff 1.7 / detail 4.1)",
-     "why": "another photo or a changed outline (outline 0.54 < 0.96)"
+     "why": "another photo or a changed outline (outline 0.52 < 0.96)"
     }
    ],
    "v": 2,
-   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.54 < 0.96)"
+   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.52 < 0.96)"
   },
   "d:7788064975": {
    "at": "2026-11-23T18:15:27+00:00",
