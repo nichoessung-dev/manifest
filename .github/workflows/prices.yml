@@ -1,0 +1,106 @@
+name: Prices
+# Keeps the shown prices right (owner, 23 Nov 2026: "a lot of the prices is not accurate can you fix that").
+# scripts/prices.py looks each visible Weidian find up again on Weidian's public item API (for a partner-swapped find, the
+# partner's item), most viewed first: the 300 most viewed every day, the next 1,700 every 3 days, the rest every 10 days,
+# two lookups at a time with a pause. Each check is recorded in data/prices.json (when, which item, the price), and the
+# catalogue price in index.html is set to the listing's cheapest real variant (placeholder SKUs such as a link, a deposit
+# or a box left out: scripts/price_rule.py). Every change is logged in data/prices_applied.json. To put changes back:
+#   python scripts/prices.py apply --revert data/prices_applied.json --write   (one batch: add --batch N)
+# Taobao and 1688 have no public price lookup and keep their catalogue price.
+# A run that leaves finds due starts the next run (GitHub starts scheduled runs late, or skips them, when it is busy).
+on:
+  schedule:
+    - cron: '37 3,15 * * *'
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Most finds this run (most viewed first)'
+        default: '1500'
+      ids:
+        description: 'Only these find ids (comma separated; optional)'
+        default: ''
+      chain:
+        description: 'Start the next run while finds are still due'
+        type: boolean
+        default: true
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: prices
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      LIMIT: ${{ inputs.limit || '1500' }}
+      IDS: ${{ inputs.ids }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check inputs
+        run: |
+          [[ "$LIMIT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::limit must be a number"; exit 1; }
+          [[ -z "$IDS" || "$IDS" =~ ^[0-9A-Za-z_,\ -]+$ ]] || { echo "::error::bad ids"; exit 1; }
+      - name: Test the price rule
+        run: python scripts/test_price_rule.py
+      - name: Check prices on Weidian
+        run: |
+          set -o pipefail
+          IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
+          python -u scripts/prices.py check --limit "$LIMIT" --max-minutes 60 --workers 2 --pause 1.0 $IDA | tee out-prices.log
+          cp data/prices.json "$RUNNER_TEMP/prices.json"
+      - name: Apply and save
+        run: |
+          set -o pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for n in 1 2 3 4 5 6; do
+            # Always on the latest main: other jobs change index.html too (photos, reports), and the catalogue block is
+            # one line that is never merged by hand. The checks are applied again on top of main instead.
+            git fetch -q origin "$GITHUB_REF_NAME" && git reset -q --hard "origin/$GITHUB_REF_NAME"
+            python scripts/prices.py merge "$RUNNER_TEMP/prices.json"
+            python scripts/prices.py apply --write | tee out-apply.log
+            python scripts/gen_catalog.py
+            python scripts/sync_catalog.py --no-thumbs
+            git add data/prices.json data/prices_applied.json functions/_lib/price_checks.js index.html functions/_lib/catalog.js products.json sitemap.xml
+            if git diff --cached --quiet; then echo "nothing new"; exit 0; fi
+            CHANGED=no; git diff --cached --quiet -- index.html || CHANGED=yes
+            git commit -q -m "chore: refresh prices from the live listings"
+            if git push -q origin "HEAD:$GITHUB_REF_NAME"; then echo "CATALOG_CHANGED=$CHANGED" >> "$GITHUB_ENV"; exit 0; fi
+            sleep $((n * 9))
+          done
+          echo "::error::the prices could not be saved"; exit 1
+      - name: Swap prices and row days follow
+        # a push made with this job's token starts no workflow, so the two that follow the catalogue are started here
+        if: success() && env.CATALOG_CHANGED == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run swaps.yml --ref "$GITHUB_REF_NAME" || echo "::warning::Swaps not started"
+          gh workflow run catalog-sync.yml --ref "$GITHUB_REF_NAME" || echo "::warning::Catalog sync not started"
+      - name: Next run
+        if: success() && env.IDS == '' && (github.event_name == 'schedule' || inputs.chain)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LEFT=$(sed -n 's/.*left due \([0-9]*\).*/\1/p' out-prices.log | tail -1)
+          echo "finds still due: ${LEFT:-0}"
+          if [ "${LEFT:-0}" -gt 0 ] && ! grep -q "Weidian is refusing" out-prices.log; then
+            gh workflow run prices.yml --ref "$GITHUB_REF_NAME" -f limit="$LIMIT" -f chain=true
+          fi
+      - name: Keep the log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prices-${{ github.run_number }}
+          path: |
+            out-prices.log
+            out-apply.log
+          if-no-files-found: ignore
+          retention-days: 14

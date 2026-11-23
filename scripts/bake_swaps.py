@@ -15,9 +15,11 @@ The app (index.html) also reads approved_swaps() itself, so a swap's Buy link an
 and the look-alikes come from this file (the app works the look-alikes out itself too, with the same rule).
 
 Price (owner, 12 Nov 2026: "make the price automatically update when switching link"): for a Weidian item the price is
-read from Weidian's public item API (the same one scripts/check_links.py uses), the item's lowest price (the "from"
-price, what the find cards show), in yuan. Every run looks the items up again, so a partner's price change shows within
-15 minutes. A failed lookup keeps the last price read for the same item. Taobao and 1688 have no public price lookup:
+the item's cheapest REAL variant in yuan (scripts/price_rule.py, owner 23 Nov 2026: "a lot of the prices is not accurate";
+Weidian's own lowest price is often a placeholder SKU: a link, a deposit, a box). It comes from the Prices workflow's
+check of the same item (data/prices.json, scripts/prices.py), so the swap price and the catalogue price agree; an item
+it has not checked yet (a new swap) is looked up on Weidian's public item API here. A failed lookup keeps the last price
+read for the same item ("price_rule" says which rule the newest prices follow). Taobao and 1688 have no public price lookup:
 those finds keep their catalogue price. usd = cny times the find's own catalogue usd/cny rate (0.1394 when unknown).
 
 Look-alikes (owner: "the links that are like the ones that has been switched to be removed from the spreadsheet"): every
@@ -29,6 +31,9 @@ Local run without the service key (offline): python3 scripts/bake_swaps.py --fro
 Ids, item ids and prices only, no emails.
 """
 import argparse, datetime, json, os, re, sys, time, urllib.parse, urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import price_rule  # noqa: E402  (scripts/price_rule.py: the cheapest real variant of a listing)
 
 SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co"
 OUT, JS = "data/link_swaps.json", "functions/_lib/link_swaps.js"
@@ -125,7 +130,8 @@ def clean_swaps(rows):
 
 
 def weidian_price(item_id):
-    """The item's lowest price in yuan, or None (lookup failed, item gone, no price)."""
+    """The item's cheapest real variant in yuan (scripts/price_rule.py), or None (lookup failed, item gone, only
+    placeholder prices)."""
     url = WD_API + urllib.parse.quote(json.dumps({"itemId": str(item_id)}))
     for wait in (0, 4, 12):
         if wait: time.sleep(wait)
@@ -135,20 +141,30 @@ def weidian_price(item_id):
         except Exception:
             continue
         if (d.get("status") or {}).get("code") != 0: continue
-        res = d.get("result") or {}
-        if not (res.get("itemTitle") or res.get("itemMainPic")): return None      # the item is gone
-        for k in ("itemDiscountLowPrice", "itemOriginalLowPrice"):                # fen (1/100 yuan)
-            v = res.get(k)
-            if isinstance(v, (int, float)) and v > 0:
-                y = v / 100.0
-                return int(y) if y == int(y) else round(y, 2)
-        return None
+        r = price_rule.shown_price(d.get("result") or {})
+        return r["price"] if r["status"] in ("ok", "sold_out") else None
     return None
 
 
-def bake(swaps, items, old):
-    """The new file's content (without the stamp) from the swaps, the catalogue and the previous file."""
+def checked_prices(root, items):
+    """{find id: (item id, yuan)} from the Prices workflow's latest checks (data/prices.json), same rule only: the price
+    the find shows (price_rule.pick: its catalogue price while that is still one of the item's variant prices, else
+    the cheapest real variant), so the swap price and the catalogue price agree."""
+    try:
+        d = json.load(open(os.path.join(root, "data", "prices.json"), encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    cur = {str(p.get("id")): p.get("price") for p in items}
+    return {i: (str(r.get("item")), int(price_rule.pick(cur.get(i), r.get("prices") or [r["price"]], r["price"])))
+            for i, r in (d.get("items") or {}).items()
+            if r.get("rule") == price_rule.RULE and r.get("status") in ("ok", "sold_out") and r.get("price")}
+
+
+def bake(swaps, items, old, checked=None):
+    """The new file's content (without the stamp) from the swaps, the catalogue, the previous file and the Prices
+    workflow's checks ({find id: (item id, yuan)})."""
     by_id = {str(p.get("id")): p for p in items}
+    checked = checked or {}
     old_price = (old or {}).get("price") or {}
     price, looked, t0 = {}, 0, time.time()
     # the swaps without a price read yet first, then the rest in a different order every run, at most MAX_LOOKUPS and
@@ -157,7 +173,10 @@ def bake(swaps, items, old):
     for pid, (pl, item) in order:
         if pl != "weidian": continue                                         # Taobao and 1688: catalogue price stays
         cny = None
-        if looked < MAX_LOOKUPS and time.time() - t0 < LOOKUP_SECONDS:
+        ck = checked.get(pid)
+        if ck and ck[0] == str(item):                                        # the Prices workflow checked this item
+            cny = ck[1]
+        elif looked < MAX_LOOKUPS and time.time() - t0 < LOOKUP_SECONDS:
             if looked: time.sleep(PAUSE)
             looked += 1
             cny = weidian_price(item)
@@ -189,7 +208,7 @@ def bake(swaps, items, old):
         for oid in same:
             if oid != pid and oid not in swaps and oid not in hide_of: hide_of[oid] = pid
     hide_of = dict(sorted(hide_of.items()))
-    return {"swaps": swaps, "price": dict(sorted(price.items())), "hide": sorted(hide_of), "hide_of": hide_of}, looked
+    return {"swaps": swaps, "price": dict(sorted(price.items())), "price_rule": price_rule.RULE, "hide": sorted(hide_of), "hide_of": hide_of}, looked
 
 
 def main(argv=None):
@@ -212,7 +231,8 @@ def main(argv=None):
         old = json.load(open(out, encoding="utf-8"))
     except (OSError, ValueError):
         old = None
-    doc, looked = bake(swaps, catalogue(a.root), old)
+    items = catalogue(a.root)
+    doc, looked = bake(swaps, items, old, checked_prices(a.root, items))
     same = old is not None and all(old.get(k) == doc[k] for k in doc) and os.path.exists(js) and "SWAP_HIDE" in open(js, encoding="utf-8").read()
     print("%d swaps, %d Weidian prices looked up, %d with a partner price, %d look-alikes hidden" % (len(swaps), looked, len(doc["price"]), len(doc["hide"])))
     for pid, v in doc["price"].items(): print("  price %s -> %s %s: CNY %s (USD %s)" % (pid, swaps[pid][0], v[0], v[1], v[2]))

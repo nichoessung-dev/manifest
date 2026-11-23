@@ -6,7 +6,8 @@ becomes a partner swap on that find); the listings it found none for ("nomatch")
 scripts/friend_swaps.py gives each new find a swap to itself, so it gets the Recommended badge and the top priority group.
 
 Per find, one at a time with a pause (resumable: data/friend_import.json keeps every find's state and staged row):
-  1. Weidian getItemSkuInfo: Chinese title, main photo, price (fen), colour options. Gone or sold-out listings are skipped.
+  1. Weidian getItemSkuInfo: Chinese title, main photo, price (the cheapest real variant, scripts/price_rule.py), colour
+     options. Gone or sold-out listings are skipped.
   2. One vision call (claude-haiku-5-5) on the main photo + the Chinese title: English title in the site's style
      ("Brand Item Colour", e.g. "Argentina 2026 Home Jersey"), brand ("" when there is none), category (the site's nine),
      item type, colour, gender, and English names for the colour options.
@@ -23,6 +24,7 @@ import argparse, base64, io, json, os, re, sys, time, urllib.parse, urllib.reque
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/price_rule.py
 TAG = '<script type="application/json" id="pc-catalog">'
 LIST = os.path.join(ROOT, "data", "friend_finds.json")
 STATE = os.path.join(ROOT, "data", "friend_import.json")
@@ -116,6 +118,11 @@ def save_webp(im, dest):
 
 
 def price_of(res):
+    """The cheapest real variant in whole yuan (scripts/price_rule.py, 23 Nov 2026: Weidian's own lowest price is often a
+    placeholder SKU such as a link, a deposit or a box). Only when the listing has no real price: Weidian's lowest."""
+    import price_rule
+    r = price_rule.shown_price(res)
+    if r["price"]: return r["price"]
     for k in ("itemDiscountLowPrice", "itemLowPrice", "itemOriginalLowPrice"):
         v = res.get(k)
         if isinstance(v, (int, float)) and v > 0: return round(v / 100)
