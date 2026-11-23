@@ -118,11 +118,13 @@ const baseIndexable = p => !GONE.has(p.id) && (p.qc >= 1 || p.best === 1 || DEMA
 export const PICK_PQ_MAX = 0.6;
 export const indexable = p => !SWAP_HIDE[p.id] && (baseIndexable(p) || idx().groupPick.has(p.id));
 // The days a find's row first appeared in catalog.js and last changed (rowdays.js, scripts/gen_rowdays.py); null when the
-// row is newer than that file.
+// row is newer than that file. A code is two base-36 indexes into DAYS of the same width (1 digit until 23 Nov 2026, 2 since,
+// 3 past 1,296 days), so each is half the code.
 const RD_DAYS = RD.DAYS || [], RD_ROW = RD.ROWDAY || {};
 export function rowDays(p) {
   const v = RD_ROW[p.id]; if (!v) return null;
-  return { added: RD_DAYS[parseInt(v[0], 36)] || null, changed: RD_DAYS[parseInt(v[1], 36)] || null };
+  const w = v.length >> 1;
+  return { added: RD_DAYS[parseInt(v.slice(0, w), 36)] || null, changed: RD_DAYS[parseInt(v.slice(w), 36)] || null };
 }
 // The newest finds: rows are appended to the catalogue, so the last rows are the newest. Gone listings and finds without a
 // photo are left out; `skip` takes ids removed after reports.
