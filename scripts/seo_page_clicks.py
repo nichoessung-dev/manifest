@@ -5,8 +5,9 @@ Buy clicks (table buy_clicks) of the last DAYS days, grouped by the page the cli
 catalogue app adds is dropped, so an app hub and its server page count together) and by the visit source bucket
 (ref "~google" and so on, the first page of the visit). Plus product page views from Google per find (table
 product_page_views, source "google"), and (23 Nov 2026) the countries of the Google buy clicks on the pages with the most
-of them, to know which Google markets each page is found in. Aggregate counts only: no ids of people, no addresses,
-nothing personal.
+of them, to know which Google markets each page is found in, and the site searches of the last 30 days that were made
+5+ times in 3+ different hours (the same floor as the dashboard's top searches in scripts/bake_stats.py), to pick model
+pages from real demand. Aggregate counts only: no ids of people, no addresses, nothing personal.
 
 Runs in GitHub Actions (.github/workflows/seo-page-clicks.yml) with the SUPABASE_SERVICE_KEY secret.
 """
@@ -45,6 +46,27 @@ def norm(path):
     return p.lower()
 
 
+SEARCH_MIN, SEARCH_MIN_HOURS = 5, 3   # as scripts/bake_stats.py
+
+
+def site_searches(since):
+    """[query, times, times a find was opened, distinct days] for the searches made SEARCH_MIN+ times in SEARCH_MIN_HOURS+
+    different hours since `since` (table search_log, kept 30 days), most made first. Lower-cased and trimmed."""
+    try:
+        rows = fetch_all("search_log?select=created_at,q,clicked&created_at=gte." + since + "&order=created_at.asc")
+    except Exception as e:
+        print("search log not read:", str(e)[:80]); return []
+    per = {}
+    for r in rows:
+        q = re.sub(r"\s+", " ", str(r.get("q") or "")).strip().lower()
+        if not q or len(q) > 60: continue
+        x = per.setdefault(q, [0, 0, set(), set()])
+        t = str(r.get("created_at") or "")
+        x[0] += 1; x[1] += 1 if r.get("clicked") else 0; x[2].add(t[:13]); x[3].add(t[:10])
+    keep = [[q, x[0], x[1], len(x[3])] for q, x in per.items() if x[0] >= SEARCH_MIN and len(x[2]) >= SEARCH_MIN_HOURS]
+    return sorted(keep, key=lambda e: (-e[1], e[0]))[:400]
+
+
 def main():
     now = datetime.datetime.now(datetime.timezone.utc)
     since = (now - datetime.timedelta(days=DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -78,7 +100,8 @@ def main():
            # Google buy clicks by country: all pages together, then the 80 pages with the most (top 12 countries each)
            "google_countries": sorted(([k, v] for k, v in sum(gc.values(), collections.Counter()).items()), key=lambda x: -x[1])[:40],
            "google_countries_by_page": [[p, sum(c.values()), c.most_common(12)]
-                                        for p, c in sorted(gc.items(), key=lambda x: -sum(x[1].values()))[:80] if not p.startswith("/product/")]}
+                                        for p, c in sorted(gc.items(), key=lambda x: -sum(x[1].values()))[:80] if not p.startswith("/product/")],
+           "site_searches_30d": site_searches((now - datetime.timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ"))}
     json.dump(out, open(OUT, "w"), separators=(",", ":"))
     print("written", OUT, len(rows), "clicks,", len(pages), "pages,", len(out["product_google_views"]), "finds with Google views")
 
