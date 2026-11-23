@@ -67,6 +67,7 @@ HF = {"birefnet-hr": ("ZhengPeng7/BiRefNet_HR", "a7a562f6fd16021180f2f4348f4de00
 FRAME_MAX = 0.25        # polish rule: more than 25% of a border is item -> the photo crops the item
 LOST_MAX = {"a": 0.02, "b": 0.02, "c": 0.01}
 FID_MAX = 4.0           # clean_photos.py: the item's own pixels may differ by at most 4 of 255 on average
+RESTORED_MAX = 0.08     # a, b: parts the old cut-out lost (not white, not background) the new one may have back
 AR_MAX, CORR_MIN = 0.08, 0.6    # store_photos_polish_check.py
 NEEDS_NEW_PHOTO = {"worn_by_person", "collage_or_grid", "packaging_or_box", "hand_in_photo"}   # rl_cutout / clean_photos
 GARMENT = {"Tops", "Outerwear"}
@@ -369,7 +370,7 @@ def same_inside_shared(a, b, N=160):
     return _ncc(x[m], y[m]), _ncc((x - ndimage.gaussian_filter(x, 3))[m], (y - ndimage.gaussian_filter(y, 3))[m])
 
 
-def judge(g, ref, supp, out, pl, src_size, reg, clip, live_alpha=None, bgmask=None):
+def judge(g, ref, supp, out, pl, src_size, reg, clip, live_alpha=None, bgmask=None, bgcol=None):
     """Every check against the reference (the live photo on white), both photos lined up in the reference's frame.
     reg: where the live photo sits in a store source (None when the source is the reference itself). clip: compare the
     outline only where the live cut-out shows the item, so white parts the old cut-out lost and the new one has back do
@@ -413,9 +414,16 @@ def judge(g, ref, supp, out, pl, src_size, reg, clip, live_alpha=None, bgmask=No
         src = np.asarray(back_to_source(out, pl, src_size).convert("RGB"), dtype=np.int16)
         added = 0.0 if min(colour) >= 240 else \
             float((item & ndimage.binary_erosion(mask, iterations=r) & (src.min(axis=2) < 243)).sum() / max(1, item.sum()))
-    else:                      # a, b: anything not white far from the live cut-out
+    else:                      # a, b: what the new cut-out has far from the live cut-out, when it is not white: in the
+        # store photo's background colour it is background kept; in another colour it is a part the old cut-out lost
+        # and the new one has back ("restored", allowed up to RESTORED_MAX; anything more is not the same cut-out)
         far = ~ndimage.binary_dilation(supp, iterations=2 * r)
-        added = float((item & far & (np.asarray(view.convert("RGB")).min(axis=2) < 200)).sum() / max(1, item.sum()))
+        va = np.asarray(view.convert("RGB"), dtype=np.int16)
+        extra = item & far & (va.min(axis=2) < 200)
+        bgc = np.asarray(bgcol if bgcol is not None else [255, 255, 255], dtype=np.int16)
+        near_bg = np.abs(va - bgc[None, None, :]).max(axis=2) <= 15
+        added = float((extra & near_bg).sum() / max(1, item.sum()))
+        ck["restored"] = round(float((extra & ~near_bg).sum() / max(1, item.sum())), 4)
     ck["added"] = round(added, 4)
     ck["fid"] = round(fidelity(out, pl), 2)
     if same < sp.SAME_MIN: return False, f"another photo or a changed outline (outline {same:.2f} < {sp.SAME_MIN})", ck
@@ -426,6 +434,8 @@ def judge(g, ref, supp, out, pl, src_size, reg, clip, live_alpha=None, bgmask=No
     if corr < CORR_MIN: return False, f"looks different from the live photo (correlation {corr:.2f})", ck
     if lost > LOST_MAX[g]: return False, f"part of the item lost ({100 * lost:.1f}% of it turned white)", ck
     if added > 0.01: return False, f"something kept around the item ({100 * added:.1f}% of the new cut-out)", ck
+    if ck.get("restored", 0) > RESTORED_MAX:
+        return False, f"much more than the live photo shows ({100 * ck['restored']:.1f}% of the new cut-out)", ck
     if ck["fid"] > FID_MAX: return False, f"item pixels changed (fidelity {ck['fid']:.1f} > {FID_MAX})", ck
     return True, "", ck
 
@@ -474,7 +484,7 @@ def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, mod
         out, notes, pl = compose(src_rgb, full, bg, kind, garment)
         if out is None:
             r["why"] = notes.get("error"); return None, r, None
-        ok, why, ck = judge(g, ref, supp, out, pl, src_rgb.size, reg, clip, live_alpha, bgmask)
+        ok, why, ck = judge(g, ref, supp, out, pl, src_rgb.size, reg, clip, live_alpha, bgmask, bg)
         if not ok and why.startswith("item pixels changed") and str(notes.get("up", "")).startswith("Real-ESRGAN"):
             # the enlarged copy is what changed the pixels: the same cut-out enlarged plainly (Lanczos) instead
             keep, sp.ESRGAN_BELOW = sp.ESRGAN_BELOW, 0
@@ -483,7 +493,7 @@ def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, mod
             finally:
                 sp.ESRGAN_BELOW = keep
             if out2 is not None:
-                ok2, why2, ck2 = judge(g, ref, supp, out2, pl2, src_rgb.size, reg, clip, live_alpha, bgmask)
+                ok2, why2, ck2 = judge(g, ref, supp, out2, pl2, src_rgb.size, reg, clip, live_alpha, bgmask, bg)
                 r["esrgan_fid"] = ck.get("fid")
                 out, notes, pl, ok, why, ck = out2, notes2, pl2, ok2, why2, ck2
         r.update(ck); r.update({k: v for k, v in notes.items() if k in ("clean", "hook", "up", "real_px", "shown_px")})
