@@ -113,10 +113,18 @@
   }
   var RULER = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4z"/><path d="m7.5 10.5 2 2M10.5 7.5l2 2M13.5 4.5l2 2M4.5 13.5l2 2"/></svg>';
   var CHEV = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
-  var CSS = ".pcrec-w{margin:8px 0 -4px}.pcrec{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:-6px 0;padding:0;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}" +
-    ".pcrec b{color:var(--ink);font-weight:600}.pcrec svg{flex:none}.pcrec[aria-expanded=true] .pcrec-c{transform:rotate(180deg)}.pcrec-ask span{text-decoration:underline;text-underline-offset:3px}" +
-    "@media (hover:hover){.pcrec:hover{color:var(--ink)}}.pcrec:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:6px}" +
-    ".pcrec-d{margin:8px 0 4px;padding:12px 14px;border-radius:12px;background:var(--surface-2);color:var(--ink);font-size:13px;line-height:1.45}.pcrec-d p{margin:0 0 6px}.pcrec-s{color:var(--muted);font-size:12px}" +
+  // 23 Nov 2026 (owner: "so that the listing doesn't go down, extremely smooth"): the line keeps its height from the start
+  // (no jump when the size arrives) and the details float over the page instead of pushing the buy button down.
+  var CSS = ".pcrec-w{position:relative;min-height:30px;margin:8px 0 -2px}.pcrec{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:pcrec-in .28s ease both}" +
+    ".pcrec::before{content:\"\";position:absolute;inset:-7px -6px}@keyframes pcrec-in{from{opacity:0}to{opacity:1}}" +
+    ".pcrec b{color:var(--ink);font-weight:600}.pcrec svg{flex:none}.pcrec-c{display:inline-flex;transition:transform .22s cubic-bezier(.2,.8,.2,1)}.pcrec[aria-expanded=true] .pcrec-c{transform:rotate(180deg)}.pcrec-ask span{text-decoration:underline;text-underline-offset:3px}" +
+    "@media (hover:hover){.pcrec:hover{color:var(--ink)}}.pcrec:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:6px}" +
+    ".pcrec-d{position:absolute;left:0;top:calc(100% + 8px);z-index:40;box-sizing:border-box;width:min(420px,100%);max-height:min(70vh,560px);overflow:auto;overscroll-behavior:contain;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font-size:13px;line-height:1.45;" +
+    "box-shadow:0 22px 48px -14px rgba(0,0,0,.38),0 2px 10px rgba(0,0,0,.12);opacity:0;visibility:hidden;transform:translateY(-6px) scale(.98);transform-origin:14px 0;pointer-events:none;" +
+    "transition:opacity .16s ease,transform .24s cubic-bezier(.2,.8,.2,1),visibility 0s linear .24s}" +
+    ".pcrec-w.open .pcrec-d{opacity:1;visibility:visible;transform:none;pointer-events:auto;transition:opacity .16s ease,transform .24s cubic-bezier(.2,.8,.2,1),visibility 0s}" +
+    "@media (prefers-reduced-motion:reduce){.pcrec,.pcrec-d,.pcrec-w.open .pcrec-d,.pcrec-c{animation:none;transition:none}}" +
+    ".pcrec-d p{margin:0 0 6px}.pcrec-s{color:var(--muted);font-size:12px}" +
     ".pcrec-e{min-height:40px;margin-top:2px;padding:0;border:0;background:none;color:var(--ink);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}" +
     ".pcrec-d .pcsz-tw{max-width:100%;margin:8px 0 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;background:var(--surface)}" +
     ".pcrec-d table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}.pcrec-d th,.pcrec-d td{padding:7px 9px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line)}" +
@@ -171,17 +179,26 @@
         el.firstChild.addEventListener("click", function () { if (member()) ask(); else signUp(); });
         return;
       }
-      if (!loaded) { el.innerHTML = ""; return; }
+      if (!loaded) { el.innerHTML = ""; return; }   // the line keeps its height (.pcrec-w min-height) until the size arrives
       var r = pick(kind, { h: b.h, w: b.w, fit: b.fit || "r", eu: b.eu }, data);
       if (!r || r.ask || !r.size) { el.innerHTML = ""; return; }
-      el.innerHTML = '<button type="button" class="pcrec" aria-expanded="' + open + '">' + RULER + "<span>We recommend size <b>" + esc(r.size) + '</b></span><span class="pcrec-c">' + CHEV + "</span></button>" +
-        '<div class="pcrec-d"' + (open ? "" : " hidden") + "><p>" + r.why + '</p><p class="pcrec-s">' + (r.chart ? "From this listing's size chart" : "An estimate: this listing has no size chart we could read, so when in doubt ask the seller through your agent") +
+      el.innerHTML = '<button type="button" class="pcrec" aria-expanded="' + open + '" aria-controls="' + did + '">' + RULER + "<span>We recommend size <b>" + esc(r.size) + '</b></span><span class="pcrec-c">' + CHEV + "</span></button>" +
+        '<div class="pcrec-d" id="' + did + '" role="region" aria-label="Your size" aria-hidden="' + !open + '"><p>' + r.why + '</p><p class="pcrec-s">' + (r.chart ? "From this listing\'s size chart" : "An estimate: this listing has no size chart we could read, so when in doubt ask the seller through your agent") +
         ". For " + bodyText(b) + ".</p>" + (r.chart ? chartHtml(data, r.size, b.u === "i") : "") + '<button type="button" class="pcrec-e">Change my size</button></div>';
-      var btn = el.querySelector(".pcrec"), d = el.querySelector(".pcrec-d");
-      btn.addEventListener("click", function () { open = d.hidden; d.hidden = !open; btn.setAttribute("aria-expanded", open ? "true" : "false"); });
-      el.querySelector(".pcrec-e").addEventListener("click", function () { ask(); });
+      el.querySelector(".pcrec").addEventListener("click", function () { setOpen(!open); });
+      el.querySelector(".pcrec-e").addEventListener("click", function () { setOpen(false); ask(); });
     }
-    function onSize() { if (!el.isConnected) { window.removeEventListener("pc-size", onSize); return; } render(); }
+    var did = "pcrec-" + String(p.id).replace(/[^\w-]/g, "");
+    function outside(e) { if (!el.contains(e.target)) setOpen(false); }
+    function onKey(e) { if (e.key !== "Escape" || !open) return; e.preventDefault(); e.stopImmediatePropagation(); setOpen(false); var t = el.querySelector(".pcrec"); if (t) try { t.focus({ preventScroll: true }); } catch (x) {} }
+    function setOpen(v) {
+      open = !!v; el.classList.toggle("open", open);
+      var t = el.querySelector(".pcrec"), d = el.querySelector(".pcrec-d");
+      if (t) t.setAttribute("aria-expanded", open ? "true" : "false"); if (d) d.setAttribute("aria-hidden", open ? "false" : "true");
+      document.removeEventListener("pointerdown", outside, true); window.removeEventListener("keydown", onKey, true);
+      if (open) { document.addEventListener("pointerdown", outside, true); window.addEventListener("keydown", onKey, true); }
+    }
+    function onSize() { if (!el.isConnected) { window.removeEventListener("pc-size", onSize); setOpen(false); return; } render(); if (open) setOpen(true); }
     window.addEventListener("pc-size", onSize);
     render();
     load(p.id).then(function (d) { data = d; loaded = true; render(); });
@@ -233,7 +250,7 @@
       try { if (prev && prev.focus) prev.focus({ preventScroll: true }); } catch (e) {}
       if (saved) try { window.dispatchEvent(new Event("pc-size")); } catch (e) {}
     }
-    saveBtn.addEventListener("click", function () { var nb = read(); if (!valid(nb)) return; save(nb); close(true); });
+    saveBtn.addEventListener("click", function () { var nb = read(); if (!valid(nb)) return; nb.t = Date.now(); save(nb); close(true); });   // t: the newer copy wins against the account's (index.html pcSizeSync)
     ov.querySelector(".pcsz-skip").addEventListener("click", function () { close(false); });
     ov.addEventListener("click", function (e) { if (e.target === ov) close(false); });
     document.addEventListener("keydown", key, true);

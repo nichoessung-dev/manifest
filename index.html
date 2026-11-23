@@ -4976,7 +4976,7 @@ function pcBetaAsk(p){
 function pcSizeLoad(cb){
   if(window.pcSize){ cb(); return; }
   let s=document.getElementById("pcsz-js");
-  if(!s){ s=document.createElement("script"); s.id="pcsz-js"; s.src="/size.js?v=4"; s.async=true; document.head.appendChild(s); }
+  if(!s){ s=document.createElement("script"); s.id="pcsz-js"; s.src="/size.js?v=5"; s.async=true; document.head.appendChild(s); }
   s.addEventListener("load",cb);
 }
 function pcSizeRow(p){
@@ -4986,6 +4986,30 @@ function pcSizeRow(p){
   el=document.createElement("div"); el.id="pc-size"; pr.insertAdjacentElement("afterend",el);
   pcSizeLoad(()=>{ try{ window.pcSize.mount(el,{id:p.id,cat:p.cat}); }catch(e){} });
 }
+/* 23 Nov 2026 (owner: "lets do that"): a member's size also lives on the account (profiles.size, jsonb), so a new phone or
+   computer knows it and doesn't ask again. The newer copy wins (t = when it was saved). Until the column exists every call
+   fails quietly and the size stays on the device only. */
+function pcBody(){ try{ return JSON.parse(localStorage.getItem("pc.body")||"null"); }catch(e){ return null; } }
+function pcBodyOk(b){ return !!b&&b.h>=130&&b.h<=220&&b.w>=35&&b.w<=200; }
+let _pcSizeQuiet=false;
+async function pcSizeUpload(){
+  if(_pcSizeQuiet||!sb||!ME) return; const b=pcBody(); if(!pcBodyOk(b)) return;
+  try{ await Promise.resolve(window.__pcProfileP).catch(()=>{}); await sb.from("profiles").update({size:b}).eq("id",ME.id); }catch(e){}
+}
+async function pcSizeSync(){
+  if(!sb||!ME) return;
+  try{
+    await Promise.resolve(window.__pcProfileP).catch(()=>{});   /* a brand-new member's row is made by syncProfile's upsert */
+    const r=await sb.from("profiles").select("size").eq("id",ME.id).maybeSingle();
+    if(!r||r.error) return;
+    const srv=r.data&&r.data.size, loc=pcBody();
+    if(pcBodyOk(srv)&&(!pcBodyOk(loc)||(srv.t||0)>(loc.t||0))){
+      try{ localStorage.setItem("pc.body",JSON.stringify(srv)); localStorage.setItem("pc.size.asked","1"); }catch(e){}
+      _pcSizeQuiet=true; try{ window.dispatchEvent(new Event("pc-size")); }catch(e){} _pcSizeQuiet=false;
+    } else if(pcBodyOk(loc)&&(!pcBodyOk(srv)||(loc.t||0)>(srv.t||0))) await pcSizeUpload();
+  }catch(e){}
+}
+window.addEventListener("pc-size",()=>{ pcSizeUpload(); });   /* saved in the size step: up to the account too */
 function pcSizeAskSoon(){
   let asked=null, body=null; try{ asked=localStorage.getItem("pc.size.asked"); body=localStorage.getItem("pc.body"); }catch(e){}
   if(asked||body) return;
@@ -5208,9 +5232,12 @@ function openDetail(p,fromHash){
   $("#close",drawer).focus();
   /* r7: the URL changes last: pushState makes the browser bring style and layout up to date, so done earlier it cost a
      second full restyle of the view before its first frame */
+  /* 23 Nov 2026 (owner: "when you refresh you go to the weird product page"): a refresh of this tab on /product/<id> comes
+     back to the app with this find open (pages.js renderProduct reads it); Google and shared links still get the product page */
+  try{ sessionStorage.setItem("pc.appfind",String(p.id)); }catch(e){}
   if(!fromHash){ try{ const _pu="/product/"+encodeURIComponent(p.id); if(_wasOpen&&history.state&&history.state.pcDrawer){ history.replaceState({pcDrawer:1},"",_pu); } else { if(location.pathname.indexOf("/product/")!==0) window.__pcBase=location.pathname+location.search+location.hash; history.pushState({pcDrawer:1},"",_pu); } }catch(e){ try{location.hash="p/"+encodeURIComponent(p.id);}catch(_){} } }
 }
-function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;let _restY=null;restoreMeta();try{if(drawer.__bbObs){drawer.__bbObs.disconnect();drawer.__bbObs=null;}const _bb=drawer.querySelector(".d-buybar");if(_bb)_bb.classList.remove("on");}catch(e){}document.body.classList.remove("pp-open");drawer.style.top="";try{if(window.__ppObs){window.__ppObs.disconnect();window.__ppObs=null;}}catch(e){}try{if(_gridSig()!==drawer.__sig) render(); else { const y=drawer.__gridY||0; _restY=y; requestAnimationFrame(()=>window.scrollTo(0,y)); }if(!window.__featRendered){window.__featRendered=1;(window.requestIdleCallback||((f)=>setTimeout(f,60)))(()=>{try{renderFeatured();}catch(e){}});}if($("#sort"))$("#sort").value=state.sort;if($("#q"))$("#q").value=state.q||"";}catch(e){}overlay.classList.remove("open");drawer.classList.add("pc-cv");drawer.classList.remove("open");drawer.__pid=null;drawer.__tok=(drawer.__tok||0)+1;drawer.inert=true;document.body.style.overflow="";if(_restY!=null){ try{ window.scrollTo(0,_restY); }catch(e){} }/* r7: back at the exact spot in this frame (the rAF above stays as a safety net) */{ const _lf=lastFocus, _lfId=drawer.__lfId;   /* r7: the page leaves inert, and focus goes back, right after the first paint of the closed view (same restyle cost as on open) */
+function closeDetail(fromHash){if(!drawer.classList.contains("open"))return;try{sessionStorage.removeItem("pc.appfind");}catch(e){}let _restY=null;restoreMeta();try{if(drawer.__bbObs){drawer.__bbObs.disconnect();drawer.__bbObs=null;}const _bb=drawer.querySelector(".d-buybar");if(_bb)_bb.classList.remove("on");}catch(e){}document.body.classList.remove("pp-open");drawer.style.top="";try{if(window.__ppObs){window.__ppObs.disconnect();window.__ppObs=null;}}catch(e){}try{if(_gridSig()!==drawer.__sig) render(); else { const y=drawer.__gridY||0; _restY=y; requestAnimationFrame(()=>window.scrollTo(0,y)); }if(!window.__featRendered){window.__featRendered=1;(window.requestIdleCallback||((f)=>setTimeout(f,60)))(()=>{try{renderFeatured();}catch(e){}});}if($("#sort"))$("#sort").value=state.sort;if($("#q"))$("#q").value=state.q||"";}catch(e){}overlay.classList.remove("open");drawer.classList.add("pc-cv");drawer.classList.remove("open");drawer.__pid=null;drawer.__tok=(drawer.__tok||0)+1;drawer.inert=true;document.body.style.overflow="";if(_restY!=null){ try{ window.scrollTo(0,_restY); }catch(e){} }/* r7: back at the exact spot in this frame (the rAF above stays as a safety net) */{ const _lf=lastFocus, _lfId=drawer.__lfId;   /* r7: the page leaves inert, and focus goes back, right after the first paint of the closed view (same restyle cost as on open) */
 _afterPaint(()=>{ if(drawer.classList.contains("open")) return; $$(".masthead,.hero,.toolbar,main,#seo,.hub-seo,section.page,footer").forEach(el=>{ el.inert=false; });
 try{ let f=_lf; if(!(f&&f.isConnected)&&_lfId){ const b=document.querySelector('#grid [data-fav="'+CSS.escape(_lfId)+'"]'); f=b&&b.closest(".card"); if(f) f=f.querySelector("a.title")||f; } if(f&&f.isConnected)f.focus({preventScroll:true}); }catch(e){} }); }if(!fromHash){ if(location.pathname.indexOf("/product/")===0){ try{ if(history.state&&history.state.pcDrawer){ window.__pcSyncQ=1; history.back(); } else history.replaceState(null,"",window.__pcBase||"/"); }catch(e){} } else if(location.hash.indexOf("#p/")===0){ try{history.replaceState(null,"",location.pathname+location.search);}catch(e){location.hash="";} } }}
 window.addEventListener("popstate",ev=>{ try{
@@ -5531,7 +5558,7 @@ async function onUser(u){
     let merged=null; try{ merged=localStorage.getItem("pc.fav.merged"); }catch(e){}
     if(merged!==ME.id){ await mergeLocalToServer(); try{ localStorage.setItem("pc.fav.merged",ME.id); }catch(e){} }   /* local saves go up once, at sign-in */
     await loadServerFaves(); syncProfile(); pcAgentSave(); restoreReturnHash(); updateAuthUI(); softRender();
-    try{ pcSizeAskSoon(); }catch(e){}   /* the size step once (size.js) */
+    pcSizeSync().then(pcSizeAskSoon,pcSizeAskSoon);   /* the account's size first, then the size step once if there is none (size.js) */
   } else if(!ME&&_authUid!==null){
     _authUid=null; try{ localStorage.removeItem("pc.fav.merged"); }catch(e){} loadLocalFaves(); updateAuthUI(); softRender();
   } else updateAuthUI();
