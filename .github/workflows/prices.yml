@@ -4,7 +4,8 @@ name: Prices
 # partner's item), most viewed first: the 300 most viewed every day, the next 1,700 every 3 days, the rest every 10 days,
 # two lookups at a time with a pause. Each check is recorded in data/prices.json (when, which item, the price), and the
 # catalogue price in index.html is set to the listing's cheapest real variant (placeholder SKUs such as a link, a deposit
-# or a box left out: scripts/price_rule.py). Every change is logged in data/prices_applied.json. To put changes back:
+# or a box left out: scripts/price_rule.py). Every change is logged in data/prices_applied.json. To put changes back,
+# disable this workflow first (its next run would apply the checks again), then:
 #   python scripts/prices.py apply --revert data/prices_applied.json --write   (one batch: add --batch N)
 # Taobao and 1688 have no public price lookup and keep their catalogue price.
 # A run that leaves finds due starts the next run (GitHub starts scheduled runs late, or skips them, when it is busy).
@@ -68,7 +69,7 @@ jobs:
             python scripts/prices.py apply --write | tee out-apply.log
             python scripts/gen_catalog.py
             python scripts/sync_catalog.py --no-thumbs
-            git add data/prices.json data/prices_applied.json functions/_lib/price_checks.js index.html functions/_lib/catalog.js products.json sitemap.xml
+            git add data/prices.json data/prices_applied.json data/prices_unresolved.json functions/_lib/price_checks.js index.html functions/_lib/catalog.js products.json sitemap.xml
             if git diff --cached --quiet; then echo "nothing new"; exit 0; fi
             CHANGED=no; git diff --cached --quiet -- index.html || CHANGED=yes
             git commit -q -m "chore: refresh prices from the live listings"

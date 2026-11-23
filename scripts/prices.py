@@ -22,23 +22,26 @@ Now every visible Weidian find is looked up again, most viewed first, and its pr
           the cheapest real variant (price_rule.pick). Surgical edits inside the
           pc-catalog block of index.html (same order, same format, nothing else touched), verified before writing. Each
           written batch goes into data/prices_applied.json with the old and new values: `apply --revert FILE --write`
-          puts them back (all batches, or one with --batch). It also writes functions/_lib/price_checks.js, the day
-          each shown price was confirmed, for the "checked" note on the product pages.
+          puts them back (all batches, or one with --batch; disable the Prices workflow first, or its next run applies
+          the checks again). It also writes functions/_lib/price_checks.js, the day
+          each shown price was confirmed, for the "checked" note on the product pages, and data/prices_unresolved.json,
+          the visible finds without a real price (gone, placeholder prices only, unchecked Taobao or 1688 placeholders).
   merge   take the newer record of each find from another data/prices.json (the Prices workflow, after a rebase)
   report  the shown prices against the latest checks (the 23 Nov 2026 measurement)
 
 Which finds a check run takes, most viewed first (data/stats.json: 30 days, then all time): never checked, checked for
 another item or rule, or checked longer ago than its tier allows: the 300 most viewed every day, the next 1,700 every
-3 days, the rest every 10 days. Finds hidden on the site (data/reported.json "hidden", look-alikes of swapped finds in
-data/link_swaps.json "hide") are skipped. Taobao and 1688 have no public price lookup: those finds keep their catalogue
-price, unless they are swapped to a Weidian item.
+3 days, the rest every 10 days (70 to 100% of that, fixed per find, so the finds of one big run come due on different
+days). Finds hidden on the site (data/reported.json "hidden", look-alikes of swapped finds in data/link_swaps.json
+"hide") are skipped. Taobao and 1688 have no public price lookup: those finds keep their catalogue price, unless they
+are swapped to a Weidian item.
 
   python scripts/prices.py check [--limit 1500] [--max-minutes 50] [--ids 1,2] [--pause 1.0] [--workers 1]
   python scripts/prices.py apply [--write] [--ids 1,2] [--revert data/prices_applied.json [--batch N]]
   python scripts/prices.py merge OTHER.json
   python scripts/prices.py report [--top 300] [--under-usd 5] [--md out.md]
 """
-import argparse, collections, json, os, sys, time, urllib.parse, urllib.request
+import argparse, collections, json, os, sys, time, urllib.parse, urllib.request, zlib
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
@@ -49,6 +52,7 @@ import price_rule  # noqa: E402
 DATA = os.path.join(ROOT, "data", "prices.json")
 LOG = os.path.join(ROOT, "data", "prices_applied.json")
 JS = os.path.join(ROOT, "functions", "_lib", "price_checks.js")   # the product pages say when the price was checked
+OPEN = os.path.join(ROOT, "data", "prices_unresolved.json")         # visible finds without a real price, for the owner
 SHOW_DAYS = 30                                # a check older than this is not shown on the product page
 API = "https://thor.weidian.com/detail/getItemSkuInfo/1.0?param="
 H = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
@@ -173,6 +177,8 @@ def due(items, recs, hidden, swaps, hide, now):
         if not rec or rec.get("item") != item or rec.get("rule") != price_rule.RULE:
             out.append((p, item)); continue
         days = next(d for top, d in TIERS if top is None or rank < top)
+        # 70 to 100% of the tier's days, fixed per find: finds checked in one big run come due again on different days
+        days *= 0.7 + 0.3 * (zlib.crc32(str(p["id"]).encode()) % 1000) / 1000.0
         t = parse_stamp(rec.get("checked"))
         if t is None or now - t >= timedelta(days=days) - SLACK:
             out.append((p, item))
@@ -378,6 +384,54 @@ def bake_checks(items, recs, swaps):
     return len(rows)
 
 
+def bake_unresolved(items, recs, hidden, swaps, hide):
+    """data/prices_unresolved.json: the visible finds the check could not give a real price, most viewed first, so the
+    owner can decide whether to hide them (owner hides go in data/report_overrides.json, never here):
+      gone      the Weidian listing is gone (asked twice)
+      no_price  the listing only has placeholder prices (ask the seller)
+      unchecked_placeholder  Taobao or 1688 finds showing a placeholder price (under 5 yuan: "Ask seller"), which no
+                public price lookup can check
+      unchecked_cheap  Taobao or 1688 finds outside Accessories under 28 yuan (about $4): maybe a wholesale or
+                placeholder price, which no public price lookup can check either
+      big_drop  finds whose price a check cut to under a third of a real old price (30 yuan or more): the listing
+                may sell something else now (seen: an "AirPods Max" listing now selling 12 yuan earbuds), worth a look
+    plus the count of visible Taobao and 1688 finds whose price nobody can check."""
+    out = {"gone": [], "no_price": [], "unchecked_placeholder": [], "unchecked_cheap": [], "big_drop": []}
+    last = {}
+    for b in load_json(LOG, {}).get("batches") or []:
+        for c in b.get("changes") or []:
+            last[c["id"]] = (c["old"][0], c["new"][0], b.get("date"))
+    unchecked = 0
+    for p in ranked_visible(items, hidden, hide):
+        i, item = str(p["id"]), item_of(p, swaps)
+        row = [i, p.get("title"), p.get("price")]
+        if not item:
+            unchecked += 1
+            if not price_rule.MIN_REAL <= float(p.get("price") or 0) < price_rule.MAX_REAL:
+                out["unchecked_placeholder"].append(row)
+            elif p.get("cat") != "Accessories" and float(p.get("price") or 0) < 28:
+                out["unchecked_cheap"].append(row)
+            continue
+        r = recs.get(i)
+        if r and r.get("item") == item and r.get("status") in ("gone", "no_price"):
+            out[r["status"]].append(row + [r.get("checked")])
+        ch = last.get(i)
+        if ch and ch[1] == p.get("price") and (ch[0] or 0) >= 30 and ch[1] * 3 < ch[0]:
+            out["big_drop"].append([i, p.get("title"), ch[0], ch[1], ch[2]])
+    doc = {"note": "Visible finds without a real price (scripts/prices.py apply), most viewed first: [id, title, catalogue price, "
+                   "checked]; big_drop: [id, title, old price, new price, when]. Hiding them is the owner's call "
+                   "(data/report_overrides.json).",
+           "counts": dict({k: len(v) for k, v in out.items()}, unchecked_taobao_1688=unchecked)}
+    doc.update(out)
+    txt = json.dumps(doc, ensure_ascii=False, indent=0)
+    old = open(OPEN, encoding="utf-8").read() if os.path.exists(OPEN) else None
+    if txt != old:
+        with open(OPEN + ".tmp", "w", encoding="utf-8") as f:
+            f.write(txt)
+        os.replace(OPEN + ".tmp", OPEN)
+    return doc["counts"]
+
+
 def cmd_apply(a):
     _, items, _, _ = load_catalog()
     only = set(x for x in (a.ids or "").replace(" ", "").split(",") if x)
@@ -412,8 +466,10 @@ def cmd_apply(a):
     applied, failed = write_catalog(changes, kind) if changes else ([], [])
     print("written: %d, not applied: %d %s" % (len(applied), len(failed), failed[:10]))
     _, items, _, _ = load_catalog()
-    _, swaps, _, _ = site_state()
-    print("%d finds with a recent price check for the product pages (%s)" % (bake_checks(items, load_prices()["items"], swaps), os.path.relpath(JS, ROOT)))
+    hidden, swaps, _, hide = site_state()
+    recs = load_prices()["items"]
+    print("%d finds with a recent price check for the product pages (%s)" % (bake_checks(items, recs, swaps), os.path.relpath(JS, ROOT)))
+    print("visible finds without a real price (%s): %s" % (os.path.relpath(OPEN, ROOT), bake_unresolved(items, recs, hidden, swaps, hide)))
     return 0
 
 
