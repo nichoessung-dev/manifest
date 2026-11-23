@@ -3,7 +3,10 @@
 // clicks of the finds each page would list (data/stats.json, "item_buy_clicks"), and Google results checked through Serper
 // (data/seo_ranks_best.json). Google's own suggestions leave out almost every "rep" search, so they could not be used.
 // A model made the list only with 12+ visible finds (not hidden after reports or a photo check, listing not gone) and 2+ of
-// them marked as having buyer QC photos, counted on 23 Nov 2026. Its page lists only visible finds (visOnly, pages.js).
+// them marked as having buyer QC photos, counted on 23 Nov 2026. Its page lists only visible finds (modelList, pages.js).
+// Left out after those checks: Gucci GG clothing and Balenciaga jeans (one find each with QC photos), Margiela numbers and
+// Hermès ties (one or two rep results in Google's top 9), and pages too close to an existing one (Golden Goose sneakers
+// other than the Super-Star: mostly Super-Stars without the name in the title).
 // Merged after MODELS, MODELS3 and MODELS4 in pages.js, so the earlier pages keep first claim on a find's product page link.
 // brandMin: a brand page links this cross-brand model only when the brand has this many of its finds and is one of the
 // three brands with the most finds on it (pages.js modelOnBrand), so a brand with one cap does not get a "Best cap reps" link.
@@ -26,8 +29,9 @@ export const MODELS5 = [
   { slug: "ralph-lauren-jacket", name: "Ralph Lauren jackets & puffers", rx: "^(?!.*(quarter|half.?zip|hoodie|sweat|shirt)).*ralph lauren.*(puffer|jacket|gilet|vest|windbreaker|parka|coat|bomber)",
     intro: "Ralph Lauren puffers, gilets, Harrington and field jackets, the outerwear half of the old money look.",
     qc: ["pony embroidery size and colour", "fill and loft on puffers and gilets", "zips, snaps and the inner label"] },
-  { slug: "moncler-jacket", name: "Moncler jackets & windbreakers", rx: "^(?!.*(puffer|down|gilet|vest)).*moncler.*(windbreaker|rain|jacket|parka|coat|shell|bomber)",
-    intro: "Moncler jackets that are not puffers: hooded rain jackets, windbreakers, fleece and bomber jackets.",
+  // Not "Moncler jacket": that search finds /best/moncler-puffer (8th in the US on 23 Nov 2026), and most people mean a puffer.
+  { slug: "moncler-windbreaker", name: "Moncler windbreakers, rain & fleece jackets", rx: "^(?!.*(puffer|down|gilet|vest)).*moncler.*(windbreaker|rain|jacket|parka|coat|shell|bomber)",
+    intro: "Moncler jackets that are not puffers: windbreakers, hooded rain jackets, fleece and bomber jackets.",
     qc: ["the felt or rubber logo patch on the sleeve or chest", "hood, zip and snap hardware", "fabric finish and colour against retail photos"] },
   { slug: "louis-vuitton-clothing", name: "Louis Vuitton clothing", rx: "^(?!.*(bag|keepall|tote|wallet|sneaker|trainer|belt|card|pouch|backpack|slide|speedy|neverfull|beanie|\\bcap\\b|scarf|bracelet|necklace|\\bring\\b|sunglass|perfume|\\btie\\b|loafer|boot|socks)).*louis vuitton.*(jacket|varsity|puffer|windbreaker|shirt|tee|denim|jean|sweater|knit|hoodie|sweatshirt|shorts|pants|cardigan|polo)",
     intro: "Louis Vuitton jackets, varsity jackets, shirts, denim and knitwear, many in monogram or Damier.",
@@ -48,9 +52,6 @@ export const MODELS5 = [
   { slug: "lacoste-sweatshirt", name: "Lacoste sweatshirts, hoodies & knits", rx: "lacoste.*(sweatshirt|hoodie|sweater|knit|crewneck|cardigan|half.?zip|quarter.?zip)",
     intro: "Lacoste crewnecks, hoodies, half-zips and cable knits with the crocodile on the chest.",
     qc: ["crocodile patch: shape, colours and stitching", "knit or fleece weight", "ribbing and the neck label"] },
-  { slug: "maison-margiela-numbers", name: "Maison Margiela numbers tees & hoodies", rx: "^(?!.*(belt|scarf|wallet|bag|sneaker|shoe|boot|sock)).*margiela.*(numbers?|numeric)",
-    intro: "Maison Margiela and MM6 tees, long sleeves and hoodies with the 0 to 23 numbers print.",
-    qc: ["number print size, font and position", "the four white stitches on the back", "fabric weight and the neck label"] },
   { slug: "cp-company-hoodie", name: "C.P. Company hoodies & sweatshirts", rx: "^(?!.*(beanie|jacket|\\bcap\\b|\\bhat\\b|pants|jogger|shorts)).*c\\.?p\\.? company.*(hoodie|sweat|crewneck|zip|fleece)",
     intro: "C.P. Company goggle zip hoodies, lens sweatshirts and crewnecks.",
     qc: ["the lens: clear, round and flush with the fabric", "goggle hood stitching and fit", "the C.P. Company patch and inner labels"] },
@@ -111,9 +112,6 @@ export const MODELS5 = [
   { slug: "scarf", name: "Scarves", brandMin: 2, rx: "scarf",
     intro: "Scarves from Acne Studios, Burberry, Louis Vuitton, Dior, Loro Piana and Hermès.",
     qc: ["pattern alignment and colour", "fringe and edge finishing", "the woven label and how soft the fabric is"] },
-  { slug: "hermes-tie-scarf", name: "Hermès silk ties & scarves", rx: "herm[eè]s.*(\\btie\\b|scarf|silk|twilly)",
-    intro: "Hermès silk ties and scarves in printed and woven patterns.",
-    qc: ["print sharpness and colours", "rolled hem stitching on scarves", "the label and the weight of the silk"] },
   { slug: "wallet-cardholder", name: "Wallets & card holders", brandMin: 2, rx: "wallet|card ?holder|card case",
     intro: "Wallets and card holders from Louis Vuitton, Dior, Chanel, Saint Laurent, Celine, Goyard and more.",
     qc: ["canvas or leather grain and colour", "stitching and edge paint", "the heat stamp and the inside"] },
@@ -129,12 +127,12 @@ export const MODELS5 = [
 // How each page is named in its title and h1 ("Best <term> reps").
 export const MODEL_TERM5 = {
   "puffer-jacket": "Puffer Jacket", "gilet": "Gilet", "windbreaker": "Windbreaker", "bomber-jacket": "Bomber Jacket", "ralph-lauren-jacket": "Ralph Lauren Jacket",
-  "moncler-jacket": "Moncler Jacket", "louis-vuitton-clothing": "Louis Vuitton Clothing", "chrome-hearts-jacket": "Chrome Hearts Jacket", "zip-hoodie": "Zip Hoodie",
-  "quarter-zip": "Quarter Zip", "cardigan": "Cardigan", "lacoste-sweatshirt": "Lacoste Sweatshirt", "maison-margiela-numbers": "Margiela Numbers",
+  "moncler-windbreaker": "Moncler Windbreaker", "louis-vuitton-clothing": "Louis Vuitton Clothing", "chrome-hearts-jacket": "Chrome Hearts Jacket", "zip-hoodie": "Zip Hoodie",
+  "quarter-zip": "Quarter Zip", "cardigan": "Cardigan", "lacoste-sweatshirt": "Lacoste Sweatshirt",
   "cp-company-hoodie": "CP Company Hoodie", "essentials-crewneck-tracksuit": "Essentials Tracksuit & Crewneck", "dior-oblique": "Dior Oblique",
   "tracksuit": "Tracksuit", "rick-owens-pants": "Rick Owens Pants",
   "chrome-hearts-jeans": "Chrome Hearts Jeans", "carhartt-pants": "Carhartt Pants", "jorts": "Jorts", "ralph-lauren-shorts": "Ralph Lauren Shorts",
   "swim-shorts": "Swim Shorts", "designer-loafers": "Designer Loafer", "hermes-shoes": "Hermès Loafer & Sneaker", "balenciaga-boots": "Balenciaga Boots",
   "bape-bapesta": "Bapesta", "travis-scott": "Travis Scott", "nike-nocta": "Nike NOCTA", "beanie": "Beanie", "cap": "Cap", "scarf": "Scarf",
-  "hermes-tie-scarf": "Hermès Tie & Scarf", "wallet-cardholder": "Wallet & Card Holder", "designer-belts": "Chanel, Dior & Burberry Belt", "designer-socks": "Socks",
+  "wallet-cardholder": "Wallet & Card Holder", "designer-belts": "Chanel, Dior & Burberry Belt", "designer-socks": "Socks",
 };
