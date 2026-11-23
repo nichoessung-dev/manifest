@@ -4,7 +4,7 @@
 Buy clicks (table buy_clicks) of the last DAYS days, grouped by the page the click was made on (the "/app" prefix the
 catalogue app adds is dropped, so an app hub and its server page count together) and by the visit source bucket
 (ref "~google" and so on, the first page of the visit). Plus product page views from Google per find (table
-product_page_views, source "google"), and (23 Nov 2026) the countries of the Google buy clicks on the pages with the most
+product_page_views, source "google"), and (23 Nov 2026) buy clicks per find from every source, the countries of the Google buy clicks on the pages with the most
 of them, to know which Google markets each page is found in, and the site searches of the last 30 days that were made
 5+ times in 3+ different hours (the same floor as the dashboard's top searches in scripts/bake_stats.py), to pick model
 pages from real demand. Aggregate counts only: no ids of people, no addresses, nothing personal.
@@ -70,7 +70,7 @@ def site_searches(since):
 def main():
     now = datetime.datetime.now(datetime.timezone.utc)
     since = (now - datetime.timedelta(days=DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    rows = fetch_all("buy_clicks?select=page,ref,country,created_at&created_at=gte." + since + "&order=created_at.asc")
+    rows = fetch_all("buy_clicks?select=page,ref,country,item_id,created_at&created_at=gte." + since + "&order=created_at.asc")
     per = collections.defaultdict(collections.Counter)
     gc = collections.defaultdict(collections.Counter)   # Google buy clicks per page and country
     for r in rows:
@@ -84,6 +84,7 @@ def main():
     for p, c in per.items():
         if p.startswith("/product/"):
             prod_clicks[p[9:]] += c.get("google", 0)
+    item_clicks = collections.Counter(str(r.get("item_id") or "") for r in rows if r.get("item_id"))   # every page and source
     day0 = (now - datetime.timedelta(days=DAYS)).date().isoformat()
     try:
         pv = fetch_all("product_page_views?select=product_id,source,views&source=eq.google&day=gte." + day0)
@@ -101,6 +102,8 @@ def main():
            "google_countries": sorted(([k, v] for k, v in sum(gc.values(), collections.Counter()).items()), key=lambda x: -x[1])[:40],
            "google_countries_by_page": [[p, sum(c.values()), c.most_common(12)]
                                         for p, c in sorted(gc.items(), key=lambda x: -sum(x[1].values()))[:80] if not p.startswith("/product/")],
+           # buy clicks per find (item id), every page and source, the 2,000 finds with the most
+           "item_buy_clicks": [[k, v] for k, v in item_clicks.most_common(2000) if k],
            "site_searches_30d": site_searches((now - datetime.timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ"))}
     json.dump(out, open(OUT, "w"), separators=(",", ":"))
     print("written", OUT, len(rows), "clicks,", len(pages), "pages,", len(out["product_google_views"]), "finds with Google views")
