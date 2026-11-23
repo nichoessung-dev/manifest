@@ -6,7 +6,9 @@
       compared with the body measure estimated from height and weight plus room for the fit.
    2. No chart: the same estimate as /tools/size-estimator (functions/_lib/tools9.js sizeFor), one size up for Chinese
       sizing, matched to the listing's own size names.
-   window.pcSize.mount(el, {id, cat, g}) fills el. Clothes and shoes only. */
+   window.pcSize.mount(el, {id, cat, g}) fills el. Clothes and shoes only.
+   23 Nov 2026 (owner: "a size chart and a recommended size for every visitor"): always open, the size up front once height
+   and weight are known, and the seller's chart as a table with that size highlighted (was a folded "Find my size" row). */
 (function () {
   "use strict";
   var KEY = "pc.body", CATS = { Tops: "top", Outerwear: "jacket", Pants: "pants", Shorts: "pants", Shoes: "shoes" };
@@ -92,62 +94,116 @@
     return { size: label, chart: false, why: "You'd be " + L[x] + " in EU/US sizes. Chinese sizes run about one size small, so go one up." };
   }
 
-  var CSS = ".pcsz{min-width:0;max-width:100%;margin-top:14px;border-top:1px solid var(--line);padding-top:4px}.pcsz-b{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;border:0;background:none;color:var(--ink);font:inherit;font-size:14px;font-weight:500;text-align:left;cursor:pointer;padding:0}" +
-    ".pcsz-b .ic{width:28px;height:28px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;flex:none}.pcsz-b .r{margin-left:auto;color:var(--muted);font-weight:400}" +
-    ".pcsz-p{padding:6px 0 10px}.pcsz-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.pcsz-g label{min-width:0;display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}" +
-    ".pcsz-in{min-width:0;display:flex;align-items:center;border:1px solid var(--line-2,var(--line));border-radius:12px;padding:0 10px;height:42px;background:var(--surface)}.pcsz-in input{flex:1;min-width:0;width:100%;border:0;background:none;color:var(--ink);font:inherit;font-size:15px;outline:none}" +
-    ".pcsz-in span{color:var(--muted);font-size:13px}.pcsz-seg{display:flex;gap:6px;margin:10px 0 0}.pcsz-seg button{flex:1;min-width:0;height:36px;border-radius:999px;border:1px solid var(--line-2,var(--line));background:none;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}" +
-    ".pcsz-seg button.on{background:var(--ink);color:var(--bg,#fff);border-color:transparent}.pcsz-u{border:0;background:none;color:var(--muted);font:inherit;font-size:12px;text-decoration:underline;cursor:pointer;padding:0;margin-top:8px}" +
-    ".pcsz-out{margin-top:12px;padding:14px;border-radius:14px;background:var(--surface-2)}.pcsz-out b{font-size:22px;display:block;line-height:1.2}.pcsz-out p{margin:4px 0 0;font-size:13px;color:var(--muted);line-height:1.45}.pcsz-out small{display:block;margin-top:6px;font-size:12px;color:var(--muted)}";
+  /* The card (owner, 23 Nov 2026: "a size chart and a recommended size for every visitor based on weight and height").
+     Always open under the buy button. First time: height and weight right there. After that: "Recommended: L" on every
+     find, the fit, and the seller's size chart as a table with that size highlighted. */
+  var CSS = ".pcsz{min-width:0;max-width:100%;box-sizing:border-box;margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink)}" +
+    ".pcsz-hd{display:flex;align-items:center;gap:10px;min-height:32px}.pcsz-hd .ic{width:28px;height:28px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;flex:none}" +
+    ".pcsz-t{margin:0;font-size:15px;font-weight:600;line-height:1.2}.pcsz-edit{margin:-6px -4px -6px auto;min-height:44px;padding:0 6px;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}" +
+    ".pcsz-sub{margin:6px 0 0;font-size:13px;line-height:1.45;color:var(--muted)}" +
+    ".pcsz-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:12px}.pcsz-g label{min-width:0;display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}" +
+    ".pcsz-in{min-width:0;display:flex;align-items:center;gap:4px;box-sizing:border-box;height:44px;padding:0 12px;border:1px solid var(--line-2,var(--line));border-radius:12px;background:var(--surface)}" +
+    ".pcsz-in:focus-within{border-color:var(--ink)}.pcsz-in input{flex:1;min-width:0;width:100%;padding:0;border:0;background:none;color:var(--ink);font:inherit;font-size:16px;outline:none}.pcsz-in span{color:var(--muted);font-size:13px}" +
+    ".pcsz-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}" +
+    ".pcsz-seg{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--surface-2)}.pcsz-seg button{min-height:38px;padding:0 14px;border:0;border-radius:999px;background:none;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}" +
+    ".pcsz-seg button.on{background:var(--fill,var(--ink));color:var(--fill-ink,#fff)}.pcsz-u{min-height:44px;margin-left:auto;padding:0 2px;border:0;background:none;color:var(--muted);font:inherit;font-size:12px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}" +
+    ".pcsz-res{margin-top:12px;padding:14px;border-radius:12px;background:var(--surface-2)}.pcsz-rec{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}" +
+    ".pcsz-rl{font-size:13px;color:var(--muted)}.pcsz-rec b{font-size:26px;line-height:1.1}.pcsz-for{font-size:13px;color:var(--muted)}" +
+    ".pcsz-why{margin:6px 0 0;font-size:13px;line-height:1.45}.pcsz-src{margin:6px 0 0;font-size:12px;line-height:1.45;color:var(--muted)}" +
+    ".pcsz-ch{margin-top:14px}.pcsz-chh{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px;font-size:14px;font-weight:600}.pcsz-chh span{font-size:12px;font-weight:400;color:var(--muted)}" +
+    ".pcsz-tw{max-width:100%;margin-top:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px}" +
+    ".pcsz table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}.pcsz th,.pcsz td{padding:9px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line);color:var(--ink)}" +
+    ".pcsz thead th{font-size:12px;font-weight:500;color:var(--muted);background:var(--surface-2)}.pcsz tbody tr:last-child>*{border-bottom:0}.pcsz tbody th{font-weight:600}" +
+    ".pcsz tr.on>*{background:color-mix(in srgb,var(--ink) 9%,transparent)}.pcsz tr.on th small{margin-left:6px;font-size:11px;font-weight:500;color:var(--muted)}" +
+    ".pcsz-sold{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:var(--muted)}" +
+    ".pcsz-sold i{font-style:normal;min-width:36px;height:32px;box-sizing:border-box;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2,var(--line));border-radius:8px;font-size:13px;color:var(--ink)}" +
+    ".pcsz-sold i.on{background:var(--fill,var(--ink));color:var(--fill-ink,#fff);border-color:transparent}";
+  var RULER = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4z"/><path d="m7.5 10.5 2 2M10.5 7.5l2 2M13.5 4.5l2 2M4.5 13.5l2 2"/></svg>';
+  // chart columns in this order; ranges (height, weight) show as "170-180"
+  var COLS = [["h", "Height"], ["w", "Weight"], ["ch", "Chest"], ["sh", "Shoulder"], ["le", "Length"], ["wa", "Waist"], ["hi", "Hip"], ["in", "Inseam"], ["ft", "Foot"]];
+  function num(x, imp, kg) { if (x == null || x === "") return ""; var v = imp ? (kg ? x / 0.4536 : x / 2.54) : x; v = Math.round(v * 10) / 10; return String(v).replace(/\.0$/, ""); }
+  function cell(m, k, imp) {
+    if (k === "h") return m.h0 ? num(m.h0, imp) + (m.h1 && m.h1 !== m.h0 ? "-" + num(m.h1, imp) : "") : "";
+    if (k === "w") return m.w0 ? num(m.w0, imp, 1) + (m.w1 && m.w1 !== m.w0 ? "-" + num(m.w1, imp, 1) : "") : "";
+    return m[k] ? num(m[k], imp) : "";
+  }
+  function chartHtml(d, size, imp) {
+    var rows = (d && d.c) || []; if (rows.length < 2) return "";
+    var cols = COLS.filter(function (c) { return rows.some(function (r) { return cell(r[1], c[0], imp) !== ""; }); });
+    if (!cols.length) return "";
+    var mode = d.m === "flat" ? ", measured flat" : d.m === "round" ? ", measured all the way round" : d.m === "body" ? ", body measurements" : "";
+    var units = imp ? "inches" + (cols.some(function (c) { return c[0] === "w"; }) ? " and lb" : "") : "cm" + (cols.some(function (c) { return c[0] === "w"; }) ? " and kg" : "");
+    var mine = size ? norm(size) : "";
+    return '<div class="pcsz-ch"><div class="pcsz-chh">Size chart<span>From the seller, in ' + units + mode + '</span></div><div class="pcsz-tw"><table><thead><tr><th scope="col">Size</th>' +
+      cols.map(function (c) { return '<th scope="col">' + c[1] + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      rows.map(function (r) { var on = mine && norm(r[0]) === mine; return "<tr" + (on ? ' class="on"' : "") + '><th scope="row">' + esc(r[0]) + (on ? "<small>Yours</small>" : "") + "</th>" +
+        cols.map(function (c) { return "<td>" + (cell(r[1], c[0], imp) || "") + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div></div>";
+  }
+  function soldHtml(d, size) {
+    var sold = ((d && d.s) || []).filter(function (s) { return s && s.length <= 8; }); if (!sold.length || (d && d.c && d.c.length >= 2)) return "";
+    var mine = size ? norm(size) : "";
+    return '<div class="pcsz-sold"><span>Sizes this listing sells:</span>' + sold.slice(0, 16).map(function (s) { return "<i" + (mine && norm(s) === mine ? ' class="on"' : "") + ">" + esc(s) + "</i>"; }).join("") + "</div>";
+  }
 
   function mount(el, p) {
     var kind = CATS[p && p.cat]; if (!el || !kind || el.getAttribute("data-pcsz")) return; el.setAttribute("data-pcsz", "1");
     if (!document.getElementById("pcsz-css")) { var st = document.createElement("style"); st.id = "pcsz-css"; st.textContent = CSS; document.head.appendChild(st); }
-    var b = store(), imp = b.u === "i", data, loaded = false;
-    var RULER = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4z"/><path d="m7.5 10.5 2 2M10.5 7.5l2 2M13.5 4.5l2 2M4.5 13.5l2 2"/></svg>';
+    var b = store(), imp = b.u === "i", fit = b.fit || "r", data = null, loaded = false, shoe = kind === "shoes";
+    var ok = function () { return b.h >= 130 && b.h <= 220 && b.w >= 35 && b.w <= 200 && (!shoe || b.eu >= 33); };
+    var editing = !ok();
     el.className = "pcsz";
-    el.innerHTML = '<button type="button" class="pcsz-b" aria-expanded="false"><span class="ic">' + RULER + '</span><span>Find my size</span><span class="r"></span></button><div class="pcsz-p" hidden></div>';
-    var btn = el.querySelector(".pcsz-b"), pane = el.querySelector(".pcsz-p"), right = el.querySelector(".r");
+    el.innerHTML = '<div class="pcsz-hd"><span class="ic">' + RULER + '</span><h3 class="pcsz-t">Your size</h3><button type="button" class="pcsz-edit" hidden>Edit</button></div>' +
+      '<div class="pcsz-f"></div><div class="pcsz-out" aria-live="polite"></div><div class="pcsz-c"></div>';
+    var edit = el.querySelector(".pcsz-edit"), fbox = el.querySelector(".pcsz-f"), out = el.querySelector(".pcsz-out"), cbox = el.querySelector(".pcsz-c");
+    function bodyText() {
+      var h = imp ? Math.floor(b.h / 2.54 / 12) + " ft " + Math.round((b.h / 2.54) % 12) + " in" : Math.round(b.h) + " cm";
+      var w = imp ? Math.round(b.w / 0.4536) + " lb" : Math.round(b.w) + " kg";
+      return "For " + h + ", " + w + (shoe && b.eu ? ", EU " + b.eu : "") + ", " + FIT[fit].t.toLowerCase() + " fit";
+    }
+    function segHtml() { return '<div class="pcsz-seg" role="group" aria-label="Fit">' + ["s", "r", "l"].map(function (k) { return '<button type="button" data-fit="' + k + '" aria-pressed="' + (k === fit) + '"' + (k === fit ? ' class="on"' : "") + ">" + FIT[k].t + "</button>"; }).join("") + "</div>"; }
+    function wireSeg(box) { [].forEach.call(box.querySelectorAll("[data-fit]"), function (x) { x.addEventListener("click", function () { fit = x.getAttribute("data-fit"); if (ok()) { b.fit = fit; save(b); } [].forEach.call(box.querySelectorAll("[data-fit]"), function (y) { var on = y === x; y.classList.toggle("on", on); y.setAttribute("aria-pressed", on); }); result(); }); }); }
     function form() {
-      var shoe = kind === "shoes";
-      pane.innerHTML = '<div class="pcsz-g">' +
-        (imp ? '<label>Height<div class="pcsz-in"><input inputmode="numeric" data-k="ft" placeholder="5"><span>ft</span><input inputmode="numeric" data-k="in" placeholder="10"><span>in</span></div></label>'
+      edit.hidden = true;
+      fbox.innerHTML = '<p class="pcsz-sub">Enter it once and every find shows your size. Saved on this device only.</p><div class="pcsz-g">' +
+        (imp ? '<label>Height<div class="pcsz-in"><input inputmode="numeric" data-k="ft" placeholder="5" aria-label="Height, feet"><span>ft</span><input inputmode="numeric" data-k="in" placeholder="10" aria-label="Height, inches"><span>in</span></div></label>'
           : '<label>Height<div class="pcsz-in"><input inputmode="numeric" data-k="h" placeholder="178"><span>cm</span></div></label>') +
         '<label>Weight<div class="pcsz-in"><input inputmode="numeric" data-k="w" placeholder="' + (imp ? "165" : "75") + '"><span>' + (imp ? "lb" : "kg") + "</span></div></label>" +
-        (shoe ? '<label style="grid-column:1/-1">Your usual shoe size (EU, optional)<div class="pcsz-in"><input inputmode="decimal" data-k="eu" placeholder="43"><span>EU</span></div></label>' : "") + "</div>" +
-        '<div class="pcsz-seg" role="group" aria-label="Fit">' + ["s", "r", "l"].map(function (k) { return '<button type="button" data-fit="' + k + '">' + FIT[k].t + "</button>"; }).join("") + "</div>" +
-        '<button type="button" class="pcsz-u">' + (imp ? "Use cm and kg" : "Use ft and lb") + '</button><div class="pcsz-out" hidden aria-live="polite"></div>';
-      var v = function (k) { var i = pane.querySelector('[data-k="' + k + '"]'); return i ? parseFloat(String(i.value).replace(",", ".")) : NaN; };
-      var set = function (k, x) { var i = pane.querySelector('[data-k="' + k + '"]'); if (i && x) i.value = x; };
+        (shoe ? '<label style="grid-column:1/-1">Your usual shoe size (EU)<div class="pcsz-in"><input inputmode="decimal" data-k="eu" placeholder="43"><span>EU</span></div></label>' : "") + "</div>" +
+        '<div class="pcsz-row">' + segHtml() + '<button type="button" class="pcsz-u">' + (imp ? "Use cm and kg" : "Use ft and lb") + "</button></div>";
+      var v = function (k) { var i = fbox.querySelector('[data-k="' + k + '"]'); return i ? parseFloat(String(i.value).replace(",", ".")) : NaN; };
+      var set = function (k, x) { var i = fbox.querySelector('[data-k="' + k + '"]'); if (i && x) i.value = x; };
       if (b.h) { if (imp) { var t = b.h / 2.54; set("ft", Math.floor(t / 12)); set("in", Math.round(t % 12)); } else set("h", Math.round(b.h)); }
       if (b.w) set("w", Math.round(imp ? b.w / 0.4536 : b.w));
       if (b.eu) set("eu", b.eu);
-      var fit = b.fit || "r";
-      function seg() { [].forEach.call(pane.querySelectorAll("[data-fit]"), function (x) { x.classList.toggle("on", x.getAttribute("data-fit") === fit); }); }
-      seg();
-      function run() {
+      function read() {
         var h = imp ? (v("ft") * 12 + (v("in") || 0)) * 2.54 : v("h"), w = imp ? v("w") * 0.4536 : v("w"), eu = v("eu");
-        var out = pane.querySelector(".pcsz-out");
-        if (!(h >= 130 && h <= 220 && w >= 35 && w <= 200)) { out.hidden = true; right.textContent = ""; return; }
-        b = { h: Math.round(h), w: Math.round(w * 10) / 10, fit: fit, u: imp ? "i" : "", eu: eu >= 33 && eu <= 50 ? eu : (b.eu || 0) }; save(b);
-        if (!loaded) { out.hidden = false; out.innerHTML = "<p>Checking the seller's size chart...</p>"; return; }
-        var r = pick(kind, b, data);
-        out.hidden = false;
-        if (r.ask) { out.innerHTML = "<p>" + r.why + "</p>"; right.textContent = ""; return; }
-        out.innerHTML = "<b>Size " + esc(r.size) + "</b><p>" + r.why + "</p><small>" + (r.chart ? "Based on this listing's size chart." : "An estimate: this listing has no size chart we could read. When in doubt, ask the seller through your agent.") + "</small>";
-        right.textContent = "Size " + r.size;
+        b = { h: Math.round(h) || 0, w: Math.round(w * 10) / 10 || 0, fit: fit, u: imp ? "i" : "", eu: eu >= 33 && eu <= 50 ? eu : (b.eu || 0) };
+        if (ok()) save(b);
+        result();
       }
-      [].forEach.call(pane.querySelectorAll("input"), function (i) { i.addEventListener("input", run); });
-      [].forEach.call(pane.querySelectorAll("[data-fit]"), function (x) { x.addEventListener("click", function () { fit = x.getAttribute("data-fit"); seg(); run(); }); });
-      pane.querySelector(".pcsz-u").addEventListener("click", function () { imp = !imp; b.u = imp ? "i" : ""; save(b); form(); });
-      el.__run = run; run();
+      [].forEach.call(fbox.querySelectorAll("input"), function (i) { i.addEventListener("input", read); });
+      wireSeg(fbox);
+      fbox.querySelector(".pcsz-u").addEventListener("click", function () { imp = !imp; b.u = imp ? "i" : ""; if (ok()) save(b); form(); result(); });
     }
-    btn.addEventListener("click", function () {
-      var open = pane.hidden; pane.hidden = !open; btn.setAttribute("aria-expanded", open ? "true" : "false");
-      if (open && !pane.firstChild) form();
-      if (open) { var f = pane.querySelector("input"); if (f && !f.value) try { f.focus({ preventScroll: true }); } catch (e) {} }
-    });
-    load(p.id).then(function (d) { data = d; loaded = true; if (el.__run) el.__run(); else if (b.h && b.w) { var r = pick(kind, { h: b.h, w: b.w, fit: b.fit || "r", eu: b.eu }, d); if (r.size) right.textContent = "Size " + r.size; } });
+    function summary() {
+      edit.hidden = false;
+      fbox.innerHTML = '<div class="pcsz-row">' + segHtml() + "</div>";
+      wireSeg(fbox);
+    }
+    function result() {
+      var r = ok() && loaded ? pick(kind, { h: b.h, w: b.w, fit: fit, eu: b.eu }, data) : null;
+      if (!ok()) out.innerHTML = "";
+      else if (!loaded) out.innerHTML = '<div class="pcsz-res"><p class="pcsz-src">Checking the seller\'s size chart...</p></div>';
+      else if (r.ask || !r.size) out.innerHTML = '<div class="pcsz-res"><p class="pcsz-why">' + r.why + "</p></div>";
+      else out.innerHTML = '<div class="pcsz-res"><div class="pcsz-rec"><span class="pcsz-rl">Recommended</span><b>' + esc(r.size) + '</b><span class="pcsz-for">' + bodyText() + "</span></div>" +
+        '<p class="pcsz-why">' + r.why + '</p><p class="pcsz-src">' + (r.chart ? "Based on this listing's size chart." : "An estimate: this listing has no size chart we could read. When in doubt, ask the seller through your agent.") + "</p></div>";
+      var size = r && !r.ask ? r.size : "";
+      cbox.innerHTML = loaded ? chartHtml(data, size, imp) + soldHtml(data, size) : "";
+    }
+    edit.addEventListener("click", function () { editing = true; form(); result(); var f = fbox.querySelector("input"); if (f) try { f.focus({ preventScroll: true }); } catch (e) {} });
+    if (editing) form(); else summary();
+    result();
+    load(p.id).then(function (d) { data = d; loaded = true; result(); });
   }
   window.pcSize = { mount: mount, pick: pick };
   [].forEach.call(document.querySelectorAll("[data-pcsz-id]"), function (el) { mount(el, { id: el.getAttribute("data-pcsz-id"), cat: el.getAttribute("data-pcsz-cat") }); });
