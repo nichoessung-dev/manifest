@@ -97,6 +97,14 @@ export const views = p => VIEWS[p.id] || NO_VIEWS;
 // scripts/gen_signals.py), unless the weekly link check found the listing gone. The rest are noindex,follow.
 const DEMAND_SET = new Set(DEMAND), GONE = new Map([...DEAD.map(i => [i, "dead"]), ...SOLD_OUT.map(i => [i, "sold_out"])]);
 export const gone = p => GONE.get(p.id) || null;               // "dead" | "sold_out" | null
+// Finds a visitor can see (23 Nov 2026, SEO pass): the app leaves out finds hidden after reports or the photo check
+// (data/reported.json "hidden") and listings the link check found gone, but P still holds them (their product pages
+// answer). Counts in the titles and copy of the marketplace, QC and agent spreadsheets used P and said "13,770 Weidian
+// finds" where the app shows about 10,000. functions/_middleware.js hands the hidden set over (setHidden) before it
+// renders those pages; without it (a failed read) shown() only leaves out gone listings.
+let HIDDEN = null;
+export const setHidden = s => { HIDDEN = s && s.size ? s : null; };
+export const shown = p => GONE.get(p.id) !== "dead" && !(HIDDEN && HIDDEN.has(String(p.id)));
 export const LINKS_CHECKED = CHECKED;                          // date of that link check (YYYY-MM-DD)
 export const GONE_COUNTS = { dead: DEAD.length, sold: SOLD_OUT.length };   // what that check found, for page copy
 const baseIndexable = p => !GONE.has(p.id) && (p.qc >= 1 || p.best === 1 || DEMAND_SET.has(p.id));
@@ -117,11 +125,11 @@ export function rowDays(p) {
 }
 // The newest finds: rows are appended to the catalogue, so the last rows are the newest. Gone listings and finds without a
 // photo are left out; `skip` takes ids removed after reports.
-export function newest(n = Infinity, brand = null, skip = null) {
+export function newest(n = Infinity, brand = null, skip = null, plat = null) {   // plat (23 Nov 2026): one marketplace only
   const out = [];
   for (let i = P.length - 1; i >= 0 && out.length < n; i--) {
     const p = P[i];
-    if (GONE.has(p.id) || !p.img || (brand && p.brand !== brand) || (skip && skip.has(String(p.id)))) continue;
+    if (GONE.has(p.id) || !p.img || (brand && p.brand !== brand) || (plat && p.platform !== plat) || (skip && skip.has(String(p.id)))) continue;
     out.push(p);
   }
   return out;
@@ -257,7 +265,9 @@ const plusOf = (n, step) => (Math.floor(n / step) * step).toLocaleString("en-US"
 // 15 Nov 2026: the visible finds (hidden, dead and look-alike finds left out), to the hundred, baked by scripts/bake_counts.py
 // so the server and the app show the same number (the app no longer rewrites it on load)
 export const FINDS_PLUS = COUNTS.FINDS_PLUS;
-export const QC_PLUS = plusOf(P.filter(p => p.qc >= 1).length, 100);
+// 23 Nov 2026 (SEO pass): the QC count from the same bake (visible finds marked as having QC photos), so the homepage tile,
+// the guides and the spreadsheets say "1,200+" like the app instead of counting hidden finds ("1,900+").
+export const QC_PLUS = COUNTS.QC_PLUS || plusOf(P.filter(p => p.qc >= 1).length, 100);
 export const AGENT_N = AGENT_ORDER.length;
 const AGENT_NAMES = AGENT_ORDER.map(k => AGENTS[k] ? AGENTS[k].name : k);
 export const AGENTS_LINE = AGENT_N > 5 ? `${AGENT_NAMES.slice(0, 4).join(", ")}, ${AGENT_NAMES[4]} and ${AGENT_N - 5} more agents` : AGENT_NAMES.join(", ");
@@ -559,10 +569,11 @@ export const more = (label, html) => `<details class="more"><summary>${esc(label
 export const howItWorks = (slug, about) => `<h2 class="h-ic">${icTile("list")}How It Works</h2>` + (TOOL_HOW[slug] ? icSteps(TOOL_HOW[slug]) + (about ? more("Details", `<div class="prose">${about}</div>`) : "") : `<div class="prose">${about}</div>`);
 // The page every tool shares. ui = the tool's card markup + script. about = the SEO text (kept, shown under "How It Works").
 // jsonld is passed through unchanged so the structured data stays byte-identical.
-export function toolShell({ slug, name, h1, lead, trust = [], ui, about = "", faq = "", title, desc, jsonld = [], wide = false, bc }) {
+export function toolShell({ slug, name, h1, lead, trust = [], ui, about = "", faq = "", title, desc, jsonld = [], wide = false, bc, extra = "" }) {
   const path = "/tools/" + slug;
+  // extra (23 Nov 2026): sections of the tool's own data under How It Works (the QC finder's agent table and QC finds).
   const body = `<div class="tk-page${wide ? " wide" : ""}">${bc}${tkHero({ slug, name, h1, lead, trust })}${ui}` +
-    `<div class="tk-below">${howItWorks(slug, about)}${faq}${tkRelated(path)}</div></div>`;
+    `<div class="tk-below">${howItWorks(slug, about)}${extra}${faq}${tkRelated(path)}</div></div>`;
   return page({ title, desc, path, body, jsonld });
 }
 // Client helpers every tool page inlines once (ES5, no libraries): window.TK.
@@ -604,7 +615,7 @@ function footer() {
 ${col("Categories", Object.values(CATS).filter(c => c.slug !== "toys").map(c => [c.name, "/category/" + c.slug]))}
 ${col("Brands", topBrands.slice(0, half))}
 ${col("More brands", topBrands.slice(half).concat([["All brands →", "/brands"]]))}
-${col("Spreadsheets", [["Rep spreadsheet", "/"], ["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Weidian spreadsheet", "/weidian-spreadsheet"], ["Taobao spreadsheet", "/taobao-spreadsheet"], ["1688 spreadsheet", "/1688-spreadsheet"], ["Old money spreadsheet", "/old-money"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Grisch spreadsheet", "/grisch-spreadsheet"], ["QC photos spreadsheet", "/qc-spreadsheet"]])}
+${col("Spreadsheets", [["Rep spreadsheet", "/"], ["MyCNBox spreadsheet", "/mycnbox-spreadsheet"], ["KakoBuy spreadsheet", "/kakobuy-spreadsheet"], ["Oopbuy spreadsheet", "/oopbuy-spreadsheet"], ["LoveGoBuy spreadsheet", "/lovegobuy-spreadsheet"], ["Sugargoo spreadsheet", "/sugargoo-spreadsheet"], ["Weidian spreadsheet", "/weidian-spreadsheet"], ["Taobao spreadsheet", "/taobao-spreadsheet"], ["1688 spreadsheet", "/1688-spreadsheet"], ["Old money spreadsheet", "/old-money"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Grisch spreadsheet", "/grisch-spreadsheet"], ["QC spreadsheet", "/qc-spreadsheet"], ["CNFans spreadsheet", "/cnfans-spreadsheet"]])}
 ${col("Guides", FOOTER_GUIDES.map(u => GUIDE_LINKS.find(g => g[1] === u)).filter(Boolean).concat([["All guides →", "/guides"]]))}
 ${col("Tools & best reps", TOOL_LINKS.concat([["Best reps by model →", "/best"]]))}
 ${col("Puro Classico", [["Browse all finds", "/"], ["About Puro Classico", "/about"], ["How we check", "/guides/how-we-check"], ["Discord community", "/discord"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}

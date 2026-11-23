@@ -3,7 +3,7 @@
 import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT, liveCopy, newest, FINDS_PLUS, QC_PLUS, AGENT_NAMES_ALL } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderAbout, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
   sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL, renderPlat, fitTitle, renderNew, newFindsHtml, NEW_LINKS, HX_CSS } from "./_lib/pages.js";
-import { imgSrc, navKey, SWAP_VER } from "./_lib/site.js";
+import { imgSrc, navKey, SWAP_VER, setHidden } from "./_lib/site.js";
 import { reportedIds } from "./_lib/reported.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
@@ -322,6 +322,9 @@ async function route(ctx) {
   };
   const usesStats = /^\/(brand|category|brands|old-money|guides|best|new(\/|$))|^\/[a-z0-9]+-spreadsheet/.test(path);
   if (usesStats) await ensureStats(url.origin);
+  // 23 Nov 2026 (SEO pass): the finds hidden after reports or the photo check, so the spreadsheet, QC and model pages count
+  // and list only what a visitor can see (shown() in site.js). Read once per 10 minutes per instance (reported.js).
+  if (usesStats || path === "/sitemap-pages.xml" || path.startsWith("/tools")) setHidden(await reportedIds(ctx.env, url.origin));
   if (path === "/sitemap.xml") return sitemapIndex();
   if (path === "/sitemap-pages.xml") return sitemapPages();
   if (path === "/sitemap-products.xml") return sitemapProducts(await reportedIds(ctx.env, url.origin));   // removed finds are noindex
