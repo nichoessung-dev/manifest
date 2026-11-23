@@ -1,6 +1,7 @@
 name: SEO ranks
 # Google positions for the searches in data/seo_keywords.json (US and UK) and an index check, via Serper
 # (scripts/seo_ranks.py, SERPER_API_KEY secret). Writes data/seo_ranks.json. Run by hand; stops before the credit budget.
+# Focused runs (23 Nov 2026): another keywords file, other markets and their own output file, without the index check.
 on:
   workflow_dispatch:
     inputs:
@@ -13,6 +14,24 @@ on:
       index_by_name:
         description: 'Only the second index check ("P,O": product and other pages of the last sample); empty runs everything'
         default: ''
+      keywords:
+        description: 'Keywords file (same shape as data/seo_keywords.json)'
+        default: 'data/seo_keywords.json'
+      markets:
+        description: 'Google markets, comma separated (empty: us,gb)'
+        default: ''
+      out:
+        description: 'Output file'
+        default: 'data/seo_ranks.json'
+      depth:
+        description: 'Pages of 10 looked through when we are not on page 1'
+        default: '5'
+      top:
+        description: 'Results kept per search with title, snippet and date'
+        default: '3'
+      no_index:
+        description: 'Skip the index check (yes/no)'
+        default: 'no'
 permissions:
   contents: write
 concurrency:
@@ -27,18 +46,30 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python scripts/seo_ranks.py --budget "$BUDGET" --sample "$SAMPLE" ${IBN:+--index-by-name "$IBN"}
+      - run: |
+          python scripts/seo_ranks.py --budget "$BUDGET" --sample "$SAMPLE" ${IBN:+--index-by-name "$IBN"} \
+            --keywords "$KW" ${MARKETS:+--markets "$MARKETS"} --out "$OUT" --depth "$DEPTH" --top "$TOP" \
+            $([ "$NOIDX" = "yes" ] && echo --no-index)
         env:
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
           BUDGET: ${{ github.event.inputs.budget }}
           SAMPLE: ${{ github.event.inputs.sample }}
           IBN: ${{ github.event.inputs.index_by_name }}
+          KW: ${{ github.event.inputs.keywords }}
+          MARKETS: ${{ github.event.inputs.markets }}
+          OUT: ${{ github.event.inputs.out }}
+          DEPTH: ${{ github.event.inputs.depth }}
+          TOP: ${{ github.event.inputs.top }}
+          NOIDX: ${{ github.event.inputs.no_index }}
       - name: Commit
+        env:
+          OUT: ${{ github.event.inputs.out }}
         run: |
-          git add data/seo_ranks.json
+          case "$OUT" in data/seo_ranks*.json) ;; *) echo "unexpected output file"; exit 1;; esac
+          git add "$OUT"
           if git diff --cached --quiet; then echo "no change"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "data: Google positions and index check (seo_ranks.json)"
+          git commit -m "data: Google positions ($(basename "$OUT")) [skip ci]"
           for i in 1 2 3 4 5; do git pull --rebase && git push && exit 0; sleep $((i * 7)); done
           exit 1

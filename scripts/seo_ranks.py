@@ -9,6 +9,13 @@ Runs in GitHub Actions (.github/workflows/seo-ranks.yml) with the SERPER_API_KEY
 credits (counted from the credits Serper reports per request).
 
   python scripts/seo_ranks.py [--budget 600] [--sample 60]
+
+A focused check (23 Nov 2026): other searches, other markets, its own output file, no index check. The top results are
+kept with their snippets (--top), to see what ranks and why. Example, the spreadsheet searches in the ten countries
+with the most buy clicks, looked up to the top 30:
+
+  python scripts/seo_ranks.py --keywords data/seo_keywords_head.json --markets us,gb,de,se,pl,ca,no,nl,dk,au \
+      --depth 3 --top 5 --no-index --out data/seo_ranks_markets.json
 """
 import argparse, json, os, random, re, sys, time, urllib.request, urllib.error
 from datetime import datetime, timezone
@@ -18,6 +25,10 @@ OUT = os.path.join(ROOT, "data", "seo_ranks.json")
 KW = os.path.join(ROOT, "data", "seo_keywords.json")
 SITE = "https://www.puroclassico.com"
 MARKETS = [("us", "en"), ("gb", "en")]
+# Google's interface language per market for --markets (the language most searchers there use Google in).
+HL = {"us": "en", "gb": "en", "ca": "en", "au": "en", "ie": "en", "nz": "en", "za": "en", "de": "de", "at": "de", "ch": "de",
+      "se": "sv", "no": "no", "dk": "da", "fi": "fi", "nl": "nl", "be": "nl", "pl": "pl", "cz": "cs", "fr": "fr", "it": "it",
+      "es": "es", "pt": "pt", "ro": "ro"}
 DEEP_GROUPS = ("brand", "head", "agent", "guide")       # searched past page 1 when we are not on it (paged mode)
 UA = {"User-Agent": "Mozilla/5.0 (compatible; PuroClassicoSEO/1.0)"}
 
@@ -85,10 +96,14 @@ def features(d):
     return f
 
 
+TOP = 3   # results kept per search with title (and, from 4 up, snippet and date): --top
+
+
 def rank(s, q, gl, hl, mode, depth, prev=None):
     """One search in one market: our position (None = not in the results we read), how deep we looked, results.
     prev: an earlier result for the same search, continued from the next page (paged mode)."""
     res = [tuple(x) for x in (prev or {}).get("_res", [])]
+    snip = dict((prev or {}).get("_snip", {}))
     seen_depth, feats = (prev or {}).get("checked_top", 0), (prev or {}).get("features", [])
     if mode["num100"]:
         d = s.search(q, gl, hl, num=100, cost_guess=mode["c100"])
@@ -99,14 +114,20 @@ def rank(s, q, gl, hl, mode, depth, prev=None):
             if page == 1:
                 feats = features(d)
             got = read_results(d, (page - 1) * 10)
+            for i, r in enumerate(d.get("organic") or []):
+                snip[str((page - 1) * 10 + i + 1)] = [(r.get("snippet") or "")[:220], r.get("date") or ""]
             res += got; seen_depth = page * 10
             if any(ours(l) for _, l, _ in got) or len(got) < 8:
                 break
     mine = [(p, l, t) for p, l, t in res if ours(l)]
     top = [{"pos": p, "domain": host_of(l), "url": l, "title": t} for p, l, t in res[:3]]
-    return {"pos": mine[0][0] if mine else None, "url": mine[0][1] if mine else None, "title": mine[0][2] if mine else None,
-            "all_ours": [[p, l] for p, l, _ in mine][:10], "checked_top": seen_depth, "top3": top, "features": feats,
-            "domains_top10": [host_of(l) for _, l, _ in res[:10]], "_res": [list(x) for x in res]}
+    out = {"pos": mine[0][0] if mine else None, "url": mine[0][1] if mine else None, "title": mine[0][2] if mine else None,
+           "all_ours": [[p, l] for p, l, _ in mine][:10], "checked_top": seen_depth, "top3": top, "features": feats,
+           "domains_top10": [host_of(l) for _, l, _ in res[:10]], "_res": [list(x) for x in res], "_snip": snip}
+    if TOP > 3:
+        out["top"] = [{"pos": p, "domain": host_of(l), "url": l, "title": t, "snippet": (snip.get(str(p)) or ["", ""])[0],
+                       "date": (snip.get(str(p)) or ["", ""])[1]} for p, l, t in res[:TOP]]
+    return out
 
 
 def sitemap_urls():
@@ -186,7 +207,18 @@ def main(argv=None):
     ap.add_argument("--sample", type=int, default=60, help="sitemap URLs checked one by one for the index estimate")
     ap.add_argument("--index-by-name", default="", help="P,O: only the second index check on P product and O other pages "
                     "of the earlier sample, added to data/seo_ranks.json")
+    ap.add_argument("--keywords", default=KW, help="searches to check (same shape as data/seo_keywords.json)")
+    ap.add_argument("--markets", default="", help="comma list of Google markets (us,gb,de,...); default us,gb")
+    ap.add_argument("--out", default=OUT, help="output file (default data/seo_ranks.json)")
+    ap.add_argument("--depth", type=int, default=5, help="pages of 10 looked through when we are not on page 1 (deep groups)")
+    ap.add_argument("--deep-groups", default=",".join(DEEP_GROUPS), help="groups searched past page 1; 'all' for every group")
+    ap.add_argument("--top", type=int, default=3, help="results kept per search with title, snippet and date")
+    ap.add_argument("--no-index", action="store_true", help="skip the index check")
     a = ap.parse_args(argv)
+    global TOP
+    TOP = max(3, a.top)
+    markets = [(m.strip(), HL.get(m.strip(), "en")) for m in a.markets.split(",") if m.strip()] or MARKETS
+    out_path = os.path.join(ROOT, a.out) if not os.path.isabs(a.out) else a.out
     key = os.environ.get("SERPER_API_KEY") or sys.exit("no SERPER_API_KEY")
     s = Serper(key, a.budget - 5)
     if a.index_by_name:
@@ -203,17 +235,19 @@ def main(argv=None):
         r = out["index"]["sample_by_name"]
         print("index by name: %d checked, %d found, %d credits this run" % (len(r), sum(1 for x in r if x.get("indexed")), s.used))
         return
-    kw = {g: v for g, v in json.load(open(KW)).items() if not g.startswith("_")}
+    kw_path = os.path.join(ROOT, a.keywords) if not os.path.isabs(a.keywords) else a.keywords
+    kw = {g: v for g, v in json.load(open(kw_path)).items() if not g.startswith("_")}
     queries = [(g, q) for g, qs in kw.items() for q in qs]
-    out = {"generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "markets": [m for m, _ in MARKETS],
-           "ranks": {}, "index": {}, "notes": []}
+    deep = set(kw) if a.deep_groups == "all" else set(x.strip() for x in a.deep_groups.split(",") if x.strip())
+    out = {"generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "markets": [m for m, _ in markets],
+           "keywords": os.path.relpath(kw_path, ROOT), "ranks": {}, "index": {}, "notes": []}
 
     # 1. Does num=100 still return 100 results, and what does it cost?
     probe = s.search("weidian spreadsheet", "us", "en", num=100, cost_guess=2)
     n100, c100 = len(probe.get("organic") or []), int(probe.get("credits") or 2)
-    reserve = a.sample + 12
+    reserve = 0 if a.no_index else a.sample + 12
     mode = {"num100": n100 >= 40, "c100": c100, "probe_results": n100}
-    if mode["num100"] and len(queries) * len(MARKETS) * c100 + reserve > s.budget:
+    if mode["num100"] and len(queries) * len(markets) * c100 + reserve > s.budget:
         mode["num100_markets"] = ["us"]
     out["mode"] = mode
     print("probe: num=100 gave %d results for %d credits -> %s" % (n100, c100, "top 100 per search" if mode["num100"] else "pages of 10"))
@@ -221,7 +255,7 @@ def main(argv=None):
     # 2. Rankings. Page 1 everywhere first, then deeper where we are missing (paged mode), most important groups first.
     try:
         for g, q in queries:
-            for gl, hl in MARKETS:
+            for gl, hl in markets:
                 m = dict(mode)
                 if mode["num100"] and gl not in mode.get("num100_markets", [gl]):
                     m["num100"] = False
@@ -229,10 +263,10 @@ def main(argv=None):
                 r["group"] = g
                 out["ranks"].setdefault(q, {"group": g})[gl] = r
         if not mode["num100"]:
-            for depth in (3, 5):
+            for depth in sorted(set(d for d in (3, 5) if d <= a.depth) | ({a.depth} if a.depth > 1 else set())):
                 for g, q in queries:
-                    if g not in DEEP_GROUPS: continue
-                    for gl, hl in MARKETS:
+                    if g not in deep: continue
+                    for gl, hl in markets:
                         r0 = out["ranks"][q][gl]
                         if r0["pos"] or r0["checked_top"] >= depth * 10 or len(r0["_res"]) < r0["checked_top"] - 2: continue
                         if s.used + (depth - r0["checked_top"] // 10) + reserve > s.budget: continue
@@ -242,10 +276,12 @@ def main(argv=None):
         out["notes"].append("budget reached during rankings")
     for v in out["ranks"].values():
         for m, r in v.items():
-            if m != "group": r.pop("_res", None)
+            if m != "group": r.pop("_res", None); r.pop("_snip", None)
 
     # 3. Index: site: searches, then a fixed random sample of sitemap URLs looked up one by one.
     try:
+        if a.no_index:
+            raise StopIteration
         for q in ("site:puroclassico.com", "site:fb.puroclassico.com", "site:puroclassico.com -inurl:www",
                   "site:puroclassico.com/product", "site:puroclassico.com/brand", "site:puroclassico.com/best"):
             d = s.search(q, "us", "en", num=100 if mode["num100"] else 10, cost_guess=c100 if mode["num100"] else 1)
@@ -270,11 +306,13 @@ def main(argv=None):
         out["index"]["sample"] = checked
     except Budget:
         out["notes"].append("budget reached during the index check")
+    except StopIteration:
+        out.pop("index", None)
 
     out["credits_used"], out["requests"] = s.used, s.calls
-    json.dump(out, open(OUT, "w"), indent=1, ensure_ascii=False)
+    json.dump(out, open(out_path, "w"), indent=1, ensure_ascii=False)
     found = sum(1 for v in out["ranks"].values() for m, r in v.items() if m != "group" and r.get("pos"))
-    print("written %s: %d searches, %d positions found, %d credits, %d requests" % (OUT, len(out["ranks"]), found, s.used, s.calls))
+    print("written %s: %d searches, %d positions found, %d credits, %d requests" % (out_path, len(out["ranks"]), found, s.used, s.calls))
 
 
 if __name__ == "__main__":

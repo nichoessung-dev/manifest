@@ -4,7 +4,9 @@
 Buy clicks (table buy_clicks) of the last DAYS days, grouped by the page the click was made on (the "/app" prefix the
 catalogue app adds is dropped, so an app hub and its server page count together) and by the visit source bucket
 (ref "~google" and so on, the first page of the visit). Plus product page views from Google per find (table
-product_page_views, source "google"). Aggregate counts only: no ids of people, no addresses, nothing personal.
+product_page_views, source "google"), and (23 Nov 2026) the countries of the Google buy clicks on the pages with the most
+of them, to know which Google markets each page is found in. Aggregate counts only: no ids of people, no addresses,
+nothing personal.
 
 Runs in GitHub Actions (.github/workflows/seo-page-clicks.yml) with the SUPABASE_SERVICE_KEY secret.
 """
@@ -46,10 +48,14 @@ def norm(path):
 def main():
     now = datetime.datetime.now(datetime.timezone.utc)
     since = (now - datetime.timedelta(days=DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    rows = fetch_all("buy_clicks?select=page,ref,created_at&created_at=gte." + since + "&order=created_at.asc")
+    rows = fetch_all("buy_clicks?select=page,ref,country,created_at&created_at=gte." + since + "&order=created_at.asc")
     per = collections.defaultdict(collections.Counter)
+    gc = collections.defaultdict(collections.Counter)   # Google buy clicks per page and country
     for r in rows:
-        per[norm(r.get("page"))][bucket(r.get("ref") or "")] += 1
+        pg, b = norm(r.get("page")), bucket(r.get("ref") or "")
+        per[pg][b] += 1
+        if b == "google":
+            gc[pg][(r.get("country") or "??").upper()[:2]] += 1
     pages = sorted(([p, dict(c), sum(c.values())] for p, c in per.items() if sum(c.values()) >= 3 and not p.startswith("/product/")),
                    key=lambda x: -x[2])
     prod_clicks = collections.Counter()
@@ -68,7 +74,11 @@ def main():
            "about": "Buy clicks per page (min 3) by visit source; product page views from Google per find. Aggregates only.",
            "pages": pages[:1500],
            "product_google_views": sorted(([k, v] for k, v in g.items() if k and v), key=lambda x: -x[1])[:3000],
-           "product_google_buy_clicks": sorted(([k, v] for k, v in prod_clicks.items() if v), key=lambda x: -x[1])[:3000]}
+           "product_google_buy_clicks": sorted(([k, v] for k, v in prod_clicks.items() if v), key=lambda x: -x[1])[:3000],
+           # Google buy clicks by country: all pages together, then the 80 pages with the most (top 12 countries each)
+           "google_countries": sorted(([k, v] for k, v in sum(gc.values(), collections.Counter()).items()), key=lambda x: -x[1])[:40],
+           "google_countries_by_page": [[p, sum(c.values()), c.most_common(12)]
+                                        for p, c in sorted(gc.items(), key=lambda x: -sum(x[1].values()))[:80] if not p.startswith("/product/")]}
     json.dump(out, open(OUT, "w"), separators=(",", ":"))
     print("written", OUT, len(rows), "clicks,", len(pages), "pages,", len(out["product_google_views"]), "finds with Google views")
 
