@@ -966,38 +966,51 @@ def do_recut(p, old, labels, models, log):
     if not found: return None, dict(rec, flag="no original", why="the listing's photos no longer include the photo it was cut from")
     u, im, reg = found
     rec["src_url"] = u; rec["src_size"] = list(im.size)
-    # the region of the original the old cut-out covers, widened 20% each side
     oa = old_in_source(lu.getchannel("A"), reg, im.size)
     ob = bbox(np.asarray(oa) >= 128)
     if not ob: return None, dict(rec, flag="no original", why="the old cut-out does not line up")
     w, h = ob[2] - ob[0], ob[3] - ob[1]
-    roi = (max(0, ob[0] - round(0.2 * w)), max(0, ob[1] - round(0.2 * h)), min(im.width, ob[2] + round(0.2 * w)), min(im.height, ob[3] + round(0.2 * h)))
-    src = im.crop(roi)
-    old_a = np.asarray(oa.crop(roi))
-    old_supp = old_a >= 26
-    old_solid = ndimage.binary_erosion(old_a >= 230, iterations=2)
-    # keep region: the old cut-out's outline (convex hull) and a margin: a lost part lies inside it, another product of
-    # a collage lies outside
-    ys, xs = np.nonzero(old_supp)
-    keep = np.zeros(old_supp.shape, bool)
-    try:
-        hull = ConvexHull(np.stack([xs, ys], 1))
-        from PIL import ImageDraw
-        km = Image.new("L", (src.width, src.height), 0)
-        ImageDraw.Draw(km).polygon([(float(xs[v]), float(ys[v])) for v in hull.vertices], fill=255)
-        keep = np.asarray(km) > 0
-    except Exception:
-        keep = old_supp.copy()
-    keep = ndimage.binary_dilation(keep, iterations=max(3, round(0.02 * max(src.size))))
-    # what the item really covers: a quick matte of the original
+    # the region of the original the old cut-out covers, widened 20% each side. Where the item runs out of it on a side
+    # that is not the photo's own edge (a lost chain loop or strap reaching further), that side is widened and the item
+    # looked at again: the region must never cut the item (23 Nov 2026: a chain cut flat at the frame by the region)
+    marg = {"left": 0.2, "top": 0.2, "right": 0.2, "bottom": 0.2}
+    grown = []
     t = time.time()
-    det = keep_pieces(matte(src, "birefnet-general-lite"), keep)
-    dm = np.asarray(det) >= 128
+    for _ in range(3):
+        roi = (max(0, ob[0] - round(marg["left"] * w)), max(0, ob[1] - round(marg["top"] * h)),
+               min(im.width, ob[2] + round(marg["right"] * w)), min(im.height, ob[3] + round(marg["bottom"] * h)))
+        src = im.crop(roi)
+        old_a = np.asarray(oa.crop(roi))
+        old_supp = old_a >= 26
+        # keep region: the old cut-out's outline (convex hull) and a margin: a lost part lies inside it, another
+        # product of a collage lies outside
+        ys, xs = np.nonzero(old_supp)
+        keep = np.zeros(old_supp.shape, bool)
+        try:
+            hull = ConvexHull(np.stack([xs, ys], 1))
+            from PIL import ImageDraw
+            km = Image.new("L", (src.width, src.height), 0)
+            ImageDraw.Draw(km).polygon([(float(xs[v]), float(ys[v])) for v in hull.vertices], fill=255)
+            keep = np.asarray(km) > 0
+        except Exception:
+            keep = old_supp.copy()
+        keep = ndimage.binary_dilation(keep, iterations=max(3, round(0.02 * max(src.size))))
+        # what the item really covers: a quick matte of the original
+        det = keep_pieces(matte(src, "birefnet-general-lite"), keep)
+        dm = np.asarray(det) >= 128
+        grow = [s for s, band, edge in (("left", dm[:, :2], roi[0] == 0), ("top", dm[:2], roi[1] == 0),
+                                         ("right", dm[:, -2:], roi[2] == im.width), ("bottom", dm[-2:], roi[3] == im.height))
+                if band.any() and not edge]
+        if not grow: break
+        for s in grow: marg[s] += 0.6
+        grown += grow
+    old_solid = ndimage.binary_erosion(old_a >= 230, iterations=2)
     drop = hanger_above(dm & ~(old_a >= 64), old_supp, old_a)
     dm = dm & ~drop
     lost_old = float((dm & ~(old_a >= 64)).sum() / max(1, dm.sum()))
     rec["detect"] = {"lost_old": round(lost_old, 4), "s": round(time.time() - t, 1)}
     if drop.any(): rec["detect"]["hanger"] = round(float(drop.sum() / max(1, dm.sum())), 4)
+    if grown: rec["detect"]["grown"] = grown
     if lost_old <= LOST_FLAG:
         return None, dict(rec, flag="intact", why=f"intact: the old cut-out has the whole item ({100 * lost_old:.1f}% not in it)")
     rec["flag"] = "lost parts"
