@@ -1,8 +1,93 @@
 # SEO changes
 
 Every SEO change to the site, newest first: what changed, why, which URLs, and how to undo it. The checks behind the
-decisions: data/seo_ranks.json (Google positions and the index check of 22 Nov 2026, scripts/seo_ranks.py) and
-data/seo_page_clicks.json (buy clicks per page by visit source, scripts/seo_page_clicks.py).
+decisions: data/seo_ranks.json (Google positions and the index check of 22 Nov 2026, scripts/seo_ranks.py),
+data/seo_ranks_markets.json (the spreadsheet searches in ten countries, 23 Nov 2026), data/seo_ranks_best.json (the
+searches of the model pages added on 23 Nov 2026, checked before they existed) and data/seo_page_clicks.json (buy clicks
+per page by visit source and country, buy clicks per find, site searches; scripts/seo_page_clicks.py).
+
+## 23 Nov 2026: the spreadsheet searches, 34 model pages, agent shipping lines
+
+The baseline, taken before these changes (Serper, 467 credits): data/seo_ranks_markets.json has the 16 spreadsheet searches
+in the US, UK, Germany, Sweden, Poland, Canada, Norway, the Netherlands, Denmark and Australia (the ten countries with the
+most buy clicks), looked up to the top 30; data/seo_ranks_best.json has one search per new model page in the US and UK.
+What it showed: the rep spreadsheet guide is 2nd to 6th for "rep spreadsheet" in all ten countries and 2nd to 6th for "reps
+spreadsheet" in five, and the homepage is in none; the guide (not /taobao-spreadsheet) is 8th to 14th for "taobao
+spreadsheet"; /mycnbox-spreadsheet is 4th for "mycnbox spreadsheet" in eight countries but not in the US or UK top 30; page 8
+of the 1688 list (which no longer exists) is 7th to 11th for "1688 spreadsheet"; we are in no top 30 for "weidian
+spreadsheet", "finds spreadsheet", "oopbuy spreadsheet", "lovegobuy spreadsheet", "cnfans spreadsheet" or "qc spreadsheet".
+Google buy clicks come from many countries (data/seo_page_clicks.json "google_countries_by_page"): /kakobuy-spreadsheet
+most from Denmark, the US, the UK, Poland and the Netherlands, /sugargoo-spreadsheet from Czechia, Sweden and the UK. What
+ranks above us: Reddit threads, sites named after the search (kakobuyspreadsheet.gg, sugargoo.net, taobao-spreadsheet.net,
+cnfan-sheet.com, 1688links.net), finders with an FAQ and live QC data (rep.tools, finderqc.com, goodsqc.com) and, for
+"weidian spreadsheet", weidian.com shops. Most say "updated daily" and "2026" and hold far fewer finds than we do; what they
+have that we lack is links from elsewhere (the link drafts for the owner are a separate file, not on the site).
+
+- Real counts: the Weidian, Taobao, 1688, QC, agent and agent x QC/budget spreadsheets count only the finds a visitor can
+  see (not hidden after reports or the photo check, listing not gone): "Weidian Spreadsheet 2026: 10,280 Rep Finds" where it
+  said 13,770, Taobao 229 (was 460), 1688 179 (was 370), QC 1,273 (was 1,969). Their pages 2 and up and the sitemap list
+  the same finds, so /weidian-spreadsheet/173 to /229, /1688-spreadsheet/4 to /7 and some Taobao pages now 301 to page 1
+  (rescue() in the middleware). The site-wide QC count (homepage tile, guides) comes from the same bake as the finds count:
+  "1,300+" where server pages said "1,900+". Code: shown() and setHidden() in site.js (the middleware hands over the hidden
+  set from data/reported.json), findShown in pages.js, QC_PLUS in site.js.
+- Rep spreadsheet, reps spreadsheet, fashion reps spreadsheet, finds spreadsheet: one page, /guides/what-is-a-rep-spreadsheet,
+  the page Google already shows. Title "Rep Spreadsheet 2026: 10,600+ Finds and How to Use One", h1 "Rep spreadsheet: 10,600+
+  finds and how to use one", a description with the finds and QC counts. It now opens with the spreadsheet itself: its 8 most
+  popular finds with buy buttons, the counts by category (visible finds), the finds added in the last 7 days, and links to
+  every spreadsheet by agent, marketplace and style with those words as the link text. The homepage title is left as it is
+  (it carries the brand searches); its footer link "Rep spreadsheet" still goes to the homepage.
+- Taobao, 1688 and Weidian spreadsheets: the rep spreadsheet guide links each with its name as the link text, and the
+  how-to-buy guides' button says "Open the Weidian spreadsheet: N finds" (was "See all N Weidian finds"). Each marketplace
+  spreadsheet gets "New <marketplace> finds this week" (how many were added in 7 days, the 8 newest).
+- Agent spreadsheets (KakoBuy, Sugargoo, Oopbuy): "<agent> shipping lines and prices", a table of the three cheapest lines
+  and the fastest one to the US, UK, Germany and Sweden for a 1 kg parcel of branded clothing, read from each agent's own
+  estimator on 23 Nov 2026 (functions/_lib/shipping_lines.js says how; read them again before relying on the prices for more
+  than a few weeks). MyCNBox's estimator needs an account, so its page shows the figures MyCNBox publishes on its homepage
+  (12.5 days dispatch to delivery, 99.5% delivered, real parcel samples with their lines, warehouse times for 16 to 22 Nov).
+  LoveGoBuy's site sits behind a browser check, so its page has no table. All five get "New finds this week" with a link that
+  opens each new find on that agent. The titles of the agent pages are unchanged (they bring most of the Google buy clicks).
+- Oopbuy's new-user offer corrected to what Oopbuy showed on 23 Nov 2026: a ¥3,500 bundle plus 15% off shipping (the
+  copy of 9 Nov said a 30% off coupon). Code: content.js AGENT_INTRO.oopbuy and agentBrandCopy.
+- QC spreadsheet: the page for "qc spreadsheet". Title "QC Spreadsheet 2026: N Finds With Buyer QC Photos", h1 "QC
+  Spreadsheet: Finds With Buyer QC Photos", breadcrumb and footer link "QC spreadsheet", and an About block with its finds by
+  category and the QC checklist for each item type.
+- QC finder (/tools/qc-checker, for "qc finder" and "qc photos reps"): two sections under How It Works: what each agent's
+  warehouse check covers (from the agents' help centres, the same facts as their spreadsheets) and the 12 finds with the
+  most buyer QC photos on record, linked to their QC photos. toolShell (site.js) takes the new `extra`.
+- CNFans spreadsheet: says what happened, with dates (the daily site check found a maintenance page until 16 Nov 2026 and
+  cnfans.com has not loaded since 18 Nov 2026), compares the five agents that open every find (QC check, free storage,
+  new-user offer, from their spreadsheets' sources) and explains old links. The footer links it. scripts/health_check.py now
+  reports OK while cnfans.com does not load and warns when it loads again. The Pandabuy alternatives guide got one sentence
+  on the same dates.
+- 34 new model pages, /best/<model> (functions/_lib/content5.js): puffer-jacket, gilet, windbreaker, bomber-jacket,
+  ralph-lauren-jacket, moncler-windbreaker, louis-vuitton-clothing, chrome-hearts-jacket, zip-hoodie, quarter-zip, cardigan,
+  lacoste-sweatshirt, cp-company-hoodie, essentials-crewneck-tracksuit, dior-oblique, tracksuit, rick-owens-pants,
+  chrome-hearts-jeans, carhartt-pants, jorts, ralph-lauren-shorts, swim-shorts, designer-loafers, hermes-shoes,
+  balenciaga-boots, bape-bapesta, travis-scott, nike-nocta, beanie, cap, scarf, wallet-cardholder, designer-belts,
+  designer-socks. Chosen from the site searches made 5+ times in 3+ hours in 30 days (puffer 80 searches, belt 117, beanie 49,
+  cap 40, quarter zip 18, nocta 30 ...), the views and buy clicks of the finds each would list (puffer jackets 2,182 buy
+  clicks in 60 days, zip hoodies 1,287) and Google results with rep threads and spreadsheets in the top 9 (Serper, 23 Nov).
+  Built only with 12+ visible finds and 2+ marked as having buyer QC photos; they list only visible finds. Left out: Gucci GG
+  clothing and Balenciaga jeans (one find with QC photos each), Margiela numbers and Hermès ties (hardly any rep results), a
+  second Golden Goose page (mostly Super-Stars). The Moncler page is named for windbreakers because "moncler jacket rep"
+  already finds /best/moncler-puffer. Google's own suggestions leave out rep searches, so they could not be used.
+- Linking the model pages: product pages of their finds (the earlier pages keep first claim), brand pages (a cross-brand
+  page only on the brands with the most finds on it), category hubs ("Best reps by model", new), the /best index, the
+  homepage's "Best reps by model" row (puffer jackets, zip hoodies, tracksuits, quarter-zips) and sitemap-pages.xml. Every
+  model page's "More models" list now shows related models (same category or brand) instead of the same first 14.
+- Speed: the marketplace facts are kept per hidden set (platFacts), so sitemap-pages.xml builds in about 1 s instead of 3.
+- PRODUCT_TPL w97. URLs: /guides/what-is-a-rep-spreadsheet, /weidian-spreadsheet, /taobao-spreadsheet, /1688-spreadsheet,
+  /qc-spreadsheet, /cnfans-spreadsheet, /mycnbox-spreadsheet, /kakobuy-spreadsheet, /oopbuy-spreadsheet,
+  /sugargoo-spreadsheet, /lovegobuy-spreadsheet, /tools/qc-checker, /best, the 34 /best pages, /category/*, /brand/* (model
+  links), the guides how-to-buy-from-weidian, -taobao and -1688 and pandabuy-alternatives.
+- Undo: functions/_lib/content5.js out of MODELS in pages.js (the pages go, their URLs 301 to their brand by rescue());
+  shipping_lines.js and the shipAbout/freshAbout calls in hubSpec; findShown back to plain lists in platFacts, hubList,
+  the agent and QC counts; QC_PLUS back to plusOf(P...); the guide's title, h1, desc and body in content3.js and the stats
+  block in renderGuide; CNFANS and the CNFans spec; the QC spec and qcFinderExtra; the footer links in site.js and index.html.
+- Left as it is, for the owner: /best/chrome-hearts-jewelry matches "cross" in clothing titles, so 62 of its 75 listings are
+  jeans, hoodies and tees. Fixing the pattern leaves about 10 jewellery finds, and the page ranks for "chrome hearts reps"
+  (5th UK, 9th US), so it needs a decision. Brand pages still count hidden finds in their titles ("Moncler Reps Spreadsheet
+  2026: 367 Finds" where the app shows fewer); the same shown() would fix them, but that changes about 200 ranking titles.
 
 ## 23 Nov 2026: the sign-up card waits for the second page view
 
