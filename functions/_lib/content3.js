@@ -52,7 +52,7 @@ export const GUIDES3 = {
     desc: "The rep spreadsheet: 10,600+ Weidian, Taobao and 1688 finds, 1,300+ with buyer QC photos, what a rep spreadsheet is and how to use one in 4 steps.",
     h1: "Rep spreadsheet: 10,600+ finds and how to use one",
     updated: "2026-11-23",   // the day this text was revised; change it only when it is revised again
-    body: `<p class="lead">A <strong>rep spreadsheet</strong> is a curated list of product links from Chinese marketplaces (Weidian, Taobao and 1688), usually with photos, prices and links that open each item in a shopping agent. Most started as Google Sheets; Puro Classico is a searchable <a href="/">rep spreadsheet</a> with 9,000+ finds.</p>
+    body: `<p class="lead">A <strong>rep spreadsheet</strong> (or finds spreadsheet) is a curated list of product links from Chinese marketplaces (Weidian, Taobao and 1688), usually with photos, prices and links that open each item in a shopping agent. Most started as Google Sheets shared on Reddit's FashionReps and Discord servers; Puro Classico is a searchable <a href="/">rep spreadsheet</a> with 9,000+ finds.</p>
 <p><a class="btn light" href="/">Open the spreadsheet: 9,000+ finds →</a></p>
 <h2>How to use a rep spreadsheet</h2><ol class="steps">
 <li><strong>Browse or search.</strong> Filter by brand, category or price, or sort by most viewed.</li>

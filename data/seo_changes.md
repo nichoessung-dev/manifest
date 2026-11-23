@@ -34,14 +34,15 @@ have that we lack is links from elsewhere (the link drafts for the owner are a s
   the page Google already shows. Title "Rep Spreadsheet 2026: 10,600+ Finds and How to Use One", h1 "Rep spreadsheet: 10,600+
   finds and how to use one", a description with the finds and QC counts. It now opens with the spreadsheet itself: its 8 most
   popular finds with buy buttons, the counts by category (visible finds), the finds added in the last 7 days, and links to
-  every spreadsheet by agent, marketplace and style with those words as the link text. The homepage title is left as it is
+  every spreadsheet by agent, marketplace and style with those words as the link text. Its lead says "rep spreadsheet (or
+  finds spreadsheet)" and where spreadsheets started (FashionReps, Discord). The homepage title is left as it is
   (it carries the brand searches); its footer link "Rep spreadsheet" still goes to the homepage.
 - Taobao, 1688 and Weidian spreadsheets: the rep spreadsheet guide links each with its name as the link text, and the
   how-to-buy guides' button says "Open the Weidian spreadsheet: N finds" (was "See all N Weidian finds"). Each marketplace
   spreadsheet gets "New <marketplace> finds this week" (how many were added in 7 days, the 8 newest).
 - Agent spreadsheets (KakoBuy, Sugargoo, Oopbuy): "<agent> shipping lines and prices", a table of the three cheapest lines
-  and the fastest one to the US, UK, Germany and Sweden for a 1 kg parcel of branded clothing, read from each agent's own
-  estimator on 23 Nov 2026 (functions/_lib/shipping_lines.js says how; read them again before relying on the prices for more
+  and the fastest one to the US, UK, Germany and Sweden for a 1 kg parcel (branded clothing where the estimator asks for a
+  goods type; KakoBuy's was given none), read from each agent's own estimator on 23 Nov 2026 (functions/_lib/shipping_lines.js says how; read them again before relying on the prices for more
   than a few weeks). MyCNBox's estimator needs an account, so its page shows the figures MyCNBox publishes on its homepage
   (12.5 days dispatch to delivery, 99.5% delivered, real parcel samples with their lines, warehouse times for 16 to 22 Nov).
   LoveGoBuy's site sits behind a browser check, so its page has no table. All five get "New finds this week" with a link that
@@ -76,10 +77,11 @@ have that we lack is links from elsewhere (the link drafts for the owner are a s
   homepage's "Best reps by model" row (puffer jackets, zip hoodies, tracksuits, quarter-zips) and sitemap-pages.xml. Every
   model page's "More models" list now shows related models (same category or brand) instead of the same first 14.
 - Speed: the marketplace facts are kept per hidden set (platFacts), so sitemap-pages.xml builds in about 1 s instead of 3.
-- PRODUCT_TPL w97. URLs: /guides/what-is-a-rep-spreadsheet, /weidian-spreadsheet, /taobao-spreadsheet, /1688-spreadsheet,
+- PRODUCT_TPL w97 and w98. URLs: /guides/what-is-a-rep-spreadsheet, /weidian-spreadsheet, /taobao-spreadsheet, /1688-spreadsheet,
   /qc-spreadsheet, /cnfans-spreadsheet, /mycnbox-spreadsheet, /kakobuy-spreadsheet, /oopbuy-spreadsheet,
   /sugargoo-spreadsheet, /lovegobuy-spreadsheet, /tools/qc-checker, /best, the 34 /best pages, /category/*, /brand/* (model
-  links), the guides how-to-buy-from-weidian, -taobao and -1688 and pandabuy-alternatives.
+  links), the guides how-to-buy-from-weidian, -taobao and -1688 and pandabuy-alternatives. All of them, and the 66 list
+  pages that now redirect, were sent to IndexNow (data/indexnow_2026-11-23.txt, scripts/indexnow.py list).
 - Undo: functions/_lib/content5.js out of MODELS in pages.js (the pages go, their URLs 301 to their brand by rescue());
   shipping_lines.js and the shipAbout/freshAbout calls in hubSpec; findShown back to plain lists in platFacts, hubList,
   the agent and QC counts; QC_PLUS back to plusOf(P...); the guide's title, h1, desc and body in content3.js and the stats
