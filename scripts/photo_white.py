@@ -147,14 +147,22 @@ def frame_share(alpha):
 
 
 def gate(alpha, several):
-    """clean_photos.gate on the matte cropped to the item (+10%); the frame is checked separately."""
+    """clean_photos.gate on the matte cropped to the item (+10%); the frame is checked separately. Its haze test reads
+    a 192 px copy, where a thin chain or strap is all half-transparent; here haze is counted at full size and only away
+    from the solid item (a ghosted white body is, a chain's soft edge is not)."""
     import clean_photos as cp
+    from scipy import ndimage
     b = sp.alpha_box(alpha, 24)
     if not b: return ["empty cut-out"]
     w, h = alpha.size; pw, ph = round(0.1 * (b[2] - b[0])), round(0.1 * (b[3] - b[1]))
     crop = alpha.crop((max(0, b[0] - pw), max(0, b[1] - ph), min(w, b[2] + pw), min(h, b[3] + ph)))
     bad, _ = cp.gate(crop, SimpleNamespace(max_parts=4 if several else 3), several)
-    bad = [x for x in bad if not x.startswith("item cut off") and not x.startswith("no background removed")]
+    bad = [x for x in bad if not x.startswith("item cut off") and not x.startswith("no background removed")
+           and not x.startswith("hazy mask")]
+    a = np.asarray(crop)
+    some, solid = a >= 17, a >= 240
+    haze = float((some & ~solid & ~ndimage.binary_dilation(solid, iterations=2)).sum() / max(1, some.sum()))
+    if haze > 0.10: bad.append(f"hazy mask ({100 * haze:.0f}% half-transparent away from the item)")
     if (np.asarray(alpha) >= 128).mean() > 0.95: bad.append("no background removed")
     return bad
 
@@ -619,7 +627,7 @@ def do_store(p, g, name, pool, cache, used, models, log):
     core = solid_core(lu)
     la = np.asarray(lu.getchannel("A"))
     kind = sp.kind_of(p); garment = p.get("cat") in GARMENT
-    several = bool(re.search(r"(?i)\b(sets?|tracksuits?|pairs?|kit)\b", p.get("title") or "")) or kind == "shoe"
+    several = bool(re.search(r"(?i)\b(sets?|tracksuits?|pairs?|kit|earrings?|socks)\b", p.get("title") or "")) or kind in ("shoe", "small")
     rec = {}
     found = None
     try:
@@ -663,7 +671,7 @@ def do_rl(p, path, labels, models, log):
     supp = item_support(ref_rgb=rgb, bgmask=bgmask, bg=bg)
     kind = sp.kind_of(p); garment = p.get("cat") in GARMENT
     several = bool(lab.get("is_set")) or bool(set(lab.get("photo_issues") or []) & {"multiple_views", "multiple_items"}) \
-        or bool(re.search(r"(?i)\b(sets?|tracksuits?|pairs?|kit)\b", p.get("title") or "")) or kind == "shoe"
+        or bool(re.search(r"(?i)\b(sets?|tracksuits?|pairs?|kit|earrings?|socks)\b", p.get("title") or "")) or kind in ("shoe", "small")
     out, r = try_source("c", rgb, bg, ref, supp, None, False, kind, garment, several, models, {}, "site", log, None, (bgmask, bg))
     rec = {"source": "site", "bg": [int(x) for x in bg], **r}
     if out is not None: rec.update(model=r["model"], checks=r["checks"])
