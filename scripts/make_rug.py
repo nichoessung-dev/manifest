@@ -170,6 +170,7 @@ def edit(model, images, text, fidelity=True):
 
 
 class NoCredit(RuntimeError): pass
+class CapReached(RuntimeError): pass
 
 
 def to_openai(why):
@@ -224,7 +225,7 @@ IMG_CAP = int(os.environ.get("RUG_MAX_IMAGES", "16"))
 
 def gemini_image(model, images, text):
     global _IMG_N
-    if _IMG_N >= IMG_CAP: sys.exit("IMAGE CAP: %d images made this run (RUG_MAX_IMAGES), stopping to keep the cost down" % _IMG_N)
+    if _IMG_N >= IMG_CAP: raise CapReached("IMAGE CAP: %d images made this run (RUG_MAX_IMAGES)" % _IMG_N)     # 25 Nov 2026: ends the image making, keeps what was made (sys.exit threw paid images away)
     _IMG_N += 1
     parts = [{"text": text}] + [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(d).decode()}} for d in images]
     j = gemini(model, parts, {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "9:16"}})
@@ -239,6 +240,7 @@ def generate(images, text, models=None):
         for m in models or MODELS:
             for attempt in range(3):
                 try: png, use = gemini_image(m, images, text); return png, m, use
+                except CapReached as e: print("  " + str(e)); return None, None, {}
                 except NoCredit as e:
                     if to_openai(str(e)): return generate(images, text)
                     sys.exit("GEMINI OUT OF CREDIT: stopping this run (%s)" % str(e)[:120])
@@ -971,10 +973,12 @@ def main():
         for g in ["small", "shoes", "jackets", "bags"]:
             if chunks.get(g) and len(slides) < a.n + 1: slides.append(chunks[g].pop(0))
 
+    import threading; GOT, GOT_LOCK = [0], threading.Lock()
     def make(sl):                                              # 3. the images, three at a time; each one judged, one retry, then the slide is dropped
         shots = [p["img"] if p.get("single") else top_shot(p["img"]) for p in sl]; label = " + ".join(p["name"] for p in sl)
         angle = rnd.choice(ANGLES["several"]) if len(sl) > 1 else sl[0]["angle"]
         if AI_OUT[0]: return sl, composite(sl, random.Random("%s %s" % (a.seed, label))), "rug flat-lay (no AI credit)", {}     # its own dice: the slides are made side by side
+        if GOT[0] >= a.n: print("  enough slides already, not making", label); return sl, None, None, {}     # 25 Nov 2026: the spare slide only costs images
         best = None                                            # 19 Nov 2026: the best near miss is used, not thrown away
         for attempt in range(2):
             if time.time() - t0 > budget: print("  out of time, skipping", label); break
@@ -987,10 +991,13 @@ def main():
             score = int(v.get("real_photo") or 0)
             ALL_MADE.append({"png": png, "name": [p["name"] for p in sl], "usd": [p["usd"] for p in sl], "qc": [p["qc"] for p in sl],
                              "group": sl[0]["group"], "ok": bool(ok), "real": score, "why": v.get("why", "")})
-            if ok: return sl, png, model, use
+            if ok:
+                with GOT_LOCK: GOT[0] += 1
+                return sl, png, model, use
             if all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and (not best or score > best[0]):
                 best = (score, png, model, use)
         if best and best[0] >= int(os.environ.get("RUG_FALLBACK_MIN", "6")):
+            with GOT_LOCK: GOT[0] += 1
             print("  using the best try for", label, "(realism %d)" % best[0]); return sl, best[1], best[2], best[3]
         return sl, None, None, {}
     with ThreadPoolExecutor(3) as ex: done = list(ex.map(make, slides))

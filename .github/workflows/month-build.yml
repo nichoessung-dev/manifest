@@ -1,0 +1,60 @@
+name: Month build
+# Builds slideshows for the month videos and puts each on the release "month-content" (scripts/month_build.py).
+# Nothing is posted here: scripts/local_videos.py adds the owner's voice on the owner's PC, the Month queue workflow schedules them.
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        description: 'main (puroclassico.com, real QC photos) or second (Qualityfinds, rug pictures from Google credit)'
+        type: choice
+        options: ['second', 'main']
+        default: 'second'
+      count:
+        description: 'How many slideshows'
+        type: string
+        default: '10'
+      max_images:
+        description: 'Most images Google may make for one slideshow (second only)'
+        type: string
+        default: '14'
+permissions:
+  contents: write
+concurrency: month-build-${{ inputs.account }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow imageio-ffmpeg numpy && (sudo apt-get install -y -q fonts-noto-color-emoji || true)
+      - if: inputs.account == 'main'
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          mkdir -p scripts/models && cd scripts/models
+          u=https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0
+          curl -sfL -o realesr-general-x4v3.pth $u/realesr-general-x4v3.pth
+          curl -sfL -o realesr-general-wdn-x4v3.pth $u/realesr-general-wdn-x4v3.pth
+          printf '%s  %s\n' 8dc7edb9ac80ccdc30c3a5dca6616509367f05fbc184ad95b731f05bece96292 realesr-general-x4v3.pth 1641f8c4464b9f097c9fdda5589273713f67cf59f3d909e0bd688f0cee269dca realesr-general-wdn-x4v3.pth | sha256sum -c - || rm -f *.pth
+      - name: Build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONUNBUFFERED: '1'
+          # Qualityfinds: Google makes the pictures, Claude does every check (owner, 25 Nov 2026). No OpenAI fallback.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}   # every image made is saved for good (make_rug save_all_made / save_library)
+          RUG_ENGINE: gemini
+          RUG_MODELS: gemini-3.1-flash-image
+          RUG_LOOK: claude
+          RUG_MAX_IMAGES: ${{ inputs.max_images }}
+          # main account: the same settings as its daily carousels (finds.yml)
+          FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L
+          FINDS_BEST: '1'
+          FINDS_SLIDES: ${{ inputs.account == 'second' && '6' || '9' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python scripts/month_build.py --account "${{ inputs.account }}" --count "${{ inputs.count }}" --minutes 320

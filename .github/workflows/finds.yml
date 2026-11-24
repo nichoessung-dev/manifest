@@ -62,6 +62,7 @@ jobs:
           TIKTOK_METHOD: UPLOAD
           TIKTOK_AUTO_MUSIC: 'no'
           FINDS_NOW: ${{ (github.event_name == 'workflow_dispatch' && inputs.account != 'second') && inputs.now || '0' }}
+          FINDS_PAUSED: ${{ vars.FINDS_PAUSED }}         # "true" = only send links, queue nothing (25 Nov 2026: the month videos post instead)
         if: github.event_name != 'workflow_dispatch' || inputs.now == '0' || inputs.account != 'second'
         run: python scripts/finds_plan.py
       # The second TikTok account (Qualityfinds in Postiz) gets rug carousels (scripts/make_rug.py): the boxes cover, then the

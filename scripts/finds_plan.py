@@ -166,4 +166,5 @@ if __name__ == "__main__":
     if NOW > 0: post_now(min(NOW, 5))          # TikTok holds at most 5 waiting API drafts per account
     else:
         if LINKS != "0": send_links()
-        top_up()
+        if os.environ.get("FINDS_PAUSED", "").strip().lower() == "true": print("FINDS_PAUSED: no new carousels (the month videos replace them, 25 Nov 2026)")
+        else: top_up()
