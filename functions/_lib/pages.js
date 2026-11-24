@@ -1427,6 +1427,9 @@ const GUIDE_FIT = {
   "mycnbox-coupon-code": "MyCNBox Coupon Code & Invite Code 2026: Up to $500 Coupons",
   "agent-coupons": "Shopping Agent Coupons & Sign-Up Bonuses 2026",
 };
+// Every guide sends readers to the spreadsheet itself (owner, 24 Nov 2026: "people look for the spreadsheet, nothing
+// else"): one button under the intro and one after the text, both to /spreadsheet.
+const SP_CTA = `<p class="sp-cta"><a class="btn primary" href="/spreadsheet">Open the spreadsheet${ic("arrow-right", "sm")}</a></p>`;
 export function renderGuide(s) {
   const g = own(GUIDES, s) ? GUIDES[s] : null; if (!g) return null;
   const path = "/guides/" + s; const bc = crumbs([["Home", "/"], ["Guides", "/guides"], [g.h1, path]]);
@@ -1446,7 +1449,7 @@ export function renderGuide(s) {
     const vis = all.filter(findShown);
     const rows = Object.entries(CATS).filter(([, m]) => m.slug !== "toys").map(([c, m]) => [m, (byCat.get(c) || []).filter(findShown)]).filter(([, l]) => l.length >= 20).sort((x, y) => y[1].length - x[1].length);
     const fresh = freshAbout()[0];
-    stats = `<h2>Popular finds right now</h2><p>The top of the spreadsheet in its Most popular order, where views in the last 30 days count most. Tap Buy to open a find in MyCNBox, or open it to see the other agents and its QC photos.</p>${grid(vis.slice(0, 8))}<p><a class="btn light" href="/">Open all ${nf(vis.length)} finds${ic("arrow-right", "sm")}</a></p>` +
+    stats = `<h2>Popular finds right now</h2><p>The top of the spreadsheet in its Most popular order, where views in the last 30 days count most. Tap Buy to open a find in MyCNBox, or open it to see the other agents and its QC photos.</p>${grid(vis.slice(0, 8))}<p><a class="btn light" href="/spreadsheet">Open all ${nf(vis.length)} finds${ic("arrow-right", "sm")}</a></p>` +
       `<h2>What is in this rep spreadsheet</h2><p>Counted from the catalogue, last updated ${day(BUILT)}: ${nf(vis.length)} finds, ${nf(vis.filter(p => p.qc >= 1).length)} of them marked as having buyer QC photos from earlier orders.` +
       (LINKS_CHECKED ? ` Our weekly link check last ran on ${day(LINKS_CHECKED)} and found ${nf(GONE_COUNTS.dead)} Weidian listings gone, which the spreadsheet hides, and ${nf(GONE_COUNTS.sold)} sold out.` : "") + `</p>` +
       `<table><tr><th>Category</th><th>Finds</th><th>Half listed at or under</th><th>Marked with QC photos</th></tr>` +
@@ -1464,7 +1467,7 @@ export function renderGuide(s) {
   const upd = g.updated && !isNaN(new Date(g.updated + "T00:00:00Z")) ? new Date(g.updated + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : g.updated;
   const updTxt = upd ? (/^\d{4}-\d{2}-\d{2}$/.test(g.updated) ? `${ic("clock", "sm")}<time datetime="${esc(g.updated)}">Updated ${esc(upd)}</time>` : `${ic("clock", "sm")}Updated ${esc(upd)}`) : "";
   const how = s !== "how-we-check" && own(GUIDES, "how-we-check") ? ` · <a href="/guides/how-we-check">${ic("shield", "sm")}How we check</a>` : "";
-  const body = `${bc.html}<article class="prose"><span class="eyebrow pill">Guide${updTxt ? ` · ${updTxt}` : ""}</span><h1>${esc(g.h1)}</h1>${(tocHtml ? text.replace("<h2 id=", tocHtml + "<h2 id=") : text).replace(/^(\s*<p class="lead">[\s\S]*?<\/p>)?/, (m) => m + `<p class="byline">By Puro Classico${how}</p>`)}${g.faq ? faqHtml(g.faq) : ""}</article>
+  const body = `${bc.html}<article class="prose"><span class="eyebrow pill">Guide${updTxt ? ` · ${updTxt}` : ""}</span><h1>${esc(g.h1)}</h1>${(tocHtml ? text.replace("<h2 id=", tocHtml + "<h2 id=") : text).replace(/^(\s*<p class="lead">[\s\S]*?<\/p>)?/, (m) => m + `<p class="byline">By Puro Classico${how}</p>` + SP_CTA)}${SP_CTA}${g.faq ? faqHtml(g.faq) : ""}</article>
 ${s === "what-is-a-rep-spreadsheet" ? "" : (() => { const w = g.finds || {}, l = all.filter(p => (!w.platform || p.platform === w.platform) && (!w.qc || p.qc >= w.qc) && findShown(p));
   // 23 Nov 2026: the button names the marketplace spreadsheet ("Open the Weidian spreadsheet"), the words that page is searched by
   return `${hIc("h2", "flame", w.platform ? `Popular ${esc({ weidian: "Weidian", taobao: "Taobao", "1688": "1688" }[w.platform] || w.platform)} finds` : w.qc ? "Popular finds with QC photos" : "Popular finds")}${grid((l.length >= 8 ? l : all).slice(0, 8))}` +

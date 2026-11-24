@@ -292,7 +292,7 @@ async function route(ctx) {
   // Edge cache for the hub and list pages (20 Oct 2026): building one takes 0.3-0.6 s (catalogue index + view stats), a
   // cached copy ~0.05 s. The key holds the catalogue build, the page template version and the homepage's ETag, so a
   // new deploy or a new catalogue never serves an old copy. The query string (utm tags) doesn't change the page.
-  const pageCache = request.method === "GET" && (path === "/" || /^\/(brand|category|brands|old-money|guides|best|tools|new)(\/|$)|^\/[a-z0-9]+-spreadsheet(\/|$)/.test(path));
+  const pageCache = request.method === "GET" && (path === "/" || path === "/spreadsheet" || /^\/(brand|category|brands|old-money|guides|best|tools|new)(\/|$)|^\/[a-z0-9]+-spreadsheet(\/|$)/.test(path));
   let ckey = null;
   if (pageCache) {
     try {
@@ -378,6 +378,29 @@ async function route(ctx) {
     const fresh = newFindsHtml(newest(NEW_LINKS, null, await reportedIds(ctx.env, url.origin)), "New finds");
     const home = await liveHtml(slimHtml(out, etagOf(out), (await serverCards(ctx, url.origin, null)).cards, fresh));
     return path === "/" ? keep(home) : home;   // homepage from the same edge cache as the hubs (~0.22 s -> ~0.11 s TTFB)
+  }
+  // /spreadsheet (owner, 24 Nov 2026): the spreadsheet alone, for the guides and hubs to send visitors to. The homepage
+  // app with its own title and h1, and only the hero and the full grid shown (the sp-only class hides the rest).
+  if (path === "/spreadsheet" && request.method === "GET") {
+    const base = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { headers: request.headers }));
+    if (base.status === 200) {
+      await ensureStats(url.origin);
+      const T = "The Easiest Spreadsheet to Use for China", TT = T + " | Puro Classico";
+      const D = "Search 10,600+ Weidian, Taobao and 1688 finds with buyer QC photos and one-tap buy links for MyCNBox, KakoBuy and every other agent. Free.";
+      const app = await liveHtml(slimHtml(base, etagOf(base), (await serverCards(ctx, url.origin, null)).cards, ""));
+      const sp = new HTMLRewriter()
+        .on("html", { element(e) { e.setAttribute("class", ((e.getAttribute("class") || "") + " sp-only").trim()); } })
+        .on("title", { element(e) { e.setInnerContent(TT); } })
+        .on('meta[name="description"]', { element(e) { e.setAttribute("content", D); } })
+        .on('meta[property="og:title"]', { element(e) { e.setAttribute("content", TT); } })
+        .on('meta[property="og:description"]', { element(e) { e.setAttribute("content", D); } })
+        .on('meta[property="og:url"]', { element(e) { e.setAttribute("content", "https://www.puroclassico.com/spreadsheet"); } })
+        .on('link[rel="canonical"]', { element(e) { e.setAttribute("href", "https://www.puroclassico.com/spreadsheet"); } })
+        .on("#v9-hero-title", { element(e) { e.removeAttribute("data-i18n"); e.setInnerContent(T); } })
+        .on("head", { element(e) { e.append(`<script>window.__pcBaseTitle=${JSON.stringify(TT)}</script><style>.sp-only .v9-cats,.sp-only .v9-row,.sp-only .v9-qc,.sp-only .v9-teasers,.sp-only .v9-tools,.sp-only .v9-steps,.sp-only .v9-nums,.sp-only .hx-home,.sp-only #seo{display:none!important}</style>`, { html: true }); } })
+        .transform(app);
+      return keep(sp);
+    }
   }
   // Swipe Finds (/feed, 4 Nov 2026): loads the same catalogue parts as the homepage (same ?v=, so a visitor who came
   // from the homepage already has them cached).
