@@ -1328,3 +1328,24 @@ header.h .hprefs-l{display:flex;align-items:center;min-height:36px;padding:0 10p
 .pd-more{margin:18px 0 0}.pd-more .pd-hubs{margin-top:0!important}
 /* the photo stays in view beside a long buy column (size chart); not with a QC photo grid under it, which could be taller than the screen */
 @media (min-width:901px){.pd-media:not(:has(.qcs)){position:sticky;top:84px;align-self:start}}
+
+/* ---- calm loading (24 Nov 2026, owner: "i dont like how these products load so weird on refresh, fix it (you can have the
+   nice skeleton instead), make this go for the whole site"): the app's skeleton tile (index.html pc-load-css). Until its photo
+   has loaded, a photo box (cards, the product photo and its store photo strip, the QC photos, the similar finds) shows the
+   well colour (light grey on the light theme, the #DEDEDE shelf of the dark theme) with a soft band of light moving across,
+   then the photo fades in (180 ms, opacity only). THEME_HEAD's capture listener and PAGE_JS mark loaded or failed images
+   with .is-in. No JS: no tile, no fade. The band is a ::before moved with transform (it keeps moving while the page is
+   busy); none with reduced motion. !important: the dark theme's #DEDEDE rule above is more specific. ---- */
+:root{--sk-tile:#F0F0F0;--sk-band:rgba(255,255,255,.75)}
+:root[data-theme="dark"]{--sk-tile:#DEDEDE;--sk-band:rgba(255,255,255,.5)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sk-tile:#DEDEDE;--sk-band:rgba(255,255,255,.5)}}
+html.js-fade :is(.ci,.pimg,.thumbs > a,.thumbs > button,.qcs a):has(> img:not(.is-in)){background-color:var(--sk-tile)!important;position:relative;overflow:hidden}
+@media (prefers-reduced-motion:no-preference){html.js-fade :is(.ci,.pimg,.thumbs > a,.thumbs > button,.qcs a):has(> img:not(.is-in))::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent 30%,var(--sk-band) 50%,transparent 70%);transform:translateX(-100%);animation:pc-sheen 1.5s cubic-bezier(.4,0,.6,1) infinite}}
+@keyframes pc-sheen{to{transform:translateX(100%)}}
+.ci,.pimg,.qcs a{transition:background-color .18s var(--ease-out)}
+.thumbs > a,.thumbs > button{transition:opacity .15s,box-shadow .15s,background-color .18s var(--ease-out)}
+html.js-fade :is(.pimg img,.thumbs img,.qcs img):not(.is-in){opacity:0}
+.pimg img,.thumbs img,.qcs img{transition:opacity .18s var(--ease-out)}
+.ci img{transition:opacity .18s var(--ease-out),transform .3s var(--ease)}
+@media (prefers-reduced-motion:reduce){.pimg img,.thumbs img,.qcs img,.ci img{transition:none}}

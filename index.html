@@ -34,7 +34,7 @@
 <meta name="twitter:image" content="https://www.puroclassico.com/og.png">
 <meta name="twitter:image:alt" content="Puro Classico catalog">
 <meta name="theme-color" content="#FFFFFF">
-<script>(function(){var t,h=document.documentElement;try{t=localStorage.getItem("manifest.theme");}catch(e){}if(t!=="dark"&&t!=="system")t="light";if(t!=="system")h.setAttribute("data-theme",t);h.classList.add("js-fade");var _f=function(e){var i=e.target;if(i&&i.tagName==="IMG")i.classList.add("is-in");};document.addEventListener("load",_f,true);document.addEventListener("error",_f,true);h.setAttribute("data-tp",(t==="light"||t==="dark")?t:"system");function dk(){var a=h.getAttribute("data-theme");return a?a==="dark":!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);}window.setThemeColor=function(){var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dk()?"#0A0A0A":"#FFFFFF");};setThemeColor();})();</script>
+<script>(function(){var t,h=document.documentElement;try{t=localStorage.getItem("manifest.theme");}catch(e){}if(t!=="dark"&&t!=="system")t="light";if(t!=="system")h.setAttribute("data-theme",t);h.classList.add("js-fade");/* calm loading (24 Nov 2026): pc-cover shows the server's cards as skeleton cards when the address asks for another view (?q=, ?cat=, ?saved=), which the app draws once its data is in; pc-fmt hides their prices and Buy labels until the app writes them in the visitor's currency and language. Both go on any script error, at once when the app did not start, and 3.5 s after the page was parsed at the latest. A photo is marked .is-in (it fades in over its skeleton tile) when it has loaded or failed: straight from the load event, since a decode() round trip waited behind the app's start-up work, up to 200 ms per photo. */var _u=function(){h.classList.remove("pc-cover","pc-fmt");};if(!/^\/product\//.test(location.pathname)){if(/[?&](q|cat|saved)=/.test(location.search))h.classList.add("pc-cover");try{var _s=JSON.parse(localStorage.getItem("manifest.state")||"null"),_c=_s?_s.cur:(/^(NO|SE|DK|GB|UK|CH|PL|CA|AU|JP|CN|AT|BE|CY|DE|EE|ES|FI|FR|GR|HR|IE|IT|LT|LU|LV|MT|NL|PT|SI|SK)$/.test(((navigator.language||"").split("-")[1]||"").toUpperCase())?"":"USD");if(_c!=="USD"||(_s&&_s.lang&&_s.lang!=="en"))h.classList.add("pc-fmt");}catch(e){}addEventListener("error",_u);document.addEventListener("DOMContentLoaded",function(){if(!window.__pcBoot)_u();setTimeout(_u,3500);});}var _f=function(e){var i=e.target;if(i&&i.tagName==="IMG")i.classList.add("is-in");};document.addEventListener("load",_f,true);document.addEventListener("error",_f,true);h.setAttribute("data-tp",(t==="light"||t==="dark")?t:"system");function dk(){var a=h.getAttribute("data-theme");return a?a==="dark":!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);}window.setThemeColor=function(){var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dk()?"#0A0A0A":"#FFFFFF");};setThemeColor();})();</script>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest">
 <script type="application/ld+json">
@@ -53,7 +53,7 @@
 <link rel="preconnect" href="https://uptpghuduqjqmrxwatbm.supabase.co" crossorigin>
 <link rel="dns-prefetch" href="https://uptpghuduqjqmrxwatbm.supabase.co">
 <script>/* perf (5 Nov 2026): the view stats, the dead-link check and the reported list start loading here, alongside the catalogue parts, instead of after them; the app takes these promises (window.PC_PRE) and never fetches the files twice. Each resolves to the parsed file, or null when it failed. */
-(function(){var P=window.PC_PRE={};["stats","link_health","reported","photo_quality"].forEach(function(k){try{P[k]=fetch("/data/"+k+".json",{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}catch(e){}});})();</script>
+(function(){var P=window.PC_PRE={};["stats","link_health","reported","photo_quality","link_swaps"].forEach(function(k){try{P[k]=fetch("/data/"+k+".json",{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}catch(e){}});})();</script>
 <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin><style>@font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/inter-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"Inter Fallback";src:local("Arial"),local("Helvetica Neue"),local("Helvetica");size-adjust:107%;ascent-override:90.5%;descent-override:22.5%;line-gap-override:0%}</style>
 <style data-split="css">
 :root{--maxw:1280px;--danger:#C0392B}
@@ -548,7 +548,11 @@ footer a:hover{color:var(--ink)}
 .dbody>*+*{margin-top:28px}
 .d-grid{display:grid;grid-template-columns:1fr;gap:28px}
 .d-info{display:flex;flex-direction:column;gap:18px}
-@media(min-width:860px){.d-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);align-items:start}.d-media{position:sticky;top:80px}.d-grid.no-media{grid-template-columns:1fr}}
+@media(min-width:860px){.d-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);align-items:start}.d-media{position:sticky;top:0}.d-grid.no-media{grid-template-columns:1fr}}
+/* calm loading (24 Nov 2026, owner: "the product image just moves unsmoothly, make it still"): top:0, not 80px. With 80px the
+   sticky photo column sat 80px below its place while the view was at its top, as far as the column's room allowed, so it
+   jumped up whenever the tabs, the photo strip or the buy column changed height. At 0 it sits in its place and still stays
+   in view (28px under the bar, the panel's padding) while the buy column scrolls. */
 .d-grid.no-media .d-media{display:none}
 
 
@@ -1045,7 +1049,7 @@ html.theme-swap *,html.theme-swap *::before,html.theme-swap *::after{transition:
   .pp-sticky .pp-filters{margin-bottom:12px}}
 /* brand and category hubs: the app shows the page's brand or category as a chip above the grid, so that row's space is kept from the
    first paint and the finds don't jump 50px when the app starts (CLS 0.09-0.11 on phones, 28 Oct 2026). renderActiveChips() drops the class. */
-html.af-pre #af-row[hidden]{display:flex!important;visibility:hidden;min-height:34px}
+html.af-pre #af-row[hidden]{display:flex!important;visibility:hidden;min-height:32px}   /* 32px: the chip row's real height (was 34, a 2px jump; calm loading, 24 Nov 2026) */
 /* product view: no entrance or exit motion since r7 (30 Oct 2026, the "instant product open" block further down).
    The hero marquee underneath stops while a find is open. */
 body.pp-open .strip-track{animation-play-state:paused}
@@ -1305,7 +1309,7 @@ html .gmain .pimg.inst{animation:none}
 /* 8 Nov 2026 (owner: "when you click on items its not so smooth"): the instant open snapped the view in over the grid in one
    frame. Wider screens get a short fade and 8 px rise (160 ms, ease-out, compositor only); phones keep their sheet slide,
    reduced motion and browser back/forward stay instant. */
-@keyframes pcViewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pcViewIn{from{opacity:0}to{opacity:1}}   /* calm loading (24 Nov 2026, owner: "make it still"): a fade only, the 8 px rise moved the photo */
 @media (min-width:561px) and (prefers-reduced-motion:no-preference){html:not(.v8-instant) body .drawer.open{animation:pcViewIn .16s cubic-bezier(.22,1,.36,1)}}
 /* a closed view skips style and layout for its content (the next open or pointerdown build clears pc-cv), so closing
    does not restyle the whole product view and its browse grid on the way out */
@@ -2979,6 +2983,69 @@ html .pc-dens{border-color:transparent!important;background:var(--surface-2)!imp
 @media (pointer:coarse){html .fselbtn,html .saved-chip,html .price-btn{height:40px!important}}
 @media (max-width:560px){html .masthead.set-open .v9-prefs{width:auto!important}html .masthead .mast-tools .v9-prefs .selwrap .csel{width:auto}html .masthead .mast-tools .v9-prefs .selwrap .cselbtn{width:auto!important;min-width:150px;height:40px!important}html .masthead .v9-prefs .v9-theme-seg button{height:36px!important}}
 </style>
+<style data-split="css" id="pc-load-css">/* calm loading (24 Nov 2026, owner: "i dont like how these products load so weird on refresh, fix it (you can have the
+   nice skeleton instead), make this go for the whole site"). One skeleton tile for every product photo: until its photo has
+   loaded, a photo box shows the well colour (light grey on the light theme, the #DEDEDE shelf the photos sit on
+   in the dark theme) with a soft band of light moving across, then the photo fades in (180 ms, opacity only). The capture
+   listener in the head marks every loaded or failed <img> with .is-in. The band is a ::before moved with
+   transform, so it keeps moving while the page is busy starting up; with reduced motion there is no band. ds.css has the
+   same tile for the server pages. */
+:root{--sk-tile:#F0F0F0;--sk-band:rgba(255,255,255,.75);--sk-line:color-mix(in srgb,var(--ink) 9%,transparent)}
+:root[data-theme="dark"]{--sk-tile:#DEDEDE;--sk-band:rgba(255,255,255,.5)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sk-tile:#DEDEDE;--sk-band:rgba(255,255,255,.5)}}
+/* the tile: cards (grid, home rows, the product view's browse grid), the product view's photo, strip and similar finds,
+   the skeleton cards; !important and #drawer beat the well rules above (they set the background with !important) */
+html.js-fade .card .thumb:has(>img.pimg:not(.is-in)),html.pc-cover #grid>.card .thumb,
+html.js-fade #drawer :is(.gmain:has(>img.pimg:not(.is-in)),.sim-thumb:has(>img:not(.is-in)),.thumbs .qcthumb-btn:has(>img:not(.is-in))),
+html #drawer :is(.gmain.pc-wait,.thumbs .pc-sk,.sim-skel .sim-thumb),html .sk-card .sk-im{background-color:var(--sk-tile)!important}
+html .sk-card .sk-im,html #drawer .thumbs .pc-sk,html.js-fade #drawer .thumbs .qcthumb-btn:has(>img:not(.is-in)){position:relative;overflow:hidden}
+@media (prefers-reduced-motion:no-preference){
+  html.js-fade .card .thumb:has(>img.pimg:not(.is-in))::before,html.pc-cover #grid>.card .thumb::before,
+  html.js-fade #drawer :is(.gmain:has(>img.pimg:not(.is-in)),.sim-thumb:has(>img:not(.is-in)),.thumbs .qcthumb-btn:has(>img:not(.is-in)))::before,
+  html #drawer :is(.gmain.pc-wait,.thumbs .pc-sk,.sim-skel .sim-thumb)::before,html .sk-card .sk-im::before{
+    content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 30%,var(--sk-band) 50%,transparent 70%);
+    transform:translateX(-100%);animation:pc-sheen 1.5s cubic-bezier(.4,0,.6,1) infinite}
+}
+@keyframes pc-sheen{to{transform:translateX(100%)}}
+/* the photo fades in over the tile; the tile colour fades out with it (light theme: the cut-out then sits on the page) */
+html.js-fade :is(.card .thumb>img.pimg,#drawer .sim-thumb>img,#drawer .thumbs .qcthumb-btn>img):not(.is-in){opacity:0!important}
+.card .thumb>img.pimg{transition:opacity .18s ease-out,transform 400ms var(--ease-hover,ease)}
+#drawer :is(.sim-thumb>img,.thumbs .qcthumb-btn>img){transition:opacity .18s ease-out}
+.card .thumb,#drawer :is(.gmain,.sim-thumb){transition:background-color .18s ease-out}
+/* the product view's main photo: hidden until it has loaded, its own fade or slide then plays from that moment.
+   The card's photo the view opens with shows at once when the browser has it (openDetail marks it). */
+html.js-fade #drawer .gmain>img.pimg:not(.is-in){opacity:0!important;animation:none!important}
+#drawer .gmain>img.pimg.inst{transition:opacity .18s ease-out}
+/* the old skeleton cards (home rows, the row under the grid): the same tile, soft bars, no pulse */
+.sk-card i:not(.sk-im){background:var(--sk-line)}
+html .sk-card i{animation:none}
+/* a grid kept at its old height while it swaps lists never stretches its rows (cards doubled in height, Buy below the fold) */
+#grid{align-content:start}
+/* pc-cover (set in the head for ?q=, ?cat= and ?saved= addresses, whose finds the app draws once its data is in): the
+   server's cards show as skeleton cards of the same size. Their text and photos stay in the HTML. */
+html.pc-cover #grid>.card{pointer-events:none}
+html.pc-cover #grid>.card .thumb>:not(canvas){visibility:hidden}
+html.pc-cover #grid>.card .body,html.pc-cover #grid>.card .body *{color:transparent!important;text-decoration:none!important}
+html.pc-cover #grid>.card .body svg,html.pc-cover #grid>.card .price-row>:not(.price){visibility:hidden}
+html.pc-cover #grid>.card :is(.brand-line,.price){align-self:flex-start;width:fit-content;border-radius:6px;background:var(--sk-line)!important}
+html.pc-cover #grid>.card .title{background:linear-gradient(var(--sk-line),var(--sk-line)) 0 3px/92% 14px no-repeat,linear-gradient(var(--sk-line),var(--sk-line)) 0 23px/60% 14px no-repeat!important}
+html.pc-cover #grid>.card .buy-pill{opacity:.88}
+/* pc-fmt (set in the head when the visitor reads prices in another currency or the site in another language): the server's
+   cards show their prices as a soft bar and the Buy pill without its label until the app writes them in that currency and
+   language, instead of switching from US dollars in front of the visitor */
+html.pc-fmt #grid>.card[data-ssr] .price{color:transparent!important;border-radius:6px;background:var(--sk-line)}
+html.pc-fmt #grid>.card[data-ssr] .buy-pill{color:transparent!important}
+/* category hubs: the type chips row (#sub-row) keeps its space from the first paint, like html.af-pre does for #af-row */
+html.sub-pre #sub-row[hidden]{display:flex!important;visibility:hidden;min-height:38px}
+/* product view: the strip under the photo (skeleton tiles while its photos are on their way, gal() and enhanceDrawer())
+   and the Similar finds row (skeleton cards until renderSimilar() fills it; two title lines on every card, so the row is the
+   same height either way) */
+#drawer .sim-t{min-height:2.6em}
+#drawer .sim-skel .sim-card{pointer-events:none;cursor:default}
+#drawer .sim-skel :is(.sim-t,.sim-p){color:transparent!important}
+#drawer .sim-skel .sim-t{background:linear-gradient(var(--sk-line),var(--sk-line)) 0 .2em/92% .9em no-repeat,linear-gradient(var(--sk-line),var(--sk-line)) 0 1.5em/62% .9em no-repeat}
+#drawer .sim-skel .sim-p{background:linear-gradient(var(--sk-line),var(--sk-line)) 0 50%/40% .9em no-repeat}
+</style>
 <svg id="pc-icons" xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13.5" r="3.5"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol><symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5Z"/><path d="M3 7.5 12 12l9-4.5"/><path d="M12 12v9"/></symbol><symbol id="i-ruler" viewBox="0 0 24 24"><path d="M3 15.5 15.5 3 21 8.5 8.5 21Z"/><path d="m7 12 1.5 1.5"/><path d="m10 9 2 2"/><path d="m13 6 1.5 1.5"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5"/><path d="M12 16h.01"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></symbol><symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></symbol><symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></symbol><symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol><symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol><symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-paste" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9z"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol><symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol><symbol id="i-shoe" viewBox="0 0 24 24"><path d="M2.5 9.5 6 10.5l2.5-2 2.5 2.5 2.5 2.5 5.5 1.5a2.5 2.5 0 0 1 2 2.5V18H2.5Z"/><path d="M2.5 15h19"/><path d="M9.5 11.5l1.5-1"/><path d="M11.5 13.5l1.5-1"/></symbol><symbol id="i-tee" viewBox="0 0 24 24"><path d="M8.5 3.5 4 6 2.5 10l3.5 1.5V20.5h12V11.5L21.5 10 20 6l-4.5-2.5a3.5 3.5 0 0 1-7 0Z"/></symbol><symbol id="i-jacket" viewBox="0 0 24 24"><path d="M8.5 3.5 4 6 2.5 10l3.5 1.5V20.5h12V11.5L21.5 10 20 6l-4.5-2.5L12 7Z"/><path d="M12 7v13.5"/><path d="M8.5 3.5 12 7l3.5-3.5"/></symbol><symbol id="i-hoodie" viewBox="0 0 24 24"><path d="M8 4 3.5 7 5 11.5l2-.8V21h10V10.7l2 .8L20.5 7 16 4"/><path d="M8 4a4 4 0 0 0 8 0"/><path d="M10.5 8.5v3M13.5 8.5v3"/></symbol><symbol id="i-pants" viewBox="0 0 24 24"><path d="M6.5 3h11l1 18h-5L12 10l-1.5 11h-5Z"/><path d="M6.5 6.5h11"/></symbol><symbol id="i-shorts" viewBox="0 0 24 24"><path d="M5.5 5h13l1.5 10.5h-6L12 10.5l-2 5H4Z"/><path d="M5.5 8h13"/></symbol><symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8.5h14l-1 12H6Z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/></symbol><symbol id="i-watch" viewBox="0 0 24 24"><path d="M9 7.5 9.7 3h4.6l.7 4.5"/><path d="M9 16.5l.7 4.5h4.6l.7-4.5"/><path d="M12 10v2.2l1.4 1"/><circle cx="12" cy="12" r="5"/></symbol><symbol id="i-cap" viewBox="0 0 24 24"><path d="M4 15.5a8 8 0 0 1 16 0Z"/><path d="M12 7.5V6"/><path d="M15 15.5h6.5"/></symbol><symbol id="i-store" viewBox="0 0 24 24"><path d="M4 10v10h16V10"/><path d="M3 10 5 4h14l2 6a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0Z"/><path d="M10 20v-5h4v5"/></symbol><symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9Z"/><circle cx="7.5" cy="7.5" r="1.5"/></symbol><symbol id="i-coins" viewBox="0 0 24 24"><circle cx="9" cy="9" r="6"/><path d="M15.5 9.2A6 6 0 1 1 9.2 15.5"/><path d="M9 6.5v5M7.5 8h3"/></symbol><symbol id="i-hash" viewBox="0 0 24 24"><path d="M5 9h14M5 15h14M10 4 8 20M16 4l-2 16"/></symbol><symbol id="i-scale" viewBox="0 0 24 24"><path d="M6.5 8h11l2.5 12H4Z"/><circle cx="12" cy="5.5" r="2.5"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-6M3 20h18"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 13 9 5 9-5"/></symbol><symbol id="i-sheet" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol><symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 21a6.5 6.5 0 0 0 6.5-6.5c0-4-3-6-3.5-9.5-2 1.5-3 3.5-3 5.5-1-1-1.5-2-1.5-3.5C8 9 5.5 11.5 5.5 14.5A6.5 6.5 0 0 0 12 21Z"/></symbol><symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 7 5-2.5 5 2.5-1.5-7"/></symbol><symbol id="i-truck" viewBox="0 0 24 24"><path d="M2.5 6.5h11v10h-11Z"/><path d="M13.5 10h4l3 3.5v3h-7"/><circle cx="7" cy="17.5" r="1.75"/><circle cx="17" cy="17.5" r="1.75"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 10.5 12 4l8.5 6.5V20H15v-5.5H9V20H3.5Z"/></symbol><symbol id="i-warehouse" viewBox="0 0 24 24"><path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7M7 16.5h10"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol><symbol id="i-user-plus" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20a6.5 6.5 0 0 1 13 0"/><path d="M19 8v6M16 11h6"/></symbol><symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></symbol><symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.25"/><circle cx="18" cy="20" r="1.25"/><path d="M2.5 3.5H5l2.5 12h11l2-8.5H6"/></symbol><symbol id="i-card" viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="19" height="13" rx="2"/><path d="M2.5 10h19M6.5 15h3"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.2 3 7.8 7 9.5 4-1.7 7-5.3 7-9.5V6Z"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.5h.01"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3Z"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.5C10.5 5 8 4.5 3 4.5v14c5 0 7.5.5 9 2 1.5-1.5 4-2 9-2v-14c-5 0-7.5.5-9 2Z"/><path d="M12 6.5v14"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4Z"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2.5 4.5 13.5H12l-1 8 8.5-11H12Z"/></symbol><symbol id="i-gift" viewBox="0 0 24 24"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8.5h14V12M12 8v12.5"/><path d="M12 8c-2 0-4.5-.6-4.5-2.6A1.9 1.9 0 0 1 9.4 3.5C11.3 3.5 12 8 12 8Zm0 0c2 0 4.5-.6 4.5-2.6a1.9 1.9 0 0 0-1.9-1.9C12.7 3.5 12 8 12 8Z"/></symbol><symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol><symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol><symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></symbol><symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6.5" r="2.5"/><circle cx="6" cy="17.5" r="2.5"/><path d="M8 8.5 20 18M8 15.5 20 6"/></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c1.1 0 1.5-.8 1.5-1.5 0-1.2-1-1.5-1-2.5s.7-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-4.1-4-7.5-9-7.5Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></symbol><symbol id="i-type" viewBox="0 0 24 24"><path d="M5 6.5V4.5h14v2M12 4.5v15M9 19.5h6"/></symbol><symbol id="i-split" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.5 4.5L20 16"/><path d="M20 20v-4h-4"/></symbol><symbol id="i-grid-lg" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></symbol><symbol id="i-grid-sm" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="4.5" height="4.5" rx="1.2"/><rect x="9.75" y="3.5" width="4.5" height="4.5" rx="1.2"/><rect x="16" y="3.5" width="4.5" height="4.5" rx="1.2"/><rect x="3.5" y="9.75" width="4.5" height="4.5" rx="1.2"/><rect x="9.75" y="9.75" width="4.5" height="4.5" rx="1.2"/><rect x="16" y="9.75" width="4.5" height="4.5" rx="1.2"/><rect x="3.5" y="16" width="4.5" height="4.5" rx="1.2"/><rect x="9.75" y="16" width="4.5" height="4.5" rx="1.2"/><rect x="16" y="16" width="4.5" height="4.5" rx="1.2"/></symbol></svg>
 <div class="masthead" role="banner">
   <a class="skip-link" href="#q" onclick="var q=document.getElementById('q'),r;if(q&&q.offsetParent){event.preventDefault();q.focus({preventScroll:true});r=q.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)q.scrollIntoView({block:'center'});}">Skip to search</a>
@@ -3796,12 +3863,17 @@ const BY_ID = Object.fromEntries(ALL.map(p=>[p.id,p]));
 /* QC only where photos are stored (owner, 8 Nov 2026): the catalogue's qc flag says buyers took QC photos somewhere, but
    only finds in the QC bank (data/qc_bank.json, filled daily by scripts/qc_bank.py, most viewed first) have photos we can
    show. Finds without stored photos lose the QC badge, pill and tab; the daily job keeps collecting in the background. */
-function pcQcKey(p){ return p.platform+"/"+String(p.itemId||p.id).replace(/^0+/,""); }
+/* the find's own listing, also after a partner swap moved its Buy link (p._qcSrc, as qcFetch reads it): with the swaps now
+   applied as soon as their file is in (calm loading, 24 Nov 2026), they can come before this file, and a swapped find
+   must keep its QC photos */
+function pcQcKey(p){ const s=p._qcSrc; return (s?s[0]:p.platform)+"/"+String(s?s[1]:(p.itemId||p.id)).replace(/^0+/,""); }
 function pcQcReady(){ document.documentElement.classList.add("qcb-ready"); }
 fetch("/data/qc_bank.json").then(r=>r.ok?r.json():null).then(j=>{
   if(!j||!j.items) return;
-  const B=new Set(Object.entries(j.items).filter(([k,v])=>Array.isArray(v)&&+v[1]>0).map(([k])=>k));
-  ALL.forEach(p=>{ if(p.qc>0&&!B.has(pcQcKey(p))){ p.qcAll=p.qc; p.qc=0; } });
+  const B=new Map(Object.entries(j.items).filter(([k,v])=>Array.isArray(v)&&+v[1]>0).map(([k,v])=>[k,+v[1]]));
+  /* qcN: how many photos are stored, what the product view shows (calm loading: its QC tab and skeleton strip are drawn
+     from it before the photos are in) */
+  ALL.forEach(p=>{ if(p.qc>0&&!B.has(pcQcKey(p))){ p.qcAll=p.qc; p.qc=0; } else if(p.qc>0) p.qcN=B.get(pcQcKey(p)); });
   document.querySelectorAll('a.qcb[href*="/product/"],a.qc-pill[href*="/product/"]').forEach(a=>{
     const m=(a.getAttribute("href")||"").match(/\/product\/([^#?]+)/), q=m&&BY_ID[decodeURIComponent(m[1])]; if(q&&!(q.qc>0)) a.remove(); });
 }).catch(()=>{}).then(pcQcReady,pcQcReady);
@@ -4609,10 +4681,12 @@ var SUBC=null, SUBSEL="", _subLoading=false;
 function subCat(){ return state.cats&&state.cats.length===1?state.cats[0]:(state.cat&&state.cat!=="all"?state.cat:""); }
 function subActive(){ const c=subCat(); return SUBC&&SUBSEL&&c&&(SUBC.subs[c]||[]).includes(SUBSEL)?SUBSEL:""; }
 function loadSubs(){ if(SUBC||_subLoading) return; _subLoading=true;
-  fetch("/data/subcats.json").then(r=>r.ok?r.json():null).then(d=>{ if(d&&d.subs&&d.m){ SUBC=d; try{ render(); }catch(e){} } }).catch(()=>{}); }
+  fetch("/data/subcats.json").then(r=>r.ok?r.json():null).then(d=>{ if(d&&d.subs&&d.m){ SUBC=d; try{ if(subActive()) softRender(); else renderSubs(); }catch(e){} } }).catch(()=>{}); }
 function renderSubs(){ const row=document.getElementById("sub-row"); if(!row) return; const c=subCat();
-  if(!c||state.saved){ row.hidden=true; SUBSEL=""; return; }
+  const pre=document.documentElement.classList;   /* sub-pre (category hubs): the row's space is kept until it is known */
+  if(!c||state.saved){ row.hidden=true; SUBSEL=""; pre.remove("sub-pre"); return; }
   if(!SUBC){ row.hidden=true; loadSubs(); return; }
+  pre.remove("sub-pre");
   const L=SUBC.subs[c]||[]; if(L.length<2){ row.hidden=true; SUBSEL=""; return; }
   if(SUBSEL&&!L.includes(SUBSEL)) SUBSEL="";
   const sig=c+"|"+SUBSEL; if(row.__sig===sig&&!row.hidden) return; row.__sig=sig;
@@ -4668,8 +4742,28 @@ function filtered0(noBrand){   /* noBrand: unsorted list matching every filter e
   return list;
 }
 const altOf=p=>{ const t=p.title||"", b=p.brand||""; return (b&&!t.toLowerCase().startsWith(b.toLowerCase())?b+" ":"")+t+" rep"; };
+/* calm loading (24 Nov 2026, owner: "i dont like how these products load so weird on refresh"): a rebuild of the grid or a
+   home row hands card() the cards it is about to replace (_reuse, by find id). A card whose find and text are unchanged is
+   kept as it is (node, photo, handlers). Otherwise the new card takes over the old card's <img>, loaded or still loading,
+   so a photo on screen never goes blank or loads a second time. _place() then moves only the nodes that changed. */
+let _reuse=null;
+function _cardKey(p){ return [p.price,p.usd,p.platform,p.itemId,p.qc,p.img,state.cur,state.lang,LOCK_AGENT||state.agent,SHOW_VIEWS?[p.views7,p.views,p.viewsAll,p.favs].join():""].join("|"); }
+function withReuse(nodes,fn){ _reuse=_reuseMap(nodes); try{ return fn(); }finally{ _reuse=null; } }
+function _reuseMap(nodes){ const m=new Map(); for(const c of nodes){ const id=c&&c.getAttribute&&(c.getAttribute("data-pid")||c.getAttribute("data-ssr")); if(id&&!m.has(id)) m.set(id,c); } return m; }
+/* box ends up holding exactly `nodes`, in this order; nodes already in place are not touched (no blink, no reload) */
+function _place(box,nodes){ let cur=box.firstChild; for(const n of nodes){ if(n===cur){ cur=cur.nextSibling; continue; } box.insertBefore(n,cur); } while(cur){ const nx=cur.nextSibling; box.removeChild(cur); cur=nx; } }
+/* a card photo that failed: two retries (transient /api/img 502s) of the original without the srcset (with a srcset the
+   browser ignores a new src), then the drawn placeholder tile. Bound once per <img> and read from it, so it still works
+   after the <img> moved to a rebuilt card. */
+function _imgErr(e){ const im=e.currentTarget, p=im.__p; if(!p) return;
+  if((im.__tries||0)<2&&p.img){ const n=im.__tries=(im.__tries||0)+1; setTimeout(()=>{ if(!im.isConnected) return; im.removeAttribute("srcset"); im.src=p.img+(p.img.indexOf("?")<0?"?":"&")+"r="+n; },700*n); return; }
+  const c=im.closest(".card"); im.remove(); if(c) drawTile($("canvas",c),p); }
 function card(p,i){
-  const el=document.createElement("div"); el.className="card";
+  let _ri=null;
+  if(_reuse){ const o=_reuse.get(String(p.id)); if(o){ _reuse.delete(String(p.id));
+    if(o.__p===p&&o.__k===_cardKey(p)){ const f=o.querySelector("[data-fav]"); if(f) f.setAttribute("aria-pressed",String(FAVES.has(p.id))); const sc=o.querySelector("[data-sc]"); if(sc) sc.textContent=fmtStar(p.id); return o; }
+    const im=o.querySelector("img.pimg"); if(im&&p.img&&(!o.__p||o.__p.img===p.img)) _ri=im; } }
+  const el=document.createElement("div"); el.className="card"; el.setAttribute("data-pid",p.id); el.__p=p; el.__k=_cardKey(p);
   const sub=subprice(p.price);
   /* v9 (29 Oct 2026): the card carries its own buy link, through the visitor's agent (the hub's agent on agent hubs), and a QC
      pill when buyer QC photos are on record. Same markup as appCards() in functions/_lib/pages.js. */
@@ -4677,7 +4771,7 @@ function card(p,i){
   el.innerHTML=`
     <div class="thumb">
       <canvas aria-hidden="true"></canvas>
-      ${p.img?`<img class="pimg" src="${esc(thumbOf(p.img))}"${thumbSet(p.img)?` srcset="${esc(thumbSet(p.img))}" sizes="(max-width:640px) 48vw, (max-width:1100px) 31vw, 290px"`:""} alt="${esc(altOf(p))}" loading="${top<8?"eager":"lazy"}"${top<4?' fetchpriority="high"':""} decoding="async" onerror="this.remove()">`:""}
+      ${p.img&&!_ri?`<img class="pimg" src="${esc(thumbOf(p.img))}"${thumbSet(p.img)?` srcset="${esc(thumbSet(p.img))}" sizes="(max-width:640px) 48vw, (max-width:1100px) 31vw, 290px"`:""} alt="${esc(altOf(p))}" loading="${top<8?"eager":"lazy"}"${top<4?' fetchpriority="high"':""} decoding="async" onerror="this.remove()">`:""}
       <button class="fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save ${esc(p.title)}">${HEART}</button><span class="tbadges">${colourBadge(p)}${hasQC?`<a class="cbadge qcb" href="/product/${encodeURIComponent(p.id)}#qc" aria-label="${esc(t("qc_of").replace("{t}",p.title))}">${ICON("camera")}</a>`:""}</span>
     </div>
     <div class="body">
@@ -4700,8 +4794,10 @@ function card(p,i){
   /* keyboard: the title link is the card's focus stop; Enter on it fires the click handler above, Enter on Save saves */
   el.querySelector(".fav").addEventListener("click",e=>{ e.stopPropagation(); toggleFav(p); });
   /* placeholder canvas only when there is no photo or it fails (a canvas per card costs ~0.8 MB on phones) */
-  const im=el.querySelector("img.pimg");
-  if(im){ im.removeAttribute("onerror"); if(i>=8&&!im.complete){ im.classList.add("ld"); im.addEventListener("load",()=>im.classList.remove("ld"),{once:true}); } let tries=0; im.addEventListener("error",()=>{ if(tries<2&&p.img){ tries++; setTimeout(()=>{ im.src=p.img+(p.img.indexOf("?")<0?"?":"&")+"r="+tries; },700*tries); return; } im.remove(); drawTile($("canvas",el),p); }); }
+  if(_ri) el.querySelector(".thumb canvas").after(_ri);   /* the old card's photo (the server's <img> on the first draw) */
+  const im=_ri||el.querySelector("img.pimg");
+  if(im){ im.removeAttribute("onerror"); im.__p=p; if(!im.__eh){ im.__eh=1; im.addEventListener("error",_imgErr); }
+    if(im.complete&&im.naturalWidth) im.classList.add("is-in"); }   /* already in memory: no skeleton frame */
   else requestAnimationFrame(()=>drawTile($("canvas",el),p));
   return el;
 }
@@ -4711,7 +4807,10 @@ function _renderChunk(){
   const frag=document.createDocumentFragment();
   const end=Math.min(_rn+RPAGE,_rlist.length);
   for(let i=_rn;i<end;i++) frag.appendChild(card(_rlist[i],i));
-  grid.appendChild(frag); _rn=end; _lastChunkY=window.scrollY||0;
+  grid.appendChild(frag); _rn=end; _chunkUi();
+}
+function _chunkUi(){   /* the sentinel, the skeleton row and "Load more" under the grid, after a chunk or a redraw */
+  _lastChunkY=window.scrollY||0;
   const s=$("#grid-sentinel"); if(s) s.style.display=(_rn<_rlist.length)?"":"none";
   /* r6: one row of skeleton cards under the grid while more finds are coming; "Load more" only as a fallback */
   const sk=$("#grid-sk"); if(sk){ const more=_rn<_rlist.length; if(more&&!sk.firstChild) sk.innerHTML='<div class="sk-card"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div>'.repeat(6); if(sk.hidden===more) sk.hidden=!more; }
@@ -4750,45 +4849,68 @@ function _ensureSentinelObserver(){
   _sentObs=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)) _pump(); },{rootMargin:"1000px 0px"});
   _sentObs.observe(s);
 }
-/* server cards (21 Oct 2026): the homepage and hub pages arrive with their first finds already in #grid (data-ssr), in the
-   server's popularity order. While the view is still the one the page opened with, those finds stay first and in that
-   order, so the first render (and the re-render when the view stats arrive) doesn't reshuffle what is on screen. A saved
-   sort, search or filter that doesn't match them skips the pin; any later change of filter, sort or search drops it. */
-var SSR_PIN, SSR_SIG;
-function ssrSig(){ normState(); return JSON.stringify([subActive(),state.q,state.cat,state.cats,state.brand,state.color,state.plat,state.gender,state.pmin,state.pmax,state.price,state.sort,state.saved,state.qc]); }
-function pinSsr(list){
-  if(SSR_PIN===undefined){
-    SSR_PIN=[...document.querySelectorAll("#grid [data-ssr]")].map(e=>e.getAttribute("data-ssr")); SSR_SIG=ssrSig();
-    if(SSR_PIN.length&&(state.sort!=="pop"||state.q||state.saved)) SSR_PIN=[];
-    if(Date.now()<Date.UTC(2026,11,11)) SSR_PIN=[];   /* 11 Nov 2026: the 50/50 mix with the new RepLibrary finds (pcSmartPop) starts at the very top, so the server's first cards are not kept in place */
-    if(SSR_PIN.length){ const ids=new Set(list.map(p=>p.id)); if(SSR_PIN.filter(id=>ids.has(id)).length<SSR_PIN.length*0.8) SSR_PIN=[]; }
-  }
-  if(!SSR_PIN.length) return list;
-  if(ssrSig()!==SSR_SIG){ SSR_PIN=[]; return list; }
-  const pos=new Map(SSR_PIN.map((id,i)=>[id,i])), head=[], rest=[];
-  for(const p of list)(pos.has(p.id)?head:rest).push(p);
-  head.sort((a,b)=>pos.get(a.id)-pos.get(b.id));
-  return head.concat(rest);
+/* server cards (21 Oct 2026): the homepage and hub pages arrive with their first finds already in #grid (data-ssr).
+   calm loading (24 Nov 2026): data that arrives after the cards are on screen never reorders them. _keepShown() keeps the
+   cards from the top of the grid down to the last one in view (plus most of a row) in their places and order, and the rest
+   of the list follows the app's own order (view stats, the RepLibrary mix, partner swaps first). It is used for the first
+   draw over the server's cards, while the view is still the one the server drew, and for redraws for background data.
+   A change the visitor makes (search, filters, sort) draws the new list as it is. (It replaces pinSsr(), which kept all 60
+   server cards first and was switched off until 11 Dec 2026 for the RepLibrary mix; this keeps only what is in view.) */
+function _keepShown(list,grid){
+  const lim=innerHeight+260, ids=[];
+  for(const c of grid.children){ const id=c.getAttribute("data-pid")||c.getAttribute("data-ssr"); if(!id) continue; if(c.getBoundingClientRect().top>=lim) break; ids.push(id); }
+  if(!ids.length) return list;
+  const pos=new Map(ids.map((id,k)=>[id,k])), head=new Array(ids.length), rest=[];
+  for(const p of list){ const k=pos.get(String(p.id)); if(k===undefined) rest.push(p); else head[k]=p; }
+  const kept=head.filter(Boolean);
+  if(kept.length<ids.length*0.8) return list;   /* not the list these cards came from: draw the list as it is */
+  return kept.concat(rest);
 }
-let _shownSig="";
-function render(){
+let _shownSig="", _bootSig=null, _bgRender=false;
+/* calm loading (24 Nov 2026): the order of the finds depends on data that arrives after the app starts (view stats, the
+   dead-link check, reports, photo quality, partner swaps), and the grid used to be rebuilt as each of them answered: two to
+   four different sets of finds in the first seconds, photos going blank, cards stretching. Now the boot draws nothing over
+   the server's cards: they stay on screen as they are (real, clickable, their photos loading) until that data is in, or 3 s
+   after the page opened (at least 1.2 s after the app started), and then the grid is drawn once (_calmEnd), the cards in
+   view keeping their places (_keepShown). Anything the visitor does (search, filters, sort) draws at once. Each data
+   source calls _calmStep(k). */
+let _calm=!/^\/product\//.test(location.pathname), _calmT=0;
+const _calmWait=new Set(["bg","sw"]);
+function _calmStop(){ if(!_calm) return; _calm=false; clearTimeout(_calmT); window.__pcDataReady=1; document.documentElement.classList.remove("pc-cover","pc-fmt"); }
+function _calmEnd(){ if(!_calm) return; _bgRender=true;
+  try{ render(); }catch(e){ _calmStop(); try{ $$("#grid>.sk-card").forEach(n=>n.remove()); }catch(_){} } finally{ _bgRender=false; }
+  try{ window.__pcNumbers&&window.__pcNumbers(); }catch(e){}   /* the home rows build now too */
+}
+function _calmStep(k){ _calmWait.delete(k); if(_calmWait.size) return; window.__pcDataReady=1; if(_calm) setTimeout(_calmEnd,0); }
+function _calmArm(){ if(!_calm) return; clearTimeout(_calmT); _calmT=setTimeout(()=>{ window.__pcDataReady=1; _calmEnd(); },Math.max(1200,3000-((window.performance&&performance.now())||0))); }
+function render(boot){
+  const covered=document.documentElement.classList.contains("pc-cover");
+  if(_calm&&boot!==true) _calmStop();   /* the visitor acted, or the data is in: draw now */
+  const held=_calm;   /* the boot call while the data is on its way: the server's cards stay */
   try{ renderSubs(); }catch(e){}
-  const list=swapFirst(pinSsr(filtered())), grid=$("#grid"), empty=$("#empty"), sig=_gridSig();
-  /* background data (auth start, link check, view stats) often re-renders with nothing new on screen: keep those cards
-     (no new <img> elements, no replayed intro animation, no scroll jump) and only refresh their saved stars */
-  if(!SHOW_VIEWS&&sig===_shownSig&&_rn>0&&grid.children.length===_rn&&list.length>=_rn&&list.slice(0,_rn).every((p,i)=>p===_rlist[i])){
-    _rlist=list; const s=$("#grid-sentinel"); if(s) s.style.display=(_rn<_rlist.length)?"":"none";
+  let list=filtered();
+  const grid=$("#grid"), empty=$("#empty"), sig=_gridSig();
+  if(_bootSig===null) _bootSig=sig;
+  if(held){
+    /* the server's cards stay as they are (their saved stars from this browser); a page that came without them shows a
+       screen of skeleton cards until the first draw */
     $$("#grid [data-fav]").forEach(b=>b.setAttribute("aria-pressed",String(FAVES.has(b.getAttribute("data-fav")))));
-    $$("#grid [data-sc]").forEach(e=>{e.textContent=fmtStar(e.getAttribute("data-sc"));});
+    if(!grid.querySelector(".card,.sk-card")) grid.innerHTML='<div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div>'.repeat(12);
   } else {
+    const first=!_shownSig, same=!first&&sig===_shownSig;
+    /* what is on screen keeps its place: the server's cards on the first draw (same view, not covered), the app's own cards
+       when background data (stats, swaps, the link check, sign-in) redraws the same view */
+    if(first?(sig===_bootSig&&!covered):(same&&_bgRender)) list=_keepShown(list,grid);
     /* r6: the grid keeps its height while the list swaps (no jump of what sits below), released after the new cards land */
-    const _first=!_shownSig, _h0=_first?0:grid.offsetHeight; if(_h0){ grid.style.minHeight=_h0+"px"; clearTimeout(grid.__mh); grid.__mh=setTimeout(()=>{ grid.style.minHeight=""; },260); }
-    const _ssrN=_first?grid.querySelectorAll("[data-ssr]").length:0;   /* cards the server sent */
-    _shownSig=sig; grid.innerHTML="";
-    _rlist=list; _rn=0; _renderChunk();
-    while(_rn<Math.min(_ssrN,_rlist.length)) _renderChunk();   /* first draw: as many cards as the server sent (no jump) */
-    /* scrolled past the top of the (now shorter) grid: jump back to its start instead of clamping onto the footer */
-    const gt=_first?0:grid.getBoundingClientRect().top; if(gt<0){ const d=document.querySelector(".deck"); window.scrollTo(0,Math.max(0,window.scrollY+gt-((d&&d.offsetHeight)||0)-12)); }
+    const _h0=first||same?0:grid.offsetHeight; if(_h0){ grid.style.minHeight=_h0+"px"; clearTimeout(grid.__mh); grid.__mh=setTimeout(()=>{ grid.style.minHeight=""; },260); }
+    /* first draw: as many cards as the server sent; a redraw of the same view: as many as were on screen (no jump) */
+    const keepN=first?grid.querySelectorAll(".card").length:(same?_rn:0), nodes=[];
+    _reuse=_reuseMap(grid.children);
+    try{ _rlist=list; const n=Math.min(list.length,Math.max(RPAGE,Math.ceil(keepN/RPAGE)*RPAGE)); for(let i=0;i<n;i++) nodes.push(card(list[i],i)); _rn=nodes.length; }
+    finally{ _reuse=null; }
+    _shownSig=sig; _place(grid,nodes); _chunkUi();
+    /* the visitor changed the view while scrolled past the top of the (now shorter) grid: back to its start instead of the footer */
+    const gt=first||same?0:grid.getBoundingClientRect().top; if(gt<0){ const d=document.querySelector(".deck"); window.scrollTo(0,Math.max(0,window.scrollY+gt-((d&&d.offsetHeight)||0)-12)); }
   }
   _ensureSentinelObserver();
   if(list.length===0){
@@ -4802,7 +4924,7 @@ function render(){
         empty.querySelector("span").innerHTML=`<a class="btn" style="display:inline-flex;align-items:center;min-height:44px;padding:0 20px;margin-top:14px;border-radius:999px;font-size:14px;text-decoration:none" href="${esc(a.build({platform:pl,itemId:ex.id,id:ex.id}))}" target="_blank" rel="sponsored nofollow noopener">${esc(t("buy_via").replace("{a}",a.name))}</a>`; } }
   } else empty.hidden=true;
   { const ec=$("#empty-clear"); if(ec) ec.hidden=!(list.length===0&&hasFilters()); }
-  { const _c=$("#count"), _n=list.length.toLocaleString(state.lang), _t=ALL.length.toLocaleString(state.lang), _s=t("count").replace("{n}",_n).replace("{t}",_t);
+  if(!held){ const _c=$("#count"), _n=list.length.toLocaleString(state.lang), _t=ALL.length.toLocaleString(state.lang), _s=t("count").replace("{n}",_n).replace("{t}",_t);
     if(_c.textContent!==_s){ const _p=t("count").split("{n}"); _c.innerHTML=_p.length===2?esc(_p[0].replace("{t}",_t))+"<b>"+esc(_n)+"</b>"+esc(_p[1].replace("{t}",_t)):esc(_s); } }   /* r6: the first number in ink */
   $("#foot-count").textContent=t("indexed").replace("{n}",ALL.length.toLocaleString(state.lang));
   const fs=$("#f-source"),ft=$("#f-type"),fc=$("#f-color"),fp=$("#f-price"),fb=$("#f-brand"),fg=$("#f-gender");
@@ -4816,7 +4938,8 @@ function render(){
 
 /* background data (stats/auth/stars) arrived: rebuild the grid only if the user hasn't started browsing, otherwise refresh in place */
 function softRender(){
-  if(!drawer.classList.contains("open") && (state.saved || (_rn<=Math.max(RPAGE,60) && window.scrollY<window.innerHeight))){ render(); return; }   /* 60: the first render shows the server's 60 cards; when the view stats arrive the order (and the 50/50 mix) must still be applied */
+  if(_calm) return;   /* calm loading: _calmEnd() draws once everything is in */
+  if(!drawer.classList.contains("open") && (state.saved || (_rn<=Math.max(RPAGE,60) && window.scrollY<window.innerHeight))){ _bgRender=true; try{ render(); }finally{ _bgRender=false; } return; }   /* 60: the first render shows the server's 60 cards; when the view stats arrive the order (and the 50/50 mix) must still be applied */
   $$("#grid [data-fav]").forEach(b=>b.setAttribute("aria-pressed",String(FAVES.has(b.getAttribute("data-fav")))));
   $$("#grid [data-sc]").forEach(e=>{e.textContent=fmtStar(e.getAttribute("data-sc"));});
 }
@@ -4900,7 +5023,11 @@ function _detailBuild(p){
      built: the restyle that inert costs then happens here, ahead of the click, not in the frame that shows the view */
   drawer.classList.remove("pc-cv"); drawer.inert=false;
   const qcN=p.qc||0; const sub=subprice(p.price); const vReal=(p.variants||[]).filter(v=>{ const n=String(v&&v[0]||"").trim(); return n&&!/^standard$/i.test(n); });   /* "Standard" (or no name) = the listing has no options */
-  const lo=p.img?thumbOf(p.img):"";
+  /* calm loading (24 Nov 2026): the view opens with the card's own photo when that is loaded (on retina screens the card holds
+     the 720 px copy, not the 400 px one), so the browser already has it and it shows at once */
+  let lo=p.img?thumbOf(p.img):"", loIn=false;   /* loIn: shown at once, no skeleton frame or fade */
+  try{ const cf=p.img&&document.querySelector('.card .fav[data-fav="'+CSS.escape(String(p.id))+'"]'), ci=cf&&cf.closest(".card").querySelector("img.pimg");
+    if(ci&&ci.complete&&ci.naturalWidth&&ci.currentSrc){ lo=ci.currentSrc; loIn=true; } }catch(e){}
   drawer.innerHTML=`
     <div class="p-top">
       <span class="grabber v8-grabber" aria-hidden="true" style="position:absolute"></span>
@@ -4913,7 +5040,7 @@ function _detailBuild(p){
     <div class="dbody">
       <div class="d-grid">
         <div class="d-media">
-          <div class="gmain"><canvas id="gmain" aria-hidden="true"${p.img?' style="display:none"':""}></canvas><button class="d-fav gallery-fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button>${p.img?`<img class="pimg inst" src="${esc(lo)}" alt="${esc(altOf(p))}" decoding="sync"${lo!==p.img?' data-lo="1"':""}>`:""}</div>
+          <div class="gmain"><canvas id="gmain" aria-hidden="true"${p.img?' style="display:none"':""}></canvas><button class="d-fav gallery-fav" data-fav="${p.id}" aria-pressed="${FAVES.has(p.id)}" aria-label="Save">${HEART}</button>${p.img?`<img class="pimg inst${loIn?" is-in":""}" src="${esc(lo)}" alt="${esc(altOf(p))}" decoding="sync"${lo!==p.img?' data-lo="1"':""}>`:""}</div>
           <div class="gtabs">
             <button class="gtab" data-mode="listing" aria-pressed="${p.img?'true':'false'}">${t("listing")}</button>
             <button class="gtab" data-mode="qc" aria-pressed="${p.img?'false':'true'}">${t("qc")} ${qcN}</button>
@@ -4969,7 +5096,7 @@ const _warmed=new Set();
 function pcWarm(p,build){
   if(!p) return;
   try{ if(!_warmed.has(p.id)){ _warmed.add(p.id);
-    if(p.img){ const im=new Image(); im.decoding="async"; im.src=bigOf(p.img); }
+    if(p.img){ const im=new Image(); im.decoding="async"; im.src=bigOf(p.img); try{ storeGal(p.id); }catch(e){} }   /* calm loading: the store photo list too, so the view knows its strip when it opens */
     if(p.qc>0) qcFetch(p); } }catch(e){}
   if(build&&!drawer.classList.contains("open")&&!(drawer.__pre===p&&drawer.__preSig===_detailSig(p))){ try{ _detailBuild(p); }catch(e){ drawer.__pre=null; } }
 }
@@ -5080,9 +5207,10 @@ function _warmHooks(el,p){
   el.addEventListener("pointerdown",e=>{ if(e.button>0||(e.target.closest&&e.target.closest(".fav,.buy-pill"))) return; clearTimeout(ht); pcWarm(p,true); });
 }
 /* store-gallery.json: {id: [file names in products/store/, "s2/<name>" = the polished copy in products/store2/, "w/<name>" = the white cut-out in img/white/store/]}, loaded once, on the first product view */
-let __sgP=null;
+let __sgP=null, __sgD=null;
+function storeGalN(id){ return __sgD?(__sgD[id]||[]).length:-1; }   /* how many store photos a find has (-1: the file is not in yet) */
 function storeGal(id){
-  if(!__sgP) __sgP=fetch("/store-gallery.json").then(r=>r.ok?r.json():{}).catch(()=>({}));
+  if(!__sgP) __sgP=fetch("/store-gallery.json").then(r=>r.ok?r.json():{}).catch(()=>({})).then(d=>(__sgD=d||{}));
   return __sgP.then(d=>(d[id]||[]).map(k=>k.slice(0,2)==="w/"?location.origin+"/img/white/store/"+k.slice(2):location.origin+"/api/img?u="+encodeURIComponent("https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/"+(k.slice(0,3)==="s2/"?"store2/"+k.slice(3):"store/"+k))));
 }
 function openDetail(p,fromHash){
@@ -5140,7 +5268,7 @@ function openDetail(p,fromHash){
     if(!live()) return;
     if(mode.m==="listing"&&drawer.__listingBroken&&QCIMG.arr&&QCIMG.arr.length) setMode("qc");
     const isqc=mode.m==="qc"; const seed=isqc?100:0;
-    const gm=drawer.querySelector("#gmain"); if(!gm) return; const gc=gm.parentElement; const dir=gc.__dir; gc.__dir=null;
+    const gm=drawer.querySelector("#gmain"); if(!gm) return; const gc=gm.parentElement; const dir=gc.__dir; gc.__dir=null; gc.classList.remove("pc-wait");
     if(isqc && QCIMG.arr && active<0) active=QCIMG.arr.length-1;
     const oldi=gc.querySelector("img.pimg"); gm.style.display="";
     const nq=gc.querySelector(".pc-noqc"); if(nq) nq.remove();
@@ -5183,17 +5311,20 @@ function openDetail(p,fromHash){
           else { gm.style.display=""; drawTile(gm,p,seed+active); }
         }).catch(()=>{ if(live()){ gm.style.display=""; drawTile(gm,p,seed+active); } });
       };
+      if(im.complete&&im.naturalWidth) im.classList.add("is-in");   /* calm loading: a photo the browser has (a preloaded store photo) shows at once */
       gc.appendChild(im);
     } else if(isqc && QCIMG.arr===null){
-      // QC photos still loading: keep the frame empty rather than flashing a placeholder
+      // QC photos still loading: keep the frame empty rather than flashing a placeholder (calm loading: a skeleton tile)
       gm.style.display="";
-      if(QCIMG.tap) showTap(gc);
+      if(QCIMG.tap) showTap(gc); else gc.classList.add("pc-wait");
     } else { drawTile(gm,p,seed+active); }
     const th=drawer.querySelector("#thumbs");
     const lstStrip=!isqc&&LST.arr.length>1, qcArr=lstStrip?LST.arr:QCIMG.arr;   /* listing view with store photos: their strip; otherwise the QC strip as before */
     /* rebuild the strip only when the photo list changes: rebuilding it on every tap replayed the fade-in on every thumbnail */
     const thSig=(qcArr&&qcArr.length)?(lstStrip?"l|":"q|")+qcArr.slice(0,10).join("|"):"", thNew=th.__sig!==thSig;
-    if(thNew){ th.__sig=thSig; th.innerHTML=""; }
+    /* calm loading: the skeleton tiles enhanceDrawer() put in the strip stay until the QC photos they stand for are in */
+    const thPend=!thSig&&QCIMG.arr===null&&!QCIMG.tap&&!!th.querySelector(".pc-sk");
+    if(thNew&&!thPend){ th.__sig=thSig; th.innerHTML=""; }
     // Only render REAL photo thumbnails (never placeholder tiles). Listing mode has a single image, so no strip.
     if(thNew&&qcArr&&qcArr.length){
       const n=Math.min(qcArr.length,10);
@@ -5203,7 +5334,8 @@ function openDetail(p,fromHash){
         const tb=document.createElement("button"); tb.type="button"; tb.className="qcthumb-btn"; tb.__u=u;
         tb.setAttribute("aria-label",(lstStrip?"Photo ":"QC photo ")+(i+1)+" of "+n); tb.__i=i;
         tb.style.cssText="display:block;width:100%;padding:0;border:0;background:none;border-radius:10px;cursor:pointer";
-        const im=document.createElement("img"); im.className="pthumb qcthumb"; im.loading="lazy"; im.src=thumbOf(u); im.alt="";
+        const im=document.createElement("img"); im.className="pthumb qcthumb"; im.loading="lazy"; im.decoding="async"; im.src=thumbOf(u); im.alt="";
+        if(im.complete&&im.naturalWidth) im.classList.add("is-in");
         im.style.cssText="width:100%;height:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block";
         if(lstStrip){ tb.addEventListener("click",()=>{ gal(i); }); im.onerror=()=>{ tb.remove(); LST.arr=LST.arr.filter(x=>x!==u||x===p.img); th.__sig=null; if(mode.m==="listing") gal(0); }; tb.appendChild(im); th.appendChild(tb); continue; }
         tb.addEventListener("click",()=>{ if(mode.m!=="qc") setMode("qc"); gal(Math.max(0,(QCIMG.arr||[]).indexOf(u))); const nb=[...th.children].find(x=>x.__u===u); if(nb&&nb!==tb) nb.focus({preventScroll:true}); });   /* the strip was rebuilt (a photo was dropped): focus stays on this photo */
@@ -5224,7 +5356,7 @@ function openDetail(p,fromHash){
   if(!(p.qc>0)) { requestAnimationFrame(()=>{ const qt=drawer.querySelector('.gtab[data-mode="qc"]'); if(qt) qt.style.display="none"; const gt=drawer.querySelector(".gtabs"); if(gt&&p.img) gt.style.display="none"; }); }
   else _idle(()=>{ if(!live()) return; qcFetch(p).then(d=>{ if(!live()) return; const arr=qcArrOf(d); if(!(arr&&arr.length)){ if(QCIMG.arr===null){ QCIMG.tap=true; if(mode.m==="qc") gal(0); } } else if(QCIMG.arr===null){ QCIMG.arr=arr.slice(); gal(0); } }).catch(()=>{}); });   /* r7: QC lookup after the first paint */
   /* r7: the card's photo is in the markup already; if it fails, the gallery takes over at once */
-  { const im0=drawer.querySelector(".gmain img.pimg.inst"); if(im0){ const bad=()=>{ if(!live()||!im0.isConnected) return; im0.remove(); gal(0); }; im0.onerror=bad; if(im0.complete&&!im0.naturalWidth) bad(); } }
+  { const im0=drawer.querySelector(".gmain img.pimg.inst"); if(im0){ const bad=()=>{ if(!live()||!im0.isConnected) return; im0.remove(); gal(0); }; im0.onerror=bad; if(im0.complete&&!im0.naturalWidth) bad(); else if(im0.complete) im0.classList.add("is-in"); } }   /* already in memory: shown at once, no skeleton frame */
   _afterPaint(()=>gal(0));
   // mobile: swipe the main photo to step through QC photos; tap a photo to view it full size
   (function(){
@@ -5808,8 +5940,20 @@ buildFilters();
 $("#q").value=state.q||"";
 /* PERF: on a /product/ page, skip the heavy homepage grid + marquee entirely (they render on "back"); on the homepage, render the grid now and defer the image-heavy marquee to idle so first paint is fast */
 const _PR=/^\/product\//.test(location.pathname);
-if(!_PR){ render(); (window.requestIdleCallback||((f)=>setTimeout(f,300)))(()=>{try{renderFeatured();window.__featRendered=1;}catch(e){}}); }
+window.__pcBoot=1;   /* calm loading: the app has started (the head script lifts its covers at once when it has not) */
+/* calm loading: until the app draws its own cards, a tap on one of the server's cards opens it in the product view like the
+   app's cards do (a plain link to its page before the app has started) */
+{ const g=$("#grid"); if(g) g.addEventListener("click",e=>{ const c=e.target.closest&&e.target.closest(".card[data-ssr]"); if(!c||c.parentNode!==g) return; const p=BY_ID[c.getAttribute("data-ssr")]; if(!p) return;
+    if(e.target.closest(".buy-pill")) return;
+    if(e.target.closest(".fav")){ e.preventDefault(); toggleFav(p); return; }
+    const qc=e.target.closest(".qcb"); if((qc||e.target.closest("a"))&&(e.metaKey||e.ctrlKey||e.shiftKey||e.button===1)) return;
+    e.preventDefault(); openDetail(p);
+    if(qc){ const qt=drawer.querySelector('.gtab[data-mode="qc"]'); if(qt&&qt.style.display!=="none") qt.click(); } }); }
+if(!_PR){ render(true); _calmArm(); (window.requestIdleCallback||((f)=>setTimeout(f,300)))(()=>{try{renderFeatured();window.__featRendered=1;}catch(e){}}); }
 window.__sbReady=initSb; initSb();
+/* calm loading (24 Nov 2026): the store photo list (store-gallery.json, about 11 KB) once the page has loaded and is idle, so
+   the product view knows from its first frame whether a find has a photo strip, also on a phone's first tap */
+window.addEventListener("load",()=>setTimeout(()=>{ (window.requestIdleCallback||(f=>setTimeout(f,0)))(()=>{ try{ storeGal(""); }catch(e){} }); },2500));
 /* partner link swaps approved on /partner (11 Nov 2026): live from approved_swaps(), else the Swaps workflow's file.
    The find keeps its page, title and photo; its Buy buttons go to the partner's item.
    12 Nov 2026 (owner): the price follows the swap (the partner item's own Weidian price, data/link_swaps.json "price", read by
@@ -5821,7 +5965,14 @@ window.__sbReady=initSb; initSb();
   const okSw=s=>s&&/^(weidian|taobao|1688)$/.test(s[0])&&/^\d{5,20}$/.test(String(s[1]));
   const apply=(m,baked)=>{ const go=()=>{ if(typeof ALL==="undefined"||!ALL||!ALL.length){ setTimeout(go,500); return; }
     const sw=new Set(), price=(baked&&baked.price)||{}, hideOf={};
-    for(const id in m){ const p=BY_ID[id], s=m[id]; if(!p||!okSw(s)) continue; if(!p._qcSrc) p._qcSrc=[p.platform,String(p.itemId||p.id)]; p.platform=s[0]; p.itemId=String(s[1]); sw.add(String(id));
+    /* calm loading (24 Nov 2026): the baked list is applied first and the live one after it when it differs, so a find the
+       first list swapped and the second does not goes back to its own listing and price */
+    SWAPPED.forEach(id=>{ const p=BY_ID[id], o=p&&p._swOrig; if(!o||okSw(m[id])) return; p.platform=o[0]; p.itemId=o[1]; p.price=o[2]; p.usd=o[3];
+      if(o[4]&&Array.isArray(p.variants)) p.variants.forEach((v,k)=>{ if(Array.isArray(v)&&o[4][k]!=null) v[1]=o[4][k]; }); });
+    for(const id in m){ const p=BY_ID[id], s=m[id]; if(!p||!okSw(s)) continue; if(!p._qcSrc) p._qcSrc=[p.platform,String(p.itemId||p.id)];
+      if(!p._swOrig) p._swOrig=[p.platform,p.itemId,p.price,p.usd,Array.isArray(p.variants)?p.variants.map(v=>Array.isArray(v)?v[1]:null):null];
+      else { const o=p._swOrig; p.price=o[2]; p.usd=o[3]; if(o[4]&&Array.isArray(p.variants)) p.variants.forEach((v,k)=>{ if(Array.isArray(v)&&o[4][k]!=null) v[1]=o[4][k]; }); }   /* applied again: from its own price */
+      p.platform=s[0]; p.itemId=String(s[1]); sw.add(String(id));
       const pr=price[id];
       if(Array.isArray(pr)&&String(pr[0])===String(s[1])&&+pr[1]>0){ const c=+pr[1]; p.price=c; if(+pr[2]>0) p.usd=+pr[2]; if(Array.isArray(p.variants)) p.variants.forEach(v=>{ if(Array.isArray(v)) v[1]=c; }); } }
     if(sw.size){
@@ -5840,12 +5991,17 @@ window.__sbReady=initSb; initSb();
     try{ if(window.__featRendered) renderFeatured(); }catch(e){}
     try{ window.__pcNumbers&&window.__pcNumbers(); }catch(e){}
   }; go(); };
-  const baked=fetch("/data/link_swaps.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null);
+  const baked=(window.PC_PRE&&PC_PRE.link_swaps)||fetch("/data/link_swaps.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null);
   /* every swap, 1,000 rows a call (19 Nov 2026: 2,614 swaps and only the first 1,000 were read) */
   const swPage=off=>fetch(SUPABASE_URL+"/rest/v1/rpc/approved_swaps?offset="+off+"&limit=1000",{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json"},body:"{}"})
     .then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(pg=>pg&&pg.length===1000&&off<20000?swPage(off+1000).then(m=>pg.concat(m)):(pg||[]));
   const live=swPage(0).then(rows=>{ const m={}; (rows||[]).forEach(r=>{ m[r.pid]=[r.platform,String(r.item_id)]; }); return m; }).catch(()=>null);
-  Promise.all([live,baked]).then(([m,b])=>apply(m||(b&&b.swaps)||{},b)).catch(()=>{});
+  /* calm loading (24 Nov 2026): the baked file (started in the head, refreshed every 15 minutes) is applied as soon as it is
+     in, so the grid can be built with the swaps on the first go; the live list then only redraws when it differs from it */
+  let _swK=null; const swKey=m=>Object.keys(m||{}).sort().map(k=>k+":"+(m[k]||[]).join(":")).join(",");
+  const use=(m,b)=>{ const k=swKey(m); if(k===_swK) return; _swK=k; apply(m||{},b); };
+  baked.then(b=>{ if(_swK===null&&b&&b.swaps) use(b.swaps,b); }).catch(()=>{}).finally(()=>_calmStep("sw"));
+  Promise.all([live,baked]).then(([m,b])=>use(m||(b&&b.swaps)||{},b)).catch(()=>{});
 })();
 /* dead Weidian listings (data/link_health.json, the weekly Link check workflow): hidden from the catalogue */
 var SOLD=new Set();   /* sold out at the last link check: left out of the similar finds */
@@ -5854,7 +6010,7 @@ var REPORTED=new Set();
 /* only the finds members reported get the "removed" notice (rp.removed, 19 Nov 2026); photo-cleanup and owner hides just leave the grid */
 var REMOVED=new Set();
 /* link_health.json and stats.json both change the grid: redraw once, when both have answered (was one full redraw each) */
-let _bgLeft=2, _bgDirty=false; const _bgDone=()=>{ if(--_bgLeft===0&&_bgDirty){ setTimeout(()=>{ try{ softRender(); }catch(e){} },0); } };   /* own task (perf, 5 Nov 2026) */
+let _bgLeft=2, _bgDirty=false; const _bgDone=()=>{ if(--_bgLeft===0){ if(_bgDirty) setTimeout(()=>{ try{ softRender(); }catch(e){} },0); _calmStep("bg"); } };   /* own task (perf, 5 Nov 2026) */
 const _gj=u=>fetch(u,{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null);
 const _pre=window.PC_PRE||{};   /* started in the head (perf, 5 Nov 2026) */
 Promise.all([_pre.link_health||_gj("/data/link_health.json"),_pre.reported||_gj("/data/reported.json"),_pre.photo_quality||_gj("/data/photo_quality.json")]).then(([h,rp,pq])=>{
@@ -6214,7 +6370,7 @@ function renderWelcomeBonus(){
   { const ex=[...host.querySelectorAll(".wb-card")].slice(AG_SHOW-1); if(ex.length){ const mb=agMoreBtn("wb-more"); host.appendChild(mb); agMore(ex,mb); } }   /* See more agents */
 }
 window.__pcBaseTitle=document.title;
-function pcRoute(){
+function pcRoute(ev){
   const h=(location.hash||"").replace(/^#/,"");
   const pm=h.match(/^p\/(.+)$/);
   if(pm){
@@ -6240,7 +6396,8 @@ function pcRoute(){
   if(pid){const el=document.getElementById(pid);if(el){el.hidden=false; const ph=el.querySelector(".ph"); document.title=(ph&&ph.textContent.trim()?ph.textContent.trim()+" | Puro Classico":window.__pcBaseTitle); if(ph){ ph.tabIndex=-1; try{ ph.focus({preventScroll:true}); }catch(e){} }} if(pid==="pg-affiliate"){try{renderAffiliate();}catch(e){}} if(pid==="pg-welcome-bonus"){try{renderWelcomeBonus();}catch(e){}}}
   const back=!pid&&window.__pcOnPage; window.__pcOnPage=!!pid;
   if(back&&window.matchMedia&&matchMedia("(hover:hover) and (pointer:fine)").matches){ const q=$("#q"); if(q) try{ q.focus({preventScroll:true}); }catch(e){} }
-  window.scrollTo(0,back?(window.__catY||0):0);
+  /* calm loading (24 Nov 2026): not on the first run with no section to show, so a refresh keeps the place the browser restores */
+  if(ev||pid||back) window.scrollTo(0,back?(window.__catY||0):0);
   if(!pid){ document.title=window.__pcBaseTitle; try{ _pump(); }catch(e){} }
 }
 window.addEventListener("hashchange",pcRoute);
@@ -6688,11 +6845,11 @@ function renderSimilar(p){
   add(swS.concat(alS,t1.slice(0,6),t2),8); add(alO,10); add(t2.concat(t3),10);
   if(!pool.length){ wrap.innerHTML=""; return; }
   wrap.innerHTML='<h2 class="sec-label">'+t("similar")+'</h2><div class="similar-row">'+pool.map(x=>
-    '<button class="sim-card" data-sim="'+x.id+'"><span class="sim-thumb">'+(x.img?'<img src="'+esc(thumbOf(x.img))+'" alt="" loading="lazy">':'<canvas aria-hidden="true"></canvas>')+colourBadge(x)+'</span><span class="sim-t">'+esc(x.title)+'</span><span class="sim-p">'+pprice(x.price)+'</span></button>'
+    '<button class="sim-card" data-sim="'+x.id+'"><span class="sim-thumb">'+(x.img?'<img src="'+esc(thumbOf(x.img))+'" alt="" loading="lazy" decoding="async">':'<canvas aria-hidden="true"></canvas>')+colourBadge(x)+'</span><span class="sim-t">'+esc(x.title)+'</span><span class="sim-p">'+pprice(x.price)+'</span></button>'
   ).join("")+'</div>';
   $$(".sim-card",wrap).forEach((b,i)=>{ const x=BY_ID[b.dataset.sim];
     const im=b.querySelector(".sim-thumb img"), c=b.querySelector(".sim-thumb canvas");
-    if(im&&x){ im.onerror=()=>imgFallback(im,x,i); }
+    if(im&&x){ im.onerror=()=>imgFallback(im,x,i); if(im.complete&&im.naturalWidth) im.classList.add("is-in"); }   /* drawn again (also.js came in): photos the browser has show at once */
     if(c&&x) requestAnimationFrame(()=>drawTile(c,x,i));
     b.addEventListener("click",()=>{ if(x)openDetail(x); }); });
 }
@@ -6794,6 +6951,9 @@ function enhanceDrawer(p){
   pcSizeRow(p);
   wireDrawerSearch();
   const _tk=drawer.__tok;   /* r7: similar finds, the QC check and the browse grid wait for the first paint (and an idle moment) */
+  /* calm loading: the Similar finds row is there from the first frame, as skeleton cards of its final size; renderSimilar()
+     fills it after the first paint */
+  { const sw=$("#similar-wrap",drawer); if(sw&&!sw.firstChild) sw.innerHTML='<h2 class="sec-label">'+t("similar")+'</h2><div class="similar-row sim-skel" aria-hidden="true">'+'<button type="button" class="sim-card" tabindex="-1"><span class="sim-thumb"></span><span class="sim-t">&nbsp;<br>&nbsp;</span><span class="sim-p">&nbsp;</span></button>'.repeat(8)+'</div>'; }
   _idle(()=>{ if(drawer.__tok===_tk) renderSimilar(p); });
   /* 22 Nov 2026: the "also liked" file (also.js) loads on the first tap now, not on every page view, so it may still be on
      its way when the first find opens: draw the row again once it is in, if this find is still open */
@@ -6818,16 +6978,25 @@ function enhanceDrawer(p){
     const gt=drawer.querySelector(".gtabs"), th=$("#thumbs",drawer);
     const qcTab=gt&&gt.querySelector('[data-mode="qc"]'), listTab=gt&&gt.querySelector('[data-mode="listing"]');
     const tok=drawer.__tok;
-    // default: no tab bar / no thumb strip until real QC photos are confirmed
-    if(gt)gt.style.display="none";
-    if(th)th.style.display="none";
+    /* calm loading (24 Nov 2026, owner: "when you go on to a product the product image just moves unsmoothly, make it
+       still"): the tab bar and the photo strip used to appear a moment after the view opened, and the photo jumped up to
+       make room. A find with stored QC photos (qc_bank.json, p.qc) gets both from the first frame: the tabs, and a strip
+       of skeleton tiles for its QC photos that gal() fills once they are in (unless its store photos fill the strip). */
+    const qcOk=p.qc>0&&!!p.img&&document.documentElement.classList.contains("qcb-ready"), sgN=storeGalN(p.id);
+    if(gt)gt.style.display=qcOk?"":"none";
+    if(qcOk&&qcTab){ qcTab.style.display=""; qcTab.textContent=t("qc")+" "+(p.qcN||p.qc); }
+    if(th&&!th.children.length){ const n=qcOk&&!(sgN>0)?Math.min(p.qcN||p.qc,10):0;
+      if(n) th.innerHTML='<span class="qcthumb-btn pc-sk" aria-hidden="true"></span>'.repeat(n);
+      th.style.display=n?"":"none"; }
+    const qcP=p.qc>0?qcFetch(p):Promise.resolve(null);   /* asked now, read after the first paint */
     _idle(()=>{ if(drawer.__tok!==tok) return;
-    (p.qc>0?qcFetch(p):Promise.resolve(null)).then(d=>{
+    qcP.then(d=>{
       if(drawer.__tok!==tok) return;   // another product has been opened since
       const hasListing=!!p.img&&!drawer.__listingBroken;
       const arr=(d&&Array.isArray(d.thumbnails)&&d.thumbnails.length)?d.thumbnails
                :((d&&Array.isArray(d.qc_preview)&&d.qc_preview.length)?d.qc_preview:null);
       const hasQC=!!(arr&&arr.length), onRecord=false;
+      if(!hasQC){ if(gt)gt.style.display="none"; if(th){ th.querySelectorAll(".pc-sk").forEach(x=>x.remove()); if(!th.children.length) th.style.display="none"; } }   /* no QC photos after all */
       /* AI QC notes: paused by the owner (8 Nov 2026), pcBetaQc stays for later */   /* 8 Nov 2026: no QC tab without stored photos (owner); scripts/qc_bank.py collects them */
       if(!hasListing&&!hasQC&&!onRecord){ if(media)media.style.display="none"; if(grid)grid.classList.add("no-media"); return; }
       if(hasQC||onRecord){
@@ -7158,6 +7327,13 @@ function wirePPFilters(){
     return items;
   }
   var built = false;
+  function keepOrder(items, rail) {   /* the finds the row already shows first, in their order, then the new ones */
+    var pos = {}, k = 0, old = [], add = [];
+    [].forEach.call(rail.children, function (c) { var id = c.getAttribute && c.getAttribute("data-pid"); if (id && pos[id] === undefined) pos[id] = k++; });
+    items.forEach(function (p) { (pos[String(p.id)] !== undefined ? old : add).push(p); });
+    old.sort(function (a, b) { return pos[String(a.id)] - pos[String(b.id)]; });
+    return old.concat(add);
+  }
   function buildRows(force) {
     if (!(typeof card === "function")) return;
     if (blocked()) { pending = true; return; }
@@ -7178,9 +7354,13 @@ function wirePPFilters(){
       /* a row the visitor has scrolled keeps its cards when only the background data changed */
       items = swTop(items, c === "pop" ? "" : c, c === "pop" ? ONE_BRAND : null);   /* partner swaps first (12 Nov 2026) */
       if (!force && built && sl[n] > 4) return;
-      var frag = d.createDocumentFragment();
-      items.forEach(function (p, i) { guard(function () { frag.appendChild(card(p, 8 + i)); }); });   /* index 8+: lazy images, the hero h1 stays the LCP */
-      rail.textContent = ""; rail.appendChild(frag);
+      /* calm loading (24 Nov 2026): a row keeps the cards it shows, in their order (finds it gains go after them), and each
+         card keeps its node and photo (withReuse and _place, from the grid's code), so data that arrives later never
+         reshuffles a row or reloads its photos */
+      if (built) items = keepOrder(items, rail);
+      var nodes = [];
+      withReuse(rail.children, function () { items.forEach(function (p, i) { guard(function () { nodes.push(card(p, 8 + i)); }); }); });   /* index 8+: lazy images, the hero h1 stays the LCP */
+      _place(rail, nodes);
       sec.hidden = !items.length;
       if (sl[n]) rail.scrollLeft = 0;
     });
@@ -7226,8 +7406,9 @@ function wirePPFilters(){
      build once. Building on the bare catalogue first and again when each answered swapped every card and reloaded
      every photo a second or two after the page opened. After 4 s they build with whatever is there. */
   function dataReady() {
-    var s = 0; try { s = STATS ? 1 : 0; } catch (e) {}
-    return (s && w.__lhDone) || !w.performance || performance.now() > 4000;
+    /* calm loading (24 Nov 2026): and the partner swaps, which reordered every row a second time when they arrived
+       (window.__pcDataReady: set by _calmStep() once all of them are in, or at the 3 s cap) */
+    return w.__pcDataReady || !w.performance || performance.now() > 4000;
   }
   function refresh() {
     guard(numbers);
