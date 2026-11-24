@@ -1,0 +1,65 @@
+name: Photo cut-outs upload
+# Puts the reviewed transparent cut-outs (scripts/photo_white.py --alpha, owner 24 Nov 2026: dark tiles on #262626) in
+# Supabase storage as NEW objects: products/pc2/<id>-t1.webp, x-upsert false, so an existing object is never replaced
+# and nothing is deleted. Each file comes from the artifact of the run that made it and must match the sha1 recorded at
+# review (data/photo_cut). No image model runs here: this job only holds the storage key. The site does not change;
+# apply_catalog_ai.py --cut switches the photos. The log (data/photo_cut_uploaded.json) is this run's artifact.
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Upload at most this many (0 = all reviewed)'
+        default: '0'
+      ids:
+        description: 'Only these find ids (comma separated, optional)'
+        default: ''
+      dry_run:
+        description: 'Check everything, upload nothing'
+        type: choice
+        options: ['yes', 'no']
+        default: 'yes'
+permissions:
+  contents: read
+  actions: read
+concurrency: photo-cut-upload
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      LIMIT: ${{ inputs.limit || '0' }}
+      IDS: ${{ inputs.ids }}
+      DRY: ${{ inputs.dry_run || 'yes' }}
+    steps:
+      - name: Check inputs
+        run: |
+          [[ "$LIMIT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::bad limit"; exit 1; }
+          [[ -z "$IDS" || "$IDS" =~ ^[0-9,\ ]+$ ]] || { echo "::error::bad ids"; exit 1; }
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install pillow
+      - name: Upload
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
+          DR=""; [ "$DRY" = "yes" ] && DR="--dry-run"
+          python -u scripts/photo_cut_upload.py --limit "$LIMIT" $IDA $DR 2>&1 | tee photo-cut-upload.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: photo-cut-upload
+          path: |
+            photo-cut-upload.log
+            data/photo_cut_uploaded.json
+          if-no-files-found: warn
+          retention-days: 30

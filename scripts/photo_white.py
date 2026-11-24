@@ -85,6 +85,153 @@ AR_MAX, CORR_MIN = 0.08, 0.6    # store_photos_polish_check.py
 NEEDS_NEW_PHOTO = {"worn_by_person", "collage_or_grid", "packaging_or_box", "hand_in_photo"}   # rl_cutout / clean_photos
 GARMENT = {"Tops", "Outerwear"}
 
+# --alpha (owner, 24 Nov 2026: in dark mode every tile on the category grey #262626, so every main photo needs a transparent
+# cut-out): the same cut-outs and checks, written as RGBA WebP (img/cut/<id>.webp, results in data/photo_cut), from
+# data/photo_cut_targets.json. The colour under the soft edge is made safe for a dark tile (edge_colours), and every
+# result is measured for a light fringe on #262626 (halo) and against the white photo the site shows now (vs_live).
+CUT = {"on": False, "handfix": None, "force": False}
+CUT_TARGETS = os.path.join(ROOT, "data", "photo_cut_targets.json")
+CUT_STATE = os.path.join(ROOT, "data", "photo_cut")
+CUT_OUT = os.path.join(ROOT, "img", "cut")
+CUT_VERSION = 1
+DARK = (38, 38, 38)                     # ds.css --well in dark mode (#262626)
+
+
+def edge_colours(rgb, alpha, bg):
+    """The colours under a cut-out's soft edge, safe on a dark tile as much as a light one. Decontaminated (the background
+    colour taken out of the half-transparent edge); where the result still looks like the background, or the pixel is
+    mostly clear, the colour of the nearest solid item pixel instead, so a white backdrop never shows as a light fringe
+    on #262626. Clear pixels get the nearest item colour too: enlarging then never pulls the backdrop into the edge."""
+    from scipy import ndimage
+    F = np.asarray(sp.decontaminate(rgb, alpha, bg), dtype=np.float32)
+    a = np.asarray(alpha, dtype=np.float32) / 255.0
+    solid = a >= 0.98
+    if not solid.any(): return Image.fromarray(np.clip(F, 0, 255).round().astype(np.uint8))
+    dist, (iy, ix) = ndimage.distance_transform_edt(~solid, return_indices=True)
+    like_bg = np.abs(F - np.asarray(bg, dtype=np.float32)[None, None, :]).max(axis=2) < 40
+    # the soft edge next to the item (3 px) takes the item's own colour: decontamination is only as good as the
+    # backdrop estimate, and a lighter rim reads as a halo on #262626; thin parts further out (a chain) keep theirs
+    use = ~solid & ((dist <= 3) | (a < 0.5) | like_bg)
+    F = np.where(use[..., None], F[iy, ix], F)
+    return Image.fromarray(np.clip(F, 0, 255).round().astype(np.uint8))
+
+
+def halo(rgba, margin=60.0, side=800):
+    """Light fringe on the dark tile: the share of the outline where the edge, composited on #262626 the way a browser
+    does, is more than `margin` levels lighter than both the item just inside and the tile. White trims and polished
+    metal score too, so the number ranks results for review; it does not decide."""
+    from scipy import ndimage
+    im = rgba.convert("RGBA")
+    if max(im.size) != side:
+        k = side / max(im.size); im = im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.LANCZOS)
+    x = np.asarray(im, dtype=np.float32); a = x[..., 3] / 255.0
+    c = x[..., :3] * a[..., None] + np.asarray(DARK, np.float32) * (1 - a[..., None])
+    L = c[..., 0] * 0.299 + c[..., 1] * 0.587 + c[..., 2] * 0.114
+    solid = a >= 0.96
+    if solid.sum() < 500: return None
+    inner = ndimage.binary_erosion(solid, iterations=3)
+    band = ((a > 0.04) & (a < 0.96)) | (solid & ~ndimage.binary_erosion(solid, iterations=2))
+    w = ndimage.uniform_filter(inner.astype(np.float32), 13); s = ndimage.uniform_filter(np.where(inner, L, 0), 13)
+    L_in = np.where(w > 0.02, s / np.maximum(w, 1e-6), np.nan)
+    light = band & np.isfinite(L_in) & (L > np.fmax(L_in, 38.0) + margin)
+    perim = solid & ~ndimage.binary_erosion(solid)
+    return round(float((ndimage.binary_dilation(light, iterations=2) & perim).sum() / max(1, perim.sum())), 4)
+
+
+def rgba_on(rgba, colour):
+    c = Image.new("RGBA", rgba.size, tuple(colour) + (255,)); c.alpha_composite(rgba.convert("RGBA")); return c.convert("RGB")
+
+
+# ---------------------------------------------------------------- hand fixes (a record's "hand_fix", rejected re-cuts
+# whose extra was erased by a mask in review, 23 Nov 2026; --alpha remakes them with the same mask)
+def hand_fix_mask(size, al, rgb, spec):
+    """The area to erase (bool, source frame): rects, polys, colour rules in boxes (hanger wood, a darker second item,
+    brass clips, backdrop light; with an opening or a smoothing of the edge in the box), a second item told apart by
+    brightness or blueness (keep_color), and the matte pieces that do not hold a keep point."""
+    from scipy import ndimage
+    w, h = size
+    m = Image.new("L", size, 0); d = ImageDraw.Draw(m)
+    for x0, y0, x1, y1 in spec.get("rects", []): d.rectangle((x0 * w, y0 * h, x1 * w, y1 * h), fill=255)
+    for poly in spec.get("polys", []): d.polygon([(x * w, y * h) for x, y in poly], fill=255)
+    e = np.asarray(m) > 0
+    c = np.asarray(rgb.convert("RGB")).astype(np.int16)
+    R, G, B = c[..., 0], c[..., 1], c[..., 2]
+    A = np.asarray(al) >= 128
+    for ec in spec.get("erase_color", []):
+        x0, y0, x1, y1 = ec["box"]
+        box = np.zeros((h, w), bool); box[round(y0 * h):round(y1 * h), round(x0 * w):round(x1 * w)] = True
+        hit = np.zeros((h, w), bool)
+        if "orange" in ec: hit |= (R - G > ec["orange"][0]) & (R - B > ec["orange"][1])
+        if "light" in ec: hit |= c.min(axis=2) > ec["light"]
+        if "g_lt" in ec: hit |= (G < ec["g_lt"]) & (R < ec.get("r_lt", 256))
+        if "gold" in ec: hit |= (R - B > ec["gold"]) & (R > 110)
+        e |= ndimage.binary_dilation(hit & box, iterations=1) & box
+        if ec.get("open"):
+            kept = A & ~e; e |= box & kept & ~ndimage.binary_opening(kept, iterations=ec["open"])
+        if ec.get("smooth"):
+            kept = A & ~e; e |= box & kept & ~(ndimage.gaussian_filter(kept.astype(np.float32), ec["smooth"]) > 0.5)
+    kc = spec.get("keep_color")
+    if kc:
+        mx = c.max(axis=2); bmr = B - R
+        if "max_lt" in kc: cls = mx < kc["max_lt"]
+        elif "max_gt" in kc: cls = mx > kc["max_gt"]
+        else: cls = bmr > kc["b_minus_r_gt"]
+        if "or_bright" in kc: cls |= mx > kc["or_bright"]
+        cls &= A
+        r = max(1, round(kc.get("open", 0.004) * max(w, h)))
+        lab, n = ndimage.label(ndimage.binary_opening(cls, iterations=r))
+        j = lab[min(h - 1, int(kc["at"][1] * h)), min(w - 1, int(kc["at"][0] * w))]
+        if not j: raise ValueError("hand fix: the keep point is not on the item")
+        comp = ndimage.binary_fill_holes(lab == j)
+        item = ndimage.binary_dilation(comp, iterations=r + 2)
+        other = A & ~item
+        near_other = ndimage.binary_dilation(other, iterations=r + 4)
+        band = item & ~comp
+        if "max_lt" in kc: like = mx < kc.get("band", kc["max_lt"] + 50)
+        elif "max_gt" in kc: like = mx > kc.get("band", kc["max_gt"] + 20)
+        else: like = bmr > kc.get("band", kc["b_minus_r_gt"] // 2)
+        item &= ~(band & near_other & ~like)
+        item = np.where(band & near_other, ndimage.binary_opening(item, iterations=max(2, r // 2)), item)
+        e |= ~item
+    if spec.get("keep_at"):
+        lab, n = ndimage.label(A & ~e)
+        keep = {lab[min(h - 1, int(y * h)), min(w - 1, int(x * w))] for x, y in spec["keep_at"]} - {0}
+        if not keep: raise ValueError("hand fix: no matte piece at the keep points")
+        kept = np.isin(lab, list(keep))
+        gone = A & ~e & ~kept
+        e |= ndimage.binary_dilation(gone, iterations=3) & ~ndimage.binary_dilation(kept, iterations=1)
+    return e
+
+
+def hand_fix(src_rgb, al, spec, ref=None, supp=None, old_core=None):
+    """The matte with the extra erased (and a brim's missed underside filled back); the extra and its shadow also go out
+    of the reference, so every check measures the item alone. Returns the new matte (L)."""
+    from scipy import ndimage
+    e = hand_fix_mask(src_rgb.size, al, src_rgb, spec)
+    a2 = np.where(e, 0, np.asarray(al)).astype(np.uint8)
+    if spec.get("fill_holes"):
+        solid = a2 >= 128; filled = ndimage.binary_fill_holes(solid); hole = filled & ~solid
+        a2 = np.where(hole | (ndimage.binary_dilation(hole, iterations=2) & filled), 255, a2).astype(np.uint8)
+    if spec.get("feather") and spec.get("polys"):
+        w, h = src_rgb.size
+        m = Image.new("L", (w, h), 0); d = ImageDraw.Draw(m)
+        for poly in spec["polys"]: d.polygon([(x * w, y * h) for x, y in poly], fill=255)
+        pm = np.asarray(m) > 0
+        band = ndimage.binary_dilation(pm, iterations=3) & ~ndimage.binary_erosion(pm, iterations=3)
+        a2 = np.where(band, np.minimum(a2, ndimage.gaussian_filter(a2.astype(np.float32), spec["feather"])), a2).round().astype(np.uint8)
+    if e.any() and ref is not None and ref.size == src_rgb.size:
+        kept = ndimage.binary_dilation(a2 >= 26, iterations=2)
+        paint = e | (ndimage.binary_dilation(e, iterations=max(3, round(0.015 * max(src_rgb.size)))) & ~kept)
+        r = np.asarray(ref.convert("RGB")).astype(np.int16)
+        vis = (r.min(axis=2) < 250) & ~paint
+        lab, n = ndimage.label(vis)
+        hold = set(np.unique(lab[(a2 >= 128) & (lab > 0)])) - {0}
+        paint = paint | (vis & ~np.isin(lab, list(hold)))
+        ref.paste((255, 255, 255), mask=Image.fromarray((paint * 255).astype(np.uint8)))
+        for arr in (supp, old_core):
+            if arr is not None and arr.shape == paint.shape: arr[paint] = False
+    return Image.fromarray(a2)
+
 
 def now(): return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
@@ -216,7 +363,14 @@ def place(rgb, alpha, kind, notes, touch):
         notes["up"] = "lanczos" if max(tw, th) > max(w, h) else "downscale"
     big = big.filter(ImageFilter.UnsharpMask(radius=0.9, percent=40, threshold=2))
     canvas = Image.new("RGB", (SIZE, SIZE), (255, 255, 255))
-    canvas.paste(big, (x0, y0), alpha.resize((tw, th), Image.LANCZOS))
+    ar = alpha.resize((tw, th), Image.LANCZOS)
+    canvas.paste(big, (x0, y0), ar)
+    if CUT["on"]:
+        # the transparent cut-out: the same enlarged colours (edge_colours, not the white composite) and matte, so it is
+        # exactly the white photo above without its white
+        t = big.convert("RGBA"); t.putalpha(ar)
+        rgba = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0)); rgba.paste(t, (x0, y0))
+        canvas.info["rgba"] = rgba
     return canvas, (x0, y0, tw, th)
 
 
@@ -254,12 +408,13 @@ def compose(src_rgb, al, bg, kind, garment):
     b = sp.alpha_box(al, 8)
     if not b: return None, {"error": "empty cut-out", **notes}, None
     touch = touches(al)
-    rgb = sp.decontaminate(src_rgb, al, bg)
+    rgb = edge_colours(src_rgb, al, bg) if CUT["on"] else sp.decontaminate(src_rgb, al, bg)
     pad = 2
     b = (max(0, b[0] - pad), max(0, b[1] - pad), min(rgb.width, b[2] + pad), min(rgb.height, b[3] + pad))
     rgb, al = rgb.crop(b), al.crop(b)
     flat = Image.composite(rgb, Image.new("RGB", rgb.size, (255, 255, 255)), al)
-    out, xy = place(flat, al, kind, notes, touch)
+    # --alpha: the item's own colours, edge included, go to the enlarging (the white composite is made after it)
+    out, xy = place(rgb if CUT["on"] else flat, al, kind, notes, touch)
     return out, notes, {"box": b, "xy": xy, "flat": flat, "alpha": al}
 
 
@@ -560,6 +715,11 @@ def try_source(g, src_rgb, bg, ref, supp, reg, clip, kind, garment, several, mod
             if bad: r["why"] = "gate: " + "; ".join(bad)
         if "why" in r:
             log(f"      {tag} {m}: {r['why']}"); return None, r, None
+        if CUT["handfix"]:
+            try:
+                full = hand_fix(src_rgb, full, CUT["handfix"], ref, supp, old_core)
+            except Exception as e:
+                r["why"] = f"hand fix: {str(e)[:80]}"; return None, r, None
         out, notes, pl = compose(src_rgb, full, bg, kind, garment)
         if out is None:
             r["why"] = notes.get("error"); return None, r, None
@@ -765,6 +925,50 @@ def do_rl(p, path, labels, models, log):
     rec = {"source": "site", "bg": [int(x) for x in bg], **r}
     if out is not None: rec.update(model=r["model"], checks=r["checks"])
     return out, rec
+
+
+def load_live(url):
+    """The photo a find shows now, RGB on white: a site file, or a Supabase photo through the edge cache."""
+    if url.startswith("/img/"):
+        f = os.path.join(ROOT, url.lstrip("/").split("?")[0])
+        if not os.path.isfile(f): return None
+        im = Image.open(f); im.load()
+    else:
+        im = fetch_edge(url) if "supabase" in url else None
+        if im is None: return None
+    return sp.on_white(im) if "A" in im.getbands() else im.convert("RGB")
+
+
+def do_site(p, url, labels, models, log):
+    """--alpha, group e: a main photo with its background (the polished store photos, products/store2/, on #FFFFFF): the
+    item cut out of the photo the site shows now, with the checks of group c against that photo."""
+    lab = labels.get(p["id"]) or {}
+    no_go = sorted(set(lab.get("photo_issues") or []) & NEEDS_NEW_PHOTO)
+    if no_go: return None, {"why": "needs a new photo (" + ", ".join(no_go) + "): a cut-out cannot take that out"}
+    rgb = load_live(url)
+    if rgb is None: return None, {"why": "the live photo could not be read"}
+    ref, bgmask, bg = flat_bg(rgb)
+    supp = item_support(ref_rgb=rgb, bgmask=bgmask, bg=bg)
+    kind = sp.kind_of(p); garment = p.get("cat") in GARMENT
+    several = bool(lab.get("is_set")) or bool(set(lab.get("photo_issues") or []) & {"multiple_views", "multiple_items"}) \
+        or bool(re.search(r"(?i)\b(sets?|tracksuits?|pairs?|kit|earrings?|socks)\b", p.get("title") or "")) or kind in ("shoe", "small")
+    out, r = try_source("c", rgb, bg, ref, supp, None, False, kind, garment, several, models, {}, "site", log, None, (bgmask, bg))
+    rec = {"source": "site", "bg": [int(x) for x in bg], **r}
+    if out is not None: rec.update(model=r["model"], checks=r["checks"])
+    return out, rec
+
+
+def vs_live(rgba, url):
+    """The new cut-out on white against the white photo the site shows now (outline and inside, store_photos_polish):
+    near 1 when the transparent version is the same photo without its white."""
+    live = load_live(url)
+    if live is None: return None
+    new = rgba_on(rgba, (255, 255, 255))
+    try:
+        s = sp.same_item(live, new); ins = sp.same_inside(live, new)
+    except Exception:
+        return None
+    return {"same": round(float(s), 3), "inside": [round(float(x), 3) for x in ins] if ins else None}
 
 
 # ---------------------------------------------------------------- group d: cut-outs that lost part of the item
@@ -1034,7 +1238,7 @@ def do_recut(p, old, labels, models, log):
     if LOST_MAX["d"] != 0.01: rec["lost_max"] = LOST_MAX["d"]
     if drop.any(): rec["detect"]["hanger"] = round(float(drop.sum() / max(1, dm.sum())), 4)
     if grown: rec["detect"]["grown"] = grown
-    if lost_old <= LOST_FLAG:
+    if lost_old <= LOST_FLAG and not CUT["force"]:
         return None, dict(rec, flag="intact", why=f"intact: the old cut-out has the whole item ({100 * lost_old:.1f}% not in it)")
     rec["flag"] = "lost parts"
     log(f"      old cut-out misses {100 * lost_old:.1f}% of the item: cut out again from {u[-50:]}")
@@ -1117,7 +1321,9 @@ def main(argv=None):
     ap.add_argument("--redo", action="store_true")
     ap.add_argument("--max-minutes", type=float, default=0, help="stop starting new photos after this many minutes")
     ap.add_argument("--retry", action="store_true", help="also do the photos not fixed before, unless the photo itself is the problem")
+    ap.add_argument("--alpha", action="store_true", help="transparent cut-outs for data/photo_cut_targets.json (img/cut, data/photo_cut)")
     a = ap.parse_args(argv)
+    if a.alpha: return main_cut(a)
     shard = shards.parse(a.shard)
     groups = set(a.group.split(","))
     models = [m for m in a.models.split(",") if m]
@@ -1188,6 +1394,105 @@ def main(argv=None):
         nsheet += 1; sheet(rows, os.path.join(SHEETS, f"sheet-{shard[0]}-of-{shard[1]}-{nsheet:02d}.png"))
     res = [st["items"][k] for _, _, k, _ in jobs if k in st["items"]]
     print("summary: %d photos, %d fixed, %d not fixed; %.0f s" % (len(res), sum(1 for r in res if r.get("ok")),
+          sum(1 for r in res if not r.get("ok")), time.time() - t0), flush=True)
+    print("remaining %d" % (len(jobs) - len(res)), flush=True)
+    return 0
+
+
+
+def cut_done():
+    done = {}
+    if os.path.isdir(CUT_STATE):
+        for f in sorted(os.listdir(CUT_STATE)):
+            if f.endswith(".json"):
+                for k, v in (load_json(os.path.join(CUT_STATE, f), {}).get("items") or {}).items():
+                    if v.get("v") == CUT_VERSION: done[k] = v
+    return done
+
+
+def main_cut(a):
+    """--alpha: one transparent cut-out per target (data/photo_cut_targets.json, made by scripts/photo_cut_targets.py):
+      e  a main photo with its background (products/store2/ polished store photos): cut out of the photo itself (group c
+         checks against it)
+      a  /img/white/store/: the store photo found again and cut with the model its white version used (group a)
+      c  /img/white/rl/: the RepLibrary site file cut with the model its white version used (group c)
+      d  /img/white/recut/: the listing photo found again and cut with the white version's model, its 2% limit, its
+         hand fix (the mask of a reviewed fix) and its forced cut where it had one (group d)
+    Each result: img/cut/<id>.webp (RGBA WebP, 1600 px, same framing as the white photo), and in data/photo_cut/<k>-of-<n>.json
+    the checks, halo (a light fringe on #262626), vs_live (the cut-out on white against the photo shown now), sha1 and the
+    run that made it (the upload takes the file from that run's artifact and checks the sha1)."""
+    import hashlib
+    CUT["on"] = True
+    shard = shards.parse(a.shard)
+    items = {p["id"]: p for p in load_catalog()[1]}
+    labels = (load_json(os.path.join(ROOT, "data", "catalog_ai.json"), {}) or {}).get("items") or {}
+    groups = set(a.group.split(","))
+    only = set(a.ids.replace(" ", "").split(",")) - {""}
+    done = {} if a.redo else cut_done()
+    jobs = []
+    for t in load_json(CUT_TARGETS, {}).get("items") or []:
+        i, g = t["id"], t["group"]
+        if g not in groups or (only and i not in only) or not shards.mine(i, shard) or i not in items: continue
+        if items[i].get("img") != t["live"]: continue                  # the find shows another photo now
+        if i in done and not (a.retry and not done[i].get("ok") and not str(done[i].get("why", "")).startswith("needs a new photo")): continue
+        jobs.append(t)
+    if a.limit: jobs = jobs[:a.limit]
+    print(f"photo_white --alpha: {len(jobs)} photos in shard {a.shard} ({', '.join(sorted(groups))}), {len(done)} done before", flush=True)
+    os.makedirs(CUT_STATE, exist_ok=True); os.makedirs(CUT_OUT, exist_ok=True)
+    k, n = shard
+    sp_ = os.path.join(CUT_STATE, f"{k}-of-{n}.json")
+    st = load_json(sp_, {"items": {}}); st.setdefault("items", {})
+    cands, logs = sp.load_cands(), sp.load_log()
+    pools, caches, useds = {}, {}, {}
+    t0 = time.time()
+    default_models = [m for m in a.models.split(",") if m]
+    for num, t in enumerate(jobs):
+        if a.max_minutes and time.time() - t0 > a.max_minutes * 60:
+            print("time limit reached; the rest waits for the next run", flush=True); break
+        i, g = t["id"], t["group"]; p = items[i]
+        print(f"[{num + 1}/{len(jobs)}] {g} {i} {t['live']} {p.get('title')}", flush=True)
+        log = lambda s: print(s, flush=True)
+        tt = time.time()
+        models = [t["model"]] if t.get("model") else default_models
+        CUT["handfix"] = t.get("hand_fix"); CUT["force"] = g == "d"
+        keep_flag, keep_lost = LOST_FLAG, LOST_MAX["d"]
+        try:
+            globals()["LOST_FLAG"] = 0.0 if t.get("forced") else keep_flag
+            if t.get("lost_max"): LOST_MAX["d"] = float(t["lost_max"])
+            if g == "e":
+                out, rec = do_site(p, t["live"], labels, models, log)
+            elif g == "c":
+                out, rec = do_rl(p, t["path"], labels, models, log)
+            elif g == "d":
+                out, rec = do_recut(p, t["old"], labels, models, log)
+            elif g == "a":
+                if i not in pools: pools[i], caches[i], useds[i] = sp.pool_for(i, cands.get(i), logs.get(i)), {}, set()
+                out, rec = do_store(p, "a", t["name"], pools[i], caches[i], useds[i], models, log)
+            else:
+                out, rec = None, {"why": "unknown group " + g}
+        except Exception as e:
+            out, rec = None, {"why": "error: " + repr(e)[:160]}
+        finally:
+            globals()["LOST_FLAG"] = keep_flag; LOST_MAX["d"] = keep_lost
+            CUT["handfix"] = None; CUT["force"] = False
+        rec.update(v=CUT_VERSION, id=i, group=g, live=t["live"], at=now(), s=round(time.time() - tt))
+        if os.environ.get("GITHUB_RUN_ID"): rec["run"] = os.environ["GITHUB_RUN_ID"]
+        rgba = out.info.get("rgba") if out is not None else None
+        if rgba is not None:
+            buf = io.BytesIO(); rgba.save(buf, "WEBP", quality=90, alpha_quality=100, method=6); data = buf.getvalue()
+            fn = f"img/cut/{i}.webp"
+            open(os.path.join(ROOT, fn), "wb").write(data)
+            rec.update(ok=True, file=fn, kb=round(len(data) / 1024), sha1=hashlib.sha1(data).hexdigest(),
+                       halo=halo(rgba), vs_live=vs_live(rgba, t["live"]))
+        else:
+            rec["ok"] = False
+            if out is not None: rec["why"] = "no transparent version was made"
+        rec.pop("tried", None) if rec.get("ok") else None
+        st["items"][i] = rec; st["at"] = now()
+        save_json(sp_, st)
+        print(f"   -> {'OK ' + rec.get('file', '') + ' halo ' + str(rec.get('halo')) + ' vs_live ' + json.dumps(rec.get('vs_live')) if rec['ok'] else 'NOT DONE: ' + str(rec.get('why'))} ({rec['s']} s)", flush=True)
+    res = [st["items"][t["id"]] for t in jobs if t["id"] in st["items"]]
+    print("summary: %d photos, %d done, %d not; %.0f s" % (len(res), sum(1 for r in res if r.get("ok")),
           sum(1 for r in res if not r.get("ok")), time.time() - t0), flush=True)
     print("remaining %d" % (len(jobs) - len(res)), flush=True)
     return 0
