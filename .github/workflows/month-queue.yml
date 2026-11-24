@@ -1,0 +1,62 @@
+name: Month queue
+# Keeps the next 7 days of month videos queued in Postiz, 4 a day per account (scripts/month_queue.py).
+# "old" lists (or with delete, removes) the queued posts the month videos replace.
+on:
+  schedule:
+    - cron: '17 */2 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'fill (queue videos), old (list old queued posts), old-delete (remove them)'
+        type: choice
+        options: ['fill', 'old', 'old-delete']
+        default: 'fill'
+      dry_run:
+        description: 'Only show the plan'
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency: month-queue
+jobs:
+  queue:
+    if: github.event_name == 'workflow_dispatch' || vars.MONTH_LIVE == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install yt-dlp
+      - name: Queue
+        env:
+          POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          PYTHONUNBUFFERED: '1'
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+          MODE: ${{ inputs.mode || 'fill' }}
+        run: |
+          case "$MODE" in
+            old) python scripts/month_queue.py --old ;;
+            old-delete) python scripts/month_queue.py --old --delete ;;
+            *) python scripts/month_queue.py ;;
+          esac
+      - name: Save the queue record
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          [ -f month_queue.json ] || exit 0
+          cp month_queue.json "$RUNNER_TEMP/mq.json"
+          for n in 1 2 3 4 5; do
+            git fetch -q origin "$GITHUB_REF_NAME" && git reset -q --hard FETCH_HEAD
+            cp "$RUNNER_TEMP/mq.json" month_queue.json.new
+            [ -f month_queue.json ] && python scripts/merge_state.py month_queue.json.new month_queue.json || mv month_queue.json.new month_queue.json
+            rm -f month_queue.json.new
+            git add month_queue.json; git diff --cached --quiet && exit 0
+            git commit -q -m "chore: month queue [skip ci]"
+            git push -q origin HEAD:"$GITHUB_REF_NAME" && exit 0
+            sleep $((n * 6))
+          done
+          exit 1

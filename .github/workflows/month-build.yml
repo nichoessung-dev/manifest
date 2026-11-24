@@ -49,6 +49,7 @@ jobs:
           RUG_ENGINE: gemini
           RUG_MODELS: gemini-3.1-flash-image
           RUG_LOOK: claude
+          RUG_REAL_MIN: '6'                    # 25 Nov 2026: a second try never beat a 6 (the test run), so a 6 is kept and no credit is spent on retries
           RUG_MAX_IMAGES: ${{ inputs.max_images }}
           # main account: the same settings as its daily carousels (finds.yml)
           FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L

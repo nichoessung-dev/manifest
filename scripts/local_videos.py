@@ -44,7 +44,10 @@ def trim(w, thr=0.012, pad=0.06):
     s, e = max(0, idx[0] - int(pad * SR)), min(len(w), idx[-1] + int(pad * SR * 2)); return w[s:e]
 
 
-def expected(text): return max(0.8, len(re.sub(r"[^a-z0-9]", "", text.lower())) / 13.0)
+def expected(text):
+    """About how long the line takes to say: a digit is said as a word ("25" = "twenty five")."""
+    t = text.lower(); n = len(re.sub(r"[^a-z]", "", t)) + 5 * len(re.findall(r"\d", t))
+    return max(0.9, n / 13.0)
 
 
 def say(text, device, seed=0, tries=4):

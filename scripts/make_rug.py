@@ -1000,7 +1000,9 @@ def main():
             with GOT_LOCK: GOT[0] += 1
             print("  using the best try for", label, "(realism %d)" % best[0]); return sl, best[1], best[2], best[3]
         return sl, None, None, {}
-    with ThreadPoolExecutor(3) as ex: done = list(ex.map(make, slides))
+    with ThreadPoolExecutor(3) as ex: done = list(ex.map(make, slides[:a.n]))      # 25 Nov 2026: the spare slide only when one of these failed
+    if sum(1 for x in done if x[1]) < a.n and slides[a.n:]:
+        with ThreadPoolExecutor(3) as ex: done += list(ex.map(make, slides[a.n:]))
     try: save_all_made()
     except Exception as e: print("  could not save the made images:", str(e)[:150])
     log = []
