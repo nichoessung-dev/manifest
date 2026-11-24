@@ -520,7 +520,7 @@ def main():
             up = load_json(os.path.join(ROOT, "data", "photo_cut_uploaded.json"), {}).get("items") or {}
             for f in sorted(glob.glob(os.path.join(ROOT, "data", "photo_cut", "*.json"))):
                 for key, r in (load_json(f, {}).get("items") or {}).items():
-                    if r.get("v") != 1: continue                     # scripts/photo_white.py CUT_VERSION
+                    if r.get("v") != 1 or r.get("group") == "g": continue   # CUT_VERSION; gallery angles: photo_cut_gallery.py
                     i = r.get("id")
                     if only and i not in only: continue
                     if not r.get("ok"): why["no transparent cut-out (could not make one)"] += 1; continue

@@ -1418,6 +1418,9 @@ def main_cut(a):
       c  /img/white/rl/: the RepLibrary site file cut with the model its white version used (group c)
       d  /img/white/recut/: the listing photo found again and cut with the white version's model, its 2% limit, its
          hand fix (the mask of a reviewed fix) and its forced cut where it had one (group d)
+      g  the extra store angles of store-gallery.json (not model shots): cut out of the polished copy (products/store2/)
+         or the white cut-out (img/white/store/) shown now; keyed by its gallery entry, file img/cut/g/<stem>.webp, for
+         products/store2/<stem>-t1.webp
     Each result: img/cut/<id>.webp (RGBA WebP, 1600 px, same framing as the white photo), and in data/photo_cut/<k>-of-<n>.json
     the checks, halo (a light fringe on #262626), vs_live (the cut-out on white against the photo shown now), sha1 and the
     run that made it (the upload takes the file from that run's artifact and checks the sha1)."""
@@ -1431,10 +1434,10 @@ def main_cut(a):
     done = {} if a.redo else cut_done()
     jobs = []
     for t in load_json(CUT_TARGETS, {}).get("items") or []:
-        i, g = t["id"], t["group"]
+        i, g = t["id"], t["group"]; key = t.get("key", i)
         if g not in groups or (only and i not in only) or not shards.mine(i, shard) or i not in items: continue
-        if items[i].get("img") != t["live"]: continue                  # the find shows another photo now
-        if i in done and not (a.retry and not done[i].get("ok") and not str(done[i].get("why", "")).startswith("needs a new photo")): continue
+        if g != "g" and items[i].get("img") != t["live"]: continue      # the find shows another photo now
+        if key in done and not (a.retry and not done[key].get("ok") and not str(done[key].get("why", "")).startswith("needs a new photo")): continue
         jobs.append(t)
     if a.limit: jobs = jobs[:a.limit]
     print(f"photo_white --alpha: {len(jobs)} photos in shard {a.shard} ({', '.join(sorted(groups))}), {len(done)} done before", flush=True)
@@ -1459,8 +1462,8 @@ def main_cut(a):
         try:
             globals()["LOST_FLAG"] = 0.0 if t.get("forced") else keep_flag
             if t.get("lost_max"): LOST_MAX["d"] = float(t["lost_max"])
-            if g == "e":
-                out, rec = do_site(p, t["live"], labels, models, log)
+            if g in ("e", "g"):
+                out, rec = do_site(p, t["live"], labels if g == "e" else {}, models, log)
             elif g == "c":
                 out, rec = do_rl(p, t["path"], labels, models, log)
             elif g == "d":
@@ -1475,23 +1478,27 @@ def main_cut(a):
         finally:
             globals()["LOST_FLAG"] = keep_flag; LOST_MAX["d"] = keep_lost
             CUT["handfix"] = None; CUT["force"] = False
+        key = t.get("key", i)
         rec.update(v=CUT_VERSION, id=i, group=g, live=t["live"], at=now(), s=round(time.time() - tt))
+        if g == "g": rec["entry"] = t["entry"]
         if os.environ.get("GITHUB_RUN_ID"): rec["run"] = os.environ["GITHUB_RUN_ID"]
         rgba = out.info.get("rgba") if out is not None else None
         if rgba is not None:
             buf = io.BytesIO(); rgba.save(buf, "WEBP", quality=90, alpha_quality=100, method=6); data = buf.getvalue()
-            fn = f"img/cut/{i}.webp"
+            fn = t.get("out") or f"img/cut/{i}.webp"
+            os.makedirs(os.path.dirname(os.path.join(ROOT, fn)), exist_ok=True)
             open(os.path.join(ROOT, fn), "wb").write(data)
-            rec.update(ok=True, file=fn, kb=round(len(data) / 1024), sha1=hashlib.sha1(data).hexdigest(),
+            rec.update(ok=True, file=fn, object=t.get("object") or f"products/pc2/{i}-t1.webp", kb=round(len(data) / 1024),
+                       sha1=hashlib.sha1(data).hexdigest(),
                        halo=halo(rgba), vs_live=vs_live(rgba, t["live"]))
         else:
             rec["ok"] = False
             if out is not None: rec["why"] = "no transparent version was made"
         rec.pop("tried", None) if rec.get("ok") else None
-        st["items"][i] = rec; st["at"] = now()
+        st["items"][key] = rec; st["at"] = now()
         save_json(sp_, st)
         print(f"   -> {'OK ' + rec.get('file', '') + ' halo ' + str(rec.get('halo')) + ' vs_live ' + json.dumps(rec.get('vs_live')) if rec['ok'] else 'NOT DONE: ' + str(rec.get('why'))} ({rec['s']} s)", flush=True)
-    res = [st["items"][t["id"]] for t in jobs if t["id"] in st["items"]]
+    res = [st["items"][t.get("key", t["id"])] for t in jobs if t.get("key", t["id"]) in st["items"]]
     print("summary: %d photos, %d done, %d not; %.0f s" % (len(res), sum(1 for r in res if r.get("ok")),
           sum(1 for r in res if not r.get("ok")), time.time() - t0), flush=True)
     print("remaining %d" % (len(jobs) - len(res)), flush=True)

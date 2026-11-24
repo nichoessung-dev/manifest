@@ -1,6 +1,7 @@
 name: Photo cut-outs upload
 # Puts the reviewed transparent cut-outs (scripts/photo_white.py --alpha, owner 24 Nov 2026: dark tiles on #262626) in
-# Supabase storage as NEW objects: products/pc2/<id>-t1.webp, x-upsert false, so an existing object is never replaced
+# Supabase storage as NEW objects: products/pc2/<id>-t1.webp (main photos), products/store2/<stem>-t1.webp (extra store
+# angles), x-upsert false, so an existing object is never replaced
 # and nothing is deleted. Each file comes from the artifact of the run that made it and must match the sha1 recorded at
 # review (data/photo_cut). No image model runs here: this job only holds the storage key. The site does not change;
 # apply_catalog_ai.py --cut switches the photos. The log (data/photo_cut_uploaded.json) is this run's artifact.
@@ -13,6 +14,11 @@ on:
       ids:
         description: 'Only these find ids (comma separated, optional)'
         default: ''
+      group:
+        description: 'main photos, gallery angles or all'
+        type: choice
+        options: ['all', 'main', 'gallery']
+        default: 'all'
       dry_run:
         description: 'Check everything, upload nothing'
         type: choice
@@ -30,6 +36,7 @@ jobs:
       LIMIT: ${{ inputs.limit || '0' }}
       IDS: ${{ inputs.ids }}
       DRY: ${{ inputs.dry_run || 'yes' }}
+      GRP: ${{ inputs.group || 'all' }}
     steps:
       - name: Check inputs
         run: |
@@ -53,7 +60,7 @@ jobs:
           set -o pipefail
           IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
           DR=""; [ "$DRY" = "yes" ] && DR="--dry-run"
-          python -u scripts/photo_cut_upload.py --limit "$LIMIT" $IDA $DR 2>&1 | tee photo-cut-upload.log
+          python -u scripts/photo_cut_upload.py --limit "$LIMIT" --group "$GRP" $IDA $DR 2>&1 | tee photo-cut-upload.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
