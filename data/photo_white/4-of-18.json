@@ -5548,11 +5548,9 @@
     "lost_old": 0.4562,
     "s": 23.8
    },
-   "file": "img/white/recut/7680397302.webp",
    "flag": "lost parts",
    "group": "d",
    "id": "7680397302",
-   "kb": 27,
    "match": {
     "colour": 2.57,
     "ncc": 0.9751,
@@ -5564,9 +5562,11 @@
     "shown_px": 1376,
     "up": "Real-ESRGAN (diff 1.5 / detail 4.6)"
    },
-   "ok": true,
+   "ok": false,
    "old": "/img/fr/7680397302.webp",
    "originals": 2,
+   "rejected_file": "img/white/recut/7680397302.webp",
+   "review": "rejected",
    "s": 57,
    "source": "original",
    "src_size": [
@@ -5595,7 +5595,8 @@
      "up": "Real-ESRGAN (diff 1.5 / detail 4.6)"
     }
    ],
-   "v": 2
+   "v": 2,
+   "why": "rejected in review: adds the second (back view) sweater from the listing photo; the old cut-out showed the one sweater on purpose"
   },
   "d:7680401372": {
    "at": "2026-11-23T16:57:23+00:00",
@@ -9592,11 +9593,9 @@
     "lost_old": 0.2548,
     "s": 23.7
    },
-   "file": "img/white/recut/7775462279.webp",
    "flag": "lost parts",
    "group": "d",
    "id": "7775462279",
-   "kb": 86,
    "match": {
     "colour": 16.01,
     "ncc": 0.954,
@@ -9608,9 +9607,11 @@
     "shown_px": 1120,
     "up": "lanczos (Real-ESRGAN rejected: diff 5.9 / detail 7.5)"
    },
-   "ok": true,
+   "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7775462279.webp",
    "originals": 4,
+   "rejected_file": "img/white/recut/7775462279.webp",
+   "review": "rejected",
    "s": 77,
    "source": "original",
    "src_size": [
@@ -9639,7 +9640,8 @@
      "up": "lanczos (Real-ESRGAN rejected: diff 5.9 / detail 7.5)"
     }
    ],
-   "v": 2
+   "v": 2,
+   "why": "rejected in review: the listing photo is a phone screenshot whose top bar cuts the strap: it ends flat in mid-air (needs a new photo)"
   },
   "d:7775484107": {
    "at": "2026-11-23T21:38:31+00:00",
@@ -12737,11 +12739,9 @@
     "lost_old": 0.1645,
     "s": 24.3
    },
-   "file": "img/white/recut/7852412755.webp",
    "flag": "lost parts",
    "group": "d",
    "id": "7852412755",
-   "kb": 93,
    "match": {
     "colour": 8.05,
     "ncc": 0.9764,
@@ -12753,9 +12753,11 @@
     "shown_px": 1120,
     "up": "lanczos"
    },
-   "ok": true,
+   "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7852412755.webp",
    "originals": 8,
+   "rejected_file": "img/white/recut/7852412755.webp",
+   "review": "rejected",
    "s": 73,
    "source": "original",
    "src_size": [
@@ -12785,7 +12787,8 @@
      "up": "lanczos"
     }
    ],
-   "v": 2
+   "v": 2,
+   "why": "rejected in review: adds the red Cartier box from the listing photo"
   },
   "d:7852434487": {
    "at": "2026-11-23T23:05:03+00:00",

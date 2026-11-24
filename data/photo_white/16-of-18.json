@@ -7315,11 +7315,9 @@
     "lost_old": 0.291,
     "s": 89.1
    },
-   "file": "img/white/recut/7720239066.webp",
    "flag": "lost parts",
    "group": "d",
    "id": "7720239066",
-   "kb": 30,
    "match": {
     "colour": 6.49,
     "ncc": 0.9471,
@@ -7335,9 +7333,11 @@
     "shown_px": 1600,
     "up": "lanczos (Real-ESRGAN rejected: diff 4.2 / detail 8.8)"
    },
-   "ok": true,
+   "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7720239066.webp",
    "originals": 5,
+   "rejected_file": "img/white/recut/7720239066.webp",
+   "review": "rejected",
    "s": 188,
    "source": "original",
    "src_size": [
@@ -7366,7 +7366,8 @@
      "up": "lanczos (Real-ESRGAN rejected: diff 4.2 / detail 8.8)"
     }
    ],
-   "v": 2
+   "v": 2,
+   "why": "rejected in review: the original photo crops both pearl strands at the top corners: they run off the frame (needs a new photo)"
   },
   "d:7720247006": {
    "at": "2026-11-23T23:12:36+00:00",
@@ -9142,11 +9143,9 @@
     "lost_old": 0.1553,
     "s": 16.3
    },
-   "file": "img/white/recut/7741848962.webp",
    "flag": "lost parts",
    "group": "d",
    "id": "7741848962",
-   "kb": 32,
    "match": {
     "colour": 3.94,
     "ncc": 0.991,
@@ -9161,9 +9160,11 @@
     "shown_px": 1344,
     "up": "lanczos"
    },
-   "ok": true,
+   "ok": false,
    "old": "/img/rl/7741848962.webp",
    "originals": 1,
+   "rejected_file": "img/white/recut/7741848962.webp",
+   "review": "rejected",
    "s": 62,
    "source": "original",
    "src_size": [
@@ -9196,7 +9197,8 @@
      "up": "lanczos"
     }
    ],
-   "v": 2
+   "v": 2,
+   "why": "rejected in review: the thick white sole is still missing (white on a white background; the checks took it for a floor shadow)"
   },
   "d:7742600072": {
    "at": "2026-11-23T23:21:39+00:00",

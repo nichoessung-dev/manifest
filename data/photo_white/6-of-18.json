@@ -3778,11 +3778,9 @@
     "lost_old": 0.2556,
     "s": 14.2
    },
-   "file": "img/white/recut/7635015137.webp",
    "flag": "lost parts",
    "group": "d",
    "id": "7635015137",
-   "kb": 41,
    "match": {
     "colour": 3.51,
     "ncc": 0.9866,
@@ -3797,9 +3795,11 @@
     "shown_px": 1344,
     "up": "downscale"
    },
-   "ok": true,
+   "ok": false,
    "old": "/img/rl/7635015137.webp",
    "originals": 1,
+   "rejected_file": "img/white/recut/7635015137.webp",
+   "review": "rejected",
    "s": 54,
    "source": "original",
    "src_size": [
@@ -3832,7 +3832,8 @@
      "up": "downscale"
     }
    ],
-   "v": 2
+   "v": 2,
+   "why": "rejected in review: the white sole stops halfway along the slide (its front half is missing)"
   },
   "d:7635827522": {
    "at": "2026-11-23T19:24:46+00:00",
