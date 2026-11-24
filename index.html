@@ -2684,6 +2684,12 @@ html .card .thumb img.qch{object-fit:cover!important;mix-blend-mode:normal!impor
   :root:not([data-theme="light"]) :is(.card .thumb,.gmain,.sim-thumb,.ftile,.pcs-well){--well:#DEDEDE;--ink:#111;--muted:#5c5c5c;background:#DEDEDE!important}
   :root:not([data-theme="light"]) :is(.card .thumb img,.thumb .pimg,.ftile img,.ftile .fimg,.sim-thumb img,.gmain img,.gmain .pimg,.pcs-well img):not(.qch):not([alt^="QC photo"]){mix-blend-mode:normal!important;filter:brightness(.8706)!important;border-radius:0!important}
 }
+/* owner, 24 Nov 2026: the photo thumbnails under the main photo sit on the same grey well as the main photo, so a
+   cut-out and a seller photo with a white background look the same (QC photo thumbnails keep their own look) */
+:root[data-theme="dark"] .thumbs .qcthumb-btn:not(.qc){background:#DEDEDE!important}
+:root[data-theme="dark"] .thumbs .qcthumb-btn:not(.qc) img:not(.qch):not([alt^="QC photo"]){mix-blend-mode:multiply!important;filter:brightness(.8706)!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .thumbs .qcthumb-btn:not(.qc){background:#DEDEDE!important}
+  :root:not([data-theme="light"]) .thumbs .qcthumb-btn:not(.qc) img:not(.qch):not([alt^="QC photo"]){mix-blend-mode:multiply!important;filter:brightness(.8706)!important}}
 /* round 9 (31 Oct 2026): compact tool sections on phones (QC, size/track teasers, Free Tools, 3 steps). CSS only, phones only,
    every word stays in the DOM and visible (descriptions are clamped, not hidden); tap targets stay 44px. Desktop untouched. */
 @media (max-width:560px){
@@ -4176,7 +4182,8 @@ function weightOf(p){ const ty=itemTypeOf(p), w=fmtGrams(WT_DATA.grams[ty]); if(
 function statRow(p){ const w=weightOf(p), q=p.qc||0, out=[];
   if(q>=2){ const l=t("qc_count").replace("{n}",q.toLocaleString("en-US")); out.push(`<span class="pst" role="img" title="${esc(l)}" aria-label="${esc(l)}">${ICON("camera","sm")}${q.toLocaleString("en-US")}</span>`); }
   /* owner, 9 Nov 2026: the favourite count is public (members who saved it, data/stats.json) */
-  const fv=p.favs||0; if(fv>=2){ const l=(t("fav_count")!=="fav_count"?t("fav_count"):"Saved by {n} members").replace("{n}",fv.toLocaleString("en-US")); out.push(`<span class="pst" role="img" title="${esc(l)}" aria-label="${esc(l)}">${ICON("star","sm")}${fv.toLocaleString("en-US")}</span>`); }
+  /* owner, 24 Nov 2026: the favourite count is hidden again (still counted for sorting) */
+  const fv=0; if(fv>=2){ const l=(t("fav_count")!=="fav_count"?t("fav_count"):"Saved by {n} members").replace("{n}",fv.toLocaleString("en-US")); out.push(`<span class="pst" role="img" title="${esc(l)}" aria-label="${esc(l)}">${ICON("star","sm")}${fv.toLocaleString("en-US")}</span>`); }
   if(w){ const l=w.box?t("est_weight_box").replace("{w}",w.long).replace("{b}",w.box.long):t("est_weight").replace("{w}",w.long); out.push(`<span class="pst" role="img" title="${esc(l)}" aria-label="${esc(l)}">${ICON("bag","sm")}${w.short}</span>`); }
   return out.length?`<div class="pstats">${out.join("")}</div>`:""; }
 /* round 8 (NEXT.md 28): number of real colour variants for the card badge, same rules as colourCount() in functions/_lib/site.js:
@@ -4909,7 +4916,7 @@ function _detailBuild(p){
         </div>
         <div class="d-info">
           <div class="d-titlerow"><h1 class="d-title">${esc(p.title)}</h1>${p.brand?`<span class="d-brand">${esc(p.brand)}</span>`:""}</div>${statRow(p)}
-          ${recBadge(p)?`<div class="d-rec"><span class="bbatch">${ICON("award","sm")}Best batch</span></div>`:""}
+          ${""/* owner, 24 Nov 2026: no "Best batch" line; the friend finds stay marked (SWAPPED, recBadge) */}
           <div class="d-price"><span class="p">${pprice(p.price)}</span>${sub?`<span class="u">${sub}</span>`:""}</div>
           ${SHOW_FAV_COUNTS?`<div class="meta"><span class="tag" data-sc="${p.id}">${fmtStar(p.id)}</span></div>`:""}
           <div class="buy-block"><h2 class="sec-label">${ICON("cart","sm")}${t("buy_head")}</h2><div class="agents">${agentRow(p)}</div>

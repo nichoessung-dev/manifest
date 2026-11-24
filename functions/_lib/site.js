@@ -459,7 +459,8 @@ const REC_DOT = "display:inline-flex;align-items:center;justify-content:center;w
 const REC_TEXT = "display:inline-flex;align-items:center;gap:5px;font:500 12px/1 var(--font,inherit);color:var(--muted,#99A2AB);white-space:nowrap";
 const SR = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap";
 const REC_ICON = `<span style="display:inline-flex;color:#F2C14E;opacity:.85">${ic("award", "sm")}</span>`;
-export const recBadge = (p, app = false, where = "card") => !swapped(p) ? "" : app
+// 24 Nov 2026 (owner): no "Best batch" anywhere; swapped() still marks the friend finds (sorting, partner links).
+export const recBadge = (p, app = false, where = "card") => (!swapped(p) || where !== "card" && !app) ? "" : app
   ? `<span class="rbadge" title="Recommended">${ic("award", "sm")}<span>Recommended</span></span>`
   : where === "card"
     ? `<span class="rbadge" title="Recommended" style="position:absolute;top:8px;left:8px;z-index:2;${REC_DOT}">${REC_ICON}<span style="${SR}">Recommended</span></span>`
@@ -499,7 +500,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "34";
+export const DS_VER = "35";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
