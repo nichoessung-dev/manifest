@@ -73,7 +73,9 @@ MODELS = ["birefnet-general", "birefnet-hr", "birefnet-hr-matting", "isnet-gener
 HF = {"birefnet-hr": ("ZhengPeng7/BiRefNet_HR", "a7a562f6fd16021180f2f4348f4de003a2d3d1e1"),               # MIT
       "birefnet-hr-matting": ("ZhengPeng7/BiRefNet_HR-matting", "5d6b6f8adcb5b417c871b1d84ceaae9871355b7f")}
 FRAME_MAX = 0.25        # polish rule: more than 25% of a border is item -> the photo crops the item
-LOST_MAX = {"a": 0.02, "b": 0.02, "c": 0.01, "d": 0.01}
+LOST_MAX = {"a": 0.02, "b": 0.02, "c": 0.01, "d": float(os.environ.get("PHOTO_WHITE_LOST_MAX_D", "0.01"))}
+# PHOTO_WHITE_LOST_MAX_D: a second, by-eye reviewed pass on visibly broken finds that every free model fails by a hair
+# (a white shirt on a light background: the model-free reference counts a little shadow as item); the record keeps it
 OLD_KEPT_MIN = 0.97     # d: the new cut-out keeps at least this share of what the old one showed solidly
 LOST_FLAG = 0.04        # d: the old cut-out misses more than this share of the item (the original's matte): re-cut
 DETECT = os.environ.get("PHOTO_WHITE_DETECT", "birefnet-general-lite")   # d: the matte that shows what the item covers
@@ -1029,6 +1031,7 @@ def do_recut(p, old, labels, models, log):
     old_solid = ndimage.binary_erosion(old_a >= 230, iterations=2)
     dm = dm & ~drop
     rec["detect"] = {"lost_old": round(lost_old, 4), "s": round(time.time() - t, 1)}
+    if LOST_MAX["d"] != 0.01: rec["lost_max"] = LOST_MAX["d"]
     if drop.any(): rec["detect"]["hanger"] = round(float(drop.sum() / max(1, dm.sum())), 4)
     if grown: rec["detect"]["grown"] = grown
     if lost_old <= LOST_FLAG:
