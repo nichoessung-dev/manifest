@@ -441,7 +441,7 @@ export const GUIDES = {
     updated: "2026-10-28",   // the day this text was revised; change it only when it is revised again
     finds: { qc: 1 },
     body: `<p class="lead">QC (quality check) photos are real photos of <em>your</em> item, taken by your agent's warehouse after it arrives from the seller and before it ships to you. They're your chance to catch problems while returns are still easy.</p>
-<p>Want to see QC photos before you buy? Paste a Weidian, Taobao or 1688 link into the <a href="/tools/qc-checker">QC checker</a>, or browse the <a href="/qc-spreadsheet">QC photos spreadsheet</a>: 2,000+ finds our catalogue marks as having buyer QC photos from earlier orders.</p>
+<p>Want to see QC photos before you buy? Search a product or paste a Weidian, Taobao or 1688 link into our <a href="/tools/qc-checker">QC photo checker</a>, or browse the <a href="/qc-spreadsheet">QC photos spreadsheet</a>: 2,000+ finds our catalogue marks as having buyer QC photos from earlier orders.</p>
 <h2>The 5-point checklist</h2><ol class="steps">
 <li><strong>Logos and prints.</strong> Compare size, position and font with retail photos of the same item. Embroidery should be dense and clean; prints sharp, not blurry or cracked.</li>
 <li><strong>Stitching.</strong> Look for straight, even stitching along seams, hems and pockets, and no loose threads or glue marks (on shoes check around the sole).</li>

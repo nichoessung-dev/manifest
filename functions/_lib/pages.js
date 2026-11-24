@@ -120,7 +120,7 @@ const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).s
 // Part of the edge-cache key in functions/product/[id].js, next to BUILT. BUILT only moves when the catalogue data
 // changes, so without this a change to the product page's HTML could stay hidden behind cached copies for up to a day.
 // Give it a new value (w1 -> w2 ...) in the same deploy as any change to the product page that must show at once.
-export const PRODUCT_TPL = "w103";   // w103: /spreadsheet hides sections by html[data-sp]; w102: no favourite count, no "Best batch" (owner, 24 Nov 2026)
+export const PRODUCT_TPL = "w104";   // w104: SEO pass (24 Nov 2026): QC Photo Checker with product search, MyCNBox guide links and "Open the spreadsheet" on agent pages, 7 more agent x brand brands (product pages link them); w103: /spreadsheet hides sections by html[data-sp]; w102: no favourite count, no "Best batch" (owner, 24 Nov 2026)
 const _PTPL_PREV = "w101";   // w101: every visible Weidian find checked against its live listing (23 Nov 2026); w100: size.js v5, the size is saved on the member's account too (23 Nov 2026); w99: the size card became a subtle "We recommend size L" note under the price on clothes, with the size step at sign-up (size.js v4, 23 Nov 2026); w98: the agent shipping tables say what each estimator was given (KakoBuy: no goods type), 23 Nov 2026; w97: SEO pass (23 Nov 2026): 34 more /best model pages (content5.js) linked from product, brand and category pages, visible-only counts on the marketplace, QC and agent spreadsheets, agent shipping lines, new finds this week, QC spreadsheet and QC finder sections, CNFans status; w96: the 3,000 most viewed finds checked against their live Weidian listings (23 Nov 2026); w95: prices from the live Weidian listings, the cheapest real variant, and the day each price was checked (Price check row, 23 Nov 2026); w94: the size card is always open with the recommended size and the seller's chart as a table (size.js v3, 23 Nov 2026); w93: the dark mode photo tiles are light grey #DEDEDE (owner pick, ds.css v33) and the MyCNBox button says "Up to $500 coupons" instead of "Most popular" (23 Nov 2026); w92: dark mode puts product photos on white tiles (ds.css v32, 23 Nov 2026); w91: white cut-outs for the store photos the polish step skipped (23 Nov 2026); w90: 10 more mains from passing angles after the re-rating (22 Nov 2026); w89: angles the re-rating failed dropped, 8 wrong pass-2 mains back to their earlier photo (22 Nov 2026); w88: the new pass-2 store photos polished too (22 Nov 2026); w87: new store photo sets for weak and wrong-item finds (pass 2, 22 Nov 2026); w86: SEO pass (22 Nov 2026): what to check in QC for each find, its marketplace spreadsheet linked, photo alt text; w85: SEO pass (22 Nov 2026): 86 agent x brand pages canonical to their brand page, so the edge copies are rebuilt; w84: polished store photos (pure white 1600 px cut-outs, products/store2/, 22 Nov 2026); w83: photo fixes from the AI ratings (wrong / hanger / duplicate angles dropped, better mains, 22 Nov 2026); w82: store angles preloaded as 1000 px copies (21 Nov 2026); w81: store photo angles under the main photo (store_gallery.js, 21 Nov 2026); w79: "Find my size" helper (size.js, 19 Nov 2026); w78: feedback pop-up for the most active visitors (feedback.js, 19 Nov 2026); w77: the removed notice only for member-reported finds, not photo-cleanup or owner hides (19 Nov 2026); w76: no Recommended badge on cards, 'Best batch' on the product page (18 Nov 2026); w75: brand hubs counted on all finds (15 Nov 2026); w74: in-text agent spreadsheet links (15 Nov 2026); w73: product shadow, no Swipe nav, baked finds count (15 Nov 2026); w72: cleaner tools block on the homepage (15 Nov 2026); w71: img/rl thumbs get ?c=1 (stale white resize cache, 15 Nov 2026); w70: pcs.js multilingual search words (15 Nov 2026); w69: subtle icon-only Recommended dot on cards (15 Nov 2026); w68: nicer Recommended tag, no photo blend in dark mode (ds.css v26); w67: partner swaps (12 Nov 2026): the partner item's price, swapped finds first, look-alike pages point to the swapped find; w65: hub layout v10 (compact head, one related-links row, agent logo row, About section under the grid; HX_CSS); w64: 16 agents in the buy menu, first 5 + "See more agents" (11 Nov 2026); w63: distinct agent page copy (AGENT_INTRO about/desc/faq, agentBrandCopy); w62: footer links to the Weidian, Taobao and 1688 spreadsheets, price ranges written "¥x to ¥y", titles fitted to 60 characters (fitTitle); w61: "Ask AI about this item" row, chat.js?v=7 (saved chats note), sharper agent logos; w60: no colour-count badge on cards (owner); w59: chat.js?v=6 (scrollable card row); w58: chat.js?v=5 (better answers); w57: no yen price next to the main price (owner); w56: product page like the app view (muted brand, Details folded, QC button only with stored photos); w55: chat.js?v=4 (pcChatAsk hook for the beta Ask box); w54: size answer beside the form on wide screens; w53: size estimator counts height for length, scrolls to the result; w52: pcs.js 5f23e99c (search: zero-result queries from the log, Nordic words, typo pass under 3 finds); w51: QC badge only for finds with stored QC photos (QC_BANKED); w50: chat.js?v=3 (messenger look; finds open in the app view);   // w49: "People also liked" row (data/also.json, functions/_lib/also.js);   // w48: track.js?v=4 (one taste log for the feed and For you: hovers, finds scrolled past, unsaves);   // w47: chat.js?v=2 (smoother assistant: cards while it writes, Stop, Try again);   // w46: instant search menu on focus (pcs.js dd943831, pcs.css 0cc49aee);   // w45: the header is the app's (Swipe, MyCNBox pill, Sign in, globe; hover is text only; ds.css v23);   // w44: track.js?v=2 (taste log for the Swipe feed);   // w43: 44 more /best model pages (content4.js), product pages link to them;   // w42: card QC link is a camera badge on the photo, Buy fills the row;   // w41: compact tool sections on phones (ds.css v22);   // w40: light is the default theme;   // w39: affiliate label under the buy button removed;   // w38: ship gate (tool name inside the tool h1, ds.css v21); w37: round 8 (estimated-weight + QC stat chips under the title, colour-count badge on cards); w36: round 6 (affiliate label under the buy button, disclosures, no photo wells); w35: round 5 (web app manifest + apple-touch-icon)
 // QC photos on the server-rendered page come only from /api/qc's edge cache (cached=1), never from a new qualit.ly
 // lookup (21 Oct 2026): the plan allows 1,000 lookups a month, and crawlers rendering ~2,500 product pages used them up
@@ -949,7 +949,13 @@ export const AGENT_BRAND_MIN = 40, AGENT_BRAND_MAX = 30;
 // Brands outside the 30 largest that visitors look at a lot (23 Oct 2026, data/stats.json: 200+ views in 30 days, 40+
 // finds): Arc'teryx 295 views, Acne Studios 273, Rolex 246, Patagonia 215. A fixed list, so a page never comes and goes
 // with the view counts. Add a name only with that kind of evidence.
-const AGENT_BRAND_PIN = ["Arc'teryx", "Acne Studios", "Rolex", "Patagonia"];
+// 24 Nov 2026 (Search Console, 6 months to 22 Nov 2026): agent + brand searches and clicks on brands outside the 30 largest.
+// Saint Laurent, Loro Piana and Celine had agent x brand pages until they dropped out of the 30 largest, and those pages had
+// Google clicks (/kakobuy-spreadsheet/saint-laurent 95 clicks at 15% CTR, /kakobuy-spreadsheet/loro-piana 48,
+// /mycnbox-spreadsheet/celine 14, more on Oopbuy, Sugargoo and LoveGoBuy). UGG ("kakobuy spreadsheet ugg", 203 impressions), Golden
+// Goose (KakoBuy 59, Sugargoo 29), Lululemon (KakoBuy 38) and CP Company (KakoBuy 19) are searched with an agent name.
+// The agents without such searches or clicks for these brands get canonicals to the brand page (seo_canon.js).
+const AGENT_BRAND_PIN = ["Arc'teryx", "Acne Studios", "Rolex", "Patagonia", "Saint Laurent", "Loro Piana", "Celine", "UGG", "Golden Goose", "Lululemon", "CP Company"];
 let _agentBrands = null;
 export function agentBrands() {
   if (_agentBrands) return _agentBrands;
@@ -1126,11 +1132,14 @@ if(pl)return{id:id,platform:pl,source:mk?"url":"agent"};
 return cat(id);}` +
 // PCCAT: the catalogue lookup behind pcDetect, read from /search-index.json (the header search index, item 10) on the
 // first product link or bare ID; nothing is requested on page load. look(): undefined until loaded, null when unknown.
-  String.raw`var PCCAT=(function(){var map=null,st=0,q=[];function flush(){var a=q;q=[];a.forEach(function(f){try{f();}catch(e){}});}
+  String.raw`var PCCAT=(function(){var map=null,st=0,q=[],J=null,R=null;function flush(){var a=q;q=[];a.forEach(function(f){try{f();}catch(e){}});}
 function fail(){if(map)return;st=2;flush();}
 function load(cb){if(cb)q.push(cb);if(map||st===2){flush();return;}if(st)return;st=1;var to=setTimeout(fail,6000);
-try{fetch("/search-index.json?v=${BUILT}").then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){clearTimeout(to);var m={},pl=j.plat||[];(j.rows||[]).forEach(function(r){var id=String(r[0]),it=r[11]?String(r[11]):id,o={p:pl[r[4]]||"weidian",i:it,pid:id};m[id]=o;if(it!==id&&!m[it])m[it]=o;});map=m;st=3;flush();},fail);}catch(e){fail();}}
-return{look:function(id){return map?(map[id]||null):st===2?null:undefined;},load:load,failed:function(){return st===2;}};})();`;
+try{fetch("/search-index.json?v=${BUILT}").then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){clearTimeout(to);var m={},pl=j.plat||[];(j.rows||[]).forEach(function(r){var id=String(r[0]),it=r[11]?String(r[11]):id,o={p:pl[r[4]]||"weidian",i:it,pid:id};m[id]=o;if(it!==id&&!m[it])m[it]=o;});J=j;map=m;st=3;flush();},fail);}catch(e){fail();}}
+function rows(){if(R||!J)return R;var pl=J.plat||[],br=J.brands||[],pre=J.pre||[];R=(J.rows||[]).map(function(r){var id=String(r[0]),b=r[2]>=0&&br[r[2]]?String(br[r[2]][0]):"",t=String(r[1]||"");
+return{pid:id,i:r[11]?String(r[11]):id,p:pl[r[4]]||"weidian",t:t,b:b,qc:+r[7]||0,u:r[9]!=null?(pre[r[8]]||"")+r[9]:"",usd:+r[6]||0,pop:+r[10]||0,s:pcNorm(b+" "+t)};});return R;}
+return{look:function(id){return map?(map[id]||null):st===2?null:undefined;},load:load,failed:function(){return st===2;},rows:rows};})();
+function pcNorm(v){return String(v||"").toLowerCase().replace(/['’]/g,"").replace(/[^a-z0-9]+/g," ").trim();}`;
 // Agent link builders: the same formats and referral codes as before (and as site.js AGENTS / AGENT_SWAP_JS).
 // A[i] = [id, name, build], in AGENT_ORDER (site.js). ag(p, id) puts the visitor's agent from the app (manifest.state.agent) first,
 // then MyCNBox, then the rest in this order.
@@ -1170,7 +1179,9 @@ function toolExamples() {
   const w = ok.find(p => p.platform === "weidian"), t = ok.find(p => p.platform === "taobao");
   const id = ok.find(p => p !== w && p.platform === "weidian" && p.id.length === 10) || ok.find(p => p !== w && p !== t);
   const ag = ok.find(p => p !== t && p.platform === "taobao") || t;
-  EXAMPLES = { w: w && origUrl(w), t: t && origUrl(t), id: id && id.id, agent: ag && `https://oopbuy.com/product/${ag.platform}/${ag.id}` };
+  const bq = new Map(); for (const p of P) if (p.qc >= 1 && p.brand) bq.set(p.brand, (bq.get(p.brand) || 0) + 1);
+  const brand = [...bq].sort((a, b) => b[1] - a[1]).map(x => x[0])[0] || "";
+  EXAMPLES = { w: w && origUrl(w), t: t && origUrl(t), id: id && id.id, agent: ag && `https://oopbuy.com/product/${ag.platform}/${ag.id}`, brand };
   return EXAMPLES;
 }
 const chip = (label, v) => v ? `<button type="button" class="tk-chip" data-ex="${esc(v)}">${esc(label)}</button>` : "";
@@ -1230,8 +1241,8 @@ $("rcx").addEventListener("click",function(){rq.clear();recent();});
 var q=TK.qs.get("u");if(q){inp.value=q.slice(0,2000);run(true);}else recent();})();</script>`; },
 
   "qc-checker": () => { const ex = toolExamples();
-    const empty = `<div class="tk-empty">${TK_I.image}<p>Paste a link to see real QC photos from earlier buyers.</p><div class="tk-chips"><span>Try:</span>${chip("Weidian link", ex.w)}${chip("Taobao link", ex.t)}${chip("Item ID", ex.id)}</div></div>`;
-    return `<section class="tk-card" aria-label="QC Checker"><form id="qf" action="/tools/qc-checker" method="get" novalidate>${pasteField("qi", "Product link or item ID", "Paste a Weidian, Taobao or 1688 link", "")}${platSeg("qp", true)}
+    const empty = `<div class="tk-empty">${TK_I.image}<p>Search a product or paste a link to see real QC photos from earlier buyers.</p><div class="tk-chips"><span>Try:</span>${chip(ex.brand, ex.brand)}${chip("Weidian link", ex.w)}${chip("Taobao link", ex.t)}${chip("Item ID", ex.id)}</div></div>`;
+    return `<section class="tk-card" aria-label="QC Photo Checker"><form id="qf" action="/tools/qc-checker" method="get" novalidate>${pasteField("qi", "Product name, link or item ID", "Search a product or paste a Weidian or Taobao link", "")}${platSeg("qp", true)}
 <div class="tk-row"><button type="submit" class="btn primary lg" id="go"><span class="tk-spin" aria-hidden="true"></span><span class="l">Find QC Photos</span></button><span class="tk-kbd" aria-hidden="true"><kbd>Enter</kbd> to check</span></div></form>
 <div class="tk-out" id="out" data-state="empty">${empty}</div></section>${recentBox("Recent Checks")}
 <dialog class="tk-lightbox" id="lb" aria-label="QC photo viewer"><div class="tk-lb-fig" id="lbf"><img id="lbi" alt=""><button type="button" class="tk-lb-nav prev" id="lbp" aria-label="Previous photo">${TK_I.prev}</button><button type="button" class="tk-lb-nav next" id="lbn" aria-label="Next photo">${TK_I.next}</button></div>
@@ -1263,10 +1274,22 @@ if(d.s==="busy")setOut("error",alertH("Too Many Checks Right Now","Try again in 
 else if(d.s==="bad")setOut("error",alertH("That ID Does Not Look Right","Paste the full product link instead.","",1));
 else setOut("error",alertH("QC Service Not Reachable","Try again in a moment.",'<button type="button" class="btn sm" id="again">Try Again</button>',1));
 lastK="";}
+function searchQ(v){if(/https?:|www\\.|[a-z0-9-]\\.(?:com|cn|net|hk)\\b/i.test(v)||!/[a-z]/i.test(v))return "";var q=pcNorm(v);return q.length>=2?q:"";}
+function img(u){u=String(u||"");if(!u)return "";if(u.charAt(0)==="/")return "/cdn-cgi/image/width=400,quality=75,format=auto"+u+(/^\\/img\\/rl\\/[^?]+$/.test(u)?"?c=1":"");return /\\.supabase\\.co\\/storage\\/v1\\/object\\/public\\//.test(u)?"/api/img?u="+encodeURIComponent(u):u;}
+function hitCard(x){var o=orig(x.p,x.i),t=x.b&&x.t.toLowerCase().indexOf(x.b.toLowerCase())!==0?x.b+" "+x.t:x.t;
+return '<a class="tk-find" style="margin-top:8px" href="/tools/qc-checker?u='+encodeURIComponent(o)+'" data-q="'+esc(o)+'"><img src="'+esc(img(x.u))+'" alt="" loading="lazy" decoding="async" onerror="this.style.visibility=\\'hidden\\'"><span><span class="t">'+esc(t)+'</span><span class="s">'+esc((x.usd>0?"$"+x.usd+" · ":"")+(x.qc>=2?x.qc+" QC photos on record":"QC photos on record")+" · "+(PL[x.p]||x.p))+'</span></span></a>';}
+function search(q,v,force){var k="s:"+q;if(k===lastK&&!force)return;lastK=k;cur=null;det(null);primary(true);TK.qs.set({u:v});setOut("loading",'<div class="tk-res" aria-hidden="true"><span class="tk-skel line"></span><span class="tk-skel big"></span></div>');
+PCCAT.load(function(){if(pcNorm(inp.value)!==q)return;var R=PCCAT.rows();if(!R){lastK="";setOut("error",alertH("Search Not Available Right Now","Paste the product link or item ID instead.","",1));return;}
+var w=q.split(" "),hit=[],any=0;for(var i=0;i<R.length;i++){var x=R[i],ok=true;for(var j=0;j<w.length;j++)if((" "+x.s+" ").indexOf(w[j].length<3?" "+w[j]+" ":w[j])<0){ok=false;break;}if(!ok)continue;any++;if(x.qc>=1)hit.push(x);}
+hit.sort(function(a,b){return (b.qc-a.qc)||(b.pop-a.pop);});
+if(!hit.length){TK.say("No finds with QC photos");setOut("none",alertH("No QC Photos For That Search",esc(any?any+" finds match, but none of them has buyer QC photos on record yet.":"No finds match that search.")+" Try a brand or model name, or paste the product link.",'<a class="btn sm" href="/spreadsheet">Open The Spreadsheet</a><a class="btn sm ghost" href="/guides/how-to-qc">How To Read QC</a>'));return;}
+TK.say(hit.length+" finds with QC photos");
+setOut("success",'<div class="tk-res"><p class="tk-res-k">Search · '+esc(v)+'</p><p class="tk-big">'+hit.length+' Find'+(hit.length===1?'':'s')+' With QC Photos</p><p class="tk-res-sub">'+(hit.length>12?'The 12 with the most QC photos. ':'')+'Tap a find to load its QC photos here.</p><div>'+hit.slice(0,12).map(hitCard).join("")+'</div>'+(hit.length>12?'<div class="tk-actions"><a class="btn" href="/qc-spreadsheet">All Finds With QC Photos</a></div>':'')+'</div>');});}
 function run(force){if(busy){again=true;return;}var v=inp.value.trim();sync();if(!v){cur=null;lastK="";primary(true);setOut("empty",EMPTY);TK.qs.set({u:null});recent();return;}
 if(isShop(v)){cur=null;lastK="";det(null);primary(true);setOut("error",alertH("That Is A Shop Link","This link opens a seller's whole shop, not one item. Open the item you want, then paste that link.","",1));return;}
 var r=parse(v);if(r.pending){det(null);clearTimeout(skT);setOut("loading",'<div class="tk-res" aria-hidden="true"><span class="tk-skel line"></span><span class="tk-skel big"></span></div>');PCCAT.load(function(){if(inp.value.trim()===v)run(true);});return;}
 var su=!r.id&&shortOf(v);if(su){cur=null;lastK="";det(null);setOut("loading",'<div class="tk-res"><p class="tk-res-k">Opening the share link</p><span class="tk-skel big" aria-hidden="true"></span></div>');resolveShort(su,function(d){if(inp.value.trim()!==v)return;if(d){inp.value=d.url;TK.say("Share link opened");run(true);}else setOut("error",alertH("We Could Not Open That Share Link","Open it in your browser or the Taobao app, then copy the full product link from the address bar.","",1));});return;}
+var sq=!r.id&&!r.short&&searchQ(v);if(sq){search(sq,v,force);return;}
 if(!r.id){cur=null;lastK="";primary(true);setOut("error",r.short?alertH("That Is A Share Link","Open it in your browser first, then copy the full product link from the address bar.","",1):alertH("No Item ID Found","Paste the full product link, or the item ID on its own.","",1));return;}
 var ov=qpick&&qpick.id===r.id&&qpick.v===v?qpick.p:"",known=!!r.platform&&r.source!=="guess",g=0,p;if(known)p=chg===v&&ov?ov:r.platform;else{p=ov||r.platform;g=ov?0:1;}det(r);
 var k="pc.qc."+p+"."+r.id;if(k===lastK&&!force)return;lastK=k;cur={p:p,id:r.id,pid:r.pid||null};TK.qs.set({u:v.length<=500?v:orig(p,r.id)});
@@ -1278,7 +1301,7 @@ fetch("/api/qc?storefront="+p+"&id="+encodeURIComponent(r.id),ctl?{signal:ctl.si
 if(res.status===200)return res.json().then(function(d){var t=(d&&d.thumbnails)||[];return{s:t.length?"ok":"none",t:t.slice(0,12),c:d&&+d.qc_count>0?Math.round(+d.qc_count):0,n:d&&typeof d.name==="string"?d.name.slice(0,200):""};},function(){return{s:"down"};});
 return{s:res.status===404?"none":res.status===429?"busy":res.status===400?"bad":"down"};},function(){return{s:"down"};}).then(function(d){
 clearTimeout(to);clearTimeout(skT);idle();d.p=p;d.id=r.id;if(again){again=false;var nv=parse(inp.value.trim());if(!inp.value.trim()||(nv.id&&nv.id!==r.id)){if(d.s==="ok"||d.s==="none"){d.t=d.t||[];TK.sess.set(k,d);}run(true);return;}}if(d.s==="ok"||d.s==="none"){d.t=d.t||[];TK.sess.set(k,d);}d.g=g;if(cur&&cur.id===r.id&&cur.p===p)show(d);});}
-var auto=TK.debounce(function(){var v=inp.value.trim(),r=parse(v);if(r.id&&!/^\\d+$/.test(v))run();},300);
+var auto=TK.debounce(function(){var v=inp.value.trim(),r=parse(v);if(r.id&&!/^\\d+$/.test(v))run();else if(!r.id&&searchQ(v).length>=3)run();},350);
 inp.addEventListener("input",function(){sync();auto();});
 inp.addEventListener("paste",function(){setTimeout(function(){sync();var v=inp.value.trim();if(parse(v).id)run();},0);});
 inp.addEventListener("tk:paste",function(){run();});
@@ -1295,22 +1318,29 @@ lb.addEventListener("keydown",function(e){if(e.key==="ArrowLeft"){e.preventDefau
 $("lbp").addEventListener("click",function(){lbShow(at-1);});$("lbn").addEventListener("click",function(){lbShow(at+1);});$("lbx").addEventListener("click",function(){lb.close();});
 var sx=0,sy=0;$("lbf").addEventListener("touchstart",function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
 $("lbf").addEventListener("touchend",function(e){var dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))lbShow(at+(dx<0?1:-1));else if(dy>90)lb.close();},{passive:true});
-$("out").addEventListener("click",function(e){var t=e.target.closest("#gal button");if(t){lbOpen(t);return;}var b=e.target.closest("[data-copy]");if(b){TK.copy(location.origin+"/tools/qc-checker?u="+encodeURIComponent(cur?orig(cur.p,cur.id):inp.value.trim()),b,"Link copied");return;}if(e.target.closest("#again")){run(true);return;}var x=e.target.closest("[data-ex]");if(x){inp.value=x.getAttribute("data-ex");run(true);}});
+$("out").addEventListener("click",function(e){var h=e.target.closest("[data-q]");if(h){e.preventDefault();inp.value=h.getAttribute("data-q");run(true);try{inp.scrollIntoView({block:"nearest"});}catch(x){}return;}var t=e.target.closest("#gal button");if(t){lbOpen(t);return;}var b=e.target.closest("[data-copy]");if(b){TK.copy(location.origin+"/tools/qc-checker?u="+encodeURIComponent(cur?orig(cur.p,cur.id):inp.value.trim()),b,"Link copied");return;}if(e.target.closest("#again")){run(true);return;}var x=e.target.closest("[data-ex]");if(x){inp.value=x.getAttribute("data-ex");run(true);}});
 $("rl").addEventListener("click",function(e){var b=e.target.closest("[data-x]"),a=rq.list();if(b){rq.remove(+b.getAttribute("data-x"));recent();inp.focus();return;}b=e.target.closest("[data-r]");if(b){var x=a[+b.getAttribute("data-r")];if(x){inp.value=orig(x.p,x.id);run(true);inp.focus();}}});
 $("rcx").addEventListener("click",function(){rq.clear();recent();});
 var q=TK.qs.get("u");if(q){inp.value=q.slice(0,2000);run(true);}else{sync();recent();}})();</script>`; },
 };
 const TRUST = { "qc-checker": [TK_TRUST.free, TK_TRUST.nosign], "link-converter": [TK_TRUST.free, TK_TRUST.nosign, TK_TRUST.nostore] };
-const TOOL_H1 = { "qc-checker": "Real QC Photos For Any Link", "link-converter": "Any Link To Any Agent" };
+const TOOL_H1 = { "qc-checker": "Find Real QC Photos For Any Rep", "link-converter": "Any Link To Any Agent" };
 // 22 Nov 2026 (SEO check): the QC tool is the page for "QC finder" searches, which want a tool that finds QC photos for a link
-// (the pages ranking for it are such tools). It is called QC Finder in its title, h1, the tools lists and the footer; the
-// QC photos spreadsheet (/qc-spreadsheet) keeps "QC photos". Copy in content2.js (TOOLS) is unchanged: these win over it.
-const TOOL_SEO = { "qc-checker": { name: "QC Finder", title: "QC Finder: Real Buyer QC Photos for Any Rep Link",
-  desc: "Free QC finder: paste a Weidian, Taobao, 1688 or shopping agent link, or an item ID, and see real buyer QC photos from earlier orders before you buy." } };
+// (the pages ranking for it are such tools). The QC photos spreadsheet (/qc-spreadsheet) keeps "QC photos".
+// 24 Nov 2026 (Search Console, 6 months to 22 Nov): "qc photos" 2,203 impressions, "qc checker" 1,328, "qc check" 671,
+// "qc photo" 563, "qc pics" 421, all around position 8 to 9 with almost no clicks. Google showed /guides/how-to-qc for them
+// (7,925 impressions, 0.28% CTR) and this tool not at all. So the tool is now the QC Photo Checker: its title, h1 and
+// description use those words, it also searches the catalogue by product name (finds marked with QC photos, most photos
+// first), and "QC finder" stays in its description and FAQ. Copy in content2.js (TOOLS) is unchanged: these win over it.
+const TOOL_SEO = { "qc-checker": { name: "QC Photo Checker", title: "QC Checker: Find Real QC Photos & Pics for Any Rep Link",
+  lead: "Search a product or paste a Weidian, Taobao or agent link to see real QC photos from people who already bought it.",
+  desc: `Free QC photo checker and QC finder: search a product or paste a Weidian, Taobao or agent link to see real buyer QC pics. ${QC_PLUS} finds with QC photos.` } };
 // FAQs on the tool pages (22 Nov 2026, SEO check): questions people search with the tool's name, shown under the tool and as
 // FAQPage data.
 const TOOL_FAQ = {
-  "qc-checker": [["What is a QC finder?", "A QC finder shows quality check photos of a listing: photos that shopping agents took of the same item when earlier buyers ordered it. Paste a Weidian, Taobao, 1688 or agent link, or the item ID, and it shows the photos it can find."],
+  "qc-checker": [["What are QC photos?", "QC (quality check) photos are real photos of an item taken at a shopping agent's warehouse in China after it arrives from the seller and before it ships to the buyer. They show the actual piece, not the seller's own pictures."],
+    ["Can I search QC photos by product name?", "Yes. Type a brand or model, such as a brand name and an item type, and the checker lists the finds on our spreadsheet that are marked as having buyer QC photos, the ones with the most photos first. Tap one to load its photos."],
+    ["What is a QC finder?", "A QC finder shows quality check photos of a listing: photos that shopping agents took of the same item when earlier buyers ordered it. Paste a Weidian, Taobao, 1688 or agent link, or the item ID, and it shows the photos it can find."],
     ["Where do the QC photos come from?", "From earlier orders of the same listing through shopping agents, which photograph every item at their warehouse. Nothing is taken from the seller's own photos."],
     ["Why does a link show no QC photos?", "Nobody has ordered that listing through an agent yet, or the photos are not public. New listings often have none. When you order, your agent photographs your own item before it ships."],
     ["Which links does the QC finder read?", "Weidian, Taobao, Tmall and 1688 product links, links from MyCNBox, KakoBuy, Oopbuy, LoveGoBuy, Sugargoo and other agents, and bare item IDs. Short links shared from an app have to be opened in a browser first."],
@@ -1321,7 +1351,7 @@ const TOOL_FAQ = {
     ["Is the link converter free?", "Yes, and it needs no account. Agent links are affiliate links: we may earn a commission if you order, at no extra cost to you."]] };
 // Hub: the "before you buy" pair is wide and carries a real mini form; the flow strip is navigation only.
 const HUB_FORM = { "qc-checker": ["Check", "Product link or item ID"], "link-converter": ["Convert", "Weidian, Taobao, 1688 or agent link"] };
-const HUB_FLOW = [["Check The QC", "QC Finder", "/tools/qc-checker"], ["Get Your Buy Link", "Link Converter", "/tools/link-converter"],
+const HUB_FLOW = [["Check The QC", "QC Checker", "/tools/qc-checker"], ["Get Your Buy Link", "Link Converter", "/tools/link-converter"],
   ["Price The Shipping", "Shipping Calculator", "/tools/shipping-calculator"], ["Track It Home", "Parcel Tracker", "/tools/parcel-tracker"]];
 // Three feature pills per tool card (icon pass), each a fact the tool's own text states; the long description moves
 // into a <details> in the card.
@@ -1365,7 +1395,9 @@ function qcFinderExtra() {
     `<p style="font-size:13px;color:var(--muted)">From each agent's help centre (MyCNBox read 10 Oct 2026, the others 9 Nov 2026). Our links to agents are affiliate links.</p></section>`;
   const finds = most.length ? `<section class="prose">${hIc("h2", "camera", "Finds with the most buyer QC photos")}<p>The finds on the spreadsheet with the most buyer QC photos on record. Open one and tap QC to see them, or browse all ${nf(vis.length)} finds with QC photos in the <a href="/qc-spreadsheet">QC spreadsheet</a>.</p>` +
     `<ul>${most.map(p => `<li><a href="${productUrl(p)}#qc">${p.brand && !p.title.toLowerCase().startsWith(p.brand.toLowerCase()) ? esc(p.brand) + " " : ""}${esc(p.title)}</a>: ${nf(p.qc)} QC photos on record, ${money(p.cny)}</li>`).join("")}</ul></section>` : "";
-  return agents + finds;
+  // 24 Nov 2026 (owner): the pages built for search send visitors on to the spreadsheet itself (/spreadsheet).
+  const cta = `<section class="prose">${hIc("h2", "sheet", "Shop finds with QC photos")}<p>Every find on the spreadsheet shows its price and opens on MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo in one tap. ${esc(QC_PLUS)} of them are marked as having buyer QC photos from earlier orders.</p>${SP_CTA}</section>`;
+  return cta + agents + finds;
 }
 export function renderTool(s) {
   if (own(TOOL_UI9, s)) return toolPage9(s, TOOL_CSS);
@@ -1374,7 +1406,7 @@ export function renderTool(s) {
   const app = { "@context": "https://schema.org", "@type": "WebApplication", name: t.name + ": Puro Classico", url: SITE + path, applicationCategory: "UtilitiesApplication", operatingSystem: "Any", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, description: t.desc };
     const seo = TOOL_SEO[s] || {};
   const faq = TOOL_FAQ[s] || null;
-  return toolShell({ slug: s, name: seo.name || t.name, h1: TOOL_H1[s] || t.name, lead: t.lead, trust: TRUST[s] || [], ui: TOOL_UI[s](), about: t.about,
+  return toolShell({ slug: s, name: seo.name || t.name, h1: TOOL_H1[s] || t.name, lead: seo.lead || t.lead, trust: TRUST[s] || [], ui: TOOL_UI[s](), about: t.about,
     faq: faq ? faqHtml(faq) : "", title: fitTitle(seo.title || t.title), desc: seo.desc || t.desc, jsonld: [bc.data, app].concat(faq ? [faqLd(faq)] : []), bc: bc.html,
     extra: s === "qc-checker" ? qcFinderExtra() : "" });
 }
@@ -1588,6 +1620,9 @@ const STYLE_HUBS = {
           CNFANS_FAQ,
           ["Is the spreadsheet free?", "Yes. You pay your agent for the item and shipping only. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you."]] },
 };
+// The MyCNBox guides, linked from every agent spreadsheet page (24 Nov 2026, SEO pass: "mycnbox" had 1,260 impressions and
+// 6 clicks in 6 months, and the guide Google shows for it, /guides/mycnbox-review, had few links from the spreadsheets).
+const MCB_GUIDES = ["MyCNBox guide", [["MyCNBox review: is it legit?", "/guides/mycnbox-review"], ["MyCNBox coupons: up to $500", "/guides/mycnbox-coupon-code"]]];
 // Agent x style pages (22 Oct 2026): Google suggests "kakobuy spreadsheet grisch", "oopbuy spreadsheet grisch", "kakobuy
 // spreadsheet old money", "old money spreadsheet sugargoo", "kakobuy spreadsheet shoes". Each is the style's finds with
 // the buy button locked to that agent. Only the agents with agent x brand pages (AGENT_BRAND_AGENTS).
@@ -1848,7 +1883,7 @@ export function hubSpec(path) {
         ["Your old CNFans links", `<p>A CNFans product link holds the Weidian, Taobao or 1688 item it points to. Paste it into the <a href="/tools/link-converter">link converter</a> and it gives you the same item on MyCNBox, KakoBuy, Oopbuy and the other agents. Agents that closed or paused before CNFans are listed in <a href="/guides/pandabuy-alternatives">Pandabuy alternatives</a>.</p>`]],
       chips: [["Use your old CNFans links", [["Link converter", "/tools/link-converter"], ["Agents that closed or paused", "/guides/pandabuy-alternatives"]]],
               ["Agent spreadsheets that open every find", Object.keys(AGENT_INTRO).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`])],
-              ["Spreadsheets by style", [["Grisch spreadsheet", "/grisch-spreadsheet"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Old money spreadsheet", "/old-money"]]], PLAT_CHIPS],
+              ["Spreadsheets by style", [["Grisch spreadsheet", "/grisch-spreadsheet"], ["Stockholm style spreadsheet", "/stockholm-spreadsheet"], ["Old money spreadsheet", "/old-money"]]], MCB_GUIDES, PLAT_CHIPS],
       faq: [["Is CNFans down?", `Yes, as far as we can see: ${CNFANS_STATUS}. We will update this page when that changes.`],
             ["Do my old CNFans links still work?", "Paste an old CNFans product link into our link converter. It reads the Weidian, Taobao or 1688 item from the link and opens the same item in another agent."],
             ["How do I switch from CNFans to another agent?", "Open a find, tap the buy button for the agent you want, create a free account there and pay for the item plus delivery to the warehouse. The seller and the item stay the same; only the agent that buys, checks and ships it changes."],
@@ -1867,7 +1902,7 @@ export function hubSpec(path) {
       desc: st.desc ? st.desc(a.name, n) : `The ${low} ${a.name} spreadsheet: ${n} rep finds with prices and one-tap ${a.name} buy links.`,
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, `/${key}-spreadsheet`], [st.name, path]],
       chips: [[`${st.name} on other agents`, AGENT_BRAND_AGENTS.filter(k => k !== key).map(k => [AGENTS[k].name, `/${k}-spreadsheet/${s}`]).concat([st.parent])],
-              [`More on ${a.name}`, Object.keys(AGENT_STYLES).filter(x => x !== s).map(x => [AGENT_STYLES[x].name, `/${key}-spreadsheet/${x}`]).concat([[`${a.name} spreadsheet`, `/${key}-spreadsheet`]])]],
+              [`More on ${a.name}`, Object.keys(AGENT_STYLES).filter(x => x !== s).map(x => [AGENT_STYLES[x].name, `/${key}-spreadsheet/${x}`]).concat([[`${a.name} spreadsheet`, `/${key}-spreadsheet`]])], MCB_GUIDES], cta: 1,
       faq: (st.faq ? st.faq(a.name, n, nf(all.filter(p => p.qc >= 2 && findShown(p)).length)) : [[`How do I order ${low} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the ${a.name} warehouse. Check the QC photos there, then ship your parcel.`],
             [s === "shoes" ? `How do I get the right size on ${a.name}?` : "What should I buy first?", st.first]])
             .concat([["Is the spreadsheet free?", `Yes. You only pay ${a.name} for what you order and for shipping. Our links to agents are affiliate links: we may earn a commission if you order, at no extra cost to you.`]]) };
@@ -1883,14 +1918,14 @@ export function hubSpec(path) {
       .replace('<ol class="steps">', '<ol style="margin:10px 0 0;padding-left:20px;color:var(--muted);font-size:14.5px;line-height:1.6">');
     // The MyCNBox intro says "our most-used agent" and repeats the coupon offer; how agents are ranked is the owner's call,
     // so this page uses a plain description for it.
-    const what = key === "mycnbox" ? "<p>MyCNBox is a shopping agent: you pay MyCNBox for the item and the short delivery to its warehouse in China, it buys from the Weidian, Taobao or 1688 seller, takes QC photos when the item arrives, and ships your items together in one parcel when you are ready. Each find here opens the exact listing inside MyCNBox.</p>" : meta.body;
+    const what = key === "mycnbox" ? "<p>MyCNBox is a shopping agent: you pay MyCNBox for the item and the short delivery to its warehouse in China, it buys from the Weidian, Taobao or 1688 seller, takes QC photos when the item arrives, and ships your items together in one parcel when you are ready. Each find here opens the exact listing inside MyCNBox.</p><p>Is it legit, what does it charge and how do the coupons work? Read our <a href=\"/guides/mycnbox-review\">MyCNBox review</a>.</p>" : meta.body;
     return { path, preset: { agent: key }, h: `${a.name} Spreadsheet`, sub: `${N} finds, each with a one-tap ${a.name} buy button.`,
       aboutTitle: `How the ${a.name} spreadsheet works`, about: [[`What is ${a.name}?`, what]].concat(meta.about || [[`How to order from the ${a.name} spreadsheet`, howTo]], shipAbout(key, a.name), freshAbout(key)),
       title: `${meta.title}: ${N} Finds | Puro Classico`, desc: meta.desc ? meta.desc(N, nf(qc1)) : `The ${a.name} spreadsheet: ${N} rep finds with prices and one-tap ${a.name} links, ${nf(qc1)} marked as having buyer QC photos.${LINKS_CHECKED ? " Weidian links checked every week." : ""}`,
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, path]],
       chips: [...(AGENT_BRAND_AGENTS.includes(key) ? [[`Browse on ${a.name}`, Object.keys(AGENT_STYLES).map(x => [AGENT_STYLES[x].name, `${path}/${x}`])]] : []),
               [`Popular brands on ${a.name}`, brands.slice(0, 16).map(b => [`${b} (${nf(byBrand.get(b).length)})`, `${path}/${brandSlug.get(b)}`])],
-              ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"], ["QC photos spreadsheet", "/qc-spreadsheet"]])], PLAT_CHIPS],
+              ["Other agent spreadsheets", Object.keys(AGENT_INTRO).filter(k => k !== key).map(k => [`${AGENTS[k].name} spreadsheet`, `/${k}-spreadsheet`]).concat([["CNFans spreadsheet", "/cnfans-spreadsheet"], ["QC photos spreadsheet", "/qc-spreadsheet"]])], MCB_GUIDES, PLAT_CHIPS],
       faq: meta.faq || [[`What is the ${a.name} spreadsheet?`, `A searchable list of ${N} Weidian, Taobao and 1688 finds. Every find opens directly in ${a.name}, so there is nothing to copy or translate.`],
             [`How do I order with ${a.name}?`, `Open a find, tap Buy via ${a.name}, pick your size and pay for the item plus delivery to the warehouse. Check the QC photos, then ship your parcel.`],
             [`Is this the official ${a.name} spreadsheet?`, `No. Puro Classico is an independent spreadsheet. Ordering, payment, QC photos and shipping all happen on ${a.name}. Our links to ${a.name} are affiliate links: we may earn a commission if you order, at no extra cost to you.`],
@@ -1912,7 +1947,7 @@ export function hubSpec(path) {
       title: `${b} ${a.name} Spreadsheet 2026: ${n} Finds | Puro Classico`, desc: ab ? ab.desc : `${n} ${b} rep finds with one-tap ${a.name} buy links${f.med ? `, half listed at ${money(f.med.cny)} or less` : ""}${f.q1 ? `, ${nf(f.q1)} marked as having QC photos` : ""}.${LINKS_CHECKED ? " Weidian links checked every week." : ""}`,
       crumbs: [["Home", "/"], [`${a.name} spreadsheet`, `/${key}-spreadsheet`], [b, path]],
       chips: [[`${b} on other agents`, AGENT_BRAND_AGENTS.filter(k => k !== key).map(k => [AGENTS[k].name, `/${k}-spreadsheet/${s}`]).concat([[`All ${b} reps`, `/brand/${s}`]])],
-              [`More brands on ${a.name}`, agentBrands().filter(x => x !== b).slice(0, 14).map(x => [x, `/${key}-spreadsheet/${brandSlug.get(x)}`])]],
+              [`More brands on ${a.name}`, agentBrands().filter(x => x !== b).slice(0, 14).map(x => [x, `/${key}-spreadsheet/${brandSlug.get(x)}`])], MCB_GUIDES], cta: 1,
       faq: ab ? ab.faq : [[`How do I buy ${b} reps on ${a.name}?`, `Open a find, tap Buy via ${a.name}, choose your size and pay. ${a.name} sends QC photos when it reaches the warehouse; check them, then ship.`],
             ...(range ? [[`How much do ${b} reps cost on ${a.name}?`, `${b} finds here are listed at ${range} before international shipping. These are the sellers' listed prices from the last catalogue update, so check the price on ${a.name} before you pay.`]] : []),
             [`Do these ${b} finds have QC photos?`, f.q1 ? `Our catalogue marks ${nf(f.q1)} of the ${n} as having buyer QC photos from earlier orders. Open a find and tap QC to load them. ${a.name} also photographs your own item at its warehouse before it ships.` : `Our catalogue does not mark any of them as having buyer QC photos yet. ${a.name} photographs your own item at its warehouse before it ships.`],
@@ -1975,7 +2010,9 @@ export function hubParts(spec, more = "", skip = null) {
   // groups as lists, the FAQ as <details>, the links to pages 2+ (`more`, appPager).
   const me = spec.preset.agent || null, shopL = [], quick = [], seenA = new Set();
   for (const [, links] of spec.chips) for (const l of links) { const k = agentOf(l[1]); if (k && k !== me && !seenA.has(k)) { seenA.add(k); shopL.push(l); } else quick.push(l); }
-  const after = `<div class="hx hx-app hx-hero">${hxRow(quick.slice(0, 24))}${hxShop(shopL, me ? "Other agents" : "Shop this on")}</div>`;
+  // spec.cta (24 Nov 2026, owner): agent x brand and agent x style pages send visitors on to the whole spreadsheet (/spreadsheet).
+  const cta = spec.cta ? `<p class="sp-cta" style="margin:12px 0 0"><a class="btn primary" href="/spreadsheet">Open the spreadsheet${ic("arrow-right", "sm")}</a></p>` : "";
+  const after = `<div class="hx hx-app hx-hero">${cta}${hxRow(quick.slice(0, 24))}${hxShop(shopL, me ? "Other agents" : "Shop this on")}</div>`;
   const main = (spec.about || []).filter(([, html]) => html).map(([q, html]) => `<h3>${esc(q)}</h3>${html}`).join("");
   // Brand hubs: that brand's newest finds as plain links (newFindsHtml), under the About columns.
   const b = spec.preset.brand && !spec.preset.agent ? idx().slugBrand.get(spec.preset.brand) : null;

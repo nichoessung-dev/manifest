@@ -526,7 +526,7 @@ export const GUIDE_LINKS = [
 // first 7 of GUIDE_LINKS, which gave site-wide links to Taobao (153) and 1688 and none to the top three.
 export const FOOTER_GUIDES = ["/how-to-order", "/guides/what-is-a-rep-spreadsheet", "/guides/pandabuy-alternatives", "/guides/mycnbox-review",
   "/guides/how-to-buy-from-weidian", "/guides/how-to-qc", "/guides/best-shopping-agent"];
-export const TOOL_LINKS = [["QC Finder", "/tools/qc-checker"], ["Link Converter", "/tools/link-converter"], ["Shipping Calculator", "/tools/shipping-calculator"], ["Size Estimator", "/tools/size-estimator"], ["Parcel Tracker", "/tools/parcel-tracker"]];
+export const TOOL_LINKS = [["QC Photo Checker", "/tools/qc-checker"], ["Link Converter", "/tools/link-converter"], ["Shipping Calculator", "/tools/shipping-calculator"], ["Size Estimator", "/tools/size-estimator"], ["Parcel Tracker", "/tools/parcel-tracker"]];
 
 // ------------------------------------------------------------------ v9 tools kit (shared by pages.js and tools9.js)
 // Markup helpers for the tool pages (styles: the "v9 tools kit" block in ds.css). One icon set for the homepage
@@ -562,7 +562,7 @@ export const tkCopyBtn = (label = "Copy", attrs = "") => `<button type="button" 
 // "How It Works" (icon pass): three icon steps that restate the tool's own text, then that text (the SEO copy, with its
 // links) in a <details> right under them. toolShell() and tools9.js toolPage9() both use it.
 export const TOOL_HOW = {
-  "qc-checker": [["link", "Paste link"], ["camera", "Buyer photos"], ["book", "QC guide"]],
+  "qc-checker": [["search", "Search or paste a link"], ["camera", "Buyer QC photos"], ["book", "QC guide"]],
   "link-converter": [["link", "Paste any link"], ["hash", "We read the item ID"], ["users", "Pick your agent"]],
   "shipping-calculator": [["globe", "Pick your country"], ["box", "Add items or weight"], ["coins", "See ballpark prices"]],
   "size-estimator": [["ruler", "Height and weight"], ["user", "Pick your fit"], ["tag", "Get your size label"]],
