@@ -1,5 +1,5 @@
 {
- "at": "2026-11-24T00:57:12+00:00",
+ "at": "2026-11-24T01:02:37+00:00",
  "items": {
   "d:1545268236": {
    "at": "2026-11-23T19:33:15+00:00",
@@ -3759,48 +3759,48 @@
    "why": "intact: the old cut-out has the whole item (0.2% not in it)"
   },
   "d:7635015137": {
-   "at": "2026-11-23T21:36:42+00:00",
+   "at": "2026-11-24T01:02:37+00:00",
    "checks": {
     "added": 0.0,
-    "ar": 0.003,
-    "corr": 0.991,
+    "ar": 0.006,
+    "corr": 0.996,
     "fid": 0.21,
     "inside": [
      1.0,
      1.0
     ],
-    "lost": 0.0009,
+    "lost": 0.0018,
     "old_kept": 1.0,
     "same": 1.0,
-    "shadow": 0.0864
+    "shadow": 0.0119
    },
    "detect": {
     "lost_old": 0.2556,
-    "s": 14.2
+    "s": 40.3
    },
+   "file": "img/white/recut/7635015137.webp",
    "flag": "lost parts",
    "group": "d",
    "id": "7635015137",
+   "kb": 42,
    "match": {
     "colour": 3.51,
     "ncc": 0.9866,
     "url": "https://pruerjpeywhiehnivuku.supabase.co/storage/v1/object/public/img/items/1774391700554-gnov0tno6mq.png"
    },
-   "model": "birefnet-general",
+   "model": "birefnet-hr",
    "notes": {
     "clean": [
      "2 gaps filled"
     ],
-    "real_px": 656,
+    "real_px": 660,
     "shown_px": 1344,
     "up": "downscale"
    },
-   "ok": false,
+   "ok": true,
    "old": "/img/rl/7635015137.webp",
    "originals": 1,
-   "rejected_file": "img/white/recut/7635015137.webp",
-   "review": "rejected",
-   "s": 54,
+   "s": 191,
    "source": "original",
    "src_size": [
     2000,
@@ -3810,30 +3810,29 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": 0.003,
+     "ar": 0.006,
      "clean": [
       "2 gaps filled"
      ],
-     "corr": 0.991,
-     "esrgan_fid": 4.05,
+     "corr": 0.996,
+     "esrgan_fid": 4.02,
      "fid": 0.21,
      "inside": [
       1.0,
       1.0
      ],
-     "lost": 0.0009,
-     "model": "birefnet-general",
+     "lost": 0.0018,
+     "model": "birefnet-hr",
      "old_kept": 1.0,
-     "real_px": 656,
-     "s": 27.5,
+     "real_px": 660,
+     "s": 141.3,
      "same": 1.0,
-     "shadow": 0.0864,
+     "shadow": 0.0119,
      "shown_px": 1344,
      "up": "downscale"
     }
    ],
-   "v": 2,
-   "why": "rejected in review: the white sole stops halfway along the slide (its front half is missing)"
+   "v": 2
   },
   "d:7635827522": {
    "at": "2026-11-23T19:24:46+00:00",
