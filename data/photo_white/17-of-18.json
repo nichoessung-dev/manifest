@@ -9851,11 +9851,9 @@
     "lost_old": 0.4116,
     "s": 13.8
    },
-   "file": "img/white/recut/7791512924.webp",
    "flag": "lost parts",
    "group": "d",
    "id": "7791512924",
-   "kb": 58,
    "match": {
     "colour": 7.04,
     "ncc": 0.9891,
@@ -9870,9 +9868,11 @@
     "shown_px": 1312,
     "up": "Real-ESRGAN (diff 2.5 / detail 6.0)"
    },
-   "ok": true,
+   "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7791512924.webp",
    "originals": 8,
+   "rejected_file": "img/white/recut/7791512924.webp",
+   "review": "rejected",
    "s": 52,
    "source": "original",
    "src_size": [
@@ -9904,7 +9904,8 @@
      "up": "Real-ESRGAN (diff 2.5 / detail 6.0)"
     }
    ],
-   "v": 2
+   "v": 2,
+   "why": "rejected in review: a square piece is missing at the bottom right, where the original's inset photo covers the shirt"
   },
   "d:7791546360": {
    "at": "2026-11-23T18:48:42+00:00",

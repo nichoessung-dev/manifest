@@ -11418,11 +11418,9 @@
     "lost_old": 0.2415,
     "s": 23.8
    },
-   "file": "img/white/recut/7780809872.webp",
    "flag": "lost parts",
    "group": "d",
    "id": "7780809872",
-   "kb": 48,
    "match": {
     "colour": 4.53,
     "ncc": 0.9903,
@@ -11437,9 +11435,11 @@
     "shown_px": 1120,
     "up": "lanczos (Real-ESRGAN rejected: diff 4.6 / detail 8.9)"
    },
-   "ok": true,
+   "ok": false,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7780809872.webp",
    "originals": 12,
+   "rejected_file": "img/white/recut/7780809872.webp",
+   "review": "rejected",
    "s": 92,
    "source": "original",
    "src_size": [
@@ -11471,7 +11471,8 @@
      "up": "lanczos (Real-ESRGAN rejected: diff 4.6 / detail 8.9)"
     }
    ],
-   "v": 2
+   "v": 2,
+   "why": "rejected in review: adds the second cap that overlaps it in the listing photo (the old cut-out showed the one cap on purpose)"
   },
   "d:7780821886": {
    "at": "2026-11-23T20:47:51+00:00",

@@ -1059,6 +1059,7 @@ def retryable(rec):
     the photo crops, a source that is gone). d: every find flagged for lost parts (fixed or not: the newest rules decide)
     and every find whose listing photos were read but not matched."""
     if rec.get("group") == "d":
+        if rec.get("review") == "rejected": return False      # rejected by eye: only --redo or --ids with --redo
         return rec.get("flag") == "lost parts" or (rec.get("flag") == "no original" and bool(rec.get("originals")))
     w = str(rec.get("why") or "")
     return not rec.get("ok") and not w.startswith("needs a new photo") and "cut off by the photo" not in w \
