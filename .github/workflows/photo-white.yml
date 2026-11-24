@@ -16,7 +16,7 @@ on:
         description: 'k/n: only shard k of n (e.g. 0/12 .. 11/12); 0/1 = all'
         default: '0/1'
       group:
-        description: 'Groups: a (store mains), b (store angles), c (RepLibrary mains), d (cut-outs that lost part of the item)'
+        description: 'Groups: a (store mains), b (store angles), c (RepLibrary mains), d (cut-outs that lost part of the item); alpha: e (store2 mains), g (gallery angles)'
         default: 'a,b,c'
       ids:
         description: 'Only these find ids (comma separated, optional)'
@@ -61,7 +61,7 @@ jobs:
       - name: Check inputs
         run: |
           [[ "$SHARD" =~ ^[0-9]{1,2}/[0-9]{1,2}$ ]] || { echo "::error::bad shard"; exit 1; }
-          [[ "$GROUP" =~ ^[abcde](,[abcde]){0,4}$ ]] || { echo "::error::bad group"; exit 1; }
+          [[ "$GROUP" =~ ^[abcdeg](,[abcdeg]){0,5}$ ]] || { echo "::error::bad group"; exit 1; }
           [[ -z "$IDS" || "$IDS" =~ ^[0-9,\ ]+$ ]] || { echo "::error::bad ids"; exit 1; }
           [[ "$MODELS" =~ ^[a-z0-9,-]+$ ]] || { echo "::error::bad models"; exit 1; }
           [[ "$MAXMIN" =~ ^[0-9]{1,3}$ ]] || { echo "::error::bad max_minutes"; exit 1; }
