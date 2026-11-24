@@ -390,14 +390,13 @@ async function route(ctx) {
       const app = await liveHtml(slimHtml(base, etagOf(base), (await serverCards(ctx, url.origin, null)).cards, ""));
       const sp = new HTMLRewriter()
         .on("html", { element(e) { e.setAttribute("data-sp", "1"); } })
-        .on("title", { element(e) { e.setInnerContent(TT); } })
+        .on("title", { element(e) { e.setInnerContent(TT); e.after(`<script>window.__pcBaseTitle=${JSON.stringify(TT)}</script><style>html[data-sp] :is(.v9-cats,.v9-row,.v9-qc,.v9-teasers,.v9-tools,.v9-steps,.v9-nums,.hx-home,#seo){display:none!important}</style>`, { html: true }); } })   // no <head> tag in index.html
         .on('meta[name="description"]', { element(e) { e.setAttribute("content", D); } })
         .on('meta[property="og:title"]', { element(e) { e.setAttribute("content", TT); } })
         .on('meta[property="og:description"]', { element(e) { e.setAttribute("content", D); } })
         .on('meta[property="og:url"]', { element(e) { e.setAttribute("content", "https://www.puroclassico.com/spreadsheet"); } })
         .on('link[rel="canonical"]', { element(e) { e.setAttribute("href", "https://www.puroclassico.com/spreadsheet"); } })
         .on("#v9-hero-title", { element(e) { e.removeAttribute("data-i18n"); e.setInnerContent(T); } })
-        .on("head", { element(e) { e.append(`<script>window.__pcBaseTitle=${JSON.stringify(TT)}</script><style>html[data-sp] :is(.v9-cats,.v9-row,.v9-qc,.v9-teasers,.v9-tools,.v9-steps,.v9-nums,.hx-home,#seo){display:none!important}</style>`, { html: true }); } })
         .transform(app);
       return keep(sp);
     }
