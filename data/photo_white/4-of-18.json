@@ -1,5 +1,5 @@
 {
- "at": "2026-11-24T00:50:56+00:00",
+ "at": "2026-11-24T01:13:30+00:00",
  "items": {
   "d:1001933936135": {
    "at": "2026-11-23T18:44:18+00:00",
@@ -11100,30 +11100,78 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7788585853": {
-   "at": "2026-11-23T22:08:39+00:00",
-   "detect": {
-    "lost_old": 0.0392,
-    "s": 14.2
+   "at": "2026-11-24T01:13:30+00:00",
+   "checks": {
+    "added": 0.0,
+    "ar": 0.025,
+    "corr": 0.808,
+    "fid": 1.05,
+    "inside": [
+     1.0,
+     1.0
+    ],
+    "lost": 0.0,
+    "old_kept": 1.0,
+    "same": 0.994,
+    "shadow": 0.0
    },
-   "flag": "intact",
+   "detect": {
+    "grown": [
+     "left",
+     "right"
+    ],
+    "lost_old": 0.2306,
+    "s": 80.0
+   },
+   "file": "img/white/recut/7788585853.webp",
+   "flag": "lost parts",
+   "forced": "the old cut-out lost the T-shirt's sleeves (3.9%, under the 4% flag); seen by eye in review",
    "group": "d",
    "id": "7788585853",
+   "kb": 48,
    "match": {
     "colour": 2.62,
     "ncc": 0.9835,
     "url": "https://si.geilicdn.com/pcitem902053027310-47e00000019f49ebf7890a81347d_800_800.jpg"
    },
-   "ok": false,
+   "model": "birefnet-general",
+   "notes": {
+    "real_px": 496,
+    "shown_px": 1376,
+    "up": "lanczos (Real-ESRGAN rejected: diff 3.0 / detail 9.3)"
+   },
+   "ok": true,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7788585853.webp",
    "originals": 12,
-   "s": 20,
+   "s": 114,
+   "source": "original",
    "src_size": [
     800,
     800
    ],
    "src_url": "https://si.geilicdn.com/pcitem902053027310-47e00000019f49ebf7890a81347d_800_800.jpg",
-   "v": 2,
-   "why": "intact: the old cut-out has the whole item (3.9% not in it)"
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.025,
+     "corr": 0.808,
+     "fid": 1.05,
+     "inside": [
+      1.0,
+      1.0
+     ],
+     "lost": 0.0,
+     "model": "birefnet-general",
+     "old_kept": 1.0,
+     "real_px": 496,
+     "s": 22.9,
+     "same": 0.994,
+     "shadow": 0.0,
+     "shown_px": 1376,
+     "up": "lanczos (Real-ESRGAN rejected: diff 3.0 / detail 9.3)"
+    }
+   ],
+   "v": 2
   },
   "d:7788593659": {
    "at": "2026-11-23T22:08:20+00:00",

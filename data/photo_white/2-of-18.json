@@ -1,5 +1,5 @@
 {
- "at": "2026-11-24T00:46:37+00:00",
+ "at": "2026-11-24T01:18:24+00:00",
  "items": {
   "d:1018280089100": {
    "at": "2026-11-23T17:16:47+00:00",
@@ -5041,12 +5041,13 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7676284076": {
-   "at": "2026-11-23T16:53:10+00:00",
+   "at": "2026-11-24T01:18:24+00:00",
    "detect": {
     "lost_old": 0.0393,
-    "s": 16.0
+    "s": 41.6
    },
-   "flag": "intact",
+   "flag": "lost parts",
+   "forced": "the old cut-out shows the white body ghosted (3.9% not in it, under the 4% flag); seen by eye in review",
    "group": "d",
    "id": "7676284076",
    "match": {
@@ -5057,14 +5058,41 @@
    "ok": false,
    "old": "/img/fr/7676284076.webp",
    "originals": 12,
-   "s": 24,
+   "s": 184,
+   "source": "original",
    "src_size": [
     800,
     800
    ],
    "src_url": "https://si.geilicdn.com/open1836032619-252808396-6b5f0000019bfd3dcd040aa08676_800_800.jpg",
+   "tried": [
+    {
+     "added": 0.0,
+     "ar": 0.307,
+     "clean": [
+      "8 specks out"
+     ],
+     "corr": 0.652,
+     "fid": 1.47,
+     "hook": "trimmed",
+     "inside": [
+      1.0,
+      0.999
+     ],
+     "lost": 0.0095,
+     "model": "birefnet-hr",
+     "old_kept": 0.9957,
+     "real_px": 266,
+     "s": 129.4,
+     "same": 0.954,
+     "shadow": 0.0922,
+     "shown_px": 1312,
+     "up": "lanczos (Real-ESRGAN rejected: diff 5.1 / detail 6.0)",
+     "why": "another photo or a changed outline (outline 0.95 < 0.96)"
+    }
+   ],
    "v": 2,
-   "why": "intact: the old cut-out has the whole item (3.9% not in it)"
+   "why": "lost parts, not fixed: another photo or a changed outline (outline 0.95 < 0.96)"
   },
   "d:7676305748": {
    "at": "2026-11-23T16:52:46+00:00",
