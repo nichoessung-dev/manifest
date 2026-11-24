@@ -135,8 +135,14 @@
     ".pcsz-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:16px}.pcsz-g label{min-width:0;display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}" +
     ".pcsz-in{min-width:0;display:flex;align-items:center;gap:4px;box-sizing:border-box;height:46px;padding:0 12px;border:1px solid var(--line-2,var(--line));border-radius:12px;background:var(--surface)}" +
     ".pcsz-in:focus-within{border-color:var(--ink)}.pcsz-in input{flex:1;min-width:0;width:100%;padding:0;border:0;background:none;color:var(--ink);font:inherit;font-size:16px;outline:none}.pcsz-in span{color:var(--muted);font-size:13px}" +
-    ".pcsz-fl{margin:14px 0 6px;font-size:12px;color:var(--muted)}.pcsz-seg{display:flex;gap:2px;padding:3px;border-radius:999px;background:var(--surface-2)}" +
-    ".pcsz-seg button{flex:1;min-height:40px;padding:0 10px;border:0;border-radius:999px;background:none;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}.pcsz-seg button.on{background:var(--fill,var(--ink));color:var(--fill-ink,#fff)}" +
+    ".pcsz-fl{margin:14px 0 6px;font-size:12px;color:var(--muted)}.pcsz-seg{position:relative;display:flex;gap:2px;padding:3px;border-radius:999px;background:var(--surface-2)}" +
+    // 24 Nov 2026 (owner: "make swapping between these clean and smooth"): one dark pill (.pcsz-thumb) slides under the
+    // picked fit, the labels cross-fade their colour; a press scales the label a little. Reduced motion: no slide.
+    ".pcsz-thumb{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 10px) / 3);border-radius:999px;background:var(--fill,var(--ink));pointer-events:none;transition:transform .32s cubic-bezier(.22,1,.36,1)}" +
+    ".pcsz-seg[data-i=\"1\"] .pcsz-thumb{transform:translateX(calc(100% + 2px))}.pcsz-seg[data-i=\"2\"] .pcsz-thumb{transform:translateX(calc(200% + 4px))}" +
+    ".pcsz-seg button{position:relative;z-index:1;flex:1;min-height:40px;padding:0 10px;border:0;border-radius:999px;background:none;color:var(--ink);font:inherit;font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .2s cubic-bezier(.22,1,.36,1),transform .12s cubic-bezier(.22,1,.36,1)}" +
+    ".pcsz-seg button.on{color:var(--fill-ink,#fff);font-weight:600}.pcsz-seg button:active{transform:scale(.96)}" +
+    "@media (prefers-reduced-motion:reduce){.pcsz-thumb{transition:none}.pcsz-seg button{transition:color .2s linear}.pcsz-seg button:active{transform:none}}" +
     ".pcsz-u{min-height:40px;margin-top:4px;padding:0;border:0;background:none;color:var(--muted);font:inherit;font-size:12px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}" +
     ".pcsz-save{display:block;width:100%;height:48px;margin-top:10px;border:0;border-radius:999px;background:var(--fill,var(--ink));color:var(--fill-ink,#fff);font:inherit;font-size:15px;font-weight:600;cursor:pointer}.pcsz-save:disabled{opacity:.4;cursor:default}" +
     ".pcsz-skip{display:block;margin:4px auto 0;min-height:44px;padding:0 12px;border:0;background:none;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}@media (hover:hover){.pcsz-skip:hover{color:var(--ink)}}" +
@@ -226,12 +232,13 @@
           : '<label>Height<div class="pcsz-in"><input inputmode="numeric" data-k="h" placeholder="178"><span>cm</span></div></label>') +
         '<label>Weight<div class="pcsz-in"><input inputmode="numeric" data-k="w" placeholder="' + (imp ? "165" : "75") + '"><span>' + (imp ? "lb" : "kg") + "</span></div></label></div>" +
         '<button type="button" class="pcsz-u">' + (imp ? "Use cm and kg" : "Use ft and lb") + '</button><p class="pcsz-fl">How do you like things to fit?</p>' +
-        '<div class="pcsz-seg" role="group" aria-label="Fit">' + ["s", "r", "l"].map(function (k) { return '<button type="button" data-fit="' + k + '" aria-pressed="' + (k === fit) + '"' + (k === fit ? ' class="on"' : "") + ">" + FIT[k].t + "</button>"; }).join("") + "</div>";
+        '<div class="pcsz-seg" role="group" aria-label="Fit" data-i="' + ["s", "r", "l"].indexOf(fit) + '"><span class="pcsz-thumb" aria-hidden="true"></span>' + ["s", "r", "l"].map(function (k) { return '<button type="button" data-fit="' + k + '" aria-pressed="' + (k === fit) + '"' + (k === fit ? ' class="on"' : "") + ">" + FIT[k].t + "</button>"; }).join("") + "</div>";
       var src = valid(cur) ? cur : b, set = function (k, x) { var i = box.querySelector('[data-k="' + k + '"]'); if (i && x) i.value = x; };
       if (src.h) { if (imp) { var t = src.h / 2.54; set("ft", Math.floor(t / 12)); set("in", Math.round(t % 12)); } else set("h", Math.round(src.h)); }
       if (src.w) set("w", Math.round(imp ? src.w / 0.4536 : src.w));
       [].forEach.call(box.querySelectorAll("input"), function (i) { i.addEventListener("input", check); });
       [].forEach.call(box.querySelectorAll("[data-fit]"), function (x) { x.addEventListener("click", function () { fit = x.getAttribute("data-fit");
+        x.parentNode.setAttribute("data-i", String(["s", "r", "l"].indexOf(fit)));
         [].forEach.call(box.querySelectorAll("[data-fit]"), function (y) { var on = y === x; y.classList.toggle("on", on); y.setAttribute("aria-pressed", on ? "true" : "false"); }); }); });
       box.querySelector(".pcsz-u").addEventListener("click", function () { imp = !imp; form(); });
       check();
