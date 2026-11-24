@@ -110,7 +110,7 @@ header.h{position:relative;top:auto;z-index:30;background:var(--bg);border-botto
 header.h .w{display:flex;align-items:center;gap:24px;height:56px}
 header.h .w > a:first-child{display:flex;align-items:center;min-height:44px;flex:none;border-radius:8px}
 header.h .logo{display:block;width:104px;height:28px;background-color:var(--ink);
-  -webkit-mask:url(/cdn-cgi/image/width=400,format=auto/logo-wordmark.png) left center/contain no-repeat;mask:url(/cdn-cgi/image/width=400,format=auto/logo-wordmark.png) left center/contain no-repeat}
+  -webkit-mask:url(/img/wordmark.webp?v=1) left center/contain no-repeat;mask:url(/img/wordmark.webp?v=1) left center/contain no-repeat}
 header.h nav{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
 header.h nav a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:var(--r-pill);font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color .15s,background-color .15s}
 @media (hover:hover){header.h nav a:hover{color:var(--ink)}}
@@ -401,7 +401,7 @@ details.dmore dl.kv dt:first-of-type,details.dmore dl.kv dt:first-of-type + dd{b
 footer.f{border-top:1px solid var(--line);padding:56px 0 max(32px,env(safe-area-inset-bottom,0px));font-size:14px;color:var(--muted);background:var(--bg)}
 .ftop{display:grid;grid-template-columns:minmax(220px,1.2fr) 3fr;gap:40px}
 @media (max-width:900px){.ftop{grid-template-columns:1fr;gap:32px}}
-.fbrand .logo{display:block;width:104px;height:28px;background-color:var(--ink);-webkit-mask:url(/cdn-cgi/image/width=400,format=auto/logo-wordmark.png) left center/contain no-repeat;mask:url(/cdn-cgi/image/width=400,format=auto/logo-wordmark.png) left center/contain no-repeat}
+.fbrand .logo{display:block;width:104px;height:28px;background-color:var(--ink);-webkit-mask:url(/img/wordmark.webp?v=1) left center/contain no-repeat;mask:url(/img/wordmark.webp?v=1) left center/contain no-repeat}
 .fbrand p{margin:12px 0 16px;max-width:30ch;line-height:1.55}
 footer.f .cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:28px 24px}
 footer.f h4{margin:0 0 10px;font-size:14px;font-weight:600;color:var(--ink)}
