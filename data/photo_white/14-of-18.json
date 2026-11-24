@@ -1,5 +1,5 @@
 {
- "at": "2026-11-24T01:28:04+00:00",
+ "at": "2026-11-24T16:07:10+00:00",
  "items": {
   "d:1003937405189": {
    "at": "2026-11-23T17:21:02+00:00",
@@ -2448,15 +2448,15 @@
    "why": "intact: the old cut-out has the whole item (1.7% not in it)"
   },
   "d:7612914641": {
-   "at": "2026-11-23T19:38:05+00:00",
+   "at": "2026-11-24T15:58:44+00:00",
    "checks": {
     "added": 0.0,
-    "ar": -0.002,
-    "corr": 0.997,
-    "fid": 2.74,
+    "ar": -0.003,
+    "corr": 0.996,
+    "fid": 2.56,
     "inside": [
      0.998,
-     0.996
+     0.994
     ],
     "lost": 0.0,
     "old_kept": 1.0,
@@ -2465,28 +2465,39 @@
    },
    "detect": {
     "lost_old": 0.1006,
-    "s": 13.5
+    "s": 36.7
    },
+   "file": "img/white/recut/7612914641.webp",
    "flag": "lost parts",
    "group": "d",
+   "hand_fix": {
+    "erased_share": 0.0479,
+    "keep_at": [
+     [
+      0.45,
+      0.5
+     ]
+    ]
+   },
    "id": "7612914641",
+   "kb": 60,
    "match": {
     "colour": 2.46,
     "ncc": 0.9884,
     "url": "https://si.geilicdn.com/pcitem1999511207-593b0000019f080d5cce0a20e2c5-unadjust_500_500.png"
    },
    "model": "birefnet-general",
+   "note": "hand-fixed: inset photo erased",
    "notes": {
     "real_px": 443,
     "shown_px": 1312,
-    "up": "Real-ESRGAN (diff 2.3 / detail 7.7)"
+    "up": "Real-ESRGAN (diff 2.2 / detail 7.5)"
    },
-   "ok": false,
+   "ok": true,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7612914641.webp",
    "originals": 10,
-   "rejected_file": "img/white/recut/7612914641.webp",
-   "review": "rejected",
-   "s": 54,
+   "review": "hand-fixed",
+   "s": 64,
    "source": "original",
    "src_size": [
     500,
@@ -2496,26 +2507,25 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": -0.002,
-     "corr": 0.997,
-     "fid": 2.74,
+     "ar": -0.003,
+     "corr": 0.996,
+     "fid": 2.56,
      "inside": [
       0.998,
-      0.996
+      0.994
      ],
      "lost": 0.0,
      "model": "birefnet-general",
      "old_kept": 1.0,
      "real_px": 443,
-     "s": 27.3,
+     "s": 18.4,
      "same": 0.999,
      "shadow": 0.0,
      "shown_px": 1312,
-     "up": "Real-ESRGAN (diff 2.3 / detail 7.7)"
+     "up": "Real-ESRGAN (diff 2.2 / detail 7.5)"
     }
    ],
-   "v": 2,
-   "why": "rejected in review: takes in the small inset photo at the bottom right of the original"
+   "v": 2
   },
   "d:7612928563": {
    "at": "2026-11-23T18:09:58+00:00",
@@ -5196,15 +5206,15 @@
    "why": "the listing's photos no longer include the photo it was cut from"
   },
   "d:7677466395": {
-   "at": "2026-11-23T23:01:12+00:00",
+   "at": "2026-11-24T16:07:10+00:00",
    "checks": {
     "added": 0.0,
-    "ar": -0.001,
-    "corr": 0.999,
-    "fid": 2.65,
+    "ar": 0.0,
+    "corr": 1.0,
+    "fid": 2.83,
     "inside": [
-     0.999,
-     0.995
+     0.989,
+     0.98
     ],
     "lost": 0.0,
     "old_kept": 1.0,
@@ -5216,28 +5226,42 @@
      "right"
     ],
     "lost_old": 0.4502,
-    "s": 25.5
+    "s": 45.4
    },
+   "file": "img/white/recut/7677466395.webp",
    "flag": "lost parts",
    "group": "d",
+   "hand_fix": {
+    "erased_share": 0.6656,
+    "keep_color": {
+     "at": [
+      0.3,
+      0.5
+     ],
+     "b_minus_r_gt": 35,
+     "open": 0.004,
+     "or_bright": 150
+    }
+   },
    "id": "7677466395",
+   "kb": 68,
    "match": {
     "colour": 3.1,
     "ncc": 0.9789,
     "url": "https://si.geilicdn.com/open1836032619-252808396-73980000019bfd3ef49a0a8133b0-unadjust_905_899.png"
    },
    "model": "birefnet-general",
+   "note": "hand-fixed: second sweatshirt erased",
    "notes": {
-    "real_px": 895,
+    "real_px": 541,
     "shown_px": 1376,
-    "up": "Real-ESRGAN (diff 2.0 / detail 4.8)"
+    "up": "Real-ESRGAN (diff 2.0 / detail 3.7)"
    },
-   "ok": false,
+   "ok": true,
    "old": "/img/fr/7677466395.webp",
    "originals": 3,
-   "rejected_file": "img/white/recut/7677466395.webp",
-   "review": "rejected",
-   "s": 63,
+   "review": "hand-fixed",
+   "s": 71,
    "source": "original",
    "src_size": [
     905,
@@ -5247,26 +5271,25 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": -0.001,
-     "corr": 0.999,
-     "fid": 2.65,
+     "ar": 0.0,
+     "corr": 1.0,
+     "fid": 2.83,
      "inside": [
-      0.999,
-      0.995
+      0.989,
+      0.98
      ],
      "lost": 0.0,
      "model": "birefnet-general",
      "old_kept": 1.0,
-     "real_px": 895,
-     "s": 24.6,
+     "real_px": 541,
+     "s": 17.7,
      "same": 1.0,
      "shadow": 0.0005,
      "shown_px": 1376,
-     "up": "Real-ESRGAN (diff 2.0 / detail 4.8)"
+     "up": "Real-ESRGAN (diff 2.0 / detail 3.7)"
     }
    ],
-   "v": 2,
-   "why": "rejected in review: takes in the black sweatshirt lying across the blue one (the find is the blue sweatshirt)"
+   "v": 2
   },
   "d:7677486137": {
    "at": "2026-11-23T19:20:18+00:00",

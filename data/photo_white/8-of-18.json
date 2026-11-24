@@ -1,5 +1,5 @@
 {
- "at": "2026-11-24T01:31:53+00:00",
+ "at": "2026-11-24T16:35:15+00:00",
  "items": {
   "d:1000769751422": {
    "at": "2026-11-23T17:17:47+00:00",
@@ -5503,54 +5503,89 @@
    "why": "intact: the old cut-out has the whole item (0.1% not in it)"
   },
   "d:7677525637": {
-   "at": "2026-11-23T22:32:16+00:00",
+   "at": "2026-11-24T16:35:15+00:00",
    "checks": {
-    "added": 0.0065,
-    "ar": -0.001,
-    "corr": 0.996,
-    "fid": 2.48,
+    "added": 0.0,
+    "ar": -0.042,
+    "corr": 0.639,
+    "fid": 1.33,
     "inside": [
-     0.996,
-     0.995
+     0.992,
+     0.796
     ],
     "lost": 0.0,
     "old_kept": 0.9999,
-    "same": 0.997,
-    "shadow": 0.0443
+    "same": 0.99,
+    "shadow": 0.0157
    },
    "detect": {
     "grown": [
      "right"
     ],
     "lost_old": 0.0555,
-    "s": 27.6
+    "s": 46.8
    },
+   "file": "img/white/recut/7677525637.webp",
    "flag": "lost parts",
    "group": "d",
+   "hand_fix": {
+    "erase_color": [
+     {
+      "box": [
+       0.37,
+       0.15,
+       0.42,
+       0.18
+      ],
+      "gold": 25,
+      "smooth": 2.5
+     },
+     {
+      "box": [
+       0.62,
+       0.15,
+       0.68,
+       0.18
+      ],
+      "gold": 25,
+      "smooth": 2.5
+     }
+    ],
+    "erased_share": 0.2291,
+    "keep_at": [
+     [
+      0.5,
+      0.3
+     ]
+    ],
+    "rects": [
+     [
+      0.0,
+      0.0,
+      1.0,
+      0.162
+     ]
+    ]
+   },
    "id": "7677525637",
+   "kb": 16,
    "match": {
     "colour": 2.4,
     "ncc": 0.9717,
     "url": "https://si.geilicdn.com/open1836032619-252808396-187a0000019c02a151b80aa08676_1000_1000.jpg"
    },
    "model": "birefnet-general",
+   "note": "hand-fixed: clothes rack, clip hanger and card erased",
    "notes": {
-    "anchored": [
-     "bottom"
-    ],
-    "clean": [
-     "5 specks out"
-    ],
-    "real_px": 835,
+    "real_px": 362,
     "shown_px": 1376,
-    "up": "Real-ESRGAN (diff 2.3 / detail 4.7)"
+    "up": "Real-ESRGAN (diff 1.4 / detail 2.1)"
    },
-   "ok": false,
+   "ok": true,
    "old": "/img/fr/7677525637.webp",
    "originals": 12,
-   "rejected_file": "img/white/recut/7677525637.webp",
-   "review": "rejected",
-   "s": 81,
+   "review": "hand-fixed",
+   "s": 79,
    "source": "original",
    "src_size": [
     1000,
@@ -5559,33 +5594,26 @@
    "src_url": "https://si.geilicdn.com/open1836032619-252808396-187a0000019c02a151b80aa08676_1000_1000.jpg",
    "tried": [
     {
-     "added": 0.0065,
-     "anchored": [
-      "bottom"
-     ],
-     "ar": -0.001,
-     "clean": [
-      "5 specks out"
-     ],
-     "corr": 0.996,
-     "fid": 2.48,
+     "added": 0.0,
+     "ar": -0.042,
+     "corr": 0.639,
+     "fid": 1.33,
      "inside": [
-      0.996,
-      0.995
+      0.992,
+      0.796
      ],
      "lost": 0.0,
      "model": "birefnet-general",
      "old_kept": 0.9999,
-     "real_px": 835,
-     "s": 27.9,
-     "same": 0.997,
-     "shadow": 0.0443,
+     "real_px": 362,
+     "s": 16.8,
+     "same": 0.99,
+     "shadow": 0.0157,
      "shown_px": 1376,
-     "up": "Real-ESRGAN (diff 2.3 / detail 4.7)"
+     "up": "Real-ESRGAN (diff 1.4 / detail 2.1)"
     }
    ],
-   "v": 2,
-   "why": "rejected in review: adds more of the clothes rack, whose pole runs off the bottom of the photo (cut flat at the frame)"
+   "v": 2
   },
   "d:7677527675": {
    "at": "2026-11-23T21:29:00+00:00",

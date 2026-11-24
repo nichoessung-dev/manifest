@@ -1,5 +1,5 @@
 {
- "at": "2026-11-24T01:31:40+00:00",
+ "at": "2026-11-24T16:02:14+00:00",
  "items": {
   "d:1035636195700": {
    "at": "2026-11-23T17:27:52+00:00",
@@ -12763,45 +12763,73 @@
    "why": "intact: the old cut-out has the whole item (0.4% not in it)"
   },
   "d:7819676593": {
-   "at": "2026-11-23T20:36:50+00:00",
+   "at": "2026-11-24T16:02:13+00:00",
    "checks": {
     "added": 0.0,
-    "ar": -0.0,
-    "corr": 0.999,
-    "fid": 3.25,
+    "ar": 0.0,
+    "corr": 0.998,
+    "fid": 3.14,
     "inside": [
-     0.997,
-     0.992
+     0.996,
+     0.991
     ],
-    "lost": 0.0001,
+    "lost": 0.0,
     "old_kept": 1.0,
     "same": 1.0,
     "shadow": 0.0
    },
    "detect": {
     "lost_old": 0.0496,
-    "s": 11.9
+    "s": 35.2
    },
+   "file": "img/white/recut/7819676593.webp",
    "flag": "lost parts",
    "group": "d",
+   "hand_fix": {
+    "erase_color": [
+     {
+      "box": [
+       0.3,
+       0.0,
+       0.62,
+       0.16
+      ],
+      "light": 200,
+      "open": 4,
+      "orange": [
+       12,
+       40
+      ],
+      "smooth": 4
+     }
+    ],
+    "erased_share": 0.0483,
+    "keep_at": [
+     [
+      0.45,
+      0.5
+     ]
+    ]
+   },
    "id": "7819676593",
+   "kb": 69,
    "match": {
     "colour": 7.94,
     "ncc": 0.9316,
     "url": "https://si.geilicdn.com/pcitem901908505730-1aa100000194fdea05360a20e7c7-unadjust_795_562.png"
    },
    "model": "birefnet-general",
+   "note": "hand-fixed: hanger erased",
    "notes": {
-    "real_px": 360,
+    "real_px": 327,
     "shown_px": 1312,
-    "up": "Real-ESRGAN (diff 2.6 / detail 7.1)"
+    "up": "Real-ESRGAN (diff 2.6 / detail 7.0)"
    },
-   "ok": false,
+   "ok": true,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7819676593.webp?v=1789514345",
    "originals": 12,
-   "rejected_file": "img/white/recut/7819676593.webp",
-   "review": "rejected",
-   "s": 106,
+   "review": "hand-fixed",
+   "s": 140,
    "source": "original",
    "src_size": [
     795,
@@ -12811,26 +12839,25 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": -0.0,
-     "corr": 0.999,
-     "fid": 3.25,
+     "ar": 0.0,
+     "corr": 0.998,
+     "fid": 3.14,
      "inside": [
-      0.997,
-      0.992
+      0.996,
+      0.991
      ],
-     "lost": 0.0001,
+     "lost": 0.0,
      "model": "birefnet-general",
      "old_kept": 1.0,
-     "real_px": 360,
-     "s": 23.5,
+     "real_px": 327,
+     "s": 18.8,
      "same": 1.0,
      "shadow": 0.0,
      "shown_px": 1312,
-     "up": "Real-ESRGAN (diff 2.6 / detail 7.1)"
+     "up": "Real-ESRGAN (diff 2.6 / detail 7.0)"
     }
    ],
-   "v": 2,
-   "why": "rejected in review: adds the wooden hanger top above the collar"
+   "v": 2
   },
   "d:7819744591": {
    "at": "2026-11-23T20:26:31+00:00",

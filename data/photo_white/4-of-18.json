@@ -1,5 +1,5 @@
 {
- "at": "2026-11-24T01:34:22+00:00",
+ "at": "2026-11-24T16:23:47+00:00",
  "items": {
   "d:1001933936135": {
    "at": "2026-11-23T18:44:18+00:00",
@@ -12772,12 +12772,12 @@
    "why": "intact: the old cut-out has the whole item (0.5% not in it)"
   },
   "d:7852412755": {
-   "at": "2026-11-23T23:04:47+00:00",
+   "at": "2026-11-24T16:23:47+00:00",
    "checks": {
     "added": 0.0,
-    "ar": -0.061,
-    "corr": 0.883,
-    "fid": 1.59,
+    "ar": 0.027,
+    "corr": 0.824,
+    "fid": 1.6,
     "inside": [
      1.0,
      1.0
@@ -12785,35 +12785,46 @@
     "lost": 0.0,
     "old_kept": 1.0,
     "same": 0.999,
-    "shadow": 0.0165
+    "shadow": 0.0053
    },
    "detect": {
     "grown": [
      "right"
     ],
     "lost_old": 0.1645,
-    "s": 24.3
+    "s": 45.2
    },
+   "file": "img/white/recut/7852412755.webp",
    "flag": "lost parts",
    "group": "d",
+   "hand_fix": {
+    "erased_share": 0.0756,
+    "keep_at": [
+     [
+      0.4,
+      0.4
+     ]
+    ]
+   },
    "id": "7852412755",
+   "kb": 88,
    "match": {
     "colour": 8.05,
     "ncc": 0.9764,
     "url": "https://si.geilicdn.com/open1615844877-252808396-127a000001a04c3ebddf0a8115c2_1080_1080.jpg"
    },
    "model": "birefnet-general",
+   "note": "hand-fixed: Cartier box and pin tool erased",
    "notes": {
-    "real_px": 1007,
+    "real_px": 928,
     "shown_px": 1120,
     "up": "lanczos"
    },
-   "ok": false,
+   "ok": true,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7852412755.webp",
    "originals": 8,
-   "rejected_file": "img/white/recut/7852412755.webp",
-   "review": "rejected",
-   "s": 73,
+   "review": "hand-fixed",
+   "s": 80,
    "source": "original",
    "src_size": [
     1080,
@@ -12823,10 +12834,10 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": -0.061,
-     "corr": 0.883,
-     "esrgan_fid": 4.5,
-     "fid": 1.59,
+     "ar": 0.027,
+     "corr": 0.824,
+     "esrgan_fid": 4.55,
+     "fid": 1.6,
      "inside": [
       1.0,
       1.0
@@ -12834,16 +12845,15 @@
      "lost": 0.0,
      "model": "birefnet-general",
      "old_kept": 1.0,
-     "real_px": 1007,
-     "s": 24.8,
+     "real_px": 928,
+     "s": 17.4,
      "same": 0.999,
-     "shadow": 0.0165,
+     "shadow": 0.0053,
      "shown_px": 1120,
      "up": "lanczos"
     }
    ],
-   "v": 2,
-   "why": "rejected in review: adds the red Cartier box from the listing photo"
+   "v": 2
   },
   "d:7852434487": {
    "at": "2026-11-23T23:05:03+00:00",

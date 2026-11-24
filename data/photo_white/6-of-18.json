@@ -1,5 +1,5 @@
 {
- "at": "2026-11-24T01:34:38+00:00",
+ "at": "2026-11-24T16:05:56+00:00",
  "items": {
   "d:1545268236": {
    "at": "2026-11-23T19:33:15+00:00",
@@ -5139,45 +5139,64 @@
    "why": "intact: the old cut-out has the whole item (0.0% not in it)"
   },
   "d:7675781906": {
-   "at": "2026-11-23T22:06:05+00:00",
+   "at": "2026-11-24T16:05:56+00:00",
    "checks": {
     "added": 0.0,
-    "ar": -0.06,
-    "corr": 0.904,
-    "fid": 1.42,
+    "ar": 0.001,
+    "corr": 1.0,
+    "fid": 1.3,
     "inside": [
-     1.0,
-     0.998
+     0.999,
+     0.997
     ],
-    "lost": 0.0052,
+    "lost": 0.0017,
     "old_kept": 0.9999,
-    "same": 0.996,
-    "shadow": 0.0191
+    "same": 1.0,
+    "shadow": 0.0007
    },
    "detect": {
-    "lost_old": 0.0668,
-    "s": 13.9
+    "grown": [
+     "right"
+    ],
+    "lost_old": 0.3988,
+    "s": 63.9
    },
+   "file": "img/white/recut/7675781906.webp",
    "flag": "lost parts",
    "group": "d",
+   "hand_fix": {
+    "erased_share": 0.6725,
+    "keep_color": {
+     "at": [
+      0.25,
+      0.6
+     ],
+     "max_lt": 70,
+     "open": 0.004
+    }
+   },
    "id": "7675781906",
+   "kb": 27,
    "match": {
     "colour": 2.26,
     "ncc": 0.9812,
     "url": "https://si.geilicdn.com/pcitem901898590714-3d7e00000193b482a0580a20e2c5_3000_3000.jpg"
    },
    "model": "birefnet-general",
+   "note": "hand-fixed: second T-shirt erased",
    "notes": {
-    "real_px": 635,
+    "clean": [
+     "1 gaps filled"
+    ],
+    "real_px": 594,
     "shown_px": 1376,
-    "up": "Real-ESRGAN (diff 1.3 / detail 4.6)"
+    "up": "Real-ESRGAN (diff 1.2 / detail 4.5)"
    },
-   "ok": false,
+   "ok": true,
    "old": "/img/fr/7675781906.webp",
    "originals": 4,
-   "rejected_file": "img/white/recut/7675781906.webp",
-   "review": "rejected",
-   "s": 58,
+   "review": "hand-fixed",
+   "s": 95,
    "source": "original",
    "src_size": [
     2560,
@@ -5187,26 +5206,28 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": -0.06,
-     "corr": 0.904,
-     "fid": 1.42,
-     "inside": [
-      1.0,
-      0.998
+     "ar": 0.001,
+     "clean": [
+      "1 gaps filled"
      ],
-     "lost": 0.0052,
+     "corr": 1.0,
+     "fid": 1.3,
+     "inside": [
+      0.999,
+      0.997
+     ],
+     "lost": 0.0017,
      "model": "birefnet-general",
      "old_kept": 0.9999,
-     "real_px": 635,
-     "s": 28.0,
-     "same": 0.996,
-     "shadow": 0.0191,
+     "real_px": 594,
+     "s": 17.2,
+     "same": 1.0,
+     "shadow": 0.0007,
      "shown_px": 1376,
-     "up": "Real-ESRGAN (diff 1.3 / detail 4.6)"
+     "up": "Real-ESRGAN (diff 1.2 / detail 4.5)"
     }
    ],
-   "v": 2,
-   "why": "rejected in review: takes in the collar and chain of the white T-shirt behind it"
+   "v": 2
   },
   "d:7675843316": {
    "at": "2026-11-23T19:57:55+00:00",

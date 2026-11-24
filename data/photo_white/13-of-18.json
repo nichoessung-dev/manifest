@@ -1,5 +1,5 @@
 {
- "at": "2026-11-24T01:35:23+00:00",
+ "at": "2026-11-24T15:59:51+00:00",
  "items": {
   "d:1006339268322": {
    "at": "2026-11-23T16:43:08+00:00",
@@ -2707,12 +2707,12 @@
    "why": "intact: the old cut-out has the whole item (0.9% not in it)"
   },
   "d:7612878519": {
-   "at": "2026-11-23T20:40:49+00:00",
+   "at": "2026-11-24T15:59:51+00:00",
    "checks": {
     "added": 0.0,
-    "ar": 0.054,
-    "corr": 0.857,
-    "fid": 1.87,
+    "ar": 0.013,
+    "corr": 0.963,
+    "fid": 1.92,
     "inside": [
      1.0,
      0.999
@@ -2720,35 +2720,57 @@
     "lost": 0.0002,
     "old_kept": 1.0,
     "same": 0.996,
-    "shadow": 0.0114
+    "shadow": 0.0104
    },
    "detect": {
     "lost_old": 0.0604,
-    "s": 11.5
+    "s": 36.8
    },
+   "file": "img/white/recut/7612878519.webp",
    "flag": "lost parts",
    "group": "d",
+   "hand_fix": {
+    "erased_share": 0.0294,
+    "keep_at": [
+     [
+      0.45,
+      0.5
+     ]
+    ],
+    "rects": [
+     [
+      0.27,
+      0.0,
+      0.32,
+      0.17
+     ],
+     [
+      0.62,
+      0.0,
+      0.67,
+      0.166
+     ]
+    ]
+   },
    "id": "7612878519",
+   "kb": 119,
    "match": {
     "colour": 3.81,
     "ncc": 0.9908,
     "url": "https://si.geilicdn.com/pcitem1999511207-3e580000019f07a053d90a811411-unadjust_433_576.png"
    },
    "model": "birefnet-general",
+   "note": "hand-fixed: hanger erased (bar and hook; the clip jaws on the waistband stay)",
    "notes": {
-    "clean": [
-     "3 specks out"
-    ],
-    "real_px": 480,
+    "real_px": 441,
     "shown_px": 1376,
     "up": "lanczos"
    },
-   "ok": false,
+   "ok": true,
    "old": "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/pc/7612878519.webp",
    "originals": 2,
-   "rejected_file": "img/white/recut/7612878519.webp",
-   "review": "rejected",
-   "s": 44,
+   "review": "hand-fixed",
+   "s": 64,
    "source": "original",
    "src_size": [
     433,
@@ -2758,13 +2780,10 @@
    "tried": [
     {
      "added": 0.0,
-     "ar": 0.054,
-     "clean": [
-      "3 specks out"
-     ],
-     "corr": 0.857,
-     "esrgan_fid": 5.42,
-     "fid": 1.87,
+     "ar": 0.013,
+     "corr": 0.963,
+     "esrgan_fid": 5.43,
+     "fid": 1.92,
      "inside": [
       1.0,
       0.999
@@ -2772,16 +2791,15 @@
      "lost": 0.0002,
      "model": "birefnet-general",
      "old_kept": 1.0,
-     "real_px": 480,
-     "s": 23.4,
+     "real_px": 441,
+     "s": 18.1,
      "same": 0.996,
-     "shadow": 0.0114,
+     "shadow": 0.0104,
      "shown_px": 1376,
      "up": "lanczos"
     }
    ],
-   "v": 2,
-   "why": "rejected in review: adds the hanger bar and hook above the waistband (the old cut-out had only the clips)"
+   "v": 2
   },
   "d:7614591626": {
    "at": "2026-11-23T19:34:45+00:00",
