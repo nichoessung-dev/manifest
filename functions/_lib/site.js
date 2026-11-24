@@ -500,7 +500,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "36";
+export const DS_VER = "37";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -748,6 +748,7 @@ ${status === 200 ? `<link rel="canonical" href="${esc(url)}">` : ""}
 ${THEME_HEAD}
 <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/ds.css?v=${DS_VER}">
+<link rel="preload" href="/cdn-cgi/image/width=400,format=auto/logo-wordmark.png" as="image" crossorigin>
 ${jsonld.map(ld).join("\n")}
 ${extraHead}
 </head>

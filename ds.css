@@ -1349,3 +1349,6 @@ html.js-fade :is(.pimg img,.thumbs img,.qcs img):not(.is-in){opacity:0}
 .pimg img,.thumbs img,.qcs img{transition:opacity .18s var(--ease-out)}
 .ci img{transition:opacity .18s var(--ease-out),transform .3s var(--ease)}
 @media (prefers-reduced-motion:reduce){.pimg img,.thumbs img,.qcs img,.ci img{transition:none}}
+/* the size note under the price (size.js, clothes) keeps its line from the first paint, so the buy box does not move down
+   when it appears (the same metrics as size.js's .pcrec-w) */
+[data-pcsz-id]{min-height:30px;margin:8px 0 -2px}

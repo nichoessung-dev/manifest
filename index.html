@@ -34,7 +34,10 @@
 <meta name="twitter:image" content="https://www.puroclassico.com/og.png">
 <meta name="twitter:image:alt" content="Puro Classico catalog">
 <meta name="theme-color" content="#FFFFFF">
-<script>(function(){var t,h=document.documentElement;try{t=localStorage.getItem("manifest.theme");}catch(e){}if(t!=="dark"&&t!=="system")t="light";if(t!=="system")h.setAttribute("data-theme",t);h.classList.add("js-fade");/* calm loading (24 Nov 2026): pc-cover shows the server's cards as skeleton cards when the address asks for another view (?q=, ?cat=, ?saved=), which the app draws once its data is in; pc-fmt hides their prices and Buy labels until the app writes them in the visitor's currency and language. Both go on any script error, at once when the app did not start, and 3.5 s after the page was parsed at the latest. A photo is marked .is-in (it fades in over its skeleton tile) when it has loaded or failed: straight from the load event, since a decode() round trip waited behind the app's start-up work, up to 200 ms per photo. */var _u=function(){h.classList.remove("pc-cover","pc-fmt");};if(!/^\/product\//.test(location.pathname)){if(/[?&](q|cat|saved)=/.test(location.search))h.classList.add("pc-cover");try{var _s=JSON.parse(localStorage.getItem("manifest.state")||"null"),_c=_s?_s.cur:(/^(NO|SE|DK|GB|UK|CH|PL|CA|AU|JP|CN|AT|BE|CY|DE|EE|ES|FI|FR|GR|HR|IE|IT|LT|LU|LV|MT|NL|PT|SI|SK)$/.test(((navigator.language||"").split("-")[1]||"").toUpperCase())?"":"USD");if(_c!=="USD"||(_s&&_s.lang&&_s.lang!=="en"))h.classList.add("pc-fmt");}catch(e){}addEventListener("error",_u);document.addEventListener("DOMContentLoaded",function(){if(!window.__pcBoot)_u();setTimeout(_u,3500);});}var _f=function(e){var i=e.target;if(i&&i.tagName==="IMG")i.classList.add("is-in");};document.addEventListener("load",_f,true);document.addEventListener("error",_f,true);h.setAttribute("data-tp",(t==="light"||t==="dark")?t:"system");function dk(){var a=h.getAttribute("data-theme");return a?a==="dark":!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);}window.setThemeColor=function(){var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dk()?"#0A0A0A":"#FFFFFF");};setThemeColor();})();</script>
+<script>(function(){var t,h=document.documentElement;try{t=localStorage.getItem("manifest.theme");}catch(e){}if(t!=="dark"&&t!=="system")t="light";if(t!=="system")h.setAttribute("data-theme",t);h.classList.add("js-fade");/* calm loading (24 Nov 2026): pc-cover shows the server's cards as skeleton cards when the address asks for another view (?q=, ?cat=, ?saved=), which the app draws once its data is in; pc-fmt hides their prices and Buy labels until the app writes them in the visitor's currency and language. Both go on any script error, at once when the app did not start, and 3.5 s after the page was parsed at the latest. A photo is marked .is-in (it fades in over its skeleton tile) when it has loaded or failed: straight from the load event, since a decode() round trip waited behind the app's start-up work, up to 200 ms per photo. */var _u=function(){h.classList.remove("pc-cover","pc-fmt");};if(!/^\/product\//.test(location.pathname)){if(/[?&](q|cat|saved)=/.test(location.search))h.classList.add("pc-cover");if(/[?&](q|cat)=[^&]|[?&]saved=1/.test(location.search))h.classList.add("af-pre");try{var _s=JSON.parse(localStorage.getItem("manifest.state")||"null"),_c=_s?_s.cur:(/^(NO|SE|DK|GB|UK|CH|PL|CA|AU|JP|CN|AT|BE|CY|DE|EE|ES|FI|FR|GR|HR|IE|IT|LT|LU|LV|MT|NL|PT|SI|SK)$/.test(((navigator.language||"").split("-")[1]||"").toUpperCase())?"":"USD");if(_c!=="USD"||(_s&&_s.lang&&_s.lang!=="en"))h.classList.add("pc-fmt");}catch(e){}addEventListener("error",_u);document.addEventListener("DOMContentLoaded",function(){if(!window.__pcBoot)_u();setTimeout(_u,3500);});}var _f=function(e){var i=e.target;if(i&&i.tagName==="IMG")i.classList.add("is-in");};document.addEventListener("load",_f,true);document.addEventListener("error",_f,true);h.setAttribute("data-tp",(t==="light"||t==="dark")?t:"system");function dk(){var a=h.getAttribute("data-theme");return a?a==="dark":!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);}window.setThemeColor=function(){var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dk()?"#0A0A0A":"#FFFFFF");};setThemeColor();})();</script>
+<!-- calm loading: the first frame waits until the grid and its skeleton row are parsed (no half-drawn first row of cards) -->
+<link rel="expect" href="#grid-sk" blocking="render">
+<link rel="preload" href="/cdn-cgi/image/width=400,format=auto/logo-wordmark.png" as="image" crossorigin>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest">
 <script type="application/ld+json">
@@ -2379,7 +2382,7 @@ html.pc-fs-lock,html.pc-fs-lock body{overflow:hidden}
 .v9-rail>.card{content-visibility:visible;contain-intrinsic-size:none}
 @media (min-width:761px) and (max-width:1100px){.v9-rail{--v9-cw:calc((100% - 2 * 14px) / 3.3)}}
 /* one row of skeleton cards while the next chunk renders */
-#grid-sk{display:grid;gap:16px;grid-template-rows:auto;grid-auto-rows:0;row-gap:0;overflow:hidden;margin-top:16px;pointer-events:none}
+#grid-sk{display:grid;gap:16px;grid-template-rows:auto auto;grid-auto-rows:0;overflow:hidden;margin-top:16px;pointer-events:none}   /* two rows (calm loading, 24 Nov 2026): a fast flick lands on skeleton cards, not on the footer */
 #grid-sk[hidden]{display:none!important}
 @media (max-width:560px){#grid-sk{gap:10px;margin-top:10px}}
 #grid-sk .sk-card{visibility:visible!important}
@@ -3011,7 +3014,7 @@ html .sk-card .sk-im,html #drawer .thumbs .pc-sk,html.js-fade #drawer .thumbs .q
 html.js-fade :is(.card .thumb>img.pimg,#drawer .sim-thumb>img,#drawer .thumbs .qcthumb-btn>img):not(.is-in){opacity:0!important}
 .card .thumb>img.pimg{transition:opacity .18s ease-out,transform 400ms var(--ease-hover,ease)}
 #drawer :is(.sim-thumb>img,.thumbs .qcthumb-btn>img){transition:opacity .18s ease-out}
-.card .thumb,#drawer :is(.gmain,.sim-thumb){transition:background-color .18s ease-out}
+.card .thumb,#drawer :is(.gmain,.sim-thumb,.thumbs .qcthumb-btn){transition:background-color .18s ease-out}
 /* the product view's main photo: hidden until it has loaded, its own fade or slide then plays from that moment.
    The card's photo the view opens with shows at once when the browser has it (openDetail marks it). */
 html.js-fade #drawer .gmain>img.pimg:not(.is-in){opacity:0!important;animation:none!important}
@@ -3037,6 +3040,25 @@ html.pc-fmt #grid>.card[data-ssr] .price{color:transparent!important;border-radi
 html.pc-fmt #grid>.card[data-ssr] .buy-pill{color:transparent!important}
 /* category hubs: the type chips row (#sub-row) keeps its space from the first paint, like html.af-pre does for #af-row */
 html.sub-pre #sub-row[hidden]{display:flex!important;visibility:hidden;min-height:38px}
+/* the toolbar's filter chips are built by the app (custom dropdowns over empty selects): until a chip is built it shows as
+   a skeleton pill of its usual width (English labels), so the row does not grow from three chips to eight at start-up */
+#pc-fsheet .fsel:not(:has(>.csel)){flex:none;height:34px;border-radius:999px;background:var(--sk-line)}
+#pc-fsheet .fsel:not(:has(>.csel)):has(>#f-type){width:102px}
+#pc-fsheet .fsel:not(:has(>.csel)):has(>#f-brand){width:110px}
+#pc-fsheet .fsel:not(:has(>.csel)):has(>#f-color){width:114px}
+#pc-fsheet .fsel:not(:has(>.csel)):has(>#f-gender){width:106px}
+#pc-fsheet .fsel:not(:has(>.csel)):has(>#sort){width:153px;background:none}
+#pc-fsheet .fsel:not(:has(>.csel)):has(>#sort)::before{content:"";display:block;width:132px;height:12px;margin:11px 0 0 12px;border-radius:6px;background:var(--sk-line)}
+@media (min-width:900px){#pc-fsheet #count{min-width:146px;text-align:right}}   /* the count ("2,811 of 10,617 finds") is written after the chips: room for it, so the card-size toggle beside it stays put */
+#grid>.card{contain-intrinsic-size:auto var(--card-h,300px)}   /* --card-h: _chunkUi() */
+/* the size note under the price (size.js, clothes): its line keeps its height from the moment the view opens, so the buy
+   box, Variants and Similar finds do not move down when it appears (the same metrics as size.js's .pcrec-w) */
+#drawer #pc-size{min-height:30px;margin:8px 0 -2px}
+/* the homepage's category circles: a skeleton circle with the moving band until the photo is in, then the photo fades */
+.v9-cat-ph:has(>img:not(.is-in)){overflow:hidden}
+@media (prefers-reduced-motion:no-preference){
+  html.js-fade .v9-cat-ph:has(>img:not(.is-in))::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 30%,color-mix(in srgb,var(--ink) 7%,transparent) 50%,transparent 70%);transform:translateX(-100%);animation:pc-sheen 1.5s cubic-bezier(.4,0,.6,1) infinite}
+}
 /* product view: the strip under the photo (skeleton tiles while its photos are on their way, gal() and enhanceDrawer())
    and the Similar finds row (skeleton cards until renderSimilar() fills it; two title lines on every card, so the row is the
    same height either way) */
@@ -3246,7 +3268,7 @@ html.sub-pre #sub-row[hidden]{display:flex!important;visibility:hidden;min-heigh
   <div class="wrap">
     <label class="search">
       <svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>
-      <input id="q" type="search" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search products">
+      <input id="q" type="search" placeholder="Search finds, e.g. hoodie, cargo, trainer&hellip;" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search products">
       <button type="button" class="pc-cam" id="pc-cam" aria-label="Search with a photo" title="Search with a photo"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg></button>
     </label>
     <input type="file" id="pc-cam-file" accept="image/*" hidden>
@@ -4807,13 +4829,19 @@ function _renderChunk(){
   const frag=document.createDocumentFragment();
   const end=Math.min(_rn+RPAGE,_rlist.length);
   for(let i=_rn;i<end;i++) frag.appendChild(card(_rlist[i],i));
+  /* calm loading: the skeleton row (and "Load more") under the grid go in as fresh copies with the chunk, so the new cards
+     simply take the skeleton row's place and nothing on screen is seen, or counted as a layout shift, sliding down */
+  ["grid-sk","grid-more"].forEach(id=>{ const o=document.getElementById(id); if(o&&!o.hidden) o.replaceWith(o.cloneNode(true)); });
   grid.appendChild(frag); _rn=end; _chunkUi();
 }
 function _chunkUi(){   /* the sentinel, the skeleton row and "Load more" under the grid, after a chunk or a redraw */
   _lastChunkY=window.scrollY||0;
+  /* calm loading: cards not yet drawn (content-visibility:auto) hold the height of a drawn card instead of 300px, so a row
+     first seen after a jump (a fast flick, a restored scroll position) does not grow in view and push the rows under it */
+  try{ const g=$("#grid"), c=g&&g.querySelector(":scope>.card"); if(c){ const cs=getComputedStyle(c), h=Math.round(c.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)); if(h>120&&g.__ch!==h){ g.__ch=h; g.style.setProperty("--card-h",h+"px"); } } }catch(e){}
   const s=$("#grid-sentinel"); if(s) s.style.display=(_rn<_rlist.length)?"":"none";
   /* r6: one row of skeleton cards under the grid while more finds are coming; "Load more" only as a fallback */
-  const sk=$("#grid-sk"); if(sk){ const more=_rn<_rlist.length; if(more&&!sk.firstChild) sk.innerHTML='<div class="sk-card"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div>'.repeat(6); if(sk.hidden===more) sk.hidden=!more; }
+  const sk=$("#grid-sk"); if(sk){ const more=_rn<_rlist.length; if(more&&!sk.firstChild) sk.innerHTML='<div class="sk-card"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div>'.repeat(12); if(sk.hidden===more) sk.hidden=!more; }
   const mo=$("#grid-more"); if(mo){ const sh=_rn<_rlist.length&&(_moreForce||!("IntersectionObserver" in window)); if(mo.hidden===sh) mo.hidden=!sh; }
 }
 let _sentObs=null;
@@ -5774,7 +5802,7 @@ $("#q").addEventListener("keydown",e=>{ if(e.key==="Enter"){ try{window.pcSearch
 $("#q").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.isComposing&&window.matchMedia&&matchMedia("(pointer: coarse)").matches){ e.preventDefault(); e.target.blur(); } });   /* touch screens: the Search key closes the keyboard so the results show */
 $("#sort").addEventListener("change",e=>{state.sort=e.target.value;render();});
 $("#qc-chip")&&$("#qc-chip").addEventListener("click",()=>{state.qc=!state.qc;render();});   /* r6 A: QC photos only */
-$("#grid-more")&&$("#grid-more").addEventListener("click",()=>{ _renderChunk(); try{ pcAfterRender(_rlist); }catch(_){} });
+document.addEventListener("click",e=>{ if(!(e.target.closest&&e.target.closest("#grid-more"))) return; _renderChunk(); try{ pcAfterRender(_rlist); }catch(_){} });   /* delegated: _renderChunk() swaps #grid-more for a fresh copy */
 $("#pc-fbtn")&&$("#pc-fbtn").addEventListener("click",e=>{ e.stopPropagation(); if(PC_FS.open) fsClose(); else fsOpen(); });
 try{ pcAInit(); }catch(e){}
 $("#lang").addEventListener("change",e=>{state.lang=e.target.value;save();applyStatic();buildFilters();render();});
@@ -7504,6 +7532,9 @@ function wirePPFilters(){
           [].forEach.call(rec.removedNodes, function (x) { if (x.nodeType === 1 && x.classList.contains("card")) rem.push(x); });
         });
         if (!add.length) return;
+        /* calm loading: a chunk added under the grid while scrolling has no entrance: its cards take the skeleton row's place
+           as they are, and only their photos fade in over their tiles */
+        if (!rem.length && add.length < grid.children.length) return;
         if (rem.length || add.length === grid.children.length) {
           if (quiet || now - act > 1200 || now - last < 250) return;
           for (i = 0, n = Math.min(12, add.length); i < n && rem[i] && pid(add[i]) === pid(rem[i]); i++);
