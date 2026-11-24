@@ -111,6 +111,7 @@ const priceRange = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort
 // The prices for a meta description. A listed price under a third of the list's half-way price is mostly a deposit or a
 // placeholder (the same test as priceDoubt in brandFacts), so the snippet leaves it out and then says "most" (always
 // true: everything from the half-way price up is kept). The page body keeps the full priceRange.
+const fromPrice = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort((a, b) => a - b); return u.length ? ` From ${money(u[0])}` : ""; };
 const typicalPrices = l => { const u = l.map(p => p.cny).filter(x => !isPH(x)).sort((a, b) => a - b); if (!u.length) return "";
   const med = u[Math.floor((u.length - 1) / 2)], v = u.filter(x => x * 3 >= med), lo = money(v[0]), hi = money(v[v.length - 1]);
   return `, ${v.length < u.length ? "most " : ""}listed at ${lo === hi ? lo : `${lo} to ${hi}`}`; };
@@ -1088,7 +1089,7 @@ export function renderModel(s, n) {
   const modelLinks = others.map(x => [x.name, `/best/${x.slug}`]).concat([["All models", "/best"]]);
   const faq = [[`Where can I buy ${t} reps?`, `Puro Classico lists ${list.length} ${m.name} listings from Weidian, Taobao and 1688. Each opens directly in MyCNBox, KakoBuy, Oopbuy or another shopping agent.`],
                [`Which ${m.name} listing is best?`, `Start with the most-viewed listings at the top and compare their buyer QC photos. Check ${m.qc.join(", ")}.`]];
-  return hub({ path: "/best/" + s, n, list, title: `Best ${t} Reps (2026): ${list.length} Listings Compared · Puro Classico`,
+  return hub({ path: "/best/" + s, n, list, title: `Best ${t} Reps 2026: ${list.length} Listings${fromPrice(list)} · Puro Classico`,   // 24 Nov 2026: a starting price in the title (Search Console: 3.7 to 5% clicks on these pages)
     desc: [`${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}. Check in QC: ${m.qc[0]}, then ${m.qc[1]}.`,
       `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}. Check in QC: ${m.qc[0]}.`,
       `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}, with what to check in QC.`].find(x => x.length <= 160) || `${list.length} ${m.name} rep listings ranked by views${typicalPrices(list)}.`,

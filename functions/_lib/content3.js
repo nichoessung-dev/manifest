@@ -50,7 +50,7 @@ export const GUIDES3 = {
     // ten countries checked (data/seo_ranks_markets.json), while the homepage is in none. So it is the page for those searches:
     // the explainer plus the spreadsheet itself, with its most viewed finds, new finds, counts and every spreadsheet linked
     // (renderGuide in pages.js). Its title says both. The numbers follow the catalogue (liveCopy in site.js).
-    title: "Rep Spreadsheet 2026: 10,600+ Finds and How to Use One",
+    title: "Rep Spreadsheet 2026: 10,600+ Finds With QC Photos (Free)",   // 24 Nov 2026: 13,900 impressions at 3.9% clicks; says what you get
     desc: "The rep spreadsheet: 10,600+ Weidian, Taobao and 1688 finds, 1,300+ with buyer QC photos, what a rep spreadsheet is and how to use one in 4 steps.",
     h1: "Rep spreadsheet: 10,600+ finds and how to use one",
     updated: "2026-11-23",   // the day this text was revised; change it only when it is revised again
@@ -68,8 +68,9 @@ export const GUIDES3 = {
     faq: [["Is a rep spreadsheet free?", "Yes. Puro Classico is free to browse; you only pay the seller, the agent's fees and shipping when you order."], ["Which agent should I use with a spreadsheet?", "Any agent that accepts Weidian, Taobao and 1688 links works. See our best shopping agent guide for a comparison."], ["How often is the spreadsheet updated?", "New finds are added regularly, and every Weidian listing is checked each week: deleted listings are hidden and sold-out ones are marked. The most-viewed finds rise to the top automatically."]],
   },
   "pandabuy-alternatives": {
-    title: "Pandabuy Alternative 2026: 5 Working Agents + Link Converter",
-    desc: "Pandabuy is gone, but its items are not: open old Pandabuy links in KakoBuy, MyCNBox, Oopbuy, LoveGoBuy or Sugargoo (all working on 10 October 2026).",
+    title: "Best Pandabuy Alternatives 2026: 5 Agents That Still Work",
+    // 24 Nov 2026 (Search Console): 12,200 impressions at 2.5% clicks; the title now answers the search ("best ... that still work").
+    desc: "Pandabuy shut down in 2024. These 5 agents still take the same Weidian and Taobao links, compared on fees and QC photos, plus a free Pandabuy link converter.",
     h1: "Pandabuy alternatives in 2026: agents that still work",
     updated: "2026-10-10",   // the day the agents' status below was checked; change it only when they are re-checked
     body: `<p class="lead">Pandabuy no longer works, but you can buy the same items through agents that do: MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo were all operating on 10 October 2026, and our link converter turns an old Pandabuy product link into a link for any of them. Pandabuy has been out of business since 2024: its warehouses in China were reported raided in April of that year, and pandabuy.com did not load when we checked on 10 October 2026.</p><p>Every item behind an old Pandabuy link was an ordinary Weidian, Taobao or 1688 listing, which is why it can still be bought elsewhere.</p>
