@@ -1,5 +1,5 @@
 {
- "at": "2026-11-23T23:56:40+00:00",
+ "at": "2026-11-24T00:41:04+00:00",
  "items": {
   "d:1000194179458": {
    "at": "2026-11-23T18:28:17+00:00",
@@ -3963,12 +3963,12 @@
    "why": "intact: the old cut-out has the whole item (0.3% not in it)"
   },
   "d:7641758570": {
-   "at": "2026-11-23T19:38:44+00:00",
+   "at": "2026-11-24T00:41:04+00:00",
    "checks": {
     "added": 0.0,
     "ar": 0.002,
     "corr": 0.998,
-    "fid": 2.18,
+    "fid": 2.2,
     "inside": [
      0.999,
      0.996
@@ -3979,14 +3979,17 @@
     "shadow": 0.0
    },
    "detect": {
-    "lost_old": 0.5666,
-    "s": 14.0
+    "grown": [
+     "right"
+    ],
+    "lost_old": 0.567,
+    "s": 83.1
    },
    "file": "img/white/recut/7641758570.webp",
    "flag": "lost parts",
    "group": "d",
    "id": "7641758570",
-   "kb": 36,
+   "kb": 35,
    "match": {
     "colour": 2.27,
     "ncc": 0.9969,
@@ -3994,14 +3997,14 @@
    },
    "model": "birefnet-general",
    "notes": {
-    "real_px": 656,
+    "real_px": 666,
     "shown_px": 1376,
-    "up": "Real-ESRGAN (diff 1.4 / detail 2.7)"
+    "up": "Real-ESRGAN (diff 1.4 / detail 2.8)"
    },
    "ok": true,
    "old": "/img/rl/7641758570.webp",
    "originals": 1,
-   "s": 55,
+   "s": 108,
    "source": "original",
    "src_size": [
     1000,
@@ -4013,7 +4016,7 @@
      "added": 0.0,
      "ar": 0.002,
      "corr": 0.998,
-     "fid": 2.18,
+     "fid": 2.2,
      "inside": [
       0.999,
       0.996
@@ -4021,12 +4024,12 @@
      "lost": 0.0,
      "model": "birefnet-general",
      "old_kept": 1.0,
-     "real_px": 656,
-     "s": 27.6,
+     "real_px": 666,
+     "s": 15.0,
      "same": 0.999,
      "shadow": 0.0,
      "shown_px": 1376,
-     "up": "Real-ESRGAN (diff 1.4 / detail 2.7)"
+     "up": "Real-ESRGAN (diff 1.4 / detail 2.8)"
     }
    ],
    "v": 2
