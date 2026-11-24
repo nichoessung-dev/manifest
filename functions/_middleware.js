@@ -380,7 +380,7 @@ async function route(ctx) {
     return path === "/" ? keep(home) : home;   // homepage from the same edge cache as the hubs (~0.22 s -> ~0.11 s TTFB)
   }
   // /spreadsheet (owner, 24 Nov 2026): the spreadsheet alone, for the guides and hubs to send visitors to. The homepage
-  // app with its own title and h1, and only the hero and the full grid shown (the sp-only class hides the rest).
+  // app with its own title and h1, and only the hero and the full grid shown (html[data-sp] hides the rest; the app rewrites the html class, so not a class).
   if (path === "/spreadsheet" && request.method === "GET") {
     const base = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { headers: request.headers }));
     if (base.status === 200) {
@@ -389,7 +389,7 @@ async function route(ctx) {
       const D = "Search 10,600+ Weidian, Taobao and 1688 finds with buyer QC photos and one-tap buy links for MyCNBox, KakoBuy and every other agent. Free.";
       const app = await liveHtml(slimHtml(base, etagOf(base), (await serverCards(ctx, url.origin, null)).cards, ""));
       const sp = new HTMLRewriter()
-        .on("html", { element(e) { e.setAttribute("class", ((e.getAttribute("class") || "") + " sp-only").trim()); } })
+        .on("html", { element(e) { e.setAttribute("data-sp", "1"); } })
         .on("title", { element(e) { e.setInnerContent(TT); } })
         .on('meta[name="description"]', { element(e) { e.setAttribute("content", D); } })
         .on('meta[property="og:title"]', { element(e) { e.setAttribute("content", TT); } })
@@ -397,7 +397,7 @@ async function route(ctx) {
         .on('meta[property="og:url"]', { element(e) { e.setAttribute("content", "https://www.puroclassico.com/spreadsheet"); } })
         .on('link[rel="canonical"]', { element(e) { e.setAttribute("href", "https://www.puroclassico.com/spreadsheet"); } })
         .on("#v9-hero-title", { element(e) { e.removeAttribute("data-i18n"); e.setInnerContent(T); } })
-        .on("head", { element(e) { e.append(`<script>window.__pcBaseTitle=${JSON.stringify(TT)}</script><style>.sp-only .v9-cats,.sp-only .v9-row,.sp-only .v9-qc,.sp-only .v9-teasers,.sp-only .v9-tools,.sp-only .v9-steps,.sp-only .v9-nums,.sp-only .hx-home,.sp-only #seo{display:none!important}</style>`, { html: true }); } })
+        .on("head", { element(e) { e.append(`<script>window.__pcBaseTitle=${JSON.stringify(TT)}</script><style>html[data-sp] :is(.v9-cats,.v9-row,.v9-qc,.v9-teasers,.v9-tools,.v9-steps,.v9-nums,.hx-home,#seo){display:none!important}</style>`, { html: true }); } })
         .transform(app);
       return keep(sp);
     }
