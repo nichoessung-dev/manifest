@@ -1,4 +1,5 @@
 name: Month build
+run-name: Month build ${{ inputs.account }} x${{ inputs.count }}
 # Builds slideshows for the month videos and puts each on the release "month-content" (scripts/month_build.py).
 # Nothing is posted here: scripts/local_videos.py adds the owner's voice on the owner's PC, the Month queue workflow schedules them.
 on:
