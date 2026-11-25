@@ -15,8 +15,8 @@ a transparent cut-out of products/pc (the site's own copy img/m/pc, the same byt
   base under it ("base": a pedestal, a stand, a kept backdrop patch).
   Also measured for review: "haze", the share of the item's inside that is light and only partly opaque (an item the
   old matte left half see-through, a white tee that fades out at the hem: fine on the light well, murky on #262626; no
-  edge treatment can fix that, so those finds keep a light tile), and "frame" (thin light lines next to the item: the
-  display frame of the football shirt photos, a rack bar).
+  edge treatment can fix that, so those finds keep a light tile), "semi" (the same for any colour) and "frame" (thin
+  light lines next to the item: the display frame of the football shirt photos, a rack bar).
 data/photo_edge_fix.json "frames": finds checked by eye whose thin light lines (a display frame, a rack bar) come out of
   the matte before the edge is cleaned (remove_frames: only thin, long, light neutral pieces outside the item's body;
   the item is never touched). The record says so ("fix": "frames").
@@ -225,14 +225,16 @@ def remove_frames(im, min_ext=0.08, min_elong=2.5):
 
 def dark_measures(rgba, S=600):
     """haze: the share of the item's inside (6 px in from the filled outline, at 600 px) that is light and only partly
-    opaque; frame: pixels of thin, long, light neutral pieces next to the item's body."""
+    opaque; semi: the same for any colour (a dark item left half see-through turns murky on #262626 too); frame: pixels
+    of thin, long, light neutral pieces next to the item's body."""
     from scipy import ndimage
     im = rgba.convert("RGBA"); k = S / max(im.size)
     im = im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.BILINEAR)
     x = np.asarray(im, np.float32); a = x[..., 3] / 255.0; rgb = x[..., :3]
     L = lum(rgb)
     inside = ndimage.binary_erosion(ndimage.binary_fill_holes(a > 0.08), iterations=6)
-    haze = float((inside & (a > 0.08) & (a < 0.85) & (L > 150)).sum() / max(1, inside.sum()))
+    part = inside & (a > 0.08) & (a < 0.85)
+    haze = float((part & (L > 150)).sum() / max(1, inside.sum())); semi = float(part.sum() / max(1, inside.sum()))
     M = a >= 0.5
     thin = M & ~ndimage.binary_dilation(ndimage.binary_opening(M, structure=disk(7)), iterations=1)
     mn, mx = rgb.min(axis=2), rgb.max(axis=2)
@@ -243,7 +245,7 @@ def dark_measures(rgba, S=600):
         h, w = sl[0].stop - sl[0].start, sl[1].stop - sl[1].start
         area = int((lab[sl] == j + 1).sum())
         if max(h, w) >= 0.08 * S and area >= 30 and max(h, w) / np.sqrt(area) >= 2.5: frame += area
-    return round(haze, 4), frame
+    return round(haze, 4), round(semi, 4), frame
 
 
 def state_file(k, n): return os.path.join(STATE, f"{k}-of-{n}.json")
@@ -290,7 +292,7 @@ def main(argv=None):
                 else:
                     rec["halo0"], rec["halo1"] = halo(rgba), halo(fx)
                     rec["flags"] = flags(fx)
-                    rec["haze"], rec["frame"] = dark_measures(fx)
+                    rec["haze"], rec["semi"], rec["frame"] = dark_measures(fx)
                     f = os.path.join(OUT, t["id"] + ".webp")
                     fx.save(f, "WEBP", quality=92, method=5)
                     data = open(f, "rb").read()
