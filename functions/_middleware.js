@@ -3,7 +3,8 @@
 import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT, liveCopy, newest, FINDS_PLUS, QC_PLUS, AGENT_NAMES_ALL } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderAbout, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
   sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL, renderPlat, fitTitle, renderNew, newFindsHtml, NEW_LINKS, HX_CSS } from "./_lib/pages.js";
-import { imgSrc, navKey, SWAP_VER, setHidden } from "./_lib/site.js";
+import { imgSrc, navKey, SWAP_VER, setHidden, AGENT_ORDER } from "./_lib/site.js";
+import { spHero, trendItems, SP_CSS, SP_JS } from "./_lib/sp_hero.js";
 import { reportedIds, reportedOk } from "./_lib/reported.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
@@ -185,6 +186,19 @@ async function linkHealth(ctx, origin) {
     _lh = { checked: h.checked, dead: new Set((h.dead || []).map(String)) }; _lhAt = Date.now();
   } catch (e) { if (!_lh) _lh = { checked: null, dead: new Set() }; }
   return _lh;
+}
+// The week's top searches (data/dashboard.json, written by the stats job): the /spreadsheet hero's Trending chips, the same
+// list and filter as the search panel's Popular chips (pcs.js loadPop). Kept for 10 minutes.
+let _ts = null, _tsAt = 0;
+async function topSearches(ctx, origin) {
+  if (_ts && Date.now() - _tsAt < 600000) return _ts;
+  try {
+    const dash = await (await ctx.env.ASSETS.fetch(new Request(origin + "/data/dashboard.json"))).json();
+    _ts = (((dash && dash.search) || {}).top || []).filter(r => (r[3] || 0) > 0).map(r => String(r[0] || "").trim())
+      .filter(q => q.length >= 2 && q.length <= 40 && !/^\d+$/.test(q) && !/https?:|www\.|\.[a-z]{2,3}\//i.test(q));
+    _tsAt = Date.now();
+  } catch (e) { if (!_ts) _ts = []; }
+  return _ts;
 }
 // The app's first cards as HTML (see appCards in pages.js), dead listings and finds removed after reports
 // (data/reported.json) left out like the app does. Only once the view
@@ -386,6 +400,8 @@ async function route(ctx) {
   }
   // /spreadsheet (owner, 24 Nov 2026): the spreadsheet alone, for the guides and hubs to send visitors to. The homepage
   // app with its own title and h1, and only the hero and the full grid shown (html[data-sp] hides the rest; the app rewrites the html class, so not a class).
+  // 25 Nov 2026 (owner): its hero is lab concept A's search-first hero (_lib/sp_hero.js), server-rendered in place of the
+  // homepage hero's content; the title, meta description, og:title and canonical stay as they were.
   if (path === "/spreadsheet" && request.method === "GET") {
     const base = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { headers: request.headers }));
     if (base.status === 200) {
@@ -393,7 +409,9 @@ async function route(ctx) {
       const T = "The Easiest Spreadsheet to Use for China", TT = T + " | Puro Classico";
       const D = "Search 10,600+ Weidian, Taobao and 1688 finds with buyer QC photos and one-tap buy links for MyCNBox, KakoBuy and every other agent. Free.";
       const app = await liveHtml(slimHtml(base, etagOf(base), (await serverCards(ctx, url.origin, null)).cards, ""));
-      let ldDone = false;
+      const brandNames = [...idx().byBrand].sort((a, b) => b[1].length - a[1].length).map(e => e[0]);
+      const hero = spHero({ finds: FINDS_PLUS, qc: QC_PLUS, agents: AGENT_ORDER.length, built: BUILT, trend: trendItems(await topSearches(ctx, url.origin), brandNames) });
+      let ldDone = false, cssDone = false;
       const sp = new HTMLRewriter()
         .on("html", { element(e) { e.setAttribute("data-sp", "1"); } })
         .on("title", { element(e) { e.setInnerContent(TT); e.after(`<script>window.__pcBaseTitle=${JSON.stringify(TT)}</script><style>html[data-sp] :is(.v9-cats,.v9-row,.v9-qc,.v9-teasers,.v9-tools,.v9-steps,.v9-nums,.hx-home,#seo){display:none!important}</style>`, { html: true }); } })   // no <head> tag in index.html
@@ -402,7 +420,10 @@ async function route(ctx) {
         .on('meta[property="og:description"]', { element(e) { e.setAttribute("content", D); } })
         .on('meta[property="og:url"]', { element(e) { e.setAttribute("content", "https://www.puroclassico.com/spreadsheet"); } })
         .on('link[rel="canonical"]', { element(e) { e.setAttribute("href", "https://www.puroclassico.com/spreadsheet"); } })
-        .on("#v9-hero-title", { element(e) { e.removeAttribute("data-i18n"); e.setInnerContent(T); } })
+        // the hero's styles right after the app's stylesheet (so they win ties), its markup in the hero, its script after the search's
+        .on('link[rel="stylesheet"][href^="/app.css"]', { element(e) { if (!cssDone) { cssDone = true; e.after(SP_CSS, { html: true }); } } })
+        .on("section.hero", { element(e) { if (!cssDone) { cssDone = true; e.before(SP_CSS, { html: true }); } e.setInnerContent(hero, { html: true }); } })
+        .on("script#pc-search", { element(e) { e.after(SP_JS, { html: true }); } })
         // 25 Nov 2026 (SEO pass): the homepage's structured data said this page was "/" and carried the FAQ of the #seo block,
         // which this page hides. Its own CollectionPage instead, in the same graph as the homepage's Organization and WebSite.
         .on('script[type="application/ld+json"]', { element(e) { if (ldDone) { e.remove(); return; } ldDone = true; e.replace('<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage",
