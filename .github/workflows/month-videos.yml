@@ -1,0 +1,52 @@
+name: Month videos
+# Turns the slideshow packs (release month-content) into voiced videos (release month-videos) with the ElevenLabs voice
+# (scripts/local_videos.py). "redo" also remakes finished videos that still have an older voice.
+run-name: Month videos ${{ inputs.mode }}
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'new (only videos not made yet), redo (also remake old-voice videos), test (one video, not uploaded)'
+        type: choice
+        options: ['new', 'redo', 'test']
+        default: 'new'
+      only:
+        description: 'Only packs whose name contains this (test mode)'
+        default: ''
+permissions:
+  contents: write
+concurrency: month-videos-${{ inputs.mode }}
+jobs:
+  videos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy pillow imageio-ffmpeg
+      - name: Make videos
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          MONTH_WORK: ${{ runner.temp }}/month
+          PYTHONUNBUFFERED: '1'
+          MODE: ${{ inputs.mode }}
+          ONLY: ${{ inputs.only }}
+        run: |
+          case "$MODE" in
+            test) [ "${{ matrix.shard }}" = "0" ] || exit 0
+                  python scripts/local_videos.py --no-upload --limit 1 --only "$ONLY" ;;
+            redo) python scripts/local_videos.py --redo --shard ${{ matrix.shard }}/6 ;;
+            *)    python scripts/local_videos.py --shard ${{ matrix.shard }}/6 ;;
+          esac
+      - uses: actions/upload-artifact@v4
+        if: inputs.mode == 'test' && matrix.shard == 0
+        with:
+          name: test-video
+          path: ${{ runner.temp }}/month/videos/

@@ -22,6 +22,11 @@ INTRO = "here is what I bought from China."
 OUTRO = "check out puroclassico.com for finds like this."
 OUTRO_SAY = "check out puro classico dot com, for finds like this."     # how the voice should say it
 EXAG, CFG = 0.65, 0.5                                                      # owner picked strength 0.65 (25 Nov 2026)
+# 25 Nov 2026: the owner switched every video to the ElevenLabs stock voice "Eric - Smooth, Trustworthy" on eleven_v4_turbo
+ENGINE = os.environ.get("VOICE_ENGINE", "elevenlabs")
+EL_VOICE = os.environ.get("ELEVEN_VOICE", "cjVigY5qzO86Huf0OWal")
+EL_MODEL = os.environ.get("ELEVEN_MODEL", "eleven_v4_turbo")
+VOICE_TAG = ("eleven:%s:%s" % (EL_VOICE, EL_MODEL)) if ENGINE == "elevenlabs" else "chatterbox"
 W, H, FPS = 1080, 1920, 30
 SR = 24000
 _M = [None]
@@ -50,8 +55,36 @@ def expected(text):
     return max(0.9, n / 13.0)
 
 
+def eleven(text, seed):
+    """One line from ElevenLabs as float32 mono at SR."""
+    import urllib.request, urllib.error
+    body = json.dumps({"text": text, "model_id": EL_MODEL, "seed": int(seed) % 4294967295}).encode()
+    req = urllib.request.Request("https://api.elevenlabs.io/v1/text-to-speech/%s?output_format=mp3_44100_128" % EL_VOICE, data=body,
+                                 headers={"xi-api-key": os.environ["ELEVENLABS_API_KEY"].strip(), "Content-Type": "application/json"})
+    for k in range(5):
+        try:
+            with urllib.request.urlopen(req, timeout=120) as r: mp3 = r.read(); break
+        except urllib.error.HTTPError as e:
+            msg = e.read()[:300].decode(errors="replace")
+            if e.code in (429, 500, 502, 503) and k < 4: time.sleep(5 * (k + 1)); continue
+            raise RuntimeError("ElevenLabs HTTP %d: %s" % (e.code, msg))
+        except Exception:
+            if k < 4: time.sleep(5 * (k + 1)); continue
+            raise
+    pcm = subprocess.run([FF, "-loglevel", "error", "-i", "-", "-f", "f32le", "-ac", "1", "-ar", str(SR), "-"], input=mp3, capture_output=True, check=True).stdout
+    return np.frombuffer(pcm, np.float32).copy()
+
+
 def say(text, device, seed=0, tries=4):
     """One clean take of a line: trimmed, and its length must fit the words (a garbled or run-on take is made again)."""
+    if ENGINE == "elevenlabs":
+        best = None
+        for t in range(2):
+            w = trim(eleven(text, 7000 + seed * 10 + t)); r = (len(w) / SR) / expected(text)
+            if 0.45 <= r <= 1.9: return w
+            if best is None or abs(np.log(r)) < abs(np.log(best[1])): best = (w, r)
+            print("    retake (%.1fs): %s" % (len(w) / SR, text[:50]), flush=True)
+        return best[0]
     import torch
     m = model(device); best = None
     for t in range(tries):
@@ -66,9 +99,11 @@ def say(text, device, seed=0, tries=4):
 
 def fixed_line(name, text, device):
     """The intro and the ending are the same in every video: made once (the take closest to a normal length) and reused."""
-    p = os.path.join(WORK, "voice", name + ".npy")
+    p = os.path.join(WORK, "voice", name + ("" if ENGINE != "elevenlabs" else "-" + EL_VOICE + "-" + EL_MODEL) + ".npy")
     if os.path.exists(p): return np.load(p)
     os.makedirs(os.path.dirname(p), exist_ok=True)
+    if ENGINE == "elevenlabs":                     # a fixed seed: the same intro and ending in every video
+        w = trim(eleven(text, 4242)); np.save(p, w); write_wav(p[:-4] + ".wav", w); return w
     takes = [say(text, device, seed=900 + k, tries=2) for k in range(4)]
     e = expected(text); w = min(takes, key=lambda x: abs(len(x) / SR - e * 1.05))
     np.save(p, w); write_wav(p[:-4] + ".wav", w); return w
@@ -123,7 +158,7 @@ def render(pk_dir, pk, device, state):
     p.stdin.close(); p.wait()
     if p.returncode or not os.path.exists(out): raise RuntimeError("ffmpeg failed for " + pk["id"])
     meta = {"format": "month-video", "account": pk["account"], "images": [], "ids": [], "caption": pk.get("caption") or "",
-            "seconds": round(total, 1), "voiceover": True, "file": pk["id"] + ".mp4", "product_url": "https://www.puroclassico.com/spreadsheet",
+            "seconds": round(total, 1), "voiceover": True, "voice": VOICE_TAG, "file": pk["id"] + ".mp4", "product_url": "https://www.puroclassico.com/spreadsheet",
             "music": os.path.basename(music), "says": [INTRO] + [s.get("say") for s in pk["slides"]] + [OUTRO]}
     json.dump(meta, open(out[:-4] + ".json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     return out, total
@@ -134,9 +169,31 @@ def assets(tag):
     return set(r.stdout.split()) if r.returncode == 0 else None
 
 
+def current_voice_videos():
+    """The finished videos already made with the current voice (their json says so)."""
+    d = os.path.join(WORK, "metas"); os.makedirs(d, exist_ok=True)
+    sh(["gh", "release", "download", VIDEOS_TAG, "-p", "*.json", "-D", d, "--clobber"], cwd=ROOT, capture_output=True)
+    out = set()
+    for f in glob.glob(os.path.join(d, "*.json")):
+        try:
+            if json.load(open(f, encoding="utf-8")).get("voice") == VOICE_TAG: out.add(os.path.basename(f)[:-5] + ".mp4")
+        except Exception: pass
+    return out
+
+
+_Q = [None]
+def queue_order(vid):
+    if _Q[0] is None:
+        try: _Q[0] = json.load(open(os.path.join(ROOT, "month_queue.json"), encoding="utf-8")).get("queued", {})
+        except Exception: _Q[0] = {}
+    v = _Q[0].get(vid); return (0, v["at"]) if v else (1, vid)
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--limit", type=int, default=0); ap.add_argument("--device", default="cpu")
     ap.add_argument("--no-upload", action="store_true"); ap.add_argument("--only", default=""); ap.add_argument("--loop", action="store_true", help="keep checking for new packs")
+    ap.add_argument("--redo", action="store_true", help="also remake finished videos whose voice is not the current one")
+    ap.add_argument("--shard", default="", help="i/n: only every n-th video, starting at i (parallel GitHub jobs)")
     a = ap.parse_args()
     if a.device == "cpu": os.environ["CUDA_VISIBLE_DEVICES"] = ""
     for d in ("packs", "videos", "voice"): os.makedirs(os.path.join(WORK, d), exist_ok=True)
@@ -149,8 +206,12 @@ def main():
     while True:
         sh(["gh", "release", "download", PACKS_TAG, "-p", "*.zip", "-D", os.path.join(WORK, "packs"), "--skip-existing"], cwd=ROOT, capture_output=True)
         done = (assets(VIDEOS_TAG) or set()) if not a.no_upload else set()
+        if a.redo: done = current_voice_videos()
         todo = [z for z in sorted(glob.glob(os.path.join(WORK, "packs", "*.zip"))) if (not a.only or a.only in z)]
         todo = [z for z in todo if os.path.basename(z)[:-4] + ".mp4" not in done and not (a.no_upload and os.path.exists(os.path.join(WORK, "videos", os.path.basename(z)[:-4] + ".mp4")))]
+        todo.sort(key=lambda z: queue_order(os.path.basename(z)[:-4]))         # the videos that post soonest first
+        if a.shard:
+            i, n = (int(x) for x in a.shard.split("/")); todo = todo[i::n]
         if not todo:
             if not a.loop: break
             print("waiting for new packs...", flush=True); time.sleep(300); continue
