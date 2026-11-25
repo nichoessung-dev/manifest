@@ -282,6 +282,9 @@ async function route(ctx) {
     return ctx.next();
   }
   if (/^\/api(\/|$)/.test(path)) return json404();
+  // /lab/* (25 Nov 2026) is a private static area of folders with an index.html. Pages adds the folder slash itself
+  // (/lab -> /lab/), so stripping it below made a redirect loop: serve these files as they are.
+  if (/^\/lab(\/|$)/.test(path)) return ctx.next();
   // One 301 hop: strip the trailing slash and, for hub URLs (/brand/Fendi, /Best/X ...), lowercase.
   let to = path.length > 1 ? path.replace(/\/+$/, "") || "/" : path;
   if (/^\/(brand|category|brands|old-money|guides|best|tools|new)\b|^\/[a-z0-9]+-spreadsheet/i.test(to)) to = to.toLowerCase();
