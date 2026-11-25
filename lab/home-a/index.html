@@ -278,7 +278,7 @@ html.p-sheet{overflow:hidden;scroll-padding-top:0}
 .pr{font:600 16px/1 var(--f);letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
 .buy{display:inline-flex;align-items:center;height:32px;padding:0 15px;border-radius:999px;background:var(--surface-2);color:var(--ink);font:600 13.5px/1 var(--f);transition:background-color var(--d1) linear,color var(--d1) linear}
 .buy.red{background:var(--red);color:#fff}
-.p-note2{font:500 13px/1.2 var(--f);color:var(--muted)}
+.p-note2{font:500 13px/1.2 var(--f);color:var(--muted);white-space:nowrap}
 .c-a:active{transform:scale(.985);transition-delay:80ms}
 @media (hover:hover) and (pointer:fine){.c-a:hover{transform:translateY(-3px);box-shadow:var(--sh-lift)}.c-a:hover .well img.in{transform:scale(1.03)}.c-a:hover .buy:not(.red){background:var(--fill);color:var(--fill-ink)}}
 .sk .c-a{box-shadow:none}
@@ -716,8 +716,8 @@ function promoHTML(k) {
     `aria-label="MyCNBox: up to $500 in new-user coupons when you make your account with our link">` +
     `<span class="well"><img class="pl" src="/img/agents/mycnbox.webp" alt="" width="38" height="38" loading="lazy">` +
     `<span class="pbig">$500</span><span class="psm">in new-user coupons</span></span>` +
-    `<span class="c-b"><span class="c-br">MyCNBox</span><span class="c-t">New account? Claim up to $500 in coupons with our link</span>` +
-    `<span class="c-p"><span class="p-note2">Sign-up bonus</span><span class="buy red" aria-hidden="true">Claim</span></span></span></a></li>`;
+    `<span class="c-b"><span class="c-br">MyCNBox</span><span class="c-t">New account? Claim up to $500 in coupons</span>` +
+    `<span class="c-p"><span class="p-note2">New users</span><span class="buy red" aria-hidden="true">Claim</span></span></span></a></li>`;
 }
 
 /* ---------------- grid ---------------- */
