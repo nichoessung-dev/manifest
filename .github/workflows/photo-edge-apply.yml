@@ -1,0 +1,76 @@
+name: Photo edges apply
+# Switches the finds to their cleaned cut-outs (owner, 25 Nov 2026: dark tiles on #262626) with
+# scripts/photo_edge_apply.py, in one commit: the reviewed files come from the artifacts of the photo-edge run (sha1
+# checked against data/photo_edge), /img/rl and /img/fr finds get site files next to the old ones, products/pc finds
+# point at the uploaded products/pc2/<id>-e1.webp objects (data/photo_edge_uploaded.json), the photo mirror gets the same
+# bytes, and old files that nothing names any more are deleted. Runs here because the commit holds about 700 MB of
+# photos. When main moves during the push, the job starts again from the new main (the catalogue block is never merged
+# by hand). write=no reports only. Revert: python scripts/photo_edge_apply.py --revert --write
+on:
+  workflow_dispatch:
+    inputs:
+      run:
+        description: 'The photo-edge run whose artifacts hold the reviewed files'
+        default: '45676279965'
+      write:
+        description: 'yes = commit and push the switch; no = report only'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+permissions:
+  contents: write
+  actions: read
+concurrency: photo-edge-apply
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      RUN: ${{ inputs.run || '45676279965' }}
+      WRITE: ${{ inputs.write || 'no' }}
+    steps:
+      - name: Check inputs
+        run: |
+          [[ "$RUN" =~ ^[0-9]{1,15}$ ]] || { echo "::error::bad run"; exit 1; }
+          [[ "$WRITE" =~ ^(yes|no)$ ]] || { echo "::error::bad write"; exit 1; }
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install pillow
+      - name: Reviewed files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download "$RUN" -R "$GITHUB_REPOSITORY" -p "photo-edge-*" -D "$RUNNER_TEMP/art"
+          mkdir -p "$RUNNER_TEMP/files"
+          find "$RUNNER_TEMP/art" -path "*/img/edge/*.webp" -exec cp -t "$RUNNER_TEMP/files" {} +
+          echo "reviewed files: $(ls "$RUNNER_TEMP/files" | wc -l)"
+      - name: Apply
+        run: |
+          set -eo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ "$WRITE" != "yes" ]; then python -u scripts/photo_edge_apply.py "$RUNNER_TEMP/files"; exit 0; fi
+          for n in 1 2 3 4 5; do
+            git fetch -q origin main && git reset -q --hard origin/main && git clean -q -fd -- img data
+            python -u scripts/photo_edge_apply.py "$RUNNER_TEMP/files" --write | tee apply.log
+            git add -A index.html functions/_lib/catalog.js products.json sitemap.xml data/catalog_ai_applied.json \
+              data/photo_edge_applied.json img/rl img/fr img/m
+            git diff --cached --quiet && { echo "nothing to switch"; exit 0; }
+            {
+              echo "photos: cleaned outlines for dark tiles ($(python -c 'import json;print(len(json.load(open("data/photo_edge_applied.json"))["switched"]))') finds)"
+              echo
+              echo "scripts/photo_edge_apply.py with the reviewed files of photo-edge run $RUN (data/photo_edge_applied.json):"
+              grep -E "^(switched|site files|mirror|old site files)" apply.log
+              echo "Revert: python scripts/photo_edge_apply.py --revert --write"
+              echo
+              echo "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+              echo "Claude-Session: https://claude.ai/code/session_01N2sq8SbTj35eBbCnzMzfxc"
+            } > msg.txt
+            git commit -q -F msg.txt
+            if git push -q origin HEAD:main; then git log --oneline -1; exit 0; fi
+            echo "main moved, starting again from the new main"; sleep $((n * 10))
+          done
+          echo "::error::the switch could not be pushed"; exit 1
