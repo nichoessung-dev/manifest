@@ -55,12 +55,11 @@ export const GUIDES3 = {
     h1: "Rep spreadsheet: 10,600+ finds and how to use one",
     updated: "2026-11-23",   // the day this text was revised; change it only when it is revised again
     body: `<p class="lead">A <strong>rep spreadsheet</strong> (or finds spreadsheet) is a curated list of product links from Chinese marketplaces (Weidian, Taobao and 1688), usually with photos, prices and links that open each item in a shopping agent. Most started as Google Sheets shared on Reddit's FashionReps and Discord servers; Puro Classico is a searchable <a href="/">rep spreadsheet</a> with 9,000+ finds.</p>
-<p><a class="btn light" href="/spreadsheet">Open the spreadsheet: 9,000+ finds →</a></p>
 <h2>How to use a rep spreadsheet</h2><ol class="steps">
 <li><strong>Browse or search.</strong> Filter by brand, category or price, or sort by most viewed.</li>
 <li><strong>Check the QC photos.</strong> Finds marked "QC" have real warehouse photos from earlier buyers (<a href="/guides/how-to-qc">how to read them</a>); the <a href="/qc-spreadsheet">QC photos spreadsheet</a> lists only finds with buyer QC photos.</li>
 <li><strong>Open it in your agent.</strong> Tap Buy to open the listing in MyCNBox, KakoBuy, Oopbuy, LoveGoBuy or Sugargoo, or convert any link with the <a href="/tools/link-converter">link converter</a>.</li>
-<li><strong>Order, inspect and ship.</strong> The agent buys the item, photographs it at the warehouse and ships your parcel. Watch the <a href="/how-to-order">1:47 how-to-order video</a>.</li></ol>
+<li><strong>Order, inspect and ship.</strong> The agent buys the item, photographs it at the warehouse and ships your parcel. Watch the <a href="/how-to-order">56-second how-to-order video</a>.</li></ol>
 <h2>What makes a good spreadsheet</h2><ul><li><strong>Working links</strong>: listings get deleted, so links in old Google Sheets often stop working.</li><li><strong>QC photos</strong> so you can judge quality before buying.</li><li><strong>Search and filters</strong> instead of scrolling thousands of rows.</li><li><strong>Agent-neutral links</strong> so you can use the agent you prefer.</li></ul>
 <p>On Puro Classico, about nine in ten finds are Weidian listings, and we check every one of them each week: deleted listings are hidden from the spreadsheet and sold-out ones are marked on their pages.</p>
 <h2>Rep spreadsheets for every agent</h2><p><a href="/mycnbox-spreadsheet">MyCNBox spreadsheet</a> · <a href="/kakobuy-spreadsheet">KakoBuy spreadsheet</a> · <a href="/oopbuy-spreadsheet">Oopbuy spreadsheet</a> · <a href="/lovegobuy-spreadsheet">LoveGoBuy spreadsheet</a> · <a href="/sugargoo-spreadsheet">Sugargoo spreadsheet</a> · <a href="/cnfans-spreadsheet">CNFans spreadsheet</a></p>
@@ -99,8 +98,8 @@ export const GUIDES3 = {
 <h2>Corrections</h2><p>Found a dead link or a wrong fact? Use the Report broken link button on a find in the catalogue, or tell us in our <a href="/discord">Discord</a>.</p>`,
   },
   "rep-glossary": {
-    title: "Rep Terms Explained: QC, GL/RL, W2C, Batch, Haul & More",
-    desc: "A glossary of rep and shopping-agent slang: QC, GL/RL, W2C, batch, haul, LC, retail, 1:1, rehearsal packaging and more.",
+    title: "Rep Glossary 2026: What QC, GL/RL, W2C and Batch Mean",   // 25 Nov 2026 (SEO pass): 338 impressions at 0.6% clicks
+    desc: "What rep and shopping-agent slang means, one line each: QC, GL/RL, W2C, batch, haul, LC, retail, rehearsal packaging and more, with links to go deeper.",
     h1: "Rep terms glossary",
     body: `<p class="lead">New to reps? These are the terms you'll see on spreadsheets, Reddit and Discord.</p>
 <style>.gloss dt{font-weight:700;margin-top:14px}.gloss dd{margin:4px 0 0;color:var(--muted)}</style><dl class="gloss">

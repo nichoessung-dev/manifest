@@ -1352,3 +1352,128 @@ html.js-fade :is(.pimg img,.thumbs img,.qcs img):not(.is-in){opacity:0}
 /* the size note under the price (size.js, clothes) keeps its line from the first paint, so the buy box does not move down
    when it appears (the same metrics as size.js's .pcrec-w) */
 [data-pcsz-id]{min-height:30px;margin:8px 0 -2px}
+
+/* ---- guide layout v12 (25 Nov 2026, SEO pass; pages.js renderGuide; owner: "make the blogs / seo pages look better and
+   convert better"). One column on phones and tablets; from 1024px the text (at most 720px) and a 288px side column that
+   stays in view: "On this page" (the section being read is marked) and the spreadsheet card. Below 1024px "On this page"
+   folds into one row, and the product page's .buybar carries the spreadsheet button once the hero button scrolls away. ---- */
+.bc:has(+ .ga){max-width:1072px;margin-inline:auto}
+.ga{display:grid;grid-template-columns:minmax(0,1fr);max-width:1072px;margin:0 auto}
+.ga-hero,.ga-main{min-width:0}
+.ga-side{display:none}
+.ga-main.prose{max-width:none}
+@media (min-width:1024px){
+  .ga{grid-template-columns:minmax(0,720px) 288px;grid-template-areas:"hero side" "main side";column-gap:64px;justify-content:space-between}
+  .ga-hero{grid-area:hero}
+  .ga-main{grid-area:main}
+  .ga-side{grid-area:side;display:flex;flex-direction:column;gap:16px;position:sticky;top:24px;align-self:start;margin-top:4px}
+  .ga-toc-m{display:none}
+}
+/* hero */
+.ga-hero .eyebrow.pill{margin:0 0 18px}
+.ga-hero h1{font-size:clamp(32px,2.6vw + 20px,52px);line-height:1.06;letter-spacing:-.035em;margin:0 0 18px;max-width:21ch}
+.ga-hero .lead{font-size:clamp(17px,.35vw + 15.6px,20px);line-height:1.55;color:var(--ink-2);max-width:none;margin:0 0 14px}
+.ga-hero .lead a{color:var(--ink);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--ink) 30%,transparent);text-decoration-thickness:1px;text-underline-offset:3px}
+.ga-hero .lead strong{color:var(--ink);font-weight:600}
+.ga-by{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin:0 0 24px;font-size:14px;color:var(--muted)}
+.ga-by a{display:inline-flex;align-items:center;gap:4px;color:inherit;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--muted) 45%,transparent);text-underline-offset:3px}
+@media (hover:hover){.ga-by a:hover{color:var(--ink)}}
+.ga-cta{display:flex;flex-wrap:wrap;gap:10px}
+.ga-cta .btn{gap:8px}
+.ga-cta .btn:not(.primary) .ic{color:var(--muted)}
+@media (max-width:560px){.ga-cta .btn{flex:1 1 100%}}
+.ga-facts{display:flex;flex-wrap:wrap;gap:8px 20px;margin:18px 0 0;padding:0;list-style:none;font-size:13.5px;line-height:1.4;color:var(--muted);font-variant-numeric:tabular-nums}
+.ga-facts li{display:inline-flex;align-items:center;gap:6px;margin:0}
+.ga-facts .ic{color:var(--ink-2)}
+/* "On this page": side column (desktop) and the folded row (phones, tablets) */
+.ga-toc{margin:0;padding:14px 8px 8px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:var(--sh-sm)}
+.ga-toc .eyebrow{display:flex;align-items:center;gap:6px;margin:0 8px 6px;font-size:13px;font-weight:600;color:var(--ink)}
+.ga-toc ol{list-style:none;margin:0;padding:0;columns:auto}
+.ga-toc li{margin:0;padding:0;border:0}
+.ga-toc a{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;font-size:13.5px;line-height:1.35;color:var(--muted);text-decoration:none;transition:color .1s linear,background-color .1s linear}
+.ga-toc a .ic{flex:none;opacity:.85}
+@media (hover:hover){.ga-toc a:hover{color:var(--ink);background:var(--surface-2)}}
+.ga-toc a[aria-current]{color:var(--ink);background:var(--surface-2);font-weight:500}
+.ga-toc-m{margin:0 0 8px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.ga-toc-m > summary{display:flex;align-items:center;gap:8px;min-height:52px;padding:0 16px;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;list-style:none;-webkit-tap-highlight-color:transparent}
+.ga-toc-m > summary::-webkit-details-marker{display:none}
+.ga-toc-m > summary > span{margin-left:auto;font-size:13px;font-weight:400;color:var(--muted)}
+.ga-toc-m > summary > .ic:last-child{color:var(--muted);transition:transform .2s var(--ease-out)}
+.ga-toc-m[open] > summary > .ic:last-child{transform:rotate(180deg)}
+.ga-toc-m .toc{margin:0;padding:0 16px 6px;border:0;border-top:1px solid var(--line);border-radius:0;background:none;box-shadow:none}
+/* the spreadsheet card in the side column */
+.ga-card{display:flex;flex-direction:column;gap:6px;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:var(--sh-sm)}
+.ga-card-k{font-size:13px;font-weight:500;color:var(--muted)}
+.ga-card b{font-size:28px;line-height:1.1;letter-spacing:-.03em;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.ga-card > span:not(.ga-card-k){font-size:13.5px;line-height:1.5;color:var(--muted)}
+.ga-card .btn{margin-top:10px;width:100%}
+/* the text: Apple-style article copy, 17px at 1.65 */
+.ga-main{padding-top:28px}
+.ga-main.prose > p,.ga-main.prose li,.ga-main.prose dd{font-size:17px;line-height:1.65}
+.ga-main.prose h2{font-size:clamp(22px,.9vw + 17px,28px);line-height:1.2;letter-spacing:-.025em;margin:56px 0 16px}
+.ga-main.prose h3{font-size:19px;margin:32px 0 8px}
+.ga-main.prose .ga-toc-m + h2,.ga-main.prose > h2:first-child{margin-top:32px}
+.ga-main.prose h2[id]{scroll-margin-top:24px}
+.ga-main .steps li{margin-bottom:20px}
+.ga-main .note{margin:28px 0}
+/* wide tables scroll in their own box on phones; rows get a little more air */
+.ga-tw{margin:24px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.ga-tw table{margin:0;min-width:520px;font-size:14.5px}
+.ga-tw th,.ga-tw td{padding:12px 14px}
+.ga-tw th{background:var(--surface-2);color:var(--ink-2);font-weight:600;font-size:13px;white-space:nowrap}
+.ga-tw tr:last-child td{border-bottom:0}
+.ga-tw :is(th,td):first-child{position:sticky;left:0;z-index:1;background:var(--surface)}
+.ga-tw th:first-child{background:var(--surface-2)}
+/* the guide's finds: a swipeable row on phones, 4 across in the text column */
+.ga-finds{margin:56px 0 8px;padding:24px 0 4px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.ga-main div.ga-finds{margin:4px 0 0;padding:0;border:0}   /* the rep spreadsheet guide's own finds block (no heading row) */
+.ga-finds .ga-sh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ga-main.prose .ga-finds h2{margin:0;font-size:clamp(20px,.6vw + 17px,24px)}
+.ga-finds .ga-sh a{display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:500;color:var(--ink);text-decoration:none}
+@media (hover:hover){.ga-finds .ga-sh a:hover{text-decoration:underline}}
+.ga-main.prose .ga-finds > p{margin:8px 0 0;font-size:15px;line-height:1.55;color:var(--muted)}
+.ga-finds .g{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0 20px}
+.ga-finds .c{padding:8px}
+.ga-finds .ct{font-size:13px}
+@media (max-width:760px){
+  .ga-finds .g{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:44%;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;margin-inline:-16px;padding:2px 16px 6px;scroll-padding-inline:16px}
+  .ga-finds .g::-webkit-scrollbar{display:none}
+  .ga-finds .c{scroll-snap-align:start}
+}
+/* real QC photo sets on the QC guide */
+.ga-qc{margin:20px 0 28px}
+.ga-qc-r{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.ga-qc-r a{display:block;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:var(--surface-2)}
+.ga-qc-r img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s var(--ease)}
+@media (hover:hover) and (pointer:fine){.ga-qc-r a:hover img{transform:scale(1.04)}}
+.ga-qc figcaption{margin:10px 0 0;font-size:14.5px;line-height:1.55;color:var(--muted)}
+.ga-qc figcaption a{color:var(--ink);font-weight:500}
+@media (max-width:560px){.ga-qc-r{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:40%;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding:0 16px;scroll-snap-type:x proximity;scroll-padding-inline:16px}.ga-qc-r::-webkit-scrollbar{display:none}.ga-qc-r a{scroll-snap-align:start}}
+/* FAQ inside the text column */
+.ga-main .faq{max-width:none}
+.ga-main .faq p{font-size:16px}
+/* "How we check this guide" */
+.ga-how{position:relative;display:flex;gap:14px;align-items:flex-start;margin:40px 0 0;padding:18px 20px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.ga-how > .ic-tile{width:36px;height:36px;background:var(--surface-2)}
+.ga-how > .ic-tile .ic{width:18px;height:18px}
+.ga-how b{display:block;margin:0 0 4px;font-size:15px;color:var(--ink)}
+.ga-main.prose .ga-how p{margin:0;font-size:14.5px;line-height:1.6;color:var(--muted)}
+.ga-how a{color:var(--ink)}
+/* the closing panel */
+.ga-end{margin:24px 0 0;padding:32px 28px;border-radius:22px;background:var(--fill);color:var(--fill-ink)}
+.ga-main.prose .ga-end h2{margin:0 0 10px;color:var(--fill-ink);font-size:clamp(22px,1vw + 17px,30px)}
+.ga-main.prose .ga-end p{margin:0 0 22px;color:color-mix(in srgb,var(--fill-ink) 72%,transparent);font-size:16px;line-height:1.6;max-width:36rem}
+.ga-end .btn.primary{background:var(--fill-ink);color:var(--fill);border-color:var(--fill-ink)}
+.ga-end .btn:not(.primary){background:transparent;color:var(--fill-ink);border-color:color-mix(in srgb,var(--fill-ink) 28%,transparent);box-shadow:none}
+.ga-end .btn:not(.primary) .ic{color:inherit;opacity:.75}
+@media (hover:hover){.ga-end .btn:not(.primary):hover{background:color-mix(in srgb,var(--fill-ink) 10%,transparent)}}
+@media (max-width:560px){.ga-end{padding:26px 20px;border-radius:18px}}
+/* related guides */
+.ga-more{max-width:1072px;margin:72px auto 0}
+.ga-more .gl{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));margin:16px 0 20px}
+.ga-more .chips{margin:0}
+/* the bar: up to 1023px (the side column takes over from 1024px) */
+@media (min-width:901px) and (max-width:1023px){.buybar.ga-bar{display:flex}body.has-buybar{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
+@media (min-width:1024px){.buybar.ga-bar{display:none}}
+.ga-bar .bb-price{font-size:16px}
+@media print{.ga-side,.ga-toc-m,.ga-bar,.ga-end .ga-cta{display:none!important}}

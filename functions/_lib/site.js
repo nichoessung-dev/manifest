@@ -500,7 +500,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "38";
+export const DS_VER = "39";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -726,7 +726,7 @@ ${SEARCH_SHELL}<div class="hr">${CTA_GONE_JS}` +
     `<a class="hprefs-l" href="/?prefs=1">Language, currency and agent</a></div></div></div></header>`;
 }
 
-export function page({ title, desc, path, body, jsonld = [], robots = "index,follow,max-image-preview:large", image, status = 200, extraHead = "" }) {
+export function page({ title, desc, path, body, jsonld = [], robots = "index,follow,max-image-preview:large", image, status = 200, extraHead = "", ogType = "website" }) {   // ogType: "article" on guides (25 Nov 2026)
   const url = SITE + path;
   if (title.length > 60) title = title.replace(/ [·|] Puro Classico$/, "");   // Google shows about 60 characters, and prints the site name above every result anyway
   const img = image || SITE + "/og.png";
@@ -739,7 +739,7 @@ export function page({ title, desc, path, body, jsonld = [], robots = "index,fol
 <meta name="description" content="${esc(desc)}">
 <meta name="robots" content="${robots}">
 ${status === 200 ? `<link rel="canonical" href="${esc(url)}">` : ""}
-<meta property="og:type" content="website"><meta property="og:site_name" content="Puro Classico">
+<meta property="og:type" content="${ogType}"><meta property="og:site_name" content="Puro Classico">
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${esc(img)}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${esc(img)}">

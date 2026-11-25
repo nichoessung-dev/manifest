@@ -168,19 +168,20 @@ export const GUIDES2 = {
           ["How do I estimate MyCNBox shipping?", "MyCNBox charges an estimate from the weight and volume of your items when you submit a parcel; after packing, an overpayment goes back to your balance and a shortfall has to be paid before the parcel leaves (help centre, read on 10 October 2026). For a ballpark figure before you buy, use our shipping calculator."]],
   },
   "kakobuy-vs-mycnbox": {
-    title: "KakoBuy vs MyCNBox (2026): Which Shopping Agent Should You Use?",
-    desc: "KakoBuy and MyCNBox compared: ordering flow, coupons, QC photos, shipping lines and which to pick for your first order.",
+    // 25 Nov 2026 (SEO pass): the side-by-side table had no facts (and an unsourced "community" row); it is now the agents'
+    // own facts and KakoBuy's cheapest 1 kg lines (pages.js agentCompare), the same numbers as their spreadsheets.
+    title: "KakoBuy vs MyCNBox 2026: Fees, QC Photos and Shipping",
+    desc: "KakoBuy and MyCNBox side by side: fees, QC photos, free storage, new-user coupons and shipping, from each agent's own pages, plus how to choose.",
     h1: "KakoBuy vs MyCNBox",
-    body: `<p class="lead">Both are full-service shopping agents for Taobao, Weidian and 1688, and the basic flow is identical: pay for the item, check QC photos at the warehouse, then combine and ship. The differences are in the details. (Disclosure: our agent links are affiliate links.)</p>
-<h2>Side by side</h2><table style="width:100%;border-collapse:collapse"><tr><th style="text-align:left;padding:8px;border-bottom:1px solid var(--line)"></th><th style="text-align:left;padding:8px;border-bottom:1px solid var(--line)">MyCNBox</th><th style="text-align:left;padding:8px;border-bottom:1px solid var(--line)">KakoBuy</th></tr>
-<tr><td style="padding:8px;border-bottom:1px solid var(--line)">Marketplaces</td><td style="padding:8px;border-bottom:1px solid var(--line)">Taobao, Weidian, 1688</td><td style="padding:8px;border-bottom:1px solid var(--line)">Taobao, Weidian, 1688</td></tr>
-<tr><td style="padding:8px;border-bottom:1px solid var(--line)">From Puro Classico</td><td style="padding:8px;border-bottom:1px solid var(--line)">Listing opens pre-filled</td><td style="padding:8px;border-bottom:1px solid var(--line)">Listing opens pre-filled</td></tr>
-<tr><td style="padding:8px;border-bottom:1px solid var(--line)">New-user offer</td><td style="padding:8px;border-bottom:1px solid var(--line)">Coupon bundle (advertised up to $500)</td><td style="padding:8px;border-bottom:1px solid var(--line)">Welcome coupon bundle</td></tr>
-<tr><td style="padding:8px;border-bottom:1px solid var(--line)">QC photos</td><td style="padding:8px;border-bottom:1px solid var(--line)">Yes, at the warehouse</td><td style="padding:8px;border-bottom:1px solid var(--line)">Yes, at the warehouse</td></tr>
-<tr><td style="padding:8px">Community</td><td style="padding:8px">Growing</td><td style="padding:8px">Very large (Reddit, Discord)</td></tr></table>
-<h2>How to choose</h2><ul><li><strong>Compare shipping to your country.</strong> Put the same parcel weight into both agents' shipping estimators, lines and prices change often and matter more than anything else.</li><li><strong>Use the new-user coupons</strong> on whichever you try first.</li><li><strong>You don't have to pick one forever</strong>: every Puro Classico find has links for both.</li></ul>
-<p>Spreadsheets: <a href="/mycnbox-spreadsheet">MyCNBox spreadsheet</a> · <a href="/kakobuy-spreadsheet">KakoBuy spreadsheet</a> · <a href="/guides/best-shopping-agent">all agents compared</a>.</p>`,
-    faq: [["Is KakoBuy or MyCNBox cheaper?", "It depends on your country and parcel. Compare the shipping estimate for the same weight in both agents before you order, shipping is usually the biggest cost difference."]],
+    updated: "2026-11-25",   // the day this text was revised; change it only when it is revised again
+    compare: ["mycnbox", "kakobuy"], compareTitle: "Side by side", compareAt: 0,
+    body: `<p class="lead">Both are full-service shopping agents for Taobao, Weidian and 1688, and the basic flow is identical: pay for the item, check QC photos at the warehouse, then combine and ship. The differences are in the details: how many QC photos you get, how long items are stored for free, the new-user coupons and the shipping lines to your country. (Disclosure: our agent links are affiliate links.)</p>
+<h2>How to choose</h2><ul><li><strong>Compare shipping to your country.</strong> Put the same parcel weight into both agents' shipping estimators; lines and prices change often and matter more than anything else.</li><li><strong>Shoes, bags and jackets:</strong> on MyCNBox, choose the detailed photos when you order (4 standard photos may not show the sole or the hardware up close). KakoBuy's check covers appearance, model, style and size.</li><li><strong>Slow hauls:</strong> KakoBuy keeps items for 100 days, MyCNBox for 90, so either leaves time to collect a parcel.</li><li><strong>Use the new-user coupons</strong> on whichever you try first.</li><li><strong>You don't have to pick one forever</strong>: every Puro Classico find has links for both.</li></ul>
+<p>Spreadsheets: <a href="/mycnbox-spreadsheet">MyCNBox spreadsheet</a> · <a href="/kakobuy-spreadsheet">KakoBuy spreadsheet</a> · <a href="/guides/best-shopping-agent">all agents compared</a> · <a href="/guides/mycnbox-review">MyCNBox review</a> · <a href="/guides/kakobuy-coupon-code">KakoBuy coupon code</a>.</p>`,
+    faq: [["Is KakoBuy or MyCNBox cheaper?", "It depends on your country and parcel. Neither charges a fee on purchases, according to their help centres, so compare the shipping estimate for the same weight in both before you order: shipping is usually the biggest cost difference."],
+          ["Which gives more QC photos?", "MyCNBox takes 4 standard photos per item and sells detailed photos as an add-on chosen at checkout. KakoBuy's help centre describes its check as appearance, model, style and size."],
+          ["How long do KakoBuy and MyCNBox store items for free?", "KakoBuy 100 days (60 for packages that arrive without a matching order), MyCNBox 90 days."],
+          ["What are the new-user coupons?", "MyCNBox: up to $500 in coupons with invite code AACPYA. KakoBuy: up to $410 with invite code w5war. Both are sets of coupons with minimum spends, mostly for shipping."]],
   },
   "shipping-lines": {
     title: "Shipping Lines Explained: Economy, Tax-Free Lines, EMS & Express",

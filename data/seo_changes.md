@@ -6,6 +6,44 @@ data/seo_ranks_markets.json (the spreadsheet searches in ten countries, 23 Nov 2
 searches of the model pages added on 23 Nov 2026, checked before they existed) and data/seo_page_clicks.json (buy clicks
 per page by visit source and country, buy clicks per find, site searches; scripts/seo_page_clicks.py).
 
+## 25 Nov 2026: guide layout v12, guide titles, agents compared, agent FAQs, hub boilerplate
+
+The audit behind it (crawl of all 1,028 sitemap pages and 150 product pages, Search Console 6 months to 22 Nov 2026, mobile
+Core Web Vitals in the lab, the top results for the head terms): the scratchpad file seo_audit.md of that session.
+
+- Guide layout (all 18 guides, renderGuide in pages.js, "guide layout v12" in ds.css): a hero with the lead, reading time,
+  "Open the spreadsheet" plus one tool or page that fits the guide, and three catalogue facts; from 1024px a side column
+  that stays in view ("On this page" with the section being read marked, and a spreadsheet card); below 1024px "On this
+  page" folds into one row and the product page's bar carries the spreadsheet button once the hero button is off screen
+  (gone again at the closing panel); the guide's 8 finds moved from the end of the page into the text (a swipeable row on
+  phones); "How we check this guide"; a closing panel with the spreadsheet button; related guides as cards. Wide tables
+  scroll in their own box with the first column held. Article data gains image, mainEntityOfPage and inLanguage, and
+  og:type is "article" on guides. The guides index got the same buttons and facts.
+- Titles and descriptions where Search Console showed impressions but few clicks: how-to-qc (7,900 impressions, 0.3%),
+  how-to-buy-from-weidian (6,000, 0.6%), best-shopping-agent (5,000, 1.0%), kakobuy-vs-mycnbox (711, 1.8%), sizing (494,
+  1.6%), rep-glossary (338, 0.6%).
+- QC guide: "Real QC photos, and what to check in them", three sets of banked buyer QC photos (sneakers, a polo, a belt)
+  with what to check in each (content.js qcEx, pages.js qcExamples). People searching "qc photos", "qc pics" and "qc
+  pictures" land on this guide and want to see QC photos.
+- Best shopping agent and KakoBuy vs MyCNBox: the agents side by side (fee, per-parcel charge, warehouse check, free storage,
+  new-user offer) and the cheapest 1 kg line per country from shipping_lines.js (pages.js AGENT_FACTS, agentCompare). Same
+  facts and dates as the agent spreadsheets; nothing ranked. The KakoBuy vs MyCNBox table had no facts and an unsourced
+  "community" row.
+- Agent spreadsheets (MyCNBox, KakoBuy, Oopbuy, LoveGoBuy, Sugargoo): up to five more questions each, the ones the pages
+  above ours answer (what it is, free, official, how often updated, shipping prices from the agent's estimator), and an
+  "<agent> guides" link list (coupon code, KakoBuy vs MyCNBox, best agent, QC guide). Titles unchanged.
+- Hubs: the homepage's "agent-neutral rep finds spreadsheet" block (about 290 words and 4 questions) is no longer repeated
+  on every hub (hubApp in the middleware); each hub keeps its own About block.
+- Counts: a page is only kept in the edge cache when the hidden finds were read (reported.js reportedOk), and a failed read
+  is tried again on the next request. The crawl found /mycnbox-spreadsheet saying 1,938 finds with QC photos while the
+  other agents said 1,267.
+- Descriptions over 160 characters shortened: /tools/size-estimator, /tools/parcel-tracker, /cnfans-spreadsheet,
+  /how-to-order, /about. The product pages and the rep spreadsheet guide said "1:47 video"; the video is 56 seconds.
+- PRODUCT_TPL w112, DS_VER 39 (the static pages were on ?v=23).
+- Undo: the renderGuide block and the "guide layout v12" CSS block; the title, desc, updated, qcEx and compare fields in
+  content.js, content2.js and content3.js; agentFaqMore and agentGuides in hubSpec; the section#seo rule in hubApp;
+  reportedOk in reported.js and keep() in the middleware.
+
 ## 23 Nov 2026: the Chrome Hearts "jewellery" page is named for what it lists
 
 - What: /best/chrome-hearts-jewelry is now "Best Chrome Hearts Cross Reps" (title, h1, intro and QC checklist). The URL stays.

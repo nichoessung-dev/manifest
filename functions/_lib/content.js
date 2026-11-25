@@ -404,13 +404,14 @@ export const BRAND_INTRO = {
 
 export const GUIDES = {
   "how-to-buy-from-weidian": {
-    title: "How to Buy from Weidian (2026): Step-by-Step Guide with an Agent",
-    desc: "Most Weidian sellers only ship inside China. How to buy from Weidian with a shopping agent in 6 steps: links, payment, QC photos, costs and delivery times.",
+    // 25 Nov 2026 (SEO pass): 6,000 impressions in 6 months at 0.6% clicks ("how to buy from weidian", "how to order from
+    // weidian", "what is weidian"). The title names the 6 steps; the description answers why an agent is needed.
+    title: "How to Buy From Weidian in 2026: 6 Steps With an Agent",
+    desc: "Weidian sellers rarely ship abroad, so you order through a shopping agent. The 6 steps, what it costs, how long it takes and how to check QC photos first.",
     h1: "How to buy from Weidian",
     updated: "2026-10-28",   // the day this text was revised; change it only when it is revised again
     finds: { platform: "weidian" },
     body: `<p class="lead">To buy from Weidian outside China, use a <strong>shopping agent</strong>: open the Weidian listing in the agent (every find on Puro Classico does this with one tap), pay for the item and its delivery to the agent's warehouse in China, check the QC photos, then ship everything in one parcel. You need an agent because most Weidian sellers only ship inside China, and sign-up and payment are built around Chinese phone numbers and payment apps.</p>
-<p><a class="btn light" href="/spreadsheet">Browse 9,000+ Weidian, Taobao and 1688 finds →</a></p>
 <h2>What is Weidian?</h2><p>Weidian (微店, "micro shop") is a Chinese shop platform, used mostly on phones, where independent sellers run their own small stores. It is run by a different company from Taobao and 1688, which belong to Alibaba. Many rep sellers list on Weidian: about nine in ten finds on Puro Classico are Weidian listings.</p>
 <h2>What you need</h2><ul><li><strong>A shopping agent account.</strong> We use <a href="/mycnbox-spreadsheet">MyCNBox</a>; <a href="/kakobuy-spreadsheet">KakoBuy</a>, <a href="/oopbuy-spreadsheet">Oopbuy</a>, <a href="/lovegobuy-spreadsheet">LoveGoBuy</a> and <a href="/sugargoo-spreadsheet">Sugargoo</a> work the same way (<a href="/guides/best-shopping-agent">how to choose</a>).</li>
 <li><strong>The Weidian link or item ID.</strong> A listing link looks like <code>weidian.com/item.html?itemID=…</code>. Share links copied from the Weidian app (youshop10.com) are often short links without the item ID: open one in your browser first and copy the full weidian.com link it leads to. The <a href="/tools/link-converter">link converter</a> turns any full Weidian link into a buy link for each agent.</li>
@@ -435,12 +436,19 @@ export const GUIDES = {
           ["What if a Weidian link does not open?", "The listing may have been deleted or sold out. A short share link (youshop10.com) has to be opened in a browser first to get the full weidian.com link, which the link converter can read."]],
   },
   "how-to-qc": {
-    title: "How to Read QC Photos: Stitching, Hardware & Logo Checks",
-    desc: "What are QC photos? A checklist for your agent's QC (quality check) pictures: stitching, hardware and zips, logos, colour and size tags, plus what GL/RL means.",
-    h1: "QC photos: what they are and how to read them",
-    updated: "2026-10-28",   // the day this text was revised; change it only when it is revised again
+    // 25 Nov 2026 (SEO pass): 7,900 Search Console impressions in 6 months at 0.3% clicks, mostly for "qc photos", "qc photo",
+    // "qc pics" and "qc pictures": people want to see QC photos. Title and h1 say the page shows real ones (qcEx below).
+    title: "QC Photos: Real Examples and How to Read Them",
+    desc: "What QC photos (QC pics) are, with real buyer QC photos of sneakers, a polo and a belt, a 5-point checklist and what GL or RL means. Free QC finder too.",
+    h1: "QC photos: real examples and how to read them",
+    updated: "2026-11-25",   // the day this text was revised; change it only when it is revised again
     finds: { qc: 1 },
-    body: `<p class="lead">QC (quality check) photos are real photos of <em>your</em> item, taken by your agent's warehouse after it arrives from the seller and before it ships to you. They're your chance to catch problems while returns are still easy.</p>
+    // Real buyer QC photos (pages.js qcExamples): [find id, photos in the QC bank (data/qc_bank.json), what to check].
+    // Picked 25 Nov 2026 from finds whose QC photos are stored; a find that leaves the spreadsheet drops out by itself.
+    qcEx: [["7494197749", 5, "Sneakers: check the shape from the side, the toe and heel, the stitching along the sole, and the size label on the box or tongue."],
+           ["7661880304", 5, "Polo shirt: the photos on the measuring mat show the length and chest width; check the collar, the buttons and the neck label."],
+           ["7230414547", 5, "Belt: check the buckle's shape and engraving up close, the edge stitching and the length on the mat."]],
+    body: `<p class="lead">QC (quality check) photos, or QC pics, are real photos of <em>your</em> item, taken by your agent's warehouse after it arrives from the seller and before it ships to you. They're your chance to catch problems while returns are still easy.</p>
 <p>Want to see QC photos before you buy? Search a product or paste a Weidian, Taobao or 1688 link into our <a href="/tools/qc-checker">QC photo checker</a>, or browse the <a href="/qc-spreadsheet">QC photos spreadsheet</a>: 2,000+ finds our catalogue marks as having buyer QC photos from earlier orders.</p>
 <h2>The 5-point checklist</h2><ol class="steps">
 <li><strong>Logos and prints.</strong> Compare size, position and font with retail photos of the same item. Embroidery should be dense and clean; prints sharp, not blurry or cracked.</li>
@@ -458,8 +466,8 @@ export const GUIDES = {
           ["Can I ask for more QC photos?", "Most agents sell extra or detailed photos for a small fee. On some, such as MyCNBox, that add-on has to be chosen when you place the order, not after the item arrives."]],
   },
   "sizing": {
-    title: "Rep Sizing Guide: Asian vs EU/US Sizes (and How to Measure)",
-    desc: "Chinese sellers often use Asian sizing that runs small. How to measure your clothes, read size charts in cm, and pick the right size for reps.",
+    title: "Rep Sizing Guide: Do Reps Run Small? Asian vs EU/US Sizes",   // 25 Nov 2026: the question the lead answers
+    desc: "Do reps run small? Often, because many Chinese sellers use Asian sizing. How to measure a garment you own, read a size chart in cm and pick your size.",
     h1: "Rep sizing guide",
     updated: "2026-10-29",   // the day this text was revised; change it only when it is revised again
     body: `<p class="lead">Do reps run small? Often, yes: many Weidian and Taobao sellers use Asian sizing, which tends to run about one size smaller than EU/US sizing, but not always. The only reliable method is to compare the seller's size chart in centimetres with a garment you own that fits.</p>
@@ -475,10 +483,13 @@ export const GUIDES = {
           ["How do I pick a rep sneaker size?", "Use your EU size and your foot length in centimetres, compare them with the seller's chart, and check whether that model runs large or small at retail."]],
   },
   "best-shopping-agent": {
-    title: "Best Shopping Agent 2026: MyCNBox vs KakoBuy vs Oopbuy vs Sugargoo",
-    desc: "How to pick a shopping agent for Weidian, Taobao and 1688: what to compare (shipping, fees, QC photos), KakoBuy vs Oopbuy vs Sugargoo, and the agent we use.",
+    // 25 Nov 2026 (SEO pass): 5,000 impressions in 6 months at 1% clicks. The page said what to compare but compared nothing;
+    // it now has the five agents side by side (fees, check, storage, offers) and their cheapest 1 kg lines (pages.js agentCompare).
+    title: "Best Rep Shopping Agent 2026: Fees, QC & Shipping Compared",
+    desc: "MyCNBox, KakoBuy, Oopbuy, Sugargoo and LoveGoBuy side by side: fees, QC checks, free storage, sign-up coupons and 1 kg shipping to 4 countries.",   // this order: liveCopy widens "..., LoveGoBuy and Sugargoo" to every agent
     h1: "Best shopping agent in 2026: how to choose",
-    updated: "2026-10-28",   // the day this text was revised; change it only when it is revised again
+    updated: "2026-11-25",   // the day this text was revised; change it only when it is revised again
+    compare: ["mycnbox", "kakobuy", "oopbuy", "lovegobuy", "sugargoo"], compareAt: 1,
     body: `<p class="lead">There is no single best shopping agent for everyone. MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo all buy from Weidian, Taobao and 1688, take QC photos at their warehouse and ship your items in one parcel, so the difference that usually matters most is the shipping price to your country. For a first order we recommend <a href="/mycnbox-spreadsheet">MyCNBox</a>, our most-used agent.</p>
 <h2>What to compare</h2><ul><li><strong>Service fees</strong>: some agents charge a percentage per item, others none.</li><li><strong>Shipping lines</strong>: the choice of lines to your country, their prices and speed. This usually matters more than the service fee.</li><li><strong>QC photos</strong>: how many free photos, and how clear they are.</li><li><strong>Storage time</strong>: how long your items can wait in the warehouse for free while you collect a parcel.</li><li><strong>Payment and refunds</strong>: accepted cards and wallets, and whether shipping differences are refunded to your balance.</li><li><strong>Support</strong>: response time and language.</li></ul>
 <h2>Agents we support</h2><p>Every find on Puro Classico has buy links for all of these, so you can use whichever you prefer:</p><ul>

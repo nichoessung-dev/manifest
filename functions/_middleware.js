@@ -4,7 +4,7 @@ import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INV
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderAbout, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
   sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL, renderPlat, fitTitle, renderNew, newFindsHtml, NEW_LINKS, HX_CSS } from "./_lib/pages.js";
 import { imgSrc, navKey, SWAP_VER, setHidden } from "./_lib/site.js";
-import { reportedIds } from "./_lib/reported.js";
+import { reportedIds, reportedOk } from "./_lib/reported.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
@@ -312,7 +312,8 @@ async function route(ctx) {
   // lifetime; a HIT goes out with the page's own cache-control again (kept in x-browser-cc), so a browser does not hold
   // the homepage (normally max-age=0, must-revalidate) or a hub (max-age=300) for an hour after a deploy.
   const keep = r => {
-    if (ckey && r && r.status === 200 && statsLoaded()) {
+    // reportedOk (25 Nov 2026): and only when the hidden finds were read, so the counts are the ones a visitor sees
+    if (ckey && r && r.status === 200 && statsLoaded() && reportedOk()) {
       const c = new Response(r.clone().body, r);
       c.headers.set("x-browser-cc", r.headers.get("cache-control") || "public, max-age=0, must-revalidate");
       c.headers.set("cache-control", "public, max-age=3600");
@@ -325,6 +326,7 @@ async function route(ctx) {
   // 23 Nov 2026 (SEO pass): the finds hidden after reports or the photo check, so the spreadsheet, QC and model pages count
   // and list only what a visitor can see (shown() in site.js). Read once per 10 minutes per instance (reported.js).
   if (usesStats || path === "/sitemap-pages.xml" || path.startsWith("/tools")) setHidden(await reportedIds(ctx.env, url.origin));
+  else if (pageCache) await reportedIds(ctx.env, url.origin);   // the homepage and /spreadsheet: so keep() knows the list was read
   if (path === "/sitemap.xml") return sitemapIndex();
   if (path === "/sitemap-pages.xml") return sitemapPages();
   if (path === "/sitemap-products.xml") return sitemapProducts(await reportedIds(ctx.env, url.origin));   // removed finds are noindex
@@ -471,6 +473,9 @@ async function hubApp(ctx, url, spec) {
     // 10 Nov 2026: the app's hidden tool and guide sections (#tutorials, #qc-checker, ...) are homepage only: about 1,200 words
     // that made every hub page read alike. The app sends those links to the homepage when the section is missing.
     .on("section.page[hidden]", { element(e) { e.remove(); } })
+    // 25 Nov 2026 (SEO pass): the homepage's "agent-neutral rep finds spreadsheet" block (about 290 words and 4 questions)
+    // repeated on every hub, above the hub's own About block. Homepage only now; the app's scripts check for it first.
+    .on("section#seo", { element(e) { e.remove(); } })
     .on("form#v9-hero-search", { element(e) { e.remove(); } })
     .on("div.v9-hero-actions", { element(e) { e.remove(); } })
     .on("div.v9-trust", { element(e) { e.remove(); } })
