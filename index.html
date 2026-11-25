@@ -3010,6 +3010,11 @@ html .sk-card .sk-im,html #drawer .thumbs .pc-sk,html.js-fade #drawer .thumbs .q
     transform:translateX(-100%);animation:pc-sheen 1.5s cubic-bezier(.4,0,.6,1) infinite}
 }
 @keyframes pc-sheen{to{transform:translateX(100%)}}
+/* 25 Nov 2026 (homepage taps, SEO pass): the band moves only on tiles on or near the screen (the script at the end of the page
+   marks them .pc-skon and sets data-skv once it runs; without it every band moves as before). On the homepage 67 bands kept
+   moving over lazy photos far off screen in the home rows (and the skeleton cards under the grid): the main thread was busy
+   about 1.5 s of every 2 s at 4x CPU and a tap on Save waited 350 to 540 ms; with those bands still it is about 90 ms. */
+html[data-skv] :is(.card .thumb,.v9-cat-ph,.sk-card .sk-im):not(.pc-skon)::before{animation:none!important}
 /* the photo fades in over the tile; the tile colour fades out with it (light theme: the cut-out then sits on the page) */
 html.js-fade :is(.card .thumb>img.pimg,#drawer .sim-thumb>img,#drawer .thumbs .qcthumb-btn>img):not(.is-in){opacity:0!important}
 .card .thumb>img.pimg{transition:opacity .18s ease-out,transform 400ms var(--ease-hover,ease)}
@@ -8064,3 +8069,7 @@ try{var AC=null,AH=matchMedia("(hover: hover)"),afp=function(l){var p=l.querySel
 <script src="/feedback.js?v=2" defer></script>
 <script src="/also.js?v=2" defer></script>
 <script src="/chat.js?v=7" defer></script>
+<script id="pc-skv">/* 25 Nov 2026: the skeleton band moves only on tiles within 200 px of the screen (see "homepage taps" in the styles) */(function(){try{var d=document,R=d.documentElement,W=window;if(!W.IntersectionObserver||!W.MutationObserver)return;
+var SEL=".card .thumb,.v9-cat-ph,.sk-card .sk-im",io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++)es[i].target.classList.toggle("pc-skon",es[i].isIntersecting);if(!R.hasAttribute("data-skv"))R.setAttribute("data-skv","")},{rootMargin:"200px"});
+function scan(n){if(!n||n.nodeType!==1)return;if(n.matches(SEL))io.observe(n);var l=n.querySelectorAll(SEL);for(var i=0;i<l.length;i++)io.observe(l[i])}
+scan(d.body);new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var a=ms[i].addedNodes;for(var j=0;j<a.length;j++)scan(a[j])}}).observe(d.body,{childList:true,subtree:true})}catch(e){}})();</script>
