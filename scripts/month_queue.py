@@ -8,6 +8,7 @@ month_queue.json records every video queued, so no video is ever posted twice.
   python scripts/month_queue.py                 # fill the next DAYS days (at most MAX_NEW new posts per run: Postiz rate limit)
   python scripts/month_queue.py --old           # list the queued posts this script did not make (nothing is changed)
   python scripts/month_queue.py --old --delete  # delete those (the old silent videos and carousels the month videos replace)
+  python scripts/month_queue.py --redo          # swap queued posts whose video was remade with a new voice (same time slot)
 
 Env: POSTIZ_API_KEY, GH_TOKEN, MONTH_DAYS (7), MONTH_MAX_NEW (20), DRY_RUN=1.
 """
@@ -74,6 +75,63 @@ def old(delete):
     print("deleted:", gone)
 
 
+def queue_one(vid, acct, at, out):
+    """Download a finished video and schedule it at `at`; returns the Postiz post ids, or None when it failed."""
+    if subprocess.run(["gh", "release", "download", TAG, "-p", vid + ".*", "-D", out, "--clobber"], cwd=ROOT).returncode:
+        print("::warning::could not download", vid); return None
+    mp = os.path.join(out, vid + ".json"); meta = json.load(open(mp, encoding="utf-8")); meta["file"] = os.path.join(out, vid + ".mp4")
+    json.dump(meta, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS=CHANNELS, TIKTOK_ACCOUNT=ACCOUNT[acct], TIKTOK_VIDEO_METHOD="DIRECT_POST")
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), mp], env=env, capture_output=True, text=True)
+    print(r.stdout[-600:]); print(r.stderr[-400:])
+    try: os.remove(os.path.join(out, vid + ".mp4"))
+    except OSError: pass
+    if r.returncode: print("::warning::could not queue", vid); return None
+    ids = []
+    try: ids = [x.get("postId") for x in json.loads(r.stdout.split("scheduled for %s:" % at, 1)[1].strip().splitlines()[0]) if x.get("postId")]
+    except Exception: pass
+    return ids
+
+
+def redo():
+    """Queued posts whose video has since been remade with another voice: delete the old posts and queue the new video
+    in the same slot. Soonest first, at most MAX_NEW per run (Postiz rate limit)."""
+    st = load(); q = st.setdefault("queued", {}); now = datetime.now(timezone.utc)
+    out = os.path.join(ROOT, "out", "month"); os.makedirs(out, exist_ok=True)
+    md = os.path.join(out, "metas"); os.makedirs(md, exist_ok=True)
+    subprocess.run(["gh", "release", "download", TAG, "-p", "*.json", "-D", md, "--clobber"], cwd=ROOT, capture_output=True)
+    voice = {}
+    for vid in q:
+        try: voice[vid] = json.load(open(os.path.join(md, vid + ".json"), encoding="utf-8")).get("voice") or "chatterbox"
+        except Exception: voice[vid] = None
+    rows = sorted((v["at"], vid) for vid, v in q.items()
+                  if voice.get(vid) and voice[vid] != v.get("voice", "chatterbox")
+                  and datetime.strptime(v["at"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc) > now + timedelta(minutes=25))
+    print("queued posts to swap for the new voice:", len(rows))
+    if DRY or not rows: return
+    live = {}
+    for p in posts(now, now + timedelta(days=40)):
+        if p.get("state") in (None, "QUEUE"): live.setdefault((p.get("publishDate") or "")[:16], []).append(p["id"])
+    made = 0
+    for at, vid in rows:
+        if made >= MAX_NEW: print("swapped", made, "this run (Postiz rate limit): the next run goes on"); break
+        v = q[vid]
+        for pid in set(v.get("posts", [])) | set(live.get(at[:16], [])):
+            try: P.call("DELETE", "/posts/" + pid)
+            except SystemExit as e:
+                if "404" not in str(e): print("could not delete", pid, str(e)[:120])
+            time.sleep(1)
+        ids = queue_one(vid, v["account"], at, out)
+        if ids is None: v["posts"] = []; save(st); print("::warning::slot left empty, the next run tries again:", vid, at); break
+        v["posts"] = ids; v["voice"] = voice[vid]; made += 1; save(st)
+        print("swapped %s at %s" % (vid, at), flush=True); time.sleep(20)
+    left = len(rows) - made
+    print("swapped:", made, "| still to swap:", left)
+    s = os.environ.get("GITHUB_STEP_SUMMARY")
+    if s: open(s, "a").write("### Voice swap: %d swapped, %d left\n" % (made, left))
+    save(st)
+
+
 def fill():
     st = load(); q = st.setdefault("queued", {}); now = datetime.now(timezone.utc)
     taken = {(v["account"], v["at"]) for v in q.values()}
@@ -104,7 +162,7 @@ def fill():
                 ids = []
                 try: ids = [x.get("postId") for x in json.loads(r.stdout.split("scheduled for %s:" % at, 1)[1].strip().splitlines()[0]) if x.get("postId")]
                 except Exception: pass
-                q[vid] = {"account": acct, "at": at, "posts": ids}; taken.add((acct, at)); made += 1; save(st)
+                q[vid] = {"account": acct, "at": at, "posts": ids, "voice": meta.get("voice") or "chatterbox"}; taken.add((acct, at)); made += 1; save(st)
                 print("queued %s for %s (%s)" % (vid, t.astimezone(TZ).strftime("%a %d %b %H:%M"), acct), flush=True)
                 for f in (vid + ".mp4",): os.remove(os.path.join(out, f))
                 time.sleep(20)
@@ -117,5 +175,6 @@ def fill():
 
 if __name__ == "__main__":
     if not P.KEY: raise SystemExit("POSTIZ_API_KEY is not set")
-    ap = argparse.ArgumentParser(); ap.add_argument("--old", action="store_true"); ap.add_argument("--delete", action="store_true"); a = ap.parse_args()
-    old(a.delete) if a.old else fill()
+    ap = argparse.ArgumentParser(); ap.add_argument("--old", action="store_true"); ap.add_argument("--delete", action="store_true")
+    ap.add_argument("--redo", action="store_true"); a = ap.parse_args()
+    old(a.delete) if a.old else redo() if a.redo else fill()

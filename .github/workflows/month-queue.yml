@@ -9,7 +9,7 @@ on:
       mode:
         description: 'fill (queue videos), old (list old queued posts), old-delete (remove them)'
         type: choice
-        options: ['fill', 'old', 'old-delete']
+        options: ['fill', 'redo', 'old', 'old-delete']
         default: 'fill'
       dry_run:
         description: 'Only show the plan'
@@ -41,6 +41,7 @@ jobs:
           case "$MODE" in
             old) python scripts/month_queue.py --old ;;
             old-delete) python scripts/month_queue.py --old --delete ;;
+            redo) python scripts/month_queue.py --redo ;;
             *) python scripts/month_queue.py ;;
           esac
       - name: Save the queue record
