@@ -1,0 +1,29 @@
+name: Voice samples
+# Tests the ElevenLabs key and makes short narrator samples (scripts/voice_samples.py).
+on:
+  workflow_dispatch:
+    inputs:
+      voices:
+        description: 'Voice names or ids, comma separated (empty = a default set)'
+        default: ''
+      model:
+        description: 'Model id (empty = newest v4 turbo)'
+        default: ''
+      text:
+        description: 'Line to read (empty = default)'
+        default: ''
+permissions:
+  contents: write
+jobs:
+  samples:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: python scripts/voice_samples.py
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          VOICES: ${{ inputs.voices }}
+          MODEL: ${{ inputs.model }}
+          TEXT: ${{ inputs.text }}
