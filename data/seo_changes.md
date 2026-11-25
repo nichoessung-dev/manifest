@@ -6,6 +6,21 @@ data/seo_ranks_markets.json (the spreadsheet searches in ten countries, 23 Nov 2
 searches of the model pages added on 23 Nov 2026, checked before they existed) and data/seo_page_clicks.json (buy clicks
 per page by visit source and country, buy clicks per find, site searches; scripts/seo_page_clicks.py).
 
+## 25 Nov 2026: brand pages count the finds a visitor can see
+
+- What: brand hubs, their pages 2 and up, the agent x brand pages, the /brands index, the "All N <brand> reps" links on
+  product and model pages and the brand chips on the agent spreadsheets count and list only visible finds (not hidden
+  after reports or the photo check, listing not gone), as the app's listing does. brandFacts() in pages.js filters with
+  shown() and is worked out again when the hidden set changes; product pages now read the hidden set too.
+- Why: the owner's call on the open point of 23 Nov. Titles said "Arc'teryx Reps Spreadsheet 2026: 47 Finds" over a
+  listing of 9; 104 of 110 brands counted hidden finds (Corteiz 611 for 435 shown, Adidas 748 for 617).
+- Sitemap: brand pages 2 and up follow the visible count, so pages past the new last page left sitemap-pages.xml (47
+  brands have fewer pages); those URLs now 301 to the brand page (rescue() in the middleware). Lastmod of a brand page
+  comes from its visible finds. Canonicals are unchanged (pages 2 and up point at themselves).
+- Undo: brandFacts back to `ix.byBrand.get(b) || []` (and the hidden-set check), the hubSpec brand and agent x brand
+  counts, the sitemap's `more("/brand/" ...)` and listFor, renderBrands, the product and model page links,
+  functions/product/[id].js setHidden. PRODUCT_TPL w117.
+
 ## 25 Nov 2026: guide layout v12, guide titles, agents compared, agent FAQs, hub boilerplate
 
 The audit behind it (crawl of all 1,028 sitemap pages and 150 product pages, Search Console 6 months to 22 Nov 2026, mobile

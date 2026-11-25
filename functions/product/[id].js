@@ -2,9 +2,9 @@
 // so every find is a real, fast, indexable page. Finds without QC photos are noindex,follow.
 // Unknown/removed ids get a real 404.
 import { renderProduct, PRODUCT_TPL } from "../_lib/pages.js";
-import { notFound, ensureStats, BUILT, SWAP_KEY, SWAP_HIDE } from "../_lib/site.js";
+import { notFound, ensureStats, BUILT, SWAP_KEY, SWAP_HIDE, setHidden } from "../_lib/site.js";
 import { countView } from "../_lib/views.js";
-import { removedIds } from "../_lib/reported.js";
+import { removedIds, reportedIds } from "../_lib/reported.js";
 
 const PAGE_TTL = 60 * 60 * 24;     // 1 day
 const QC_MISS_TTL = 60 * 15;       // 15 min when the QC lookup failed
@@ -31,6 +31,9 @@ export async function onRequestGet(context) {
   // blocks or breaks the page. Counted here, before the cached copy is returned, so cached pages count too.
   if (hit) { countView(context, id); const r = new Response(hit.body, hit); r.headers.set("cache-control", BROWSER_CC); r.headers.set("x-ssr-cache", "HIT"); return r; }
   await ensureStats(url.origin);
+  // 25 Nov 2026: the hidden finds, so this page counts a brand's finds as its hub does ("All 9 Arc'teryx reps"), not by
+  // whatever an earlier request on this server instance left behind (removedIds above has already read the file).
+  setHidden(await reportedIds(context.env, url.origin));
   const res = await renderProduct(id, url.origin, { reported: rep });
   if (!res) return notFound(url.pathname);
   if (res.status === 200) countView(context, id);                  // a real find (unknown ids 404 above and are not counted)
