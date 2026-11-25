@@ -390,6 +390,7 @@ async function route(ctx) {
       const T = "The Easiest Spreadsheet to Use for China", TT = T + " | Puro Classico";
       const D = "Search 10,600+ Weidian, Taobao and 1688 finds with buyer QC photos and one-tap buy links for MyCNBox, KakoBuy and every other agent. Free.";
       const app = await liveHtml(slimHtml(base, etagOf(base), (await serverCards(ctx, url.origin, null)).cards, ""));
+      let ldDone = false;
       const sp = new HTMLRewriter()
         .on("html", { element(e) { e.setAttribute("data-sp", "1"); } })
         .on("title", { element(e) { e.setInnerContent(TT); e.after(`<script>window.__pcBaseTitle=${JSON.stringify(TT)}</script><style>html[data-sp] :is(.v9-cats,.v9-row,.v9-qc,.v9-teasers,.v9-tools,.v9-steps,.v9-nums,.hx-home,#seo){display:none!important}</style>`, { html: true }); } })   // no <head> tag in index.html
@@ -399,6 +400,12 @@ async function route(ctx) {
         .on('meta[property="og:url"]', { element(e) { e.setAttribute("content", "https://www.puroclassico.com/spreadsheet"); } })
         .on('link[rel="canonical"]', { element(e) { e.setAttribute("href", "https://www.puroclassico.com/spreadsheet"); } })
         .on("#v9-hero-title", { element(e) { e.removeAttribute("data-i18n"); e.setInnerContent(T); } })
+        // 25 Nov 2026 (SEO pass): the homepage's structured data said this page was "/" and carried the FAQ of the #seo block,
+        // which this page hides. Its own CollectionPage instead, in the same graph as the homepage's Organization and WebSite.
+        .on('script[type="application/ld+json"]', { element(e) { if (ldDone) { e.remove(); return; } ldDone = true; e.replace('<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage",
+          "@id": "https://www.puroclassico.com/spreadsheet#page", name: T, url: "https://www.puroclassico.com/spreadsheet", description: D,
+          isPartOf: { "@type": "WebSite", "@id": "https://www.puroclassico.com/#website", name: "Puro Classico", url: "https://www.puroclassico.com/" },
+          publisher: { "@type": "Organization", "@id": "https://www.puroclassico.com/#org", name: "Puro Classico" } }).replace(/</g, "\\u003c") + "</script>", { html: true }); } })
         .transform(app);
       return keep(sp);
     }
