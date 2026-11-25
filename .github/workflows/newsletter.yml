@@ -17,6 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      PLUNK_API_KEY: ${{ secrets.PLUNK_API_KEY }}     # set: every email goes through Plunk (scripts/newsletter.py send_email)
+      PLUNK_FROM: ${{ secrets.PLUNK_FROM }}
+      PLUNK_FROM_NAME: ${{ secrets.PLUNK_FROM_NAME }}
       SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
     steps:
@@ -26,7 +29,7 @@ jobs:
           python-version: '3.11'
       - run: pip install pillow   # makes the email product pictures (scripts/newsletter.py email_img)
       - name: Sync contacts to Brevo
-        run: python scripts/newsletter.py sync
+        run: python scripts/newsletter.py sync    # does nothing once PLUNK_API_KEY is set: the member list lives in Supabase
         continue-on-error: true
       - name: Send
         run: python scripts/newsletter.py ${{ github.event.inputs.mode || (github.event.schedule == '0 16 * * 0' && 'saved') || 'newsletter' }}

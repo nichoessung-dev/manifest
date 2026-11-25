@@ -4,11 +4,15 @@ Puro Classico automated email job. Run modes:
   python newsletter.py welcome     -> one-time welcome (+Discord) to new signups not yet welcomed
   python newsletter.py newsletter  -> daily, one of 3+ fixed member groups each day (about 2x/week per member): the most viewed and saved finds, weighted by each member's taste
   python newsletter.py saved       -> weekly: "you saved this" for members who starred something in the last week
-  python newsletter.py sync        -> mirror members into Brevo contacts
+  python newsletter.py sync        -> mirror members into Brevo contacts (skipped on Plunk)
 
 Env (from GitHub Actions secrets):
   BREVO_API_KEY, SUPABASE_SERVICE_KEY, UNSUB_SECRET
+  PLUNK_API_KEY: when set, every email goes through Plunk instead of Brevo (send_email). Optional with it: PLUNK_FROM
+  (default news@puroclassico.com, its domain must be verified in Plunk) and PLUNK_FROM_NAME (default Puro Classico).
 Optional: SITE_URL (default https://www.puroclassico.com), ACTIVE_DAYS (default 21), MAX_SEND (safety cap)
+Every run ends with one "summary:" line (provider, attempted, sent, failed) and exits 1 when more than half of the
+attempted sends failed, so GitHub marks the run red.
 """
 import os, sys, json, re, time, math, hmac, hashlib, urllib.request, urllib.error
 from datetime import datetime, timezone, timedelta
@@ -18,7 +22,15 @@ SUPA_URL = "https://uptpghuduqjqmrxwatbm.supabase.co"
 # redirected, so Gmail's unsubscribe button failed. Every other link also saves a redirect hop.
 SITE     = os.environ.get("SITE_URL", "https://www.puroclassico.com")
 SVC      = os.environ["SUPABASE_SERVICE_KEY"]
-BREVO    = os.environ["BREVO_API_KEY"]
+# Email provider (25 Nov 2026, owner: move from Brevo to Plunk). With PLUNK_API_KEY set, every email goes through Plunk's
+# POST /v1/send; without it, Brevo exactly as before. Plunk's old API (api.useplunk.com) answers 410 Gone since its move
+# to next-api.useplunk.com (docs.useplunk.com/api-reference/public-api/sendEmail).
+PLUNK_KEY = os.environ.get("PLUNK_API_KEY", "").strip()
+PLUNK_URL = "https://next-api.useplunk.com/v1/send"
+PLUNK_FROM = os.environ.get("PLUNK_FROM", "").strip() or "news@puroclassico.com"
+PLUNK_FROM_NAME = os.environ.get("PLUNK_FROM_NAME", "").strip() or "Puro Classico"
+PROVIDER = "plunk" if PLUNK_KEY else "brevo"
+BREVO    = os.environ.get("BREVO_API_KEY", "") if PLUNK_KEY else os.environ["BREVO_API_KEY"]
 UNSUB_SECRET = os.environ["UNSUB_SECRET"]
 ACTIVE_DAYS  = int(os.environ.get("ACTIVE_DAYS", "21"))
 MAX_SEND     = int(os.environ.get("MAX_SEND", "280"))   # safety cap for one run of one mode
@@ -101,9 +113,59 @@ def fb_swap(html):
     html = html.replace(MYCNBOX_URL, FB_SIGNUP).replace("AACPYA", FB_INVITE)
     return re.sub(r"https://(?:www\.)?puroclassico\.com", "https://fb.puroclassico.com", html)
 
-def brevo_send(to_email, subject, html, unsub=None, tag=None):
+# Every send of this run, counted by send_email(): main() prints them in the summary line and exits 1 when more than
+# half failed (25 Nov 2026: Brevo answered 401 to every send for five days while every run stayed green).
+STATS = {"attempted": 0, "sent": 0, "failed": 0}
+
+def send_email(to_email, subject, html, unsub=None, tag=None):
+    """The one send function of every mode: Plunk when PLUNK_API_KEY is set, otherwise Brevo exactly as before.
+    (ok, message). Members of the partner's site get his invite code and fb.* links first, whatever the provider."""
     if to_email and to_email.lower() in fb_emails():
         html, unsub = fb_swap(html), unsub and fb_swap(unsub)
+    STATS["attempted"] += 1
+    try:
+        ok, msg = (plunk_send if PLUNK_KEY else brevo_send)(to_email, subject, html, unsub, tag)
+    except Exception:
+        STATS["failed"] += 1; raise
+    STATS["sent" if ok else "failed"] += 1
+    return ok, msg
+
+def plunk_error(code, text):
+    """'<status> <CODE>: <message>' from Plunk's error answer, with the first field error of a validation failure."""
+    try:
+        e = json.loads(text)["error"]
+        f = (e.get("errors") or [{}])[0]
+        return "%d %s: %s%s" % (code, e.get("code"), e.get("message"), " [%s: %s]" % (f.get("field"), f.get("message")) if f.get("field") else "")
+    except Exception:
+        return "%d %s" % (code, text[:160])
+
+def plunk_send(to_email, subject, html, unsub=None, tag=None):
+    """One email through Plunk's POST /v1/send. No template is used, so Plunk adds no footer and no List-Unsubscribe of
+    its own; ours goes in `headers` and is sent as given (the same pair as Brevo's, for functions/unsubscribe.js).
+    Plunk has no tags, so `tag` stays Brevo-only; /admin still counts visits per email by utm_campaign."""
+    body = {"to": to_email, "subject": subject, "body": html, "from": {"name": PLUNK_FROM_NAME, "email": PLUNK_FROM}}
+    if unsub:
+        body["headers"] = {"List-Unsubscribe": "<%s>" % unsub,
+                           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}
+    data = json.dumps(body).encode()
+    for attempt in (1, 2):
+        req = urllib.request.Request(PLUNK_URL, data=data, method="POST",
+            headers={"Authorization": "Bearer " + PLUNK_KEY, "Content-Type": "application/json", "Accept": "application/json"})
+        try:
+            t = urllib.request.urlopen(req, timeout=30).read().decode()
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt == 1:          # rate limited: wait as Plunk asks (at most 30 s), try once more
+                try: wait = float(e.headers.get("Retry-After") or 2)
+                except (TypeError, ValueError): wait = 2
+                time.sleep(min(30, max(1, wait))); continue
+            return False, plunk_error(e.code, e.read().decode())
+        except (urllib.error.URLError, OSError) as e:   # timeout or no connection: one failed send, not a crashed run
+            return False, "no answer from Plunk: %s" % e
+        try: ok = json.loads(t).get("success") is True
+        except Exception: ok = False
+        return ok, t if ok else "unexpected answer: " + t[:160]
+
+def brevo_send(to_email, subject, html, unsub=None, tag=None):
     body = {"sender": {"name": "Puro Classico", "email": "news@puroclassico.com"},
             "to": [{"email": to_email}], "subject": subject, "htmlContent": html}
     # Brevo's statistics split by tag: welcome, ordering, mycnbox, newsletter, saved. A list adds more tags (the ordering
@@ -130,17 +192,23 @@ def brevo_get(path):
         print("budget: Brevo %s not readable (%s)" % (path.split("?")[0], hide(e)[:80])); return None
 
 def sent_today():
-    """Emails Brevo has accepted today (UTC). If its statistics can't be read: an estimate from today's new members."""
+    """Emails Brevo has accepted today (UTC). If its statistics can't be read, or the email goes through Plunk: an
+    estimate from today's new members."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    r = brevo_get("smtp/statistics/aggregatedReport?startDate=%s&endDate=%s" % (today, today))
-    if isinstance(r, dict) and r.get("requests") is not None: return int(r["requests"])
-    print("budget: Brevo statistics unavailable, estimating from today's welcome emails")
+    if PLUNK_KEY:   # Brevo's statistics no longer see these emails, so the day's count is estimated as below
+        print("budget: sending through Plunk, estimating today's emails from today's welcome emails")
+    else:
+        r = brevo_get("smtp/statistics/aggregatedReport?startDate=%s&endDate=%s" % (today, today))
+        if isinstance(r, dict) and r.get("requests") is not None: return int(r["requests"])
+        print("budget: Brevo statistics unavailable, estimating from today's welcome emails")
     try: n = len(sb_all("profiles?select=id&welcomed_at=gte.%sT00:00:00Z&order=id" % today))
     except Exception: n = 10
     return 2 * n + 15
 
 def credits_left():
-    """Brevo's own count of send credits left (the free plan's daily limit), when the account answers."""
+    """Brevo's own count of send credits left (the free plan's daily limit), when the account answers. None on Plunk,
+    which has no daily limit: DAILY_CAP alone sets the day's budget there."""
+    if PLUNK_KEY: return None
     for p in (brevo_get("account") or {}).get("plan") or []:
         if p.get("creditsType") == "sendLimit":
             print("budget: Brevo plan %s, %s send credits left" % (p.get("type"), p.get("credits")))
@@ -467,17 +535,19 @@ def welcome_html(uid):
     return wrap(inner, unsub_url(uid))
 
 def run_welcome(profiles):
-    sent = 0
+    sent = fails = 0
     for pr in profiles:
         if pr.get("welcomed"): continue
         email = pr.get("email")
         if not email: continue
-        ok, msg = brevo_send(email, WELCOME_SUBJECT, welcome_html(pr["id"]), unsub_url(pr["id"]), "welcome")
+        ok, msg = send_email(email, WELCOME_SUBJECT, welcome_html(pr["id"]), unsub_url(pr["id"]), "welcome")
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"welcomed": True, "welcomed_at": datetime.now(timezone.utc).isoformat()}, {"Prefer": "return=minimal"})
-            sent += 1
+            sent += 1; fails = 0
         else:
-            print("FAIL welcome:", hide(msg))
+            print("FAIL welcome:", hide(msg)); fails += 1
+            # like the other modes (25 Nov 2026: 157 failing calls a run during the Brevo outage); the rest wait 15 minutes
+            if fails >= 5: print("stopping: 5 sends in a row failed"); break
         if sent >= MAX_SEND: break
         time.sleep(0.3)
     print("welcome sent:", sent)
@@ -485,7 +555,7 @@ def run_welcome(profiles):
 def run_welcome_test(_profiles=None):
     email = os.environ.get("TEST_EMAIL", "").strip()
     if not email: print("TEST_EMAIL not set"); return
-    ok, msg = brevo_send(email, WELCOME_SUBJECT, welcome_html("test"), None, "test")
+    ok, msg = send_email(email, WELCOME_SUBJECT, welcome_html("test"), None, "test")
     print("welcome-test sent" if ok else ("FAIL welcome-test: " + hide(msg)))
 
 ORDERING_SUBJECT = "How to order from Puro Classico (56-second video)"
@@ -610,17 +680,18 @@ def run_ordering(profiles):
         if not wa: return True
         try: return datetime.fromisoformat(wa.replace("Z", "+00:00")) <= cutoff
         except: return True
-    sent = 0
+    sent = fails = 0
     for pr in profiles:
         email = pr.get("email")
         if not email or not eligible(pr): continue
         subject, html, tags = ordering_email(pr["id"], agent_of(pr))      # the version for the agent they picked (or today's)
-        ok, msg = brevo_send(email, subject, html, unsub_url(pr["id"]), tags)
+        ok, msg = send_email(email, subject, html, unsub_url(pr["id"]), tags)
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"ordering_sent": True}, {"Prefer": "return=minimal"})
-            sent += 1
+            sent += 1; fails = 0
         else:
-            print("FAIL ordering:", hide(msg))
+            print("FAIL ordering:", hide(msg)); fails += 1
+            if fails >= 5: print("stopping: 5 sends in a row failed"); break
         if sent >= MAX_SEND: break
         time.sleep(0.3)
     print("ordering sent:", sent)
@@ -635,7 +706,7 @@ def run_ordering_test(_profiles=None):
     if want and want != "all" and want not in AGENT_KEYS: print("TEST_AGENT %r unknown, use one of: %s or all" % (want, ", ".join(AGENT_KEYS))); return
     for agent in ([None] + list(AGENT_KEYS) if want == "all" else [want or None]):
         subject, html, _tags = ordering_email("test", agent)
-        ok, msg = brevo_send(email, subject, html, None)
+        ok, msg = send_email(email, subject, html, None)
         print(("ordering-test sent (agent: %s)" % (agent or "none")) if ok else ("FAIL ordering-test: " + hide(msg)))
         if want == "all": time.sleep(0.3)
 
@@ -671,8 +742,8 @@ def run_mycnbox(profiles):
     cap = slots("mycnbox") if due else 0
     sent = fails = 0
     for pr in due:
-        if sent >= cap: print("::warning::mycnbox: %d members wait for tomorrow to stay under the Brevo daily cap" % (len(due) - sent)); break
-        ok, msg = brevo_send(pr["email"], "Set up MyCNBox, your finds are waiting", mycnbox_html(pr["id"]), unsub_url(pr["id"]), "mycnbox")
+        if sent >= cap: print("::warning::mycnbox: %d members wait for tomorrow to stay under the daily email cap" % (len(due) - sent)); break
+        ok, msg = send_email(pr["email"], "Set up MyCNBox, your finds are waiting", mycnbox_html(pr["id"]), unsub_url(pr["id"]), "mycnbox")
         if ok:
             sb("profiles?id=eq." + pr["id"], "PATCH", {"agent_sent": True}, {"Prefer": "return=minimal"})
             sent += 1; fails = 0
@@ -685,7 +756,7 @@ def run_mycnbox(profiles):
 def run_mycnbox_test(_profiles=None):
     email = os.environ.get("TEST_EMAIL", "").strip()
     if not email: print("TEST_EMAIL not set"); return
-    ok, msg = brevo_send(email, "Set up MyCNBox, your finds are waiting", mycnbox_html("test"), None)
+    ok, msg = send_email(email, "Set up MyCNBox, your finds are waiting", mycnbox_html("test"), None)
     print("mycnbox-test sent" if ok else ("FAIL mycnbox-test: " + hide(msg)))
 
 def load_stats():
@@ -779,7 +850,7 @@ def run_newsletter(profiles):
     print("newsletter queue: %d members (%d welcomed in the last 48 h left out)" % (len(queue), len(profiles) - total))
     sent = fails = 0
     for pr in queue:
-        if sent >= cap: print("::warning::newsletter: %d members not sent today to stay under the Brevo daily cap" % (len(queue) - sent)); break
+        if sent >= cap: print("::warning::newsletter: %d members not sent today to stay under the daily email cap" % (len(queue) - sent)); break
         email = pr.get("email"); uid = pr["id"]
         u = by_user.get(uid)
         active = False
@@ -820,7 +891,7 @@ def run_newsletter(profiles):
             print("DRY tier %d %s | %s | %s" % (tier(pr), "perso" if perso else "generic", subject, "; ".join("%s (%d)" % (p.get("title", "")[:28], score.get(i, 0)) for i, p in recs)))
             sent += 1; continue
         html = wrap(body, unsub_url(uid))
-        ok, msg = brevo_send(email, subject, html, unsub_url(uid), "newsletter")
+        ok, msg = send_email(email, subject, html, unsub_url(uid), "newsletter")
         if ok: sent += 1; fails = 0
         else:
             print("FAIL news:", hide(msg)); fails += 1
@@ -854,7 +925,7 @@ def run_saved(profiles):
     cap = slots("saved") if due else 0
     sent = fails = 0
     for pr in due:
-        if sent >= cap: print("::warning::saved: %d members not sent today to stay under the Brevo daily cap" % (len(due) - sent)); break
+        if sent >= cap: print("::warning::saved: %d members not sent today to stay under the daily email cap" % (len(due) - sent)); break
         email = pr["email"]; uid = pr["id"]; ids = recent[uid]
         recs = [(i, prod[i]) for i in ids[:4]]
         first = recs[0][1]
@@ -865,7 +936,7 @@ def run_saved(profiles):
                        ("this" if len(recs) == 1 else "these", "It is" if len(recs) == 1 else "They are"), 16, 36)) + grid(recs)
         body += '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>' + btn(esc(site_link(SITE + "/?saved=1")), "See Your Saved Finds")
         if os.environ.get("DRY_RUN"): print("DRY saved | %s | %d items" % (subject, len(recs))); sent += 1; continue
-        ok, msg = brevo_send(email, subject, wrap(body, unsub_url(uid)), unsub_url(uid), "saved")
+        ok, msg = send_email(email, subject, wrap(body, unsub_url(uid)), unsub_url(uid), "saved")
         if ok: sent += 1; fails = 0
         else:
             print("FAIL saved:", hide(msg)); fails += 1
@@ -887,8 +958,7 @@ def run_sync(profiles):
         time.sleep(0.12)
     print("contacts synced to Brevo:", done)
 
-def main():
-    mode = sys.argv[1] if len(sys.argv) > 1 else "newsletter"
+def run(mode):
     global CAMPAIGN   # the campaign tag on site links in this run's emails (site_link)
     CAMPAIGN = mode if mode in ("welcome", "ordering", "mycnbox", "saved", "welcome-test", "ordering-test", "mycnbox-test") else "newsletter"
     if mode == "ordering-test":
@@ -906,11 +976,25 @@ def main():
         # 3rd in sequence: the create-a-MyCNBox-account nudge is marketing, so only members who opted in to marketing email
         profiles = sb_all_opt("profiles?welcomed=eq.true&marketing_opt_in=eq.true&select=id,email,welcomed,welcomed_at,agent_sent,agent&order=id", "agent")
     elif mode == "sync":
+        if PLUNK_KEY:   # owner, 25 Nov 2026: on Plunk the member list lives in Supabase, there is no contact list to mirror
+            print("contacts not synced: email goes through Plunk, and the member list lives in Supabase"); return
         profiles = sb_all("profiles?select=id,email&order=id")
     else:
         profiles = sb_all("profiles?marketing_opt_in=eq.true&select=id,email,welcomed,welcomed_at&order=id")
     print("mode=%s profiles=%d" % (mode, len(profiles)))
     {"welcome": run_welcome, "ordering": run_ordering, "mycnbox": run_mycnbox, "saved": run_saved, "sync": run_sync}.get(mode, run_newsletter)(profiles)
+
+def main():
+    mode = sys.argv[1] if len(sys.argv) > 1 else "newsletter"
+    try:
+        run(mode)
+    finally:
+        print("summary: mode=%s provider=%s attempted=%d sent=%d failed=%d"
+              % (mode, PROVIDER, STATS["attempted"], STATS["sent"], STATS["failed"]))
+    # A red run when most sends failed: GitHub then emails the owner, and the health check sees no successful run.
+    if STATS["attempted"] and STATS["failed"] * 2 > STATS["attempted"]:
+        print("::error::%s: %d of %d sends failed through %s" % (mode, STATS["failed"], STATS["attempted"], PROVIDER))
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
