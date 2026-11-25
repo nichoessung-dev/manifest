@@ -38,6 +38,5 @@ jobs:
             git config user.email "github-actions[bot]@users.noreply.github.com"
             # no [skip ci]: Cloudflare Pages must deploy the regenerated files
             git commit -m "chore: sync catalogue data from index.html"
-            git pull --rebase
-            git push
+            ok=0; for i in 1 2 3 4 5; do if git pull --rebase && git push; then ok=1; break; fi; echo "push raced, retry $i"; sleep $((i*5)); done; [ "$ok" = 1 ]
           fi

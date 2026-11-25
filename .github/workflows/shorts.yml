@@ -219,7 +219,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add shorts_posted.json shorts_log.json 2>/dev/null || git add shorts_log.json
-          git diff --cached --quiet || (git commit -m "chore: shorts log [skip ci]" && git pull --rebase -q origin "$GITHUB_REF_NAME" && git push)      # this branch only: a bare pull would download the whole assets branch
+          git diff --cached --quiet || (git commit -m "chore: shorts log [skip ci]" && (for i in 1 2 3 4 5; do git pull --rebase -q origin "$GITHUB_REF_NAME" && git push && exit 0; echo "push raced, retry $i"; sleep $((i*5)); done; exit 1))      # this branch only: a bare pull would download the whole assets branch
       # Last on purpose: the video above is never held up by the asset library, but a library that could not be read or saved must not go unseen.
       - name: Asset library check (red when the library could not be read or saved)
         if: ${{ always() && (steps.lib.outcome == 'failure' || steps.make.outcome == 'failure' || steps.save.outcome == 'failure') }}
