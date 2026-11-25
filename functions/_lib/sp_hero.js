@@ -41,12 +41,18 @@ const ic = (id, cls) => `<svg class="ic ${cls}" viewBox="0 0 24 24" width="20" h
 // On phones a tap on the field opens the app's search sheet, which closes with history.back(); the browser then puts the page
 // back where the sheet opened, which can cancel the scroll to All Finds that the search started (seen on the homepage too).
 // A search made in the sheet (the app's query or filters changed) ends at All Finds. Registered here, before the search
-// script, because that script stops the sheet's own popstate from reaching listeners added after it.
+// script, because that script stops the sheet's own popstate from reaching listeners added after it. Chrome can still
+// drop that scroll right after it starts (seen after a brand picked in the sheet), so it is checked again up to twice,
+// unless the visitor has touched, scrolled or typed since.
 const SHEET_FIX = `<script>(function(){try{var w=window,d=document,sig=null,at=0;
 function cur(){try{return[state.q||"",JSON.stringify(state.brand),JSON.stringify(state.cats)].join("|");}catch(e){return null;}}
 d.addEventListener("click",function(e){var t=e.target;if(t&&t.id==="v9-q"&&(w.innerWidth<768||(w.matchMedia&&matchMedia("(pointer: coarse)").matches&&w.innerWidth<1024))){sig=cur();at=Date.now();}},true);
 w.addEventListener("popstate",function(){var s=sig;sig=null;if(s===null||Date.now()-at>6e5)return;var n=cur();if(n===null||n===s)return;
-setTimeout(function(){var el=d.getElementById("v9-all");if(el)try{el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});}catch(x){}},0);},true);
+var moved=false,stop=function(){moved=true;};["touchstart","wheel","keydown"].forEach(function(k){w.addEventListener(k,stop,{once:true,passive:true});});
+var go=function(left){if(moved)return;var el=d.getElementById("v9-all");if(!el)return;var t=el.getBoundingClientRect().top;if(t>-24&&t<24)return;
+try{el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});}catch(x){}
+if(left>0)setTimeout(function(){go(left-1);},450);};
+setTimeout(function(){go(2);},0);},true);
 }catch(e){}})();</script>`;
 
 export function spHero({ finds, qc, agents, built, trend }) {

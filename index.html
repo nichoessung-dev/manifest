@@ -4699,12 +4699,14 @@ var SWAPPED=new Set(), SWAP_HIDE_OF={};
 /* owner, 19 Nov 2026: "i want my friends finds to be like 95-99% of the spreadsheet only when people search up stuff they
    find the other stuff". Browsing (no search, not the saved list): the partner's finds, with about 3% other finds mixed in
    (the most popular of them, one every ~33 cards). When a view has under 48 partner finds the others follow them in full,
-   so no category or filter ends up empty. A search shows everything, partner finds first. */
+   so no category or filter ends up empty. A search shows everything, partner finds first.
+   25 Nov 2026 (owner): a chosen brand is a search too (a brand picked in the search suggestions, the Brands menu, a brand
+   hub): all its finds, partner finds first, so "Burberry, 228 finds" opens 228 finds and not 49 plus a few. */
 const SW_MIX=33;
 function swapFirst(list){
   if(!SWAPPED.size||!list||!list.length) return list;
   const a=[], b=[]; for(const p of list)(SWAPPED.has(String(p.id))?a:b).push(p);
-  const browse=!(state.q||"").trim()&&!state.saved;
+  const browse=!(state.q||"").trim()&&!state.saved&&!(Array.isArray(state.brand)?state.brand.length:(state.brand&&state.brand!=="all"));
   if(!browse) return (state.sort==="low"||state.sort==="high")?list:(a.length?a.concat(b):list);
   if(a.length<48) return (state.sort==="low"||state.sort==="high")?list:a.concat(b);
   const n=Math.max(1,Math.ceil(a.length*0.03)), keep=b.slice(0,n);
