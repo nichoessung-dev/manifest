@@ -318,7 +318,8 @@ def est_price(a, b):
     rows = [r for r in _ROWS if isinstance(r[6], (int, float)) and r[6] > 0 and kw in str(r[1]).lower()]
     for pool, need in (([r for r in rows if br and br.lower() in str(r[2]).lower()], 2), (rows, 5)):
         if len(pool) >= need:
-            v = sorted(r[6] for r in pool); return max(1, int(round(v[len(v) // 4])))
+            v = sorted(r[6] for r in pool)
+            return max(1, int(round(v[len(v) // 4] * float(os.environ.get("PRICE_FACTOR", "0.5")))))   # owner, 25 Nov 2026: half of everything
     return None
 
 

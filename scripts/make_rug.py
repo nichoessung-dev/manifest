@@ -299,6 +299,14 @@ WORDS = {"sneaker": "sneaker|trainer|shoe", "vest": "vest|gilet", "puffer": "puf
          "belt": "belt", "wallet": "wallet|card holder|cardholder", "cap": "cap", "perfume": "perfume|cologne|fragrance", "slides": "slide", "loafer": "loafer", "boots": "boot"}
 
 
+PRICE_FACTOR = float(os.environ.get("PRICE_FACTOR", "0.5"))     # owner, 25 Nov 2026: "make them like half in price everything"
+
+
+def cut(p):
+    """A price as shown and said in posts: PRICE_FACTOR of the site's price, at least $1."""
+    return None if p is None else max(1, int(round(p * PRICE_FACTOR)))
+
+
 def price(brand, item, grp):
     """Estimated USD price: the median of the site's finds of this brand and kind, then of this kind only. None when the site has nothing close."""
     global _ROWS
@@ -312,7 +320,7 @@ def price(brand, item, grp):
     br = lambda rs: [r for r in rs if brand and brand.lower() in r[2].lower()]
     for pool, need in ((br(kw), 2), (br(rows), 3), (kw, 5)):
         if len(pool) >= need:                                   # the cheaper end of what the site has (owner: lower prices), never below the cheapest find
-            p = sorted(r[6] for r in pool); return max(1, int(round(p[len(p) // 2])))   # the middle price (owner, 18 Nov 2026: "$7 for an LV duffle")
+            p = sorted(r[6] for r in pool); return cut(max(1, int(round(p[len(p) // 2]))))   # the middle price (owner, 18 Nov 2026: "$7 for an LV duffle")
     return None
 
 
@@ -944,7 +952,7 @@ def main():
                 name = re.sub(r"[^a-z0-9 '&.-]", "", unicodedata.normalize("NFKD", str(c.get("name") or c.get("item") or t)).encode("ascii", "ignore").decode().lower()).strip()[:28]      # "pérignon" -> "perignon", not "prignon"
                 print("  picked", name, "(%.0fs)" % (time.time() - t_pick))
                 row = site_row(fid) if fid else None
-                usd = int(round(row[6])) if row and isinstance(row[6], (int, float)) and row[6] > 0 else price(c.get("brand"), c.get("item") or t, g)   # a site photo: its find's own price
+                usd = cut(int(round(row[6]))) if row and isinstance(row[6], (int, float)) and row[6] > 0 else price(c.get("brand"), c.get("item") or t, g)   # a site photo: its find's own price
                 picks.append({"qc": pid, "img": qc, "name": name, "usd": usd, "group": g, "brand": c.get("brand"), "find": fid, "single": bool(fid),
                               "item": c.get("item") or t, "angle": rnd.choice(ANGLES[g]), "label": c.get("label")})
 

@@ -14,17 +14,25 @@ on:
         description: 'How many slideshows'
         type: string
         default: '10'
+      replace:
+        description: 'Remake the queued, not yet posted slideshows under their own names (6 parallel jobs; second reuses saved photos)'
+        type: boolean
+        default: false
       max_images:
         description: 'Most images Google may make for one slideshow (second only)'
         type: string
         default: '16'
 permissions:
   contents: write
-concurrency: month-build-${{ inputs.account }}
+concurrency: month-build-${{ inputs.account }}-${{ inputs.replace }}
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(inputs.replace && inputs.account == 'main' && '[0,1,2,3,4,5]' || '[0]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -60,4 +68,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          python scripts/month_build.py --account "${{ inputs.account }}" --count "${{ inputs.count }}" --minutes 320
+          if [ "${{ inputs.replace }}" = "true" ]; then
+            n=1; [ "${{ inputs.account }}" = "main" ] && n=6
+            python scripts/month_build.py --account "${{ inputs.account }}" --replace --shard "${{ matrix.shard }}/$n" --minutes 330
+          else
+            python scripts/month_build.py --account "${{ inputs.account }}" --count "${{ inputs.count }}" --minutes 320
+          fi

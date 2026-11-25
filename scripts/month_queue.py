@@ -102,10 +102,10 @@ def redo():
     subprocess.run(["gh", "release", "download", TAG, "-p", "*.json", "-D", md, "--clobber"], cwd=ROOT, capture_output=True)
     voice = {}
     for vid in q:
-        try: voice[vid] = json.load(open(os.path.join(md, vid + ".json"), encoding="utf-8")).get("voice") or "chatterbox"
+        try: m = json.load(open(os.path.join(md, vid + ".json"), encoding="utf-8")); voice[vid] = m.get("rev") or m.get("voice") or "chatterbox"
         except Exception: voice[vid] = None
     rows = sorted((v["at"], vid) for vid, v in q.items()
-                  if voice.get(vid) and voice[vid] != v.get("voice", "chatterbox")
+                  if voice.get(vid) and voice[vid].endswith("|half") and voice[vid] != v.get("rev", v.get("voice", "chatterbox"))
                   and datetime.strptime(v["at"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc) > now + timedelta(minutes=25))
     print("queued posts to swap for the new voice:", len(rows))
     if DRY or not rows: return
@@ -123,7 +123,7 @@ def redo():
             time.sleep(1)
         ids = queue_one(vid, v["account"], at, out)
         if ids is None: v["posts"] = []; save(st); print("::warning::slot left empty, the next run tries again:", vid, at); break
-        v["posts"] = ids; v["voice"] = voice[vid]; made += 1; save(st)
+        v["posts"] = ids; v["rev"] = voice[vid]; made += 1; save(st)
         print("swapped %s at %s" % (vid, at), flush=True); time.sleep(20)
     left = len(rows) - made
     print("swapped:", made, "| still to swap:", left)
@@ -162,7 +162,7 @@ def fill():
                 ids = []
                 try: ids = [x.get("postId") for x in json.loads(r.stdout.split("scheduled for %s:" % at, 1)[1].strip().splitlines()[0]) if x.get("postId")]
                 except Exception: pass
-                q[vid] = {"account": acct, "at": at, "posts": ids, "voice": meta.get("voice") or "chatterbox"}; taken.add((acct, at)); made += 1; save(st)
+                q[vid] = {"account": acct, "at": at, "posts": ids, "rev": meta.get("rev") or meta.get("voice") or "chatterbox"}; taken.add((acct, at)); made += 1; save(st)
                 print("queued %s for %s (%s)" % (vid, t.astimezone(TZ).strftime("%a %d %b %H:%M"), acct), flush=True)
                 for f in (vid + ".mp4",): os.remove(os.path.join(out, f))
                 time.sleep(20)

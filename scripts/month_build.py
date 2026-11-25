@@ -50,7 +50,53 @@ def rug_lines(out):
     return [line(x) for x in log["slides"]]
 
 
-def pack(account, out, meta_path, k):
+def targets(account):
+    """Replace mode: the queued videos of this account that have not posted yet, soonest first (month_queue.json)."""
+    try: q = json.load(open(os.path.join(ROOT, "month_queue.json"), encoding="utf-8")).get("queued", {})
+    except Exception: q = {}
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M")
+    return [vid for at, vid in sorted((v["at"], vid) for vid, v in q.items() if v["account"] == account and v["at"][:16] > now)]
+
+
+def library_packs(ids, shard):
+    """Qualityfinds without new images: the saved rug photos (Supabase library, made 24-25 Nov 2026 with full prices) get new
+    captions at PRICE_FACTOR of their price, 5 to a slideshow, under each old pack's name, cover and caption."""
+    import io, urllib.request
+    from PIL import Image
+    sys.path.insert(0, os.path.join(ROOT, "scripts")); import make_rug
+    lib = json.loads(urllib.request.urlopen(make_rug.SUPA + "/storage/v1/object/public/" + make_rug.LIB_INDEX, timeout=60).read())["images"]
+    lib = [x for x in lib if x.get("date") in ("20261124", "20261125")]
+    per = max(4, min(6, len(lib) // max(1, len(ids)))); print("library photos:", len(lib), "| per slideshow:", per)
+    i0, n = shard; made = 0
+    for t, pid in enumerate(ids):
+        if t % n != i0: continue
+        pics = lib[t * per:(t + 1) * per]
+        if len(pics) < 4: print("::warning::not enough saved photos for", pid); continue
+        out = os.path.join(ROOT, "out", "lib-" + pid); shutil.rmtree(out, ignore_errors=True); os.makedirs(out)
+        if sh(["gh", "release", "download", TAG, "-p", pid + ".zip", "-D", out, "--clobber"]).returncode: print("::warning::no old pack", pid); continue
+        with zipfile.ZipFile(os.path.join(out, pid + ".zip")) as f: cover = f.read("00.jpg"); old = json.loads(f.read("slides.json"))
+        says, slides = [], []
+        for j, x in enumerate(pics):
+            names = x["name"] if isinstance(x["name"], list) else [x["name"]]; usd = x.get("usd") or []
+            usd = [make_rug.cut(u) if isinstance(u, (int, float)) and u else None for u in (usd if isinstance(usd, list) else [usd])]
+            usd += [None] * (len(names) - len(usd))
+            raw = Image.open(io.BytesIO(urllib.request.urlopen(x["url"], timeout=120).read())).convert("RGB")
+            im = make_rug.item_slide(make_rug.phone_look(raw), [str(v).lower() for v in names] if len(names) > 1 else str(names[0]).lower(),
+                                     usd if len(names) > 1 else usd[0])
+            buf = io.BytesIO(); im.convert("RGB").save(buf, "JPEG", quality=94); slides.append(buf.getvalue())
+            says.append(", and ".join(str(nm).lower() + (", %d dollars" % u if u else "") for nm, u in zip(names, usd)))
+        pk = {"id": pid, "account": "second", "caption": old.get("caption") or "", "cover": "00.jpg", "prices": "half",
+              "slides": [{"img": "%02d.jpg" % (j + 1), "say": says[j]} for j in range(len(slides))]}
+        z = os.path.join(ROOT, "out", pid + ".zip")
+        with zipfile.ZipFile(z, "w", zipfile.ZIP_STORED) as f:
+            f.writestr("00.jpg", cover)
+            for j, b in enumerate(slides): f.writestr("%02d.jpg" % (j + 1), b)
+            f.writestr("slides.json", json.dumps(pk, ensure_ascii=False, indent=1))
+        sh(["gh", "release", "upload", TAG, z, "--clobber"], check=True); made += 1; print("replaced", pid, "|", " / ".join(says))
+    return made
+
+
+def pack(account, out, meta_path, k, pid=None):
     meta = json.load(open(meta_path, encoding="utf-8"))
     images = [os.path.join(out, os.path.basename(i)) for i in meta.get("images") or []]
     if account == "second":
@@ -59,8 +105,8 @@ def pack(account, out, meta_path, k):
         names, prices = meta.get("names") or [], meta.get("prices") or []
         says = [(str(n).lower() + (", %d dollars" % p if isinstance(p, (int, float)) and p else "")) if n else "" for n, p in zip(names, prices + [None] * len(names))]
     if len(images) < 4 or len(says) < len(images) - 1: raise RuntimeError("pack: %d images, %d lines" % (len(images), len(says)))
-    pid = "%s-%s-%02d" % ("qf" if account == "second" else "pc", datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S"), k)
-    pk = {"id": pid, "account": account, "caption": meta.get("caption") or "", "cover": "00.jpg",
+    pid = pid or "%s-%s-%02d" % ("qf" if account == "second" else "pc", datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S"), k)
+    pk = {"id": pid, "account": account, "caption": meta.get("caption") or "", "cover": "00.jpg", "prices": "half",
           "slides": [{"img": "%02d.jpg" % (j + 1), "say": says[j]} for j in range(len(images) - 1)]}
     z = os.path.join(ROOT, "out", pid + ".zip")
     with zipfile.ZipFile(z, "w", zipfile.ZIP_STORED) as f:
@@ -82,8 +128,18 @@ def build_cmd(account, out):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--account", choices=["main", "second"], required=True)
     ap.add_argument("--count", type=int, default=10); ap.add_argument("--minutes", type=float, default=320)
+    ap.add_argument("--replace", action="store_true", help="remake the queued, not yet posted slideshows under their own names (half prices, 25 Nov 2026)")
+    ap.add_argument("--shard", default="0/1", help="i/n: only every n-th of them (parallel jobs)")
     a = ap.parse_args(); t0 = time.time(); ensure_release(); made = 0; fails = 0
     state = "slides_used.json" if a.account == "second" else "finds_used.json"
+    shard = tuple(int(x) for x in a.shard.split("/")); ids = None
+    if a.replace:
+        ids = targets(a.account); print("queued slideshows to remake:", len(ids))
+        if a.account == "second":
+            made = library_packs(ids, shard); print("slideshows made:", made)
+            if not made: raise SystemExit("no slideshow was made")
+            return
+        ids = [pid for t, pid in enumerate(ids) if t % shard[1] == shard[0]]; a.count = len(ids)
     for k in range(a.count):
         if time.time() - t0 > a.minutes * 60: print("time is up: stopping"); break
         out = os.path.join(ROOT, "out", "mb-%s-%02d" % (a.account, k)); shutil.rmtree(out, ignore_errors=True); os.makedirs(out)
@@ -99,7 +155,7 @@ def main():
             continue
         fails = 0
         try:
-            z, pid = pack(a.account, out, metas[0], k)
+            z, pid = pack(a.account, out, metas[0], k, ids[k] if ids else None)
             sh(["gh", "release", "upload", TAG, z, "--clobber"], check=True); made += 1; print("uploaded", pid)
         except Exception as e: print("::warning::could not pack slideshow %d: %s" % (k + 1, str(e)[:200]))
         print("::endgroup::")

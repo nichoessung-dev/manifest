@@ -158,7 +158,7 @@ def render(pk_dir, pk, device, state):
     p.stdin.close(); p.wait()
     if p.returncode or not os.path.exists(out): raise RuntimeError("ffmpeg failed for " + pk["id"])
     meta = {"format": "month-video", "account": pk["account"], "images": [], "ids": [], "caption": pk.get("caption") or "",
-            "seconds": round(total, 1), "voiceover": True, "voice": VOICE_TAG, "file": pk["id"] + ".mp4", "product_url": "https://www.puroclassico.com/spreadsheet",
+            "seconds": round(total, 1), "voiceover": True, "voice": VOICE_TAG, "rev": rev(pk), "file": pk["id"] + ".mp4", "product_url": "https://www.puroclassico.com/spreadsheet",
             "music": os.path.basename(music), "says": [INTRO] + [s.get("say") for s in pk["slides"]] + [OUTRO]}
     json.dump(meta, open(out[:-4] + ".json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     return out, total
@@ -169,6 +169,12 @@ def assets(tag):
     return set(r.stdout.split()) if r.returncode == 0 else None
 
 
+def rev(pk):
+    """What a finished video is made of: the voice and the price rule (25 Nov 2026: half prices). A queued post whose video has
+    another rev is swapped by month_queue.py --redo."""
+    return VOICE_TAG + "|" + (pk.get("prices") or "full")
+
+
 def current_voice_videos():
     """The finished videos already made with the current voice (their json says so)."""
     d = os.path.join(WORK, "metas"); os.makedirs(d, exist_ok=True)
@@ -176,7 +182,7 @@ def current_voice_videos():
     out = set()
     for f in glob.glob(os.path.join(d, "*.json")):
         try:
-            if json.load(open(f, encoding="utf-8")).get("voice") == VOICE_TAG: out.add(os.path.basename(f)[:-5] + ".mp4")
+            if json.load(open(f, encoding="utf-8")).get("rev") == VOICE_TAG + "|half": out.add(os.path.basename(f)[:-5] + ".mp4")
         except Exception: pass
     return out
 
@@ -204,9 +210,15 @@ def main():
         sh(["gh", "release", "create", VIDEOS_TAG, "--prerelease", "--title", "Month videos: finished", "--notes", "Finished month videos (scripts/local_videos.py). Not a software release."], cwd=ROOT)
     made = 0
     while True:
-        sh(["gh", "release", "download", PACKS_TAG, "-p", "*.zip", "-D", os.path.join(WORK, "packs"), "--skip-existing"], cwd=ROOT, capture_output=True)
+        sh(["gh", "release", "download", PACKS_TAG, "-p", "*.zip", "-D", os.path.join(WORK, "packs"), "--skip-existing" if not a.redo else "--clobber"], cwd=ROOT, capture_output=True)
         done = (assets(VIDEOS_TAG) or set()) if not a.no_upload else set()
-        if a.redo: done = current_voice_videos()
+        if a.redo:
+            done = current_voice_videos()
+            for z in glob.glob(os.path.join(WORK, "packs", "*.zip")):      # an old pack nobody remade (already posted): leave its video
+                try:
+                    with zipfile.ZipFile(z) as f:
+                        if "prices" not in json.loads(f.read("slides.json")): done.add(os.path.basename(z)[:-4] + ".mp4")
+                except Exception: pass
         todo = [z for z in sorted(glob.glob(os.path.join(WORK, "packs", "*.zip"))) if (not a.only or a.only in z)]
         todo = [z for z in todo if os.path.basename(z)[:-4] + ".mp4" not in done and not (a.no_upload and os.path.exists(os.path.join(WORK, "videos", os.path.basename(z)[:-4] + ".mp4")))]
         todo.sort(key=lambda z: queue_order(os.path.basename(z)[:-4]))         # the videos that post soonest first
