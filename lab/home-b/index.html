@@ -128,7 +128,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 @keyframes pulse{to{opacity:1}}
 .well img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:9%;opacity:0;transition:opacity 300ms var(--ease-out),transform 400ms var(--ease-hover)}
 .well img.in{opacity:1}
-.well img.flat{mix-blend-mode:multiply}
 .well.err::after{content:"";position:absolute;inset:38%;border-radius:50%;border:1.5px dashed color-mix(in srgb,var(--on-well-2) 40%,transparent)}
 html:not(.js) .well img{opacity:1}
 
@@ -241,6 +240,8 @@ html:not(.js) .well img{opacity:1}
 .lead-card .name{font-size:20px;line-height:26px;font-weight:600;letter-spacing:-.02em;color:var(--ink);-webkit-line-clamp:2;min-height:26px}
 .lead-card .price{font-size:20px;line-height:26px}
 .grid4{display:grid;grid-template-columns:1fr 1fr;gap:26px 14px}
+/* a photo with a white background (not cut out) melts into the well: no square, no shadow around it */
+.well img.flat,.lead-card .well img.flat,.cover-well img.flat{mix-blend-mode:multiply;filter:none}
 @media (min-width:1024px){
   .feat{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;align-items:start}
   .feat.flip .lead-card{order:2}
