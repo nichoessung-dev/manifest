@@ -10,7 +10,11 @@ and nothing is deleted. The site does not change: apply_catalog_ai.py --cut swit
 Writes data/photo_cut_uploaded.json (kept as the run's artifact and committed by hand). Needs SUPABASE_SERVICE_KEY, and
 GH_TOKEN with actions: read (gh run download). No image model runs here.
 
-  python scripts/photo_cut_upload.py [--limit 0] [--ids 1,2] [--group main|gallery|all] [--dry-run]
+--set edge (owner, 25 Nov 2026): the existing cut-outs with their light outline cleaned (photo_edge.py, data/photo_edge,
+img/edge/<id>.webp at the source's own size, artifact photo-edge-*) to products/pc2/<id>-e1.webp, the same way; their log
+is data/photo_edge_uploaded.json.
+
+  python scripts/photo_cut_upload.py [--set cut|edge] [--limit 0] [--ids 1,2] [--group main|gallery|all] [--dry-run]
 """
 import argparse, glob, hashlib, io, json, os, re, subprocess, sys, tempfile, time, urllib.error, urllib.request
 from datetime import datetime, timezone
@@ -19,25 +23,31 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from catalog_common import ROOT, load_json, save_json  # noqa: E402
 
 SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co"
-OBJ = re.compile(r"^products/(pc2/[0-9]{1,15}|store2/[0-9]{1,15}-[a-z]{0,2}[0-9]{1,3})-t1\.webp$")
-LOG = os.path.join(ROOT, "data", "photo_cut_uploaded.json")
+SETS = {"cut": {"state": "photo_cut", "log": "photo_cut_uploaded.json", "artifact": "photo-cut-*",
+               "obj": re.compile(r"^products/(pc2/[0-9]{1,15}|store2/[0-9]{1,15}-[a-z]{0,2}[0-9]{1,3})-t1\.webp$"),
+               "file": re.compile(r"img/cut/(g/)?[0-9A-Za-z_-]{1,40}\.webp"), "size": (1600, 1600)},
+        "edge": {"state": "photo_edge", "log": "photo_edge_uploaded.json", "artifact": "photo-edge-*",
+                 "obj": re.compile(r"^products/pc2/[0-9]{1,15}-e1\.webp$"),
+                 "file": re.compile(r"img/edge/[0-9]{1,15}\.webp"), "size": None}}
+SET = SETS["cut"]
+LOG = os.path.join(ROOT, "data", SET["log"])
 ID = re.compile(r"^[0-9]{1,15}$")
 
 
 def records():
     out = {}
-    for f in sorted(glob.glob(os.path.join(ROOT, "data", "photo_cut", "*.json"))):
+    for f in sorted(glob.glob(os.path.join(ROOT, "data", SET["state"], "*.json"))):
         for k, r in (load_json(f, {}).get("items") or {}).items():
             if r.get("ok") and r.get("review") != "rejected" and r.get("sha1") and r.get("run") and ID.match(str(r.get("id"))):
                 r = dict(r); r.setdefault("object", f"products/pc2/{r['id']}-t1.webp")
-                if OBJ.match(r["object"]) and re.fullmatch(r"img/cut/(g/)?[0-9A-Za-z_-]{1,40}\.webp", r.get("file", "")): out[k] = r
+                if SET["obj"].match(r["object"]) and SET["file"].fullmatch(r.get("file", "")): out[k] = r
     return out
 
 
 def download(run, dest):
     repo = os.environ.get("GITHUB_REPOSITORY", "nichoessung-dev/manifest")
     if not re.fullmatch(r"[0-9]{1,15}", str(run)): raise ValueError("bad run id")
-    subprocess.run(["gh", "run", "download", str(run), "-R", repo, "-p", "photo-cut-*", "-D", dest], check=True,
+    subprocess.run(["gh", "run", "download", str(run), "-R", repo, "-p", SET["artifact"], "-D", dest], check=True,
                    stdout=subprocess.DEVNULL)
 
 
@@ -47,12 +57,13 @@ def find(dest, rel):
     return None
 
 
-def check(data):
+def check(data, size=None):
     from PIL import Image
     im = Image.open(io.BytesIO(data)); im.load()
     if data[:4] != b"RIFF" or im.format != "WEBP": return "not a WebP"
     if im.mode != "RGBA": return f"mode {im.mode}"
-    if im.size != (1600, 1600): return f"size {im.size}"
+    if SET["size"] and im.size != SET["size"]: return f"size {im.size}"
+    if size and list(im.size) != list(size): return f"size {im.size}, recorded {size}"
     if im.getchannel("A").getextrema()[0] != 0: return "nothing transparent"
     return ""
 
@@ -76,13 +87,16 @@ def main():
     ap.add_argument("--ids", default="")
     ap.add_argument("--group", default="all", choices=["main", "gallery", "all"])
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--set", default="cut", choices=sorted(SETS))
     a = ap.parse_args()
+    global SET, LOG
+    SET = SETS[a.set]; LOG = os.path.join(ROOT, "data", SET["log"])
     only = set(a.ids.replace(" ", "").split(",")) - {""}
     log = load_json(LOG, {"items": {}}); log.setdefault("items", {})
     todo = {k: r for k, r in records().items() if k not in log["items"] and (not only or r["id"] in only)
             and (a.group == "all" or (a.group == "gallery") == (r.get("group") == "g"))}
     ids = sorted(todo)[:a.limit] if a.limit else sorted(todo)
-    print(f"photo_cut_upload: {len(ids)} to upload ({len(log['items'])} before){' (dry run)' if a.dry_run else ''}", flush=True)
+    print(f"photo_cut_upload ({a.set}): {len(ids)} to upload ({len(log['items'])} before){' (dry run)' if a.dry_run else ''}", flush=True)
     by_run = {}
     for i in ids: by_run.setdefault(todo[i]["run"], []).append(i)
     stats = {"uploaded": 0, "exists": 0, "failed": 0}
@@ -100,7 +114,7 @@ def main():
                 data = open(f, "rb").read()
                 if hashlib.sha1(data).hexdigest() != r["sha1"]:
                     print(f"{i}: sha1 differs from the reviewed file", flush=True); stats["failed"] += 1; continue
-                bad = check(data)
+                bad = check(data, r.get("size"))
                 if bad: print(f"{i}: {bad}", flush=True); stats["failed"] += 1; continue
                 path = r["object"]
                 if a.dry_run:

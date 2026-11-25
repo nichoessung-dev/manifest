@@ -1,0 +1,79 @@
+name: Photo edge clean
+# The existing transparent cut-outs (products/pc via the site's copy img/m/pc, img/rl, img/fr) with their light outline
+# cleaned for the dark tiles (owner, 25 Nov 2026: #262626), made by scripts/photo_edge.py: the backdrop colour in the rim
+# and the soft edge takes the item's own colour, alpha and size kept. No image model runs. Nothing is uploaded or pushed:
+# the files (img/edge/<id>.webp), the records (data/photo_edge/<k>-of-<n>.json) come back as this run's artifacts
+# photo-edge-<k>-of-<n>, are reviewed and committed by hand; photo-cut-upload.yml (set edge) puts the reviewed ones in
+# storage as new objects and apply_catalog_ai.py --edge switches the site.
+on:
+  workflow_dispatch:
+    inputs:
+      shards:
+        description: 'Number of parallel shards (1 to 12)'
+        default: '8'
+      ids:
+        description: 'Only these find ids (comma separated, optional)'
+        default: ''
+      max_minutes:
+        description: 'Stop starting new photos after this many minutes'
+        default: '300'
+permissions:
+  contents: read
+concurrency: photo-edge
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.p.outputs.list }}
+    env:
+      N: ${{ inputs.shards || '8' }}
+      IDS: ${{ inputs.ids }}
+      MAXMIN: ${{ inputs.max_minutes || '300' }}
+    steps:
+      - id: p
+        run: |
+          [[ "$N" =~ ^([1-9]|1[0-2])$ ]] || { echo "::error::bad shards"; exit 1; }
+          [[ -z "$IDS" || "$IDS" =~ ^[0-9,\ ]+$ ]] || { echo "::error::bad ids"; exit 1; }
+          [[ "$MAXMIN" =~ ^[0-9]{1,3}$ ]] || { echo "::error::bad max_minutes"; exit 1; }
+          echo "list=$(python3 -c "import json;print(json.dumps(list(range($N))))")" >> "$GITHUB_OUTPUT"
+  run:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        k: ${{ fromJSON(needs.plan.outputs.list) }}
+    env:
+      N: ${{ inputs.shards || '8' }}
+      IDS: ${{ inputs.ids }}
+      MAXMIN: ${{ inputs.max_minutes || '300' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            data
+            img/rl
+            img/fr
+            img/m/pc
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install pillow numpy scipy
+      - name: Clean edges
+        run: |
+          set -o pipefail
+          IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
+          python -u scripts/photo_edge.py --shard "${{ matrix.k }}/$N" --max-minutes "$MAXMIN" $IDA 2>&1 | tee photo-edge.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: photo-edge-${{ matrix.k }}-of-${{ inputs.shards || '8' }}
+          path: |
+            photo-edge.log
+            img/edge
+            data/photo_edge
+          if-no-files-found: warn
+          retention-days: 30

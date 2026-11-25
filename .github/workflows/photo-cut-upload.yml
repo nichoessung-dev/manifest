@@ -1,4 +1,5 @@
 name: Photo cut-outs upload
+# set=edge: the existing cut-outs with the light outline cleaned (photo_edge.py) to products/pc2/<id>-e1.webp, same rules.
 # Puts the reviewed transparent cut-outs (scripts/photo_white.py --alpha, owner 24 Nov 2026: dark tiles on #262626) in
 # Supabase storage as NEW objects: products/pc2/<id>-t1.webp (main photos), products/store2/<stem>-t1.webp (extra store
 # angles), x-upsert false, so an existing object is never replaced
@@ -19,6 +20,11 @@ on:
         type: choice
         options: ['all', 'main', 'gallery']
         default: 'all'
+      set:
+        description: 'cut: the transparent cut-outs (-t1); edge: the existing cut-outs with the light outline cleaned (-e1)'
+        type: choice
+        options: ['cut', 'edge']
+        default: 'cut'
       dry_run:
         description: 'Check everything, upload nothing'
         type: choice
@@ -37,11 +43,13 @@ jobs:
       IDS: ${{ inputs.ids }}
       DRY: ${{ inputs.dry_run || 'yes' }}
       GRP: ${{ inputs.group || 'all' }}
+      SET: ${{ inputs.set || 'cut' }}
     steps:
       - name: Check inputs
         run: |
           [[ "$LIMIT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::bad limit"; exit 1; }
           [[ -z "$IDS" || "$IDS" =~ ^[0-9,\ ]+$ ]] || { echo "::error::bad ids"; exit 1; }
+          [[ "$SET" =~ ^(cut|edge)$ ]] || { echo "::error::bad set"; exit 1; }
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
@@ -60,7 +68,7 @@ jobs:
           set -o pipefail
           IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
           DR=""; [ "$DRY" = "yes" ] && DR="--dry-run"
-          python -u scripts/photo_cut_upload.py --limit "$LIMIT" --group "$GRP" $IDA $DR 2>&1 | tee photo-cut-upload.log
+          python -u scripts/photo_cut_upload.py --set "$SET" --limit "$LIMIT" --group "$GRP" $IDA $DR 2>&1 | tee photo-cut-upload.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -68,5 +76,6 @@ jobs:
           path: |
             photo-cut-upload.log
             data/photo_cut_uploaded.json
+            data/photo_edge_uploaded.json
           if-no-files-found: warn
           retention-days: 30

@@ -24,6 +24,8 @@ category and title rules, as surgical string edits inside the pc-catalog JSON (s
   --cut             transparent cut-outs for dark tiles (photo_white.py --alpha, data/photo_cut, owner 24 Nov 2026): ok,
                     not rejected in review, uploaded (data/photo_cut_uploaded.json), and the find still shows the photo
                     it was cut from -> products/pc2/<id>-t1.webp
+  --edge            existing cut-outs with the light outline cleaned for dark tiles (photo_edge.py, data/photo_edge,
+                    owner 25 Nov 2026): the same rules, log data/photo_edge_uploaded.json -> products/pc2/<id>-e1.webp
   --write           really write index.html (without it: report only)
   --revert F        put back the old values recorded in F (the applied log of an earlier run)
   --review F        human review decisions (data/catalog_ai_review.json): {"cat": {id: cat}, "cat_hold": {id: why},
@@ -423,6 +425,7 @@ def main():
     ap.add_argument("--white", action="store_true")
     ap.add_argument("--recut", action="store_true")
     ap.add_argument("--cut", action="store_true")
+    ap.add_argument("--edge", action="store_true")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--min-cat", type=float, default=0.80)
     ap.add_argument("--min-title", type=float, default=0.85)
@@ -534,6 +537,25 @@ def main():
                     if p.get("img") != r.get("live"): why["the find shows another photo now"] += 1; continue
                     changes.append((i, "img", p.get("img"), new, "transparent cut-out (%s, %s)" % (r.get("group"), r.get("model"))))
             whys["transparent cut-outs"] = why
+        if a.edge:
+            why = collections.Counter()
+            up = load_json(os.path.join(ROOT, "data", "photo_edge_uploaded.json"), {}).get("items") or {}
+            for f in sorted(glob.glob(os.path.join(ROOT, "data", "photo_edge", "*.json"))):
+                for key, r in (load_json(f, {}).get("items") or {}).items():
+                    if r.get("v") != 1: continue   # photo_edge.VERSION
+                    i = r.get("id")
+                    if only and i not in only: continue
+                    if not r.get("ok"): why["no cleaned edge (could not make one)"] += 1; continue
+                    if r.get("review") == "rejected": why["rejected in review"] += 1; continue
+                    if i not in up: why["not uploaded yet"] += 1; continue
+                    p = idx.get(i)
+                    if not p: why["not in the catalogue"] += 1; continue
+                    new = SUPA_PUBLIC + i + "-e1.webp"
+                    if up[i].get("object") != "products/pc2/%s-e1.webp" % i: why["upload log does not match"] += 1; continue
+                    if p.get("img") == new: why["already shown"] += 1; continue
+                    if p.get("img") != r.get("live"): why["the find shows another photo now"] += 1; continue
+                    changes.append((i, "img", p.get("img"), new, "cleaned edge (%s, rim %s)" % (r.get("src"), r.get("rim_w"))))
+            whys["cleaned edges"] = why
 
     for k, w in whys.items():
         print(k + ":", dict(w))
