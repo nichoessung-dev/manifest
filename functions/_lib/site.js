@@ -500,7 +500,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "39";
+export const DS_VER = "40";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -613,9 +613,9 @@ function footer() {
   const half = Math.ceil(topBrands.length / 2);
   const FOOT_IC = { "Categories": "grid", "Brands": "tag", "More brands": "tag", "Spreadsheets": "sheet", "Guides": "book", "Tools & best reps": "award", "Puro Classico": "info" };
   const col = (t, links) => `<div><h4>${ic(FOOT_IC[t] || "info", "sm")}${t}</h4>${links.map(([n, u]) => `<a href="${u}">${/ →$/.test(n) ? esc(n.slice(0, -2)) + ic("arrow-right", "sm") : esc(n)}</a>`).join("")}</div>`;
-  return `<footer class="f"><div class="w"><div class="ftop">
-<div class="fbrand"><span class="logo" role="img" aria-label="Puro Classico"></span><p>The rep spreadsheet: finds from Weidian, Taobao and 1688 with prices, QC photos and one-tap agent links.</p><a class="btn sm" href="/discord">${ic("message", "sm")}Join the Discord</a></div>
-<div class="cols">
+  return `<footer class="f"><div class="w">
+<div class="fbar"><a class="logo" href="/" aria-label="Puro Classico home"></a><nav class="flinks" aria-label="Puro Classico"><a href="/discord">${ic("message", "sm")}Discord</a><a href="/about">About</a><a href="/guides/how-we-check">How we check</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></nav></div>
+<details class="fall"><summary>All pages${ic("chevron-down", "sm")}</summary><div class="cols">
 ${col("Categories", Object.values(CATS).filter(c => c.slug !== "toys").map(c => [c.name, "/category/" + c.slug]))}
 ${col("Brands", topBrands.slice(0, half))}
 ${col("More brands", topBrands.slice(half).concat([["All brands →", "/brands"]]))}
@@ -623,7 +623,7 @@ ${col("Spreadsheets", [["Rep spreadsheet", "/"], ["MyCNBox spreadsheet", "/mycnb
 ${col("Guides", FOOTER_GUIDES.map(u => GUIDE_LINKS.find(g => g[1] === u)).filter(Boolean).concat([["All guides →", "/guides"]]))}
 ${col("Tools & best reps", TOOL_LINKS.concat([["Best reps by model →", "/best"]]))}
 ${col("Puro Classico", [["Browse all finds", "/"], ["About Puro Classico", "/about"], ["How we check", "/guides/how-we-check"], ["Discord community", "/discord"], ["Terms", "/terms"], ["Privacy", "/privacy"]])}
-</div></div><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents are affiliate links: we may earn a commission if you order, at no extra cost to you. Prices are shown as listed by the seller and can change.</p><p class="legal">© Puro Classico</p></div></footer>`;
+</div></details><p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with, endorsed by or connected to any brand named on this site; brand names are used only to describe listings. Links to shopping agents are affiliate links: we may earn a commission if you order, at no extra cost to you. Prices are shown as listed by the seller and can change.</p><p class="legal">© Puro Classico</p></div></footer>`;
 }
 
 // v9 (29 Oct 2026) page scripts. Server pages run no app script, so the few behaviours live here, each in its own try.

@@ -819,6 +819,15 @@ footer .seo-links a:hover{color:var(--ink)}
 footer .seo-disc{border-top:1px solid var(--line);padding-top:24px;margin:0 auto;font-size:12.5px;line-height:1.65;color:var(--faint)}
 @media(max-width:980px){footer .seo-links{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:560px){footer .seo-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 18px}footer>.wrap:first-child{flex-wrap:wrap}}
+/* 26 Nov 2026 (owner): the footer's link columns fold into "All pages" (every link stays in the page for crawlers) */
+footer details.all-pages{display:block;border-top:1px solid var(--line)}
+footer details.all-pages>summary{list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--ink);-webkit-tap-highlight-color:transparent}
+footer details.all-pages>summary::-webkit-details-marker{display:none}
+footer details.all-pages>summary .ic{color:var(--muted);transition:transform .2s ease}
+footer details.all-pages[open]>summary .ic{transform:rotate(180deg)}
+footer details.all-pages>summary:focus-visible{outline:2px solid var(--ink);outline-offset:4px;border-radius:6px}
+footer details.all-pages .seo-links{padding-top:8px!important;padding-bottom:28px!important}
+@media (prefers-reduced-motion:reduce){footer details.all-pages>summary .ic{transition:none}}
 /* no coloured strip above the masthead */
 .mast-top{display:none!important}
 /* the old native-select chevron sat on top of the label ("English" with an arrow through it): the custom button draws its own */
@@ -3666,13 +3675,15 @@ html.sub-pre #sub-row[hidden]{display:flex!important;visibility:hidden;min-heigh
     <span class="mono" id="foot-count"></span>
   </div>
 
-  <nav class="wrap seo-links" aria-label="Explore">
+  <details class="wrap all-pages"><summary>All pages<svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary>
+  <nav class="seo-links" aria-label="Explore">
     <div><b><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-grid"/></svg>Categories</b><a href="/category/tops">Tops</a><a href="/category/jackets">Jackets &amp; outerwear</a><a href="/category/sneakers">Sneakers &amp; shoes</a><a href="/category/pants">Pants &amp; jeans</a><a href="/category/shorts">Shorts</a><a href="/category/bags">Bags</a><a href="/category/accessories">Accessories</a><a href="/category/hats">Hats</a></div>
     <div><b><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-tag"/></svg>Brands</b><a href="/brand/corteiz">Corteiz reps</a><a href="/brand/ralph-lauren">Ralph Lauren reps</a><a href="/brand/nike">Nike reps</a><a href="/brand/moncler">Moncler reps</a><a href="/brand/stone-island">Stone Island reps</a><a href="/brand/jordan">Jordan reps</a><a href="/brand/loro-piana">Loro Piana reps</a><a href="/brand/arcteryx">Arc'teryx reps</a><a href="/brand/golden-goose">Golden Goose reps</a><a href="/brand/jacob-cohen">Jacob Cohen reps</a><a href="/brand/maison-margiela">Maison Margiela reps</a><a href="/brand/mertra">Mertra reps</a><a href="/brand/goyard">Goyard reps</a><a href="/brand/chrome-hearts">Chrome Hearts reps</a><a href="/brands">All brands</a></div>
     <div><b><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sheet"/></svg>Spreadsheets</b><a href="/">Rep spreadsheet</a><a href="/mycnbox-spreadsheet">MyCNBox spreadsheet</a><a href="/kakobuy-spreadsheet">KakoBuy spreadsheet</a><a href="/oopbuy-spreadsheet">Oopbuy spreadsheet</a><a href="/lovegobuy-spreadsheet">LoveGoBuy spreadsheet</a><a href="/sugargoo-spreadsheet">Sugargoo spreadsheet</a><a href="/weidian-spreadsheet">Weidian spreadsheet</a><a href="/taobao-spreadsheet">Taobao spreadsheet</a><a href="/1688-spreadsheet">1688 spreadsheet</a><a href="/old-money">Old money spreadsheet</a><a href="/stockholm-spreadsheet">Stockholm style spreadsheet</a><a href="/grisch-spreadsheet">Grisch spreadsheet</a><a href="/qc-spreadsheet">QC spreadsheet</a><a href="/cnfans-spreadsheet">CNFans spreadsheet</a></div>
     <div><b><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>Guides</b><a href="/how-to-order">How to order (video)</a><a href="/guides/how-to-buy-from-weidian">How to buy from Weidian</a><a href="/guides/how-to-qc">How to read QC photos</a><a href="/guides/sizing">Sizing guide</a><a href="/guides/best-shopping-agent">Best shopping agent</a><a href="/guides/how-to-buy-from-taobao">How to buy from Taobao</a><a href="/guides/mycnbox-review">MyCNBox review</a><a href="/guides">All guides</a></div>
     <div><b><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-award"/></svg>Tools &amp; best reps</b><a href="/tools/link-converter">Link Converter</a><a href="/tools/qc-checker">QC Finder</a><a href="/tools/shipping-calculator">Shipping Calculator</a><a href="/tools/size-estimator">Size Estimator</a><a href="/tools/parcel-tracker">Parcel Tracker</a><a href="/tools">All tools</a><a href="/best/air-jordan-1">Best Jordan 1 reps</a><a href="/brand/ralph-lauren">Best Ralph Lauren reps</a><a href="/best/golden-goose-super-star">Best Golden Goose reps</a><a href="/best/moncler-puffer">Best Moncler reps</a><a href="/best">All models</a></div>
   </nav>
+  </details>
   <p class="wrap seo-disc">Puro Classico is an independent directory of third-party listings. We don't sell products and aren't affiliated with any brand named on this site. Agent links are affiliate links: we may earn a commission if you order, at no extra cost to you.</p>
 </footer>
 

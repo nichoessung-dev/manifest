@@ -414,6 +414,22 @@ footer.f .legal{margin:12px 0 0;font-size:12.5px}
 @media (pointer:coarse){footer.f .cols a{display:flex;align-items:center;min-height:44px;padding:0}}
 @media (pointer:coarse){dl.kv .lchips a{min-height:44px}a.eyebrow.pill{position:relative}a.eyebrow.pill::after{content:"";position:absolute;inset:-9px 0}header.h nav a{min-height:44px}.ibtn{width:44px;height:44px}}
 @media (max-width:640px){footer.f .cols{grid-template-columns:1fr 1fr;gap:24px 16px}}
+/* 26 Nov 2026 (owner): a slim footer bar; the link columns fold into "All pages" (every link stays in the page) */
+footer.f{padding:28px 0 max(24px,env(safe-area-inset-bottom,0px))}
+.fbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 24px}
+footer.f .fbar .logo{display:block;width:96px;height:26px;padding:0;background-color:var(--ink);-webkit-mask:url(/img/wordmark.webp?v=1) left center/contain no-repeat;mask:url(/img/wordmark.webp?v=1) left center/contain no-repeat}
+.flinks{display:flex;flex-wrap:wrap;gap:0 20px}
+footer.f .flinks a{display:inline-flex;align-items:center;gap:6px;padding:6px 0}
+@media (pointer:coarse){footer.f .flinks a{min-height:44px;padding:0}}
+details.fall{margin-top:16px;border-top:1px solid var(--line)}
+details.fall>summary{list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--ink);-webkit-tap-highlight-color:transparent}
+details.fall>summary::-webkit-details-marker{display:none}
+details.fall>summary .ic{color:var(--muted);transition:transform .2s ease}
+details.fall[open]>summary .ic{transform:rotate(180deg)}
+details.fall>summary:focus-visible{outline:2px solid var(--ink);outline-offset:4px;border-radius:6px}
+details.fall .cols{padding:8px 0 20px}
+footer.f .disc{margin:16px 0 0;padding-top:16px}
+@media (prefers-reduced-motion:reduce){details.fall>summary .ic{transition:none}}
 
 /* v9 tools kit */
 /* tools kit (tk): shared UI for /tools and every /tools/<slug> page. Spec: r2/TOOLS_SPEC.md section 1.
@@ -738,6 +754,16 @@ h2.h-ic + .gl{margin-top:12px}
 .gl .ic-tile{display:inline-grid;margin:0}
 .gl .gl-t{display:block;min-width:0;font-size:inherit;line-height:inherit;color:inherit}
 .gl .gl-d{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* 26 Nov 2026 (owner): the /guides hub lists guides as compact rows, icon and title only, 3 columns */
+.gl.gl-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:0 28px;margin:8px 0 32px}
+.gl.gl-list a{align-items:center;gap:12px;min-height:56px;padding:10px 0;background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none}
+.gl.gl-list a::after{content:none}
+.gl.gl-list .ic-tile{width:32px;height:32px}.gl.gl-list .ic-tile .ic{width:16px;height:16px}
+.gl.gl-list b{margin:0;font-size:14.5px;font-weight:500;line-height:1.35}
+@media (hover:hover){.gl.gl-list a:hover{box-shadow:none}.gl.gl-list a:hover b{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}}
+.gl.gl-list a:active{transform:none;opacity:.7}
+@media (max-width:900px){.gl.gl-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.gl.gl-list{grid-template-columns:1fr}}
 /* tools hub: feature pills, card details above the card link, flow tiles */
 .tk-hc details.more{position:relative;z-index:1;margin:0}
 .tk-hc details.more > summary{font-size:14px;color:var(--muted)}
