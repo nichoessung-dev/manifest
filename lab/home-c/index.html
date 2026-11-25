@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>The easiest spreadsheet to use for China | Puro Classico</title>
+<meta name="description" content="Pick a category, a budget and a style and see the most viewed Weidian, Taobao and 1688 finds, with buyer photos and one-tap buy links. Free.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0B0D10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F5F5F7" media="(prefers-color-scheme: light)">
+<link rel="icon" href="/favicon.png">
+<link rel="preload" href="/fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+/* Concept C, guided funnel. The class "js" turns on the photo fade; load and error are caught here, before any photo can finish. */
+(function(d){var h=d.documentElement;h.className+=" js";
+function on(e){var t=e.target;if(!t||t.tagName!=="IMG")return;var p=t.parentNode;if(!p||!p.classList||!p.classList.contains("ph"))return;
+if(e.type==="error"&&!t.__fb&&t.getAttribute("data-fb")){t.__fb=1;t.removeAttribute("srcset");t.src=t.getAttribute("data-fb");return}
+t.classList.add("in");p.classList.add("ld");if(e.type==="error")p.classList.add("err")}
+d.addEventListener("load",on,true);d.addEventListener("error",on,true)})(document);
+</script>
+<style>
+@font-face{font-family:"Instrument Sans";src:url(/fonts/instrument-sans-latin.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
+/* Arial and Roboto sized to Instrument Sans, so the swap to the web font does not move the layout */
+@font-face{font-family:"IS fallback";src:local("Arial"),local("ArialMT"),local("Roboto"),local("Helvetica");size-adjust:102.5%;ascent-override:94.6%;descent-override:24.4%;line-gap-override:0%}
+
+:root{
+  --font:"Instrument Sans","IS fallback",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --bg:#0B0D10;--surface:#121519;--surface-2:#181C21;--surface-3:#20252C;
+  --ink:#ECEFF2;--ink-2:#CBD1D7;--muted:#99A2AB;--faint:#7C848D;
+  --line:#23272E;--line-2:#323840;
+  --fill:#ECEFF2;--fill-ink:#0B0D10;
+  --accent:#8EA6DC;--red:#D9301E;--red-hover:#C42A1A;--red-ink:#FFFFFF;
+  --on-media:#FFFFFF;--media:#000000;--media-chip:rgba(11,13,16,.72);--media-edge:rgba(255,255,255,.08);--play:rgba(255,255,255,.92);--play-ink:#0B0D10;--logo-bg:#FFFFFF;
+  --thumb-shadow:0 1px 3px rgba(0,0,0,.18),0 4px 12px -4px rgba(0,0,0,.22);--play-shadow:0 10px 30px rgba(0,0,0,.35);
+  --well:#DEDEDE;--well-ink:#1D1D1F;--well-edge:rgba(0,0,0,.04);
+  --seg-track:#15191E;--seg-thumb:#2A3038;--seg-rim:rgba(255,255,255,.07);--seg-ink:#A7B0B9;
+  --glass-fill:rgba(18,21,25,.8);--glass-solid:rgba(18,21,25,.94);--glass-line:rgba(255,255,255,.09);--glass-rim:rgba(255,255,255,.07);
+  --glass-float:0 18px 40px -12px rgba(0,0,0,.7),0 2px 8px rgba(0,0,0,.35);
+  --card-shadow:none;--lift:0 18px 36px -18px rgba(0,0,0,.8);
+  --sk-b:rgba(0,0,0,.11);
+  --halo:rgba(142,166,220,.22);--glow:rgba(142,166,220,.09);
+  --ease-out:cubic-bezier(.22,1,.36,1);--ease-in-out:cubic-bezier(.65,0,.35,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-hover:cubic-bezier(0,0,.5,1);
+  --d-1: 120ms;--d-2: 200ms;--d-3: 320ms;--d-4: 480ms;
+  --wrap:1200px;--gut:16px;--sec:64px;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:light){:root{
+  --bg:#F5F5F7;--surface:#FFFFFF;--surface-2:#F0F0F2;--surface-3:#E8E8EC;
+  --ink:#1D1D1F;--ink-2:#3A3A3C;--muted:#6E6E73;--faint:#6E6E73;
+  --line:#E3E3E8;--line-2:#D2D2D7;
+  --fill:#1D1D1F;--fill-ink:#FFFFFF;
+  --accent:#0066CC;
+  --well:#F0F0F3;--well-edge:rgba(0,0,0,.035);
+  --seg-track:#E9E9EE;--seg-thumb:#FFFFFF;--seg-rim:rgba(0,0,0,.04);--seg-ink:#545458;
+  --glass-fill:rgba(255,255,255,.8);--glass-solid:rgba(255,255,255,.95);--glass-line:rgba(0,0,0,.08);--glass-rim:rgba(255,255,255,.9);
+  --glass-float:0 18px 40px -14px rgba(0,0,0,.22),0 2px 8px rgba(0,0,0,.06);
+  --card-shadow:0 1px 2px rgba(0,0,0,.04);--lift:0 18px 36px -16px rgba(0,0,0,.18);
+  --sk-b:rgba(0,0,0,.075);
+  --halo:rgba(0,102,204,.16);--glow:rgba(255,255,255,0);
+  color-scheme:light;
+}}
+@media (min-width:640px){:root{--gut:24px;--sec:80px}}
+@media (min-width:1024px){:root{--gut:32px;--sec:104px}}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding:16px 0 112px}
+body{position:relative;margin:0;background:var(--bg);color:var(--ink-2);font:400 16px/1.5 var(--font);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+body::before{content:"";position:absolute;z-index:-1;left:0;right:0;top:0;height:760px;background:radial-gradient(70% 60% at 50% -10%,var(--glow),transparent 70%);pointer-events:none}
+img,svg,video{display:block;max-width:100%}
+a{color:inherit}
+h1,h2,h3{color:var(--ink);font-weight:600;margin:0;text-wrap:balance}
+p{margin:0;text-wrap:pretty}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{width:100%;max-width:calc(var(--wrap) + 2 * var(--gut));margin:0 auto;padding:0 var(--gut)}
+.sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;padding:10px 16px;border-radius:999px;background:var(--fill);color:var(--fill-ink);font-weight:600;text-decoration:none}
+.skip:focus{top:12px}
+.ic{width:20px;height:20px;flex:none}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:999px;border:1px solid transparent;font-size:15px;font-weight:600;line-height:1;text-decoration:none;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 100ms linear,color 100ms linear,border-color 100ms linear,transform var(--d-1) var(--ease-out)}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:var(--fill);color:var(--fill-ink)}
+.btn.ghost{border-color:var(--line-2);color:var(--ink)}
+.btn.red{background:var(--red);color:var(--red-ink)}
+.btn .ic{width:18px;height:18px}
+@media (hover:hover){.btn.primary:hover{background:var(--ink-2)}.btn.ghost:hover{background:var(--surface-2)}.btn.red:hover{background:var(--red-hover)}}
+
+/* header */
+.hd{position:relative;z-index:5}
+.hd-row{display:flex;align-items:center;gap:20px;height:60px}
+.logo{display:flex;align-items:center;height:44px;margin-left:-4px;padding:0 4px;border-radius:10px;-webkit-tap-highlight-color:transparent}
+.logo img{width:100px;height:28px}
+.nav{display:none;gap:2px;margin-left:8px}
+.nav a{display:flex;align-items:center;height:36px;padding:0 12px;border-radius:999px;font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;transition:color 100ms linear,background-color 100ms linear}
+@media (hover:hover){.nav a:hover{color:var(--ink);background:var(--surface-2)}}
+.hd-act{display:flex;align-items:center;gap:6px;margin-left:auto}
+.ibtn{display:grid;place-items:center;width:44px;height:44px;border-radius:999px;color:var(--ink);text-decoration:none;-webkit-tap-highlight-color:transparent;transition:background-color 100ms linear,transform var(--d-1) var(--ease-out)}
+.ibtn:active{transform:scale(.96)}
+@media (hover:hover){.ibtn:hover{background:var(--surface-2)}}
+.hd .btn{min-height:36px;padding:0 16px;font-size:14px;position:relative}
+.hd .btn::after{content:"";position:absolute;inset:-4px -2px}
+@media (prefers-color-scheme:light){.logo img{filter:invert(1)}}
+@media (min-width:1024px){.nav{display:flex}.hd-row{height:68px}}
+
+/* hero */
+.hero{position:relative;padding-top:12px}
+#hero-end{position:absolute;left:0;bottom:0;width:1px;height:1px;pointer-events:none}
+.nw{white-space:nowrap}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;height:30px;padding:0 13px 0 11px;border-radius:999px;border:1px solid var(--line-2);background:color-mix(in srgb,var(--surface) 70%,transparent);box-shadow:inset 0 1px 0 var(--glass-rim);font-size:13px;font-weight:500;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--halo)}
+.eyebrow .sep{margin:0 2px;color:var(--faint)}
+h1{margin-top:16px;font-size:clamp(32px,3.4vw + 19px,68px);line-height:1.05;letter-spacing:-.035em;padding-bottom:.06em}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  h1{background:linear-gradient(180deg,var(--ink) 30%,var(--ink-2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+}
+@media (forced-colors:active){h1{background:none;-webkit-text-fill-color:currentColor}}
+.lede{margin-top:12px;max-width:31rem;font-size:clamp(16px,.5vw + 14px,20px);line-height:1.45;color:var(--muted)}
+.hero-all{display:none;align-items:center;gap:6px;min-height:44px;margin-top:18px;font-size:15px;font-weight:600;color:var(--ink);text-decoration:none}
+.hero-all .ic{width:18px;height:18px;transition:transform var(--d-2) var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.hero-all:hover .ic{transform:translateX(3px)}}
+
+/* picker */
+.picker{margin-top:26px}
+.step{margin:0;padding:0;border:0;min-width:0}
+.step+.step,.steps-23 .step:first-child{margin-top:22px}
+.q{float:left;width:100%;padding:0;margin:0 0 11px;display:flex;align-items:center;gap:10px;font-size:15.5px;font-weight:600;line-height:22px;letter-spacing:-.01em;color:var(--ink)}
+.q+*{clear:both}
+.num{position:relative;display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--line-2);font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;transition:background-color var(--d-2) linear,border-color var(--d-2) linear,color var(--d-2) linear}
+.num b{font-weight:600;transition:opacity var(--d-2) linear}
+.num svg{position:absolute;width:13px;height:13px;opacity:0;transform:scale(.6);transition:opacity var(--d-2) linear,transform var(--d-3) var(--ease-out)}
+.step.done .num{background:var(--fill);border-color:var(--fill);color:var(--fill-ink)}
+.step.done .num b{opacity:0}
+.step.done .num svg{opacity:1;transform:none}
+
+/* step 1: category chips with a photo */
+.chips{display:flex;gap:8px;margin:0 calc(-1 * var(--gut));padding:2px var(--gut) 4px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding:0 var(--gut);scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,black calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,black calc(100% - 28px),transparent)}
+.chips::-webkit-scrollbar{display:none}
+.chip{position:relative;flex:none;scroll-snap-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.chip:last-child{margin-right:12px}
+.chip input,.seg input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+.chip>span{display:flex;align-items:center;gap:8px;height:46px;padding:0 17px 0 6px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;transition:background-color 100ms linear,border-color 100ms linear,color 100ms linear,transform var(--d-1) var(--ease-out)}
+.chip .cph{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--well);overflow:hidden;flex:none}
+.chip .cph img{width:30px;height:30px;object-fit:contain}
+.chip .cph svg{width:16px;height:16px;color:var(--well-ink)}
+.chip:active>span{transform:scale(.96)}
+.chip input:checked+span{background:var(--fill);border-color:var(--fill);color:var(--fill-ink)}
+.chip input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+@media (hover:hover){.chip:hover input:not(:checked)+span{background:var(--surface-2);border-color:var(--faint)}}
+
+/* steps 2 and 3: segmented controls with a sliding thumb */
+.seg{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:3px;border-radius:999px;background:var(--seg-track);border:1px solid var(--line)}
+.seg label{position:relative;z-index:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.seg label::before{content:"";position:absolute;left:0;right:0;top:-3px;bottom:-3px}
+.seg label>span{display:flex;align-items:center;justify-content:center;height:40px;padding:0 4px;border-radius:999px;font-size:14px;font-weight:500;color:var(--seg-ink);white-space:nowrap;transition:color 100ms linear}
+.seg input:checked+span{color:var(--ink)}
+.seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:-2px}
+html:not(.js) .seg input:checked+span{background:var(--seg-thumb)}
+.thumb{position:absolute;z-index:0;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / 4);border-radius:999px;background:var(--seg-thumb);box-shadow:inset 0 1px 0 var(--seg-rim),var(--thumb-shadow);transform:translateX(calc(var(--i,0) * 100%));transition:transform 260ms var(--ease-in-out)}
+html:not(.js) .thumb{display:none}
+@media (hover:hover){.seg label:hover input:not(:checked)+span{color:var(--ink-2)}}
+.seg label:active>span{transform:scale(.96);transition:transform var(--d-1) var(--ease-out),color 100ms linear}
+
+noscript .btn{margin-top:20px}
+
+@media (min-width:1024px){
+  .hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:56px;align-items:center;padding-top:28px}
+  .hero-all{display:inline-flex}
+  .picker{margin-top:0;padding:26px 28px 28px;border:1px solid var(--line);border-radius:28px;background:var(--surface);box-shadow:inset 0 1px 0 var(--glass-rim),var(--card-shadow)}
+  .chips{flex-wrap:wrap;overflow:visible;margin:0;padding:0;-webkit-mask-image:none;mask-image:none}
+  .chip:last-child{margin-right:0}
+  .steps-23{display:grid;grid-template-columns:1fr;gap:0}
+}
+@media (min-width:1280px){.hero{gap:72px}}
+/* fixed rows of chips (3, 3, 2 and then 4, 4) with room to spare, so a late web font never rewraps them */
+@media (min-width:1024px) and (max-width:1279px){.chips{max-width:410px}}
+@media (min-width:1280px){.chips{max-width:512px}}
+@media (min-width:1024px){.picks{margin-top:64px}}
+
+/* picks */
+.picks{margin-top:36px;scroll-margin-top:12px}
+.picks-hd{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}
+.picks-hd h2{font-size:clamp(24px,1.6vw + 16px,34px);line-height:1.1;letter-spacing:-.03em}
+.picks-sub{margin-top:6px;min-height:21px;font-size:14px;line-height:1.5;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.picks-sub b{font-weight:600;color:var(--ink-2)}
+.see-all{display:none;align-items:center;gap:6px;flex:none;min-height:44px;font-size:15px;font-weight:600;color:var(--ink);text-decoration:none;white-space:nowrap}
+.see-all .ic{width:18px;height:18px;transition:transform var(--d-2) var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.see-all:hover .ic{transform:translateX(3px)}}
+@media (min-width:1024px){.see-all{display:inline-flex}}
+
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:640px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}}
+@media (min-width:1024px){.grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}}
+@media (min-width:1280px){.grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:20px}}
+/* 7 finds and the "see all" tile on 2 and 4 columns, 8 on 3 columns, 9 on 5 columns: always full rows */
+.grid .card[data-n="8"],.grid .card[data-n="9"]{display:none}
+@media (min-width:640px) and (max-width:1023px){.grid .card[data-n="8"]{display:flex}}
+@media (min-width:1280px){.grid .card[data-n="8"],.grid .card[data-n="9"]{display:flex}}
+
+.card{position:relative;display:flex;flex-direction:column;min-width:0;padding:5px;border-radius:18px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--card-shadow);color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:transform 300ms var(--ease-hover),box-shadow 300ms var(--ease-hover),border-color 100ms linear}
+.card:active{transform:scale(.985);transition:transform var(--d-1) var(--ease-out) 80ms}
+.ph{position:relative;display:block;aspect-ratio:1/1;border-radius:12px;background:var(--well);overflow:hidden;isolation:isolate}
+.ph::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--well-edge);pointer-events:none}
+html.js .ph:not(.ld)::before{content:"";position:absolute;inset:0;background:var(--sk-b);opacity:.55;animation:sk 1.2s ease-in-out infinite alternate}
+@keyframes sk{from{opacity:.25}to{opacity:.8}}
+.ph img{position:absolute;left:7%;top:7%;width:86%;height:86%;object-fit:contain;transition:opacity var(--d-2) linear,transform 400ms var(--ease-hover)}
+.card.wb .ph img{left:0;top:0;width:100%;height:100%;mix-blend-mode:multiply}
+.ph img.wb{mix-blend-mode:multiply}
+html.js .ph img:not(.in){opacity:0}
+.meta{display:flex;flex-direction:column;gap:3px;padding:10px 6px 6px}
+.br{font:500 10.5px/1.35 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;min-height:2.7em;font-size:14px;line-height:1.35;font-weight:500;color:var(--ink)}
+.pr{margin-top:3px;font-size:15px;font-weight:600;line-height:1.3;color:var(--ink);font-variant-numeric:tabular-nums}
+@media (min-width:640px){.card{padding:7px;border-radius:22px}.ph{border-radius:14px}.meta{padding:12px 7px 7px}}
+@media (hover:hover) and (pointer:fine){
+  .card:hover{transform:translateY(-3px);box-shadow:var(--lift)}
+  .card:hover .ph img{transform:scale(1.03)}
+}
+@media (hover:hover){.card:hover{border-color:var(--line-2)}}
+
+/* the last tile: the full spreadsheet for this pick */
+.card.more .ph{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0;padding:8%}
+.card.more .ph img{position:relative;left:auto;top:auto;width:100%;height:100%;padding:6%}
+.card.more .ph .count{position:absolute;inset:auto 10px 10px auto;z-index:2;display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;background:var(--well-ink);color:var(--on-media);font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.card.more .pr{display:inline-flex;align-items:center;gap:6px}
+.card.more .pr .ic{width:18px;height:18px;transition:transform var(--d-2) var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.card.more:hover .pr .ic{transform:translateX(3px)}}
+
+/* trust */
+.trust{margin-top:var(--sec)}
+.tr{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:22px;background:var(--surface);overflow:hidden}
+.ti{display:flex;flex-direction:column;gap:2px;padding:18px 18px 20px;min-width:0}
+.ti:nth-child(1),.ti:nth-child(2){border-bottom:1px solid var(--line)}
+.ti:nth-child(3),.ti:nth-child(4){border-bottom:1px solid var(--line)}
+.ti:nth-child(odd){border-right:1px solid var(--line)}
+.ti.agents{grid-column:1/-1;flex-direction:row;align-items:center;gap:16px;border-right:0}
+.ta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tv{font-size:clamp(26px,1.4vw + 18px,36px);font-weight:600;line-height:1.1;letter-spacing:-.03em;color:var(--ink);font-variant-numeric:tabular-nums}
+.tl{font-size:13.5px;line-height:1.4;color:var(--muted)}
+.ti .ic{width:22px;height:22px;margin-bottom:10px;color:var(--ink-2)}
+.stack{display:flex;flex:none;padding-left:6px}
+.stack img{width:36px;height:36px;margin-left:-8px;border-radius:50%;border:2px solid var(--surface);background:var(--logo-bg);object-fit:cover}
+.stack .plus{display:grid;place-items:center;width:36px;height:36px;margin-left:-8px;border-radius:50%;border:2px solid var(--surface);background:var(--surface-3);font-size:12px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+@media (min-width:900px){
+  .tr{grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.45fr)}
+  .ti,.ti:nth-child(n){border-bottom:0;border-right:1px solid var(--line);padding:24px 24px 26px}
+  .ti.agents{grid-column:auto;flex-direction:column;align-items:flex-start;gap:2px;border-right:0}
+  .ti.agents .stack{margin-bottom:10px}
+}
+
+/* how it works */
+.how{margin-top:var(--sec)}
+.sec-hd h2{font-size:clamp(28px,2.4vw + 16px,44px);line-height:1.08;letter-spacing:-.035em}
+.sec-hd p{margin-top:10px;font-size:clamp(16px,.4vw + 14.5px,19px);color:var(--muted);max-width:34rem}
+.how-grid{display:grid;gap:28px;margin-top:28px}
+.steps{list-style:none;margin:24px 0 0;padding:0;display:grid;gap:4px}
+.steps li{display:grid;grid-template-columns:40px 1fr;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.steps li:first-child{border-top:0;padding-top:0}
+.sn{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line-2);font-size:15px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.steps h3{font-size:18px;line-height:1.3;letter-spacing:-.015em;margin-top:8px}
+.steps p{margin-top:4px;font-size:15px;line-height:1.5;color:var(--muted)}
+.video{position:relative;display:block;width:100%;max-width:300px;margin:0 auto;aspect-ratio:9/16;padding:0;border:0;border-radius:22px;overflow:hidden;background:var(--media);cursor:pointer;-webkit-tap-highlight-color:transparent;isolation:isolate}
+.video picture,.video img,.video video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.video video{background:var(--media)}
+.video .play{position:absolute;left:50%;top:50%;z-index:2;display:grid;place-items:center;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;background:var(--play);color:var(--play-ink);box-shadow:var(--play-shadow);transition:transform var(--d-2) var(--ease-out)}
+.video .play svg{width:28px;height:28px;margin-left:4px}
+.video .vlabel{position:absolute;left:12px;bottom:12px;z-index:2;display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:999px;background:var(--media-chip);color:var(--on-media);font-size:13px;font-weight:500;-webkit-backdrop-filter:saturate(180%) blur(12px);backdrop-filter:saturate(180%) blur(12px)}
+.video::after{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--media-edge);pointer-events:none}
+.video:active .play{transform:scale(.94)}
+@media (hover:hover) and (pointer:fine){.video:hover .play{transform:scale(1.06)}}
+.video.on{cursor:auto}
+.video.on .play,.video.on .vlabel{display:none}
+@media not all and (max-width:820px) and (orientation:portrait){.video{max-width:none;aspect-ratio:16/9}}
+
+.coupon{display:grid;grid-template-columns:48px 1fr;align-items:center;gap:14px;margin-top:20px;padding:16px;border:1px solid var(--line);border-radius:22px;background:var(--surface)}
+.coupon img{width:48px;height:48px;border-radius:12px}
+.coupon b{display:block;font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.coupon span{display:block;margin-top:2px;font-size:14px;line-height:1.45;color:var(--muted)}
+.coupon .btn{grid-column:1/-1;width:100%}
+@media (min-width:560px){.coupon{grid-template-columns:48px 1fr auto}.coupon .btn{grid-column:auto;width:auto}}
+@media (min-width:1024px){
+  .how-grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:56px;align-items:start}
+  .how-copy{padding-top:4px}
+}
+
+/* faq */
+.faq{margin-top:var(--sec)}
+.faq-list{margin-top:20px;border-top:1px solid var(--line)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:60px;padding:14px 0;cursor:pointer;list-style:none;font-size:17px;font-weight:600;line-height:1.35;color:var(--ink);letter-spacing:-.01em;-webkit-tap-highlight-color:transparent}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary svg{width:18px;height:18px;flex:none;color:var(--muted);transition:transform 220ms var(--ease-out)}
+.faq details[open] summary svg{transform:rotate(180deg)}
+.faq details p{padding:0 0 18px;max-width:62ch;font-size:15.5px;line-height:1.6;color:var(--ink-2)}
+.faq details p a{color:var(--accent);text-underline-offset:3px}
+@supports selector(::details-content){
+  .faq details{interpolate-size:allow-keywords}
+  .faq details::details-content{height:0;overflow:clip;opacity:0;transition:height 240ms var(--ease-out),opacity 200ms linear,content-visibility 240ms allow-discrete}
+  .faq details[open]::details-content{height:auto;opacity:1}
+}
+@media (hover:hover){.faq summary:hover{color:var(--ink-2)}}
+@media (min-width:1024px){.faq-wrap{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:56px}.faq-list{margin-top:0}}
+
+/* footer */
+.ft{margin-top:var(--sec);padding:36px 0 calc(112px + env(safe-area-inset-bottom));border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+.ft-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+.ft-links{display:flex;flex-wrap:wrap;gap:0 4px;margin:0 -10px}
+.ft-links a{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;color:var(--ink-2);text-decoration:none}
+@media (hover:hover){.ft-links a:hover{color:var(--ink)}}
+.ft .logo img{width:90px;height:25px}
+.disc{margin-top:16px;max-width:72ch;font-size:12.5px;line-height:1.6;color:var(--muted)}
+
+/* the call to action bar: a glass capsule at the bottom */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;padding:0 10px calc(10px + env(safe-area-inset-bottom));pointer-events:none}
+.bar-in{display:flex;align-items:center;gap:8px;width:100%;max-width:560px;padding:7px 7px 7px 8px;border-radius:999px;border:1px solid var(--glass-line);background:var(--glass-solid);box-shadow:inset 0 1px 0 var(--glass-rim),var(--glass-float);pointer-events:auto;transform:translateY(calc(100% + 24px));visibility:hidden;transition:transform var(--d-3) var(--ease-sheet),visibility 0s linear var(--d-3)}
+@supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+  .bar-in{background:var(--glass-fill);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
+}
+@media (prefers-reduced-transparency:reduce),(prefers-contrast:more){.bar-in{background:var(--glass-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
+.bar.show .bar-in{transform:none;visibility:visible;transition:transform var(--d-4) var(--ease-sheet),visibility 0s}
+.bar .cp{display:flex;align-items:center;gap:9px;min-width:0;min-height:44px;padding:0 6px 0 2px;border-radius:999px;color:var(--ink);text-decoration:none;-webkit-tap-highlight-color:transparent}
+.bar .cp img{width:32px;height:32px;border-radius:9px;flex:none}
+.bar .cp span{display:flex;flex-direction:column;min-width:0;line-height:1.2}
+.bar .cp b{font-size:13.5px;font-weight:600;white-space:nowrap}
+.bar .cp small{font-size:12px;color:var(--ink-2);white-space:nowrap}
+.bar .btn{margin-left:auto;min-height:48px;padding:0 20px;font-size:15px}
+@media (max-width:360px){.bar .cp small{display:none}.bar .btn{padding:0 14px}}
+@media (min-width:1024px){.bar{padding-bottom:20px}.bar-in{max-width:600px}}
+
+/* entrance of new picks (set by the script only after a pick changes) */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:1ms!important;animation:none!important}
+  .bar-in{transform:none;opacity:0;transition:opacity var(--d-2) linear,visibility 0s linear var(--d-2)!important}
+  .bar.show .bar-in{opacity:1;transition:opacity var(--d-2) linear,visibility 0s!important}
+  .btn:active,.chip:active>span,.seg label:active>span,.card:active,.ibtn:active{transform:none}
+  .ph img{transition:opacity var(--d-2) linear!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="hd">
+  <div class="wrap hd-row">
+    <a class="logo" href="https://www.puroclassico.com/" aria-label="Puro Classico home"><img src="/cdn-cgi/image/width=240,quality=90,format=auto/logo-wordmark.png" alt="Puro Classico" width="100" height="28"></a>
+    <nav class="nav" aria-label="Main">
+      <a href="https://www.puroclassico.com/spreadsheet">Spreadsheet</a>
+      <a href="https://www.puroclassico.com/brands">Brands</a>
+      <a href="https://www.puroclassico.com/guides">Guides</a>
+      <a href="https://www.puroclassico.com/how-to-order">How to order</a>
+    </nav>
+    <div class="hd-act">
+      <a class="ibtn" href="https://www.puroclassico.com/?s=1" aria-label="Search finds"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
+      <a class="btn ghost" href="https://www.puroclassico.com/?signin=1">Sign in</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero wrap" aria-labelledby="hero-h">
+    <div class="hero-copy">
+    <p class="eyebrow"><span class="dot" aria-hidden="true"></span><span>Free <span class="sep" aria-hidden="true">·</span> <span data-t="finds">10,600+</span> finds <span class="sep" aria-hidden="true">·</span> 16 agents</span></p>
+    <h1 id="hero-h">The easiest spreadsheet <span class="nw">to use for China</span></h1>
+    <p class="lede">Fashion finds from Weidian, Taobao and 1688, with buyer photos and one-tap buy links.</p>
+    <a class="hero-all" href="https://www.puroclassico.com/spreadsheet"><span>Or browse all <span data-t="finds">10,600+</span> finds</span> <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+
+    <form class="picker" id="picker" action="https://www.puroclassico.com/spreadsheet" method="get">
+      <fieldset class="step" data-step="cat">
+        <legend class="q"><span class="num" aria-hidden="true"><b>1</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>What are you looking for?</legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="cat" value="" checked><span><i class="cph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></i>All</span></label>
+          <label class="chip"><input type="radio" name="cat" value="Shoes"><span><i class="cph"><img src="/cdn-cgi/image/width=96,quality=80,format=auto/img/cat/shoes.webp" alt="" width="30" height="30"></i>Shoes</span></label>
+          <label class="chip"><input type="radio" name="cat" value="Tops"><span><i class="cph"><img src="/cdn-cgi/image/width=96,quality=80,format=auto/img/cat/tops.webp" alt="" width="30" height="30"></i>Tops</span></label>
+          <label class="chip"><input type="radio" name="cat" value="Outerwear"><span><i class="cph"><img src="/cdn-cgi/image/width=96,quality=80,format=auto/img/cat/outerwear.webp" alt="" width="30" height="30"></i>Jackets</span></label>
+          <label class="chip"><input type="radio" name="cat" value="Pants"><span><i class="cph"><img src="/cdn-cgi/image/width=96,quality=80,format=auto/img/cat/pants.webp" alt="" width="30" height="30"></i>Pants</span></label>
+          <label class="chip"><input type="radio" name="cat" value="Bags"><span><i class="cph"><img src="/cdn-cgi/image/width=96,quality=80,format=auto/img/cat/bags.webp" alt="" width="30" height="30"></i>Bags</span></label>
+          <label class="chip"><input type="radio" name="cat" value="Accessories"><span><i class="cph"><img src="/cdn-cgi/image/width=96,quality=80,format=auto/img/cat/accessories.webp" alt="" width="30" height="30"></i>Accessories</span></label>
+          <label class="chip"><input type="radio" name="cat" value="Headwear"><span><i class="cph"><img src="/cdn-cgi/image/width=96,quality=80,format=auto/img/cat/headwear.webp" alt="" width="30" height="30"></i>Hats</span></label>
+        </div>
+      </fieldset>
+      <div class="steps-23">
+        <fieldset class="step" data-step="budget">
+          <legend class="q"><span class="num" aria-hidden="true"><b>2</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>Your budget</legend>
+          <div class="seg">
+            <label><input type="radio" name="budget" value="" checked><span>Any</span></label>
+            <label><input type="radio" name="budget" value="under-30"><span>Under $30</span></label>
+            <label><input type="radio" name="budget" value="30-60"><span>$30 to $60</span></label>
+            <label><input type="radio" name="budget" value="60-plus"><span>$60+</span></label>
+            <i class="thumb" aria-hidden="true"></i>
+          </div>
+        </fieldset>
+        <fieldset class="step" data-step="style">
+          <legend class="q"><span class="num" aria-hidden="true"><b>3</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>Your style</legend>
+          <div class="seg">
+            <label><input type="radio" name="style" value="" checked><span>Any</span></label>
+            <label><input type="radio" name="style" value="streetwear"><span>Streetwear</span></label>
+            <label><input type="radio" name="style" value="old-money"><span>Old money</span></label>
+            <label><input type="radio" name="style" value="sneakers"><span>Sneakers</span></label>
+            <i class="thumb" aria-hidden="true"></i>
+          </div>
+        </fieldset>
+      </div>
+      <noscript><button class="btn primary" type="submit">Show finds</button></noscript>
+    </form>
+    <div id="hero-end" aria-hidden="true"></div>
+  </section>
+
+  <section class="picks wrap" id="picks" aria-labelledby="picks-h">
+    <div class="picks-hd">
+      <div class="picks-t">
+        <h2 id="picks-h">Popular this week</h2>
+        <p class="picks-sub" id="picks-sub">Tap a find for photos, sizes and buy links.</p>
+      </div>
+      <a class="see-all" id="see-all" href="https://www.puroclassico.com/spreadsheet"><span class="sa-t">See all <span data-t="finds">10,600+</span> finds</span> <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+    <p class="sr" id="live" aria-live="polite"></p>
+    <div class="grid" id="grid">
+<!--bake:grid-->
+<a class="card f" data-n="1" data-id="7728738210" href="https://www.puroclassico.com/product/7728738210"><span class="ph"><img src="/cdn-cgi/image/width=400,quality=75,format=auto/img/p/7728738210.webp" srcset="/cdn-cgi/image/width=400,quality=75,format=auto/img/p/7728738210.webp 400w, /cdn-cgi/image/width=720,quality=72,format=auto/img/p/7728738210.webp 720w" sizes="(min-width:1280px) 216px, (min-width:1024px) 22vw, (min-width:640px) 30vw, 46vw" data-fb="/img/p/7728738210.webp" alt="" width="400" height="400" decoding="async"></span><span class="meta"><span class="br">Arc&#39;teryx</span><span class="tt">Jacket Black</span><span class="pr">$64</span></span></a>
+<a class="card f" data-n="2" data-id="7630051831" href="https://www.puroclassico.com/product/7630051831"><span class="ph"><img src="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F7630051831-t1.webp" srcset="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F7630051831-t1.webp 400w, /cdn-cgi/image/width=720,quality=72,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F7630051831-t1.webp 720w" sizes="(min-width:1280px) 216px, (min-width:1024px) 22vw, (min-width:640px) 30vw, 46vw" data-fb="/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F7630051831-t1.webp" alt="" width="400" height="400" decoding="async"></span><span class="meta"><span class="br">Acne Studios</span><span class="tt">Long Sleeve Black</span><span class="pr">$18</span></span></a>
+<a class="card f" data-n="3" data-id="7563973209" href="https://www.puroclassico.com/product/7563973209"><span class="ph"><img src="/cdn-cgi/image/width=400,quality=75,format=auto/img/p/7563973209.webp" srcset="/cdn-cgi/image/width=400,quality=75,format=auto/img/p/7563973209.webp 400w, /cdn-cgi/image/width=720,quality=72,format=auto/img/p/7563973209.webp 720w" sizes="(min-width:1280px) 216px, (min-width:1024px) 22vw, (min-width:640px) 30vw, 46vw" data-fb="/img/p/7563973209.webp" alt="" width="400" height="400" decoding="async"></span><span class="meta"><span class="br">Maison Margiela</span><span class="tt">Sneakers Black</span><span class="pr">$47</span></span></a>
+<a class="card f" data-n="4" data-id="724216889678" href="https://www.puroclassico.com/product/724216889678"><span class="ph"><img src="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F724216889678-t1.webp" srcset="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F724216889678-t1.webp 400w, /cdn-cgi/image/width=720,quality=72,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F724216889678-t1.webp 720w" sizes="(min-width:1280px) 216px, (min-width:1024px) 22vw, (min-width:640px) 30vw, 46vw" data-fb="/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F724216889678-t1.webp" alt="" width="400" height="400" decoding="async"></span><span class="meta"><span class="br">Burberry</span><span class="tt">Puffer Jacket Black</span><span class="pr">$96</span></span></a>
+<a class="card f" data-n="5" data-id="935096845323" href="https://www.puroclassico.com/product/935096845323"><span class="ph"><img src="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F935096845323-t1.webp" srcset="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F935096845323-t1.webp 400w, /cdn-cgi/image/width=720,quality=72,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F935096845323-t1.webp 720w" sizes="(min-width:1280px) 216px, (min-width:1024px) 22vw, (min-width:640px) 30vw, 46vw" data-fb="/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F935096845323-t1.webp" alt="" width="400" height="400" decoding="async"></span><span class="meta"><span class="br">AP</span><span class="tt">Royal Oak Watch Green Dial</span><span class="pr">$56</span></span></a>
+<a class="card f" data-n="6" data-id="6716583439" href="https://www.puroclassico.com/product/6716583439"><span class="ph"><img src="/cdn-cgi/image/width=400,quality=75,format=auto/img/p/6716583439.webp" srcset="/cdn-cgi/image/width=400,quality=75,format=auto/img/p/6716583439.webp 400w, /cdn-cgi/image/width=720,quality=72,format=auto/img/p/6716583439.webp 720w" sizes="(min-width:1280px) 216px, (min-width:1024px) 22vw, (min-width:640px) 30vw, 46vw" data-fb="/img/p/6716583439.webp" alt="" width="400" height="400" decoding="async" loading="lazy"></span><span class="meta"><span class="br">Golden Goose</span><span class="tt">Super-Star Sneakers Navy White</span><span class="pr">$64</span></span></a>
+<a class="card f" data-n="7" data-id="894876922963" href="https://www.puroclassico.com/product/894876922963"><span class="ph"><img src="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F894876922963-t1.webp" srcset="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F894876922963-t1.webp 400w, /cdn-cgi/image/width=720,quality=72,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F894876922963-t1.webp 720w" sizes="(min-width:1280px) 216px, (min-width:1024px) 22vw, (min-width:640px) 30vw, 46vw" data-fb="/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F894876922963-t1.webp" alt="" width="400" height="400" decoding="async" loading="lazy"></span><span class="meta"><span class="br">Fear of God</span><span class="tt">Essentials Hoodie Grey</span><span class="pr">$23</span></span></a>
+<a class="card f" data-n="8" data-id="953406678555" href="https://www.puroclassico.com/product/953406678555"><span class="ph"><img src="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F953406678555-t1.webp" srcset="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F953406678555-t1.webp 400w, /cdn-cgi/image/width=720,quality=72,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F953406678555-t1.webp 720w" sizes="(min-width:1280px) 216px, (min-width:1024px) 22vw, (min-width:640px) 30vw, 46vw" data-fb="/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F953406678555-t1.webp" alt="" width="400" height="400" decoding="async" loading="lazy"></span><span class="meta"><span class="br">Louis Vuitton</span><span class="tt">Keepall Duffle Bag</span><span class="pr">$43</span></span></a>
+<a class="card f" data-n="9" data-id="674945610775" href="https://www.puroclassico.com/product/674945610775"><span class="ph"><img src="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F674945610775-t1.webp" srcset="/cdn-cgi/image/width=400,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F674945610775-t1.webp 400w, /cdn-cgi/image/width=720,quality=72,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F674945610775-t1.webp 720w" sizes="(min-width:1280px) 216px, (min-width:1024px) 22vw, (min-width:640px) 30vw, 46vw" data-fb="/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F674945610775-t1.webp" alt="" width="400" height="400" decoding="async" loading="lazy"></span><span class="meta"><span class="br">Pampeano</span><span class="tt">Leather Belt Brown</span><span class="pr">$18</span></span></a>
+<a class="card more" data-n="10" href="https://www.puroclassico.com/spreadsheet"><span class="ph"><img src="/cdn-cgi/image/width=200,quality=75,format=auto/img/p/960508930674.v2.webp" data-fb="/img/p/960508930674.v2.webp" alt="" width="200" height="200" loading="lazy" decoding="async"><img src="/cdn-cgi/image/width=200,quality=75,format=auto/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F1003749286954-t1.webp" data-fb="/api/img?u=https%3A%2F%2Fuptpghuduqjqmrxwatbm.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproducts%2Fpc2%2F1003749286954-t1.webp" alt="" width="200" height="200" loading="lazy" decoding="async"><img src="/cdn-cgi/image/width=200,quality=75,format=auto/img/p/7737231238.webp" data-fb="/img/p/7737231238.webp" alt="" width="200" height="200" loading="lazy" decoding="async"><img src="/cdn-cgi/image/width=200,quality=75,format=auto/img/p/7647547734.webp" data-fb="/img/p/7647547734.webp" alt="" width="200" height="200" loading="lazy" decoding="async"><span class="count">10,600+</span></span><span class="meta"><span class="br">Full spreadsheet</span><span class="tt">See all 10,600+ finds</span><span class="pr">Open <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span></a>
+<!--/bake:grid-->
+    </div>
+  </section>
+
+  <section class="trust wrap" aria-labelledby="trust-h">
+    <h2 class="sr" id="trust-h">Why people use Puro Classico</h2>
+    <div class="tr">
+      <div class="ti"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M3.5 9.5h17M9.5 9.5v11"/></svg><span class="tv" data-t="finds">10,600+</span><span class="tl">finds in the spreadsheet</span></div>
+      <div class="ti"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.5-2h4.4l1.5 2h1.8A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z"/><circle cx="12" cy="13" r="3.5"/></svg><span class="tv" data-t="qc">1,300+</span><span class="tl">with real buyer QC photos</span></div>
+      <div class="ti"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.5M4 4v3.5h3.5M4 13a8 8 0 0 0 14.6 4.5M20 20v-3.5h-3.5"/></svg><span class="tv">Weekly</span><span class="tl">link checks</span></div>
+      <div class="ti"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 19.5 7v5c0 4.2-3.1 7.6-7.5 8.5-4.4-.9-7.5-4.3-7.5-8.5V7z"/><path d="m8.8 12.2 2.3 2.3 4.2-4.4"/></svg><span class="tv">Free</span><span class="tl">no fees, no paywall</span></div>
+      <div class="ti agents">
+        <span class="stack" aria-hidden="true"><img src="/cdn-cgi/image/width=72,quality=80,format=auto/img/agents/mycnbox.webp" alt="" width="36" height="36" loading="lazy"><img src="/cdn-cgi/image/width=72,quality=80,format=auto/img/agents/kakobuy.webp" alt="" width="36" height="36" loading="lazy"><img src="/cdn-cgi/image/width=72,quality=80,format=auto/img/agents/oopbuy.webp" alt="" width="36" height="36" loading="lazy"><img src="/cdn-cgi/image/width=72,quality=80,format=auto/img/agents/lovegobuy.webp" alt="" width="36" height="36" loading="lazy"><img src="/cdn-cgi/image/width=72,quality=80,format=auto/img/agents/sugargoo.webp" alt="" width="36" height="36" loading="lazy"><span class="plus">+11</span></span>
+        <span class="ta"><span class="tv">16 agents</span><span class="tl">MyCNBox, KakoBuy, Oopbuy and more</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="how wrap" aria-labelledby="how-h">
+    <div class="how-grid">
+      <div class="how-copy">
+        <div class="sec-hd">
+          <h2 id="how-h">How it works</h2>
+          <p>Three steps from a find to your door.</p>
+        </div>
+        <ol class="steps">
+          <li><span class="sn" aria-hidden="true">1</span><div><h3>Pick a find</h3><p>Open it to see buyer photos, sizes and the price.</p></div></li>
+          <li><span class="sn" aria-hidden="true">2</span><div><h3>Tap Buy</h3><p>It opens the exact listing in your agent, a service that buys it for you in China.</p></div></li>
+          <li><span class="sn" aria-hidden="true">3</span><div><h3>Approve and ship</h3><p>Check the warehouse photos of your item, approve it, and it ships in one parcel. Usually 1 to 3 weeks.</p></div></li>
+        </ol>
+        <div class="coupon">
+          <img src="/cdn-cgi/image/width=96,quality=80,format=auto/img/agents/mycnbox.webp" alt="" width="48" height="48" loading="lazy">
+          <div><b>New to MyCNBox?</b><span>Sign up with our link and get up to $500 in coupons.</span></div>
+          <a class="btn red" href="/go/mycnbox?k=invite&amp;p=other" target="_blank" rel="sponsored noopener">Claim coupons</a>
+        </div>
+      </div>
+      <button class="video" id="video" type="button" aria-label="Play the 56-second video: how to order from China">
+        <picture>
+          <source media="not all and (max-width:820px) and (orientation:portrait)" srcset="/cdn-cgi/image/width=1280,quality=72,format=auto/media/tutorial-poster.jpg 1280w, /cdn-cgi/image/width=760,quality=72,format=auto/media/tutorial-poster.jpg 760w" sizes="(min-width:1280px) 680px, 60vw" width="1280" height="720">
+          <img src="/cdn-cgi/image/width=680,quality=72,format=auto/media/tutorial-poster-portrait.jpg" alt="" width="720" height="1280" loading="lazy" decoding="async">
+        </picture>
+        <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l11-6.5a1 1 0 0 0 0-1.72l-11-6.5A1 1 0 0 0 8 5.5z"/></svg></span>
+        <span class="vlabel" aria-hidden="true">How to order <span style="opacity:.7">56 s</span></span>
+      </button>
+    </div>
+  </section>
+
+  <section class="faq wrap" aria-labelledby="faq-h">
+    <div class="faq-wrap">
+      <div class="sec-hd">
+        <h2 id="faq-h">Good to know</h2>
+        <p>Short answers to what people ask first.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Is it free?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><p>Yes. Looking around, the buyer photos and the buy links cost nothing. You only pay for what you order, through your agent.</p></details>
+        <details><summary>Is it safe?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><p>You pay a shopping agent, not the seller. The agent buys the item, photographs your exact piece in its warehouse and only ships it after you approve the photos.</p></details>
+        <details><summary>What is an agent?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><p>A shopping service in China, like MyCNBox or KakoBuy. It buys from Weidian, Taobao or 1688 for you, checks the item and ships it to your country. Our Buy buttons open the exact listing in your agent.</p></details>
+        <details><summary>How long is shipping?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><p>Usually 1 to 3 weeks to your door, depending on the shipping line you pick. Sellers take a few days to get the item to the warehouse first.</p></details>
+        <details><summary>How do I get the $500 in coupons?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><p>Make a free MyCNBox account with <a href="/go/mycnbox?k=invite&amp;p=other" target="_blank" rel="sponsored noopener">our sign-up link</a>. New members get a coupon bundle worth up to $500 for their first orders.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="ft">
+  <div class="wrap">
+    <div class="ft-row">
+      <a class="logo" href="https://www.puroclassico.com/" aria-label="Puro Classico home"><img src="/cdn-cgi/image/width=240,quality=90,format=auto/logo-wordmark.png" alt="Puro Classico" width="90" height="25" loading="lazy"></a>
+      <nav class="ft-links" aria-label="Footer">
+        <a href="https://www.puroclassico.com/how-to-order">How to order</a>
+        <a href="https://www.puroclassico.com/guides">Guides</a>
+        <a href="https://www.puroclassico.com/brands">Brands</a>
+        <a href="https://www.puroclassico.com/privacy">Privacy</a>
+        <a href="https://www.puroclassico.com/terms">Terms</a>
+      </nav>
+    </div>
+    <p class="disc">Puro Classico is an independent directory of third-party listings on Weidian, Taobao and 1688. We don't sell, stock or ship any products, and we are not affiliated with any brand named on this site. Links to shopping agents are affiliate links: we may earn a commission if you order, at no extra cost to you.</p>
+  </div>
+</footer>
+
+<div class="bar" id="bar">
+  <div class="bar-in">
+    <a class="cp" href="/go/mycnbox?k=invite&amp;p=other" target="_blank" rel="sponsored noopener"><img src="/cdn-cgi/image/width=64,quality=80,format=auto/img/agents/mycnbox.webp" alt="" width="32" height="32" loading="lazy"><span><b>Up to $500</b><small>MyCNBox coupons</small></span></a>
+    <a class="btn primary" href="https://www.puroclassico.com/spreadsheet"><span>See all <span data-t="finds">10,600+</span> finds</span></a>
+  </div>
+</div>
+
+<script id="core">
+/* Pure functions (no DOM): ranking, styles and card markup. The bake script runs this same block to write the first grid. */
+var PCC = (function () {
+  "use strict";
+  var SITE = "https://www.puroclassico.com";
+  var N = 9, EXTRA = 4;
+  var CAT_LABEL = { Shoes: "shoes", Tops: "tops", Outerwear: "jackets", Pants: "pants", Bags: "bags", Accessories: "accessories", Headwear: "hats" };
+  var BUDGET_LABEL = { "under-30": "Under $30", "30-60": "$30 to $60", "60-plus": "$60+" };
+  var STYLE_LABEL = { streetwear: "Streetwear", "old-money": "Old money", sneakers: "Sneakers" };
+  /* photos stored with a white background (no cut-out yet): blended into the well instead of floating on it */
+  var WB = { "7809875727": 1, "7773703619": 1, "7778339122": 1, "7673219319": 1, "7720254798": 1, "7775517615": 1, "7440039069": 1, "7720306148": 1 };
+  /* not fashion, or not for a first look */
+  var SKIP = /\b(iphone|airpods|apple pencil|underwear|wall clock)\b/i;
+
+  var OLD_BRANDS = /^(ralph lauren|polo ralph lauren|loro piana|brunello cucinelli|lacoste|burberry|barbour|hermes|tom ford|thom browne|jacob cohen|rolex|ap|audemars piguet|longines|seiko|omega|cartier|montblanc|goyard|rimowa|pampeano|zegna|max mara|celine|loewe|bottega veneta|moncler|canada goose|parajumpers|prada|maison margiela|louis vuitton|richard mille)$/;
+  var OLD_ALWAYS = /^(ralph lauren|polo ralph lauren|loro piana|brunello cucinelli|barbour|thom browne|jacob cohen|tom ford|lacoste|hermes|goyard|rolex|ap|longines|montblanc|pampeano|rimowa|seiko)$/;
+  var OLD_WORDS = /quarter.?zip|cable|cardigan|polo|rugby|knit|cashmere|wool|loafer|harrington|wax jacket|field jacket|oxford|chino|linen|blazer|gilet|vest|crewneck|sweater|scarf|belt|wallet|cardholder|watch|duffle|duffel|keepall|tote|messenger|gloves|datejust|day-date|dolcevita|jeans|down jacket|puffer|suitcase|bracelet|sunglasses/i;
+  var NOT_OLD = /hoodie|sweatpants|joggers|t-shirt|\btee\b|box logo|camo|tracksuit|\bled\b|varsity|slides|cargo|graphic|shark/i;
+  var STREET_BRANDS = /^(supreme|bape|stussy|corteiz|trapstar|chrome hearts|essentials|fear of god|palm angels|nike|jordan|arc'?teryx|the north face|stone island|cp company|balenciaga|rick owens|purple|purple brand|nocta|travis scott|off-white|gallery dept|hellstar|broken planet|amiri|represent|denim tears|sp5der|carhartt|patagonia|adidas|new balance|asics|yeezy|vetements|syna world|minus two|ugg|acne studios|replay)$/;
+  var STREET_WORDS = /hoodie|tracksuit|cargo|sweatpants|joggers|puffer|nuptse|box logo|tech fleece|t-shirt|\btee\b|long sleeve|beanie|trucker|backpack|graphic|varsity|shark|camo|goggle|slides|flared|sweatshirt|sneaker/i;
+  var SNEAKER_WORDS = /sneaker|trainer|jordan|dunk|air max|air force|p-6000|runner|track|b30|bekett|super-?star|ball star|star white|nocta|yeezy|samba|campus|\b990|\b550|gel-|r[e]plica/i;
+  var NOT_SNEAKER = /slide|clog|slipper|boot|loafer|sandal|heel|mule|tasman/i;
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+  /* display title: no brand repeated from the brand line, and never the words this site does not use */
+  function title(x) {
+    var t = String(x.t || "").replace(/\b(r[e]plica|f[a]ke|1[:]1)\b/gi, "").replace(/\s{2,}/g, " ").trim();
+    var b = String(x.b || "").trim(), key = b.toLowerCase().replace(/[^a-z0-9]/g, ""), words = t.split(" "), acc = "";
+    for (var i = 0; key && i < words.length && acc.length < key.length; i++) {
+      acc += words[i].toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (acc === key) { var rest = words.slice(i + 1).join(" "); if (rest && !/^x\s/i.test(rest)) t = rest; break; }
+    }
+    if (!t || t.toLowerCase() === b.toLowerCase()) t = x.c === "Shoes" ? "Sneakers" : (x.c || "Find");
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+
+  function band(usd) { var r = Math.round(usd); return r < 30 ? "under-30" : (r <= 60 ? "30-60" : "60-plus"); }
+
+  function styles(x) {
+    var b = String(x.b || "").toLowerCase().trim(), t = String(x.t || ""), s = {};
+    if (x.c === "Shoes" && !NOT_SNEAKER.test(t) && (SNEAKER_WORDS.test(t) || /^(nike|jordan|travis scott|adidas|new balance|asics|golden goose)$/.test(b))) s.sneakers = 1;
+    var old = OLD_BRANDS.test(b) && !NOT_OLD.test(t) && (OLD_WORDS.test(t) || x.c === "Bags" || x.c === "Accessories" || x.c === "Outerwear" || x.c === "Pants");
+    if (OLD_ALWAYS.test(b) && !/sweatpants|joggers|camo|tracksuit/i.test(t)) old = true;
+    if (x.c === "Shoes") old = /loafer|clog|boston|oxford/i.test(t);
+    if (old) s["old-money"] = 1;
+    var street = STREET_BRANDS.test(b) || (STREET_WORDS.test(t) && !OLD_ALWAYS.test(b));
+    if (x.c === "Shoes" && s.sneakers) street = true;
+    if (street) s.streetwear = 1;
+    return s;
+  }
+
+  function score(x) { return ((x.v7 || 0) + (x.v30 || 0) * 0.12 + (x.fav || 0) * 2.5) * (x.friend ? 1.3 : 1); }
+
+  /* one list of finds from the snapshot, with what the picker needs worked out once */
+  function prep(data) {
+    var seen = {}, out = [];
+    [].concat(data.top || [], data.under30 || [], data.withqc || []).forEach(function (x) {
+      if (!x || !x.id || seen[x.id] || !x.img || !(x.usd > 0)) return;
+      if (SKIP.test(x.t || "") || x.b === "Apple") return;
+      seen[x.id] = 1;
+      out.push({ id: String(x.id), t: x.t, b: x.b || "", c: x.c, usd: +x.usd, img: x.img, s: styles(x), band: band(+x.usd), sc: score(x) });
+    });
+    out.sort(function (a, b) { return b.sc - a.sc || (a.id < b.id ? -1 : 1); });
+    return out;
+  }
+
+  function fits(x, st, skip) {
+    if (st.cat && x.c !== st.cat) return false;
+    if (st.budget && !skip.budget && x.band !== st.budget) return false;
+    if (st.style && !skip.style && !x.s[st.style]) return false;
+    return true;
+  }
+
+  /* best first, at most 2 finds of a brand among the first N (1 across all categories), and then no two of a kind side by side */
+  function spread(list, mixCats) {
+    var out = [], later = [], brands = {}, cap = mixCats ? 1 : 2;
+    list.forEach(function (x) {
+      var k = x.b.toLowerCase();
+      if ((brands[k] || 0) >= cap && out.length < N) { later.push(x); return; }
+      brands[k] = (brands[k] || 0) + 1; out.push(x);
+    });
+    out = out.concat(later);
+    if (!mixCats) return out;
+    var res = [], pool = out.slice();
+    while (pool.length) {
+      var prev = res.length ? res[res.length - 1].c : null, prev2 = res.length > 1 ? res[res.length - 2].c : null, j = 0;
+      for (var i = 0; i < Math.min(pool.length, 6); i++) { if (pool[i].c !== prev && pool[i].c !== prev2) { j = i; break; } }
+      res.push(pool.splice(j, 1)[0]);
+    }
+    return res;
+  }
+
+  /* exact matches first; when there are too few, the same category with the budget or the style let go (never another category) */
+  var EDGE = { "under-30": [0, 29.5], "30-60": [29.5, 60.5], "60-plus": [60.5, 1e9] };
+  function away(x, b) { var e = EDGE[b]; return x.usd < e[0] ? e[0] - x.usd : (x.usd > e[1] ? x.usd - e[1] : 0); }
+  function select(items, st) {
+    var tiers = [{}, { style: 1 }, { budget: 1 }, { style: 1, budget: 1 }], taken = {}, list = [], exact = 0;
+    for (var ti = 0; ti < tiers.length && list.length < N + EXTRA; ti++) {
+      if (ti === 1 && !st.style && !st.budget) break;
+      var pool = items.filter(function (x) { return !taken[x.id] && fits(x, st, tiers[ti]); });
+      if (tiers[ti].budget && st.budget) pool.sort(function (a, b) { return Math.round(away(a, st.budget) / 15) - Math.round(away(b, st.budget) / 15) || b.sc - a.sc; });
+      spread(pool, !st.cat).forEach(function (x) { if (list.length < N + EXTRA) { taken[x.id] = 1; list.push(x); if (ti === 0) exact++; } });
+    }
+    return { list: list.slice(0, N), extra: list.slice(N), exact: Math.min(exact, N) };
+  }
+
+  function photo(u, w, q) {
+    var p = u.indexOf(SITE + "/") === 0 ? u.slice(SITE.length) : "/api/img?u=" + encodeURIComponent(u);
+    return "/cdn-cgi/image/width=" + w + ",quality=" + (q || 75) + ",format=auto" + p;
+  }
+  function plain(u) { return u.indexOf(SITE + "/") === 0 ? u.slice(SITE.length) : "/api/img?u=" + encodeURIComponent(u); }
+
+  var SIZES = "(min-width:1280px) 216px, (min-width:1024px) 22vw, (min-width:640px) 30vw, 46vw";
+  var ARROW = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+  function card(x, n) {
+    var a = photo(x.img, 400), b = photo(x.img, 720, 72);
+    return '<a class="card f' + (WB[x.id] ? " wb" : "") + '" data-n="' + n + '" data-id="' + esc(x.id) + '" href="' + SITE + "/product/" + encodeURIComponent(x.id) + '">' +
+      '<span class="ph"><img src="' + a + '" srcset="' + a + " 400w, " + b + ' 720w" sizes="' + SIZES + '" data-fb="' + esc(plain(x.img)) + '" alt="" width="400" height="400" decoding="async"' + (n > 5 ? ' loading="lazy"' : "") + "></span>" +
+      '<span class="meta"><span class="br">' + (x.b ? esc(x.b) : "&nbsp;") + '</span><span class="tt">' + esc(title(x)) + '</span><span class="pr">$' + Math.round(x.usd) + "</span></span></a>";
+  }
+
+  function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+
+  /* the last tile: four more finds of this pick and the size of the full spreadsheet */
+  function more(sel, st, counts, totalFinds) {
+    var c = st.cat || (st.style === "sneakers" ? "Shoes" : ""), n = c && counts[c] ? fmt(counts[c]) : totalFinds, what = c ? CAT_LABEL[c] : "finds";
+    var href = SITE + "/spreadsheet" + (c ? "?cat=" + encodeURIComponent(c) : "");
+    var pics = sel.extra.slice(0, 4);
+    if (pics.length < 4) pics = pics.concat(sel.list.slice(-(4 - pics.length)));
+    var imgs = pics.map(function (x) { return '<img' + (WB[x.id] ? ' class="wb"' : "") + ' src="' + photo(x.img, 200) + '" data-fb="' + esc(plain(x.img)) + '" alt="" width="200" height="200" loading="lazy" decoding="async">'; }).join("");
+    return '<a class="card more" data-n="10" href="' + href + '"><span class="ph">' + imgs + '<span class="count">' + n + '</span></span>' +
+      '<span class="meta"><span class="br">Full spreadsheet</span><span class="tt">See all ' + n + " " + what + '</span><span class="pr">Open ' + ARROW + "</span></span></a>";
+  }
+
+  function grid(sel, st, counts, totalFinds) {
+    return sel.list.map(function (x, i) { return card(x, i + 1); }).join("\n") + "\n" + more(sel, st, counts, totalFinds);
+  }
+
+  function counts(data) { var o = {}; (data.cats || []).forEach(function (r) { o[r[0]] = r[1]; }); return o; }
+
+  /* "streetwear shoes under $30", "old money finds over $60", "sneakers from $30 to $60"; "" when nothing is picked */
+  function describe(st) {
+    var noun = st.style === "sneakers" ? "sneakers" : (st.cat ? CAT_LABEL[st.cat] : "finds");
+    var adj = st.style === "streetwear" ? "streetwear" : (st.style === "old-money" ? "old money" : "");
+    var price = { "under-30": "under $30", "30-60": "from $30 to $60", "60-plus": "over $60" }[st.budget] || "";
+    if (!st.cat && !st.budget && !st.style) return "";
+    return [adj, noun, price].filter(Boolean).join(" ");
+  }
+
+  return { N: N, prep: prep, select: select, grid: grid, card: card, more: more, counts: counts, describe: describe, band: band, styles: styles, title: title, photo: photo,
+    CAT_LABEL: CAT_LABEL, BUDGET_LABEL: BUDGET_LABEL, STYLE_LABEL: STYLE_LABEL };
+})();
+</script>
+
+<script id="app">
+(function () {
+  "use strict";
+  var d = document, w = window;
+  var $ = function (id) { return d.getElementById(id); };
+  var form = $("picker"), gridEl = $("grid"), h2 = $("picks-h"), sub = $("picks-sub"), live = $("live"), seeAll = $("see-all"), bar = $("bar");
+  if (!form || !gridEl) return;
+  var reduce = w.matchMedia ? w.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
+  var narrow = w.matchMedia ? w.matchMedia("(max-width: 1023px)") : { matches: true };
+  var ITEMS = null, COUNTS = {}, TOTAL = "10,600+", failed = false, token = 0, lastKey = "", warmed = {};
+  var state = { cat: "", budget: "", style: "" };
+
+  function val(name) { var el = form.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ""; }
+  function setVal(name, v) { var el = form.querySelector('input[name="' + name + '"][value="' + v + '"]'); if (el) el.checked = true; }
+  function keyOf(st) { return st.cat + "|" + st.budget + "|" + st.style; }
+
+  /* the sliding thumb in steps 2 and 3, and the check mark on answered steps */
+  function paint() {
+    [].forEach.call(form.querySelectorAll(".seg"), function (seg) {
+      var inputs = seg.querySelectorAll("input"), i = 0;
+      for (var k = 0; k < inputs.length; k++) if (inputs[k].checked) i = k;
+      seg.style.setProperty("--i", i);
+    });
+    [].forEach.call(form.querySelectorAll(".step"), function (f) {
+      var name = f.getAttribute("data-step");
+      f.classList.toggle("done", !!state[name]);
+    });
+  }
+
+  function headline(sel) {
+    var phrase = PCC.describe(state), any = !!phrase;
+    var Phrase = phrase.charAt(0).toUpperCase() + phrase.slice(1);
+    var close = sel && sel.exact < sel.list.length, none = sel && sel.exact === 0;
+    h2.textContent = any ? "Your picks" : "Popular this week";
+    if (!any) sub.textContent = "Tap a find for photos, sizes and buy links.";
+    else if (none) sub.innerHTML = "Closest to <b>" + phrase + "</b>";
+    else sub.innerHTML = "<b>" + Phrase + "</b>" + (close ? " · then close matches" : " · popular first");
+    if (live) live.textContent = !any ? "Showing popular finds this week" : (none ? "No exact matches. Showing the closest to " + phrase : "Showing " + phrase + (close ? ", then close matches" : ""));
+    if (seeAll) {
+      var c = state.cat || (state.style === "sneakers" ? "Shoes" : "");
+      seeAll.href = "https://www.puroclassico.com/spreadsheet" + (c ? "?cat=" + encodeURIComponent(c) : "");
+      var sa = seeAll.querySelector(".sa-t");
+      if (sa) sa.textContent = "See all " + (c && COUNTS[c] ? String(COUNTS[c]).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : TOTAL) + " " + (c ? PCC.CAT_LABEL[c] : "finds");
+    }
+  }
+
+  function preload(list) {
+    list.forEach(function (x) { var i = new Image(); i.decoding = "async"; i.src = PCC.photo(x.img, 400); });
+  }
+
+  function cols() { var t = w.getComputedStyle(gridEl).gridTemplateColumns || ""; return Math.max(1, t.split(" ").filter(Boolean).length); }
+
+  function render(sel, animate) {
+    var html = PCC.grid(sel, state, COUNTS, TOTAL);
+    var my = ++token;
+    var old = [].slice.call(gridEl.children);
+    var motion = animate && typeof gridEl.animate === "function";
+    function swap() {
+      if (my !== token) return;
+      gridEl.innerHTML = html;
+      if (!motion) return;
+      var c = cols(), shown = [].filter.call(gridEl.children, function (el) { return el.offsetParent !== null; });
+      shown.forEach(function (el, i) {
+        var delay = Math.min((Math.floor(i / c) + (i % c)) * 30, 210);
+        var frames = reduce.matches ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }];
+        el.animate(frames, { duration: reduce.matches ? 200 : 360, delay: delay, easing: "cubic-bezier(.22,1,.36,1)", fill: "backwards" });
+      });
+    }
+    if (motion && old.length) {
+      old.forEach(function (el) { el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 110, easing: "linear", fill: "forwards" }); });
+      w.setTimeout(swap, 110);
+    } else swap();
+  }
+
+  function update(src) {
+    state = { cat: val("cat"), budget: val("budget"), style: val("style") };
+    /* sneakers are shoes: the two answers follow each other */
+    if (src === "style" && state.style === "sneakers" && state.cat && state.cat !== "Shoes") { setVal("cat", "Shoes"); state.cat = "Shoes"; }
+    if (src === "cat" && state.cat && state.cat !== "Shoes" && state.style === "sneakers") { setVal("style", ""); state.style = ""; }
+    paint();
+    try {
+      var u = new URL(w.location.href);
+      ["cat", "budget", "style"].forEach(function (k) { if (state[k]) u.searchParams.set(k, state[k]); else u.searchParams.delete(k); });
+      w.history.replaceState(w.history.state, "", u.pathname + u.search + u.hash);
+    } catch (e) {}
+    if (!ITEMS) {
+      if (failed && src === "cat") form.submit();
+      headline(null);
+      return;
+    }
+    var key = keyOf(state);
+    var sel = PCC.select(ITEMS, state);
+    headline(sel);
+    if (key === lastKey) return;
+    lastKey = key;
+    preload(sel.list.slice(0, 5));
+    render(sel, true);
+    /* the end of the guided flow on phones: once step 3 is answered, bring the picks into view */
+    if (narrow.matches && (src === "style" || (state.cat && state.budget && state.style))) {
+      var top = $("picks").getBoundingClientRect().top;
+      if (top > w.innerHeight * 0.55) w.setTimeout(function () { $("picks").scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth", block: "start" }); }, 240);
+    }
+  }
+
+  form.addEventListener("change", function (e) { var t = e.target; if (t && t.name) update(t.name); });
+  form.addEventListener("submit", function (e) { if (ITEMS) { e.preventDefault(); $("picks").scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth" }); } });
+
+  /* a pick about to happen: start its photos early */
+  function intent(e) {
+    if (!ITEMS) return;
+    var lab = e.target && e.target.closest ? e.target.closest("label") : null, inp = lab && lab.querySelector("input");
+    if (!inp || inp.checked) return;
+    var st = { cat: state.cat, budget: state.budget, style: state.style }; st[inp.name] = inp.value;
+    var k = keyOf(st); if (warmed[k]) return; warmed[k] = 1;
+    preload(PCC.select(ITEMS, st).list.slice(0, 4));
+  }
+  form.addEventListener("pointerover", intent, { passive: true });
+  form.addEventListener("touchstart", intent, { passive: true });
+
+  /* the bar comes up once the picker has scrolled away */
+  (function () {
+    var end = $("hero-end");
+    if (!bar || !end || !("IntersectionObserver" in w)) { if (bar) bar.classList.add("show"); return; }
+    new IntersectionObserver(function (es) { es.forEach(function (en) { bar.classList.toggle("show", !en.isIntersecting && en.boundingClientRect.top < 0); }); }).observe(end);
+  })();
+
+  /* the video loads only when asked for */
+  (function () {
+    var btn = $("video");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      if (btn.classList.contains("on")) return;
+      var phone = w.matchMedia && w.matchMedia("(max-width:820px) and (orientation:portrait)").matches;
+      var v = d.createElement("video");
+      v.src = phone ? "/media/tutorial-portrait.mp4" : "/media/tutorial-landscape.mp4";
+      v.poster = phone ? "/media/tutorial-poster-portrait.jpg" : "/media/tutorial-poster.jpg";
+      v.controls = true; v.playsInline = true; v.setAttribute("playsinline", ""); v.preload = "auto";
+      v.setAttribute("aria-label", "How to order from China, 56-second video");
+      btn.classList.add("on");
+      btn.appendChild(v);
+      btn.removeAttribute("aria-label");
+      btn.setAttribute("tabindex", "-1");
+      var p = v.play(); if (p && p.catch) p.catch(function () {});
+      try { v.focus(); } catch (e) {}
+    });
+  })();
+
+  /* data for the picker; the first grid is already in the page */
+  function start(data) {
+    ITEMS = PCC.prep(data);
+    COUNTS = PCC.counts(data);
+    if (data.totals && data.totals.finds) {
+      TOTAL = String(data.totals.finds);
+      [].forEach.call(d.querySelectorAll('[data-t="finds"]'), function (el) { el.textContent = TOTAL; });
+      if (data.totals.qc) [].forEach.call(d.querySelectorAll('[data-t="qc"]'), function (el) { el.textContent = String(data.totals.qc); });
+    }
+    var q = new URLSearchParams(w.location.search), any = false;
+    ["cat", "budget", "style"].forEach(function (k) { var v = q.get(k); if (v && form.querySelector('input[name="' + k + '"][value="' + v.replace(/["\\]/g, "") + '"]')) { setVal(k, v); any = true; } });
+    state = { cat: val("cat"), budget: val("budget"), style: val("style") };
+    paint();
+    var sel = PCC.select(ITEMS, state);
+    lastKey = keyOf(state);
+    headline(sel);
+    var shown = [].map.call(gridEl.querySelectorAll(".card.f"), function (a) { return a.getAttribute("data-id"); }).join(",");
+    if (any || shown !== sel.list.map(function (x) { return x.id; }).join(",")) render(sel, false);
+  }
+  paint();
+  try {
+    fetch("/lab/data.json", { credentials: "same-origin" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(start).catch(function () { failed = true; });
+  } catch (e) { failed = true; }
+})();
+</script>
+</body>
+</html>
