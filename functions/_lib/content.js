@@ -44,7 +44,7 @@ const WRAP = t => `<span style="overflow-wrap:anywhere">${t}</span>`;
 export const AGENT_INTRO = {
   mycnbox: { title: "MyCNBox Spreadsheet 2026", lede: "Tap Buy on any find below and the listing opens pre-filled in MyCNBox, ready for your size and colour.",
     body: `<p>MyCNBox is a shopping agent: you pay MyCNBox for the item and the short delivery to its warehouse in China, it buys from the Weidian, Taobao or 1688 seller, takes QC photos when the item arrives, and ships your items together in one parcel when you're ready. It's our most-used agent and the one we recommend for first orders.</p><p>Each find below opens the exact listing inside MyCNBox, no copying links or translating. New users can claim the MyCNBox new-user coupon bundle (advertised as up to $500) when they sign up through Puro Classico.</p><p>New to agents? Watch the <a href="/how-to-order">56-second how-to-order video</a> first.</p>`,
-    desc: (N, Q) => `The MyCNBox spreadsheet: ${N} rep finds that open pre-filled in MyCNBox, ${Q} marked as having QC photos. 4 QC photos per item, 90-day storage, $500 coupons.`,
+    desc: (N, Q) => `The MyCNBox spreadsheet: ${N} rep finds that open pre-filled in MyCNBox, ${Q} with buyer QC photos. 4 QC photos per item, 90-day storage, $500 coupons.`,   // 25 Nov 2026: was 161 characters
     about: [
       ["How to order on MyCNBox", STEPS([
         ["user-plus", "Sign up with invite code AACPYA.", `Our <a href="/guides/mycnbox-coupon-code">sign-up link</a> fills it in, and the new-user coupons (up to $500 in total) appear in your account. They are coupons, not cash: MyCNBox's help centre shows one coupon applied per parcel.`],

@@ -122,6 +122,7 @@ export const GUIDES2 = {
     // not only whether it is legit, so the title leads with the name and the page opens with what MyCNBox is, then legit,
     // fees, the coupons and how to order step by step. Every fact is from the sources below (no new claims).
     title: "MyCNBox Review: Is It Legit? Fees, How to Order & Coupons",
+    updated: "2026-11-24",   // the day this text was revised (comment above); change it only when it is revised again
     desc: "What MyCNBox is, whether it is legit (4.8/5 from 422 Trustpilot reviews), its fees, how to order step by step and the up to $500 coupons for new users.",
     h1: "MyCNBox review: what it is, is it legit, fees and how to order",
     body: `<p class="lead"><strong>MyCNBox is a shopping agent for Weidian, Taobao and 1688.</strong> You pay MyCNBox for the item and the short delivery to its warehouse in China, it buys from the seller, takes QC photos when the item arrives, and ships your items together in one parcel when you are ready. It has no service fee on purchases, according to its help centre, and new users get coupons worth up to $500 in total.</p>

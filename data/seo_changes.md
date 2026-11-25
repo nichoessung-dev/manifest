@@ -40,6 +40,14 @@ Core Web Vitals in the lab, the top results for the head terms): the scratchpad 
 - Descriptions over 160 characters shortened: /tools/size-estimator, /tools/parcel-tracker, /cnfans-spreadsheet,
   /how-to-order, /about. The product pages and the rep spreadsheet guide said "1:47 video"; the video is 56 seconds.
 - PRODUCT_TPL w112, DS_VER 39 (the static pages were on ?v=23).
+- Later the same day: /spreadsheet gets its own CollectionPage (it carried the homepage's, with the FAQ of a block it hides)
+  and is in sitemap-pages.xml (1aee8576); the agent spreadsheets say "Updated <day>" in the subtitle and open their About
+  block with the agent and MyCNBox side by side (0c1553f0); the sizing, shipping lines and glossary guides show finds of
+  their own kind instead of the same 8 (b86ad639); the MyCNBox review shows the day it was revised (24 Nov) and the MyCNBox
+  spreadsheet description fits in 160 characters. All changed URLs went to IndexNow (data/indexnow_2026-11-25.txt).
+- Measured after (lab, mobile, slow 4G, 4x CPU): guides LCP 1.3 to 2.0 s (text), CLS 0 to 0.005; a same-machine A/B of the
+  old and new guide templates gave +60 to +130 ms LCP, the larger HTML and stylesheet (about 4 KB more once compressed).
+  JSON-LD of 1,090 live pages: all parse, every FAQ question is visible on its page, breadcrumbs run 1..n.
 - Undo: the renderGuide block and the "guide layout v12" CSS block; the title, desc, updated, qcEx and compare fields in
   content.js, content2.js and content3.js; agentFaqMore and agentGuides in hubSpec; the section#seo rule in hubApp;
   reportedOk in reported.js and keep() in the middleware.
