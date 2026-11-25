@@ -5571,7 +5571,7 @@ async function _syncProfile(){
   try{ const ref=getRef(); if(ref){ await sb.from("profiles").update({referred_by:ref, referred_at:new Date().toISOString()}).eq("id",ME.id).is("referred_by",null); } }catch(e){}
 }
 /* how-to-order welcome (12 Nov 2026, owner): 4 short steps instead of a wall of text. 1 an illustration of how ordering
-   works with the 1:47 video one tap away (easy to skip), 2 pick your agent, 3 pick your currency, 4 a "you're all set"
+   works with the 56-second video one tap away (easy to skip), 2 pick your agent, 3 pick your currency, 4 a "you're all set"
    animation. Once, for accounts made in the last two days and for guests after the sign-up gate (pc.tut.seen); ?tour=1 opens it for anyone (preview, nothing
    is marked as seen). Closes with the X, Esc or a click outside. Choices go through the header selects (#agent, #cur),
    so the app re-renders exactly as when they are changed there. */
@@ -5584,7 +5584,7 @@ function showTutorialPopup(force,guest){
   const esc2=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   let agent=(state&&A[state.agent])?state.agent:"mycnbox", cur=(state&&C[state.cur])?state.cur:"USD", step=0, moreOpen=false;
   const phone=window.matchMedia&&matchMedia("(max-width:640px)").matches;
-  const vid=phone?{src:"/media/how-to-order-portrait.mp4",poster:"/media/how-to-order-poster-portrait.jpg"}:{src:"/media/how-to-order-landscape.mp4",poster:"/media/how-to-order-poster.jpg"};
+  const vid=phone?{src:"/media/tutorial-portrait.mp4",poster:"/media/tutorial-poster-portrait.jpg"}:{src:"/media/tutorial-landscape.mp4",poster:"/media/tutorial-poster.jpg"};
   const ILL=`<svg class="tw-ill" viewBox="0 0 640 170" role="img" aria-label="Pick a find, your agent buys it, you check the QC photos, it ships to you">
     <path class="tw-path" d="M88 66 H552" fill="none"/>
     <g class="tw-node" style="--d:0s"><circle cx="88" cy="66" r="44"/><rect x="70" y="40" width="36" height="54" rx="7" class="tw-ln"/><rect x="77" y="74" width="22" height="10" rx="5" class="tw-fill"/><path d="M78 52h20M78 60h14" class="tw-ln"/></g>
@@ -5598,7 +5598,7 @@ function showTutorialPopup(force,guest){
     <div class="tw-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <section class="tw-step" data-s="0"><h2>How ordering works</h2><p class="tw-lead">An agent buys the find for you in China, sends you photos to check, then ships it home.</p>
       <div class="tw-media">${ILL}<div class="tw-vid" hidden><video playsinline controls preload="none" poster="${vid.poster}"><source src="${vid.src}" type="video/mp4"></video></div></div>
-      <div class="tw-row"><button type="button" class="tw-btn tw-ghost" data-act="video"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>Watch the video <span class="tw-mut">1:47</span></button><button type="button" class="tw-btn" data-act="next">Next</button></div>
+      <div class="tw-row"><button type="button" class="tw-btn tw-ghost" data-act="video"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>Watch the video <span class="tw-mut">0:56</span></button><button type="button" class="tw-btn" data-act="next">Next</button></div>
       <button type="button" class="tw-skip" data-act="skip">Skip, I know how it works</button></section>
     <section class="tw-step" data-s="1" hidden><h2>Pick your agent</h2><p class="tw-lead">Your Buy buttons open on this agent. You can change it any time.</p>
       <div id="tw-ag" role="radiogroup" aria-label="Agent"></div>

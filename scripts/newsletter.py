@@ -488,7 +488,7 @@ def run_welcome_test(_profiles=None):
     ok, msg = brevo_send(email, WELCOME_SUBJECT, welcome_html("test"), None, "test")
     print("welcome-test sent" if ok else ("FAIL welcome-test: " + hide(msg)))
 
-ORDERING_SUBJECT = "How to order from Puro Classico (1:47 video)"
+ORDERING_SUBJECT = "How to order from Puro Classico (56-second video)"
 VIDEO_PAGE = SITE + "/how-to-order"
 
 def step_rows(steps):
@@ -517,13 +517,13 @@ def ordering_html(uid):
     ]
     rows = step_rows(steps)
     video =('<a class="pcv-d" href="%s" style="display:block;text-decoration:none;">'
-             '<img src="%s/media/how-to-order-email.jpg" width="536" alt="Watch: How to order with MyCNBox (1:47)" style="display:block;width:100%%;max-width:536px;height:auto;border:0;border-radius:12px;margin:0 auto;"></a>'
+             '<img src="%s/media/tutorial-email.jpg" width="536" alt="Watch: How to order from China (0:56)" style="display:block;width:100%%;max-width:536px;height:auto;border:0;border-radius:12px;margin:0 auto;"></a>'
              '<!--[if !mso]><!--><a class="pcv-m" href="%s" style="display:none;max-height:0;overflow:hidden;text-decoration:none;">'
-             '<img src="%s/media/how-to-order-email-portrait.jpg" width="280" alt="Watch: How to order with MyCNBox (1:47)" style="display:block;width:280px;max-width:85%%;height:auto;border:0;border-radius:12px;margin:0 auto;"></a><!--<![endif]-->'
+             '<img src="%s/media/tutorial-email-portrait.jpg" width="280" alt="Watch: How to order from China (0:56)" style="display:block;width:280px;max-width:85%%;height:auto;border:0;border-radius:12px;margin:0 auto;"></a><!--<![endif]-->'
              ) % (esc(site_link(VIDEO_PAGE + "?f=landscape")), SITE, esc(site_link(VIDEO_PAGE + "?f=portrait")), SITE)
-    inner = (pre("Watch the 1:47 video, then follow 6 short steps from Buy to your door.")
+    inner = (pre("Watch the 56-second video, then follow 6 short steps from Buy to your door.")
       + h1("How To Order Your First Find")
-      + lead("First haul from China? Watch the 1:47 video and you'll know the whole flow, from tapping Buy to tracking your parcel.")
+      + lead("First haul from China? Watch the 56-second video and you'll know the whole flow, from tapping Buy to tracking your parcel.")
       + '<div style="text-align:center;margin:0 0 24px;">' + video + '</div>'
       + btn(esc(site_link(VIDEO_PAGE)), "&#9654;&nbsp; Watch The Video")
       + hr("44px 0 36px")
@@ -576,7 +576,7 @@ def ordering_agent_html(uid, key):
         ("3", "Check Your QC Photos", "When it reaches the warehouse, %s takes photos. Check logos, stitching, colour and the size tag." % name),
         ("4", "Ship One Parcel", "Combine your items, pick a shipping line and pay international shipping."),
     ]
-    inner = (pre("You picked %s. Here is your first order in 4 short steps, plus the 1:47 video." % name)
+    inner = (pre("You picked %s. Here is your first order in 4 short steps, plus the 56-second video." % name)
       + h1("How To Order With %s" % esc(name))
       + lead(esc("You picked %s as your agent. Here is your first order in 4 short steps, from tapping Buy to your parcel." % name))
       + signup
@@ -585,7 +585,7 @@ def ordering_agent_html(uid, key):
       + '<div style="height:12px;line-height:12px;font-size:12px;">&nbsp;</div>'
       + '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + step_rows(steps) + '</table>'
       + hr("20px 0 36px")
-      + h2("Watch The 1:47 Video")
+      + h2("Watch The 56-Second Video")
       + lead(esc("The video shows MyCNBox, but the flow is the same with %s: tap Buy, check QC, ship." % name), 15, 20)
       + btn(esc(site_link(VIDEO_PAGE)), "&#9654;&nbsp; Watch The Video", "outline")
       + '<p class="pc-mut" style="margin:24px auto 0;max-width:420px;font-family:' + FONT + ';font-size:14px;line-height:1.6;color:#6B6B6B;text-align:center;">Stuck on anything? Ask in our <a href="' + DISCORD_URL + '" class="pc-ink" style="color:#0A0A0A;text-decoration:underline;">Discord</a>. Members share QC tips and haul reviews daily.</p>'

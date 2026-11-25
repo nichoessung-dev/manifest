@@ -5,7 +5,7 @@
   python scripts/schedule_videos.py --items tutorial --start now
 
 An item is a style id whose finished video is on the "previews-batch" branch (<id>.mp4 and <id>.json, made by the Style previews
-workflow: the very files the owner watched), or "tutorial" (media/how-to-order-portrait.mp4 in this repo).
+workflow: the very files the owner watched), or "tutorial" (media/tutorial-portrait.mp4 in this repo).
 A time that already has a post within half an hour is left alone, so running this twice never queues a video twice.
 
 Env: POSTIZ_API_KEY, SHORTS_CHANNELS (optional), GITHUB_REPOSITORY. DRY_RUN=1 prints the plan and sends nothing.
@@ -20,9 +20,9 @@ ROOT = P.ROOT
 TZ = ZoneInfo("Europe/Oslo")
 REPO = os.environ.get("GITHUB_REPOSITORY", "nichoessung-dev/manifest")
 DRY = bool(os.environ.get("DRY_RUN", "").strip())
-TUTORIAL = {"format": "tutorial", "ids": [], "voiceover": True, "file": os.path.join(ROOT, "media", "how-to-order-portrait.mp4"),
+TUTORIAL = {"format": "tutorial", "ids": [], "voiceover": True, "file": os.path.join(ROOT, "media", "tutorial-portrait.mp4"),
             "product_url": "https://www.puroclassico.com/how-to-order",
-            "caption": "How to order your first finds, step by step (1:47)\n\n"
+            "caption": "How to order your first finds, in 5 steps (0:56)\n\n"
                        "Advertisement: we earn a commission from MyCNBox when you order.\n\n"
                        "1. Make a free MyCNBox account\n2. Tap Buy via MyCNBox on any find\n3. Pick size and colour, check out\n"
                        "4. Check your QC photos\n5. Submit packing and pay shipping\n6. Track your parcel\n\n"
