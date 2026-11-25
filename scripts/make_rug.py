@@ -1018,7 +1018,7 @@ def main():
             log[-1].update(label=[sl[k].get("label") or sl[k]["name"].title() for k in order], usd=[sl[k]["usd"] for k in order], boxes=sl[0]["boxes"])
         print("made", fn, "with", model)
     if state_path and a.commit_state: used["rug_skip"] = sorted(rejected)
-    if len(log) < min(a.n, 5):                                 # never post a thin carousel
+    if len(log) < min(a.n, int(os.environ.get("RUG_MIN_SLIDES", "5"))):      # never post a thin carousel (month videos: 4 is fine, 25 Nov 2026)
         if state_path and a.commit_state: json.dump(used, open(state_path, "w"), indent=0)
         sys.exit("only %d slides made" % len(log))
     cv, k, kg = cover(rnd, used.get("rug_cover")); cover_path = os.path.join(a.out, "00-cover.jpg"); cv.save(cover_path, quality=94)

@@ -82,7 +82,7 @@ def build_cmd(account, out):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--account", choices=["main", "second"], required=True)
     ap.add_argument("--count", type=int, default=10); ap.add_argument("--minutes", type=float, default=320)
-    a = ap.parse_args(); t0 = time.time(); ensure_release(); made = 0
+    a = ap.parse_args(); t0 = time.time(); ensure_release(); made = 0; fails = 0
     state = "slides_used.json" if a.account == "second" else "finds_used.json"
     for k in range(a.count):
         if time.time() - t0 > a.minutes * 60: print("time is up: stopping"); break
@@ -94,8 +94,10 @@ def main():
         if os.path.exists(os.path.join(ROOT, state)): save_state(state)
         if r.returncode or not metas:
             print("::endgroup::"); print("::warning::slideshow %d was not made" % (k + 1))
-            if a.account == "second": print("stopping: a failed Qualityfinds build only spends more images"); break
+            fails += 1
+            if a.account == "second" and fails >= 2: print("stopping: two Qualityfinds builds in a row failed, more would only spend images"); break
             continue
+        fails = 0
         try:
             z, pid = pack(a.account, out, metas[0], k)
             sh(["gh", "release", "upload", TAG, z, "--clobber"], check=True); made += 1; print("uploaded", pid)

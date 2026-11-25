@@ -17,7 +17,7 @@ on:
       max_images:
         description: 'Most images Google may make for one slideshow (second only)'
         type: string
-        default: '14'
+        default: '16'
 permissions:
   contents: write
 concurrency: month-build-${{ inputs.account }}
@@ -50,6 +50,7 @@ jobs:
           RUG_ENGINE: gemini
           RUG_MODELS: gemini-3.1-flash-image
           RUG_LOOK: claude
+          RUG_MIN_SLIDES: '4'                  # 25 Nov 2026: 4 good slides still make a 20 s video; a thin build is no longer thrown away
           RUG_REAL_MIN: '6'                    # 25 Nov 2026: a second try never beat a 6 (the test run), so a 6 is kept and no credit is spent on retries
           RUG_MAX_IMAGES: ${{ inputs.max_images }}
           # main account: the same settings as its daily carousels (finds.yml)
