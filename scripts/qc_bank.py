@@ -6,17 +6,24 @@ This job looks each find up ONCE, stores its QC thumbnails in our own Supabase s
 data/qc_bank.json. functions/api/qc.js answers from that list first, so a banked find shows QC photos to every visitor
 for good, without touching the quota. Each month the quota goes to finds that are not banked yet, most viewed first.
 
-  python scripts/qc_bank.py [--max 300] [--reserve 150] [--dry]
+  python scripts/qc_bank.py [--max 300] [--reserve 150] [--per-run 120] [--dry]
       --max      most lookups this run (the quota allows 30 a minute; one lookup every ~2.2 s)
-      --reserve  lookups left untouched each month for visitors opening finds that are not banked yet
+      --reserve  lookups kept for visitors opening finds that are not banked yet, for a whole month: the share kept on a
+                 given day is the part of it for the days left until the quota resets (25 Nov 2026), so the end of the
+                 month does not leave 150 unused (November: visitors used almost none of them)
+      --per-run  on the free plan, at most this many lookups a run (the daily run), so a month's quota is spent over
+                 about a week of runs instead of in the first one (0: no cap; bulk mode has none)
       --dry      list what would be looked up, without calling qualit.ly
+
+Order (25 Nov 2026, SEO pass): the swapped finds' old listings, then the finds whose product page is in the live product
+sitemap (indexable) and is not hidden, most viewed first: their pages show the banked photos in their HTML. Then the rest.
 
 Needs QUALITLY_KEY (qualit.ly API key) and SUPABASE_SERVICE_KEY (storage upload), both GitHub secrets.
 data/qc_bank.json: {"updated": ..., "items": {"weidian/123456": [qc_count, stored_thumbs], ...}}. [n, 0] means qualit.ly
 had no usable photos; such finds are not looked up again for 90 days ("checked" dates).
 The photos are at SUPA/storage/v1/object/public/products/qc/<storefront>-<id>-<k>.webp, k = 0 .. stored_thumbs-1.
 """
-import io, json, os, re, sys, time, urllib.request, urllib.error
+import io, json, os, re, sys, time, urllib.parse, urllib.request, urllib.error
 from datetime import datetime, timezone, timedelta
 from PIL import Image
 
@@ -69,6 +76,20 @@ def catalogue(everything=False):
         if plat in ("weidian", "taobao", "1688") and (qc >= 1 or everything) and re.fullmatch(r"[1-9][0-9]{5,19}", sid):
             out.append((r[0], plat + "/" + sid, qc))
     return out
+
+
+def indexable_ids():
+    """The finds whose product page is in the live product sitemap (indexable); empty if it cannot be read."""
+    try:
+        return {urllib.parse.unquote(x) for x in re.findall(r"/product/([^<]+)</loc>", get(SITE + "/sitemap-products.xml", timeout=60).decode("utf-8"))}
+    except Exception as e:
+        print("product sitemap not readable (%s): ordering by views only" % str(e)[:80]); return set()
+
+
+def hidden_ids():
+    """Finds the app hides (data/reported.json "hidden": reports, the photo check, the owner's list)."""
+    try: return {str(i) for i in json.load(open(os.path.join(ROOT, "data", "reported.json"), encoding="utf-8")).get("hidden") or []}
+    except Exception: return set()
 
 
 def views():
@@ -132,7 +153,7 @@ def ingest_live(items, checked, now):
 
 
 def main():
-    mx, reserve, dry = arg("--max", 300), arg("--reserve", 150), "--dry" in sys.argv
+    mx, reserve, per_run, dry = arg("--max", 300), arg("--reserve", 150), arg("--per-run", 120), "--dry" in sys.argv
     try: bank = json.load(open(BANK, encoding="utf-8"))
     except Exception: bank = {}
     items, checked = bank.setdefault("items", {}), bank.setdefault("checked", {})
@@ -163,16 +184,25 @@ def main():
     # partner's own ids last
     try: swapped = set((json.load(open(os.path.join(ROOT, "data", "link_swaps.json"), encoding="utf-8")).get("swaps") or {}).keys())
     except Exception: swapped = set()
-    todo.sort(key=lambda t: (t[0].startswith("fr:"), t[0] not in swapped, -v.get(t[0], 0), -t[2]))
+    ix, hid = indexable_ids(), hidden_ids()
+    todo.sort(key=lambda t: (t[0].startswith("fr:"), t[0] not in swapped, t[0] not in ix or t[0] in hid, -v.get(t[0], 0), -t[2]))
     print("finds with QC on record: %d, banked: %d, still to look up: %d" % (len(catalogue()), len(items), len(todo)))
     if dry:
         for t in todo[:15]: print("  ", t[1], "views", v.get(t[0], 0), "qc", t[2])
         return
     left = month.get("remaining")
     if left is None: raise SystemExit("could not read the qualit.ly quota (status %s): nothing looked up" % st)
-    budget = max(0, min(mx, left - reserve))
+    # the visitors' share for the days left until the quota resets (reset_at, else the 1st of next month, UTC)
+    try: rdt = datetime.fromisoformat(str(month.get("reset_at")).replace("Z", "+00:00"))
+    except Exception: rdt = None
+    if not rdt or rdt.tzinfo is None: rdt = (now.replace(day=28) + timedelta(days=4)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    days_left = max(1, (rdt - now).days + 1)
+    keep = min(reserve, -(-reserve * days_left // 30))
+    cap = mx if big or per_run <= 0 else min(mx, per_run)
+    budget = max(0, min(cap, left - keep))
     print("plan: %s lookups a month%s" % (month.get("limit"), " (bulk mode: every find)" if big else ""))
-    print("qualit.ly lookups left this month: %s, reserve for visitors: %d, this run: %d" % (left, reserve, budget))
+    print("qualit.ly lookups left this month: %s, days to the reset: %d, kept for visitors: %d of %d, this run: %d (cap %d)" % (left, days_left, keep, reserve, budget, cap))
+    print("first in line: %s" % ", ".join("%s (views %d)" % (t[1], v.get(t[0], 0)) for t in todo[:5]))
     done = stored = 0
     for pid, key, qc in todo:
         if done >= budget: break

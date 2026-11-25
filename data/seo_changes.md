@@ -6,6 +6,22 @@ data/seo_ranks_markets.json (the spreadsheet searches in ten countries, 23 Nov 2
 searches of the model pages added on 23 Nov 2026, checked before they existed) and data/seo_page_clicks.json (buy clicks
 per page by visit source and country, buy clicks per find, site searches; scripts/seo_page_clicks.py).
 
+## 25 Nov 2026: QC photos back on 78 product pages, and the QC bank's order and pace
+
+- What: 78 finds whose QC photos were already in our storage (products/qc/, stored 27 Oct to 3 Nov 2026) but missing from
+  data/qc_bank.json are back in the bank (found with read-only checks of the public files; no qualit.ly lookup), so their
+  product pages show the photos in the HTML again and signals.js marks them (QC_BANKED 100 to 178). 73 of them are
+  indexable. The bank had lost them when the repository was started again on 18 Nov from an older copy.
+- The bank job (scripts/qc_bank.py) now looks up, after the swapped finds' old listings, the finds whose product page is in
+  the live product sitemap and not hidden, most viewed first (942 of the next 1,000 lookups; 1,086 such finds have no
+  banked photos yet, 629 of them viewed in the last 30 days), then the rest. On the free plan a run makes at most 120
+  lookups (--per-run), and the share kept for visitors is the part of --reserve (150) for the days left until the quota
+  resets, so the month's quota is spread over the daily runs and the end of the month leaves little unused. qualit.ly
+  showed 20 lookups left for November on 25 Nov: none are spent before the reset.
+- Undo: data/qc_bank.json (the 78 entries checked 2026-10-27 to 2026-11-03 that came back today), functions/_lib/signals.js
+  (scripts/gen_signals.py rewrites it from the bank), scripts/qc_bank.py (indexable_ids, hidden_ids, the sort key, keep
+  and cap). PRODUCT_TPL w118.
+
 ## 25 Nov 2026: brand pages count the finds a visitor can see
 
 - What: brand hubs, their pages 2 and up, the agent x brand pages, the /brands index, the "All N <brand> reps" links on
