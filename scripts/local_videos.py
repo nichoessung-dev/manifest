@@ -168,6 +168,7 @@ def main():
                 r = sh(["gh", "release", "upload", VIDEOS_TAG, out, out[:-4] + ".json", "--clobber"], cwd=ROOT)
                 if r.returncode: print("  upload failed, will try again next time", flush=True); continue
             made += 1
+            if made % 8 == 0: sh(["gh", "workflow", "run", "month-queue.yml", "-f", "mode=fill"], cwd=ROOT)     # backup for GitHub's unreliable cron
         if (a.limit and made >= a.limit) or not a.loop: break
     print("videos made:", made)
 
