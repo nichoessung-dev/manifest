@@ -25,7 +25,9 @@ category and title rules, as surgical string edits inside the pc-catalog JSON (s
                     not rejected in review, uploaded (data/photo_cut_uploaded.json), and the find still shows the photo
                     it was cut from -> products/pc2/<id>-t1.webp
   --edge            existing cut-outs with the light outline cleaned for dark tiles (photo_edge.py, data/photo_edge,
-                    owner 25 Nov 2026): the same rules, log data/photo_edge_uploaded.json -> products/pc2/<id>-e1.webp
+                    owner 25 Nov 2026): the same rules. A products/pc photo -> products/pc2/<id>-e1.webp (uploaded, log
+                    data/photo_edge_uploaded.json); an /img/rl or /img/fr site file -> the site file /img/<rl|fr>/<id>-e1.webp
+                    next to it (it must be in the repo with the reviewed sha1), so those finds stay site files
   --write           really write index.html (without it: report only)
   --revert F        put back the old values recorded in F (the applied log of an earlier run)
   --review F        human review decisions (data/catalog_ai_review.json): {"cat": {id: cat}, "cat_hold": {id: why},
@@ -33,7 +35,7 @@ category and title rules, as surgical string edits inside the pc-catalog JSON (s
 
 Every write appends the old and new values to data/catalog_ai_applied.json, so any batch can be reverted.
 """
-import argparse, collections, csv, glob, json, os, re, sys, unicodedata, urllib.request
+import argparse, collections, csv, glob, hashlib, json, os, re, sys, unicodedata, urllib.request
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -545,13 +547,21 @@ def main():
                     if r.get("v") != 1: continue   # photo_edge.VERSION
                     i = r.get("id")
                     if only and i not in only: continue
-                    if not r.get("ok"): why["no cleaned edge (could not make one)"] += 1; continue
-                    if r.get("review") == "rejected": why["rejected in review"] += 1; continue
-                    if i not in up: why["not uploaded yet"] += 1; continue
+                    if not r.get("ok"):
+                        why["keeps a light tile (rejected in review)" if r.get("review") == "rejected" else "no cleaned edge (not a cut-out)"] += 1
+                        continue
                     p = idx.get(i)
                     if not p: why["not in the catalogue"] += 1; continue
-                    new = SUPA_PUBLIC + i + "-e1.webp"
-                    if up[i].get("object") != "products/pc2/%s-e1.webp" % i: why["upload log does not match"] += 1; continue
+                    if r.get("src") in ("rl", "fr"):
+                        rel = "img/%s/%s-e1.webp" % (r["src"], i)
+                        fp = os.path.join(ROOT, rel)
+                        if not os.path.isfile(fp): why["site file not in the repo yet"] += 1; continue
+                        if hashlib.sha1(open(fp, "rb").read()).hexdigest() != r.get("sha1"): why["site file differs from the reviewed one"] += 1; continue
+                        new = "/" + rel
+                    else:
+                        if i not in up: why["not uploaded yet"] += 1; continue
+                        if up[i].get("object") != "products/pc2/%s-e1.webp" % i: why["upload log does not match"] += 1; continue
+                        new = SUPA_PUBLIC + i + "-e1.webp"
                     if p.get("img") == new: why["already shown"] += 1; continue
                     if p.get("img") != r.get("live"): why["the find shows another photo now"] += 1; continue
                     changes.append((i, "img", p.get("img"), new, "cleaned edge (%s, rim %s)" % (r.get("src"), r.get("rim_w"))))

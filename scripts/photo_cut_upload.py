@@ -38,6 +38,7 @@ def records():
     out = {}
     for f in sorted(glob.glob(os.path.join(ROOT, "data", SET["state"], "*.json"))):
         for k, r in (load_json(f, {}).get("items") or {}).items():
+            if r.get("site"): continue   # edge set: an /img/rl or /img/fr find gets a site file next to the old one, not an object
             if r.get("ok") and r.get("review") != "rejected" and r.get("sha1") and r.get("run") and ID.match(str(r.get("id"))):
                 r = dict(r); r.setdefault("object", f"products/pc2/{r['id']}-t1.webp")
                 if SET["obj"].match(r["object"]) and SET["file"].fullmatch(r.get("file", "")): out[k] = r
@@ -97,12 +98,15 @@ def main():
     ap.add_argument("--group", default="all", choices=["main", "gallery", "all"])
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--set", default="cut", choices=sorted(SETS))
+    ap.add_argument("--src", default="", help="edge set: only these sources (pc, rl, fr; comma separated)")
     a = ap.parse_args()
     global SET, LOG
     SET = SETS[a.set]; LOG = os.path.join(ROOT, "data", SET["log"])
     only = set(a.ids.replace(" ", "").split(",")) - {""}
     log = load_json(LOG, {"items": {}}); log.setdefault("items", {})
+    srcs = {x for x in a.src.replace(" ", "").split(",") if x}
     todo = {k: r for k, r in records().items() if k not in log["items"] and (not only or r["id"] in only)
+            and (not srcs or r.get("src") in srcs)
             and (a.group == "all" or (a.group == "gallery") == (r.get("group") == "g"))}
     ids = sorted(todo)[:a.limit] if a.limit else sorted(todo)
     print(f"photo_cut_upload ({a.set}): {len(ids)} to upload ({len(log['items'])} before){' (dry run)' if a.dry_run else ''}", flush=True)

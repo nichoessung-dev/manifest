@@ -25,6 +25,9 @@ on:
         type: choice
         options: ['cut', 'edge']
         default: 'cut'
+      src:
+        description: 'edge set: only these sources (pc, rl, fr; comma separated; empty = all)'
+        default: ''
       dry_run:
         description: 'Check everything, upload nothing'
         type: choice
@@ -44,12 +47,14 @@ jobs:
       DRY: ${{ inputs.dry_run || 'yes' }}
       GRP: ${{ inputs.group || 'all' }}
       SET: ${{ inputs.set || 'cut' }}
+      SRC: ${{ inputs.src }}
     steps:
       - name: Check inputs
         run: |
           [[ "$LIMIT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::bad limit"; exit 1; }
           [[ -z "$IDS" || "$IDS" =~ ^[0-9,\ ]+$ ]] || { echo "::error::bad ids"; exit 1; }
           [[ "$SET" =~ ^(cut|edge)$ ]] || { echo "::error::bad set"; exit 1; }
+          [[ -z "$SRC" || "$SRC" =~ ^(pc|rl|fr)(,(pc|rl|fr)){0,2}$ ]] || { echo "::error::bad src"; exit 1; }
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
@@ -68,7 +73,7 @@ jobs:
           set -o pipefail
           IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
           DR=""; [ "$DRY" = "yes" ] && DR="--dry-run"
-          python -u scripts/photo_cut_upload.py --set "$SET" --limit "$LIMIT" --group "$GRP" $IDA $DR 2>&1 | tee photo-cut-upload.log
+          python -u scripts/photo_cut_upload.py --set "$SET" ${SRC:+--src "$SRC"} --limit "$LIMIT" --group "$GRP" $IDA $DR 2>&1 | tee photo-cut-upload.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
