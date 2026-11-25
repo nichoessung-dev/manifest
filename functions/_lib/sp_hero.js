@@ -8,7 +8,6 @@
 
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const fold = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/['’`]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 // plain words people search, shown as a plural label (the search itself keeps what they typed)
 const NOUN = { watch: "Watches", jacket: "Jackets", hoodie: "Hoodies", sneaker: "Sneakers", shoe: "Shoes", belt: "Belts", bag: "Bags",
   cap: "Caps", wallet: "Wallets", shirt: "Shirts", tee: "Tees", jean: "Jeans", chain: "Chains", ring: "Rings", sunglass: "Sunglasses" };
@@ -34,15 +33,6 @@ export function trendItems(queries, brands) {
   return out;
 }
 
-// "today", "yesterday" or "25 Nov" for the catalogue's build date (the script after it redoes this in the visitor's time zone)
-function updated(built) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(built || "");
-  if (!m) return "";
-  const b = Date.UTC(+m[1], +m[2] - 1, +m[3]), now = new Date(), t = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  const days = Math.round((t - b) / 864e5);
-  return days <= 0 ? "today" : days === 1 ? "yesterday" : +m[3] + " " + MONTHS[+m[2] - 1];
-}
-
 const AGENT_STACK = [["mycnbox", "MyCNBox"], ["kakobuy", "KakoBuy", "?v=2"], ["oopbuy", "Oopbuy"], ["litbuy", "Litbuy"], ["joyagoo", "Joyagoo"]];
 const TREND_SVG = '<svg class="spx-ti" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 17l6-6 4 4 8-8"/><path d="M14.5 7H21v6.5"/></svg>';
 const PLAY_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4.8v14.4L19 12z"/></svg>';
@@ -60,12 +50,9 @@ setTimeout(function(){var el=d.getElementById("v9-all");if(el)try{el.scrollIntoV
 }catch(e){}})();</script>`;
 
 export function spHero({ finds, qc, agents, built, trend }) {
-  const up = updated(built);
   const chips = trend.map(t => `<a class="spx-chip" href="/spreadsheet?q=${encodeURIComponent(t.q)}" data-q="${esc(t.q)}">${esc(t.label)}</a>`).join("");
   const stack = AGENT_STACK.map(a => `<img src="/img/agents/${a[0]}.webp${a[2] || ""}" alt="" width="24" height="24" decoding="async">`).join("");
   return `<div class="spx">
-<p class="spx-pill"><span class="spx-dot" aria-hidden="true"></span><span>The easiest spreadsheet to use for China${up ? `<span class="spx-up"><span class="spx-sep" aria-hidden="true">·</span>updated <span id="spx-upd" data-d="${esc(built)}">${up}</span></span>` : ""}</span></p>
-${up ? `<script>(function(){try{var e=document.getElementById("spx-upd"),m=/^(\\d{4})-(\\d\\d)-(\\d\\d)$/.exec(e.getAttribute("data-d")||"");if(!m)return;var g=new Date(+m[1],m[2]-1,+m[3]),n=new Date();n.setHours(0,0,0,0);var k=Math.round((n-g)/864e5);e.textContent=k<=0?"today":k==1?"yesterday":g.getDate()+" "+"${MONTHS.join(" ")}".split(" ")[g.getMonth()]}catch(x){}})()</script>` : ""}
 <h1 class="spx-h1" id="v9-hero-title">Search ${esc(finds)} finds</h1>
 <form class="spx-form" id="v9-hero-search" action="/spreadsheet" method="get" role="search">
 ${ic("i-search", "spx-sic")}
@@ -89,13 +76,9 @@ html[data-sp]{--spx-dot:#0066CC;--spx-halo:rgba(0,102,204,.16);--spx-glow:rgba(0
 @media (prefers-color-scheme:dark){html[data-sp]:not([data-theme="light"]){--spx-dot:#8EA6DC;--spx-halo:rgba(142,166,220,.22);--spx-glow:rgba(142,166,220,.08);--spx-fsh:0 12px 32px -18px rgba(0,0,0,.7);--spx-sep:#4D4D4D;--spx-pop:0 30px 80px -24px rgba(0,0,0,.85)}}
 html[data-sp][data-theme="dark"]{--spx-dot:#8EA6DC;--spx-halo:rgba(142,166,220,.22);--spx-glow:rgba(142,166,220,.08);--spx-fsh:0 12px 32px -18px rgba(0,0,0,.7);--spx-sep:#4D4D4D;--spx-pop:0 30px 80px -24px rgba(0,0,0,.85)}
 html[data-sp] .hero::before{content:"";position:absolute;left:0;right:0;top:-150px;height:560px;background:radial-gradient(min(600px,75vw) 270px at 50% 50%,var(--spx-glow),transparent);pointer-events:none}
-.spx{position:relative;box-sizing:border-box;max-width:var(--_maxw,1280px);margin:0 auto;padding:18px var(--_gut,24px) 6px;text-align:center;font-family:var(--f-body);color:var(--ink)}
-@media (min-width:768px){.spx{padding-top:34px;padding-bottom:10px}}
-.spx-pill{display:inline-flex;align-items:center;gap:9px;max-width:100%;min-height:32px;margin:0 0 14px;padding:0 14px 0 12px;box-sizing:border-box;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink-2);font:500 13.5px/1.2 var(--f-body);box-shadow:var(--sh-sm)}
-@media (min-width:768px){.spx-pill{margin-bottom:18px}}
-.spx-dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--spx-dot);box-shadow:0 0 0 3px var(--spx-halo)}
+.spx{position:relative;box-sizing:border-box;max-width:var(--_maxw,1280px);margin:0 auto;padding:26px var(--_gut,24px) 6px;text-align:center;font-family:var(--f-body);color:var(--ink)}
+@media (min-width:768px){.spx{padding-top:52px;padding-bottom:10px}}
 .spx-sep{margin:0 .5em;color:var(--spx-sep)}
-@media (max-width:419px){.spx-up{display:none}}
 html[data-sp] .hero h1.spx-h1{margin:0 auto!important;max-width:15ch;padding-bottom:.04em;font:600 clamp(34px,2.6vw + 24px,64px)/1.05 var(--f-disp)!important;letter-spacing:-.04em!important;text-wrap:balance;color:var(--ink);background:linear-gradient(180deg,var(--ink) 40%,var(--ink-2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 html[data-sp] .hero h1.spx-h1::selection{-webkit-text-fill-color:var(--ink)}
 @media (forced-colors:active){html[data-sp] .hero h1.spx-h1{background:none;-webkit-text-fill-color:CanvasText}}
