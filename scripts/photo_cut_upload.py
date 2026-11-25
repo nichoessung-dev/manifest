@@ -81,6 +81,15 @@ def upload(path, data):
         raise RuntimeError(f"{e.code} {body}")
 
 
+def same_remote(path, sha1):
+    """An object that exists already: True when the public copy is this very file (a re-run after an interrupted upload)."""
+    try:
+        data = urllib.request.urlopen(SUPA + "/storage/v1/object/public/" + path, timeout=60).read()
+        return hashlib.sha1(data).hexdigest() == sha1
+    except Exception:
+        return False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=0)
@@ -123,12 +132,14 @@ def main():
                     res = upload(path, data)
                 except Exception as e:
                     print(f"{i}: upload failed: {str(e)[:120]}", flush=True); stats["failed"] += 1; continue
-                stats[res] += 1
+                if res == "exists" and same_remote(path, r["sha1"]): res = "uploaded"; stats["exists"] += 1
+                else: stats[res] += 1
                 if res == "uploaded":
                     log["items"][i] = {"object": path, "sha1": r["sha1"], "kb": len(data) // 1024,
                                        "at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "from_run": run}
                 else:
-                    print(f"{i}: {path} exists already (left as it is)", flush=True)
+                    print(f"{i}: {path} exists already with other bytes (left as it is)", flush=True)
+                if not a.dry_run and sum(stats.values()) % 250 == 0: save_json(LOG, log)   # an interrupted run keeps its log
                 time.sleep(0.15)
     if not a.dry_run:
         save_json(LOG, log)
