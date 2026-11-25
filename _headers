@@ -65,3 +65,7 @@
 /manifest.webmanifest
   Content-Type: application/manifest+json
   Cache-Control: public, max-age=86400
+
+/lab/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: public, max-age=60
