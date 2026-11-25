@@ -36,6 +36,7 @@ jobs:
           PYTHONUNBUFFERED: '1'
           DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
           MODE: ${{ inputs.mode || 'fill' }}
+          MONTH_DAYS: ${{ vars.MONTH_DAYS || '7' }}
         run: |
           case "$MODE" in
             old) python scripts/month_queue.py --old ;;
