@@ -13,6 +13,13 @@ a transparent cut-out of products/pc (the site's own copy img/m/pc, the same byt
   Light fringe on #262626 (photo_white.halo: share of the outline more than 60 levels lighter, at 800 px) before and
   after, and flags for review of what only shows on a dark tile: a hanger hook above the item ("hook"), a light neutral
   base under it ("base": a pedestal, a stand, a kept backdrop patch).
+  Also measured for review: "haze", the share of the item's inside that is light and only partly opaque (an item the
+  old matte left half see-through, a white tee that fades out at the hem: fine on the light well, murky on #262626; no
+  edge treatment can fix that, so those finds keep a light tile), and "frame" (thin light lines next to the item: the
+  display frame of the football shirt photos, a rack bar).
+data/photo_edge_fix.json "frames": finds checked by eye whose thin light lines (a display frame, a rack bar) come out of
+  the matte before the edge is cleaned (remove_frames: only thin, long, light neutral pieces outside the item's body;
+  the item is never touched). The record says so ("fix": "frames").
 Writes img/edge/<id>.webp (RGBA WebP, the source's size) and data/photo_edge/<k>-of-<n>.json; nothing is uploaded and
 the site does not change: photo_cut_upload.py --set edge puts the reviewed files in storage as NEW objects
 (products/pc2/<id>-e1.webp), apply_catalog_ai.py --edge switches the photos.
@@ -30,6 +37,7 @@ from catalog_common import ROOT, load_catalog, load_json, save_json  # noqa: E40
 
 VERSION = 1
 STATE = os.path.join(ROOT, "data", "photo_edge")
+FIX = os.path.join(ROOT, "data", "photo_edge_fix.json")
 OUT = os.path.join(ROOT, "img", "edge")
 PC = re.compile(r"^https://uptpghuduqjqmrxwatbm\.supabase\.co/storage/v1/object/public/products/pc/([0-9]{1,15})\.webp(?:\?v=([A-Za-z0-9_-]{1,20}))?$")
 LOCAL = re.compile(r"^/img/(rl|fr)/([0-9]{1,15})\.webp(?:\?v=[A-Za-z0-9_-]{1,20})?$")
@@ -171,6 +179,73 @@ def flags(rgba):
     return out
 
 
+def disk(r):
+    y, x = np.ogrid[-r:r + 1, -r:r + 1]
+    return x * x + y * y <= r * r
+
+
+def remove_frames(im, min_ext=0.08, min_elong=2.5):
+    """(RGBA, info): thin, long, light neutral pieces outside the item's body cleared from the matte (a display frame, a
+    rack bar). The body is the matte opened by 1.2% of the photo; nothing within a pixel of it changes. Used only for
+    finds checked by eye (data/photo_edge_fix.json "frames")."""
+    from scipy import ndimage
+    im = im.convert("RGBA"); x = np.asarray(im, np.float32)
+    rgb, a = x[..., :3], x[..., 3] / 255.0
+    side = max(im.size); s = side / 1200.0
+    M = a >= 0.5
+    if M.sum() < 500: return im, {"frame_px": 0}
+    body = ndimage.binary_opening(M, structure=disk(max(3, int(round(0.012 * side)))))
+    lab, n = ndimage.label(body)
+    if n:
+        areas = ndimage.sum(body, lab, range(1, n + 1))
+        body = np.isin(lab, [j + 1 for j in range(n) if areas[j] >= 0.02 * areas.max()])
+    thin = M & ~ndimage.binary_dilation(body, iterations=1)
+    mn, mx = rgb.min(axis=2), rgb.max(axis=2)
+    lab, n = ndimage.label(thin & (mn >= 120) & (mx - mn <= 40), structure=np.ones((3, 3)))
+    rm = np.zeros(M.shape, bool); pieces = 0
+    objs = ndimage.find_objects(lab)
+    for j, sl in enumerate(objs):
+        c = lab[sl] == j + 1
+        ext = max(sl[0].stop - sl[0].start, sl[1].stop - sl[1].start)
+        if ext >= min_ext * side and ext / np.sqrt(max(int(c.sum()), 1)) >= min_elong:
+            rm[sl] |= c; pieces += 1
+    if not rm.any(): return im, {"frame_px": 0}
+    near = ndimage.binary_dilation(rm, iterations=max(4, int(round(0.03 * side))))   # shorter pieces of the same frame
+    for j, sl in enumerate(objs):
+        c = lab[sl] == j + 1
+        if rm[sl][c].any() or int(c.sum()) < 0.00004 * side * side: continue
+        if near[sl][c].any(): rm[sl] |= c; pieces += 1
+    clear = ndimage.binary_dilation(rm, iterations=2 + int(round(s))) & ~ndimage.binary_dilation(body, iterations=1)
+    clear |= ndimage.binary_dilation(rm, iterations=4 + 2 * int(round(s))) & \
+        ~ndimage.binary_dilation(body, iterations=2 + int(round(s)))
+    na = np.where(clear, 0.0, a)
+    out = np.concatenate([rgb, (na * 255)[..., None]], axis=2).round().astype(np.uint8)
+    return Image.fromarray(out, "RGBA"), {"frame_px": int(clear.sum()), "frame_pieces": pieces}
+
+
+def dark_measures(rgba, S=600):
+    """haze: the share of the item's inside (6 px in from the filled outline, at 600 px) that is light and only partly
+    opaque; frame: pixels of thin, long, light neutral pieces next to the item's body."""
+    from scipy import ndimage
+    im = rgba.convert("RGBA"); k = S / max(im.size)
+    im = im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.BILINEAR)
+    x = np.asarray(im, np.float32); a = x[..., 3] / 255.0; rgb = x[..., :3]
+    L = lum(rgb)
+    inside = ndimage.binary_erosion(ndimage.binary_fill_holes(a > 0.08), iterations=6)
+    haze = float((inside & (a > 0.08) & (a < 0.85) & (L > 150)).sum() / max(1, inside.sum()))
+    M = a >= 0.5
+    thin = M & ~ndimage.binary_dilation(ndimage.binary_opening(M, structure=disk(7)), iterations=1)
+    mn, mx = rgb.min(axis=2), rgb.max(axis=2)
+    cand = ndimage.binary_closing(thin & (mn >= 110) & (mx - mn <= 45), iterations=1) & thin
+    lab, nc = ndimage.label(cand, structure=np.ones((3, 3)))
+    frame = 0
+    for j, sl in enumerate(ndimage.find_objects(lab)):
+        h, w = sl[0].stop - sl[0].start, sl[1].stop - sl[1].start
+        area = int((lab[sl] == j + 1).sum())
+        if max(h, w) >= 0.08 * S and area >= 30 and max(h, w) / np.sqrt(area) >= 2.5: frame += area
+    return round(haze, 4), frame
+
+
 def state_file(k, n): return os.path.join(STATE, f"{k}-of-{n}.json")
 
 
@@ -189,12 +264,15 @@ def main(argv=None):
     mine = [t for t in ts if (int(hashlib.sha1(t["id"].encode()).hexdigest(), 16) % n == k) and (not only or t["id"] in only)]
     os.makedirs(OUT, exist_ok=True); os.makedirs(STATE, exist_ok=True)
     sf = state_file(k, n); st = load_json(sf, {}) or {}; items = st.get("items") or {}
+    frames = set(map(str, ((load_json(FIX, {}) or {}).get("frames") or {})))
     t0 = time.time(); done = bad = 0
     print(f"shard {k}/{n}: {len(mine)} photos", flush=True)
     for t in mine:
         if a.max_minutes and time.time() - t0 > a.max_minutes * 60: print("time is up", flush=True); break
         r = items.get(t["id"]) or {}
-        if r.get("v") == VERSION and r.get("live") == t["live"] and (r.get("ok") or r.get("why")): continue
+        fix = "frames" if t["id"] in frames else ""
+        if r.get("v") == VERSION and r.get("live") == t["live"] and (r.get("ok") or r.get("why")) \
+                and (r.get("fix") or "") == fix: continue
         rec = {"v": VERSION, "id": t["id"], "src": t["src"], "live": t["live"], "cat": t.get("cat"), "at": now(),
                "run": os.environ.get("GITHUB_RUN_ID", ""), "ok": False}
         try:
@@ -203,12 +281,16 @@ def main(argv=None):
             elif "A" not in im.getbands(): rec["why"] = "the photo has no transparency"
             else:
                 rgba = im.convert("RGBA")
-                fx, info = edge_fix(rgba)
+                src = rgba
+                if fix == "frames":
+                    src, finfo = remove_frames(rgba); rec.update(finfo); rec["fix"] = "frames"
+                fx, info = edge_fix(src)
                 rec.update(info); rec["source"] = how; rec["size"] = list(rgba.size)
                 if fx is None: rec["why"] = info.get("skip")
                 else:
                     rec["halo0"], rec["halo1"] = halo(rgba), halo(fx)
                     rec["flags"] = flags(fx)
+                    rec["haze"], rec["frame"] = dark_measures(fx)
                     f = os.path.join(OUT, t["id"] + ".webp")
                     fx.save(f, "WEBP", quality=92, method=5)
                     data = open(f, "rb").read()
