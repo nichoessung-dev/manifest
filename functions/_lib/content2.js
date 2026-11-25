@@ -187,6 +187,7 @@ export const GUIDES2 = {
     title: "Shipping Lines Explained: Economy, Tax-Free Lines, EMS & Express",
     desc: "How agent shipping lines work: economy vs special (tax-inclusive) lines vs EMS vs express couriers, volumetric weight and how to save on shipping.",
     h1: "Shipping lines explained",
+    finds: { cat: "Outerwear" },   // 25 Nov 2026: the heavy, bulky items where the line matters most
     body: `<p class="lead">When you ship a parcel from your agent's warehouse you pick a <strong>shipping line</strong>. Lines differ in price, speed, tracking and how customs is handled, choosing well often matters more than the item price.</p>
 <h2>Main types</h2><ul>
 <li><strong>Economy / postal lines</strong>: cheapest, slowest, basic tracking.</li>

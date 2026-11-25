@@ -101,6 +101,7 @@ export const GUIDES3 = {
     title: "Rep Glossary 2026: What QC, GL/RL, W2C and Batch Mean",   // 25 Nov 2026 (SEO pass): 338 impressions at 0.6% clicks
     desc: "What rep and shopping-agent slang means, one line each: QC, GL/RL, W2C, batch, haul, LC, retail, rehearsal packaging and more, with links to go deeper.",
     h1: "Rep terms glossary",
+    finds: { qc: 2 },   // 25 Nov 2026: QC and GL/RL are the terms it explains first
     body: `<p class="lead">New to reps? These are the terms you'll see on spreadsheets, Reddit and Discord.</p>
 <style>.gloss dt{font-weight:700;margin-top:14px}.gloss dd{margin:4px 0 0;color:var(--muted)}</style><dl class="gloss">
 <dt>QC (quality check)</dt><dd>Photos your agent takes of the item at its warehouse before you ship. <a href="/guides/how-to-qc">How to read QC photos</a>.</dd>

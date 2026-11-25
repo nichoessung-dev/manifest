@@ -470,6 +470,7 @@ export const GUIDES = {
     desc: "Do reps run small? Often, because many Chinese sellers use Asian sizing. How to measure a garment you own, read a size chart in cm and pick your size.",
     h1: "Rep sizing guide",
     updated: "2026-10-29",   // the day this text was revised; change it only when it is revised again
+    finds: { cat: "Tops" },   // 25 Nov 2026: the items sizing matters most for, not the same 8 finds as every other guide
     body: `<p class="lead">Do reps run small? Often, yes: many Weidian and Taobao sellers use Asian sizing, which tends to run about one size smaller than EU/US sizing, but not always. The only reliable method is to compare the seller's size chart in centimetres with a garment you own that fits.</p>
 <h2>How to measure (5 minutes)</h2><ol class="steps">
 <li>Take a piece you own that fits the way you like (same type: hoodie for a hoodie, jeans for jeans).</li>
