@@ -371,7 +371,7 @@ def btn(href, label, kind="primary", rel=""):
         a = ('<a class="pc-ink" href="%s"%s style="display:inline-block;padding:13px 26px;font-family:%s;font-size:15px;line-height:18px;'
              'font-weight:600;color:%s;text-decoration:none;border-radius:999px;mso-padding-alt:0;">%s</a>') % (href, r, FONT, INK, label)
     else:
-        td = ('<td class="pc-btn" align="center" bgcolor="%s" style="border-radius:999px;background:%s;mso-padding-alt:14px 30px;">' % (PRI, PRI))
+        td = ('<td class="pc-btn" align="center" bgcolor="%s" style="border:1px solid #5C5C5C;border-radius:999px;background:%s;mso-padding-alt:14px 30px;">' % (PRI, PRI))
         a = ('<a class="pc-btn-a" href="%s"%s style="display:inline-block;padding:14px 30px;font-family:%s;font-size:15px;line-height:18px;'
              'font-weight:600;color:%s;text-decoration:none;border-radius:999px;mso-padding-alt:0;">%s</a>') % (href, r, FONT, PRI_FG, label)
     return ('<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>%s%s</td></tr></table>' % (td, a))
@@ -391,10 +391,10 @@ def card(pid, p):
     pills = ('<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr>%s'
              '<td width="8" style="width:8px;font-size:0;line-height:0;">&nbsp;</td>%s</tr></table>') % (
         pill % ("pc-out", "#FFFFFF", "#FFFFFF", "width:40%%;border:1px solid %s;" % LINE, "pc-ink", url + "#qc", FONT, INK, "QC"),
-        pill % ("pc-btn", PRI, PRI, "", "pc-btn-a", url, FONT, PRI_FG, "Buy"))
+        pill % ("pc-btn", PRI, PRI, "border:1px solid #5C5C5C;", "pc-btn-a", url, FONT, PRI_FG, "Buy"))
     return ('<td class="pc-col" width="50%%" valign="top" style="width:50%%;padding:0 8px 28px;vertical-align:top;">'
             '<table role="presentation" width="100%%" cellpadding="0" cellspacing="0">'
-            '<tr><td class="pc-well" bgcolor="%s" style="padding:14px;background:%s;border-radius:12px;">%s</td></tr>'
+            '<tr><td class="pc-well-img" bgcolor="%s" style="padding:14px;background:%s;border-radius:12px;">%s</td></tr>'
             '<tr><td style="padding:12px 2px 0;">'
             '%s<div class="pc-mut" style="font-family:%s;font-size:12px;line-height:16px;font-weight:500;color:%s;">%s</div>'
             '<a href="%s" class="pc-ink" style="display:block;height:38px;overflow:hidden;margin-top:3px;font-family:%s;font-size:14px;line-height:19px;font-weight:600;color:%s;text-decoration:none;">%s</a>'
@@ -423,11 +423,11 @@ DARK_CSS = (
     # cannot take the phone layout down with them. The color-scheme meta tags declare light/dark (no :root rule).
     "body{margin:0!important;padding:0!important;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}"
     "a{text-decoration:none}"
-    "@media only screen and (max-width:600px){"
+    "@media only screen and (max-width:520px){"
     ".pc-pad{padding-left:20px!important;padding-right:20px!important}"
     ".pc-h1{font-size:26px!important}"
-    ".pc-col{display:block!important;width:100%!important;box-sizing:border-box;padding-left:0!important;padding-right:0!important}"
-    ".pc-empty{display:none!important}"
+    ".pc-col{padding-bottom:20px!important}"
+    ".pc-well-img{padding:8px!important}"
     ".pc-img{max-width:220px!important}"
     ".pcv-d{display:none!important;max-height:0!important;overflow:hidden!important}"
     ".pcv-m{display:block!important;max-height:none!important;overflow:visible!important}}"
