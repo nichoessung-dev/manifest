@@ -7409,7 +7409,7 @@ function wirePPFilters(){
     var v = { finds: h(a.length), qc: qc >= 1000 ? h(qc) : (qc >= 100 ? h(qc) : nf(qc)), markets: "3", agents: String(ag) };   /* QC: finds with stored photos only (8 Nov 2026), exact while under 100 */
     /* 15 Nov 2026: the finds number comes baked into the page (scripts/bake_counts.py, same as the server), so it is not
        rewritten here any more: rewriting it made the search box flip from one number to another on every load */
-    [].forEach.call(home.querySelectorAll("[data-num]"), function (el) { var k = el.getAttribute("data-num"); if (k !== "finds" && v[k] != null && ok) el.textContent = v[k]; });
+    [].forEach.call(home.querySelectorAll("[data-num]"), function (el) { var k = el.getAttribute("data-num"); if (k !== "finds" && k !== "qc" && v[k] != null && ok) el.textContent = v[k]; });   /* 25 Nov 2026: QC too comes baked in (QC_PLUS); the app list can be the partner-first subset, which showed "69" */
     var s = st(), on = s && s.cats && s.cats.length === 1 ? s.cats[0] : "";
     [].forEach.call(home.querySelectorAll(".v9-cat[data-cat]"), function (el) {
       var c = el.getAttribute("data-cat");   /* round 5: no count under the label any more (rep-find look) */
