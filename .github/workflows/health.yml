@@ -1,6 +1,6 @@
 name: Site health
 # Daily check of the parts that bring money and members (scripts/health_check.py): Discord invite, key pages under
-# Google's 2 MB, sitemaps, one-click unsubscribe, QC photo quota, Postiz API, data freshness, welcome emails.
+# Google's 2 MB, sitemaps, one-click unsubscribe, QC photo quota, Postiz API, data freshness, emails (email.yml).
 # Read-only. A failing check turns the run red, and GitHub emails the owner about failed scheduled runs.
 on:
   schedule:

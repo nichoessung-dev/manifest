@@ -18,7 +18,9 @@ const MALLS = ["weidian", "taobao", "1688"];
 // A new placement must be added here in the same deploy as the link that uses it, or it is stored as "other".
 const PLACEMENTS = ["app-buy", "app-buy-hint", "app-header", "app-popup", "app-tutorial", "app-bonus", "app-guide",
   "ssr-header", "ssr-buy", "ssr-buy-hint", "ssr-guide", "ssr-agent", "how-to-order", "start",
-  "email-welcome", "email-guide", "email-nudge", "email-news", "email-saved", "social", "other"];
+  "email-welcome", "email-guide", "email-nudge", "email-news", "email-saved",
+  "email-w0", "email-w0-late", "email-w1", "email-w2",   // Email v2 (scripts/mailer.py): p=email-<template>
+  "social", "other"];
 
 // Not people: crawlers, link-preview fetchers, scripts, automated browsers, and the mail scanners that name themselves.
 // (?<!cu)bot: CUBOT is a phone brand. "compatible;" is in nearly every crawler's string and in no current browser's.

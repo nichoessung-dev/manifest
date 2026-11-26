@@ -1,16 +1,8 @@
 name: Welcome emails
+# Email v2 (26 Nov 2026): the welcome emails are sent by .github/workflows/email.yml (scripts/mailer.py) now. This
+# workflow has no timer any more and is kept for the old test sends (test_email). A manual run WITHOUT test_email would
+# still send the old welcome, ordering and MyCNBox emails (scripts/newsletter.py): do not start one.
 on:
-  schedule:
-    # every 15 min (was every 4h, 21 Oct 2026): the sign-up window promises the coupons by email, so the welcome with the
-    # coupon link should arrive while the new member is still on the site. welcome -> (1 min) ordering guide -> (1 day)
-    # MyCNBox account nudge (opted-in members only). The ordering guide matches the agent the member picked (profiles.agent);
-    # members who picked another agent get no MyCNBox nudge.
-    - cron: '*/15 * * * *'
-  # GitHub's own timer is unreliable here (the 4-hourly schedule ran 3 times a day), but the Finds carousel workflow is
-  # started every 15 minutes by the owner's Supabase timer: start with it too. The schedule above stays as a backup.
-  workflow_run:
-    workflows: ["Finds carousel"]
-    types: [requested]
   workflow_dispatch:
     inputs:
       test_email:

@@ -1,0 +1,106 @@
+name: Email
+# Email v2 (26 Nov 2026): every email goes out through scripts/mailer.py (welcome series, saved-find alerts, weekly picks,
+# win-back), every 15 minutes. welcome.yml and newsletter.yml (scripts/newsletter.py) keep only their manual test runs.
+# Settings under Settings, Secrets and variables, Actions:
+#   secrets    PLUNK_API_KEY, SUPABASE_SERVICE_KEY, UNSUB_SECRET, and when a stream moves: AHASEND_API_KEY,
+#              AHASEND_ACCOUNT_ID; BREVO_API_KEY only for the one-off import-suppression run
+#   variables  PROVIDER_AUTOMATED and PROVIDER_NEWS (plunk or ahasend, default plunk), FROM_AUTOMATED (default
+#              hello@notify.puroclassico.com), FROM_NEWS (default news@news.puroclassico.com), FROM_NAME, REPLY_TO,
+#              FOOTER_ADDRESS (the postal address line in every footer), MAX_DAILY, ALERTS_PARTNER_ONLY,
+#              STOP_LINES_OFF_UNTIL (a date: restarts marketing email after a stop line, once the cause is checked)
+# Daily at 05:17 UTC: click and open events older than 13 months are deleted (purge_email_events, scripts/email_v2.sql).
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+    - cron: '17 5 * * *'
+  # GitHub's own timer is unreliable here, but the Finds carousel workflow is started every 15 minutes by the owner's
+  # Supabase timer: start with it too (as welcome.yml did). The schedule above stays as a backup.
+  workflow_run:
+    workflows: ["Finds carousel"]
+    types: [requested]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'run (as the timer does), backfill (once after an outage), preview (HTML files, nothing sent), test (to test_email only), import-suppression (Brevo blocked list, once), daily (purge old events)'
+        type: choice
+        options: [run, backfill, preview, test, import-suppression, daily]
+        default: run
+      test_email:
+        description: 'test: the address to send to'
+        required: false
+        default: ''
+      template:
+        description: 'test: all, a template (w0, w0-late, w1, w2, w3, w4, picks, alert, wb1, wb2) or a preview name (w0-kakobuy, picks-b ...)'
+        required: false
+        default: 'all'
+# One run at a time: two overlapping runs could both see a member as not yet emailed.
+concurrency:
+  group: email
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  send:
+    if: ${{ github.event.schedule != '17 5 * * *' && github.event.inputs.mode != 'daily' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
+      PLUNK_API_KEY: ${{ secrets.PLUNK_API_KEY }}
+      AHASEND_API_KEY: ${{ secrets.AHASEND_API_KEY }}
+      AHASEND_ACCOUNT_ID: ${{ secrets.AHASEND_ACCOUNT_ID }}
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      PROVIDER_AUTOMATED: ${{ vars.PROVIDER_AUTOMATED }}
+      PROVIDER_NEWS: ${{ vars.PROVIDER_NEWS }}
+      FROM_AUTOMATED: ${{ vars.FROM_AUTOMATED }}
+      FROM_NEWS: ${{ vars.FROM_NEWS }}
+      FROM_NAME: ${{ vars.FROM_NAME || secrets.PLUNK_FROM_NAME }}
+      REPLY_TO: ${{ vars.REPLY_TO }}
+      FOOTER_ADDRESS: ${{ vars.FOOTER_ADDRESS }}
+      MAX_DAILY: ${{ vars.MAX_DAILY }}
+      ALERTS_PARTNER_ONLY: ${{ vars.ALERTS_PARTNER_ONLY }}
+      SUNSET_MIN_EMAILS: ${{ vars.SUNSET_MIN_EMAILS }}
+      STOP_LINES_OFF_UNTIL: ${{ vars.STOP_LINES_OFF_UNTIL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pillow   # the square product pictures in emails (mailer.py email_img)
+      - name: Send
+        id: send
+        run: python scripts/mailer.py "$MODE"
+        env:
+          MODE: ${{ github.event.inputs.mode || 'run' }}
+          TEST_EMAIL: ${{ github.event.inputs.test_email }}
+          TEST_TEMPLATE: ${{ github.event.inputs.template }}
+          PREVIEW_DIR: email_preview
+      # scripts/health_check.py reads which of these two steps ran in the last run and reports it every morning
+      - name: Plunk key missing
+        if: ${{ steps.send.outputs.nokey == '1' }}
+        run: echo "PLUNK_API_KEY is not set, so no email went out. Add it under Settings, Secrets and variables, Actions."
+      - name: Stop line hit
+        if: ${{ steps.send.outputs.stopline != '' }}
+        run: echo "Marketing email is stopped ($STOPLINE). Check the cause, then set the STOP_LINES_OFF_UNTIL variable to a date."
+        env:
+          STOPLINE: ${{ steps.send.outputs.stopline }}
+      - name: Preview files
+        if: ${{ github.event.inputs.mode == 'preview' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: email-preview
+          path: email_preview/
+  daily:
+    # The email numbers for /stats (scripts/email_stats.py) are baked and committed by .github/workflows/stats.yml.
+    if: ${{ github.event.schedule == '17 5 * * *' || github.event.inputs.mode == 'daily' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Delete email events older than 13 months
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "https://uptpghuduqjqmrxwatbm.supabase.co/rest/v1/rpc/purge_email_events" \
+            -H "apikey: $SUPABASE_SERVICE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" -H "Content-Type: application/json" -d '{}')
+          if [ "$code" -lt 300 ]; then echo "old email events deleted"; else echo "::warning::purge_email_events answered $code (run scripts/email_v2.sql)"; fi

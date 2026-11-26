@@ -1,8 +1,8 @@
 name: Newsletter
+# Email v2 (26 Nov 2026): weekly picks and saved-find alerts are sent by .github/workflows/email.yml (scripts/mailer.py)
+# now. This workflow has no timer any more and is kept for manual runs of the old engine (scripts/newsletter.py); a run
+# with dry_run off still sends the old newsletter to every opted-in member.
 on:
-  schedule:
-    - cron: '0 15 * * *'     # daily 15:00 UTC: popular finds, one member group a day (about 2x/week per member)
-    - cron: '0 16 * * 0'     # Sun 16:00 UTC: "you saved this"
   workflow_dispatch:
     inputs:
       mode:

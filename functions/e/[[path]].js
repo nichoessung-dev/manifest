@@ -16,7 +16,7 @@
 const SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co";
 const HOME = "https://www.puroclassico.com/";
 const OWN = /^(www\.|fb\.)?puroclassico\.com$/i;
-const ALLOW = /^(www\.|fb\.)?puroclassico\.com$|^(m\.)?mycnbox\.com$|^ikako\.vip$|^(www\.)?(kakobuy|oopbuy|lovegobuy|sugargoo|litbuy|hipobuy|boonbuy|joyagoo|usfans|gtbuy|itaobuy|cssbuy|hubbuy|bbdbuy|superbuy|fishgoo)\.com$/i;
+const ALLOW = /^(www\.|fb\.)?puroclassico\.com$|^(m\.)?mycnbox\.com$|^ikako\.vip$|^(www\.)?(kakobuy|oopbuy|lovegobuy|sugargoo|litbuy|hipobuy|boonbuy|joyagoo|usfans|gtbuy|itaobuy|cssbuy|hubbuy|bbdbuy|bbdbuyeu|superbuy|fishgoo)\.com$/i;   // bbdbuyeu: BBDBuy's sign-up link
 const SLUG = /^[a-z0-9][a-z0-9-]{0,31}$/;
 const GIF = Uint8Array.from(atob("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"), c => c.charCodeAt(0));
 

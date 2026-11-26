@@ -124,14 +124,21 @@ def data_age():
     return ("FAIL", "; ".join(bad)) if bad else ("OK", "stats %.0f h old, link check %.0f days old" % (h, d))
 
 def welcome():
+    """Email v2 (26 Nov 2026): every email goes out through .github/workflows/email.yml (scripts/mailer.py) every 15
+    minutes. Its last good run must be recent, and must not have run the "Plunk key missing" or "Stop line hit" step:
+    the engine then exits green on purpose (no red run every 15 minutes), so this check is where it shows."""
     tok = os.environ.get("GITHUB_TOKEN")
     hdr = {"Authorization": "Bearer " + tok} if tok else {}
-    st, _, body = req("https://api.github.com/repos/%s/actions/workflows/welcome.yml/runs?status=success&per_page=1" % REPO, headers=hdr)
+    st, _, body = req("https://api.github.com/repos/%s/actions/workflows/email.yml/runs?status=success&per_page=1" % REPO, headers=hdr)
     runs = json.loads(body).get("workflow_runs") or []
-    if not runs: return "FAIL", "no successful welcome-email run found"
+    if not runs: return "FAIL", "no successful email run found (.github/workflows/email.yml)"
     h = age_hours(runs[0]["updated_at"])
-    if h > 6: return "FAIL", "last successful welcome-email run was %.0f h ago: new members wait for their coupon email" % h
-    return "OK", "last welcome-email run %.0f min ago" % (h * 60)
+    if h > 6: return "FAIL", "last successful email run was %.0f h ago: new members wait for their coupon email" % h
+    st, _, body = req(runs[0]["jobs_url"], headers=hdr)
+    ran = {s.get("name") for j in (json.loads(body or b"{}").get("jobs") or []) for s in (j.get("steps") or []) if s.get("conclusion") == "success"}
+    if "Plunk key missing" in ran: return "FAIL", "PLUNK_API_KEY is not set: no emails go out (Settings, Secrets and variables, Actions)"
+    if "Stop line hit" in ran: return "FAIL", "a stop line stopped marketing email (spam complaints or hard bounces): read the last Email run, then set STOP_LINES_OFF_UNTIL"
+    return "OK", "last email run %.0f min ago" % (h * 60)
 
 check("Discord invite", discord)
 check("Key pages", pages)
@@ -142,7 +149,7 @@ check("Postiz API", postiz)
 check("CNFans status", cnfans)
 check("Data freshness", data_age)
 check("Buy clicks", buy_clicks)
-check("Welcome emails", welcome)
+check("Emails", welcome)
 
 summary = os.environ.get("GITHUB_STEP_SUMMARY")
 if summary:
