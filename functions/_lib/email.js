@@ -161,7 +161,7 @@ export function emailPage({ title, body, path = "/unsubscribe", status = 200 }) 
 <title>${esc(title)} | Puro Classico</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#FFFFFF"><link rel="icon" type="image/png" href="/favicon.png?v=3">
+<meta name="theme-color" content="#FFFFFF"><link rel="icon" type="image/png" href="/favicon.png?v=4">
 ${THEME_HEAD}
 <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/ds.css?v=${DS_VER}">

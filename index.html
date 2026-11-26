@@ -41,8 +41,8 @@
 <!-- calm loading: the first frame waits until the grid and its skeleton row are parsed (no half-drawn first row of cards) -->
 <link rel="expect" href="#grid-sk" blocking="render">
 <link rel="preload" href="/img/wordmark.webp?v=1" as="image" type="image/webp" fetchpriority="high" crossorigin>
-<link rel="icon" type="image/png" href="/favicon.png?v=3">
-<link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png?v=3"><link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/favicon.png?v=4">
+<link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png?v=4"><link rel="manifest" href="/manifest.webmanifest">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
 {"@type":"Organization","@id":"https://www.puroclassico.com/#org","name":"Puro Classico","url":"https://www.puroclassico.com/","logo":"https://www.puroclassico.com/logo-mark.png","sameAs":["https://www.tiktok.com/@puroclassico.com","https://discord.gg/FUUsSCGqQf"]},
@@ -3464,6 +3464,28 @@ html #drawer .p-top .pp-search{max-width:none!important;border-radius:999px}
 html #drawer .p-top .pp-search>svg{width:18px!important;height:18px!important}
 html #drawer .pp-filters{position:sticky;top:-28px;z-index:6;margin-left:-22px!important;margin-right:-22px!important;padding:10px 22px!important;background:var(--ground);border-bottom:1px solid var(--line)}
 @media (max-width:560px){html #drawer .pp-filters{margin-left:-16px!important;margin-right:-16px!important;padding:8px 16px!important}}
+/* "Your style" dialog, photo tiles (owner's pick of three, 26 Nov 2026): two tiles per row with three finds fanned like
+   cards, Everything as a slim row on top, the picked tile with an ink border and the filled tick */
+#sty-pop .sty-m{width:min(560px,calc(100vw - 32px))!important;max-width:none!important}
+#sty-pop .tw-sty{display:grid!important;grid-template-columns:1fr 1fr;gap:12px!important}
+#sty-pop .tw-so{position:relative;display:flex!important;flex-direction:column;align-items:stretch!important;gap:0!important;padding:0!important;min-height:0!important;border:1px solid color-mix(in srgb,var(--ink) 12%,transparent)!important;border-radius:18px!important;background:var(--surface)!important;overflow:hidden;text-align:left;box-shadow:none!important}
+#sty-pop .tw-so[data-style="all"]{grid-column:1/-1;flex-direction:row;align-items:center!important}
+#sty-pop .tw-ph{display:flex!important;justify-content:center;align-items:center;height:132px!important;width:auto!important;background:color-mix(in srgb,var(--ink) 5%,transparent)!important;border-radius:0!important;gap:0!important;padding:0!important}
+#sty-pop .tw-ph img{width:74px!important;height:88px!important;object-fit:contain!important;border-radius:12px!important;background:var(--surface)!important;box-shadow:0 6px 16px -8px rgba(0,0,0,.35)!important;margin:0 -14px!important}
+#sty-pop .tw-ph img:nth-child(1){transform:rotate(-8deg) translateY(4px)}
+#sty-pop .tw-ph img:nth-child(2){position:relative;z-index:1;transform:scale(1.08)}
+#sty-pop .tw-ph img:nth-child(3){transform:rotate(8deg) translateY(4px)}
+#sty-pop .tw-so[data-style="all"] .tw-ph{width:150px!important;height:84px!important;flex:none;overflow:hidden}
+#sty-pop .tw-so[data-style="all"] .tw-ph img{width:52px!important;height:62px!important;margin:0 -6px!important;transform:none!important}
+#sty-pop .tw-so-t{padding:12px 14px 14px!important}
+#sty-pop .tw-so-t b{font-size:15px!important;letter-spacing:-.01em}
+#sty-pop .tw-so-t small{font-size:12.5px!important}
+#sty-pop .tw-tick{position:absolute!important;top:10px!important;right:10px!important;margin:0!important;transform:none!important}
+#sty-pop .tw-so[aria-pressed="true"]{border:2px solid var(--ink)!important;box-shadow:none!important}
+#sty-pop .tw-so:focus-visible{outline:2px solid color-mix(in srgb,var(--ink) 45%,transparent);outline-offset:2px}
+#sty-pop .tw-so[aria-pressed="true"]:focus-visible{outline:0}
+@media (hover:hover){#sty-pop .tw-so:not([aria-pressed="true"]):hover{border-color:color-mix(in srgb,var(--ink) 30%,transparent)!important}}
+@media (max-width:420px){#sty-pop .tw-ph{height:112px!important}#sty-pop .tw-ph img{width:62px!important;height:76px!important;margin:0 -12px!important}#sty-pop .tw-so[data-style="all"] .tw-ph{width:120px!important}}
 /* the rows' skeleton cards take the same shape, so nothing moves when the cards come in */
 html .v9-home .v9-rail>.sk-card{padding:8px;border:1px solid var(--line);border-radius:16px}
 html .v9-home .v9-rail>.sk-card .sk-im{border-radius:9px}
@@ -6135,6 +6157,10 @@ function pcStylePics(k){   /* three finds per option, no find or brand on two op
     out[s]=L; }
   const cats=new Set(), A=[]; for(const p of pop){ if(A.length===3) break; if(usedB.has(p.brand)||cats.has(p.cat)) continue; usedB.add(p.brand); cats.add(p.cat); A.push(p); }
   out.all=A;
+  /* owner's swaps (26 Nov 2026: "swap out the jacket in the middle on streetwear"): style -> {place: find id}, used when the
+     find is on the sheet and not sold out */
+  const PIN={street:{1:"7237545427"}};
+  for(const s in PIN) for(const i in PIN[s]){ const p=(typeof BY_ID!=="undefined"&&BY_ID[PIN[s][i]])||ALL.find(x=>String(x.id)===PIN[s][i]); if(ok(p)&&out[s]&&out[s].length>+i) out[s][+i]=p; }
   if(pop.length&&popScore(pop[0])>0) _styPics=out;   /* kept once the view stats are in */
   return out[k]||[];
 }
