@@ -3383,6 +3383,11 @@ html body .v9-home .v9-rail>.card.rc .buy-pill,html body #grid>.card.rc .buy-pil
 :root:not([data-theme="dark"]) body .v9-home .v9-rail>.card.rc,:root:not([data-theme="dark"]) body #grid>.card.rc{border-color:color-mix(in srgb,var(--ink) 15%,transparent)!important;box-shadow:0 1px 2px rgba(0,0,0,.05)!important}
 @media (hover:hover) and (pointer:fine){:root:not([data-theme="dark"]) body .v9-home .v9-rail>.card.rc:hover,:root:not([data-theme="dark"]) body #grid>.card.rc:hover{border-color:color-mix(in srgb,var(--ink) 24%,transparent)!important;box-shadow:0 14px 30px -16px rgba(0,0,0,.28),0 2px 6px -2px rgba(0,0,0,.06)!important}}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="dark"]) body .v9-home .v9-rail>.card.rc,:root:not([data-theme="light"]):not([data-theme="dark"]) body #grid>.card.rc{border-color:var(--line)!important;box-shadow:none!important}}
+/* filter removal: the grid fades out and the new results rise in (pcSmoothSwap) */
+#grid.pc-swap-out{opacity:0;transition:opacity 140ms ease}
+#grid.pc-swap-in{animation:pcSwapIn 300ms cubic-bezier(.22,1,.36,1)}
+@keyframes pcSwapIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#grid.pc-swap-out,#grid.pc-swap-in{transition:none;animation:none}}
 /* the rows' skeleton cards take the same shape, so nothing moves when the cards come in */
 html .v9-home .v9-rail>.sk-card{padding:8px;border:1px solid var(--line);border-radius:16px}
 html .v9-home .v9-rail>.sk-card .sk-im{border-radius:9px}
@@ -4582,10 +4587,30 @@ function renderActiveChips(){
 document.addEventListener("click",e=>{
   const b=e.target.closest&&e.target.closest("#af-row button,#empty-x button[data-k]"); if(!b||b.disabled) return;
   const k=b.getAttribute("data-k");
-  if(k==="all"){ clearFilters(); return; }
+  if(k==="all"){ pcSmoothSwap(clearFilters); return; }
   const go=()=>{ pcChipRemove(k); render(); };
-  if(b.closest("#af-row")&&!pcRm()){ b.classList.add("is-out"); b.disabled=true; setTimeout(go,160); } else go();   /* the chip fades and shrinks out first */
+  if(b.closest("#af-row")&&!pcRm()){ b.classList.add("is-out"); b.disabled=true; pcSmoothSwap(go,true); } else go();   /* the chip fades and shrinks out first */
 });
+/* removing a filter, smoothly (owner, 26 Nov 2026: "make it a way smoother experience"): the results fade out with the
+   chip, the new ones fade in, and the page does not jump when the filter rows above the grid go away. When the grid's
+   top was on screen it stays where it was; when the visitor was further down, the page glides back to the top of the
+   new results. */
+function pcSmoothSwap(fn,chip){
+  const grid=document.getElementById("grid");
+  if(!grid||pcRm()){ fn(); return; }
+  const y0=grid.getBoundingClientRect().top, bar=(document.querySelector(".toolbar")||{}).offsetHeight||0;
+  grid.classList.add("pc-swap-out");
+  setTimeout(()=>{
+    fn();
+    requestAnimationFrame(()=>{
+      const y1=grid.getBoundingClientRect().top;
+      if(y0>=bar&&y0<innerHeight){ const d=y1-y0; if(Math.abs(d)>1) window.scrollBy(0,d); }
+      else if(y0<bar){ const top=scrollY+y1-bar-12; window.scrollTo({top:Math.max(0,top),behavior:"smooth"}); }
+      grid.classList.remove("pc-swap-out"); grid.classList.add("pc-swap-in");
+      setTimeout(()=>grid.classList.remove("pc-swap-in"),320);
+    });
+  },chip?160:140);
+}
 function hasFilters(){ normState(); return !!(state.q||(state.cats&&state.cats.length)||(state.cat&&state.cat!=="all")||state.brand.length||state.color.length||state.plat!=="all"||(state.gender&&state.gender!=="all")||state.pmin!=null||state.pmax!=null||state.qc); }
 function clearFilters(){
   Object.assign(state,{q:"",cat:"all",cats:[],brand:[],color:[],plat:"all",gender:"all",pmin:null,pmax:null,price:"all",qc:false});
