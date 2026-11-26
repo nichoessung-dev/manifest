@@ -142,11 +142,13 @@ html[data-sp] .pcs-float .pcs-prod{min-height:68px}
 html[data-sp] .pcs-float .pcs-well{width:52px;height:52px;border-radius:12px}
 html[data-sp] .pcs-float .pcs-pt{font-size:15px}
 html[data-sp] .pcs-float .pcs-pp{font-size:15px}
-html[data-sp] .pcs-float .pcs-all{bottom:-8px;margin:8px 0 0;padding:0 18px;min-height:50px;border:0;border-radius:999px;background:var(--fill);color:var(--fill-ink)!important;justify-content:center;box-shadow:0 -14px 14px -6px var(--surface)}
-html[data-sp] .pcs-float .pcs-all .ic,html[data-sp] .pcs-float .pcs-all .pcs-go{color:var(--fill-ink)}
+html[data-sp] .pcs-float .pcs-all{bottom:-8px;margin:8px -8px -8px;padding:0 20px;min-height:52px;border:0;border-top:1px solid var(--line);border-radius:0 0 24px 24px;background:var(--surface);color:var(--ink)!important;justify-content:center;gap:8px;font-weight:500}
+html[data-sp] .pcs-float .pcs-all .ic{color:var(--muted)}
+html[data-sp] .pcs-float .pcs-all .pcs-go{color:var(--ink);transition:transform var(--dur-1,100ms) ease}
 html[data-sp] .pcs-float .pcs-all .pcs-t{flex:0 1 auto}
 html[data-sp] .pcs-float .pcs-all .pcs-go{margin-left:0}
-html[data-sp] .pcs-float .pcs-all.is-act{background:var(--fill-hover)}
+html[data-sp] .pcs-float .pcs-all.is-act{background:var(--surface-2)}
+@media (hover:hover) and (pointer:fine){html[data-sp] .pcs-float .pcs-all:hover .pcs-go{transform:translateX(3px)}}   /* 26 Nov 2026 (owner: the white bar under the black pill looked odd): a flush footer row, no pill */
 @media (prefers-color-scheme:light){html[data-sp]:not([data-theme="dark"]) .pcs-float .pcs-well{background:var(--well)}html[data-sp]:not([data-theme="dark"]) .pcs-float .pcs-well img{padding:4px}}
 html[data-sp][data-theme="light"] .pcs-float .pcs-well{background:var(--well)}
 html[data-sp][data-theme="light"] .pcs-float .pcs-well img{padding:4px}
