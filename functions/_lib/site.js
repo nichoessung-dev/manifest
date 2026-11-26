@@ -5,7 +5,7 @@ import * as COUNTS from "./counts.js";
 import * as SIG from "./signals.js";
 import { PQ } from "./photo_quality.js";
 import { SG_MAIN } from "./store_gallery.js";   // finds with a store main photo: the old photo-quality penalty no longer applies
-import { CUT_RX, cutPath, TILE_LIGHT_IDS } from "./photo_tiles.js";
+import { CUT_RX, cutPath, TILE_LIGHT_IDS, TILE_CUT_IDS } from "./photo_tiles.js";
 // Read through the namespace so a link_swaps.js written before SWAP_PRICE / SWAP_HIDE existed still loads.
 import * as LSW from "./link_swaps.js";
 import * as RD from "./rowdays.js";
@@ -330,7 +330,7 @@ export function thumbSrc(src) {
 export const rlBust = (p) => /^\/img\/rl\/[^?]+$/.test(p) ? p + "?c=1" : p;
 // Dark mode photo tiles (photo_tiles.js, owner 26 Nov 2026): the photo u (the find's own photo by default) is a transparent
 // cut-out that sits on the category grey in dark mode. cutCls() is the class for its photo box (" pc-cut" or "").
-export const isCut = (p, u) => !!p && !TILE_LIGHT_IDS.has(String(p.id)) && CUT_RX.test(cutPath(u === undefined ? rawImg(p) : u));
+export const isCut = (p, u) => !!p && !TILE_LIGHT_IDS.has(String(p.id)) && ((TILE_CUT_IDS.has(String(p.id)) && (u === undefined || cutPath(u) === cutPath(rawImg(p)))) || CUT_RX.test(cutPath(u === undefined ? rawImg(p) : u)));
 export const cutCls = (p, u) => (isCut(p, u) ? " pc-cut" : "");
 export const IMG_FALLBACK = `onerror="if(this.dataset.o){this.src=this.dataset.o;this.dataset.o=''}else this.remove()"`;
 export const productUrl = p => "/product/" + encodeURIComponent(p.id);

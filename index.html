@@ -3917,11 +3917,13 @@ const SB_IMG=/^https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\//
    is a cut-out and the find is not on the light list (window.PC_TILE_LIGHT, put in the page by functions/_middleware.js
    from functions/_lib/photo_tiles.js). Its photo box then gets .pc-cut. Same test as photo_tiles.js CUT_RX and cutPath(),
    which the server pages use: change both together. */
-var _pcLight=null;
+var _pcLight=null,_pcCutX=null;
 function pcCut(p,u){
   if(!p) return false;
   if(!_pcLight) _pcLight=new Set(String(window.PC_TILE_LIGHT||"").split(" ").filter(Boolean));
   if(_pcLight.has(String(p.id))) return false;
+  if(!_pcCutX) _pcCutX=new Set(String(window.PC_TILE_CUT||"").split(" ").filter(Boolean));
+  if(_pcCutX.has(String(p.id))&&(u===undefined||u===p.img)) return true;   /* own photo is a cut-out at another address (photo_tiles.js TILE_CUT_IDS) */
   u=String((u===undefined?p.img:u)||"");
   const q=u.indexOf("/api/img?"); if(q>=0){ try{ u=new URLSearchParams(u.slice(q+9)).get("u")||""; }catch(e){ u=""; } }
   u=u.replace(/^https?:\/\/[^/]+/,"").replace(/^\/cdn-cgi\/image\/[^/]+/,"").replace(/[?#].*$/,"");
