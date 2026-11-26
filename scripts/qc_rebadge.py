@@ -22,6 +22,15 @@ DONE = os.path.join(ROOT, "data", "qc_rebadged.json")
 
 
 def one(name, dry):
+    import time
+    for t in range(4):
+        r = _one(name, dry)
+        if not r[1].startswith("error"): return r
+        time.sleep(2 + 3 * t)
+    return r
+
+
+def _one(name, dry):
     try:
         raw = urllib.request.urlopen(urllib.request.Request(SUPA + "/storage/v1/object/public/products/qc/" + name, headers=UA), timeout=30).read()
         out, ok = swap(Image.open(io.BytesIO(raw)))
@@ -43,7 +52,7 @@ def main():
     if lim: todo = todo[:lim]
     print("%d photos in the bank, %d to check" % (len(names), len(todo)))
     tally = {}
-    with ThreadPoolExecutor(6) as ex:
+    with ThreadPoolExecutor(3) as ex:
         for i, (n, r) in enumerate(ex.map(lambda n: one(n, dry), todo)):
             k = r.split(":")[0]; tally[k] = tally.get(k, 0) + 1
             if k != "error": done.add(n)
