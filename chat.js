@@ -18,6 +18,8 @@
   var D = document, W = window;
   if (W.__pcChat) return; W.__pcChat = 1;
   if (/^\/(feed|admin)(\.html)?\/?$/.test(location.pathname)) return;
+  /* 26 Nov 2026 (owner): desktop only, never on phones or tablets */
+  try { if (W.matchMedia && W.matchMedia("(max-width: 820px), (hover: none) and (pointer: coarse)").matches) return; } catch (e) {}
 
   var KEY = "pc.chat.v1", OKKEY = "pc.chat.ok", MAXLEN = 1000, MAXKEEP = 30;
   var ss = { get: function (k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
