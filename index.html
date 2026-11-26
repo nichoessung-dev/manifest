@@ -3388,6 +3388,82 @@ html body .v9-home .v9-rail>.card.rc .buy-pill,html body #grid>.card.rc .buy-pil
 #grid.pc-swap-in{animation:pcSwapIn 300ms cubic-bezier(.22,1,.36,1)}
 @keyframes pcSwapIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){#grid.pc-swap-out,#grid.pc-swap-in{transition:none;animation:none}}
+/* the product view's All Finds grid (#pp-grid) takes the same cards (owner, 26 Nov 2026) */
+   "same size and same buy button"): card() adds .rc to them */
+html body #pp-grid>.card.rc{display:flex;flex-direction:column;padding:8px!important;border:1px solid var(--line)!important;border-radius:16px!important;background:var(--surface)!important;box-shadow:none!important;
+  -webkit-tap-highlight-color:transparent;transition:transform var(--dur-2,200ms) var(--ease-out),box-shadow var(--dur-2,200ms) var(--ease-out),border-color var(--dur-1,120ms) linear!important}
+html body #pp-grid>.card.rc .thumb{aspect-ratio:1/1!important;border-radius:9px!important;overflow:hidden}
+html body #pp-grid>.card.rc .thumb img.pimg{box-sizing:border-box;width:100%!important;height:100%!important;padding:8%!important;object-fit:contain!important;border-radius:0!important}
+/* Save: a bare star on the photo, a soft chip behind it on hover, solid once saved */
+html body #pp-grid>.card.rc .fav{top:6px!important;right:6px!important;width:30px!important;height:30px!important;background:transparent!important;color:var(--ink)!important;opacity:.45;box-shadow:none!important;border:0!important}
+html body #pp-grid>.card.rc .fav svg{width:15px;height:15px}
+html body #pp-grid>.card.rc .fav::after{content:"";position:absolute;inset:-7px}
+html body #pp-grid>.card.rc .fav[aria-pressed="true"]{opacity:1}
+@media (hover:hover){html body #pp-grid>.card.rc:hover .fav{opacity:.8}html body #pp-grid>.card.rc .fav:hover{opacity:1;background:color-mix(in srgb,var(--surface) 88%,transparent)!important}}
+@media (hover:none){html body #pp-grid>.card.rc .fav{opacity:.6}}
+/* QC: a small camera chip on the star's centre line, same weight as the star */
+html body #pp-grid>.card.rc .tbadges{top:9px;left:9px}
+html body #pp-grid>.card.rc .tbadges .qcb{width:24px;height:24px;background:color-mix(in srgb,var(--surface) 90%,transparent);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink)}
+html body #pp-grid>.card.rc .tbadges .qcb .ic{width:13px;height:13px;opacity:.8}
+@media (hover:hover){html body #pp-grid>.card.rc .tbadges .qcb:hover{background:var(--surface)}}
+/* text: brand label, title, then price and Buy on one line */
+html body #pp-grid>.card.rc .body{display:grid!important;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;row-gap:0!important;flex:1 1 auto;align-content:start;padding:12px 4px 2px!important}
+html body #pp-grid>.card.rc .brand-line{grid-column:1/-1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:600 10.5px/16px var(--f-body)!important;letter-spacing:.09em!important;text-transform:uppercase!important;color:var(--muted)!important}
+html body #pp-grid>.card.rc .title{grid-column:1/-1;margin-top:3px;font-size:14px!important;font-weight:500!important;line-height:19px!important;min-height:38px!important;letter-spacing:-.005em!important;color:var(--ink)!important;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+html body #pp-grid>.card.rc .price-row{grid-column:1;align-self:end;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px!important;min-width:0;padding-top:12px!important}
+html body #pp-grid>.card.rc .price{font-size:17px!important;font-weight:650!important;letter-spacing:-.015em!important;font-variant-numeric:tabular-nums;color:var(--ink)!important}
+html body #pp-grid>.card.rc .card-acts{grid-column:2;align-self:end;margin:12px 0 0!important}
+html body #pp-grid>.card.rc .buy-pill{flex:none!important;height:30px;padding:0 14px;border:1px solid var(--line-2);background:transparent;color:var(--ink);font-size:12.5px;font-weight:600}
+@media (hover:hover){html body #pp-grid>.card.rc .buy-pill:hover{background:var(--fill);border-color:var(--fill);color:var(--fill-ink)}}
+@media (pointer:coarse){html body #pp-grid>.card.rc .buy-pill{height:32px}html body #pp-grid>.card.rc .buy-pill::before{inset:-6px -4px}}
+/* light: the hairline reads a touch firmer on white, the Buy outline matches it */
+:root:not([data-theme="dark"]) body #pp-grid>.card.rc{border-color:color-mix(in srgb,var(--ink) 9%,transparent)!important}
+:root:not([data-theme="dark"]) body #pp-grid>.card.rc .buy-pill{border-color:color-mix(in srgb,var(--ink) 16%,transparent)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="dark"]) body #pp-grid>.card.rc{border-color:var(--line)!important}:root:not([data-theme="light"]):not([data-theme="dark"]) body #pp-grid>.card.rc .buy-pill{border-color:var(--line-2)}}
+/* hover lift (mouse only) */
+@media (hover:hover) and (pointer:fine){
+  html body #pp-grid>.card.rc:hover{transform:translateY(-3px)!important;border-color:var(--line-2)!important;box-shadow:0 14px 30px -16px rgba(0,0,0,.28),0 2px 6px -2px rgba(0,0,0,.06)!important}
+  html body #pp-grid>.card.rc:hover:active{transform:translateY(-3px) scale(.985)!important}
+  :root[data-theme="dark"] body #pp-grid>.card.rc:hover{box-shadow:0 16px 34px -14px rgba(0,0,0,.7)!important}
+}
+@media (hover:hover) and (pointer:fine) and (prefers-color-scheme:dark){:root:not([data-theme="light"]) body #pp-grid>.card.rc:hover{box-shadow:0 16px 34px -14px rgba(0,0,0,.7)!important}}
+@media (prefers-reduced-motion:reduce){html body #pp-grid>.card.rc,html body #pp-grid>.card.rc:hover,html body #pp-grid>.card.rc:hover:active{transform:none!important}}
+/* phones: a little tighter, same layout */
+@media (max-width:560px){
+  html body #pp-grid>.card.rc{padding:6px!important;border-radius:14px!important}
+  html body #pp-grid>.card.rc .thumb{border-radius:9px!important}
+  html body #pp-grid>.card.rc .thumb img.pimg{padding:7%!important}
+  html body #pp-grid>.card.rc .body{padding:10px 3px 2px!important}
+  html body #pp-grid>.card.rc .title{font-size:13.5px!important}
+  html body #pp-grid>.card.rc .price{font-size:16px!important}
+  html body #pp-grid>.card.rc .buy-pill{padding:0 12px}
+}
+/* Buy pill, crisp edges (owner, 26 Nov 2026: "make the edges perfect"): cards sit on fractional pixels, where a 1px
+   hairline border blurs unevenly. A soft fill with no border, a whole-pixel width and height, stays sharp anywhere. */
+html body .v9-home .v9-rail>.card.rc .buy-pill,html body #pp-grid>.card.rc .buy-pill{box-sizing:border-box!important;width:56px!important;min-width:56px!important;height:30px!important;padding:0!important;border:0!important;border-radius:15px!important;background:color-mix(in srgb,var(--ink) 10%,transparent)!important;color:var(--ink)!important;justify-content:center;text-align:center}
+@media (hover:hover){html body .v9-home .v9-rail>.card.rc .buy-pill:hover,html body #pp-grid>.card.rc .buy-pill:hover{background:var(--fill)!important;color:var(--fill-ink)!important}}
+@media (pointer:coarse){html body .v9-home .v9-rail>.card.rc .buy-pill,html body #pp-grid>.card.rc .buy-pill{height:32px!important;border-radius:16px!important}}
+/* light mode: a clearer edge between cards (owner, 26 Nov 2026: "the borders between products isnt clear enough on white mode") */
+:root:not([data-theme="dark"]) body .v9-home .v9-rail>.card.rc,:root:not([data-theme="dark"]) body #pp-grid>.card.rc{border-color:color-mix(in srgb,var(--ink) 15%,transparent)!important;box-shadow:0 1px 2px rgba(0,0,0,.05)!important}
+@media (hover:hover) and (pointer:fine){:root:not([data-theme="dark"]) body .v9-home .v9-rail>.card.rc:hover,:root:not([data-theme="dark"]) body #pp-grid>.card.rc:hover{border-color:color-mix(in srgb,var(--ink) 24%,transparent)!important;box-shadow:0 14px 30px -16px rgba(0,0,0,.28),0 2px 6px -2px rgba(0,0,0,.06)!important}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="dark"]) body .v9-home .v9-rail>.card.rc,:root:not([data-theme="light"]):not([data-theme="dark"]) body #pp-grid>.card.rc{border-color:var(--line)!important;box-shadow:none!important}}
+/* filter removal: the grid fades out and the new results rise in (pcSmoothSwap) */
+#grid.pc-swap-out{opacity:0;transition:opacity 140ms ease}
+#grid.pc-swap-in{animation:pcSwapIn 300ms cubic-bezier(.22,1,.36,1)}
+@keyframes pcSwapIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#grid.pc-swap-out,#grid.pc-swap-in{transition:none;animation:none}}
+html body #pp-grid>.card.rc .buy-pill{box-sizing:border-box!important;width:56px!important;min-width:56px!important;height:30px!important;padding:0!important;border:0!important;border-radius:15px!important;background:color-mix(in srgb,var(--ink) 10%,transparent)!important;color:var(--ink)!important;justify-content:center;text-align:center}
+@media (hover:hover){html body #pp-grid>.card.rc .buy-pill:hover{background:var(--fill)!important;color:var(--fill-ink)!important}}
+:root:not([data-theme="dark"]) body #pp-grid>.card.rc{border-color:color-mix(in srgb,var(--ink) 15%,transparent)!important;box-shadow:0 1px 2px rgba(0,0,0,.05)!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="dark"]) body #pp-grid>.card.rc{border-color:var(--line)!important;box-shadow:none!important}}
+/* product view bar = the main page's filter bar plus Back and Share (owner, 26 Nov 2026): the same wide 44px search pill on a
+   plain ground, and the filter row under "All Finds" sticks under it while the finds scroll, as on the main page */
+#drawer{--ppb-c:44px!important}
+html #drawer .p-top{background:var(--ground)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html #drawer .p-top .pp-search{max-width:none!important;border-radius:999px}
+html #drawer .p-top .pp-search>svg{width:18px!important;height:18px!important}
+html #drawer .pp-filters{position:sticky;top:-28px;z-index:6;margin-left:-22px!important;margin-right:-22px!important;padding:10px 22px!important;background:var(--ground);border-bottom:1px solid var(--line)}
+@media (max-width:560px){html #drawer .pp-filters{margin-left:-16px!important;margin-right:-16px!important;padding:8px 16px!important}}
 /* the rows' skeleton cards take the same shape, so nothing moves when the cards come in */
 html .v9-home .v9-rail>.sk-card{padding:8px;border:1px solid var(--line);border-radius:16px}
 html .v9-home .v9-rail>.sk-card .sk-im{border-radius:9px}
