@@ -1,11 +1,10 @@
-// Tests for the Email v2 website side (no network): functions/api/email-hook.js, functions/unsubscribe.js,
-// functions/email-settings.js and the middleware's route list. Supabase is a small in-memory PostgREST.
+// Tests for the Email v2 website side (no network): functions/api/email-hook.js, functions/unsubscribe.js and the
+// middleware's route list (there is no email settings page since 26 Nov 2026). Supabase is a small in-memory PostgREST.
 // Run: node scripts/test_email_web.mjs
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import * as hook from "../functions/api/email-hook.js";
 import * as unsub from "../functions/unsubscribe.js";
-import * as settings from "../functions/email-settings.js";
 import { hmacHex, mailbox } from "../functions/_lib/email.js";
 
 const SECRET = "unsub-test-secret", HOOK = "hook-test-secret-0123456789";
@@ -96,8 +95,9 @@ const SENDS = [
 {
   const src = fs.readFileSync(new URL("../functions/_middleware.js", import.meta.url), "utf8");
   const PASS = new Function("return " + /const PASS = (\/.*\/);/.exec(src)[1])();
-  for (const p of ["/api/email-hook", "/email-settings", "/unsubscribe"]) assert.ok(PASS.test(p), p);
-  for (const p of ["/api/email-hook/x", "/email-settings/x", "/email-settingsx", "/api/email-hooks"]) assert.ok(!PASS.test(p), p);
+  for (const p of ["/api/email-hook", "/unsubscribe"]) assert.ok(PASS.test(p), p);
+  for (const p of ["/api/email-hook/x", "/email-settings", "/unsubscribe/x", "/api/email-hooks"]) assert.ok(!PASS.test(p), p);
+  assert.ok(!fs.existsSync(new URL("../functions/email-settings.js", import.meta.url)), "no email settings page");
 }
 
 // ------------------------------------------------------------------ webhook
@@ -204,14 +204,14 @@ const post = (body, headers = { authorization: "Bearer " + HOOK }, url = hookUrl
 const unsubUrl = (s = q()) => SITE + "/unsubscribe?" + s;
 const oneClick = (s = q(), env = ENV) => call(unsub.onRequestPost, unsubUrl(s), { method: "POST", body: "List-Unsubscribe=One-Click", headers: { "content-type": "application/x-www-form-urlencoded" }, env });
 {
-  // GET never unsubscribes: a page with the button and a settings link
+  // GET never unsubscribes: a page with the button, and no settings link
   let db = makeDb({ profiles: [PROFILE], sends: SENDS });
   let res = await call(unsub.onRequestGet, unsubUrl());
   let html = await res.text();
   assert.equal(res.status, 200);
   assert.equal(writes(db).length, 0);
   assert.match(html, /<form method="post" action="\/unsubscribe\?u=[^"]+"><input type="hidden" name="via" value="page">/);
-  assert.match(html, /href="\/email-settings\?u=11111111-2222-4333-8444-555555555555&amp;t=[0-9a-f]{64}"/);
+  assert.ok(!/email-settings|email settings/i.test(html), "no settings link");
   assert.match(html, /Ni•••@example\.com/);
   assert.match(html, /noindex/); assert.match(html, /no-referrer/);
   assert.equal(res.headers.get("cache-control"), "no-store");
@@ -234,9 +234,37 @@ const oneClick = (s = q(), env = ENV) => call(unsub.onRequestPost, unsubUrl(s), 
   res = await oneClick();
   assert.equal(res.status, 200);
   assert.equal(db.profiles[0].unsubscribed_at, at); assert.equal(db.email_events.length, 1);
-  // now GET says so
+  // now GET says so, with the undo button
   html = await (await call(unsub.onRequestGet, unsubUrl())).text();
   assert.match(html, /You're unsubscribed/);
+  assert.match(html, /<form method="post" action="\/unsubscribe\?u=[^"]+"><input type="hidden" name="via" value="undo">/);
+  assert.ok(!/[\u2013\u2014]/.test(html), "no en or em dashes");
+
+  // undo: emails on again, the record cleared, one resubscribe event; a second press changes nothing
+  const undo = (s = q()) => call(unsub.onRequestPost, unsubUrl(s), { method: "POST", body: "via=undo", headers: { "content-type": "application/x-www-form-urlencoded" } });
+  res = await undo(); html = await res.text();
+  assert.equal(res.status, 200); assert.match(html, /Emails are back on/); assert.match(html, /Ni•••@example\.com/);
+  assert.equal(db.profiles[0].marketing_opt_in, true); assert.equal(db.profiles[0].unsubscribed_at, null); assert.equal(db.profiles[0].unsub_source, null);
+  assert.deepEqual(db.email_events.map(e => [e.type, e.member_id, e.meta.source]), [["unsubscribe", UID, "header"], ["resubscribe", UID, "unsubscribe-page"]]);
+  res = await undo();
+  assert.equal(res.status, 200); assert.equal(db.email_events.length, 2);
+  // a later unsubscribe is recorded again
+  assert.equal((await oneClick()).status, 200);
+  assert.equal(db.profiles[0].marketing_opt_in, false); assert.equal(db.email_events.at(-1).type, "unsubscribe");
+  // undo with a bad token: 400, nothing written
+  const n = writes(db).length;
+  assert.equal((await undo(q(UID, "0".repeat(64)))).status, 400);
+  assert.equal(writes(db).length, n);
+  // undo for an address on the suppression list: stays off, and the page says why
+  db.email_suppression.push({ email: "nina.test@example.com", reason: "complaint" });
+  res = await undo(); html = await res.text();
+  assert.equal(res.status, 200); assert.match(html, /bounced or were reported as spam/);
+  assert.equal(db.profiles[0].marketing_opt_in, false);
+  // our side failing: 500, and the page says the emails are still off
+  db.down = true;
+  res = await undo();
+  assert.equal(res.status, 500); assert.match(await res.text(), /your emails are still off/);
+  db.down = false;
 
   // the page's button: unsub_source "link" and a result page
   db = makeDb({ profiles: [PROFILE], sends: SENDS });
@@ -260,97 +288,6 @@ const oneClick = (s = q(), env = ENV) => call(unsub.onRequestPost, unsubUrl(s), 
   assert.equal((await oneClick()).status, 200);
   assert.equal(db.profiles[0].marketing_opt_in, false);
   assert.equal((await call(unsub.onRequestGet, unsubUrl())).status, 200, "the page still shows its button");
-}
-
-// ------------------------------------------------------------------ email settings
-const setUrl = (s = q()) => SITE + "/email-settings?" + s;
-const save = (choice, s = q()) => call(settings.onRequestPost, setUrl(s), { method: "POST", body: "choice=" + choice, headers: { "content-type": "application/x-www-form-urlencoded" } });
-const checked = html => (/value="(\w+)" checked/.exec(html) || [])[1];
-{
-  let db = makeDb({ profiles: [PROFILE, { ...PROFILE, id: UID2, email: "x@example.com", marketing_opt_in: false, unsubscribed_at: "2026-11-01T00:00:00Z", unsub_source: "link" }], sends: SENDS });
-  let res = await call(settings.onRequestGet, setUrl());
-  let html = await res.text();
-  assert.equal(res.status, 200); assert.equal(writes(db).length, 0);
-  assert.equal(checked(html), "weekly");
-  for (const t of ["Weekly picks and saved-find alerts", "Only saved-find alerts", "Pause for 30 days", "Unsubscribe from everything"]) assert.ok(html.includes(t), t);
-  assert.match(html, /<form class="em-card" method="post" action="\/email-settings\?u=/);
-  assert.ok(!/[\u2013\u2014]/.test(html), "no en or em dashes");
-  assert.equal(checked(await (await call(settings.onRequestGet, setUrl(q() + "&pick=stop"))).text()), "stop");
-  assert.equal(checked(await (await call(settings.onRequestGet, setUrl(q() + "&pick=nonsense"))).text()), "weekly");
-
-  res = await save("alerts"); html = await res.text();
-  assert.equal(res.status, 200); assert.equal(db.profiles[0].email_freq, "alerts"); assert.equal(checked(html), "alerts");
-  assert.match(html, /Saved\. You'll only get saved-find alerts\./);
-  res = await save("pause"); html = await res.text();
-  const until = Date.parse(db.profiles[0].email_paused_until);
-  assert.ok(Math.abs(until - (Date.now() + 30 * 864e5)) < 60000);
-  assert.equal(db.profiles[0].email_freq, "alerts", "the frequency stays for after the pause");
-  assert.equal(checked(html), "pause"); assert.match(html, /Saved\. No emails until \d{1,2} [A-Z][a-z]{2} 20\d\d\./);
-  db.profiles[0].email_sunset_at = "2026-10-01T00:00:00Z";
-  res = await save("weekly");
-  assert.equal(db.profiles[0].email_freq, "weekly"); assert.equal(db.profiles[0].email_paused_until, null); assert.equal(db.profiles[0].email_sunset_at, null);
-  assert.equal((await save("sometimes")).status, 400);
-
-  res = await save("stop"); html = await res.text();
-  assert.equal(db.profiles[0].marketing_opt_in, false); assert.equal(db.profiles[0].unsub_source, "settings");
-  assert.equal(db.email_events.at(-1).type, "unsubscribe"); assert.equal(db.email_events.at(-1).meta.source, "settings");
-  assert.match(html, /You're unsubscribed\./); assert.match(html, /Turn emails back on/); assert.ok(!html.includes('name="choice" value="weekly"'));
-  assert.equal((await save("weekly")).status, 200); assert.equal(db.profiles[0].marketing_opt_in, false, "options do nothing while unsubscribed");
-  res = await save("on"); html = await res.text();
-  assert.equal(db.profiles[0].marketing_opt_in, true); assert.equal(db.profiles[0].unsubscribed_at, null); assert.equal(db.profiles[0].unsub_source, null);
-  assert.equal(db.email_events.at(-1).type, "resubscribe"); assert.equal(db.email_events.at(-1).member_id, UID);
-  assert.match(html, /Emails are back on/); assert.equal(checked(html), "weekly");
-
-  // another member who unsubscribed: "Turn emails back on"; with a suppressed address no button, and why
-  html = await (await call(settings.onRequestGet, setUrl(q(UID2, TOKEN2)))).text();
-  assert.match(html, /Your emails are off/); assert.match(html, /Turn emails back on/);
-  db.email_suppression.push({ email: "x@example.com", reason: "hard_bounce" });
-  html = await (await call(settings.onRequestGet, setUrl(q(UID2, TOKEN2)))).text();
-  assert.match(html, /bounced/); assert.ok(!html.includes("Turn emails back on"));
-  await save("on", q(UID2, TOKEN2)); assert.equal(db.profiles[1].marketing_opt_in, false);
-
-  // the two consent switches: off unless turned on, each change kept with time, wording version and where
-  const sw = html => Object.fromEntries([...html.matchAll(/role="switch" name="(\w+)" value="1"( checked)?/g)].map(m => [m[1], !!m[2]]));
-  html = await (await call(settings.onRequestGet, setUrl())).text();
-  assert.deepEqual(sw(html), { personal: false, track: false });
-  assert.ok(html.includes("Personalise my emails from finds I view") && html.includes("Measure my email clicks"));
-  const form = (s, extra = "") => call(settings.onRequestPost, setUrl(), { method: "POST", body: s + extra, headers: { "content-type": "application/x-www-form-urlencoded" } });
-  res = await form("choice=weekly&switches=1&personal=1"); html = await res.text();
-  assert.equal(db.profiles[0].email_personal, true); assert.equal(db.profiles[0].email_track, false);
-  assert.deepEqual(db.profiles[0].email_consents.map(c => [c.what, c.value, c.text_version, c.via]), [["personal", true, settings.TEXT_VERSION, "settings"]]);
-  assert.ok(Date.parse(db.profiles[0].email_consents[0].at) > Date.now() - 60000);
-  assert.deepEqual(sw(html), { personal: true, track: false }); assert.match(html, /Saved\./);
-  await form("choice=weekly&switches=1&personal=1&track=1");
-  assert.equal(db.profiles[0].email_track, true); assert.equal(db.profiles[0].email_consents.length, 2, "only the switch that changed is added");
-  await form("choice=weekly&switches=1&personal=1&track=1");
-  assert.equal(db.profiles[0].email_consents.length, 2, "saving again without a change adds nothing");
-  // the footer's one-tap "stop measuring my clicks": a GET that only ever turns tracking off
-  res = await call(settings.onRequestGet, setUrl(q() + "&track=off"), { headers: { "user-agent": "Mozilla/5.0 (compatible; SafeLinks/1.0)" } });
-  assert.equal(db.profiles[0].email_track, true, "a scanner following the link changes nothing");
-  res = await call(settings.onRequestGet, setUrl(q() + "&track=off"), { headers: { "user-agent": BROWSER, "sec-purpose": "prefetch" } });
-  assert.equal(db.profiles[0].email_track, true, "nor does a prefetch");
-  res = await call(settings.onRequestGet, setUrl(q() + "&track=off"), { headers: { "user-agent": BROWSER } }); html = await res.text();
-  assert.equal(res.status, 200); assert.equal(db.profiles[0].email_track, false); assert.equal(db.profiles[0].email_personal, true);
-  assert.deepEqual(db.profiles[0].email_consents.at(-1).what + ":" + db.profiles[0].email_consents.at(-1).value + ":" + db.profiles[0].email_consents.at(-1).via, "track:false:footer");
-  assert.match(html, /We no longer measure which links you click\. You still get your emails\./); assert.deepEqual(sw(html), { personal: true, track: false });
-  const n = db.profiles[0].email_consents.length, w = writes(db).length;
-  res = await call(settings.onRequestGet, setUrl(q() + "&track=off"), { headers: { "user-agent": BROWSER } });
-  assert.equal(db.profiles[0].email_consents.length, n); assert.equal(writes(db).length, w, "already off: nothing written");
-  assert.match(await res.text(), /We no longer measure/);
-  assert.equal((await call(settings.onRequestGet, setUrl(q(UID, TOKEN2) + "&track=off"), { headers: { "user-agent": BROWSER } })).status, 400);
-  // "Turn emails back on" never touches the switches
-  await save("stop"); await save("on");
-  assert.equal(db.profiles[0].email_personal, true); assert.equal(db.profiles[0].email_consents.length, n);
-
-  // bad links, gone accounts, our side failing
-  assert.equal((await call(settings.onRequestGet, setUrl(q(UID, TOKEN2)))).status, 400);
-  assert.equal((await save("stop", q(UID, "abc"))).status, 400);
-  assert.equal(db.profiles[0].marketing_opt_in, true);
-  const ghost = "99999999-9999-4999-8999-999999999999";
-  assert.equal((await call(settings.onRequestGet, setUrl(q(ghost, await hmacHex(SECRET, ghost))))).status, 404);
-  db.down = true;
-  assert.equal((await call(settings.onRequestGet, setUrl())).status, 500);
-  assert.equal((await settings.onRequestHead()).status, 200);
 }
 
 console.log("email web: all tests passed");

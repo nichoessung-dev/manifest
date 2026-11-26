@@ -65,6 +65,9 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
 - Favicon and app icons: white serif "PC" on black.
 - Email: saved-find alerts only for partner finds (`ALERTS_PARTNER_ONLY` stays 1). Members who signed up while email
   was down get one "sorry this is late" welcome (`mailer.py backfill`, last 14 days). Weekly picks use partner finds.
+- Email: no email settings page. The footer has Unsubscribe only; the unsubscribe page has a "Turn emails back on" undo.
+  Logo watches, monogram bags and the luxury brands may go in emails (`EMAIL_LOGOS=0` takes them out again).
+  Subjects stay free of brand names.
 
 ## Systems worth knowing
 - Dark-mode photo tiles: cut-outs sit on #262626. Rules in `functions/_lib/photo_tiles.js` (`CUT_RX`, `TILE_CUT_IDS`,
@@ -74,12 +77,12 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
   qualit.ly (key `QUALITLY_KEY`) and the Oopbuy QC API (`scripts/oopbuy_qc.py`, keys `OOPBUY_APP_ID`,
   `OOPBUY_AES_KEY`, `OOPBUY_SIGN_SECRET`, waiting for Oopbuy).
 - Email (v2, 26 Nov 2026): `scripts/mailer.py` run by `.github/workflows/email.yml` every 15 minutes (welcome series
-  W0 to W4, saved-find alerts, weekly picks, win-back, sunset; warm-up caps and stop lines built in). Provider per
+  W0 to W3, saved-find alerts, weekly picks, win-back, sunset; warm-up caps and stop lines built in). Provider per
   stream: Plunk by default, AhaSend as the switchable backup (`PROVIDER_AUTOMATED`, `PROVIDER_NEWS`). Clicks go through
   our own tracker `functions/e/[[path]].js` and are counted per email and link, not per person (Norwegian and EU rules);
-  per-person tracking only for members who switch it on (`profiles.email_track`). Plunk's own tracking stays Disabled.
-  Webhooks for bounces and complaints: `functions/api/email-hook.js`. Member settings: `/email-settings`. Unsubscribe:
-  `functions/unsubscribe.js` (GET shows a page, POST unsubscribes). Numbers: `scripts/email_stats.py` into the Email
+  no per-person tracking (its switch lived on the removed settings page). Plunk's own tracking stays Disabled.
+  Webhooks for bounces and complaints: `functions/api/email-hook.js`. Unsubscribe:
+  `functions/unsubscribe.js` (GET shows a page, POST unsubscribes, via=undo turns emails back on). Numbers: `scripts/email_stats.py` into the Email
   section of `/stats`. Database: `scripts/email_v2.sql` then `scripts/email_v2_engine.sql`. Research behind it:
   the report "Email lifecycle deliverability and tracking". `newsletter.py`, `welcome.yml` and `newsletter.yml` are
   the old system, kept only for manual test runs.

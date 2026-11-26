@@ -5,7 +5,7 @@ the old reference only. Run by .github/workflows/email.yml.
 
   python scripts/mailer.py run        every 15 minutes, everything due now, in this order:
                                         1. W0, the coupon email, to new members (all of them: they asked for it at sign-up)
-                                        2. the welcome series W1 to W4 when due (marketing consent)
+                                        2. the welcome series W1 to W3 when due (marketing consent)
                                         3. saved-find alerts (daily, from 16:00 UTC)
                                         4. weekly picks (Thursday from 16:00 UTC, in daily slices while the domain warms up)
                                         5. win-back emails, then the sunset flag
@@ -27,7 +27,7 @@ Providers (one adapter each, one setting per stream, GitHub Actions variables):
   Secrets: PLUNK_API_KEY, AHASEND_API_KEY and AHASEND_ACCOUNT_ID, SUPABASE_SERVICE_KEY, UNSUB_SECRET.
   A stream on Plunk without PLUNK_API_KEY: one ::warning:: line and exit 0 (the daily health check reports it). A stream
   set to ahasend without its keys stops the run at the start with an error.
-Settings: ALERTS_PARTNER_ONLY (default 1), MAX_DAILY, MAX_PER_RUN, SUNSET_MIN_EMAILS (default 0),
+Settings: ALERTS_PARTNER_ONLY (default 1), EMAIL_LOGOS (default 1), MAX_DAILY, MAX_PER_RUN, SUNSET_MIN_EMAILS (default 0),
 STOP_LINES_OFF_UNTIL (a date: the stop lines are ignored until then, after the owner has checked).
 Needs scripts/email_v2.sql and scripts/email_v2_engine.sql in Supabase.
 
@@ -40,11 +40,11 @@ Rules (owner, brief and the final research report, 26 Nov 2026):
 - Suppression list and opt-out are read again right before each send: /v1/send ignores Plunk's subscription state.
   `subscribed` is never sent to Plunk (true would re-subscribe people who left).
 - Clicks are counted per email, not per person (tracking_law.md): links carry the batch id that every recipient of one
-  template, variant and day shares. Only a member who said yes to "Measure my email clicks" (profiles.email_track) gets
-  the send's own id. No open pixel; Plunk's and AhaSend's own tracking are off. W4, the email that asks for that yes,
-  has no tracked links at all. Unsubscribe, Stop tracking and the List-Unsubscribe header are always direct.
-- Picks use product views only for members who said yes to "Personalise my emails from finds I view"
-  (profiles.email_personal); otherwise saves, style and size.
+  template, variant and day shares. No open pixel; Plunk's and AhaSend's own tracking are off. Unsubscribe and the
+  List-Unsubscribe header are always direct.
+- No email settings page (owner, 26 Nov 2026): the footer has Unsubscribe only. The two yes-switches that page held stay
+  off for everyone: "Measure my email clicks" (profiles.email_track: links with the send's own id) and "Personalise my
+  emails from finds I view" (profiles.email_personal). Picks use saves, style and size. The code still honours a yes.
 - Marketing cap: 1 a day (20 hours) and 3 a week per member, counting alerts, weekly picks and win-back; the welcome
   series and W0 do not count, but the welcome series and marketing email still keep 20 hours apart (one email a day,
   W0 excepted). Weekly picks only after W3.
@@ -55,7 +55,8 @@ Rules (owner, brief and the final research report, 26 Nov 2026):
   24 hours in the first 30 days (Plunk switches a new project off at 7), or hard bounces at 2% of the last day's sends.
   Marketing then stops with an ::error:: until the owner clears it; W0 still goes out.
 - Win-back after 60 and 90 days without a visit or sign-in; sunset (no marketing) after 120, lifted by the next visit.
-- No luxury logo items (watches, monogram bags, the brands in LUXURY) in any email. At least 500 characters of real text.
+- Logo watches, monogram bags and the brands in LUXURY go in emails like any other find (owner, 26 Nov 2026);
+  EMAIL_LOGOS=0 leaves them out again. Never a find whose title has a banned word. At least 500 characters of real text.
 - Subjects: under 25 characters for weekly picks, 25 to 35 for alerts and the welcome series, no emojis, no first names,
   no fashion brand names; preheaders of 30 to 50 characters.
 - Public logs: never an email address (hide()).
@@ -108,7 +109,7 @@ SEND_HOUR = 16                          # 16:00 UTC, early evening in Europe: se
 W0_WINDOW = timedelta(hours=48)         # run mode welcomes members of the last 48 hours (older ones: backfill)
 W0_LATE = timedelta(hours=12)           # a member who waited longer than this gets the honest late version
 BACKFILL_DAYS = 14
-ONBOARD_DAYS = {1: 1, 2: 3, 3: 6, 4: 10}   # W1 the day after W0, W2 on day 3, W3 on day 6, W4 on day 10 (16:00 UTC)
+ONBOARD_DAYS = {1: 1, 2: 3, 3: 6}       # W1 the day after W0, W2 on day 3, W3 on day 6 (16:00 UTC)
 ONBOARD_WINDOW = timedelta(days=21)     # the welcome series is for new members only
 PICKS_WEEKDAY = 3                       # Thursday
 WINBACK = (60, 90)                      # WB1 and WB2 after this many days without a visit or sign-in
@@ -132,14 +133,14 @@ TEMPLATES = {
     "w1":      {"stream": "onboarding", "group": "automated", "campaign": "ordering"},
     "w2":      {"stream": "onboarding", "group": "automated", "campaign": "mycnbox"},
     "w3":      {"stream": "onboarding", "group": "automated", "campaign": "newsletter"},
-    "w4":      {"stream": "onboarding", "group": "automated", "campaign": "newsletter"},
     "picks":   {"stream": "newsletter", "group": "news",      "campaign": "newsletter"},
     "alert":   {"stream": "alerts",     "group": "automated", "campaign": "saved"},
     "wb1":     {"stream": "winback",    "group": "automated", "campaign": "newsletter"},
     "wb2":     {"stream": "winback",    "group": "automated", "campaign": "newsletter"},
 }
 W0S = ("w0", "w0-late")
-ONBOARD_TEMPLATES = ("w1", "w2", "w3", "w4")
+ONBOARD_TEMPLATES = ("w1", "w2", "w3")
+ONBOARD_LAST = len(ONBOARD_TEMPLATES)   # onboard_step at or past this: the series is done
 # A/B tests: arm = hash(member, experiment), fixed per member, stored as email_sends.variant "<experiment>:<arm>"
 EXPERIMENTS = {"w0-row": ("a", "b"),          # a: no products, b: ends with one row of 2 partner finds
                "picks-subject": ("a", "b")}   # a: "Picked for you this week", b: count and item type ("6 picks: tops and shoes")
@@ -169,8 +170,10 @@ AGENTS = {
 # The click tracker only redirects to these hosts (ALLOW in functions/e/[[path]].js); a link elsewhere would land on the
 # homepage, so every destination is checked against the same list before an email goes out.
 ALLOW = re.compile(r"^(www\.|fb\.)?puroclassico\.com$|^(m\.)?mycnbox\.com$|^ikako\.vip$|^(www\.)?(kakobuy|oopbuy|lovegobuy|sugargoo|litbuy|hipobuy|boonbuy|joyagoo|usfans|gtbuy|itaobuy|cssbuy|hubbuy|bbdbuy|bbdbuyeu|superbuy|fishgoo)\.com$", re.I)
-# Luxury logo items never go in an email (final report: Plunk's terms ban mail that links to content infringing
-# someone's IP, and one email in ten goes to an AI check; logo-heavy mail is the biggest account risk).
+# Logo watches, monogram bags and these brands go in emails since 26 Nov 2026 (owner). The final report rated them the
+# biggest risk to the Plunk account (its terms ban mail that links to content infringing someone's IP, and one email in
+# ten goes to an AI check), so EMAIL_LOGOS=0 (a GitHub Actions variable) leaves them out again with no code change.
+EMAIL_LOGOS = env("EMAIL_LOGOS", "1") not in ("0", "false", "no")
 LUXURY = {"rolex", "audemarspiguet", "ap", "patekphilippe", "omega", "cartier", "louisvuitton", "lv", "hermes", "chanel",
           "dior", "christiandior", "gucci", "goyard", "vancleef", "vancleefarpels"}
 LUX_TITLE = re.compile(r"\bmonogram\b|\bwatch(es)?\b(?!\s*(hat|cap|beanie))", re.I)
@@ -184,6 +187,9 @@ class Fatal(Exception):
 
 class Stop(Exception):
     """Stop sending for this run (spending cap, refused key, paused domain, 5 failures in a row)."""
+
+
+STOP_MARK = "[stop] "   # email_sends.error of a send a Stop ended: not the member's failure, so it never counts toward MAX_FAILS
 
 
 # ---------------------------------------------------------------- small helpers
@@ -433,6 +439,8 @@ def plunk_send(to, subject, html, unsub, key, from_email, from_name):
                 return Result(True, note="still in flight at Plunk, counted as sent so it is never sent twice")
             return Result(False, error="an earlier try of this email failed at Plunk (%s)" % osc)
         if st in (401, 403): raise Stop("Plunk refused the key or the sender (%s)" % plunk_error(st, t))
+        if 400 <= st < 500 and re.search(r"verif", t, re.I) and re.search(r"domain|sender|from", t, re.I):
+            raise Stop("Plunk refused the sender %s: is its domain verified in Plunk? (%s)" % (from_email.split("@")[-1], plunk_error(st, t)))
         if st >= 500:
             errs += 1
             if errs <= 2: time.sleep(2 ** errs); continue
@@ -581,17 +589,19 @@ def style_match(p, k):
     return 0
 
 
-def luxury(p):
-    """Never in an email: a luxury logo item (the brands in LUXURY, collaborations included, watches, monogram pieces)
-    or a title with a word the copy rules ban."""
-    parts = re.split(r"\s+(?:x|&|and)\s+|\s*[/,+]\s*", str(p.get("brand") or ""), flags=re.I)
+def kept_out(p):
+    """Never in an email: a find whose title has a word the copy rules ban. With EMAIL_LOGOS=0 also a luxury logo item
+    (the brands in LUXURY, collaborations included, watches, monogram pieces)."""
     t = p.get("title") or ""
-    return any(sty_norm(b) in LUXURY for b in parts + [p.get("brand") or ""]) or bool(LUX_TITLE.search(t) or BANNED_TITLE.search(t))
+    if BANNED_TITLE.search(t): return True
+    if EMAIL_LOGOS: return False
+    parts = re.split(r"\s+(?:x|&|and)\s+|\s*[/,+]\s*", str(p.get("brand") or ""), flags=re.I)
+    return any(sty_norm(b) in LUXURY for b in parts + [p.get("brand") or ""]) or bool(LUX_TITLE.search(t))
 
 
 class Catalog:
     """The finds members can see, with the partner swaps applied (the swapped finds are the partner's: "_rec"), plus
-    popularity, QC photo counts, sizes and the day each find first appeared. Luxury logo items are left out."""
+    popularity, QC photo counts, sizes and the day each find first appeared. kept_out() finds are left out."""
 
     def __init__(self):
         prod = site_json("products.json", {}) or {}
@@ -612,7 +622,7 @@ class Catalog:
             if isinstance(pr, list) and len(pr) == 3 and str(pr[0]) == str(s[1]) and (pr[1] or 0) > 0:
                 p["price"] = pr[1]
                 if (pr[2] or 0) > 0: p["usd"] = pr[2]
-        self.p = {str(k): v for k, v in prod.items() if str(k) not in hidden and str(k) not in self.dead and not luxury(v)}
+        self.p = {str(k): v for k, v in prod.items() if str(k) not in hidden and str(k) not in self.dead and not kept_out(v)}
         self.stats = (site_json("data/stats.json", {}) or {}).get("p") or {}
         self.bank = site_json("data/qc_bank.json", {}) or {}
         self.qc_n = self._qc_counts()
@@ -856,7 +866,7 @@ def taste_weight(cat, m, pid):
 def pick_finds(cat, m, n, rnd, exclude=(), pool=None, per_brand=2, qc_first=True):
     """n finds for this member: their taste times popularity, finds with QC photos first, at most per_brand per brand
     and one per model, never one they saved or got by email lately (nor viewed, with their yes to personalisation),
-    never a dead, sold-out or luxury logo find."""
+    never a dead, sold-out or kept_out() find."""
     pool = cat.partners if pool is None else pool
     top = max([cat.pop(i) for i in pool[:1]] + [1.0]) or 1.0
     skip = set(exclude) | set(m.saves) | m.emailed | (m.seen if m.personal else set())
@@ -1040,12 +1050,11 @@ def agent_logo(key, upload):
 
 class Ctx:
     """One email being written. Every link goes through the click tracker with this email's id (the batch id, or the
-    send's own id for a member who said yes to measuring clicks), campaign and a stable link key; plain=True (W4) puts
-    the destination in directly. Members of the partner's site (fb.*) get his invite code and fb.* links, as fb_swap()
-    did in newsletter.py."""
+    send's own id for a member who said yes to measuring clicks), campaign and a stable link key. Members of the
+    partner's site (fb.*) get his invite code and fb.* links, as fb_swap() did in newsletter.py."""
 
-    def __init__(self, template, uid, link_id, fb=False, upload=True, plain=False):
-        self.t, self.uid, self.fb, self.upload, self.plain = template, str(uid), fb, upload, plain
+    def __init__(self, template, uid, link_id, fb=False, upload=True):
+        self.t, self.uid, self.fb, self.upload = template, str(uid), fb, upload
         self.campaign = TEMPLATES[template]["campaign"]
         self.sid = mail_links.sid22(link_id) if isinstance(link_id, uuid.UUID) else str(link_id)
         self.site = FB_SITE if fb else SITE
@@ -1055,8 +1064,6 @@ class Ctx:
     def link(self, key, dest):
         host = urllib.parse.urlsplit(dest).hostname or ""
         if not ALLOW.match(host): raise ValueError("link %s goes to %s, which the click tracker does not allow" % (key, host))
-        if self.plain:
-            self.links.append((key, dest, dest)); return dest
         u = mail_links.track(self.sid, self.campaign, key, dest)
         if self.fb and u.startswith(mail_links.SITE): u = FB_SITE + u[len(mail_links.SITE):]
         self.links.append((key, dest, u))
@@ -1069,11 +1076,6 @@ class Ctx:
         return self.link(key, "%s/go/mycnbox?k=invite&p=email-%s" % (self.site, self.t))
 
     def unsub(self): return "%s/unsubscribe?u=%s&t=%s" % (self.site, urllib.parse.quote(self.uid), token(self.uid))
-
-    def settings_url(self, extra=""):
-        return "%s/email-settings?u=%s&t=%s%s" % (self.site, urllib.parse.quote(self.uid), token(self.uid), extra)
-
-    def settings(self, key="settings", extra=""): return self.link(key, self.settings_url(extra))
 
     def img(self, pid, src): return email_img(pid, src, self.upload)
 
@@ -1150,12 +1152,12 @@ _DARK_RULES = [
 
 WHY_NEW = "You get this email because you just created an account at %s."
 WHY_ALL = "You get this email because you have an account at %s and asked for emails."
-WHY_SAVED = "You get this email because you saved finds at %s and asked for emails. Alerts can be turned off in email settings."
+WHY_SAVED = "You get this email because you saved finds at %s and asked for emails."
 
 
 def wrap(ctx, inner, pre_text, why):
-    """The whole email: hidden preheader, text header, content, footer (why they get it and the affiliate line; Email
-    settings, Stop tracking and Unsubscribe; the postal address from FOOTER_ADDRESS; the copyright line)."""
+    """The whole email: hidden preheader, text header, content, footer (why they get it and the affiliate line;
+    Unsubscribe; the postal address from FOOTER_ADDRESS; the copyright line)."""
     dark = "".join("%s{%s}" % (s, r) for s, r in _DARK_RULES)
     ogsc = "".join("[data-ogsc] %s{%s}" % (s, r) for s, r in _DARK_RULES) + \
         "[data-ogsb] .pc-bg,[data-ogsb] .pc-out{background:#0A0A0A!important}[data-ogsb] .pc-well{background:#262626!important}[data-ogsb] .pc-btn{background:#E5E5E5!important}"
@@ -1166,9 +1168,7 @@ def wrap(ctx, inner, pre_text, why):
     browse = esc(ctx.page("header-browse", "/"))
     fl = '<a href="%s" class="pc-mut" style="color:#6B6B6B;text-decoration:underline;">%s</a>'
     foot_site = fl % (esc(ctx.page("footer-site", "/")), host)
-    links = "&nbsp;&nbsp;&middot;&nbsp;&nbsp;".join([fl % (esc(ctx.settings()), "Email settings"),
-                                                     fl % (esc(ctx.settings_url("&track=off")), "Stop tracking"),
-                                                     fl % (esc(ctx.unsub()), "Unsubscribe")])
+    links = fl % (esc(ctx.unsub()), "Unsubscribe")
     p = '<p class="pc-mut" style="margin:%s;font-family:%s;font-size:12px;line-height:1.6;color:#6B6B6B;text-align:center;">%s</p>'
     footer = (p % ("20px 0 6px", FONT, (why % foot_site) + " Our links to shopping agents are affiliate links.")
               + p % ("0 0 6px", FONT, links)
@@ -1382,32 +1382,6 @@ def render_w3(ctx, m, cat, picks):
     return mail(ctx, subj, inner, "Matched to your saves, style and size.", WHY_ALL, picks)
 
 
-def render_w4(ctx, m, cat):
-    """Choose your emails (day 10). It asks for the two yes-switches, so it carries no tracked link at all (ctx.plain,
-    CNIL's method): every link goes straight to the settings page, which needs a tap to change anything."""
-    choice = lambda key, label, kind="outline": btn(ctx.settings(key, "&pick=" + key), label, kind)
-    switch = lambda what, title, text: (
-        '<tr><td class="pc-well" valign="top" bgcolor="%s" style="padding:18px 18px 16px;background:%s;border-radius:12px;">'
-        '<div class="pc-ink" style="margin:0 0 4px;font-family:%s;font-size:15px;line-height:20px;font-weight:600;color:%s;">%s</div>'
-        '<div class="pc-mut" style="margin:0 0 10px;font-family:%s;font-size:14px;line-height:21px;color:%s;">%s</div>%s</td></tr>'
-        '<tr><td height="10" style="height:10px;line-height:10px;font-size:10px;">&nbsp;</td></tr>') % (
-        WELL, WELL, FONT, INK, title, FONT, MUT, text, tlink(ctx.settings_url("&ask=" + what), "Choose on the settings page"))
-    inner = (h1("Choose your emails")
-             + lead("You have been with us for about ten days. Tell us what you want, and we will only send that. You can change it any time.", 16, 28)
-             + choice("weekly", "Weekly picks and alerts", "primary") + sp(12)
-             + choice("alerts", "Only saved-find alerts") + sp(12)
-             + choice("pause", "Pause for 30 days") + sp(12)
-             + choice("stop", "Stop all emails")
-             + hr("36px 0 28px") + h2("Two questions", "left")
-             + small("Both are off unless you say yes. No answer means no, and you can turn either off again in one tap.", 0, "left") + sp(16)
-             + '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
-             + switch("track", "Measure my email clicks", "Today we count clicks per email, never per person. Say yes and we count yours, so we can send you fewer emails you don't use.")
-             + switch("personal", "Personalise my emails from finds I view", "Today your picks come from your saves, your style and your size. Say yes and we also use the finds you look at on the site.")
-             + '</table>'
-             + small("This email has no tracked links: we can't see whether you open it or click in it.", 12))
-    return mail(ctx, "Choose which emails you get", inner, "Weekly picks, alerts only, a pause or stop.", WHY_ALL)
-
-
 CAT_WORD = {"Tops": "tops", "Shoes": "shoes", "Outerwear": "outerwear", "Accessories": "accessories", "Pants": "pants",
             "Bags": "bags", "Shorts": "shorts", "Headwear": "headwear", "Toys": "toys"}
 
@@ -1491,13 +1465,14 @@ def render_wb1(ctx, m, cat, n_new, picks):
 
 
 def render_wb2(ctx, m, cat):
+    """Day 90. A visit (a sign-in or a find opened) keeps the emails coming, so "Yes" opens the site (counted per email,
+    like every link); "No" is the unsubscribe page, direct like the footer link, where one tap stops everything."""
     inner = (h1("Keep getting our weekly picks?")
-             + lead("It has been a while since your last visit. Tell us what you want from us, and we will only send that. No hard feelings either way.", 16, 28)
-             + btn(ctx.settings("keep-weekly", "&pick=weekly"), "Yes, keep the weekly picks") + sp(12)
-             + btn(ctx.settings("keep-alerts", "&pick=alerts"), "Only saved-find alerts", "outline") + sp(12)
-             + btn(ctx.settings("keep-stop", "&pick=stop"), "Stop all emails", "outline")
-             + small("If we don't hear from you, we will send less, and after a few weeks we will stop. Your account and your saved finds stay.", 24))
-    return mail(ctx, "Keep getting our weekly picks?", inner, "Choose what you get from us, or stop with one tap.", WHY_ALL)
+             + lead("It has been a while since your last visit. If you still want our picks, stop by the site once and we will keep sending them. No hard feelings either way.", 16, 28)
+             + btn(ctx.page("keep", "/"), "Yes, take me to the finds") + sp(12)
+             + btn(ctx.unsub(), "No, stop all emails", "outline")
+             + small("If you don't stop by, we will stop sending in a few weeks. Your account and your saved finds stay.", 24))
+    return mail(ctx, "Keep getting our weekly picks?", inner, "Visit once to keep them, or unsubscribe.", WHY_ALL)
 
 
 # ---------------------------------------------------------------- sending
@@ -1531,10 +1506,11 @@ class Sender:
 
     # -- what was sent before
     def load_keys(self, flt):
-        rows = sb_all("email_sends?select=member_id,template,campaign_key,status,created_at&%s&order=created_at" % flt)
+        rows = sb_all("email_sends?select=member_id,template,campaign_key,status,error,created_at&%s&order=created_at" % flt)
         for r in rows:
             k = (r.get("member_id"), r.get("template"), r.get("campaign_key"))
-            if r.get("status") == "failed": self.failed[k] = self.failed.get(k, 0) + 1
+            if r.get("status") == "failed":
+                if not str(r.get("error") or "").startswith(STOP_MARK): self.failed[k] = self.failed.get(k, 0) + 1
             else: self.keys[k] = parse_ts(r.get("created_at")) or self.now
 
     def load_log(self):
@@ -1625,7 +1601,7 @@ class Sender:
         tpl = TEMPLATES[template]
         sid = mail_links.new_send_id()
         bid = self.batch(template, build(None))
-        ctx = Ctx(template, m.id, sid if m.track else bid, m.fb, upload=True, plain=(template == "w4"))
+        ctx = Ctx(template, m.id, sid if m.track else bid, m.fb, upload=True)
         mail = build(ctx)
         if mail is None: return False
         size = len(mail.html.encode("utf-8"))
@@ -1648,7 +1624,7 @@ class Sender:
         try:
             res = ADAPTERS[prov](m.email, mail.subject, mail.html, ctx.unsub(), sid, FROM[tpl["group"]], FROM_NAME)
         except Stop as e:
-            self._finish(sid, Result(False, error=str(e))); self.stopped = str(e); self.stats["failed"] += 1
+            self._finish(sid, Result(False, error=STOP_MARK + str(e))); self.stopped = str(e); self.stats["failed"] += 1
             return False
         self._finish(sid, res, meta)
         pt = self.per_tpl.setdefault(template, [0, 0])
@@ -1749,7 +1725,7 @@ def stream_w0(S, members, cat_get, backfill=False):
     if backfill:
         old = [m for m in members if not m.welcomed and m.created and m.created < now - timedelta(days=BACKFILL_DAYS)]
         for m in old:
-            patch_profile(m.id, {"welcomed": True, "onboard_step": 4})   # no welcome series for them either
+            patch_profile(m.id, {"welcomed": True, "onboard_step": ONBOARD_LAST})   # no welcome series for them either
             m.welcomed, m.step = True, 4
         say("backfill: %d unwelcomed members older than %d days marked welcomed, no email" % (len(old), BACKFILL_DAYS))
         window = timedelta(days=BACKFILL_DAYS)
@@ -1791,20 +1767,20 @@ def onboard_due(m, step):
 
 
 def stream_onboarding(S, members, cat_get, act_get):
-    """W1 to W4 when due, one at a time, at least 20 hours after the last one. They do not count toward the marketing
+    """W1 to W3 when due, one at a time, at least 20 hours after the last one. They do not count toward the marketing
     cap, but they do toward the day's warm-up volume."""
     now = S.now
     if not S.can("w1"): return
     due = []
     for m in members:
-        if not m.welcomed or not m.welcomed_at or m.welcomed_at < now - ONBOARD_WINDOW or m.step >= 4: continue
+        if not m.welcomed or not m.welcomed_at or m.welcomed_at < now - ONBOARD_WINDOW or m.step >= ONBOARD_LAST: continue
         if not m.mail_ok(S.suppressed) or not m.may_market(now, "onboarding"): continue
         if m.onboard_at and now - m.onboard_at < FREQ_GAP: continue
         step = m.step + 1
         if now >= onboard_due(m, step): due.append((m, step))
     if not due: say("welcome series: nothing due"); return
     for part in chunks([m.id for m, _ in due], 80):
-        S.load_keys("template=in.(w1,w2,w3,w4)&member_id=in.%s" % in_list(part))
+        S.load_keys("template=in.(%s)&member_id=in.%s" % (",".join(ONBOARD_TEMPLATES), in_list(part)))
     due.sort(key=lambda ms: (not ms[0].engaged(now), ms[0].welcomed_at))
     sent = 0
     for i, (m, step) in enumerate(due):
@@ -1821,8 +1797,7 @@ def stream_onboarding(S, members, cat_get, act_get):
             cat = cat_get()
             if step == 1: return render_w1(ctx, m, cat)
             if step == 2: return render_w2(ctx, m, cat)
-            if step == 3: return render_w3(ctx, m, cat, pick_finds(cat, m, 6, random.Random(m.id + "w3")))
-            return render_w4(ctx, m, cat)
+            return render_w3(ctx, m, cat, pick_finds(cat, m, 6, random.Random(m.id + "w3")))
         if S.send(m, template, template, build, {"onboard_step": step, "onboard_at": ts_now(S), "email_last_at": ts_now(S)}, {"onboard_step": step - 1}):
             sent += 1; m.step, m.onboard_at = step, now
     say("welcome series: %d sent (%d due)" % (sent, len(due)))
@@ -2143,7 +2118,7 @@ VARIANTS = [
     ("w0-oopbuy", "w0", {"arm": "a", "agent": "oopbuy"}), ("w0-usfans", "w0", {"arm": "a", "agent": "usfans"}), ("w0-fb", "w0", {"arm": "a", "fb": True}),
     ("w0-late", "w0-late", {}), ("w0-late-fb", "w0-late", {"fb": True}),
     ("w1", "w1", {}), ("w1-kakobuy", "w1", {"agent": "kakobuy"}), ("w2", "w2", {}), ("w2-fb", "w2", {"fb": True}),
-    ("w3", "w3", {"style": "street", "size": {"l": "M"}, "taste": True}), ("w4", "w4", {}),
+    ("w3", "w3", {"style": "street", "size": {"l": "M"}, "taste": True}),
     ("picks-a", "picks", {"arm": "a", "taste": True}), ("picks-b", "picks", {"arm": "b", "taste": True, "style": "old", "personal": True}),
     ("alert", "alert", {"changes": "mixed"}), ("alert-drop", "alert", {"changes": "drop"}),
     ("wb1", "wb1", {"taste": True}), ("wb2", "wb2", {}),
@@ -2153,14 +2128,13 @@ VARIANTS = [
 def compose(name, template, opts, cat, link_id, upload):
     names = [v[0] for v in VARIANTS]
     m = fake_member(names.index(name) + 1 if name in names else 99, cat, **opts)
-    ctx = Ctx(template, m.id, link_id, m.fb, upload, plain=(template == "w4"))
+    ctx = Ctx(template, m.id, link_id, m.fb, upload)
     rnd = random.Random(name)
     if template == "w0": out = render_w0(ctx, m, cat, opts.get("arm", "a"))
     elif template == "w0-late": out = render_w0_late(ctx, m, cat)
     elif template == "w1": out = render_w1(ctx, m, cat)
     elif template == "w2": out = render_w2(ctx, m, cat)
     elif template == "w3": out = render_w3(ctx, m, cat, pick_finds(cat, m, 6, rnd))
-    elif template == "w4": out = render_w4(ctx, m, cat)
     elif template == "picks": out = render_picks(ctx, m, cat, pick_finds(cat, m, 6, rnd), opts.get("arm", "a"))
     elif template == "alert":
         ch = fake_changes(cat, opts.get("changes"))
