@@ -42,6 +42,54 @@
     } catch (e) { return ""; }
   }
   var SRC = source();                                             // on the landing page, before any internal navigation
+
+  /* Visit timer (26 Nov 2026, owner: "average time on the site, median etc"), for the Engagement section on /stats.
+     One visit = this browser tab until 30 minutes pass without it being used. Kept in this tab's sessionStorage ("pc.visit",
+     gone when the tab closes): a random visit id, when it started, the active time, pages, finds opened, seconds on finds,
+     buy clicks, the first page's path, the source above, and whether this browser had used the site before (worked out
+     once from what the site already keeps here: the taste log or a sign-in). Active time counts only while the tab is
+     visible and stops after 5 minutes without a tap, scroll, key or mouse move. Running totals go to /api/visit
+     (functions/api/visit.js) when the tab is hidden or the page is left, and every 2 minutes of use. No cookie, no
+     account, nothing else about the visitor. */
+  var VK = "pc.visit", V_IDLE = 300000, V_GAP = 1800000, V = null, vLast = "", vTick = Date.now(), vIn = Date.now(), vBeat = 0, vVis = !document.hidden;
+  function vSave() { try { if (V) sessionStorage.setItem(VK, JSON.stringify(V)); } catch (e) {} }
+  function vId() {
+    try {
+      if (crypto.randomUUID) return crypto.randomUUID();
+      var b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+      var h = ""; for (var i = 0; i < 16; i++) h += (b[i] + 256).toString(16).slice(1);
+      return h.slice(0, 8) + "-" + h.slice(8, 12) + "-" + h.slice(12, 16) + "-" + h.slice(16, 20) + "-" + h.slice(20);
+    } catch (e) { return ""; }
+  }
+  function vReturning(start) {                                    // 1 when this browser already holds site activity from before this visit
+    try {
+      if (localStorage.getItem("sb-uptpghuduqjqmrxwatbm-auth-token")) return 1;
+      var t = JSON.parse(localStorage.getItem("pc.taste") || "{}") || {};
+      for (var k in t) if (Array.isArray(t[k])) for (var i = 0; i < t[k].length; i++) { var e = t[k][i]; if (e && typeof e[1] === "number" && e[1] < start) return 1; }
+    } catch (e) {}
+    return 0;
+  }
+  function vNew(now) {
+    var s = vId(); vLast = ""; vBeat = 0;
+    V = s ? { s: s, la: now, a: 0, p: 0, f: 0, fs: 0, fn: 0, b: 0, e: location.pathname.slice(0, 120), r: vReturning(now), src: SRC, sent: "" } : null;
+  }
+  try { V = JSON.parse(sessionStorage.getItem(VK) || "null"); } catch (e) { V = null; }
+  if (!V || !V.s || Date.now() - (V.la || 0) > V_GAP) vNew(Date.now());
+  if (V) { V.p++; vLast = /^\/product\//.test(location.pathname) ? "" : location.pathname; vSave(); }
+  function vAccrue() {                                            // add the visible, not idle time since the last call
+    var n = Date.now();
+    if (V && vVis && n - vIn < V_IDLE) { V.a += Math.max(0, Math.min(n - vTick, 15000)); V.la = n; }
+    vTick = n;
+  }
+  function vSend() {
+    if (!V) return;
+    var body = JSON.stringify({ s: V.s, a: Math.round(V.a / 1000), p: V.p, f: V.f, fs: V.fs, fn: V.fn, b: V.b, e: V.e, r: V.r, src: V.src });
+    if (body === V.sent) return;
+    V.sent = body; vSave();
+    try { if (navigator.sendBeacon && navigator.sendBeacon("/api/visit", new Blob([body], { type: "application/json" }))) return; } catch (e) {}
+    try { fetch("/api/visit", { method: "POST", body: body, headers: { "content-type": "application/json" }, keepalive: true }); } catch (e) {}
+  }
+  function vCount(k, n) { if (V) { V[k] += n || 1; vSave(); } }
   // The catalogue app (homepage and hubs) puts /product/<id> in the address bar when it opens a find, so a click there
   // would look like one on the server-rendered product page. The app's clicks are sent as "/app" + the page it was
   // loaded on (/app/, /app/kakobuy-spreadsheet ...); real product pages keep their own path.
@@ -66,6 +114,7 @@
     var href = a.href || "", now = Date.now();
     if (href === last.href && now - last.t < 2000) return;        // a double tap opens one tab: count it once
     last = { href: href, t: now };
+    vCount("b");
     var u = href; try { u = decodeURIComponent(href); } catch (e) {}
     var pl = /1688\.com|mallType=1688|platform=1688/i.test(u) ? "1688" : /taobao|tmall|mallType=taobao|platform=taobao/i.test(u) ? "taobao" : /weidian/i.test(u) ? "weidian" : "";
     var body = JSON.stringify({ a: agent, i: itemOf(href), pl: pl, pg: pageNow(), r: SRC, c: CMP });
@@ -152,6 +201,7 @@
     var ms = open.ms + (open.t0 ? Date.now() - open.t0 : 0), id = open.id; open = null;
     var sec = Math.min(600, Math.round(ms / 1000));
     if (sec < 1) return;
+    if (V) { V.fs += sec; V.fn++; vSave(); }                     // the visit timer: seconds on finds
     tasteRW(function (t) {
       var a = Array.isArray(t.v) ? t.v : [];
       for (var i = a.length - 1; i >= 0 && i >= a.length - 5; i--) if (a[i][0] === id) { a[i][2] = Math.max(a[i][2] || 0, sec); return; }
@@ -163,7 +213,8 @@
     if (m) { id = m[1]; try { id = decodeURIComponent(id); } catch (e) {} if (!/^[A-Za-z0-9_-]{4,40}$/.test(id)) id = ""; }
     if (open && open.id === id) return;
     closeView();
-    if (id) { taste("v", id); open = { id: id, t0: document.hidden ? 0 : Date.now(), ms: 0 }; }
+    if (id) { taste("v", id); vCount("f"); open = { id: id, t0: document.hidden ? 0 : Date.now(), ms: 0 }; }
+    else if (path && path !== vLast) { if (vLast) vCount("p"); vLast = path; }   // an in-app page change (not the first page)
   }
   function curId() { return open ? open.id : ""; }
   seen(location.pathname);                                       // a product page, or the app opened on one
@@ -238,4 +289,26 @@
     clearTimeout(hov.t); hov.el = c;
     if (c) hov.t = setTimeout(function () { if (hov.el === c) taste("h", cardId(c)); }, 1200);
   }, { passive: true });
+
+  /* the visit timer's listeners, last, so the find timer above has added its seconds before a beacon goes */
+  if (V) {
+    var vInput = function () { var n = Date.now(); if (n - vIn >= V_IDLE) vTick = n; vIn = n; };   // after an idle spell, count from now
+    ["pointerdown", "pointermove", "keydown", "wheel", "touchstart", "scroll"].forEach(function (k) {
+      document.addEventListener(k, vInput, { passive: true, capture: true });
+    });
+    setInterval(function () {
+      if (document.hidden) return;
+      vAccrue(); vSave();
+      if (V && V.a - vBeat >= 120000) { vBeat = V.a; vSend(); }   // every 2 minutes of use, in case the tab is never hidden
+    }, 5000);
+    document.addEventListener("visibilitychange", function () {
+      vAccrue(); vVis = !document.hidden;                       // the time up to this moment counts as it was
+      if (!vVis) { vSave(); vSend(); return; }
+      var n = Date.now();
+      if (V && n - (V.la || 0) > V_GAP) { vNew(n); if (V) { V.p = 1; vLast = /^\/product\//.test(location.pathname) ? "" : location.pathname; } }   // back after 30 minutes: a new visit
+      vTick = n; vIn = n; vSave();
+    });
+    window.addEventListener("pagehide", function () { vAccrue(); vSave(); vSend(); });
+    window.addEventListener("pageshow", function (e) { if (e.persisted) { vTick = Date.now(); vIn = vTick; vVis = !document.hidden; } });   // back from the back/forward cache
+  }
 })();

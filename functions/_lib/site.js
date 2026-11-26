@@ -765,7 +765,7 @@ ${body}
 </div></main>
 ${footer()}
 ${PAGE_JS}${SEARCH_BOOT_JS}${body.indexOf('class="cbuy"') >= 0 ? AGENT_SWAP_JS : ""}${CUR_JS}
-<script src="/track.js?v=5" defer></script>
+<script src="/track.js?v=6" defer></script>
 <script src="/feedback.js?v=2" defer></script>
 <script src="/chat.js?v=7" defer></script>
 </body>

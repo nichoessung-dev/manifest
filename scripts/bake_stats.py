@@ -245,6 +245,81 @@ def searches():
             "zero": [[q, x["n"], x["zero"]] for q, x in zero]}
 
 
+VISITS_KEEP_DAYS = 90   # site_visits rows are deleted after this many days (purge_site_visits, scripts/site_visits.sql)
+ENTRY_MIN = 5           # a first page is listed only with this many visits in the period: dashboard.json is public
+
+def rpc(name, args):
+    req = urllib.request.Request(f"{SUPA}/rest/v1/rpc/{name}", method="POST", data=json.dumps(args).encode(),
+        headers={"apikey": KEY, "Authorization": "Bearer " + KEY, "Content-Type": "application/json"})
+    return json.load(urllib.request.urlopen(req, timeout=60))
+
+def purge_visits():
+    """Retention for site_visits: rows older than VISITS_KEEP_DAYS are deleted (set VISITS_PURGE=0 to only count them).
+    Never fails the bake: a missing function (scripts/site_visits.sql not run yet) prints one line."""
+    try:
+        n = rpc("purge_site_visits", {"p_days": VISITS_KEEP_DAYS, "p_dry": True})
+        print(f"visit retention, dry run: {n} rows older than {VISITS_KEEP_DAYS} days")
+        if n and os.environ.get("VISITS_PURGE", "1") != "0": print("visit retention: deleted", rpc("purge_site_visits", {"p_days": VISITS_KEEP_DAYS, "p_dry": False}))
+    except Exception as e: print("visit retention skipped:", str(e)[:80])
+
+def _num(v, nd=1):
+    try: return round(float(v), nd)
+    except (TypeError, ValueError): return None
+
+def visit_period(s):
+    """One visit_summary() result -> the compact form dashboard.json carries. First pages with fewer than ENTRY_MIN visits
+    are left out (they could be anything a visitor typed), each listed one with its page kind."""
+    s = s or {}
+    hist = [int(x or 0) for x in (s.get("hist") or [])][:6]
+    entries = []
+    for e in s.get("entries") or []:
+        try: path, n, med, b = str(e[0] or ""), int(e[1] or 0), _num(e[2]), int(e[3] or 0)
+        except Exception: continue
+        if n >= ENTRY_MIN and path.startswith("/"): entries.append([path[:120], page_kind(path), n, med, b])
+    out = {k: int(s.get(k) or 0) for k in ("visits", "bounce", "pages", "finds", "find_s", "find_n", "buys", "buy_visits", "returning")}
+    out.update({"avg_s": _num(s.get("avg_s")), "median_s": _num(s.get("median_s")), "ret_median_s": _num(s.get("ret_median_s")),
+                "new_median_s": _num(s.get("new_median_s")), "hist": hist + [0] * (6 - len(hist)), "entries": entries[:15]})
+    return out
+
+def engagement_from(summ, daily, first, now):
+    """summ: {"7": (current, previous), "30": (current, previous)} visit_summary() results; daily: visit_daily() rows
+    [day, visits, avg, median, bounces, visits with a buy]; first: the first visit's timestamp (None when there is none yet).
+    prev_full says whether the visit timer already ran through the whole previous period, so a comparison is fair."""
+    first_t = parse_ts(first) if first else None
+    out = {"ready": True, "since": first_t.date().isoformat() if first_t else None, "entry_min": ENTRY_MIN, "w": {}}
+    for k, (cur, prev) in summ.items():
+        start_prev = now - datetime.timedelta(days=2 * int(k))
+        out["w"][k] = {"cur": visit_period(cur), "prev": visit_period(prev), "prev_full": bool(first_t and first_t <= start_prev)}
+    per = {}
+    for r in daily or []:
+        try: per[str(r[0])[:10]] = r
+        except Exception: continue
+    days = [(now.date() - datetime.timedelta(days=i)).isoformat() for i in range(29, -1, -1)]
+    col = lambda i, f: [f(per[d][i]) if d in per and per[d][i] is not None else (0 if i in (1, 4, 5) else None) for d in days]
+    out["daily"] = {"days": days, "visits": col(1, int), "avg_s": col(2, _num), "median_s": col(3, _num), "bounce": col(4, int), "buy_visits": col(5, int)}
+    return out
+
+def engagement():
+    """Visit timing from track.js (table site_visits, functions/api/visit.js): the last 7 and 30 days and the period before
+    each, and the last 30 days per day, all as aggregates from visit_summary() / visit_daily(). {} until the owner has run
+    scripts/site_visits.sql; /stats then says the numbers start once it is set up."""
+    now = datetime.datetime.now(datetime.timezone.utc)
+    iso = lambda t: t.strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        summ, first = {}, None
+        for k in (7, 30):
+            a, b, c = now - datetime.timedelta(days=k), now - datetime.timedelta(days=2 * k), now
+            cur, prev = rpc("visit_summary", {"p_from": iso(a), "p_to": iso(c)}), rpc("visit_summary", {"p_from": iso(b), "p_to": iso(a)})
+            summ[str(k)] = (cur, prev); first = first or (cur or {}).get("first")
+        start = datetime.datetime.combine(now.date() - datetime.timedelta(days=29), datetime.time(), datetime.timezone.utc)
+        daily = rpc("visit_daily", {"p_from": iso(start)})
+    except Exception as e: print("visit timing not read:", str(e)[:80]); return {}
+    purge_visits()
+    out = engagement_from(summ, daily, first, now)
+    print("engagement: %d visits in 30 days since %s" % (out["w"]["30"]["cur"]["visits"], out["since"]))
+    return out
+
+
 def dashboard():
     """data/dashboard.json for the private /stats page: daily and monthly aggregates only (no user ids, no addresses).
     Active users = distinct signed-in members who opened a find that day / month; guests carry no id, so they show only in views."""
@@ -293,7 +368,9 @@ def dashboard():
     except Exception as e: print("product page views not made:", str(e)[:80]); out["page_views"] = {}
     if isinstance(clicks, dict): clicks.pop("_on_page", None)
     out["buy_clicks"] = clicks
-    new = json.dumps(out, separators=(",", ":"))
+    try: out["engagement"] = engagement()
+    except Exception as e: print("engagement not made:", str(e)[:80]); out["engagement"] = {}
+    new =json.dumps(out, separators=(",", ":"))
     old = open("data/dashboard.json").read() if os.path.exists("data/dashboard.json") else ""
     strip = lambda s: s.split(',"days"', 1)[-1]
     if strip(old) == strip(new): print("dashboard unchanged"); return
