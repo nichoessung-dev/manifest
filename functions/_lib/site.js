@@ -473,14 +473,70 @@ export const recBadge = (p, app = false, where = "card") => (!swapped(p) || wher
     : `<span class="rbadge" style="vertical-align:middle;margin-left:10px;${REC_TEXT}">${REC_ICON}Best batch</span>`;
 // 18 Nov 2026 (owner): no badge on cards any more ("Best batch" shows only on the product page, recBadge "inline")
 export const colourBadge = (p, icon) => "";
+// The card's title as the app's cards show it (gridTitle() in index.html): without the brand that sits above it and without
+// words we keep out of copy. The full title stays in the photo's alt text.
+const GRID_DROP = /(^|\s)(replicas?|reps?|fakes?|1:1)(?=\s|$)/gi;
+export function gridTitle(p) {
+  let t = String(p.title || ""); const b = String(p.brand || "");
+  if (b && t.toLowerCase().indexOf(b.toLowerCase() + " ") === 0) t = t.slice(b.length + 1);
+  t = t.replace(GRID_DROP, " ").replace(/\s+/g, " ").trim();
+  if (!t) t = String(p.title || "").replace(GRID_DROP, " ").replace(/\s+/g, " ").trim();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : "";
+}
+// v10 card (26 Nov 2026, owner: server pages should look like the app): the app's card (index.html #pc-rail-css). A real
+// card with a hairline, the photo on its tile, the brand as a small capitals label, the short title, then the price with a
+// soft "Buy" pill on one line. The QC camera is a small chip on the photo. The photo and text link fills the card
+// (.cl::after), the QC chip and Buy sit above it.
+const CAM_SM = ic("camera", "sm");
 export function card(p, lazy = true) {
   const src = imgSrc(p), u = productUrl(p), ag = AGENTS.mycnbox;
-  return `<div class="c"><a class="cl" href="${u}">` +
+  return `<div class="c rc"><a class="cl" href="${u}">` +
     `<span class="ci${cutCls(p)}">${src ? `<img src="${esc(thumbSrc(src))}" data-o="${esc(src)}" alt="${esc(p.title)}" width="300" height="300"${lazy ? ' loading="lazy"' : ""} decoding="async" ${IMG_FALLBACK}>` : ""}${colourBadge(p)}</span>` +
-    `<span class="cb">${p.brand ? `<span class="cbr">${esc(p.brand)}</span>` : ""}<span class="ct">${esc(p.title)}</span><span class="cp">${money(p.cny)}</span></span></a>` +
-    `<span class="ca">${p.qc >= 1 ? `<a class="cq" href="${u}#qc" aria-label="QC photos: ${esc(p.title)}">${QC_ICON}QC</a>` : ""}` +
+    `<span class="cb">${p.brand ? `<span class="cbr">${esc(p.brand)}</span>` : ""}<span class="ct">${esc(gridTitle(p))}</span></span></a>` +
+    (p.qc >= 1 ? `<a class="cq" href="${u}#qc" aria-label="QC photos: ${esc(p.title)}">${CAM_SM}</a>` : "") +
+    `<span class="ca"><span class="cp">${money(p.cny)}</span>` +
     `<a class="cbuy" href="${esc(ag.build(p))}" data-agent="mycnbox" data-pl="${esc(p.platform)}" data-iid="${esc(p.itemId || p.id)}" target="_blank" rel="sponsored nofollow noopener" aria-label="Buy ${esc(p.title)} via ${ag.name}">Buy</a></span></div>`;
 }
+// The spreadsheet banner (26 Nov 2026, owner: "convert more to the main page"): one calm card at the end of the server
+// pages that sends visitors into /spreadsheet, filtered to what they were looking at. q: a search (a brand), cat: a
+// category key (Shoes, Outerwear ...), label: the main button. A search field submits to /spreadsheet?q=. No popups.
+// page() adds a plain one to any page without one (and without a guide's own closing panel); the hubs and the product
+// page place theirs. SX_CSS is self-contained (only the shared colour tokens), so it works in ds.css pages and the app hubs.
+export function sheetCta({ q = "", cat = "", label = "", h = "", p = "" } = {}) {
+  const href = q ? `/spreadsheet?q=${encodeURIComponent(q)}` : cat ? `/spreadsheet?cat=${encodeURIComponent(cat)}` : "/spreadsheet";
+  const main = label || (q || cat ? "See them all" : "Browse all finds");
+  return `<aside class="sx" aria-label="The spreadsheet"><div class="sx-t"><p class="sx-e">${ic("sheet", "sm")}The spreadsheet</p>` +
+    `<h2 class="sx-h">${esc(h || `All ${FINDS_PLUS} finds in one place`)}</h2>` +
+    `<p class="sx-p">${esc(p || "Search by brand, filter by price and see buyer QC photos. Every find opens on your agent.")}</p></div>` +
+    `<div class="sx-r"><form class="sx-f" action="/spreadsheet" method="get" role="search">${ic("search", "sm")}` +
+    `<input name="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="Search ${FINDS_PLUS} finds" aria-label="Search ${FINDS_PLUS} finds">` +
+    `<button type="submit" aria-label="Search">${ic("arrow-right", "sm")}</button></form>` +
+    `<div class="sx-a"><a class="sx-b" href="${href}">${esc(main)}${ic("arrow-right", "sm")}</a>` +
+    `${q || cat ? `<a class="sx-l" href="/spreadsheet">Browse all finds</a>` : ""}</div></div></aside>`;
+}
+export const SX_CSS = `<style id="sx-css">.sx{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,400px);gap:20px 40px;align-items:center;margin:48px 0 8px;padding:28px 32px;` +
+  `border:1px solid var(--line);border-radius:22px;background:var(--surface);color:var(--ink)}` +
+  `:root:not([data-theme="dark"]) .sx{border-color:color-mix(in srgb,var(--ink) 15%,transparent);box-shadow:0 1px 2px rgba(0,0,0,.05)}` +
+  `@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="dark"]) .sx{border-color:var(--line);box-shadow:none}}` +
+  `.sx .sx-e{display:flex;align-items:center;gap:6px;margin:0 0 8px;font-size:13px;font-weight:500;color:var(--muted)}.sx .sx-e .ic{width:15px;height:15px}` +
+  `.sx .sx-h{margin:0;font-size:clamp(22px,1vw + 16px,28px);font-weight:650;line-height:1.15;letter-spacing:-.025em;color:var(--ink);text-wrap:balance}` +
+  `.sx .sx-p{margin:8px 0 0;max-width:34rem;font-size:15px;line-height:1.5;color:var(--muted);text-wrap:pretty}` +
+  `.sx-f{position:relative;display:flex;align-items:center;height:48px;margin:0;border:1px solid var(--field-line,var(--line-2));border-radius:999px;background:color-mix(in srgb,var(--ink) 3%,var(--surface))}` +
+  `.sx-f>.ic{position:absolute;left:16px;width:17px;height:17px;color:var(--muted);pointer-events:none}` +
+  `.sx .sx-f input{flex:1;min-width:0;height:100%;margin:0;padding:0 8px 0 42px;border:0;border-radius:999px;background:transparent;box-shadow:none;color:var(--ink);font:inherit;font-size:16px;outline:0;-webkit-appearance:none;appearance:none}` +
+  `.sx-f input::placeholder{color:var(--muted)}.sx-f input::-webkit-search-cancel-button{display:none}` +
+  `.sx-f:focus-within{border-color:var(--accent,var(--ink));box-shadow:0 0 0 4px color-mix(in srgb,var(--accent,var(--ink)) 18%,transparent)}` +
+  `.sx-f button{display:grid;place-items:center;flex:none;width:38px;height:38px;margin-right:4px;padding:0;border:0;border-radius:999px;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent}` +
+  `.sx-f button .ic{width:17px;height:17px}` +
+  `.sx-a{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin-top:12px}` +
+  `.sx .sx-b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 22px;border-radius:999px;background:var(--fill);color:var(--fill-ink);font-size:15px;font-weight:600;white-space:nowrap;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:opacity .1s linear,transform .12s cubic-bezier(.22,1,.36,1)}` +
+  `.sx .sx-b .ic{width:16px;height:16px}` +
+  `.sx .sx-l{display:inline-flex;align-items:center;min-height:44px;color:var(--ink);font-size:14.5px;font-weight:500;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--ink) 30%,transparent);text-underline-offset:3px}` +
+  `@media (hover:hover){.sx .sx-b:hover{opacity:.88}.sx .sx-l:hover{text-decoration-color:currentColor}.sx-f button:hover{background:var(--fill);color:var(--fill-ink)}}` +
+  `.sx .sx-b:active{transform:scale(.97)}` +
+  `@media (max-width:760px){.sx{grid-template-columns:minmax(0,1fr);gap:18px;margin-top:36px;padding:22px 18px;border-radius:18px}.sx-a{flex-direction:column;align-items:stretch;gap:4px}.sx .sx-l{justify-content:center}}` +
+  `.hx-app>.sx{box-sizing:border-box;width:calc(100% - 32px);max-width:1232px;margin:56px auto 0}` +
+  `@media (prefers-reduced-motion:reduce){.sx .sx-b{transition:none}.sx .sx-b:active{transform:none}}</style>`;
 export const grid = (list, eager = 0) => `<div class="g">${list.map((p, i) => card(p, i >= eager)).join("")}</div>`;
 
 export function crumbs(items) {
@@ -506,7 +562,7 @@ export function pager(base, page, pages) {
 
 // ------------------------------------------------------------------ layout
 // Styles live in /ds.css (the design system, see DESIGN.md); bump DS_VER when that file changes so browsers fetch it again.
-export const DS_VER = "42";
+export const DS_VER = "43";
 
 export const GUIDE_LINKS = [
   ["How to order (video)", "/how-to-order"],
@@ -734,6 +790,10 @@ ${SEARCH_SHELL}<div class="hr">${CTA_GONE_JS}` +
 
 export function page({ title, desc, path, body, jsonld = [], robots = "index,follow,max-image-preview:large", image, status = 200, extraHead = "", ogType = "website" }) {   // ogType: "article" on guides (25 Nov 2026)
   const url = SITE + path;
+  // the spreadsheet banner (sheetCta above): a plain one at the end of any page that has none, except a guide, whose own
+  // closing panel already sends readers to the spreadsheet, and error pages
+  if (status === 200 && body.indexOf('class="sx"') < 0 && body.indexOf('class="ga-end"') < 0) body += sheetCta();
+  if (body.indexOf('class="sx"') >= 0 && extraHead.indexOf('id="sx-css"') < 0) extraHead += SX_CSS;
   if (title.length > 60) title = title.replace(/ [·|] Puro Classico$/, "");   // Google shows about 60 characters, and prints the site name above every result anyway
   const img = image || SITE + "/og.png";
   const html = `<!DOCTYPE html>
@@ -778,7 +838,7 @@ ${PAGE_JS}${SEARCH_BOOT_JS}${body.indexOf('class="cbuy"') >= 0 ? AGENT_SWAP_JS :
 export function notFound(path) {
   const { all } = idx();
   const body = `<h1>Page not found</h1><p class="lead">That page doesn't exist (or the find was removed). Try one of these instead.</p>
-<div class="chips"><a href="/">Browse all finds</a><a href="/brands">All brands</a><a href="/category/sneakers">Sneakers</a><a href="/category/jackets">Jackets</a><a href="/old-money">Old money</a><a href="/how-to-order">How to order</a></div>
+<div class="chips"><a href="/spreadsheet">Browse all finds</a><a href="/brands">All brands</a><a href="/category/sneakers">Sneakers</a><a href="/category/jackets">Jackets</a><a href="/old-money">Old money</a><a href="/how-to-order">How to order</a></div>
 <h2>Popular right now</h2>${grid(all.slice(0, 12))}`;
   return page({ title: "Page not found · Puro Classico", desc: "This page doesn't exist.", path, body, robots: "noindex,follow", status: 404 });
 }

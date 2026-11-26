@@ -103,6 +103,7 @@ export async function onRequest(ctx) {
   if (/^\/feed(\.html)?\/?$/.test(new URL(ctx.request.url).pathname)) return Response.redirect(new URL("/", ctx.request.url).toString(), 301);
   let res = await route(ctx);
   if (res.status === 404) { const to = rescue(new URL(ctx.request.url).pathname); if (to) return Response.redirect(new URL(to, ctx.request.url).toString(), 301); }
+  if (res.status === 404 && (res.headers.get("content-type") || "").includes("text/html")) { const m = await missApp(ctx); if (m) res = m; }
   if (/^fb\./i.test(new URL(ctx.request.url).hostname)) res = await fbRewrite(res);
   const preview = new URL(ctx.request.url).hostname.endsWith("." + PAGES_DEV);
   const bare = !res.headers.has("x-content-type-options");   // built by a Function, so _headers never reached it
@@ -111,6 +112,35 @@ export async function onRequest(ctx) {
   if (bare) for (const [k, v] of Object.entries(SECURITY_HEADERS)) out.headers.set(k, v);
   if (preview) out.headers.set("x-robots-tag", "noindex");
   return out;
+}
+
+// 404 = the spreadsheet (owner, 26 Nov 2026: "why not just make this site a spreadsheet in itself"). Every page that does not
+// exist (an old link, a removed find, a typo) answers with the /spreadsheet document itself, still as a 404 with noindex
+// and no canonical, plus one calm line over the search. The address bar shows /spreadsheet, so the app behaves exactly as
+// there (search, filters, refresh, sharing). It comes from the same edge copy as /spreadsheet (route() below with a
+// /spreadsheet request); if that fails for any reason, the plain server 404 (notFound in site.js) stays.
+const MISS_HEAD = `<meta name="robots" content="noindex,follow"><script>try{history.replaceState(history.state,"","/spreadsheet")}catch(e){}</script>` +
+  `<style>.pc-miss{display:table;margin:0 auto 20px;padding:8px 16px;border-radius:999px;background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink);font-size:14px;line-height:1.4;text-align:center;text-wrap:balance}` +
+  `@media (max-width:560px){.pc-miss{display:block;margin:0 0 16px;border-radius:14px;font-size:13.5px}}</style>`;
+async function missApp(ctx) {
+  try {
+    const u = new URL(ctx.request.url);
+    if (ctx.request.method !== "GET" && ctx.request.method !== "HEAD") return null;
+    const h = new Headers(ctx.request.headers); h.delete("if-none-match"); h.delete("if-modified-since"); h.delete("range");
+    const sp = await route({ ...ctx, request: new Request(u.origin + "/spreadsheet", { method: "GET", headers: h }) });
+    if (sp.status !== 200 || !sp.headers.get("x-pc-sheet")) return null;
+    const out = new HTMLRewriter()
+      .on("title", { element(e) { e.setInnerContent("Page not found | Puro Classico"); e.after(MISS_HEAD, { html: true }); } })
+      .on('meta[name="robots"]', { element(e) { e.remove(); } })
+      .on('link[rel="canonical"]', { element(e) { e.remove(); } })
+      .on('script[type="application/ld+json"]', { element(e) { e.remove(); } })
+      .on("div.spx", { element(e) { e.prepend(`<p class="pc-miss" role="status">That page doesn't exist. Here are all ${FINDS_PLUS} finds instead.</p>`, { html: true }); } })
+      .transform(sp);
+    const hd = new Headers(out.headers);
+    for (const k of ["etag", "x-pc-sheet", "x-ssr-cache", "content-length"]) hd.delete(k);
+    hd.set("cache-control", "public, max-age=60"); hd.set("x-robots-tag", "noindex");
+    return new Response(ctx.request.method === "HEAD" ? null : out.body, { status: 404, headers: hd });
+  } catch (e) { return null; }
 }
 
 // Googlebot reads only the first 2 MB of each file, counted uncompressed (developers.google.com/search/docs/crawling-indexing/googlebot).
@@ -464,6 +494,7 @@ async function route(ctx) {
           isPartOf: { "@type": "WebSite", "@id": "https://www.puroclassico.com/#website", name: "Puro Classico", url: "https://www.puroclassico.com/" },
           publisher: { "@type": "Organization", "@id": "https://www.puroclassico.com/#org", name: "Puro Classico" } }).replace(/</g, "\\u003c") + "</script>", { html: true }); } })
         .transform(app);
+      sp.headers.set("x-pc-sheet", "1");   // marks the real /spreadsheet document for missApp() below (kept in the edge copy too)
       return request.method === "HEAD" ? new Response(null, { status: sp.status, headers: sp.headers }) : keep(sp);
     }
   }
