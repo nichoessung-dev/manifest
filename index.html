@@ -5283,7 +5283,8 @@ function agentRow(p){
 /* item 17: quiet "Affiliate link" label right under the buy button (before the coupon hint); the popover script is delegated */
 function affLabel(){ return ""; }   /* owner 30 Oct 2026: label removed; disclosure stays in the footer and /terms */
 /* the MyCNBox welcome offer, right under the buy button (21 Oct 2026): the coupons go to accounts made with our invite link */
-function couponHint(){ try{ if(localStorage.getItem("pc.hint.done")==="1") return ""; }catch(e){} return `<a class="buy-hint" href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" target="_blank" rel="sponsored noopener"><span>${t("coupon_hint")}</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a>`; }
+function couponHint(){ return "";   /* owner, 26 Nov 2026: "remove this from now on" */
+  try{ if(localStorage.getItem("pc.hint.done")==="1") return ""; }catch(e){} return `<a class="buy-hint" href="https://mycnbox.com/login/main-login?inviteCode=AACPYA" target="_blank" rel="sponsored noopener"><span>${t("coupon_hint")}</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a>`; }
 /* owner, 9 Nov 2026: "when you have clicked New to MyCNBox? it should disappear" */
 document.addEventListener("click",e=>{ const h=e.target.closest&&e.target.closest(".buy-hint,#pcwf-reg,#pcwf-have"); if(!h) return;
   try{ localStorage.setItem("pc.hint.done","1"); }catch(_){}
