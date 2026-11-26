@@ -3261,6 +3261,15 @@ html.sub-pre #sub-row[hidden]{display:flex!important;visibility:hidden;min-heigh
 @media (hover:hover){.v9-mini-in a:hover{color:var(--ink)!important;background:var(--surface-2)}}
 @media (max-width:640px){.v9-mini-in{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:10px 0}.v9-mini-in::-webkit-scrollbar{display:none}.v9-mini-in a{white-space:nowrap;flex:none}}
 </style>
+<style data-split="css" id="pc-top-css">/* back to top (26 Nov 2026, owner: "a very subtle arrow up here that makes you go to the top"): left of the toolbar search,
+   it slides in once the visitor is well down the sheet */
+.pc-top{flex:none;display:inline-flex;align-items:center;justify-content:center;width:0;height:40px;margin-right:-8px;padding:0;border:0;border-radius:999px;background:transparent;color:var(--muted);opacity:0;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:width 180ms ease,margin 180ms ease,opacity 180ms ease,color 100ms linear,background-color 100ms linear}
+.pc-top .ic{transform:rotate(180deg)}
+.pc-top.on{width:40px;margin-right:0;opacity:1}
+@media (hover:hover){.pc-top:hover{color:var(--ink);background:var(--surface-2)}}
+.pc-top:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.pc-top{transition:none}}
+</style>
 <style data-split="css" id="pc-rail-css">/* home rows (Popular Now and the category rows), 26 Nov 2026 (owner: "make the items on these way nicer"). The cards
    buildRows() draws carry .rc. A real card with a hairline, the photo on its tile (dark: the #262626 cut-out tile, light: no
    well, as Round 6), more room around the photo so every find sits the same way, the brand as a small capitals label, a
@@ -3503,6 +3512,7 @@ html #drawer .pp-filters{margin-top:14px}
 <div class="pc-tb-sent" id="pc-tb-sent" aria-hidden="true"></div>
 <div class="deck">
   <div class="wrap">
+    <button type="button" class="pc-top" id="pc-top" aria-label="Back to top" title="Back to top" tabindex="-1"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button>
     <label class="search">
       <svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>
       <input id="q" type="search" placeholder="Search finds, e.g. hoodie, cargo, trainer&hellip;" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search products">
@@ -8697,3 +8707,9 @@ try{var AC=null,AH=matchMedia("(hover: hover)"),afp=function(l){var p=l.querySel
 var SEL=".card .thumb,.v9-cat-ph,.sk-card .sk-im",io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++)es[i].target.classList.toggle("pc-skon",es[i].isIntersecting);if(!R.hasAttribute("data-skv"))R.setAttribute("data-skv","")},{rootMargin:"200px"});
 function scan(n){if(!n||n.nodeType!==1)return;if(n.matches(SEL))io.observe(n);var l=n.querySelectorAll(SEL);for(var i=0;i<l.length;i++)io.observe(l[i])}
 scan(d.body);new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var a=ms[i].addedNodes;for(var j=0;j<a.length;j++)scan(a[j])}}).observe(d.body,{childList:true,subtree:true})}catch(e){}})();</script>
+<script>/* back to top: shown past 1.5 screens, glides up (jumps with reduced motion) */
+(function(){var b=document.getElementById("pc-top");if(!b)return;var on=false,tick=false;
+function upd(){tick=false;var v=window.scrollY>window.innerHeight*1.5;if(v!==on){on=v;b.classList.toggle("on",v);b.tabIndex=v?0:-1;}}
+window.addEventListener("scroll",function(){if(!tick){tick=true;requestAnimationFrame(upd);}},{passive:true});
+b.addEventListener("click",function(){var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;window.scrollTo({top:0,behavior:rm?"auto":"smooth"});try{document.getElementById("q").blur();}catch(e){}});upd();})();
+</script>
