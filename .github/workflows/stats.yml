@@ -3,6 +3,7 @@ name: Stats
 # (drives the "Most popular" sort and the /admin dashboard). Aggregates only, no personal data.
 # Then "people who liked this also liked" for every find into data/also.json (scripts/bake_also.py: co-likes counted
 # only for pairs held by 3+ members, blended with content similarity), with its offline evaluation in the log.
+# And the email numbers for /stats into data/email_stats.json (scripts/email_stats.py, aggregates only).
 on:
   schedule:
     - cron: '23 */6 * * *'
@@ -32,11 +33,18 @@ jobs:
         continue-on-error: true
         env:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      # Email v2 (26 Nov 2026): sends, human clicks, A/B tests, warm-up and list health for the Email section of /stats
+      # (data/email_stats.json, aggregates only). Its own step that may fail: the stats above still go out.
+      - run: python scripts/email_stats.py
+        continue-on-error: true
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       - name: Commit if changed
         run: |
           git add functions/_lib/signals.js
           git add data/stats.json data/dashboard.json 2>/dev/null || git add data/stats.json
           git add data/also.json 2>/dev/null || true
+          git add data/email_stats.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "no change"
           else

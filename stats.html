@@ -22,7 +22,7 @@
     --header:rgba(255,255,255,.6); --header-solid:#FFFFFF;
     --sh-sm:0 1px 2px rgba(0,0,0,.05); --sh-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);
     /* chart + status colours */
-    --c1:#0A0A0A; --c2:#A3A3A3; --grid:#EDEDED; --axis:#737373; --ok:#15803D; --live:#22C55E; --sk:#EDEDED; --sk-hi:#F7F7F7; --seg-on:#FFFFFF;
+    --c1:#0A0A0A; --c2:#A3A3A3; --grid:#EDEDED; --axis:#737373; --ok:#15803D; --warn:#B45309; --stop:#B42318; --live:#22C55E; --sk:#EDEDED; --sk-hi:#F7F7F7; --seg-on:#FFFFFF;
     color-scheme:light;
   }
   @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -30,7 +30,7 @@
     --line:rgba(255,255,255,.1); --line-2:rgba(255,255,255,.15); --fill:#E5E5E5; --fill-ink:#171717; --input-line:rgba(255,255,255,.4); --hover:#262626;
     --header:rgba(10,10,10,.6); --header-solid:#0A0A0A;
     --sh-sm:0 1px 2px rgba(0,0,0,.3); --sh-md:0 4px 6px -1px rgba(0,0,0,.4),0 2px 4px -2px rgba(0,0,0,.4);
-    --c1:#FAFAFA; --c2:#737373; --grid:#262626; --axis:#8A8A8A; --ok:#4ADE80; --sk:#232323; --sk-hi:#2E2E2E; --seg-on:#404040;
+    --c1:#FAFAFA; --c2:#737373; --grid:#262626; --axis:#8A8A8A; --ok:#4ADE80; --warn:#FBBF24; --stop:#F87171; --sk:#232323; --sk-hi:#2E2E2E; --seg-on:#404040;
     color-scheme:dark;
   }}
   :root[data-theme="dark"]{
@@ -38,7 +38,7 @@
     --line:rgba(255,255,255,.1); --line-2:rgba(255,255,255,.15); --fill:#E5E5E5; --fill-ink:#171717; --input-line:rgba(255,255,255,.4); --hover:#262626;
     --header:rgba(10,10,10,.6); --header-solid:#0A0A0A;
     --sh-sm:0 1px 2px rgba(0,0,0,.3); --sh-md:0 4px 6px -1px rgba(0,0,0,.4),0 2px 4px -2px rgba(0,0,0,.4);
-    --c1:#FAFAFA; --c2:#737373; --grid:#262626; --axis:#8A8A8A; --ok:#4ADE80; --sk:#232323; --sk-hi:#2E2E2E; --seg-on:#404040;
+    --c1:#FAFAFA; --c2:#737373; --grid:#262626; --axis:#8A8A8A; --ok:#4ADE80; --warn:#FBBF24; --stop:#F87171; --sk:#232323; --sk-hi:#2E2E2E; --seg-on:#404040;
     color-scheme:dark;
   }
   *,*::before,*::after{box-sizing:border-box}
@@ -219,6 +219,50 @@
   @media (hover:hover){#eng-entries a:hover{text-decoration:underline}}
   .eng-empty{display:grid;place-items:center;gap:4px;padding:28px 12px;border:1px dashed var(--line);border-radius:var(--r-md);color:var(--muted);font-size:13.5px;text-align:center}
   .eng-empty b{color:var(--ink);font-weight:600}
+  /* Email (Email v2, 26 Nov 2026): data/email_stats.json from scripts/email_stats.py, aggregates only */
+  .mtiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  @media (max-width:1100px){.mtiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media (max-width:640px){.mtiles{grid-template-columns:repeat(2,minmax(0,1fr))}.mtiles>:last-child{grid-column:1/-1}}
+  /* the report's warning and stop lines (alarms in email_stats.json): a coloured edge and tag on the tile */
+  .et.st-warn{border-color:var(--warn)} .et.st-stop{border-color:var(--stop);box-shadow:inset 0 0 0 1px var(--stop)}
+  .tag.st-ok{color:var(--ok);border-color:currentColor} .tag.st-warn{color:var(--warn);border-color:currentColor}
+  .tag.st-stop{color:var(--bg);background:var(--stop);border-color:var(--stop)}
+  .mail-stop{margin:0 0 14px}
+  .mail-stop::before{background:var(--stop)}
+  .mhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0 8px;flex-wrap:wrap}
+  .mhead .sublabel{margin:0}
+  #mail-card .tw td{white-space:nowrap}
+  #mail-table td:first-child{color:var(--ink);font-weight:500}
+  #mail-table td.m{color:var(--muted)}
+  #mail-table .spark{display:block;width:84px;height:24px;margin-left:auto;color:var(--c1);overflow:visible}
+  @media (max-width:640px){#mail-table td,#mail-table th{padding-left:6px;padding-right:6px;font-size:13px}#mail-table td:first-child,#mail-table th:first-child{padding-left:0}}
+  .ab + .ab{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+  .ab-h{display:flex;justify-content:space-between;align-items:baseline;gap:4px 12px;flex-wrap:wrap;font-size:13.5px;margin-bottom:10px}
+  .ab-h b{font-weight:600}
+  .ab-h span{color:var(--muted);font-size:12.5px}
+  .ab-arm + .ab-arm{margin-top:12px}
+  .ab-arm .row{display:flex;justify-content:space-between;gap:12px;font-size:13.5px}
+  .ab-arm .row span{color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+  .ab-p{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .ab-p .track{position:relative;flex:1;height:6px;border-radius:var(--r-pill);background:var(--surface-2)}
+  .ab-p .fill{height:100%;border-radius:var(--r-pill);background:var(--c1)}
+  .ab-p i{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;border-radius:1px;background:var(--axis)}
+  .ab-p span{flex:none;text-align:right}
+  .wu-top{display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap;margin-bottom:10px}
+  .wu-top .v{font-size:28px;line-height:1;font-weight:650;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+  .wu-top .k{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .wu-bar{height:8px;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden}
+  .wu-bar div{height:100%;border-radius:var(--r-pill);background:var(--c1)}
+  .wu-steps{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0;padding:0;list-style:none}
+  .wu-steps li{font-size:12px;font-weight:500;line-height:1;padding:6px 9px;border-radius:var(--r-pill);border:1px solid var(--line);color:var(--muted);font-variant-numeric:tabular-nums}
+  .wu-steps li.done{color:var(--ink-2)}
+  .wu-steps li.on{background:var(--fill);border-color:var(--fill);color:var(--fill-ink)}
+  .wu .ch-sub{margin-top:10px}
+  .lh{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  @media (max-width:640px){.lh{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .lh>div{border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;min-width:0}
+  .lh .v{font-size:22px;line-height:1.1;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .lh .k{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.35}
 </style>
 </head>
 <body>
@@ -343,6 +387,39 @@
     <div class="ch-sub" id="buy-kinds"></div>
   </section>
 
+  <section class="card" id="mail-card">
+    <div class="ch-head">
+      <div>
+        <div class="ch-title">Email</div>
+        <div class="ch-sub" id="mail-sub">Sends, human clicks, A/B tests and list health, from the email engine</div>
+      </div>
+    </div>
+    <div id="mail-main">
+      <p class="alert mail-stop" id="mail-stop" role="alert" hidden></p>
+      <div class="mtiles" id="mail-tiles"><span class="sk" style="height:108px"></span><span class="sk" style="height:108px"></span><span class="sk" style="height:108px"></span><span class="sk" style="height:108px"></span><span class="sk" style="height:108px"></span></div>
+      <div class="mhead"><div class="sublabel" id="mail-table-l">Per email, last 4 weeks</div>
+        <div class="seg" data-chart="mail" role="group" aria-label="Period"><button type="button" data-r="4" class="on">4W</button><button type="button" data-r="12">12W</button></div></div>
+      <div class="tw" style="max-height:none"><table id="mail-table"><thead><tr><th>Email</th><th>Sent</th><th>Human clicks</th><th>Click rate</th><th title="Human click rate per week, last 12 weeks">Trend</th><th>To agents</th><th>Bounces</th><th>Complaints</th><th>Unsubs</th></tr></thead>
+        <tbody id="mail-rows"><tr class="skr"><td colspan="9"><span class="sk" style="height:14px"></span></td></tr><tr class="skr"><td colspan="9"><span class="sk" style="height:14px;width:70%"></span></td></tr></tbody></table></div>
+      <div class="mhead"><div class="sublabel" id="mail-split-l">By stream and mailbox, last 7 days</div>
+        <div class="seg" data-chart="mailsplit" role="group" aria-label="Period"><button type="button" data-r="7" class="on">7D</button><button type="button" data-r="30">30D</button></div></div>
+      <section class="grid2c">
+        <div class="tw" style="max-height:none"><table><thead><tr><th>Stream</th><th>Sent</th><th title="Human clicks per 100 emails sent">Human /100</th><th title="Human clicks to agents per 1,000 emails sent">Agent /1,000</th><th>Bounces</th><th>Compl.</th><th>Unsubs</th></tr></thead><tbody id="mail-streams"></tbody></table></div>
+        <div class="tw" style="max-height:none"><table><thead><tr><th>Mailbox</th><th>Delivered</th><th title="Hard bounces, share of delivered and bounced">Bounces</th><th title="Share of delivered">Complaints</th><th title="Share of delivered">Unsubs</th></tr></thead><tbody id="mail-boxes"></tbody></table></div>
+      </section>
+      <section class="grid2c" style="margin-top:24px">
+        <div><div class="sublabel">Top links, last 30 days</div><div class="bars" id="mail-links"></div></div>
+        <div><div class="sublabel">A/B tests</div><div id="mail-ab"></div></div>
+      </section>
+    </div>
+    <div class="eng-empty" id="mail-empty" hidden></div>
+    <section class="grid2c" style="margin-top:24px" id="mail-side">
+      <div><div class="sublabel">Warm-up</div><div class="wu" id="mail-warm"><span class="sk" style="height:64px"></span></div></div>
+      <div><div class="sublabel">List health</div><div id="mail-health"><span class="sk" style="height:64px"></span></div></div>
+    </section>
+    <p class="ch-sub" style="margin-top:16px">Clicks are counted per email and link, not per person, and no opens are tracked. Human clicks leave out mail scanners and link checkers: bot user agents, prefetches, clicks within 5 seconds of sending, two clicks from one network within 2 seconds, and known scanner networks. Rates are for the emails sent in each period. Warning and stop lines: complaints 0.05% and 0.1% over 30 days (3 in a day also stops), hard bounces 1% and 2% per send, unsubscribes over 1% per send, delivered under 98% and 95%, machine clicks over 35% and 50%. Mailbox groups come from the address on delivery, bounce, complaint and unsubscribe reports (only the group is stored); clicks have no address, so they have no mailbox group.</p>
+  </section>
+
   <section class="card" id="links-card" hidden>
     <div class="ch-head"><div><div class="ch-title">Broken Links</div><div class="ch-sub" id="links-sub">Weekly check of every Weidian find</div></div></div>
     <div id="links-list" class="muted"></div>
@@ -365,7 +442,7 @@ const KEY="sb_publishable_qFcO570Cpl0_VWS6e_sAUg_noD-2XmY";
 const $=id=>document.getElementById(id);
 const fmt=n=>(n==null||isNaN(n))?"–":Number(n).toLocaleString("en-US");
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-let D=null, LIVE=null; const range={traffic:30,members:0,signups:30,live:1,eng:7};
+let D=null, LIVE=null, M=null; const range={traffic:30,members:0,signups:30,live:1,eng:7,mail:4,mailsplit:7};   /* M: data/email_stats.json */
 
 /* live viewers: the same presence channel the site joins; this page listens without being counted */
 (function(){ try{
@@ -495,6 +572,7 @@ function drawLive(){
 }
 function drawCharts(){
   try{ drawLive(); }catch(e){}
+  try{ renderMail(); }catch(e){}
   if(!D) return;
   try{ renderEng(); }catch(e){}
   const V=liveDays();
@@ -607,6 +685,107 @@ function render(){
   $("gen").textContent="last built "+new Date(D.generated).toLocaleString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
   drawCharts();
 }
+/* Email (Email v2, 26 Nov 2026): data/email_stats.json, baked every 6 hours by scripts/email_stats.py (stats workflow).
+   Aggregates only: clicks per email and link, never per person; human or bot is decided in the bake. */
+const MAIL_T={w0:"Welcome (coupons)",w1:"First order (day 1)",w2:"QC photos (day 3)",w3:"Picks for you (day 6)",picks:"Weekly picks",alert:"Saved-find alerts",alerts:"Saved-find alerts",
+  winback1:"Win-back (day 30)",winback2:"Win-back (day 45)",other:"Other or older emails"};
+const mailName=t=>MAIL_T[t]||t;
+const STREAM_T={onboarding:"Welcome series",newsletter:"Weekly picks",alerts:"Saved-find alerts",winback:"Win-back",service:"Service",other:"Other or older emails"};
+const MBOX_T={gmail:"Gmail",outlook:"Outlook",yahoo:"Yahoo",icloud:"iCloud",other:"Other"};
+const pctTxt=(a,b,d=1)=>b?(a/b*100).toFixed(d)+"%":fmt(null);
+function spark(w, ci){
+  const W=84,H=24,n=w.length, r=w.map(x=>x&&x[ci.sent]?x[ci.human]/x[ci.sent]:null), max=Math.max(0.0001,...r.filter(v=>v!=null));
+  const X=i=>n<2?W/2:i*(W/(n-1)), Y=v=>H-2-(v/max)*(H-5);
+  let d="", pen=false, last=null;
+  r.forEach((v,i)=>{ if(v==null){ pen=false; return; } d+=(pen?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1); pen=true; last=[X(i),Y(v)]; });
+  if(!last) return '<span class="muted">'+fmt(null)+'</span>';
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2.5" fill="currentColor"/></svg>`;
+}
+function renderMail(){
+  if(!$("mail-card")) return;
+  if($("main").classList.contains("is-loading")&&!M) return;           /* skeletons until the first load has ended */
+  const ready=!!(M&&M.ready), sending=ready&&!!M.since;
+  $("mail-main").hidden=!sending; $("mail-empty").hidden=sending;
+  const built=M&&M.generated? " · rebuilt "+new Date(M.generated).toLocaleString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) : "";
+  if(!sending){
+    $("mail-empty").innerHTML=!M? "<b>Starts counting with the first email.</b><span>Sends, human clicks, A/B tests and the warm-up show here once the email engine runs. Rebuilt every 6 hours.</span>"
+      : !ready? "<b>Starts counting once set up.</b><span>The numbers appear after the owner runs scripts/email_v2.sql in Supabase and the email engine sends its first email.</span>"
+      : "<b>Set up and waiting for the first email.</b><span>Sends, human clicks and A/B tests show here after the first send. Rebuilt every 6 hours.</span>";
+    $("mail-sub").textContent="Sends, human clicks, A/B tests and list health, from the email engine"+built;
+  } else {
+    $("mail-sub").textContent="Since "+shortDate(M.since)+built;
+    const k=M.kpi.d7, p=M.kpi.prev7, o={vs:"vs previous 7 days", none:p.sent?"":"No emails the 7 days before"};
+    const rate=(a,b)=>b?a/b*100:null;
+    const A=M.alarms||{}, ST={ok:"OK",warn:"Warning",stop:"Stop"};
+    const tile=(l,v,sub,d,a,why)=>`<div class="et${a&&a.state&&a.state!=="ok"?" st-"+a.state:""}"${why?` title="${esc(why)}"`:""}><div class="label"><span>${l}</span>${a&&a.state?`<span class="tag st-${a.state}">${ST[a.state]}</span>`:""}</div><div class="pair"><div><div class="v">${v}</div><div class="k">${sub}</div></div></div><div class="delta ${d.c}">${d.t||"&nbsp;"}</div></div>`;
+    const br=rate(k.bounces,k.sent), cr=rate(k.complaints,k.sent), ac=A.complaints||{}, am=A.machine||{};
+    $("mail-tiles").innerHTML=
+      tile("Sent · 7 days", fmt(k.sent), ((A.delivered||{}).rate_7d!=null? A.delivered.rate_7d.toFixed(1)+"% delivered" : k.delivered? pctTxt(k.delivered,k.sent)+" delivered" : "No delivery reports yet")+(k.failed?" · "+fmt(k.failed)+" failed":""),
+        engDelta(k.sent,p.sent,o), A.delivered, "Delivered out of sent, emails older than 2 hours: warning under 98%, stop under 95%")+
+      tile("Human click rate", rate(k.human,k.sent)==null?fmt(null):rate(k.human,k.sent).toFixed(1)+"%", fmt(k.human)+" human · "+fmt(k.agent)+" to agents"+(am.share_30d!=null?" · "+am.share_30d.toFixed(0)+"% machine clicks (30 days)":""),
+        engDelta(rate(k.human,k.sent),rate(p.human,p.sent),{...o,points:true}), am, "Machine share of clicks, last 30 days: warning over 35%, stop over 50% (from 20 clicks)")+
+      tile("Bounce rate", br==null?fmt(null):br.toFixed(1)+"%", fmt(k.bounces)+" hard"+(k.soft?" · "+fmt(k.soft)+" soft":"")+(k.blocked?" · "+fmt(k.blocked)+" blocked":"")+((A.bounces||{}).worst_send!=null?" · worst send "+A.bounces.worst_send.toFixed(1)+"%":""),
+        engDelta(br,rate(p.bounces,p.sent),{...o,points:true,lowerBetter:true}), A.bounces, "Hard bounces in one send: warning at 1%, stop at 2%")+
+      tile("Complaint rate", cr==null?fmt(null):cr.toFixed(2)+"%", fmt(k.complaints)+(k.complaints===1?" spam report":" spam reports")+(ac.rate_30d!=null?" · "+ac.rate_30d.toFixed(2)+"% over 30 days":""),
+        engDelta(cr,rate(p.complaints,p.sent),{...o,points:true,lowerBetter:true}), ac, "Spam complaints: warning at 2 in one send or 0.05% over 30 days, stop at 0.1% over 30 days or 3 in 24 hours")+
+      tile("Unsubscribes", fmt(k.unsubs), pctTxt(k.unsubs,k.sent)+" of sent"+((A.unsubs||{}).worst_send!=null?" · worst send "+A.unsubs.worst_send.toFixed(1)+"%":""),
+        engDelta(k.unsubs,p.unsubs,{...o,lowerBetter:true}), A.unsubs, "Unsubscribes in one send: stop over 1%");
+    const NAMES={complaints:"spam complaints",bounces:"hard bounces",unsubs:"unsubscribes",delivered:"delivered share",machine:"machine clicks"};
+    const stops=Object.keys(NAMES).filter(x=>A[x]&&A[x].state==="stop");
+    $("mail-stop").hidden=!stops.length;
+    $("mail-stop").textContent=stops.length? "Stop line reached: "+stops.map(x=>NAMES[x]).join(", ")+". Hold the next send and find the cause first." : "";
+    /* by stream and by mailbox group: clicks carry no address, so the mailbox table has delivery, bounces, complaints and unsubscribes only */
+    const sr=range.mailsplit===30?"d30":"d7", cix={}; (M.cols||[]).forEach((c,i)=>cix[c]=i);
+    $("mail-split-l").textContent="By stream and mailbox, last "+range.mailsplit+" days";
+    const per=(a,b,m)=>b?(a/b*m).toFixed(m===100?1:0):fmt(null);
+    $("mail-streams").innerHTML=(M.streams||[]).map(x=>{ const v=x[sr]; if(!v[cix.sent]&&!v[cix.unsubs]&&!v[cix.clicks]) return "";
+      return `<tr><td>${esc(STREAM_T[x.s]||x.s)}</td><td>${fmt(v[cix.sent])}</td><td>${per(v[cix.human],v[cix.sent],100)}</td><td>${per(v[cix.agent],v[cix.sent],1000)}</td><td>${fmt(v[cix.bounces])}</td><td>${fmt(v[cix.complaints])}</td><td>${fmt(v[cix.unsubs])}</td></tr>`; }).join("")
+      || '<tr><td colspan="7"><div class="empty">No emails in this period</div></td></tr>';
+    const mc={}; (M.mcols||[]).forEach((c,i)=>mc[c]=i);
+    const cellr=(n,d)=>fmt(n)+(d&&n?`<span class="muted"> ${(n/d*100).toFixed(n/d<0.01?2:1)}%</span>`:"");
+    $("mail-boxes").innerHTML=(M.mailbox||[]).map(x=>{ const v=x[sr], dl=v[mc.delivered]; if(!dl&&!v[mc.bounces]&&!v[mc.complaints]&&!v[mc.unsubs]&&!v[mc.soft]) return "";
+      return `<tr><td>${esc(MBOX_T[x.m]||x.m)}</td><td>${fmt(dl)}</td><td>${cellr(v[mc.bounces],dl+v[mc.bounces])}</td><td>${cellr(v[mc.complaints],dl)}</td><td>${cellr(v[mc.unsubs],dl)}</td></tr>`; }).join("")
+      || '<tr><td colspan="5"><div class="empty">No delivery reports in this period</div></td></tr>';
+    const ci={}; (M.cols||[]).forEach((c,i)=>ci[c]=i);
+    const r=range.mail;
+    $("mail-table-l").textContent="Per email, last "+r+" weeks";
+    $("mail-rows").innerHTML=(M.templates||[]).map(t=>{
+      const s={}; (M.cols||[]).forEach(c=>s[c]=0);
+      t.w.slice(-r).forEach(x=>{ if(x) M.cols.forEach((c,i)=>s[c]+=x[i]||0); });
+      if(!s.sent&&!s.clicks&&!s.unsubs&&!s.bounces&&!s.complaints) return "";
+      return `<tr><td title="${esc(t.t)}">${esc(mailName(t.t))}</td><td>${fmt(s.sent)}</td><td>${fmt(s.human)}</td><td>${pctTxt(s.human,s.sent)}</td><td>${spark(t.w,ci)}</td><td>${fmt(s.agent)}</td><td${s.bounces?"":' class="m"'}>${fmt(s.bounces)}</td><td${s.complaints?"":' class="m"'}>${fmt(s.complaints)}</td><td${s.unsubs?"":' class="m"'}>${fmt(s.unsubs)}</td></tr>`;
+    }).join("") || `<tr><td colspan="9"><div class="empty">No emails in the last ${r} weeks</div></td></tr>`;
+    const L=(M.links||[]).slice(0,8), top=Math.max(1,...L.map(x=>x[3]));
+    $("mail-links").innerHTML=L.map(([t,l,c,h,a])=>`<div class="bar"><div class="row"><b>${esc(l)} · ${esc(mailName(t))}</b><span>${fmt(h)} human${a?" · "+fmt(a)+" to agents":""}</span></div><div class="track"><div class="fill" style="width:${(h/top*100).toFixed(1)}%"></div></div></div>`).join("")
+      || '<div class="muted">No clicks in the last 30 days yet</div>';
+    $("mail-ab").innerHTML=(M.experiments||[]).slice(0,4).map(x=>{
+      const total=x.arms.reduce((a,b)=>a+b.sends,0), days=Math.max(...x.arms.map(a=>a.batches));
+      return `<div class="ab"><div class="ab-h"><b>${esc(x.name)}</b><span>${esc(mailName(x.template))} · ${fmt(total)} emails · ${days} send${days===1?"":"s"} since ${shortDate(x.first)}</span></div>`+
+        x.arms.map(a=>`<div class="ab-arm"><div class="row"><b>Version ${esc(a.arm)}${a.arm===x.control?" (control)":""}</b><span>${(a.rate*100).toFixed(1)}% · ${fmt(a.human)} of ${fmt(a.sends)}</span></div>`+
+          (a.p==null?"":`<div class="ab-p"><div class="track" title="The line is 95%: a version counts as better at 95% or more over at least 2 sends"><div class="fill" style="width:${(a.p*100).toFixed(1)}%"></div><i style="left:95%"></i></div>`+
+            `<span>${Math.round(a.p*100)}% chance it beats ${esc(x.control)}</span>${a.p>=0.95&&days>=2?'<span class="tag">Likely better</span>':a.p<=0.05&&days>=2?'<span class="tag">Likely worse</span>':""}</div>`)+`</div>`).join("")+`</div>`;
+    }).join("") || '<div class="muted">No A/B test running. Emails with versions show here, with the chance that each version beats the control.</div>';
+  }
+  /* warm-up and list health show from the start: the cap plan and the list exist before the first email */
+  const w=M&&M.warmup, ramp=(w&&w.ramp)||[[1,3,150],[4,7,250],[8,14,400],[15,21,700],[22,28,1200],[29,null,2500]];
+  const day=w&&w.day||0, stepOf=d=>ramp.findIndex(x=>d>=x[0]&&(x[1]==null||d<=x[1]));
+  const cur=day?stepOf(day):-1;
+  const steps='<ol class="wu-steps">'+ramp.map((x,i)=>`<li class="${i===cur?"on":i<cur?"done":""}" title="${x[1]==null?"From day "+x[0]:"Days "+x[0]+" to "+x[1]}">${fmt(x[2])}</li>`).join("")+"</ol>";
+  if(!day){
+    $("mail-warm").innerHTML=`<div class="wu-top"><span class="v">${fmt(ramp[0][2])}</span><span class="k">a day to start</span></div>${steps}<p class="ch-sub">Starts with the first email: the daily cap grows step by step to ${fmt(ramp[ramp.length-1][2])} a day from day ${ramp[ramp.length-1][0]}.</p>`;
+  } else {
+    const nx=ramp[cur+1], first=w.first?new Date(w.first+"T12:00:00Z"):null;
+    const when=nx&&first?new Date(first.getTime()+(nx[0]-1)*864e5).toISOString().slice(0,10):null;
+    $("mail-warm").innerHTML=`<div class="wu-top"><span class="v">${fmt(w.sent_today)}</span><span class="k">of ${fmt(w.cap)} sent today · day ${day}</span></div>`+
+      `<div class="wu-bar" role="img" aria-label="${fmt(w.sent_today)} of ${fmt(w.cap)} sent today"><div style="width:${Math.min(100,w.cap?w.sent_today/w.cap*100:0).toFixed(1)}%"></div></div>${steps}`+
+      `<p class="ch-sub">${nx?"Next: "+fmt(nx[2])+" a day from day "+nx[0]+(when?" ("+shortDate(when)+")":"")+".":"Full speed: "+fmt(w.cap)+" a day."} Welcome emails never wait for the cap.</p>`;
+  }
+  const h=(M&&M.health)||{}, n=v=>fmt(v);
+  const cell=(v,l)=>`<div><div class="v">${n(v)}</div><div class="k">${l}</div></div>`;
+  $("mail-health").innerHTML=M&&M.health? '<div class="lh">'+cell(h.opted_in,"Opted in"+(h.members&&h.opted_in!=null?" · "+Math.round(h.opted_in/h.members*100)+"% of members":""))+cell(h.alerts_only,"Alerts only")+cell(h.paused,"Paused")+
+    cell(h.sunset,"Stopped for inactivity")+cell(h.suppressed,"Suppressed (bounce or spam)")+cell(h.unsubscribed_30d,"Unsubscribed · 30 days")+"</div>"
+    : '<div class="muted">List numbers show after the first rebuild.</div>';
+}
 /* loading skeletons end after the first load; without chart data the placeholders turn into empty states */
 function settle(){
   $("main").classList.remove("is-loading");
@@ -631,10 +810,12 @@ async function load(){
   await Promise.all([
     fetch("/data/dashboard.json?ts="+Date.now()).then(r=>{ if(!r.ok) throw new Error("charts "+r.status); return r.json(); }).then(d=>{ D=d; }).catch(e=>errs.push(e.message)),
     liveStats().catch(e=>errs.push(e.message)),
-    loadLive()
+    loadLive(),
+    fetch("/data/email_stats.json?ts="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{ M=d&&typeof d==="object"?d:null; }).catch(()=>{ M=null; })   /* no file yet: the Email section's empty state */
   ]);
   render();
   settle();
+  try{ renderMail(); }catch(e){}
   if(errs.length){ $("err").hidden=false; $("err").textContent="Couldn't load: "+errs.join(", "); }
   $("updated").textContent="Updated "+new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
 }
