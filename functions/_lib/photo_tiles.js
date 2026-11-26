@@ -26,7 +26,6 @@ export function cutPath(u) {
 // the only copy: add or remove an id here, then raise PRODUCT_TPL in pages.js so cached pages pick the change up.
 export const TILE_LIGHT = {
   "7509414855": "a white dust cloth kept with the bag, plain on #262626",
-  "7759262976": "a white strip of the stand under the hem, plain on #262626",
   "7780725454": "a white surface kept under the bag, plain on #262626",
   "7717221359": "held by a white glove, plain on #262626",
   "7680428832": "not a cut-out (the photo has no transparency, it is a plain photo on its own background)",
