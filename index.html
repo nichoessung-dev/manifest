@@ -4747,7 +4747,8 @@ const SW_MIX=33;
 function swapFirst(list){
   if(!SWAPPED.size||!list||!list.length) return list;
   const a=[], b=[]; for(const p of list)(SWAPPED.has(String(p.id))?a:b).push(p);
-  const browse=!(state.q||"").trim()&&!state.saved&&!(Array.isArray(state.brand)?state.brand.length:(state.brand&&state.brand!=="all"));
+  // 26 Nov 2026 (owner): a chosen category is a search too, like a brand: all its finds, partner finds first.
+  const browse=!(state.q||"").trim()&&!state.saved&&!(Array.isArray(state.brand)?state.brand.length:(state.brand&&state.brand!=="all"))&&!(Array.isArray(state.cats)&&state.cats.length);
   if(!browse) return (state.sort==="low"||state.sort==="high")?list:(a.length?a.concat(b):list);
   if(a.length<48) return (state.sort==="low"||state.sort==="high")?list:a.concat(b);
   const n=Math.max(1,Math.ceil(a.length*0.03)), keep=b.slice(0,n);
