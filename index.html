@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <meta charset="utf-8">
+<script>/* 26 Nov 2026: a refresh of a /#p/<id> link hid the homepage behind a flash before the product view opened; keep the page hidden until it does (4 s safety) */try{if(/^#p\/./.test(location.hash)){var _d=document.documentElement;_d.classList.add("pc-pre-p");setTimeout(function(){_d.classList.remove("pc-pre-p")},4000)}}catch(e){}</script>
+<style>html.pc-pre-p body{visibility:hidden}html.pc-pre-p #drawer,html.pc-pre-p #drawer *{visibility:visible}</style>
 <script>/* ?preview=signup (owner, 26 Nov 2026): go through sign-up as a first-time visitor. Clears this browser's onboarding marks (not favourites or the account), then drops the parameter. */try{if(/[?&]preview=signup(&|$)/.test(location.search)){["pc.gate","pc.views","pc.tut.seen","pc.welcome","pc.wbpop.seen","pc.optin","pc.optin.asked","pc.optin.done","pc.agent.picked","pc.agent.saved","pc.taste","pc.size.asked","pc.hint.done","pc.body","pc.style"].forEach(function(k){localStorage.removeItem(k)});localStorage.setItem("pc.views","1");try{sessionStorage.clear()}catch(e){}window.__pcPreview=1;history.replaceState(null,"",location.pathname)}}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rep Spreadsheet: 10,600+ Designer Rep Finds | Puro Classico</title>
@@ -5543,7 +5545,7 @@ function openDetail(p,fromHash){
   /* r7: the page behind turns inert right after the first paint: inert restyles every element under it (about 1,400 on the
      homepage), which used to hold the product view back by a frame or more; the view covers the page meanwhile */
   drawer.inert=false; _afterPaint(()=>{ if(!live()||!drawer.classList.contains("open")) return; $$(".masthead,.hero,.toolbar,main,#seo,.hub-seo,section.page,footer").forEach(el=>{ el.inert=true; }); });
-  overlay.classList.add("open"); drawer.classList.add("open"); drawer.__pid=p.id; document.body.style.overflow="hidden";
+  overlay.classList.add("open"); drawer.classList.add("open"); drawer.__pid=p.id; document.documentElement.classList.remove("pc-pre-p"); document.body.style.overflow="hidden";
   const mode={m:(p.img?"listing":"qc")};
   const QCIMG={arr:null,loading:false,tap:false};   /* tap: photos on record but not cached, loaded when the visitor asks */
   /* store photos (21 Nov 2026, owner): more angles of the find from real shops (store-gallery.json, scripts/apply_store_photos.py),
@@ -6873,11 +6875,12 @@ function pcRoute(ev){
     const menu=$("#tools-menu"); if(menu)menu.hidden=true;
     const p=BY_ID[decodeURIComponent(pm[1])];
     if(p){ if(!drawer.classList.contains("open")||drawer.__pid!==p.id) openDetail(p,true); }
-    else if(drawer.classList.contains("open")) closeDetail(true);
+    else { document.documentElement.classList.remove("pc-pre-p"); if(drawer.classList.contains("open")) closeDetail(true); }
     return;
   }
   /* v9: the in-app weight estimator and freight calculator became /tools/shipping-calculator (old #weight / #freight links land there) */
   if(h==="weight"||h==="freight"){ location.replace("/tools/shipping-calculator"); return; }
+  document.documentElement.classList.remove("pc-pre-p");
   if(drawer.classList.contains("open")) closeDetail(true);
   const pid=PC_PAGES[h];
   if(pid&&!document.getElementById(pid)){ location.href="/#"+h; return; }   /* 10 Nov 2026: hub pages leave these sections out (lighter pages); they live on the homepage */
