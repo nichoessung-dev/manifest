@@ -4190,7 +4190,7 @@ try{
     /* language auto-detect disabled: default to English (users can switch via the language picker).
        Owner rule (verified round 5): English is the default. The browser locale and the geo lookup may only pick the
        CURRENCY; state.lang changes only on an explicit pick (#lang, the settings dialog). Never set state.lang here. */
-    if(CC_OF(rg)) state.cur=CC_OF(rg);
+    /* 26 Nov 2026 (owner): USD is the default for everyone; the currency changes only when the visitor picks one */
   }
 }catch(e){}
 if(!T[state.lang]) state.lang="en";
@@ -7603,6 +7603,7 @@ async function sendMagicGate(){
 }
 /* set currency from visitor country (first visit only); language stays English unless the visitor picks one */
 async function geoDetect(){
+  return;   /* 26 Nov 2026 (owner: "make it preselected dollar"): no currency from the visitor's country any more, USD until they pick */
   try{ if(localStorage.getItem("pc.geo")) return; }catch(e){ return; }
   /* a returning visitor already has a currency (picked or saved): never override it */
   if(window.__hadSavedState){ try{ localStorage.setItem("pc.geo","1"); }catch(e){} return; }
