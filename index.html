@@ -8709,7 +8709,8 @@ function scan(n){if(!n||n.nodeType!==1)return;if(n.matches(SEL))io.observe(n);va
 scan(d.body);new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var a=ms[i].addedNodes;for(var j=0;j<a.length;j++)scan(a[j])}}).observe(d.body,{childList:true,subtree:true})}catch(e){}})();</script>
 <script>/* back to top: shown past 1.5 screens, glides up (jumps with reduced motion) */
 (function(){var b=document.getElementById("pc-top");if(!b)return;var on=false,tick=false;
-function upd(){tick=false;var v=window.scrollY>window.innerHeight*1.5;if(v!==on){on=v;b.classList.toggle("on",v);b.tabIndex=v?0:-1;}}
+function upd(){tick=false;var l=document.querySelector(".toolbar label.search");if(l&&l.previousElementSibling!==b&&l.parentNode)l.parentNode.insertBefore(b,l);   /* the search field is moved by the app: keep the arrow just before it */
+var v=window.scrollY>window.innerHeight*1.5;if(v!==on){on=v;b.classList.toggle("on",v);b.tabIndex=v?0:-1;}}
 window.addEventListener("scroll",function(){if(!tick){tick=true;requestAnimationFrame(upd);}},{passive:true});
 b.addEventListener("click",function(){var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;window.scrollTo({top:0,behavior:rm?"auto":"smooth"});try{document.getElementById("q").blur();}catch(e){}});upd();})();
 </script>
