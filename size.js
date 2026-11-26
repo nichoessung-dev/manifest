@@ -33,6 +33,12 @@
   function footOf(b) { if (b.eu) { var r = SH.filter(function (x) { return x[1] <= b.eu; }).pop() || SH[0]; return r[0]; } return 0.152 * b.h; }
   function shoeEu(b) { if (b.eu) return b.eu; var f = footOf(b), r = SH.filter(function (x) { return x[0] >= f - 0.05; })[0] || SH[SH.length - 1]; return r[1]; }
 
+  // the body-to-size estimate without a chart: [EU/US size, the Chinese label one up] as indexes into L
+  function estIdx(b, kind) {
+    var f = FIT[b.fit] || FIT.r, s = 0.55 * (b.w - 50) / 10 + 0.45 * (b.h - 160) / 8 + 0.25 + f.step + (kind === "jacket" ? 0.5 : 0);
+    var x = Math.max(0, Math.min(7, Math.floor(s)));
+    return [x, Math.min(7, x + 1)];
+  }
   // the answer: {size, why, chart: bool}
   function pick(kind, b, d) {
     var f = FIT[b.fit] || FIT.r, rows = (d && d.c) || [], sold = (d && d.s) || [];
@@ -84,8 +90,7 @@
       var want = eu + (b.fit === "l" ? 0.5 : 0), hit2 = opts.filter(function (x) { return x[1] >= want - 0.01; })[0];
       return { size: hit2 ? hit2[0] : "EU " + want, chart: false, why: "Your usual EU " + eu + ". Most of these sellers use standard EU sizes." };
     }
-    var s = 0.55 * (b.w - 50) / 10 + 0.45 * (b.h - 160) / 8 + 0.25 + f.step + (kind === "jacket" ? 0.5 : 0);
-    var x = Math.max(0, Math.min(7, Math.floor(s))), a = Math.min(7, x + 1);
+    var xa = estIdx(b, kind), x = xa[0], a = xa[1];
     if (kind === "pants") {
       var inch = Math.round(waistOf(b) / 2.54), nums = sold.map(function (z) { return [z, parseFloat(z)]; }).filter(function (z) { return z[1] >= 24 && z[1] <= 44; });
       if (nums.length) { var h3 = nums.filter(function (z) { return z[1] >= inch; })[0] || nums[nums.length - 1]; return { size: h3[0], chart: false, why: "Your waist is about " + inch + " inches." }; }
@@ -111,7 +116,7 @@
      the seller's chart can still be read; height and weight, when given, always win. */
   var LBODY = { XS: [165, 57], S: [172, 65], M: [178, 74], L: [182, 83], XL: [186, 93], XXL: [192, 110] };
   function eff(b) {
-    if (valid(b)) return b;
+    if (valid(b) && !(b.lo && LBODY[norm(b.l || "")])) return b;   // lo: the usual size was picked over height and weight
     var x = b && LBODY[norm(b.l || "")]; if (!x) return null;
     return { h: x[0], w: x[1], fit: b.fit || "r", eu: b.eu, u: b.u, l: norm(b.l), est: 1 };
   }
@@ -325,6 +330,8 @@
     form();
     var f0 = box.querySelector("input"); if (f0) try { f0.focus({ preventScroll: true }); } catch (e) {}
   }
-  window.pcSize = { mount: mount, pick: pick, ask: ask, shoe: shoeAdvice, us: usOf };
+  // est(): the welcome tour's live "Your size" line, from height and weight (the same estimate as a find without a chart)
+  function est(b) { if (!valid(b)) return null; var xa = estIdx(b, "top"); return { size: L[xa[0]], cn: L[xa[1]] }; }
+  window.pcSize = { mount: mount, pick: pick, ask: ask, shoe: shoeAdvice, us: usOf, est: est };
   [].forEach.call(document.querySelectorAll("[data-pcsz-id]"), function (el) { mount(el, { id: el.getAttribute("data-pcsz-id"), cat: el.getAttribute("data-pcsz-cat"), g: el.getAttribute("data-pcsz-g") || "" }); });
 })();
