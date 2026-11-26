@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install pillow
+      - run: pip install pillow numpy opencv-python-headless qrcode
       - name: Look up and store QC photos
         env:
           QUALITLY_KEY: ${{ secrets.QUALITLY_KEY }}

@@ -100,6 +100,16 @@ def views():
         print("view stats not readable (%s): ordering by QC count only" % e); return {}
 
 
+def rebadge(im):
+    """The qualit.ly corner badge swapped for ours (scripts/qc_badge.py, 26 Nov 2026); the photo as is when that fails."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from qc_badge import swap
+        return swap(im)[0]
+    except Exception as e:
+        print("   badge not swapped: %s" % str(e)[:80]); return im
+
+
 def upload(name, data):
     req = urllib.request.Request(SUPA + "/storage/v1/object/products/qc/" + name, data=data, method="POST",
                                  headers={**UA, "Authorization": "Bearer " + os.environ["SUPABASE_SERVICE_KEY"],
@@ -115,6 +125,7 @@ def store(key, thumbs):
         if n >= MAX_THUMBS: break
         try:
             im = Image.open(io.BytesIO(get(u, timeout=20))).convert("RGB"); im.thumbnail((900, 900))
+            im = rebadge(im)
             buf = io.BytesIO(); im.save(buf, "WEBP", quality=80)
             upload("%s-%d.webp" % (name, n), buf.getvalue()); n += 1
         except Exception as e:
@@ -144,6 +155,7 @@ def ingest_live(items, checked, now):
                 if n >= MAX_THUMBS: break
                 try:
                     im = Image.open(io.BytesIO(get(SUPA + "/storage/v1/object/public/products/qc-live/" + f, timeout=30))).convert("RGB"); im.thumbnail((900, 900))
+                    im = rebadge(im)
                     buf = io.BytesIO(); im.save(buf, "WEBP", quality=80); upload("%s-%d.webp" % (name, n), buf.getvalue()); n += 1
                 except Exception as e: print("   live photo skipped: %s" % str(e)[:80])
             if n:
