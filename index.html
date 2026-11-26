@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <meta charset="utf-8">
-<script>/* 26 Nov 2026: a refresh of a /#p/<id> link hid the homepage behind a flash before the product view opened; keep the page hidden until it does (4 s safety) */try{if(/^#p\/./.test(location.hash)){var _d=document.documentElement;_d.classList.add("pc-pre-p");setTimeout(function(){_d.classList.remove("pc-pre-p")},4000)}}catch(e){}</script>
+<script>/* 26 Nov 2026: a refresh of a /#p/<id> link hid the homepage behind a flash before the product view opened; keep the page hidden until it does (4 s safety) */try{if(/^#p\/./.test(location.hash)){var _d=document.documentElement;_d.classList.add("pc-pre-p","v8-instant");setTimeout(function(){_d.classList.remove("pc-pre-p","v8-instant")},4000)}}catch(e){}</script>
 <style>html.pc-pre-p body{visibility:hidden}html.pc-pre-p #drawer,html.pc-pre-p #drawer *{visibility:visible}</style>
 <script>/* ?preview=signup (owner, 26 Nov 2026): go through sign-up as a first-time visitor. Clears this browser's onboarding marks (not favourites or the account), then drops the parameter. */try{if(/[?&]preview=signup(&|$)/.test(location.search)){["pc.gate","pc.views","pc.tut.seen","pc.welcome","pc.wbpop.seen","pc.optin","pc.optin.asked","pc.optin.done","pc.agent.picked","pc.agent.saved","pc.taste","pc.size.asked","pc.hint.done","pc.body","pc.style"].forEach(function(k){localStorage.removeItem(k)});localStorage.setItem("pc.views","1");try{sessionStorage.clear()}catch(e){}window.__pcPreview=1;history.replaceState(null,"",location.pathname)}}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -3470,25 +3470,25 @@ html #drawer .pp-filters{position:sticky;top:-28px;z-index:6;margin-left:-22px!i
 /* "Your style" dialog, photo tiles (owner's pick of three, 26 Nov 2026): two tiles per row with three finds fanned like
    cards, Everything as a slim row on top, the picked tile with an ink border and the filled tick */
 #sty-pop .sty-m{width:min(560px,calc(100vw - 32px))!important;max-width:none!important}
-#sty-pop .tw-sty{display:grid!important;grid-template-columns:1fr 1fr;gap:12px!important}
-#sty-pop .tw-so{position:relative;display:flex!important;flex-direction:column;align-items:stretch!important;gap:0!important;padding:0!important;min-height:0!important;border:1px solid color-mix(in srgb,var(--ink) 12%,transparent)!important;border-radius:18px!important;background:var(--surface)!important;overflow:hidden;text-align:left;box-shadow:none!important}
-#sty-pop .tw-so[data-style="all"]{grid-column:1/-1;flex-direction:row;align-items:center!important}
-#sty-pop .tw-ph{display:flex!important;justify-content:center;align-items:center;height:132px!important;width:auto!important;background:color-mix(in srgb,var(--ink) 5%,transparent)!important;border-radius:0!important;gap:0!important;padding:0!important}
-#sty-pop .tw-ph img{width:74px!important;height:88px!important;object-fit:contain!important;border-radius:12px!important;background:var(--surface)!important;box-shadow:0 6px 16px -8px rgba(0,0,0,.35)!important;margin:0 -14px!important}
-#sty-pop .tw-ph img:nth-child(1){transform:rotate(-8deg) translateY(4px)}
-#sty-pop .tw-ph img:nth-child(2){position:relative;z-index:1;transform:scale(1.08)}
-#sty-pop .tw-ph img:nth-child(3){transform:rotate(8deg) translateY(4px)}
-#sty-pop .tw-so[data-style="all"] .tw-ph{width:150px!important;height:84px!important;flex:none;overflow:hidden}
-#sty-pop .tw-so[data-style="all"] .tw-ph img{width:52px!important;height:62px!important;margin:0 -6px!important;transform:none!important}
-#sty-pop .tw-so-t{padding:12px 14px 14px!important}
-#sty-pop .tw-so-t b{font-size:15px!important;letter-spacing:-.01em}
-#sty-pop .tw-so-t small{font-size:12.5px!important}
-#sty-pop .tw-tick{position:absolute!important;top:10px!important;right:10px!important;margin:0!important;transform:none!important}
-#sty-pop .tw-so[aria-pressed="true"]{border:2px solid var(--ink)!important;box-shadow:none!important}
-#sty-pop .tw-so:focus-visible{outline:2px solid color-mix(in srgb,var(--ink) 45%,transparent);outline-offset:2px}
-#sty-pop .tw-so[aria-pressed="true"]:focus-visible{outline:0}
-@media (hover:hover){#sty-pop .tw-so:not([aria-pressed="true"]):hover{border-color:color-mix(in srgb,var(--ink) 30%,transparent)!important}}
-@media (max-width:420px){#sty-pop .tw-ph{height:112px!important}#sty-pop .tw-ph img{width:62px!important;height:76px!important;margin:0 -12px!important}#sty-pop .tw-so[data-style="all"] .tw-ph{width:120px!important}}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-sty{display:grid!important;grid-template-columns:1fr 1fr;gap:12px!important}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-so{position:relative;display:flex!important;flex-direction:column;align-items:stretch!important;gap:0!important;padding:0!important;min-height:0!important;border:1px solid color-mix(in srgb,var(--ink) 12%,transparent)!important;border-radius:18px!important;background:var(--surface)!important;overflow:hidden;text-align:left;box-shadow:none!important}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-so[data-style="all"]{grid-column:1/-1;flex-direction:row;align-items:center!important}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-ph{display:flex!important;justify-content:center;align-items:center;height:132px!important;width:auto!important;background:color-mix(in srgb,var(--ink) 5%,transparent)!important;border-radius:0!important;gap:0!important;padding:0!important}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-ph img{width:74px!important;height:88px!important;object-fit:contain!important;border-radius:12px!important;background:var(--surface)!important;box-shadow:0 6px 16px -8px rgba(0,0,0,.35)!important;margin:0 -14px!important}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-ph img:nth-child(1){transform:rotate(-8deg) translateY(4px)}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-ph img:nth-child(2){position:relative;z-index:1;transform:scale(1.08)}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-ph img:nth-child(3){transform:rotate(8deg) translateY(4px)}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-so[data-style="all"] .tw-ph{width:150px!important;height:84px!important;flex:none;overflow:hidden}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-so[data-style="all"] .tw-ph img{width:52px!important;height:62px!important;margin:0 -6px!important;transform:none!important}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-so-t{padding:12px 14px 14px!important}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-so-t b{font-size:15px!important;letter-spacing:-.01em}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-so-t small{font-size:12.5px!important}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-tick{position:absolute!important;top:10px!important;right:10px!important;margin:0!important;transform:none!important}
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-so[aria-pressed="true"]{border-color:var(--ink)!important;box-shadow:none!important;outline:1px solid var(--ink)!important;outline-offset:-2px}   /* 2px look, no change in size (owner: "the square keeps its size") */
+:is(#sty-pop,.tw-step[data-name="style"]) .tw-so:focus-visible{outline:2px solid color-mix(in srgb,var(--ink) 45%,transparent);outline-offset:2px}
+
+@media (hover:hover){:is(#sty-pop,.tw-step[data-name="style"]) .tw-so:not([aria-pressed="true"]):hover{border-color:color-mix(in srgb,var(--ink) 30%,transparent)!important}}
+@media (max-width:420px){:is(#sty-pop,.tw-step[data-name="style"]) .tw-ph{height:112px!important}:is(#sty-pop,.tw-step[data-name="style"]) .tw-ph img{width:62px!important;height:76px!important;margin:0 -12px!important}:is(#sty-pop,.tw-step[data-name="style"]) .tw-so[data-style="all"] .tw-ph{width:120px!important}}
 /* Similar finds in the product view: arrows in the head row, no scrollbar under the row */
 .sim-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px;margin-bottom:6px;--_bd:var(--line);--_card:var(--surface);--_fg:var(--ink);--_mut:var(--surface-2)}
 .sim-head .sec-label{margin:0!important}
@@ -3496,6 +3496,12 @@ html #drawer .pp-filters{position:sticky;top:-28px;z-index:6;margin-left:-22px!i
 html #drawer .dbody{overflow-x:hidden}
 .similar-row{scrollbar-width:none;-ms-overflow-style:none;max-width:100%;min-width:0}   /* it was pushing the whole view sideways by about 80px */
 .similar-row::-webkit-scrollbar{display:none}
+/* the welcome tour's style step: the same tiles, a little shorter so the step fits its card */
+.tw-step[data-name="style"] .tw-sty{gap:10px!important}
+.tw-step[data-name="style"] .tw-ph{height:112px!important}
+.tw-step[data-name="style"] .tw-ph img{width:64px!important;height:78px!important;margin:0 -12px!important}
+.tw-step[data-name="style"] .tw-so[data-style="all"] .tw-ph{height:72px!important}
+.tw-step[data-name="style"] .tw-so-t{padding:10px 12px 12px!important}
 /* the rows' skeleton cards take the same shape, so nothing moves when the cards come in */
 html .v9-home .v9-rail>.sk-card{padding:8px;border:1px solid var(--line);border-radius:16px}
 html .v9-home .v9-rail>.sk-card .sk-im{border-radius:9px}
@@ -5831,7 +5837,7 @@ function openDetail(p,fromHash){
   /* r7: the page behind turns inert right after the first paint: inert restyles every element under it (about 1,400 on the
      homepage), which used to hold the product view back by a frame or more; the view covers the page meanwhile */
   drawer.inert=false; _afterPaint(()=>{ if(!live()||!drawer.classList.contains("open")) return; $$(".masthead,.hero,.toolbar,main,#seo,.hub-seo,section.page,footer").forEach(el=>{ el.inert=true; }); });
-  overlay.classList.add("open"); drawer.classList.add("open"); drawer.__pid=p.id; document.documentElement.classList.remove("pc-pre-p"); document.body.style.overflow="hidden";
+  overlay.classList.add("open"); drawer.classList.add("open"); drawer.__pid=p.id; { const _h=document.documentElement; if(_h.classList.contains("pc-pre-p")){ _h.classList.remove("pc-pre-p"); requestAnimationFrame(()=>requestAnimationFrame(()=>_h.classList.remove("v8-instant"))); } } document.body.style.overflow="hidden";
   const mode={m:(p.img?"listing":"qc")};
   const QCIMG={arr:null,loading:false,tap:false};   /* tap: photos on record but not cached, loaded when the visitor asks */
   /* store photos (21 Nov 2026, owner): more angles of the find from real shops (store-gallery.json, scripts/apply_store_photos.py),
@@ -7167,12 +7173,12 @@ function pcRoute(ev){
     const menu=$("#tools-menu"); if(menu)menu.hidden=true;
     const p=BY_ID[decodeURIComponent(pm[1])];
     if(p){ if(!drawer.classList.contains("open")||drawer.__pid!==p.id) openDetail(p,true); }
-    else { document.documentElement.classList.remove("pc-pre-p"); if(drawer.classList.contains("open")) closeDetail(true); }
+    else { document.documentElement.classList.remove("pc-pre-p","v8-instant"); if(drawer.classList.contains("open")) closeDetail(true); }
     return;
   }
   /* v9: the in-app weight estimator and freight calculator became /tools/shipping-calculator (old #weight / #freight links land there) */
   if(h==="weight"||h==="freight"){ location.replace("/tools/shipping-calculator"); return; }
-  document.documentElement.classList.remove("pc-pre-p");
+  document.documentElement.classList.remove("pc-pre-p","v8-instant");
   if(drawer.classList.contains("open")) closeDetail(true);
   const pid=PC_PAGES[h];
   if(pid&&!document.getElementById(pid)){ location.href="/#"+h; return; }   /* 10 Nov 2026: hub pages leave these sections out (lighter pages); they live on the homepage */
