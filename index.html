@@ -3324,6 +3324,56 @@ html body .v9-home .v9-rail>.card.rc .buy-pill{flex:none!important;height:30px;p
   html body .v9-home .v9-rail>.card.rc .price{font-size:16px!important}
   html body .v9-home .v9-rail>.card.rc .buy-pill{padding:0 12px}
 }
+/* the grid's cards (All Finds, /spreadsheet, hubs in the app) take the same look as the rows (owner, 26 Nov 2026:
+   "same size and same buy button"): card() adds .rc to them */
+html body #grid>.card.rc{display:flex;flex-direction:column;padding:8px!important;border:1px solid var(--line)!important;border-radius:16px!important;background:var(--surface)!important;box-shadow:none!important;
+  -webkit-tap-highlight-color:transparent;transition:transform var(--dur-2,200ms) var(--ease-out),box-shadow var(--dur-2,200ms) var(--ease-out),border-color var(--dur-1,120ms) linear!important}
+html body #grid>.card.rc .thumb{aspect-ratio:1/1!important;border-radius:9px!important;overflow:hidden}
+html body #grid>.card.rc .thumb img.pimg{box-sizing:border-box;width:100%!important;height:100%!important;padding:8%!important;object-fit:contain!important;border-radius:0!important}
+/* Save: a bare star on the photo, a soft chip behind it on hover, solid once saved */
+html body #grid>.card.rc .fav{top:6px!important;right:6px!important;width:30px!important;height:30px!important;background:transparent!important;color:var(--ink)!important;opacity:.45;box-shadow:none!important;border:0!important}
+html body #grid>.card.rc .fav svg{width:15px;height:15px}
+html body #grid>.card.rc .fav::after{content:"";position:absolute;inset:-7px}
+html body #grid>.card.rc .fav[aria-pressed="true"]{opacity:1}
+@media (hover:hover){html body #grid>.card.rc:hover .fav{opacity:.8}html body #grid>.card.rc .fav:hover{opacity:1;background:color-mix(in srgb,var(--surface) 88%,transparent)!important}}
+@media (hover:none){html body #grid>.card.rc .fav{opacity:.6}}
+/* QC: a small camera chip on the star's centre line, same weight as the star */
+html body #grid>.card.rc .tbadges{top:9px;left:9px}
+html body #grid>.card.rc .tbadges .qcb{width:24px;height:24px;background:color-mix(in srgb,var(--surface) 90%,transparent);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink)}
+html body #grid>.card.rc .tbadges .qcb .ic{width:13px;height:13px;opacity:.8}
+@media (hover:hover){html body #grid>.card.rc .tbadges .qcb:hover{background:var(--surface)}}
+/* text: brand label, title, then price and Buy on one line */
+html body #grid>.card.rc .body{display:grid!important;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;row-gap:0!important;flex:1 1 auto;align-content:start;padding:12px 4px 2px!important}
+html body #grid>.card.rc .brand-line{grid-column:1/-1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:600 10.5px/16px var(--f-body)!important;letter-spacing:.09em!important;text-transform:uppercase!important;color:var(--muted)!important}
+html body #grid>.card.rc .title{grid-column:1/-1;margin-top:3px;font-size:14px!important;font-weight:500!important;line-height:19px!important;min-height:38px!important;letter-spacing:-.005em!important;color:var(--ink)!important;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+html body #grid>.card.rc .price-row{grid-column:1;align-self:end;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px!important;min-width:0;padding-top:12px!important}
+html body #grid>.card.rc .price{font-size:17px!important;font-weight:650!important;letter-spacing:-.015em!important;font-variant-numeric:tabular-nums;color:var(--ink)!important}
+html body #grid>.card.rc .card-acts{grid-column:2;align-self:end;margin:12px 0 0!important}
+html body #grid>.card.rc .buy-pill{flex:none!important;height:30px;padding:0 14px;border:1px solid var(--line-2);background:transparent;color:var(--ink);font-size:12.5px;font-weight:600}
+@media (hover:hover){html body #grid>.card.rc .buy-pill:hover{background:var(--fill);border-color:var(--fill);color:var(--fill-ink)}}
+@media (pointer:coarse){html body #grid>.card.rc .buy-pill{height:32px}html body #grid>.card.rc .buy-pill::before{inset:-6px -4px}}
+/* light: the hairline reads a touch firmer on white, the Buy outline matches it */
+:root:not([data-theme="dark"]) body #grid>.card.rc{border-color:color-mix(in srgb,var(--ink) 9%,transparent)!important}
+:root:not([data-theme="dark"]) body #grid>.card.rc .buy-pill{border-color:color-mix(in srgb,var(--ink) 16%,transparent)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="dark"]) body #grid>.card.rc{border-color:var(--line)!important}:root:not([data-theme="light"]):not([data-theme="dark"]) body #grid>.card.rc .buy-pill{border-color:var(--line-2)}}
+/* hover lift (mouse only) */
+@media (hover:hover) and (pointer:fine){
+  html body #grid>.card.rc:hover{transform:translateY(-3px)!important;border-color:var(--line-2)!important;box-shadow:0 14px 30px -16px rgba(0,0,0,.28),0 2px 6px -2px rgba(0,0,0,.06)!important}
+  html body #grid>.card.rc:hover:active{transform:translateY(-3px) scale(.985)!important}
+  :root[data-theme="dark"] body #grid>.card.rc:hover{box-shadow:0 16px 34px -14px rgba(0,0,0,.7)!important}
+}
+@media (hover:hover) and (pointer:fine) and (prefers-color-scheme:dark){:root:not([data-theme="light"]) body #grid>.card.rc:hover{box-shadow:0 16px 34px -14px rgba(0,0,0,.7)!important}}
+@media (prefers-reduced-motion:reduce){html body #grid>.card.rc,html body #grid>.card.rc:hover,html body #grid>.card.rc:hover:active{transform:none!important}}
+/* phones: a little tighter, same layout */
+@media (max-width:560px){
+  html body #grid>.card.rc{padding:6px!important;border-radius:14px!important}
+  html body #grid>.card.rc .thumb{border-radius:9px!important}
+  html body #grid>.card.rc .thumb img.pimg{padding:7%!important}
+  html body #grid>.card.rc .body{padding:10px 3px 2px!important}
+  html body #grid>.card.rc .title{font-size:13.5px!important}
+  html body #grid>.card.rc .price{font-size:16px!important}
+  html body #grid>.card.rc .buy-pill{padding:0 12px}
+}
 /* the rows' skeleton cards take the same shape, so nothing moves when the cards come in */
 html .v9-home .v9-rail>.sk-card{padding:8px;border:1px solid var(--line);border-radius:16px}
 html .v9-home .v9-rail>.sk-card .sk-im{border-radius:9px}
@@ -5175,7 +5225,18 @@ function card(p,i){
   if(im){ im.removeAttribute("onerror"); im.__p=p; if(!im.__eh){ im.__eh=1; im.addEventListener("error",_imgErr); }
     if(im.complete&&im.naturalWidth) im.classList.add("is-in"); }   /* already in memory: no skeleton frame */
   else requestAnimationFrame(()=>drawTile($("canvas",el),p));
+  el.classList.add("rc"); const _ta=el.querySelector("a.title"), _tt=gridTitle(p); if(_ta&&_tt) _ta.textContent=_tt;
   return el;
+}
+/* the grid card's title as on the rows' cards (railTitle): without the brand that sits above it and without words we keep
+   out of copy; the full title stays in the photo's alt text */
+const GRID_DROP=/(^|\s)(replicas?|reps?|fakes?|1:1)(?=\s|$)/gi;
+function gridTitle(p){
+  let t=String(p.title||""); const b=String(p.brand||"");
+  if(b&&t.toLowerCase().indexOf(b.toLowerCase()+" ")===0) t=t.slice(b.length+1);
+  t=t.replace(GRID_DROP," ").replace(/\s+/g," ").trim();
+  if(!t) t=String(p.title||"").replace(GRID_DROP," ").replace(/\s+/g," ").trim();
+  return t?t.charAt(0).toUpperCase()+t.slice(1):"";
 }
 let _rlist=[], _rn=0; const RPAGE=30;
 function _renderChunk(){
