@@ -81,7 +81,7 @@ export const SP_CSS = `<style id="pc-sp-css">
 html[data-sp]{--spx-dot:#0066CC;--spx-halo:rgba(0,102,204,.16);--spx-glow:rgba(0,102,204,.055);--spx-fsh:0 1px 2px rgba(0,0,0,.04),0 12px 32px -16px rgba(0,0,0,.2);--spx-sep:#B4B4B4;--spx-pop:0 30px 70px -26px rgba(0,0,0,.3),0 2px 8px rgba(0,0,0,.05)}
 @media (prefers-color-scheme:dark){html[data-sp]:not([data-theme="light"]){--spx-dot:#8EA6DC;--spx-halo:rgba(142,166,220,.22);--spx-glow:rgba(142,166,220,.08);--spx-fsh:0 12px 32px -18px rgba(0,0,0,.7);--spx-sep:#4D4D4D;--spx-pop:0 30px 80px -24px rgba(0,0,0,.85)}}
 html[data-sp][data-theme="dark"]{--spx-dot:#8EA6DC;--spx-halo:rgba(142,166,220,.22);--spx-glow:rgba(142,166,220,.08);--spx-fsh:0 12px 32px -18px rgba(0,0,0,.7);--spx-sep:#4D4D4D;--spx-pop:0 30px 80px -24px rgba(0,0,0,.85)}
-html[data-sp] .hero::before{content:"";position:absolute;left:0;right:0;top:-150px;height:560px;background:radial-gradient(min(600px,75vw) 270px at 50% 50%,var(--spx-glow),transparent);pointer-events:none}
+html[data-sp] .hero::before{content:"";position:absolute;left:0;right:0;top:-150px;height:560px;background:radial-gradient(min(680px,80vw) 300px at 50% 46%,var(--spx-glow),transparent 72%);-webkit-mask:linear-gradient(180deg,#000 40%,transparent 80%);mask:linear-gradient(180deg,#000 40%,transparent 80%);pointer-events:none}
 .spx{position:relative;box-sizing:border-box;max-width:var(--_maxw,1280px);margin:0 auto;padding:26px var(--_gut,24px) 6px;text-align:center;font-family:var(--f-body);color:var(--ink)}
 @media (min-width:768px){.spx{padding-top:52px;padding-bottom:10px}}
 .spx-sep{margin:0 .5em;color:var(--spx-sep)}
