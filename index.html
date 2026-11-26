@@ -3252,6 +3252,15 @@ html.sub-pre #sub-row[hidden]{display:flex!important;visibility:hidden;min-heigh
 #drawer .sim-skel .sim-t{background:linear-gradient(var(--sk-line),var(--sk-line)) 0 .2em/92% .9em no-repeat,linear-gradient(var(--sk-line),var(--sk-line)) 0 1.5em/62% .9em no-repeat}
 #drawer .sim-skel .sim-p{background:linear-gradient(var(--sk-line),var(--sk-line)) 0 50%/40% .9em no-repeat}
 </style>
+<style data-split="css" id="pc-mini-css">/* the one-line tools strip on the homepage (26 Nov 2026) */
+.v9-mini{padding:8px 0 4px}
+.v9-mini-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 4px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.v9-mini-in a{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 12px;border-radius:999px;font:500 14px/1 var(--f-body,inherit);color:var(--muted)!important;text-decoration:none!important;-webkit-tap-highlight-color:transparent;transition:color var(--dur-1,100ms) linear,background-color var(--dur-1,100ms) linear}
+.v9-mini-in a .ic{width:14px;height:14px}
+.v9-mini-in a.v9-mini-guide{color:var(--ink)!important}
+@media (hover:hover){.v9-mini-in a:hover{color:var(--ink)!important;background:var(--surface-2)}}
+@media (max-width:640px){.v9-mini-in{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:10px 0}.v9-mini-in::-webkit-scrollbar{display:none}.v9-mini-in a{white-space:nowrap;flex:none}}
+</style>
 <style data-split="css" id="pc-rail-css">/* home rows (Popular Now and the category rows), 26 Nov 2026 (owner: "make the items on these way nicer"). The cards
    buildRows() draws carry .rc. A real card with a hairline, the photo on its tile (dark: the #262626 cut-out tile, light: no
    well, as Round 6), more room around the photo so every find sits the same way, the brand as a small capitals label, a
@@ -3478,75 +3487,12 @@ html #drawer .pp-filters{margin-top:14px}
     <div class="v9-rail" id="v9-rail-Outerwear"><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div><div class="sk-card" aria-hidden="true"><i class="sk-im"></i><i class="sk-l1"></i><i class="sk-l2"></i><i class="sk-l3"></i><i class="sk-pr"></i><i class="sk-p"></i></div></div>
   </div>
 </section>
-<section class="v9-sec v9-qc" aria-labelledby="v9-qc-h">
-  <div class="v9-wrap"><div class="v9-panel v9-qc-in">
-    <div class="v9-qc-copy"><h2 id="v9-qc-h" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg></span><span data-i18n="v9_qc_h">Real QC Photos In One Click</span></h2><ol class="ic-steps v9-qc-steps"><li><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-link"/></svg></span><span data-i18n="v9_qc_s1">Paste a link</span></li><li><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-store"/></svg></span><span data-i18n="v9_qc_s2">Weidian, Taobao, 1688</span></li><li><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg></span><span data-i18n="v9_qc_s3">See buyer QC photos</span></li></ol></div>
-    <div class="v9-qc-side">
-      <form class="v9-qc-form" id="v9-qc-form" action="/tools/qc-checker" method="get">
-        <label class="v9-vh" for="v9-qc-u" data-i18n="v9_qc_label">Product link or item ID</label>
-        <input class="v9-input" id="v9-qc-u" name="u" type="text" inputmode="url" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Paste a link or item ID">
-        <button class="v9-btn v9-btn-primary" type="submit"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg><span data-i18n="v9_qc_go">Find QC</span></button>
-      </form>
-      <details class="v9-more"><summary><span data-i18n="v9_how">How it works</span><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><p class="v9-lead" data-i18n="v9_qc_p">Drop in any Weidian, Taobao or 1688 link. If buyers have shared QC photos of it, you see them here first.</p></details>
-      <p class="v9-qc-note"><span data-i18n="v9_qc_note">No link yet?</span> <a href="/qc-spreadsheet" data-i18n="v9_qc_browse">Browse finds with QC photos</a></p>
-      <p class="v9-qc-msg" id="v9-qc-msg" role="status" aria-live="polite"></p>
-    </div>
-  </div></div>
-</section>
-<section class="v9-sec v9-teasers" aria-label="Size estimator and parcel tracker">
-  <div class="v9-wrap v9-duo">
-    <div class="v9-tcard">
-      <h2 id="v9-size-h" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-ruler"/></svg></span><span data-i18n="v9_size_h">Know Your Size Before You Order</span></h2>
-      <ul class="ic-row tight"><li><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-ruler"/></svg><span data-i18n="v9_size_f1">Height and weight</span></li><li><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-user"/></svg><span data-i18n="v9_size_f2">Your fit</span></li><li><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-tag"/></svg><span data-i18n="v9_size_f3">Your size label</span></li></ul>
-      <div class="v9-mock v9-mock-size" aria-hidden="true"><span class="v9-chip">S</span><span class="v9-chip">M</span><span class="v9-chip is-on">L</span><span class="v9-chip">XL</span><span class="v9-chip">XXL</span></div>
-      <form class="v9-tform" action="/tools/size-estimator" method="get" aria-labelledby="v9-size-h">
-        <div class="v9-field"><label for="v9-size-h-in" data-i18n="v9_size_height">Height (cm)</label><input class="v9-input" id="v9-size-h-in" name="h" type="number" inputmode="numeric" min="120" max="230" placeholder="180"></div>
-        <div class="v9-field"><label for="v9-size-w-in" data-i18n="v9_size_weight">Weight (kg)</label><input class="v9-input" id="v9-size-w-in" name="w" type="number" inputmode="numeric" min="35" max="250" placeholder="75"></div>
-        <button class="v9-btn v9-btn-primary" type="submit"><span data-i18n="v9_size_go">Get My Size</span></button>
-      </form>
-      <details class="v9-more"><summary><span data-i18n="v9_how">How it works</span><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><p data-i18n="v9_size_p">Tell us your height, weight and fit. We tell you which size to look for. Have the seller's chart? Compare it in the full tool.</p></details>
-    </div>
-    <div class="v9-tcard">
-      <h2 id="v9-track-h" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-pin"/></svg></span><span data-i18n="v9_track_h">Track Your Haul From China To Your Door</span></h2>
-      <ul class="ic-row tight"><li><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-hash"/></svg><span data-i18n="v9_track_f1">Any tracking number</span></li><li><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-truck"/></svg><span data-i18n="v9_track_f2">Carrier spotted</span></li><li><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-zap"/></svg><span data-i18n="v9_track_f3">One-tap tracking</span></li></ul>
-      <div class="v9-mock v9-mock-trk" aria-hidden="true"><span class="v9-trk-step is-done"><span class="v9-trk-dot"></span><span data-i18n="v9_trk_1">Warehouse</span></span><span class="v9-trk-line is-done"></span><span class="v9-trk-step is-done"><span class="v9-trk-dot"></span><span data-i18n="v9_trk_2">In transit</span></span><span class="v9-trk-line"></span><span class="v9-trk-step"><span class="v9-trk-dot"></span><span data-i18n="v9_trk_3">Delivered</span></span></div>
-      <form class="v9-tform" action="/tools/parcel-tracker" method="get" aria-labelledby="v9-track-h">
-        <div class="v9-field"><label for="v9-trk-in" data-i18n="v9_track_label">Tracking number</label><input class="v9-input" id="v9-trk-in" name="n" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="e.g. YT1234567890123456"></div>
-        <button class="v9-btn v9-btn-primary" type="submit"><span data-i18n="v9_track_go">Track</span></button>
-      </form>
-      <details class="v9-more"><summary><span data-i18n="v9_how">How it works</span><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><p data-i18n="v9_track_p">Paste any tracking number. We spot the carrier and open the right tracking page in one tap.</p></details>
-    </div>
-  </div>
-</section>
-<section class="v9-sec v9-tools" aria-labelledby="v9-tools-h">
-  <div class="v9-wrap">
-    <div class="v9-head"><h2 id="v9-tools-h" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-grid"/></svg></span><span data-i18n="v9_tools_h">Free Tools</span></h2><a class="v9-more" href="/tools"><span data-i18n="v9_view_all">View all</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a></div>
-    <div class="v9-tools-grid"><a class="v9-tool" href="/tools/qc-checker"><span class="v9-tool-ic"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg></span><b data-i18n="v9_tool_qc">QC Checker</b><span class="v9-tool-d" data-i18n="v9_tool_qc_d">See real buyer photos of any listing.</span></a><a class="v9-tool" href="/tools/link-converter"><span class="v9-tool-ic"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-link"/></svg></span><b data-i18n="v9_tool_link">Link Converter</b><span class="v9-tool-d" data-i18n="v9_tool_link_d">Turn any seller link into agent buy links.</span></a><a class="v9-tool" href="/tools/shipping-calculator"><span class="v9-tool-ic"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-box"/></svg></span><b data-i18n="v9_tool_ship">Shipping Calculator</b><span class="v9-tool-d" data-i18n="v9_tool_ship_d">Ballpark your parcel cost by weight and country.</span></a><a class="v9-tool" href="/tools/size-estimator"><span class="v9-tool-ic"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-ruler"/></svg></span><b data-i18n="v9_tool_size">Size Estimator</b><span class="v9-tool-d" data-i18n="v9_tool_size_d">Find your size from height, weight and fit.</span></a><a class="v9-tool" href="/tools/parcel-tracker"><span class="v9-tool-ic"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-pin"/></svg></span><b data-i18n="v9_tool_track">Parcel Tracker</b><span class="v9-tool-d" data-i18n="v9_tool_track_d">Spot the carrier and track your parcel.</span></a></div>
-  </div>
-</section>
-<section class="v9-sec v9-steps" aria-labelledby="v9-steps-h">
-  <div class="v9-wrap">
-    <div class="v9-head"><h2 id="v9-steps-h" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-list"/></svg></span><span data-i18n="v9_steps_h">Your First Haul In 3 Steps</span></h2></div>
-    <ol class="v9-steps-grid">
-      <li class="v9-step"><span class="ic-tile v9-step-ic" data-n="1" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-user-plus"/></svg></span><details class="v9-step-d"><summary><h3><span data-i18n="v9_step1_h">Make An Agent Account</span></h3><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><p data-i18n="v9_step1_p">Sign up free with an agent like MyCNBox or KakoBuy. They buy from Chinese sellers for you.</p></details></li>
-      <li class="v9-step"><span class="ic-tile v9-step-ic" data-n="2" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg></span><details class="v9-step-d"><summary><h3><span data-i18n="v9_step2_h">Order And Check QC</span></h3><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><p data-i18n="v9_step2_p">Open a find, buy it through your agent and check the warehouse photos before anything ships.</p></details></li>
-      <li class="v9-step"><span class="ic-tile v9-step-ic" data-n="3" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-truck"/></svg></span><details class="v9-step-d"><summary><h3><span data-i18n="v9_step3_h">Ship One Parcel</span></h3><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary><p data-i18n="v9_step3_p">Bundle your haul into one parcel and pick a shipping line that fits your country and budget.</p></details></li>
-    </ol>
-    <div class="v9-steps-foot">
-      <a class="v9-btn v9-btn-outline" href="/how-to-order"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-book"/></svg><span data-i18n="v9_steps_cta">Read The Full Guide</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a>
-    </div>
-  </div>
-</section>
-<section class="v9-sec v9-nums" aria-labelledby="v9-nums-h">
-  <div class="v9-wrap">
-    <h2 class="v9-vh" id="v9-nums-h" data-i18n="v9_nums_h">The Sheet In Numbers</h2>
-    <dl class="v9-nums-grid">
-      <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-sheet"/></svg></span><span data-i18n="v9_n_finds">Finds on the sheet</span></dt><dd data-num="finds">10,600+</dd></div>
-      <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-camera"/></svg></span><span data-i18n="v9_n_qc">Finds with QC photos</span></dt><dd data-num="qc">2,100+</dd></div>
-      <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-store"/></svg></span><span data-i18n="v9_n_markets">Marketplaces</span></dt><dd data-num="markets">3</dd></div>
-      <div class="v9-num"><dt><span class="ic-tile v9-num-ic" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-users"/></svg></span><span data-i18n="v9_n_agents">Agents supported</span></dt><dd data-num="agents">16</dd></div>
-    </dl>
-  </div>
+<!-- 26 Nov 2026 (owner: "i dont really like this section ... just have something short and clean"): the QC box, size and
+     tracker teasers, Free Tools, 3 steps and the numbers became one quiet line of links -->
+<section class="v9-sec v9-mini" aria-label="Free tools">
+  <div class="v9-wrap"><nav class="v9-mini-in" aria-label="Free tools">
+    <a href="/tools/qc-checker">QC Checker</a><a href="/tools/link-converter">Link Converter</a><a href="/tools/shipping-calculator">Shipping Calculator</a><a href="/tools/size-estimator">Size Estimator</a><a href="/tools/parcel-tracker">Parcel Tracker</a><a href="/how-to-order" class="v9-mini-guide">How to order<svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a>
+  </nav></div>
 </section>
 <div class="v9-all-head">
   <div class="v9-wrap"><h2 id="v9-all" class="h-ic"><span class="ic-tile" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-grid"/></svg></span><span data-i18n="v9_all_h">All Finds</span></h2><p class="v9-lead v9-all-p"><svg class="ic sm" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sliders"/></svg><span data-i18n="v9_all_p">Search, filter and sort every find on the sheet.</span></p><button type="button" class="sty-chip" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-palette"/></svg><span>Your style: <b>Everything</b></span><span class="sty-chg">Change</span></button></div>

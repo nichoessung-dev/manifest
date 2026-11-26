@@ -442,7 +442,7 @@ async function route(ctx) {
       let ldDone = false, cssDone = false;
       const sp = new HTMLRewriter()
         .on("html", { element(e) { e.setAttribute("data-sp", "1"); } })
-        .on("title", { element(e) { e.setInnerContent(TT); e.after(`<script>window.__pcBaseTitle=${JSON.stringify(TT)}</script><style>html[data-sp] :is(.v9-cats,.v9-row,.v9-qc,.v9-teasers,.v9-tools,.v9-steps,.v9-nums,.hx-home,#seo){display:none!important}</style>`, { html: true }); } })   // no <head> tag in index.html
+        .on("title", { element(e) { e.setInnerContent(TT); e.after(`<script>window.__pcBaseTitle=${JSON.stringify(TT)}</script><style>html[data-sp] :is(.v9-cats,.v9-row,.v9-qc,.v9-teasers,.v9-tools,.v9-steps,.v9-nums,.v9-mini,.hx-home,#seo){display:none!important}</style>`, { html: true }); } })   // no <head> tag in index.html
         .on('meta[name="description"]', { element(e) { e.setAttribute("content", D); } })
         .on('meta[property="og:title"]', { element(e) { e.setAttribute("content", TT); } })
         .on('meta[property="og:description"]', { element(e) { e.setAttribute("content", D); } })
