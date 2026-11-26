@@ -2,7 +2,7 @@
 // so every find is a real, fast, indexable page. Finds without QC photos are noindex,follow.
 // Unknown/removed ids get a real 404.
 import { renderProduct, PRODUCT_TPL } from "../_lib/pages.js";
-import { notFound, ensureStats, BUILT, SWAP_KEY, SWAP_HIDE, setHidden } from "../_lib/site.js";
+import { notFound, ensureStats, statsLoaded, BUILT, SWAP_KEY, SWAP_HIDE, setHidden } from "../_lib/site.js";
 import { countView } from "../_lib/views.js";
 import { removedIds, reportedIds } from "../_lib/reported.js";
 
@@ -37,7 +37,9 @@ export async function onRequestGet(context) {
   const res = await renderProduct(id, url.origin, { reported: rep });
   if (!res) return notFound(url.pathname);
   if (res.status === 200) countView(context, id);                  // a real find (unknown ids 404 above and are not counted)
-  const ttl = res.headers.get("x-qc-miss") ? QC_MISS_TTL : PAGE_TTL;   // a render without its QC photos is retried soon
+  // a render without its QC photos is retried soon; one without the view stats too (25 Nov 2026): its robots tag can be
+  // wrong, since the indexable listing of a name group goes by views (idx().groupPick), and it was kept for a day
+  const ttl = res.headers.get("x-qc-miss") || !statsLoaded() ? QC_MISS_TTL : PAGE_TTL;
   res.headers.delete("x-qc-miss");
   const stored = new Response(res.clone().body, res);
   stored.headers.set("cache-control", `public, max-age=${ttl}`);

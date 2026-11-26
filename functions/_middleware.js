@@ -119,10 +119,18 @@ const CATALOG_PARTS = 3;
 const etagOf = r => (r.headers.get("etag") || "x").replace(/[^A-Za-z0-9]/g, "").slice(0, 32);
 const catalogTags = ver => `<script>window.PC_CATALOG_WANT=${CATALOG_PARTS}</script>` +
   Array.from({ length: CATALOG_PARTS }, (_, i) => `<script src="/catalog.js?v=${ver}&amp;p=${i}"></script>`).join("");
-// The same parts as a Link preload header (perf, 5 Nov 2026): the browser starts them with the page instead of when its
-// parser reaches the tags, about 1 s into a slow phone's load. Low priority keeps the page and its first photos ahead of them.
-const catalogLink = ver => Array.from({ length: CATALOG_PARTS }, (_, i) => `</catalog.js?v=${ver}&p=${i}>; rel=preload; as=script; fetchpriority=low`).join(", ");
-const withCatalogLink = (res, ver) => { const r = new Response(res.body, res); r.headers.append("link", catalogLink(ver)); r.headers.append("link", appLink(ver)); return r; };
+// The same parts preloaded (perf, 5 Nov 2026): the browser starts them with the page instead of when its parser reaches
+// the tags, about 1 s into a slow phone's load. Low priority keeps the page and its first photos ahead of them.
+// 25 Nov 2026 (speed check): they were preloaded by a Link header until now. Cloudflare Pages keeps the Link header it saw
+// for a URL and sends it again as a 103 Early Hints answer ahead of the page (always on for Pages, it cannot be turned off),
+// and that copy is not renewed on every answer: on 25 Nov the 103 of /, /spreadsheet, /brand/moncler, /category/sneakers,
+// /kakobuy-spreadsheet and /weidian-spreadsheet still named an older ?v= than their 200 (curl -sI), so a phone on HTTP/2 or
+// 3 fetched the previous deploy's catalogue parts, app.css and app.js (about 650 KB) next to the current ones after every
+// index.html change. The header now names only files whose address never changes (EARLY_LINK, also preloaded by the page);
+// the versioned files are <link rel="preload"> tags at the top of the head (appSplit), in the order the header had them.
+const catalogPreload = ver => Array.from({ length: CATALOG_PARTS }, (_, i) => `<link rel="preload" href="/catalog.js?v=${ver}&amp;p=${i}" as="script" fetchpriority="low">`).join("");
+const EARLY_LINK = '</fonts/inter-latin.woff2>; rel=preload; as=font; type="font/woff2"; crossorigin, </img/wordmark.webp?v=1>; rel=preload; as=image; type="image/webp"; crossorigin; fetchpriority=high';
+const withEarlyLink = res => { const r = new Response(res.body, res); r.headers.set("link", EARLY_LINK); return r; };
 
 // Lighter pages (10 Nov 2026, SEO report: hub pages were ~870 KB of HTML, two thirds of it the same app code and styles on
 // every page). index.html keeps them inline (the repo's single source); visitors get them as /app.js and /app.css, cached
@@ -133,10 +141,10 @@ const appTags = {
   css: ver => `<link rel="stylesheet" href="/app.css?v=${ver}">`,
   js: ver => `<script src="/app.js?v=${ver}"></script>`,
 };
-const appLink = ver => `</app.css?v=${ver}>; rel=preload; as=style, </app.js?v=${ver}>; rel=preload; as=script`;
 function appSplit(rw, ver) {
   let first = true;
   return rw
+    .on("meta[charset]", { element(e) { e.after(catalogPreload(ver) + `<link rel="preload" href="/app.js?v=${ver}" as="script">`, { html: true }); } })   // see catalogPreload
     .on('style[data-split="css"]', { element(e) { if (first) { first = false; e.replace(appTags.css(ver), { html: true }); } else e.remove(); } })
     .on('script[data-split="js"]', { element(e) { e.replace(appTags.js(ver), { html: true }); } });
 }
@@ -161,12 +169,12 @@ async function appFile(ctx, url, kind) {
 // The homepage's "New finds" block (12 Nov 2026, SEO check) goes before the footer, with the hub styles (HX_CSS) it uses.
 // TILE_LIGHT_JS (every app page, here and in hubApp): the finds whose photo keeps the light tile in dark mode, for the app's
 // pcCut() (photo_tiles.js).
-const slimHtml = (res, ver, cards = "", fresh = "") => withCatalogLink(appSplit(new HTMLRewriter(), ver)
+const slimHtml = (res, ver, cards = "", fresh = "") => withEarlyLink(appSplit(new HTMLRewriter(), ver)
   .on("script#pc-catalog", { element(e) { e.replace(catalogTags(ver), { html: true }); } })
   .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
   .on("meta[charset]", { element(e) { e.after(TILE_LIGHT_JS + (fresh ? HX_CSS : ""), { html: true }); } })
   .on("footer", { element(e) { if (fresh) e.before(`<div class="hx hx-app hx-home">${fresh}</div>`, { html: true }); } })
-  .transform(res), ver);
+  .transform(res));
 // Live numbers (12 Nov 2026, SEO check): index.html's fixed "9,000+" and five-agent phrases (title, meta description, og
 // and twitter tags, JSON-LD, the SEO text, the search placeholder) are rewritten here with liveCopy() (site.js LIVE_RULES),
 // so index.html itself is not edited. Applied to the finished homepage and app hub HTML: outside <script> elements and inside
@@ -206,12 +214,16 @@ async function topSearches(ctx, origin) {
 // The app's first cards as HTML (see appCards in pages.js), dead listings and finds removed after reports
 // (data/reported.json) left out like the app does. Only once the view
 // stats are read, so the order is the app's; without them the grid stays empty and the app fills it as before.
-async function serverCards(ctx, origin, spec) {
+// off (25 Nov 2026, speed check): the photos above the grid that take the first eager/high slots (appCards). 8 on the
+// homepage, whose grid sits under the v9 sections; 0 on the hubs and on /spreadsheet, where the grid comes right under a
+// short hero and its first photo is the largest paint. /spreadsheet had the homepage's 8: every card photo lazy and low,
+// so on a phone (fast 3G, 4x CPU) the first photo painted at 8.9 s, against 4.5 s on /brand/moncler.
+async function serverCards(ctx, origin, spec, off = spec ? 0 : 8) {
   if (!statsLoaded()) return { cards: "", more: "" };
   const { list, base } = hubList(spec), { dead } = await linkHealth(ctx, origin), rep = await reportedIds(ctx.env, origin);
   const live = [];
   for (const p of list) { if (!dead.has(String(p.id)) && !rep.has(String(p.id))) live.push(p); if (live.length >= APP_CARDS) break; }
-  return { cards: appCards(live, 1, spec && spec.preset.agent, spec ? 0 : 8), more: spec ? appPager(base, list.length) : "", top: live[0] || null };
+  return { cards: appCards(live, 1, spec && spec.preset.agent, off), more: spec ? appPager(base, list.length) : "", top: live[0] || null };
 }
 
 async function catalogJs(ctx, url) {
@@ -308,7 +320,8 @@ async function route(ctx) {
   }
   // One 301 hop: strip the trailing slash and, for hub URLs (/brand/Fendi, /Best/X ...), lowercase.
   let to = path.length > 1 ? path.replace(/\/+$/, "") || "/" : path;
-  if (/^\/(brand|category|brands|old-money|guides|best|tools|new)\b|^\/[a-z0-9]+-spreadsheet/i.test(to)) to = to.toLowerCase();
+  // 25 Nov 2026: /spreadsheet, /about and the static pages too (/Spreadsheet and /About answered 404)
+  if (/^\/(brand|category|brands|old-money|guides|best|tools|new|spreadsheet|about|how-to-order|terms|privacy)\b|^\/[a-z0-9]+-spreadsheet/i.test(to)) to = to.toLowerCase();
   // v9: the weight estimator moved into the shipping calculator; one hop even from /tools/weight-estimator/.
   if (to === "/tools/weight-estimator") return Response.redirect(url.origin + "/tools/shipping-calculator", 301);
   if (to !== path) return Response.redirect(url.origin + to + url.search, 301);
@@ -353,7 +366,10 @@ async function route(ctx) {
   else if (pageCache) await reportedIds(ctx.env, url.origin);   // the homepage and /spreadsheet: so keep() knows the list was read
   if (path === "/sitemap.xml") return sitemapIndex();
   if (path === "/sitemap-pages.xml") return sitemapPages();
-  if (path === "/sitemap-products.xml") return sitemapProducts(await reportedIds(ctx.env, url.origin));   // removed finds are noindex
+  // 25 Nov 2026 (SEO check): with the view stats, as the product pages are rendered. Which listing of a name group is
+  // indexable (idx().groupPick in site.js) goes by views; without the stats this sitemap listed 132 finds whose pages say
+  // noindex (25 of a sample of 600 live URLs) and left out 60 indexable ones.
+  if (path === "/sitemap-products.xml") { await ensureStats(url.origin); return sitemapProducts(await reportedIds(ctx.env, url.origin)); }   // removed finds are noindex
   const spec = hubSpec(path);
   if (spec) return keep(await hubApp(ctx, url, spec));
   if (path === "/brands") res = renderBrands();
@@ -409,13 +425,14 @@ async function route(ctx) {
   // app with its own title and h1, and only the hero and the full grid shown (html[data-sp] hides the rest; the app rewrites the html class, so not a class).
   // 25 Nov 2026 (owner): its hero is lab concept A's search-first hero (_lib/sp_hero.js), server-rendered in place of the
   // homepage hero's content; the title, meta description, og:title and canonical stay as they were.
-  if (path === "/spreadsheet" && request.method === "GET") {
+  // HEAD as well (25 Nov 2026): HEAD /spreadsheet fell through to the SPA catch-all below and answered 404 while GET was 200.
+  if (path === "/spreadsheet") {
     const base = await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { headers: request.headers }));
     if (base.status === 200) {
       await ensureStats(url.origin);
       const T = "The Easiest Spreadsheet to Use for China", TT = T + " | Puro Classico";
       const D = "Search 10,600+ Weidian, Taobao and 1688 finds with buyer QC photos and one-tap buy links for MyCNBox, KakoBuy and every other agent. Free.";
-      const app = await liveHtml(slimHtml(base, etagOf(base), (await serverCards(ctx, url.origin, null)).cards, ""));
+      const app = await liveHtml(slimHtml(base, etagOf(base), (await serverCards(ctx, url.origin, null, 0)).cards, ""));
       const brandNames = [...idx().byBrand].sort((a, b) => b[1].length - a[1].length).map(e => e[0]);
       const hero = spHero({ finds: FINDS_PLUS, qc: QC_PLUS, agents: AGENT_ORDER.length, built: BUILT, trend: trendItems(await topSearches(ctx, url.origin), brandNames) });
       let ldDone = false, cssDone = false;
@@ -431,6 +448,11 @@ async function route(ctx) {
         .on('link[rel="stylesheet"][href^="/app.css"]', { element(e) { if (!cssDone) { cssDone = true; e.after(SP_CSS, { html: true }); } } })
         .on("section.hero", { element(e) { if (!cssDone) { cssDone = true; e.before(SP_CSS, { html: true }); } e.setInnerContent(hero, { html: true }); } })
         .on("script#pc-search", { element(e) { e.after(SP_JS, { html: true }); } })
+        // 25 Nov 2026 (speed check): the homepage sections this page hides (html[data-sp] above) are left out of it, as the hubs
+        // leave out #v9-home: their category photos (loading="eager") were fetched for nothing and home.js built the four hidden
+        // rows (64 cards). The "All Finds" heading (div.v9-all-head) stays. The home scripts check for each element first.
+        .on("div#v9-home > section.v9-sec", { element(e) { e.remove(); } })
+        .on("section#seo", { element(e) { e.remove(); } })
         // 25 Nov 2026 (SEO pass): the homepage's structured data said this page was "/" and carried the FAQ of the #seo block,
         // which this page hides. Its own CollectionPage instead, in the same graph as the homepage's Organization and WebSite.
         .on('script[type="application/ld+json"]', { element(e) { if (ldDone) { e.remove(); return; } ldDone = true; e.replace('<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage",
@@ -438,7 +460,7 @@ async function route(ctx) {
           isPartOf: { "@type": "WebSite", "@id": "https://www.puroclassico.com/#website", name: "Puro Classico", url: "https://www.puroclassico.com/" },
           publisher: { "@type": "Organization", "@id": "https://www.puroclassico.com/#org", name: "Puro Classico" } }).replace(/</g, "\\u003c") + "</script>", { html: true }); } })
         .transform(app);
-      return keep(sp);
+      return request.method === "HEAD" ? new Response(null, { status: sp.status, headers: sp.headers }) : keep(sp);
     }
   }
   // Swipe Finds (/feed, 4 Nov 2026): loads the same catalogue parts as the homepage (same ?v=, so a visitor who came
@@ -446,7 +468,7 @@ async function route(ctx) {
   if (path === "/feed" && out.status === 200 && ct.includes("text/html")) {
     let ver = "x";
     try { ver = etagOf(await ctx.env.ASSETS.fetch(new Request(url.origin + "/", { method: "HEAD" }))); } catch (e) {}
-    return withCatalogLink(new HTMLRewriter().on("script#pc-catalog-load", { element(e) { e.replace(catalogTags(ver), { html: true }); } }).transform(out), ver);
+    return withEarlyLink(new HTMLRewriter().on("script#pc-catalog-load", { element(e) { e.replace(catalogPreload(ver) + catalogTags(ver), { html: true }); } }).transform(out));
   }
   if (out.status === 200 && ct.includes("text/html") && !STATIC_HTML.has(path) && !/^\/google[0-9a-f]+\.html$/.test(path)) return notFound(path);
   return out;
@@ -522,6 +544,6 @@ async function hubApp(ctx, url, spec) {
     .on("p.hero-sub", { element(e) { e.setInnerContent(spec.sub); if (after) e.after(after, { html: true }); } })
     .on("footer", { element(e) { e.before(seo, { html: true }); } })
     .transform(asset);
-  const res = new Response(liveText(await new Response(out.body).text()), { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=3600", link: catalogLink(etagOf(asset)) + ", " + appLink(etagOf(asset)) } });
+  const res = new Response(liveText(await new Response(out.body).text()), { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=3600", link: EARLY_LINK } });
   return res;
 }
