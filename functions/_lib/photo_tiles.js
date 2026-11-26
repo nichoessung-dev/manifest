@@ -28,7 +28,6 @@ export const TILE_LIGHT = {
   "7673294189": "a faint figure from the backdrop is kept next to it",
   "7509414855": "a white dust cloth kept with the bag, plain on #262626",
   "6620905012": "a white strip of the stand under the hem, plain on #262626",
-  "7237596685": "a white strip of the stand under the hem, plain on #262626",
   "7759262976": "a white strip of the stand under the hem, plain on #262626",
   "7798030435": "a white strip of the stand under the hem, plain on #262626",
   "7780725454": "a white surface kept under the bag, plain on #262626",
