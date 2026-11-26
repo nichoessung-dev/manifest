@@ -202,6 +202,32 @@ def main():
     if dry:
         for t in todo[:15]: print("  ", t[1], "views", v.get(t[0], 0), "qc", t[2])
         return
+    # Oopbuy first (26 Nov 2026): its QC API has no monthly quota, so every find not banked yet is asked there, also those
+    # with no QC on record; what it does not have goes on to qualit.ly below
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import oopbuy_qc
+        if oopbuy_qc.ready():
+            omax = arg("--oopbuy-max", 3000); asked = found = 0
+            seen = set(items)
+            allf = [t for t in ([("fr:" + k, k, 1) for k in sorted(fkeys)] + catalogue(True)) if t[1] not in seen or (items[t[1]][1] == 0 and checked.get("oop:" + t[1], "") < old)]
+            allf.sort(key=lambda t: (t[0].startswith("fr:"), t[0] not in swapped, t[0] not in ix or t[0] in hid, -v.get(t[0], 0)))
+            for pid, key, qc in list({t[1]: t for t in allf}.values())[:omax]:
+                st, ph = oopbuy_qc.photos(key.split("/")[1]); asked += 1
+                if st not in (200, 404) and asked <= 3 and not found:
+                    print("Oopbuy QC not answering (%s): skipped this run" % st); break
+                checked["oop:" + key] = now.date().isoformat()
+                if ph:
+                    n = store(key, ph)
+                    if n: items[key] = [max(len(ph), n), n]; checked[key] = now.date().isoformat(); found += 1
+                    print("%-28s oopbuy photos %d stored %d" % (key, len(ph), n))
+                time.sleep(0.4)
+                if asked % 50 == 0: save(bank, now)
+            save(bank, now)
+            print("Oopbuy: asked %d, finds with photos stored %d" % (asked, found))
+            todo = [t for t in todo if not (t[1] in items and items[t[1]][1] > 0)]
+    except Exception as e:
+        print("Oopbuy QC pass failed: %s" % str(e)[:160])
     left = month.get("remaining")
     if left is None: raise SystemExit("could not read the qualit.ly quota (status %s): nothing looked up" % st)
     # the visitors' share for the days left until the quota resets (reset_at, else the 1st of next month, UTC)

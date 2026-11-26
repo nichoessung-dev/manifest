@@ -30,10 +30,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install pillow numpy opencv-python-headless qrcode
+      - run: pip install pillow numpy opencv-python-headless qrcode cryptography
       - name: Look up and store QC photos
         env:
           QUALITLY_KEY: ${{ secrets.QUALITLY_KEY }}
+          OOPBUY_APP_ID: ${{ secrets.OOPBUY_APP_ID }}
+          OOPBUY_AES_KEY: ${{ secrets.OOPBUY_AES_KEY }}
+          OOPBUY_SIGN_SECRET: ${{ secrets.OOPBUY_SIGN_SECRET }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           set -o pipefail
