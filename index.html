@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <meta charset="utf-8">
-<script>/* ?preview=signup (owner, 26 Nov 2026): go through sign-up as a first-time visitor. Clears this browser's onboarding marks (not favourites or the account), then drops the parameter. */try{if(/[?&]preview=signup(&|$)/.test(location.search)){["pc.gate","pc.views","pc.tut.seen","pc.welcome","pc.wbpop.seen","pc.optin","pc.optin.asked","pc.optin.done","pc.agent.picked","pc.agent.saved","pc.taste","pc.size.asked","pc.hint.done","pc.body"].forEach(function(k){localStorage.removeItem(k)});localStorage.setItem("pc.views","1");try{sessionStorage.clear()}catch(e){}history.replaceState(null,"",location.pathname)}}catch(e){}</script>
+<script>/* ?preview=signup (owner, 26 Nov 2026): go through sign-up as a first-time visitor. Clears this browser's onboarding marks (not favourites or the account), then drops the parameter. */try{if(/[?&]preview=signup(&|$)/.test(location.search)){["pc.gate","pc.views","pc.tut.seen","pc.welcome","pc.wbpop.seen","pc.optin","pc.optin.asked","pc.optin.done","pc.agent.picked","pc.agent.saved","pc.taste","pc.size.asked","pc.hint.done","pc.body"].forEach(function(k){localStorage.removeItem(k)});localStorage.setItem("pc.views","1");try{sessionStorage.clear()}catch(e){}window.__pcPreview=1;history.replaceState(null,"",location.pathname)}}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rep Spreadsheet: 10,600+ Designer Rep Finds | Puro Classico</title>
 <meta name="description" content="Rep finds spreadsheet with 10,600+ designer reps ranked by real views: Corteiz, Nike, Jordan, Stone Island & more. Buy via MyCNBox, KakoBuy or any agent.">
@@ -5508,7 +5508,8 @@ function hideGate(){ const g=$("#gate"); if(!g||g.hidden)return; g.hidden=true; 
   const f=_gateFocus; _gateFocus=null; if(f&&f.focus&&f!==document.body&&document.contains(f)){ try{ f.focus({preventScroll:true}); }catch(e){} }
   try{ window.dispatchEvent(new Event("pc:gate-closed")); }catch(e){} }   /* r6: the welcome flow opens right after the gate (only fires when the gate was visible) */
 /* signed in (session restored, OAuth/magic-link return): the entry gate has nothing left to ask */
-function gateSignedIn(){ try{ localStorage.setItem("pc.gate","1"); }catch(e){} hideGate(); }
+function gateSignedIn(){ if(window.__pcPreview&&!window.__pcPreviewAct) return;   /* ?preview=signup: an existing session does not close it */
+  try{ localStorage.setItem("pc.gate","1"); }catch(e){} hideGate(); }
 /* Settings dialog: the agent cards and currency chips are radiogroups (roving tabindex, arrow keys, Home/End) that write
    into the hidden #set-agent / #set-cur selects, so the Save handler below reads exactly the values it always has. */
 /* new-user offers, from each agent's own site (checked 9 Nov 2026): update here when they change */
@@ -6524,13 +6525,15 @@ try{ const _pp=location.pathname.match(/^\/product\/(.+)$/); if(_pp){ const _pid
     else if(e.shiftKey&&cur===first){ e.preventDefault(); last.focus(); }
     else if(!e.shiftKey&&cur===last){ e.preventDefault(); first.focus(); }
   },true);
-  const signedIn=()=>{ if(typeof ME!=="undefined" && ME) return true; try{ if(localStorage.getItem("pc.gate")) return true; }catch(e){} return false; };
+  const signedIn=()=>{ if(window.__pcPreview) return false;   /* ?preview=signup: show the gate even when signed in */
+    if(typeof ME!=="undefined" && ME) return true; try{ if(localStorage.getItem("pc.gate")) return true; }catch(e){} return false; };
   let tries=0;
   const check=()=>{
     if(signedIn()) return;
     if(!sb){ if(++tries<40) setTimeout(check,500); return; }   /* backend not loaded (yet): sign-in can't work, so don't ask */
     /* getSession reads the stored session locally (no network), so a slow getUser can't flash the gate over a signed-in user */
     const open=()=>{ if(!signedIn()) showGate(); };
+    if(window.__pcPreview){ open(); return; }
     try{ sb.auth.getSession().then(r=>{ if(r&&r.data&&r.data.session) return; open(); },open); }catch(e){ open(); }
   };
   /* 23 Nov 2026 (owner): never over the first page a visitor sees. Google counts a sign-up card that covers the page on a
