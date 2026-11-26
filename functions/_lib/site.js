@@ -220,12 +220,12 @@ export const CATS = {
 export const CAT_BY_SLUG = Object.fromEntries(Object.entries(CATS).map(([k, v]) => [v.slug, k]));
 
 const REFS = { mycnbox: "LHYDVW", kakobuy: "w5war", lovegobuy: "9WJ54Y", oopbuy: "LHQC0OS8O", sugargoo: "3751749728009774836",
-  litbuy: "N3GYNRNL7", usfans: "VKZFJG", joyagoo: "301083138", superbuy: "Expx5X", cssbuy: "R0dfOUY5QkM1RkU=", hipobuy: "6DJ8GVKLE",
+  litbuy: "N3GYNRNL7", usfans: "VKZFJG", joyagoo: "301083138", superbuy: "Expx5X", cssbuy: "R0dfOUY5QkM1RkU=", hipobuy: "6DJ8GVKLE", boonbuy: "NA6R4R4EC",
   fishgoo: "3920775520241738078", hubbuy: "082A1BdE", itaobuy: "6SMA234Z", gtbuy: "KI06I91RM", bbdbuy: "uDi7jz" };
 // The order agents are listed in everywhere (owner, 11 Nov 2026: the ones that earn the most first). MyCNBox stays first
 // and the default. Same list as AGENT_ORDER in index.html and the A list in pages.js AGENT_JS.
 // 12 Nov 2026 (owner): Sugargoo, Superbuy and Fishgoo last until their item links open the product for signed-out visitors
-export const AGENT_ORDER = ["mycnbox", "kakobuy", "oopbuy", "litbuy", "joyagoo", "hipobuy", "usfans", "gtbuy", "lovegobuy", "itaobuy", "cssbuy", "hubbuy", "bbdbuy", "sugargoo", "superbuy", "fishgoo"];
+export const AGENT_ORDER = ["mycnbox", "kakobuy", "oopbuy", "litbuy", "joyagoo", "hipobuy", "boonbuy", "usfans", "gtbuy", "lovegobuy", "itaobuy", "cssbuy", "hubbuy", "bbdbuy", "sugargoo", "superbuy", "fishgoo"];
 // CSSBuy reads the owner's invite code only on its sign-up page (item pages drop it), so its buttons open this link.
 const CSSBUY_REG = `https://www.cssbuy.com/register?invite=${REFS.cssbuy}`;
 const plOf = (p, m) => m[p.platform] != null ? m[p.platform] : m.weidian;
@@ -244,6 +244,7 @@ export const AGENTS = {
   joyagoo:   { name: "Joyagoo",   build: p => `https://joyagoo.com/product?id=${p.itemId || p.id}&platform=${plOf(p, { weidian: "WEIDIAN", taobao: "TAOBAO", "1688": "ALI_1688" })}&ref=${REFS.joyagoo}` },
   sugargoo:  { name: "Sugargoo",  build: p => `https://www.sugargoo.com/#/home/productDetail?productLink=${encodeURIComponent(origUrl(p))}&memberId=${REFS.sugargoo}` },
   hipobuy:   { name: "Hipobuy",   build: p => `https://hipobuy.com/product/${plOf(p, PL_WORD)}/${p.itemId || p.id}?inviteCode=${REFS.hipobuy}` },
+  boonbuy:   { name: "Boonbuy",   build: p => `https://boonbuy.com/product/${plOf(p, PL_WORD)}/${p.itemId || p.id}?inviteCode=${REFS.boonbuy}` },
   usfans:    { name: "USFans",    build: p => `https://www.usfans.com/product/${plOf(p, { weidian: 3, taobao: 2, "1688": 1 })}/${p.itemId || p.id}?ref=${REFS.usfans}` },
   gtbuy:     { name: "GTBuy",     build: p => `https://www.gtbuy.com/product/${plOf(p, PL_NUM)}/${p.itemId || p.id}?inviteCode=${REFS.gtbuy}` },
   lovegobuy: { name: "LoveGoBuy", build: p => `https://www.lovegobuy.com/product?platform=${p.platform}&id=${p.itemId || p.id}&invite_code=${REFS.lovegobuy}` },
@@ -670,7 +671,7 @@ const AGENT_SWAP_JS = `<script>(function(){try{var a=String((JSON.parse(localSto
   `B={kakobuy:["KakoBuy",function(p,i){return "https://www.kakobuy.com/item/details?url="+encodeURIComponent(o(p,i))+"&affcode=${REFS.kakobuy}"}],oopbuy:["Oopbuy",function(p,i){return "https://oopbuy.com/product/"+p+"/"+i+"?inviteCode=${REFS.oopbuy}"}],` +
   `lovegobuy:["LoveGoBuy",function(p,i){return "https://www.lovegobuy.com/product?platform="+p+"&id="+i+"&invite_code=${REFS.lovegobuy}"}],sugargoo:["Sugargoo",function(p,i){return "https://www.sugargoo.com/#/home/productDetail?productLink="+encodeURIComponent(o(p,i))+"&memberId=${REFS.sugargoo}"}],` +
   `litbuy:["Litbuy",function(p,i){return "https://www.litbuy.com/product/"+p+"/"+i+"?inviteCode=${REFS.litbuy}"}],joyagoo:["Joyagoo",function(p,i){return "https://joyagoo.com/product?id="+i+"&platform="+({taobao:"TAOBAO","1688":"ALI_1688"}[p]||"WEIDIAN")+"&ref=${REFS.joyagoo}"}],` +
-  `hipobuy:["Hipobuy",function(p,i){return "https://hipobuy.com/product/"+p+"/"+i+"?inviteCode=${REFS.hipobuy}"}],usfans:["USFans",function(p,i){return "https://www.usfans.com/product/"+({taobao:2,"1688":1}[p]||3)+"/"+i+"?ref=${REFS.usfans}"}],` +
+  `hipobuy:["Hipobuy",function(p,i){return "https://hipobuy.com/product/"+p+"/"+i+"?inviteCode=${REFS.hipobuy}"}],boonbuy:["Boonbuy",function(p,i){return "https://boonbuy.com/product/"+p+"/"+i+"?inviteCode=${REFS.boonbuy}"}],usfans:["USFans",function(p,i){return "https://www.usfans.com/product/"+({taobao:2,"1688":1}[p]||3)+"/"+i+"?ref=${REFS.usfans}"}],` +
   `gtbuy:["GTBuy",function(p,i){return "https://www.gtbuy.com/product/"+({taobao:1,"1688":0}[p]!=null?{taobao:1,"1688":0}[p]:2)+"/"+i+"?inviteCode=${REFS.gtbuy}"}],superbuy:["Superbuy",function(p,i){return "https://www.superbuy.com/en/page/buy?from=search-input&url="+encodeURIComponent(o(p,i))+"&partnercode=${REFS.superbuy}"}],` +
   `itaobuy:["iTaoBuy",function(p,i){return "https://www.itaobuy.com/product-detail?url="+encodeURIComponent(o(p,i))+"&inviteCode=${REFS.itaobuy}"}],cssbuy:["CSSBuy",function(){return "${CSSBUY_REG}"}],` +
   `fishgoo:["Fishgoo",function(p,i){return "https://www.fishgoo.com/#/product?productLink="+encodeURIComponent(o(p,i))+"&memberId=${REFS.fishgoo}"}],hubbuy:["Hubbuy",function(p,i){return "https://www.hubbuy.com/product/"+({taobao:1,"1688":0}[p]!=null?{taobao:1,"1688":0}[p]:2)+"/"+i+"?inviteCode=${REFS.hubbuy}"}],` +
