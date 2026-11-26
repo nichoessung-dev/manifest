@@ -33,6 +33,11 @@ export const CAT_INTRO = {
 //   Sugargoo: home page (5 free photos, 100-day storage, 2,000+ routes); help pages "Service & Fee Instruction" and
 //            "Commodity Storage Timeline"; notices "¥800 New User Coupon Pack" and "Union Handling Fee" (EU, 1 Nov 2026);
 //            blog.sugargoo.com/?p=14031 (ordering and QC); App Store listing.
+//   Hipobuy (read 26 Nov 2026): hipobuy.com/notice/1740653781924810754 (Service & Fees), 1775431599229829121 (storage),
+//            1775407236623433730 (inspection), 1775427914781229057 (custom photos), 1775411536640671745 (QC),
+//            1775421939655442433 (shipping coupons), 1902974843402932226 (beginner guide), 1775408998264668162 (returns),
+//            1775427065686327297 (billing weight); the "sign up coupon" banner on its home page (25% off, ¥100 coupon).
+//            Its product pages take hipobuy.com/product/<weidian|taobao|1688>/<id>, its invite links /register?inviteCode=.
 //   New-user offers: checked by the owner on 9 Nov 2026. Oopbuy's re-read on 23 Nov 2026 (its sign-up offer and its
 //            estimation page banner: ¥3,500 bundle plus 15% off shipping, where it had said 30% off). Link formats: AGENTS in site.js (what our buttons open).
 // Rules: facts only (no fee or number without a source), no ranking of agents against each other, no em or en dashes.
@@ -191,6 +196,36 @@ export const AGENT_INTRO = {
           ["How do the Sugargoo new-user coupons work?", "New users get ¥800 in international shipping coupons (14 coupons) plus 100 points. The coupons are valid for 90 days from claiming, and one coupon can be used per parcel."],
           ["What does EU customs cost on a Sugargoo parcel?", "Sugargoo's notice gives €3 per declaration item (EU temporary tariff since 1 July 2026) plus €2 per item (Union Handling Fee since 1 November 2026) on postal and express lines; its tax-free lines avoid them at slightly adjusted prices."],
           ["How do I paste a link into Sugargoo?", "Copy the Weidian, Taobao or 1688 link and paste it into Sugargoo's search bar. From Puro Classico the Buy via Sugargoo button does this for you."]] },
+  // 26 Nov 2026: the agent the r/mulebuyfinds community now orders with. No brand or style pages (AGENT_BRAND_AGENTS).
+  hipobuy: { title: "Hipobuy Spreadsheet 2026", lede: "Hipobuy links for every find: the button opens the listing on Hipobuy's own product page, ready for your size and colour.",
+    body: `<p>Hipobuy is a shopping agent for Taobao, Weidian and 1688. Its Service &amp; Fees page calls the agent service itself free: you pay the item with its delivery to the warehouse, international shipping and a customs declaration charge, generally ¥10 per parcel. Every find below skips the search step and opens straight on Hipobuy's product page.</p><p>When your item arrives, the warehouse checks it and stores it within 24 hours, with regular QC photos of the front, back and side or logo. Storage is free for 90 days, so you can collect a whole haul before you ship one parcel.</p>`,
+    desc: (N, Q) => `The Hipobuy spreadsheet: ${N} rep finds with direct Hipobuy links, ${Q} marked as having QC photos. Free agent service, QC photos, 90-day storage.`,
+    about: [
+      ["How to order on Hipobuy", STEPS([
+        ["gift", "Sign up and check your coupons.", "Hipobuy's sign-up banner advertises a new-user coupon pack with 25% off and ¥100 coupons. Shipping coupons go on the parcel, one per parcel."],
+        ["cart", "Tap Buy via Hipobuy on a find.", "Pick colour, size and quantity, add a note for the buyer if needed, and pay for the item and its delivery to the warehouse. Hipobuy's guide says its buyer places the order within 6 working hours."],
+        ["camera", "Look at your QC photos.", "The warehouse checks quantity, colour, size and other specifications and photographs the item, usually from the front, back and side or logo. Extra photos from the angles you choose cost ¥1 each."],
+        ["warehouse", "Keep collecting for up to 90 days.", "Stored items wait in the Warehouse tab for free for 90 days from the status \"Warehoused\"; Hipobuy emails you before they expire."],
+        ["truck", "Create a parcel.", "Select your items, choose a packing method and a shipping line, add one coupon and pay the estimate. The warehouse packs within 24 hours; if the final weight comes out lower, the difference goes back to your balance."]])],
+      ["Hipobuy costs, storage and QC", GLANCE([
+        ["Agent service", "free, according to its Service &amp; Fees page"],
+        ["Costs", "product price with delivery to the warehouse, international shipping, and a customs declaration charge of generally ¥10 per parcel (depending on the line); value-added services are optional"],
+        ["QC photos", "regular inspection photos, generally three (front, back and side or logo); custom photos ¥1 each"],
+        ["Free storage", "90 days from the status \"Warehoused\"; 30 days for abnormal packages that cannot be matched to an order"],
+        ["Returns", "a return can be requested within 5 days of the item being warehoused, if the seller offers it; you pay the shipping back to the seller"],
+        ["Marketplaces", "Taobao, Weidian and 1688 by link, plus Yupoo and Goofish (Xianyu) through its Fill &amp; Buy form"]]) + SRC("From Hipobuy's help pages (Service &amp; Fees, storage, inspection, custom photos, returns) and its beginner guide, read 26 November 2026. Our Hipobuy links are affiliate links.")],
+      ["What Hipobuy's QC check covers", `<p>Hipobuy's inspectors check the quantity, colour, size and other specifications of each item, then take off the seller's box and repack it in a Hipobuy bag for storage. For clothing they look at colour, size (against your note) and obvious damage. Small colour differences, size errors and how an item wears are outside the check, and sealed goods such as CDs or handmade items are only checked from the outside.</p><p>The regular photos are general shots of the front, back and side or logo. For close-ups of stitching, tags or a measurement, order custom photos at ¥1 each and say which angles you want.</p>`],
+      ["Opening links on Hipobuy", `<p>Our button opens ${WRAP("hipobuy.com/product/weidian/7539696765")} (for a Weidian item with that ID), the same product page you reach by pasting the listing link into Hipobuy's search bar. Taobao and 1688 finds open the same way, with taobao or 1688 in the address.</p>`],
+      ["Tips for Hipobuy orders", `<ul>
+<li><strong>Ask for the photos you need:</strong> the regular set is three general shots, so add a custom photo of the tag or a logo close-up when that is what decides the item.</li>
+<li><strong>Send one parcel, not three:</strong> Hipobuy's own example shows combined shipping costing much less than the same items sent one by one, because each parcel pays its own first weight unit.</li>
+<li><strong>Estimate before you pay:</strong> Hipobuy's Shipping Estimate page lists the lines for your country by weight; compare them with our <a href="/tools/shipping-calculator">shipping calculator</a>.</li></ul>`]],
+    faq: [["Does Hipobuy charge a service fee?", "Hipobuy's Service & Fees page calls its shopping agent service free. You pay the item with its delivery to the warehouse, international shipping and a customs declaration charge of generally ¥10 per parcel; value-added services are optional."],
+          ["How many QC photos does Hipobuy take?", "Its regular inspection photos are generally three: the front, back and side or logo of the item. Custom photos from angles you choose cost ¥1 each."],
+          ["How long does Hipobuy store items?", "90 days free from the status \"Warehoused\". Abnormal packages that cannot be matched to an order are kept for 30 days."],
+          ["What does Hipobuy check in QC?", "Quantity, colour, size and other specifications, and for clothing obvious damage. Small colour differences and size errors are outside the check, so compare the photos with the listing yourself."],
+          ["Can I use a coupon on every Hipobuy parcel?", "One shipping coupon per parcel, picked on the page where you create the parcel."],
+          ["How do I paste a link into Hipobuy?", "Copy the Taobao, Weidian or 1688 link and paste it into Hipobuy's search bar. From Puro Classico the Buy via Hipobuy button opens the product page for you."]] },
 };
 
 // Agent x brand pages (/kakobuy-spreadsheet/ralph-lauren, 9 Nov 2026). An audit measured 93% shared text between them,
@@ -413,7 +448,7 @@ export const GUIDES = {
     finds: { platform: "weidian" },
     body: `<p class="lead">To buy from Weidian outside China, use a <strong>shopping agent</strong>: open the Weidian listing in the agent (every find on Puro Classico does this with one tap), pay for the item and its delivery to the agent's warehouse in China, check the QC photos, then ship everything in one parcel. You need an agent because most Weidian sellers only ship inside China, and sign-up and payment are built around Chinese phone numbers and payment apps.</p>
 <h2>What is Weidian?</h2><p>Weidian (微店, "micro shop") is a Chinese shop platform, used mostly on phones, where independent sellers run their own small stores. It is run by a different company from Taobao and 1688, which belong to Alibaba. Many rep sellers list on Weidian: about nine in ten finds on Puro Classico are Weidian listings.</p>
-<h2>What you need</h2><ul><li><strong>A shopping agent account.</strong> We use <a href="/mycnbox-spreadsheet">MyCNBox</a>; <a href="/kakobuy-spreadsheet">KakoBuy</a>, <a href="/oopbuy-spreadsheet">Oopbuy</a>, <a href="/lovegobuy-spreadsheet">LoveGoBuy</a> and <a href="/sugargoo-spreadsheet">Sugargoo</a> work the same way (<a href="/guides/best-shopping-agent">how to choose</a>).</li>
+<h2>What you need</h2><ul><li><strong>A shopping agent account.</strong> We use <a href="/mycnbox-spreadsheet">MyCNBox</a>; <a href="/kakobuy-spreadsheet">KakoBuy</a>, <a href="/oopbuy-spreadsheet">Oopbuy</a>, <a href="/lovegobuy-spreadsheet">LoveGoBuy</a>, <a href="/sugargoo-spreadsheet">Sugargoo</a> and <a href="/hipobuy-spreadsheet">Hipobuy</a> work the same way (<a href="/guides/best-shopping-agent">how to choose</a>).</li>
 <li><strong>The Weidian link or item ID.</strong> A listing link looks like <code>weidian.com/item.html?itemID=…</code>. Share links copied from the Weidian app (youshop10.com) are often short links without the item ID: open one in your browser first and copy the full weidian.com link it leads to. The <a href="/tools/link-converter">link converter</a> turns any full Weidian link into a buy link for each agent.</li>
 <li><strong>A payment method your agent accepts.</strong> You pay the agent, not Weidian. Accepted cards and wallets differ by agent, so check its payment page.</li></ul>
 <h2>Step by step</h2><ol class="steps">
@@ -486,17 +521,18 @@ export const GUIDES = {
   "best-shopping-agent": {
     // 25 Nov 2026 (SEO pass): 5,000 impressions in 6 months at 1% clicks. The page said what to compare but compared nothing;
     // it now has the five agents side by side (fees, check, storage, offers) and their cheapest 1 kg lines (pages.js agentCompare).
+    // 26 Nov 2026: Hipobuy joined the table (no shipping column: its estimator was not read).
     title: "Best Rep Shopping Agent 2026: Fees, QC & Shipping Compared",
-    desc: "MyCNBox, KakoBuy, Oopbuy, Sugargoo and LoveGoBuy side by side: fees, QC checks, free storage, sign-up coupons and 1 kg shipping to 4 countries.",   // this order: liveCopy widens "..., LoveGoBuy and Sugargoo" to every agent
+    desc: "MyCNBox, KakoBuy, Oopbuy, Sugargoo, LoveGoBuy and Hipobuy side by side: fees, QC checks, free storage, sign-up coupons and 1 kg shipping to 4 countries.",   // this order: liveCopy widens "..., LoveGoBuy and Sugargoo" to every agent
     h1: "Best shopping agent in 2026: how to choose",
-    updated: "2026-11-25",   // the day this text was revised; change it only when it is revised again
-    compare: ["mycnbox", "kakobuy", "oopbuy", "lovegobuy", "sugargoo"], compareAt: 1,
+    updated: "2026-11-26",   // the day this text was revised; change it only when it is revised again
+    compare: ["mycnbox", "kakobuy", "oopbuy", "lovegobuy", "sugargoo", "hipobuy"], compareAt: 1,
     body: `<p class="lead">There is no single best shopping agent for everyone. MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo all buy from Weidian, Taobao and 1688, take QC photos at their warehouse and ship your items in one parcel, so the difference that usually matters most is the shipping price to your country. For a first order we recommend <a href="/mycnbox-spreadsheet">MyCNBox</a>, our most-used agent.</p>
 <h2>What to compare</h2><ul><li><strong>Service fees</strong>: some agents charge a percentage per item, others none.</li><li><strong>Shipping lines</strong>: the choice of lines to your country, their prices and speed. This usually matters more than the service fee.</li><li><strong>QC photos</strong>: how many free photos, and how clear they are.</li><li><strong>Storage time</strong>: how long your items can wait in the warehouse for free while you collect a parcel.</li><li><strong>Payment and refunds</strong>: accepted cards and wallets, and whether shipping differences are refunded to your balance.</li><li><strong>Support</strong>: response time and language.</li></ul>
 <h2>Agents we support</h2><p>Every find on Puro Classico has buy links for all of these, so you can use whichever you prefer:</p><ul>
 <li><a href="/mycnbox-spreadsheet"><strong>MyCNBox</strong></a>, our most-used agent and the one we recommend for first orders; new-user coupon bundle when you sign up through us. <a href="/guides/mycnbox-review">Is MyCNBox legit?</a></li>
 <li><a href="/kakobuy-spreadsheet"><strong>KakoBuy</strong></a>, very widely used, large community. <a href="/guides/kakobuy-vs-mycnbox">KakoBuy vs MyCNBox</a></li>
-<li><a href="/oopbuy-spreadsheet"><strong>Oopbuy</strong></a></li><li><a href="/lovegobuy-spreadsheet"><strong>LoveGoBuy</strong></a></li><li><a href="/sugargoo-spreadsheet"><strong>Sugargoo</strong></a></li></ul>
+<li><a href="/oopbuy-spreadsheet"><strong>Oopbuy</strong></a></li><li><a href="/lovegobuy-spreadsheet"><strong>LoveGoBuy</strong></a></li><li><a href="/sugargoo-spreadsheet"><strong>Sugargoo</strong></a></li><li><a href="/hipobuy-spreadsheet"><strong>Hipobuy</strong></a></li></ul>
 <h2>KakoBuy vs Oopbuy vs Sugargoo</h2><p>The ordering flow is the same on all three: pay for the item and delivery to the warehouse, check the QC photos, then pay international shipping when you send your parcel. Every find on Puro Classico opens on each of them, so compare them on the same item: open a find, tap the buy button for two agents, and compare the service fee and the shipping estimate for your country and parcel weight before you pay.</p>
 <h2>Test an agent with a small first order</h2><ol class="steps"><li>Sign up and check the new-member coupons (<a href="/guides/agent-coupons">all agent sign-up bonuses</a>).</li><li>Order one or two light items, such as a tee or a cap.</li><li>See how quickly the QC photos arrive and how clear they are.</li><li>Submit the parcel, and compare its shipping estimate with another agent's estimator for the same weight.</li></ol>
 <div class="note">Disclosure: links to agents on Puro Classico are affiliate links: we may earn a commission at no extra cost to you. Fees and shipping prices change often, so check the agent's own pages before you order.</div>

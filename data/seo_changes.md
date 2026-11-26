@@ -6,6 +6,21 @@ data/seo_ranks_markets.json (the spreadsheet searches in ten countries, 23 Nov 2
 searches of the model pages added on 23 Nov 2026, checked before they existed) and data/seo_page_clicks.json (buy clicks
 per page by visit source and country, buy clicks per find, site searches; scripts/seo_page_clicks.py).
 
+## 26 Nov 2026: /hipobuy-spreadsheet
+
+- What: a sixth agent spreadsheet, /hipobuy-spreadsheet, built like /sugargoo-spreadsheet: the app with the Buy buttons
+  locked to Hipobuy, title "Hipobuy Spreadsheet 2026: 10,600+ Finds | Puro Classico", its own description, about
+  sections, FAQ (and FAQPage data) from Hipobuy's help pages read on 26 Nov 2026 (sources in content.js AGENT_INTRO),
+  canonical to itself, in sitemap-pages.xml and llms.txt. Hipobuy also joined the agents side by side on
+  /guides/best-shopping-agent (no shipping column: its estimator was not read), the QC finder's agent table, the CNFans
+  page's agent table, the footer's Spreadsheets column, the "Other agents" row of the other agent spreadsheets and the
+  agent lists in /guides/how-to-buy-from-weidian and /guides/what-is-a-rep-spreadsheet. No Hipobuy brand or style pages (AGENT_BRAND_AGENTS is
+  unchanged); /hipobuy-spreadsheet/<brand> gets the usual 301 to the brand hub.
+- Why: the r/mulebuyfinds community moved to Hipobuy after Mulebuy shut down, and "hipobuy spreadsheet" had no page of ours.
+- Undo: content.js AGENT_INTRO.hipobuy and the best-shopping-agent compare list; pages.js AGENT_URL, AGENT_QC,
+  AGENT_FACTS, the CNFans ALT rows and the agent hub pattern in hubSpec; _middleware.js agent pages 2+ pattern; site.js
+  footer; content.js and content3.js agent lists; llms.txt. PRODUCT_TPL w128.
+
 ## 25 Nov 2026: QC photos back on 78 product pages, and the QC bank's order and pace
 
 - What: 78 finds whose QC photos were already in our storage (products/qc/, stored 27 Oct to 3 Nov 2026) but missing from

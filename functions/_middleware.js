@@ -396,7 +396,7 @@ async function route(ctx) {
   // pages; brand pages 2+ put indexable finds first, so the order differs). A valid page N, however it is spelled (/2,
   // /02), gets one 301: to the agent hub, or to the same page of the brand hub. An invalid one stays a 404, so nothing
   // redirects to a missing page.
-  else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet(?:\/(\d+))?$/))) { const k = m[1], base = url.origin + `/${k}-spreadsheet`;
+  else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo|hipobuy)-spreadsheet(?:\/(\d+))?$/))) { const k = m[1], base = url.origin + `/${k}-spreadsheet`;
     res = retired(n => renderAgent(k, n), m[2], base, () => base); }
   else if ((m = path.match(/^\/(mycnbox|kakobuy|oopbuy|lovegobuy|sugargoo)-spreadsheet\/([a-z][a-z0-9-]*)(?:\/(\d+))?$/))) { const k = m[1], b = m[2];
     res = retired(n => renderAgentBrand(k, b, n), m[3], url.origin + `/${k}-spreadsheet/${b}`, n => url.origin + `/brand/${b}/${n}`); }
