@@ -89,7 +89,7 @@ async function fromBank(context, url, storefront, id) {
     if (!e) return null;
     if (!e[1]) return json({ error: "upstream error", status: 404 }, 404, { "cache-control": "public, max-age=86400" });   // looked up: no photos
     const thumbs = [];
-    for (let k = 0; k < e[1]; k++) thumbs.push(url.origin + "/api/img?u=" + encodeURIComponent(`${BANK_PHOTO}${storefront}-${id}-${k}.webp`));
+    for (let k = 0; k < e[1]; k++) thumbs.push(url.origin + "/api/img?u=" + encodeURIComponent(`${BANK_PHOTO}${storefront}-${id}-${k}.webp?b=2`));
     return json({ storefront, listing_id: id, qc_count: e[0] || e[1], thumbnails: thumbs, banked: true }, 200, { "cache-control": "public, max-age=86400" });
   } catch (err) { return null; }
 }
