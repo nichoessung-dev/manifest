@@ -93,3 +93,24 @@ create or replace function public.purge_email_events() returns void language sql
   delete from public.email_sends  where created_at < now() - interval '25 months';
 $$;
 revoke all on function public.purge_email_events() from public, anon, authenticated;
+
+-- 8. Site visits: phone, tablet or computer, for /stats (26 Nov 2026). functions/api/visit.js sends p_device; it falls
+-- back to the old call until this has run. The old 10-argument log_visit is dropped so the API has one version.
+alter table public.site_visits add column if not exists device text;   -- phone | tablet | desktop
+drop function if exists public.log_visit(uuid, integer, integer, integer, integer, integer, integer, text, boolean, text);
+create or replace function public.log_visit(p_sid uuid, p_active integer, p_pages integer, p_finds integer, p_find_s integer,
+  p_find_n integer, p_buys integer, p_entry text, p_returning boolean, p_source text, p_device text default null)
+returns void language sql security invoker set search_path = public as $$
+  insert into public.site_visits as v (sid, active_s, pages, finds, find_s, find_n, buys, entry, return_visit, source, device)
+  values (p_sid, least(greatest(coalesce(p_active, 0), 0), 14400), least(greatest(coalesce(p_pages, 1), 1), 500),
+          least(greatest(coalesce(p_finds, 0), 0), 500), least(greatest(coalesce(p_find_s, 0), 0), 14400),
+          least(greatest(coalesce(p_find_n, 0), 0), 500), least(greatest(coalesce(p_buys, 0), 0), 200),
+          nullif(left(coalesce(p_entry, ''), 120), ''), coalesce(p_returning, false), nullif(left(coalesce(p_source, ''), 23), ''),
+          case when p_device in ('phone', 'tablet', 'desktop') then p_device end)
+  on conflict (sid) do update set
+    active_s = greatest(v.active_s, excluded.active_s), pages = greatest(v.pages, excluded.pages),
+    finds = greatest(v.finds, excluded.finds), find_s = greatest(v.find_s, excluded.find_s),
+    find_n = greatest(v.find_n, excluded.find_n), buys = greatest(v.buys, excluded.buys), last_at = now(),
+    device = coalesce(v.device, excluded.device)
+  where v.started_at > now() - interval '12 hours';
+$$;

@@ -54,6 +54,13 @@ async function readSmall(request) {
   return t.length > MAX_BODY ? null : t;
 }
 
+// phone, tablet or desktop from the user agent (iPads that report a Mac browser count as desktop)
+export function deviceOf(ua) {
+  if (/iPad|Tablet|PlayBook|Silk|Kindle/i.test(ua) || (/Android/i.test(ua) && !/Mobi/i.test(ua))) return "tablet";
+  if (/Mobi|iPhone|iPod|Android|Windows Phone/i.test(ua)) return "phone";
+  return "desktop";
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const done = new Response(null, { status: 204, headers: { "cache-control": "no-store" } });
@@ -68,11 +75,15 @@ export async function onRequestPost(context) {
     if (text == null) return done;
     const row = visitRow(JSON.parse(text || "{}"));
     if (!row) return done;
-    context.waitUntil(fetch(`${SUPA}/rest/v1/rpc/log_visit`, {
+    // 26 Nov 2026 (owner: "show me the % that is on phone vs on a computer"): the device from the user agent. Until
+    // scripts/email_v2.sql section 8 has run, log_visit has no p_device, so a refused call is sent again without it.
+    const send = body => fetch(`${SUPA}/rest/v1/rpc/log_visit`, {
       method: "POST",
       headers: { apikey: env.SUPABASE_SERVICE_KEY, Authorization: "Bearer " + env.SUPABASE_SERVICE_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
-      body: JSON.stringify(row),
-    }).then(() => {}, () => {}));
+      body: JSON.stringify(body),
+    });
+    const withDevice = { ...row, p_device: deviceOf(ua) };
+    context.waitUntil(send(withDevice).then(r => { if (!r.ok && r.status < 500) return send(row); }).then(() => {}, () => {}));
   } catch (e) {}
   return done;
 }

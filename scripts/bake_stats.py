@@ -321,11 +321,12 @@ def engagement():
 
 
 def devices():
-    """Phone or computer (26 Nov 2026, owner: "show me the % that is on phone vs on a computer"). The one log that knows
-    the device is link_clicks: every agent click through /go/ (functions/go/[agent].js) stores "phone" or "desktop" from
-    the browser's user agent (tablets count as phones), and the in-app browser if any. Aggregates only."""
+    """Phone, tablet or computer (26 Nov 2026, owner: "show me the % that is on phone vs on a computer"): every visit
+    (site_visits.device, set by functions/api/visit.js from the user agent, counted from the day scripts/email_v2.sql
+    section 8 ran). Aggregates only."""
     now = datetime.datetime.now(datetime.timezone.utc)
-    rows = fetch_all("link_clicks?select=device,inapp,created_at&order=created_at.asc")
+    rows = [{"device": r.get("device"), "created_at": r.get("started_at")} for r in
+            fetch_all("site_visits?select=device,started_at&device=not.is.null&order=started_at.asc")]
     out = {}
     for label, since in (("d7", now - datetime.timedelta(days=7)), ("d30", now - datetime.timedelta(days=30)), ("all", None)):
         dev, app, n = collections.Counter(), collections.Counter(), 0

@@ -386,8 +386,8 @@
     </section>
     <div class="ch-sub" id="buy-kinds"></div>
     <section class="grid2c" style="margin-top:20px">
-      <div><div class="sublabel">Phone or computer, last 30 days</div><div class="bars" id="dev-split"><div class="muted">Not counted yet</div></div></div>
-      <div><div class="sublabel">In-app browsers, last 30 days</div><div class="bars" id="dev-inapp"><div class="muted">Not counted yet</div></div></div>
+      <div><div class="sublabel">Visits by device, last 30 days</div><div class="bars" id="dev-split"><div class="muted">Not counted yet</div></div></div>
+      <div><div class="sublabel">Visits by device, last 7 days</div><div class="bars" id="dev-split7"><div class="muted">Not counted yet</div></div></div>
     </section>
     <div class="ch-sub" id="dev-note"></div>
   </section>
@@ -663,12 +663,12 @@ function barList(el, rows, label){
 /* 26 Nov 2026 (owner: "show me the % that is on phone vs on a computer"): from agent clicks through /go/, the one log
    that stores the device (scripts/bake_stats.py devices()). */
 function renderDevices(){
-  const d=D&&D.devices&&D.devices.d30; if(!d||!d.n) return;
-  const ph=(d.device.phone||0), dk=(d.device.desktop||0), tot=ph+dk||1, pc=v=>Math.round(v/tot*100)+"%";
-  barList($("dev-split"), [["phone",ph],["desktop",dk]].sort((a,b)=>b[1]-a[1]), k=>k==="phone"?"Phone or tablet ("+pc(ph)+")":"Computer ("+pc(dk)+")");
-  if(d.inapp&&d.inapp.length) barList($("dev-inapp"), d.inapp, k=>k.charAt(0).toUpperCase()+k.slice(1));
-  else $("dev-inapp").innerHTML='<div class="muted">None in the last 30 days</div>';
-  const w=D.devices.d7; $("dev-note").textContent=fmt(d.n)+" agent clicks through our counted links in the last 30 days"+(w&&w.n?", "+Math.round((w.device.phone||0)/(w.n||1)*100)+"% on a phone in the last 7 days":"")+". Tablets count as phones.";
+  const lab={phone:"Phone",tablet:"Tablet",desktop:"Computer",unknown:"Unknown"};
+  const put=(el,d)=>{ if(!d||!d.n) return false; const rows=Object.entries(d.device||{}).sort((a,b)=>b[1]-a[1]);
+    barList(el, rows, k=>(lab[k]||k)+" ("+Math.round((d.device[k]||0)/d.n*100)+"%)"); return true; };
+  const v=D&&D.devices; if(!v) return;
+  put($("dev-split"), v.d30); put($("dev-split7"), v.d7);
+  if(v.d30&&v.d30.n) $("dev-note").textContent=fmt(v.d30.n)+" visits with a known device in the last 30 days"+(v.since?" (counted since "+v.since+")":"")+".";
 }
 function renderBuys(){
   try{ renderDevices(); }catch(e){}
