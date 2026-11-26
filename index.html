@@ -5647,7 +5647,7 @@ function showTutorialPopup(force,guest){
   const esc2=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   let agent=(state&&A[state.agent])?state.agent:"mycnbox", cur=(state&&C[state.cur])?state.cur:"USD", step=0, moreOpen=false;
   const phone=window.matchMedia&&matchMedia("(max-width:640px)").matches;
-  const vid=phone?{src:"/media/tutorial-portrait.mp4",poster:"/media/tutorial-poster-portrait.jpg"}:{src:"/media/tutorial-landscape.mp4",poster:"/media/tutorial-poster.jpg"};
+  const vid=phone?{src:"/media/tutorial-portrait.mp4",poster:"/media/tutorial-poster-portrait.jpg"}:{src:"/media/tutorial-landscape.mp4?v=2",poster:"/media/tutorial-poster.jpg?v=2"};
   const ILL=`<svg class="tw-ill" viewBox="0 0 640 170" role="img" aria-label="Pick a find, your agent buys it, you check the QC photos, it ships to you">
     <path class="tw-path" d="M88 66 H552" fill="none"/>
     <g class="tw-node" style="--d:0s"><circle cx="88" cy="66" r="44"/><rect x="70" y="40" width="36" height="54" rx="7" class="tw-ln"/><rect x="77" y="74" width="22" height="10" rx="5" class="tw-fill"/><path d="M78 52h20M78 60h14" class="tw-ln"/></g>
