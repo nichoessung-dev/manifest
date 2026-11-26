@@ -1,8 +1,11 @@
 // Email tracking (Email v2, 26 Nov 2026). Every link in our emails points here first.
 //   /e/<send>/<campaign>/<link>?u=<destination>&h=<signature>   click: logs it, then 302 to the destination
 //   /e/o/<send>/<campaign>.gif                                   open pixel (only in emails whose stream uses it)
-// <send> is the email's id (a UUIDv7 in 22 base64url characters, made by scripts/mailer.py): its first 48 bits are the
-// send time in milliseconds, so a click's age is known without a database read. <campaign> and <link> are short slugs
+// <send> is a UUIDv7 in 22 base64url characters, made by scripts/mailer.py: by default the batch id that every recipient
+// of the same email, version and day shares (email_sends.batch_id), so clicks are counted per email and link, not per
+// person (EDPB Guidelines 2/2023 and ekomloven § 3-15 treat per-person tracking links like pixels, which need consent).
+// With per-member tracking switched on (only with consent) it is the send's own id. Its first 48 bits are the send time
+// in milliseconds, so a click's age is known without a database read. <campaign> and <link> are short slugs
 // (the utm_campaign on our own links and the block in the email, such as coupon, card-3 or footer).
 // The signature (HMAC-SHA256 with the key "e1:" + UNSUB_SECRET, first 16 base64url characters) covers send, campaign,
 // link and destination, so this cannot be used as an open redirect; the destination must also be one of our own hosts

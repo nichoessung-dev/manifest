@@ -5040,6 +5040,9 @@ function pcStyleSet(keys){
   try{ window.__pcRowsReset&&window.__pcRowsReset(); }catch(e){}
   try{ pcStyleChip(); }catch(e){}
   try{ window.dispatchEvent(new Event("pc-style")); }catch(e){}
+  /* Email v2 (26 Nov 2026): a signed-in member's style also goes on profiles.style (scripts/email_v2.sql), so the weekly
+     picks email can match it. Fails quietly until that column exists. */
+  try{ if(sb&&ME&&ME.id) Promise.resolve(window.__pcProfileP).catch(()=>{}).then(()=>sb.from("profiles").update({style:keys.length?keys.join(","):"all"}).eq("id",ME.id)).then(()=>{},()=>{}); }catch(e){}
 }
 function pcStyleLabel(ks){ ks=ks||pcStyles(); if(!ks.length) return "Everything"; return ks.length>2?ks.length+" styles":ks.map(k=>PC_STY_DEF[k].name).join(", "); }
 try{ document.readyState==="loading"?document.addEventListener("DOMContentLoaded",()=>pcStyleChip()):setTimeout(()=>pcStyleChip(),0); }catch(e){}
