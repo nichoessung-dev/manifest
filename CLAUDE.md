@@ -60,7 +60,7 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
 - Agent order starts: mycnbox, kakobuy, oopbuy, litbuy, boonbuy, hipobuy, joyagoo (`AGENT_ORDER` in `index.html` and
   `functions/_lib/site.js`).
 - Size advice without a size chart: the member's usual size; one up only when the listing says Asian sizing.
-- "View more" on homepage rows opens `/spreadsheet?cat=<category>` and glides down to the finds.
+- "View more" on homepage rows stays on the page: it picks that category and glides down to All Finds.
 - Homepage rows show only top finds (clean cut-out photo, sane price, QC photos, real views), at most once per model.
 - Favicon and app icons: white serif "PC" on black.
 
