@@ -63,6 +63,8 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
 - "View more" on homepage rows stays on the page: it picks that category and glides down to All Finds.
 - Homepage rows show only top finds (clean cut-out photo, sane price, QC photos, real views), at most once per model.
 - Favicon and app icons: white serif "PC" on black.
+- Email: saved-find alerts only for partner finds (`ALERTS_PARTNER_ONLY` stays 1). Members who signed up while email
+  was down get one "sorry this is late" welcome (`mailer.py backfill`, last 14 days). Weekly picks use partner finds.
 
 ## Systems worth knowing
 - Dark-mode photo tiles: cut-outs sit on #262626. Rules in `functions/_lib/photo_tiles.js` (`CUT_RX`, `TILE_CUT_IDS`,
