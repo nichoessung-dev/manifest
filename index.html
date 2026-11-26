@@ -3374,6 +3374,11 @@ html body #grid>.card.rc .buy-pill{flex:none!important;height:30px;padding:0 14p
   html body #grid>.card.rc .price{font-size:16px!important}
   html body #grid>.card.rc .buy-pill{padding:0 12px}
 }
+/* Buy pill, crisp edges (owner, 26 Nov 2026: "make the edges perfect"): cards sit on fractional pixels, where a 1px
+   hairline border blurs unevenly. A soft fill with no border, a whole-pixel width and height, stays sharp anywhere. */
+html body .v9-home .v9-rail>.card.rc .buy-pill,html body #grid>.card.rc .buy-pill{box-sizing:border-box!important;width:56px!important;min-width:56px!important;height:30px!important;padding:0!important;border:0!important;border-radius:15px!important;background:color-mix(in srgb,var(--ink) 10%,transparent)!important;color:var(--ink)!important;justify-content:center;text-align:center}
+@media (hover:hover){html body .v9-home .v9-rail>.card.rc .buy-pill:hover,html body #grid>.card.rc .buy-pill:hover{background:var(--fill)!important;color:var(--fill-ink)!important}}
+@media (pointer:coarse){html body .v9-home .v9-rail>.card.rc .buy-pill,html body #grid>.card.rc .buy-pill{height:32px!important;border-radius:16px!important}}
 /* the rows' skeleton cards take the same shape, so nothing moves when the cards come in */
 html .v9-home .v9-rail>.sk-card{padding:8px;border:1px solid var(--line);border-radius:16px}
 html .v9-home .v9-rail>.sk-card .sk-im{border-radius:9px}
