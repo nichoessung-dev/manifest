@@ -749,8 +749,8 @@ ${status === 200 ? `<link rel="canonical" href="${esc(url)}">` : ""}
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${esc(img)}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${esc(img)}">
-<meta name="theme-color" content="#FFFFFF"><link rel="icon" type="image/png" href="/favicon.png">
-<link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png">
+<meta name="theme-color" content="#FFFFFF"><link rel="icon" type="image/png" href="/favicon.png?v=2">
+<link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png?v=2">
 ${THEME_HEAD}
 <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/ds.css?v=${DS_VER}">
