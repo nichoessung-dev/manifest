@@ -90,15 +90,19 @@
       var want = eu + (b.fit === "l" ? 0.5 : 0), hit2 = opts.filter(function (x) { return x[1] >= want - 0.01; })[0];
       return { size: hit2 ? hit2[0] : "EU " + want, chart: false, why: "Your usual EU " + eu + ". Most of these sellers use standard EU sizes." };
     }
-    var xa = estIdx(b, kind), x = xa[0], a = xa[1];
+    /* 26 Nov 2026: a visitor who gave their usual size gets exactly one up from it (M wore, L advised), not a size worked out again from an estimated body */
+    var ul = b.l ? letterIdx(b.l) : -1, xa = ul >= 0 ? [ul, Math.min(7, ul + 1)] : estIdx(b, kind), x = xa[0], a = xa[1];
     if (kind === "pants") {
       var inch = Math.round(waistOf(b) / 2.54), nums = sold.map(function (z) { return [z, parseFloat(z)]; }).filter(function (z) { return z[1] >= 24 && z[1] <= 44; });
       if (nums.length) { var h3 = nums.filter(function (z) { return z[1] >= inch; })[0] || nums[nums.length - 1]; return { size: h3[0], chart: false, why: "Your waist is about " + inch + " inches." }; }
     }
+    /* 26 Nov 2026 (owner: "this is not true for every listing, make it say L or M"): with no size chart we cannot know if
+       this seller runs small, so the advice is the usual size or one up, both matched to the sizes the listing sells */
     var letters = sold.filter(function (z) { return letterIdx(z) >= 0; });
-    var label = L[a];
-    if (letters.length) { var h4 = letters.filter(function (z) { return letterIdx(z) >= a; })[0] || letters[letters.length - 1]; label = h4; }
-    return { size: label, chart: false, why: "You'd be " + L[x] + " in EU/US sizes. Chinese sizes run about one size small, so go one up." };
+    function snap(k) { if (!letters.length) return L[k]; return letters.filter(function (z) { return letterIdx(z) >= k; })[0] || letters[letters.length - 1]; }
+    var lo = snap(x), hi = snap(a); if (norm(hi) !== L[a]) hi = lo;   // no exact one-up in this listing: the usual size, not two up
+    var two = norm(lo) !== norm(hi);
+    return { size: two ? lo + " or " + hi : hi, chart: false, why: "You'd be " + L[x] + " in EU/US sizes. " + "Chinese sizes tend to run small" + (two ? ", so " + hi + " is the safer pick. If the listing says true to size, take " + lo + "." : ". " + hi + " is the closest size this listing sells.") };
   }
 
   /* 23 Nov 2026 (owner: "a step in the signup where we ask for weight and height once, and then a subtle 'we recommend
@@ -242,12 +246,12 @@
       var r, note;
       if (shoes) { r = shoeAdvice(+b0.eu, data, wmn); note = r.chart ? "From this listing's size chart" : "Your usual size"; }
       else {
-        r = pick(kind, { h: b.h, w: b.w, fit: b.fit || "r", eu: b.eu }, data);
-        if (r && b.est) r.why = "You usually wear " + esc(b.l) + ". " + (r.chart ? "On this seller's chart that is " + esc(r.size) + "." : "Chinese sizes run about one size small, so go one up.");
+        r = pick(kind, { h: b.h, w: b.w, fit: b.fit || "r", eu: b.eu, l: b.est ? b.l : "" }, data);
+        if (r && b.est) r.why = "You usually wear " + esc(b.l) + ". " + (r.chart ? "On this seller's chart that is " + esc(r.size) + "." : esc(r.why.replace(/^You'd be [^.]*\. /, "")));
         note = r && r.chart ? "From this listing's size chart" : "An estimate: this listing has no size chart we could read, so when in doubt ask the seller through your agent";
       }
       if (!r || r.ask || !r.size) { el.innerHTML = ""; return; }
-      var head = shoes ? esc(r.pre) + "<b>" + esc(r.em) + "</b>" + esc(r.post) : "We recommend size <b>" + esc(r.size) + "</b>";
+      var head = shoes ? esc(r.pre) + "<b>" + esc(r.em) + "</b>" + esc(r.post) : (/ or /.test(r.size) ? "Your size: <b>" : "We recommend size <b>") + esc(r.size) + "</b>";
       el.innerHTML = '<button type="button" class="pcrec" aria-expanded="' + open + '" aria-controls="' + did + '">' + RULER + "<span>" + head + '</span><span class="pcrec-c">' + CHEV + "</span></button>" +
         '<div class="pcrec-d" id="' + did + '" role="region" aria-label="Your size" aria-hidden="' + !open + '">' + (shoes && r.line ? "<p><b>" + esc(r.line) + ".</b></p>" : "") + "<p>" + r.why + '</p><p class="pcrec-s">' + note +
         ". For " + (shoes ? "your usual " + euText(+b0.eu, wmn) : bodyText(b)) + ".</p>" + (r.chart ? chartHtml(data, shoes ? (r.eu != null ? String(r.eu) : "") : r.size, b && b.u === "i") : "") + '<button type="button" class="pcrec-e">Change my size</button></div>';
