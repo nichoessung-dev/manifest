@@ -21,7 +21,7 @@ const PASS = /^\/api\/(qc|qc-check|hio-check|img|geo|chat|link|feedback)$|^\/r\/
 // Repo-internal files that Pages would otherwise serve from the repo root (scripts, workflows, the bots' state files).
 // Tested on the path as sent and on its percent-decoded form: Pages decodes the path to find the file, so
 // /%73cripts/x.py used to slip past a rule that only saw the encoded spelling.
-const PRIVATE = /^\/+(scripts|\.github|functions)(\/|$)|^\/+(readme\.md|discord_posted\.json|discord_sent\.json|finds_used\.json|shorts_log\.json|nonsb\.txt)$/i;
+const PRIVATE = /^\/+(scripts|\.github|functions|docs|\.claude)(\/|$)|^\/+(readme\.md|claude\.md|design\.md|discord_posted\.json|discord_sent\.json|finds_used\.json|shorts_log\.json|nonsb\.txt)$/i;
 const decoded = p => { try { return decodeURIComponent(p); } catch (e) { return p; } };
 // The project's own *.pages.dev address. Its subdomains are preview deployments (<commit>.… and <branch>.…).
 const PAGES_DEV = "manifest-bq9.pages.dev";
