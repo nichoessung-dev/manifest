@@ -5493,7 +5493,7 @@ function pcBetaAsk(p){
 function pcSizeLoad(cb){
   if(window.pcSize){ cb(); return; }
   let s=document.getElementById("pcsz-js");
-  if(!s){ s=document.createElement("script"); s.id="pcsz-js"; s.src="/size.js?v=10"; s.async=true; document.head.appendChild(s); }
+  if(!s){ s=document.createElement("script"); s.id="pcsz-js"; s.src="/size.js?v=11"; s.async=true; document.head.appendChild(s); }
   s.addEventListener("load",cb);
 }
 function pcSizeRow(p){

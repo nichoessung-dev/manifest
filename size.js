@@ -101,8 +101,10 @@
     var letters = sold.filter(function (z) { return letterIdx(z) >= 0; });
     function snap(k) { if (!letters.length) return L[k]; return letters.filter(function (z) { return letterIdx(z) >= k; })[0] || letters[letters.length - 1]; }
     var lo = snap(x), hi = snap(a); if (norm(hi) !== L[a]) hi = lo;   // no exact one-up in this listing: the usual size, not two up
-    var two = norm(lo) !== norm(hi);   // 26 Nov 2026 (owner: "dont say m or l decide for them"): one size, one up when the listing sells it
-    return { size: hi, chart: false, why: "You'd be " + L[x] + " in EU/US sizes. Chinese sizes tend to run small" + (two ? ", so we went one size up." : ". " + hi + " is the closest size this listing sells.") };
+    /* 26 Nov 2026 (owner: "its better to recomend M when we dont know"): no chart, so the usual size, matched to what the
+       listing sells; one up only when the visitor knows the listing runs small */
+    var up = norm(hi) !== norm(lo) ? hi : "";
+    return { size: lo, chart: false, why: "You'd be " + L[x] + " in EU/US sizes. Most designer finds follow normal sizing" + (up ? ". If the listing says Asian sizing or runs small, take " + up + "." : (norm(lo) !== L[x] ? ". " + lo + " is the closest size this listing sells." : ".")) };
   }
 
   /* 23 Nov 2026 (owner: "a step in the signup where we ask for weight and height once, and then a subtle 'we recommend
