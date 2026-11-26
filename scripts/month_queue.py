@@ -8,11 +8,11 @@ month_queue.json records every video queued, so no video is ever posted twice.
   python scripts/month_queue.py                 # fill the next DAYS days (at most MAX_NEW new posts per run: Postiz rate limit)
   python scripts/month_queue.py --old           # list the queued posts this script did not make (nothing is changed)
   python scripts/month_queue.py --old --delete  # delete those (the old silent videos and carousels the month videos replace)
-  python scripts/month_queue.py --redo          # swap queued posts whose video was remade with a new voice (same time slot)
+  python scripts/month_queue.py --redo          # swap queued posts that are not yet photo slideshows (same time slot)
 
 Env: POSTIZ_API_KEY, GH_TOKEN, MONTH_DAYS (7), MONTH_MAX_NEW (20), DRY_RUN=1.
 """
-import argparse, json, os, subprocess, sys, time
+import argparse, json, os, subprocess, sys, time, zipfile
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -75,17 +75,32 @@ def old(delete):
     print("deleted:", gone)
 
 
+SLIDES_REV = "slides1"          # owner, 26 Nov 2026: TikTok and Instagram get photo slideshows, YouTube the voiced video
+CTA = "check out puroclassico.com for finds like this"
+
+
 def queue_one(vid, acct, at, out):
-    """Download a finished video and schedule it at `at`; returns the Postiz post ids, or None when it failed."""
+    """Schedule a finished pack at `at` as a photo slideshow (TikTok, Instagram) plus its voiced video (YouTube);
+    returns the Postiz post ids, or None when it failed."""
     if subprocess.run(["gh", "release", "download", TAG, "-p", vid + ".*", "-D", out, "--clobber"], cwd=ROOT).returncode:
         print("::warning::could not download", vid); return None
+    if subprocess.run(["gh", "release", "download", "month-content", "-p", vid + ".zip", "-D", out, "--clobber"], cwd=ROOT).returncode:
+        print("::warning::could not download the pack", vid); return None
+    imgs = []
+    with zipfile.ZipFile(os.path.join(out, vid + ".zip")) as f:
+        pk = json.loads(f.read("slides.json"))
+        for j, name in enumerate([pk.get("cover", "00.jpg")] + [x["img"] for x in pk["slides"]]):
+            dst = "%s-%02d.jpg" % (vid, j); open(os.path.join(out, dst), "wb").write(f.read(name)); imgs.append(dst)
     mp = os.path.join(out, vid + ".json"); meta = json.load(open(mp, encoding="utf-8")); meta["file"] = os.path.join(out, vid + ".mp4")
+    cap = (pk.get("caption") or meta.get("caption") or "").split("\n", 1)
+    meta.update(images=imgs, format="month-slides", caption=cap[0] + "\n\n" + CTA + ("\n\n" + cap[1].strip() if len(cap) > 1 else ""))
     json.dump(meta, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS=CHANNELS, TIKTOK_ACCOUNT=ACCOUNT[acct], TIKTOK_VIDEO_METHOD="DIRECT_POST")
+    env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS=CHANNELS, TIKTOK_ACCOUNT=ACCOUNT[acct], TIKTOK_METHOD="DIRECT_POST", TIKTOK_VIDEO_METHOD="DIRECT_POST")
     r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), mp], env=env, capture_output=True, text=True)
     print(r.stdout[-600:]); print(r.stderr[-400:])
-    try: os.remove(os.path.join(out, vid + ".mp4"))
-    except OSError: pass
+    for x in [vid + ".mp4", vid + ".zip"] + imgs:
+        try: os.remove(os.path.join(out, x))
+        except OSError: pass
     if r.returncode: print("::warning::could not queue", vid); return None
     ids = []
     try: ids = [x.get("postId") for x in json.loads(r.stdout.split("scheduled for %s:" % at, 1)[1].strip().splitlines()[0]) if x.get("postId")]
@@ -105,9 +120,9 @@ def redo():
         try: m = json.load(open(os.path.join(md, vid + ".json"), encoding="utf-8")); voice[vid] = m.get("rev") or m.get("voice") or "chatterbox"
         except Exception: voice[vid] = None
     rows = sorted((v["at"], vid) for vid, v in q.items()
-                  if voice.get(vid) and voice[vid].endswith("|half") and voice[vid] != v.get("rev", v.get("voice", "chatterbox"))
+                  if voice.get(vid) and voice[vid].endswith("|half") and v.get("rev") != SLIDES_REV
                   and datetime.strptime(v["at"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc) > now + timedelta(minutes=25))
-    print("queued posts to swap for the new voice:", len(rows))
+    print("queued posts to swap to slideshows:", len(rows))
     if DRY or not rows: return
     live = {}
     for p in posts(now, now + timedelta(days=40)):
@@ -123,12 +138,12 @@ def redo():
             time.sleep(1)
         ids = queue_one(vid, v["account"], at, out)
         if ids is None: v["posts"] = []; save(st); print("::warning::slot left empty, the next run tries again:", vid, at); break
-        v["posts"] = ids; v["rev"] = voice[vid]; made += 1; save(st)
+        v["posts"] = ids; v["rev"] = SLIDES_REV; made += 1; save(st)
         print("swapped %s at %s" % (vid, at), flush=True); time.sleep(20)
     left = len(rows) - made
     print("swapped:", made, "| still to swap:", left)
     s = os.environ.get("GITHUB_STEP_SUMMARY")
-    if s: open(s, "a").write("### Voice swap: %d swapped, %d left\n" % (made, left))
+    if s: open(s, "a").write("### Slideshow swap: %d swapped, %d left\n" % (made, left))
     save(st)
 
 
@@ -151,20 +166,10 @@ def fill():
                 if made >= MAX_NEW: print("made", made, "this run (Postiz rate limit): the next run goes on"); save(st); return
                 vid = todo[acct].pop(0)
                 if DRY: print("DRY_RUN: %s -> %s %s" % (vid, acct, t.astimezone(TZ).strftime("%a %d %b %H:%M"))); continue
-                if subprocess.run(["gh", "release", "download", TAG, "-p", vid + ".*", "-D", out, "--clobber"], cwd=ROOT).returncode:
-                    print("::warning::could not download", vid); continue
-                mp = os.path.join(out, vid + ".json"); meta = json.load(open(mp, encoding="utf-8")); meta["file"] = os.path.join(out, vid + ".mp4")
-                json.dump(meta, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-                env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS=CHANNELS, TIKTOK_ACCOUNT=ACCOUNT[acct], TIKTOK_VIDEO_METHOD="DIRECT_POST")
-                r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), mp], env=env, capture_output=True, text=True)
-                print(r.stdout[-600:]); print(r.stderr[-400:])
-                if r.returncode: print("::warning::could not queue", vid); todo[acct].insert(0, vid); save(st); return
-                ids = []
-                try: ids = [x.get("postId") for x in json.loads(r.stdout.split("scheduled for %s:" % at, 1)[1].strip().splitlines()[0]) if x.get("postId")]
-                except Exception: pass
-                q[vid] = {"account": acct, "at": at, "posts": ids, "rev": meta.get("rev") or meta.get("voice") or "chatterbox"}; taken.add((acct, at)); made += 1; save(st)
+                ids = queue_one(vid, acct, at, out)
+                if ids is None: todo[acct].insert(0, vid); save(st); return
+                q[vid] = {"account": acct, "at": at, "posts": ids, "rev": SLIDES_REV}; taken.add((acct, at)); made += 1; save(st)
                 print("queued %s for %s (%s)" % (vid, t.astimezone(TZ).strftime("%a %d %b %H:%M"), acct), flush=True)
-                for f in (vid + ".mp4",): os.remove(os.path.join(out, f))
                 time.sleep(20)
     left = {k: len(v) for k, v in todo.items()}
     print("new posts queued:", made, "| finished videos not yet queued:", left)
