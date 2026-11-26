@@ -66,8 +66,8 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
 - Email: saved-find alerts only for partner finds (`ALERTS_PARTNER_ONLY` stays 1). Members who signed up while email
   was down get one "sorry this is late" welcome (`mailer.py backfill`, last 14 days). Weekly picks use partner finds.
 - Email: no email settings page. The footer has Unsubscribe only; the unsubscribe page has a "Turn emails back on" undo.
-  Logo watches, monogram bags and the luxury brands may go in emails (`EMAIL_LOGOS=0` takes them out again).
-  Subjects stay free of brand names.
+  Logo watches, monogram bags and the luxury brands may go in emails, and alert and weekly-picks subjects name the
+  brand. `EMAIL_LOGOS=0` takes out both.
 
 ## Systems worth knowing
 - Dark-mode photo tiles: cut-outs sit on #262626. Rules in `functions/_lib/photo_tiles.js` (`CUT_RX`, `TILE_CUT_IDS`,

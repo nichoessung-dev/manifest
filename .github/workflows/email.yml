@@ -7,7 +7,8 @@ name: Email
 #   variables  PROVIDER_AUTOMATED and PROVIDER_NEWS (plunk or ahasend, default plunk), FROM_AUTOMATED (default
 #              hello@notify.puroclassico.com), FROM_NEWS (default news@news.puroclassico.com), FROM_NAME, REPLY_TO,
 #              FOOTER_ADDRESS (the postal address line in every footer), MAX_DAILY, ALERTS_PARTNER_ONLY,
-#              EMAIL_LOGOS (0 leaves logo watches, monogram bags and the luxury brands out of emails; default 1),
+#              EMAIL_LOGOS (0 leaves logo watches, monogram bags and the luxury brands out of emails, and brand names
+#              out of subjects; default 1),
 #              STOP_LINES_OFF_UNTIL (a date: restarts marketing email after a stop line, once the cause is checked)
 # Daily at 05:17 UTC: click and open events older than 13 months are deleted (purge_email_events, scripts/email_v2.sql).
 on:

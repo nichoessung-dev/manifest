@@ -56,9 +56,10 @@ Rules (owner, brief and the final research report, 26 Nov 2026):
   Marketing then stops with an ::error:: until the owner clears it; W0 still goes out.
 - Win-back after 60 and 90 days without a visit or sign-in; sunset (no marketing) after 120, lifted by the next visit.
 - Logo watches, monogram bags and the brands in LUXURY go in emails like any other find (owner, 26 Nov 2026);
-  EMAIL_LOGOS=0 leaves them out again. Never a find whose title has a banned word. At least 500 characters of real text.
-- Subjects: under 25 characters for weekly picks, 25 to 35 for alerts and the welcome series, no emojis, no first names,
-  no fashion brand names; preheaders of 30 to 50 characters.
+  EMAIL_LOGOS=0 leaves them out again (and the brand names in subjects). Never a find whose title has a banned word. At least 500 characters of real text.
+- Subjects: no emojis, no first names; preheaders of 30 to 50 characters. Alerts and weekly picks (arm b) name the brand
+  of the find (owner, 26 Nov 2026; EMAIL_LOGOS=0 takes the brand names out together with the logo items). Without a
+  brand: under 25 characters for weekly picks, 25 to 35 for alerts and the welcome series.
 - Public logs: never an email address (hide()).
 """
 import hashlib, hmac, html as htmllib, io, json, math, os, random, re, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request, uuid
@@ -143,7 +144,7 @@ ONBOARD_TEMPLATES = ("w1", "w2", "w3")
 ONBOARD_LAST = len(ONBOARD_TEMPLATES)   # onboard_step at or past this: the series is done
 # A/B tests: arm = hash(member, experiment), fixed per member, stored as email_sends.variant "<experiment>:<arm>"
 EXPERIMENTS = {"w0-row": ("a", "b"),          # a: no products, b: ends with one row of 2 partner finds
-               "picks-subject": ("a", "b")}   # a: "Picked for you this week", b: count and item type ("6 picks: tops and shoes")
+               "picks-subject": ("a", "b")}   # a: "Picked for you this week", b: count and brands ("6 picks: Stussy, Bape and more")
 
 # The sign-up link and bonus line of each agent, the same as WB_LINKS and AGENT_REG in index.html and the
 # /guides/agent-coupons table: only what the site already says. If a line changes on the site, change it here too.
@@ -1396,9 +1397,34 @@ CAT_WORD = {"Tops": "tops", "Shoes": "shoes", "Outerwear": "outerwear", "Accesso
             "Bags": "bags", "Shorts": "shorts", "Headwear": "headwear", "Toys": "toys"}
 
 
+NO_BRAND = {"other", "others", "unbranded", "no brand", "no logo", "unknown", "generic", "various", "misc", "none", "n/a", "na"}
+NON_LATIN = re.compile(r"[\u0400-\u04ff\u0590-\u06ff\u0e00-\u0e7f\u3000-\u9fff\uac00-\ud7af\uff00-\uffef]")
+
+
+def subject_brand(p):
+    """The brand of a find for a subject line (owner, 26 Nov 2026), or None: off with EMAIL_LOGOS=0, and never a
+    placeholder, a long collaboration name, a banned word or a non-Latin script."""
+    if not EMAIL_LOGOS or not p: return None
+    b = re.sub(r"\s+", " ", str(p.get("brand") or "")).strip()
+    if not b or len(b) > 22 or b.lower() in NO_BRAND or BANNED_TITLE.search(b) or NON_LATIN.search(b): return None
+    return b
+
+
+def subject_brands(cat, ids):
+    out = []
+    for i in ids:
+        b = subject_brand(cat.p.get(i))
+        if b and b not in out: out.append(b)
+    return out
+
+
 def picks_subject(cat, picks, arm):
-    """Under 25 characters. a: curiosity; b: the count and the item types."""
+    """a: curiosity, under 25 characters; b: the count and two brands, or the item types when brands are off or missing."""
     if arm == "a": return "Picked for you this week"
+    brands = subject_brands(cat, picks)
+    if len(brands) >= 2:
+        s = "%d picks: %s, %s and more" % (len(picks), brands[0], brands[1])
+        if len(s) <= 45: return s
     counts = {}
     for i in picks:
         w = CAT_WORD.get(cat.p[i].get("cat"))
@@ -1435,14 +1461,25 @@ def render_alert(ctx, m, cat, changes, more):
     notes = {c["id"]: esc(change_note(c)) for c in changes}
     if len(changes) == 1:
         c = changes[0]
-        subj = {"price": "A saved find dropped to %s" % usd(c.get("new")), "stock": "A saved find is back in stock",
-                "qc": "New QC photos for a saved find"}[c["type"]]
+        b = subject_brand(cat.p.get(c["id"]))
+        if b:
+            subj = {"price": "Your %s find dropped to %s" % (b, usd(c.get("new"))), "stock": "Your %s find is back in stock" % b,
+                    "qc": "New QC photos of your %s find" % b}[c["type"]]
+        else:
+            subj = {"price": "A saved find dropped to %s" % usd(c.get("new")), "stock": "A saved find is back in stock",
+                    "qc": "New QC photos for a saved find"}[c["type"]]
         title = {"price": "A saved find dropped in price", "stock": "A saved find is back in stock", "qc": "New QC photos for a saved find"}[c["type"]]
         pre = {"price": "Now %s, was %s. One tap from your agent." % (usd(c.get("new")), usd(c.get("old"))),
                "stock": "It is back in stock, one tap from your agent.", "qc": "%s to check before you buy." % change_note(c)}[c["type"]]
         intro = "You saved this find. Here is what changed, and a few similar finds you might like."
     else:
         subj = "%d updates on your saved finds" % len(changes)
+        brands, each = subject_brands(cat, pids), [subject_brand(cat.p.get(i)) for i in pids]
+        if len(brands) == 1 and all(x == brands[0] for x in each):
+            subj = "%d updates on your %s finds" % (len(changes), brands[0])
+        elif len(brands) >= 2:
+            s2 = ("Updates on your %s and %s finds" % tuple(brands[:2])) if len(changes) == 2 else "%d updates: %s, %s and more" % (len(changes), brands[0], brands[1])
+            if len(s2) <= 50: subj = s2
         title = "News on your saved finds"
         pre = ""
         for c in changes:
