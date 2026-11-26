@@ -2889,7 +2889,7 @@ html .v9-num dt{font-size:13px;color:var(--_mutfg)}
 .tw-t small{font-size:11px;font-weight:500;color:var(--muted)}
 .tw-t.on{border-color:var(--ink);background:var(--surface);box-shadow:0 0 0 1px var(--ink)}
 .tw-t.on::after{content:"";position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:999px;background:var(--fill)}
-.tw-t.on::before{content:"";position:absolute;top:11px;right:14px;width:5px;height:9px;border:solid var(--fill-ink);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);z-index:1}
+.tw-t.on::before{content:"";position:absolute;top:8px;right:8px;width:18px;height:18px;background:var(--fill-ink);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px 12px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px 12px no-repeat;z-index:1}   /* a centred check icon (owner, 26 Nov 2026: "the checkmark looks slightly off") */
 .tw-extra{display:grid;grid-template-rows:0fr;transition:grid-template-rows .42s cubic-bezier(.2,.8,.2,1)}
 .tw-extra.open{grid-template-rows:1fr}
 .tw-extra-in{overflow:hidden;min-height:0}
@@ -2921,7 +2921,7 @@ html .v9-num dt{font-size:13px;color:var(--_mutfg)}
 .tw-so-t small{font-size:12.5px;line-height:1.3;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .tw-tick{position:absolute;top:50%;right:14px;width:20px;height:20px;margin-top:-10px;border-radius:999px;border:1.5px solid var(--line-2);box-sizing:border-box}
 .tw-so[aria-pressed="true"] .tw-tick{top:50%;right:14px;width:20px;height:20px;border:0;background:var(--fill)}
-.tw-so[aria-pressed="true"] .tw-tick::after{content:"";position:absolute;left:7px;top:4px;width:5px;height:9px;border:solid var(--fill-ink);border-width:0 2.2px 2.2px 0;transform:rotate(45deg)}
+.tw-so[aria-pressed="true"] .tw-tick::after{content:"";position:absolute;inset:0;background:var(--fill-ink);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/13px 13px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/13px 13px no-repeat}
 /* size step */
 .tw-lab{display:flex;align-items:baseline;gap:8px;margin:0 0 10px;font-size:13px;font-weight:600;letter-spacing:.01em}
 .tw-lab small{font-size:12px;font-weight:500;color:var(--muted)}
@@ -3459,10 +3459,13 @@ html body #pp-grid>.card.rc .buy-pill{box-sizing:border-box!important;width:56px
 /* product view bar = the main page's filter bar plus Back and Share (owner, 26 Nov 2026): the same wide 44px search pill on a
    plain ground, and the filter row under "All Finds" sticks under it while the finds scroll, as on the main page */
 #drawer{--ppb-c:44px!important}
-html #drawer .p-top{background:var(--ground)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html #drawer .p-top,html #drawer .p-top.is-scrolled{background:var(--ground)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* one full bar (owner, 26 Nov 2026: "make it a full bar"): once the filter row is stuck under the top row, the two read as one
+   solid full-width bar with a single line under it (#drawer.pp-stuck, set by the scroll watcher next to wirePPBar()) */
+html #drawer.pp-stuck .p-top,html #drawer.pp-stuck .p-top.is-scrolled{border-bottom-color:transparent!important}
 html #drawer .p-top .pp-search{max-width:none!important;border-radius:999px}
 html #drawer .p-top .pp-search>svg{width:18px!important;height:18px!important}
-html #drawer .pp-filters{position:sticky;top:-28px;z-index:6;margin-left:-22px!important;margin-right:-22px!important;padding:10px 22px!important;background:var(--ground);border-bottom:1px solid var(--line)}
+html #drawer .pp-filters{position:sticky;top:-28px;z-index:6;margin-left:-22px!important;margin-right:-22px!important;padding:10px 22px!important;background:var(--ground);border-bottom:0;border-image:linear-gradient(to top,var(--line) 1px,var(--ground) 1px) fill 0/0/0 100vmax}   /* full-width ground and the one line, painted outside the box without widening the page */
 @media (max-width:560px){html #drawer .pp-filters{margin-left:-16px!important;margin-right:-16px!important;padding:8px 16px!important}}
 /* "Your style" dialog, photo tiles (owner's pick of three, 26 Nov 2026): two tiles per row with three finds fanned like
    cards, Everything as a slim row on top, the picked tile with an ink border and the filled tick */
@@ -3486,6 +3489,13 @@ html #drawer .pp-filters{position:sticky;top:-28px;z-index:6;margin-left:-22px!i
 #sty-pop .tw-so[aria-pressed="true"]:focus-visible{outline:0}
 @media (hover:hover){#sty-pop .tw-so:not([aria-pressed="true"]):hover{border-color:color-mix(in srgb,var(--ink) 30%,transparent)!important}}
 @media (max-width:420px){#sty-pop .tw-ph{height:112px!important}#sty-pop .tw-ph img{width:62px!important;height:76px!important;margin:0 -12px!important}#sty-pop .tw-so[data-style="all"] .tw-ph{width:120px!important}}
+/* Similar finds in the product view: arrows in the head row, no scrollbar under the row */
+.sim-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px;margin-bottom:6px;--_bd:var(--line);--_card:var(--surface);--_fg:var(--ink);--_mut:var(--surface-2)}
+.sim-head .sec-label{margin:0!important}
+.similar-wrap{min-width:0;max-width:100%}
+html #drawer .dbody{overflow-x:hidden}
+.similar-row{scrollbar-width:none;-ms-overflow-style:none;max-width:100%;min-width:0}   /* it was pushing the whole view sideways by about 80px */
+.similar-row::-webkit-scrollbar{display:none}
 /* the rows' skeleton cards take the same shape, so nothing moves when the cards come in */
 html .v9-home .v9-rail>.sk-card{padding:8px;border:1px solid var(--line);border-radius:16px}
 html .v9-home .v9-rail>.sk-card .sk-im{border-radius:9px}
@@ -5563,7 +5573,13 @@ function wireBuyBar(){
 /* the product view's one bar (Back, search, share; 26 Nov 2026, #pc-ppbar-css) floats over the panel: it gets its glass and
    hairline once the panel has scrolled under it, and keeps off the panel's scrollbar (--pp-sbw, measured by a ResizeObserver,
    which also reports the scrollbar coming and going as the finds load) */
-function wirePPBar(){
+function wirePPStuck(){
+  const body=drawer&&drawer.querySelector(".dbody"), f=drawer&&drawer.querySelector(".pp-filters"), bar=drawer&&drawer.querySelector(".p-top");
+  if(!body||!f||!bar||body.__ppst) return; body.__ppst=1;
+  let r=0; const upd=()=>{ r=0; drawer.classList.toggle("pp-stuck",f.getBoundingClientRect().top<=bar.getBoundingClientRect().bottom+1); };
+  body.addEventListener("scroll",()=>{ if(!r) r=requestAnimationFrame(upd); },{passive:true}); upd();
+}
+function wirePPBar(){ try{ wirePPStuck(); }catch(e){}
   const bar=drawer.querySelector(".p-top"), body=drawer.querySelector(".dbody"); if(!bar||!body) return;
   let on=false;
   body.addEventListener("scroll",()=>{ const v=body.scrollTop>2; if(v!==on){ on=v; bar.classList.toggle("is-scrolled",v); } },{passive:true});
@@ -7595,6 +7611,18 @@ function setProductMeta(p){
 function restoreMeta(){ if(!_metaSaved)return; const m=_metaSaved; document.title=m.title; if(m.desc!=null)_mset('meta[name="description"]','name',m.desc); if(m.ogt!=null)_mset('meta[property="og:title"]','property',m.ogt); if(m.ogd!=null)_mset('meta[property="og:description"]','property',m.ogd); if(m.ogi!=null)_mset('meta[property="og:image"]','property',m.ogi); if(m.ogu!=null)_mset('meta[property="og:url"]','property',m.ogu); if(m.twt!=null)_mset('meta[name="twitter:title"]','name',m.twt); if(m.twd!=null)_mset('meta[name="twitter:description"]','name',m.twd); if(m.twi!=null)_mset('meta[name="twitter:image"]','name',m.twi); if(m.can!=null){const c=document.querySelector('link[rel="canonical"]'); if(c)c.setAttribute("href",m.can);} const s=document.getElementById("prod-ld"); if(s)s.remove(); }
 
 /* ---- similar finds ---- */
+/* Similar finds: a head row with the homepage's arrow buttons instead of a scrollbar (owner, 26 Nov 2026) */
+function simHead(){ return '<div class="sim-head"><h2 class="sec-label">'+t("similar")+'</h2>'+'<span class="v9-arrows sim-arrows"><button type="button" class="v9-arr" data-dir="-1" aria-label="Previous finds" disabled><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-left"/></svg></button><button type="button" class="v9-arr" data-dir="1" aria-label="Next finds"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button></span>'+'</div>'; }   /* a function, not a const: the view can open before this line runs */
+function wireSimArrows(wrap){
+  const row=wrap.querySelector(".similar-row"), prev=wrap.querySelector('.sim-arrows [data-dir="-1"]'), next=wrap.querySelector('.sim-arrows [data-dir="1"]');
+  if(!row||!prev||!next) return;
+  const upd=()=>{ const max=row.scrollWidth-row.clientWidth; prev.disabled=row.scrollLeft<4; next.disabled=max<4||row.scrollLeft>max-4; };
+  let f=0; row.addEventListener("scroll",()=>{ if(!f) f=requestAnimationFrame(()=>{ f=0; upd(); }); },{passive:true});
+  [prev,next].forEach(b=>b.addEventListener("click",()=>{ const dir=+b.dataset.dir||1, first=row.firstElementChild;
+    const step=first?first.getBoundingClientRect().width+(parseFloat(getComputedStyle(row).columnGap)||12):144;
+    row.scrollBy({left:dir*step*Math.max(1,Math.floor(row.clientWidth/step)),behavior:pcRm()?"auto":"smooth"}); }));
+  requestAnimationFrame(upd);
+}
 function renderSimilar(p){
   const wrap=$("#similar-wrap",drawer); if(!wrap)return;
   // 23 Oct 2026: the same brand and item type first, most viewed first; then the same item type from other brands at a
@@ -7619,7 +7647,7 @@ function renderSimilar(p){
   const swS=[...SWAPPED].map(id=>BY_ID[id]).filter(x=>x&&x.cat===p.cat&&ok(x));   /* partner swaps first (12 Nov 2026) */
   add(swS.concat(alS,t1.slice(0,6),t2),8); add(alO,10); add(t2.concat(t3),10);
   if(!pool.length){ wrap.innerHTML=""; return; }
-  wrap.innerHTML='<h2 class="sec-label">'+t("similar")+'</h2><div class="similar-row">'+pool.map(x=>
+  wrap.innerHTML=simHead()+'<div class="similar-row">'+pool.map(x=>
     '<button class="sim-card" data-sim="'+x.id+'"><span class="sim-thumb'+(pcCut(x)?' pc-cut':'')+'">'+(x.img?'<img src="'+esc(thumbOf(x.img))+'" alt="" loading="lazy" decoding="async">':'<canvas aria-hidden="true"></canvas>')+colourBadge(x)+'</span><span class="sim-t">'+esc(x.title)+'</span><span class="sim-p">'+pprice(x.price)+'</span></button>'
   ).join("")+'</div>';
   $$(".sim-card",wrap).forEach((b,i)=>{ const x=BY_ID[b.dataset.sim];
@@ -7627,6 +7655,7 @@ function renderSimilar(p){
     if(im&&x){ im.onerror=()=>imgFallback(im,x,i); if(im.complete&&im.naturalWidth) im.classList.add("is-in"); }   /* drawn again (also.js came in): photos the browser has show at once */
     if(c&&x) requestAnimationFrame(()=>drawTile(c,x,i));
     b.addEventListener("click",()=>{ if(x)openDetail(x); }); });
+  wireSimArrows(wrap);
 }
 
 /* ---- in-drawer search ---- */
@@ -7728,7 +7757,7 @@ function enhanceDrawer(p){
   const _tk=drawer.__tok;   /* r7: similar finds, the QC check and the browse grid wait for the first paint (and an idle moment) */
   /* calm loading: the Similar finds row is there from the first frame, as skeleton cards of its final size; renderSimilar()
      fills it after the first paint */
-  { const sw=$("#similar-wrap",drawer); if(sw&&!sw.firstChild) sw.innerHTML='<h2 class="sec-label">'+t("similar")+'</h2><div class="similar-row sim-skel" aria-hidden="true">'+'<button type="button" class="sim-card" tabindex="-1"><span class="sim-thumb"></span><span class="sim-t">&nbsp;<br>&nbsp;</span><span class="sim-p">&nbsp;</span></button>'.repeat(8)+'</div>'; }
+  { const sw=$("#similar-wrap",drawer); if(sw&&!sw.firstChild) sw.innerHTML=simHead()+'<div class="similar-row sim-skel" aria-hidden="true">'+'<button type="button" class="sim-card" tabindex="-1"><span class="sim-thumb"></span><span class="sim-t">&nbsp;<br>&nbsp;</span><span class="sim-p">&nbsp;</span></button>'.repeat(8)+'</div>'; }
   _idle(()=>{ if(drawer.__tok===_tk) renderSimilar(p); });
   /* 22 Nov 2026: the "also liked" file (also.js) loads on the first tap now, not on every page view, so it may still be on
      its way when the first find opens: draw the row again once it is in, if this find is still open */
