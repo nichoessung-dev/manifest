@@ -10,7 +10,7 @@
 (function () {
   var AG = { "mycnbox.com": "mycnbox", "kakobuy.com": "kakobuy", "ikako.vip": "kakobuy", "oopbuy.com": "oopbuy", "lovegobuy.com": "lovegobuy", "sugargoo.com": "sugargoo",
     "litbuy.com": "litbuy", "usfans.com": "usfans", "joyagoo.com": "joyagoo", "superbuy.com": "superbuy", "cssbuy.com": "cssbuy", "cssb.uy": "cssbuy",
-    "hipobuy.com": "hipobuy", "fishgoo.com": "fishgoo", "hubbuy.com": "hubbuy", "hubbuycn.com": "hubbuy", "itaobuy.com": "itaobuy", "gtbuy.com": "gtbuy",
+    "hipobuy.com": "hipobuy", "boonbuy.com": "boonbuy", "fishgoo.com": "fishgoo", "hubbuy.com": "hubbuy", "hubbuycn.com": "hubbuy", "itaobuy.com": "itaobuy", "gtbuy.com": "gtbuy",
     "bbdbuyeu.com": "bbdbuy", "bbdbuy.com": "bbdbuy" };
   var CHANNEL = { tt: "tiktok", tiktok: "tiktok", yt: "youtube", youtube: "youtube", ig: "instagram", instagram: "instagram", pin: "pinterest",
     pinterest: "pinterest", threads: "threads", dc: "discord", discord: "discord", tg: "telegram", telegram: "telegram", email: "email", x: "x" };
