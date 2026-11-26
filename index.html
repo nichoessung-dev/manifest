@@ -2943,7 +2943,7 @@ html .v9-num dt{font-size:13px;color:var(--_mutfg)}
 .tw-ch[aria-pressed="true"] small{color:var(--fill-ink);opacity:.75}
 .tw-note{margin:-6px 0 0;font-size:12.5px;line-height:1.45;color:var(--muted)}
 /* all set (27 Nov 2026, owner: "make this page look way nicer"): a calm check that draws itself, the choices as tidy rows with a
-   Change link back to their step, a "Picked for you" strip of finds in their style, and a full-width "Show my finds".
+   Change link back to their step, a "Recommended finds" strip of finds in their style, and a full-width "Show my finds".
    The confetti is one burst on a canvas over the whole screen, behind the card (twConfetti) */
 .tw-end{position:relative}
 .tw-end-hd{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:6px}
@@ -2977,6 +2977,13 @@ html .v9-num dt{font-size:13px;color:var(--_mutfg)}
 .tw-pick .tw-lab{margin-bottom:10px}
 .tw-strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(92px,1fr);gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -2px;padding:2px}
 .tw-strip::-webkit-scrollbar{display:none}
+/* 26 Nov 2026 (owner): the finish step fits in the card without scrolling: a smaller check, tighter rows and a smaller strip of finds */
+.tw-end .tw-ok{width:46px;height:46px}.tw-end-hd h2{margin:8px 0 2px}.tw-end-hd .tw-lead{margin:0 0 12px}
+.tw-sum{margin-bottom:12px}.tw-sum li{min-height:42px;padding-top:3px;padding-bottom:3px}.tw-sum .chg,.tw-chg{min-height:40px}
+.tw-pick .tw-lab{margin-bottom:8px}
+.tw-strip{grid-auto-columns:minmax(0,1fr);overflow:visible}.tw-strip>*:nth-child(n+6){display:none}
+.tw-pf{gap:3px;font-size:12px}
+@media (max-width:560px){.tw-strip>*:nth-child(n+5){display:none}}
 .tw-pf{display:flex;flex-direction:column;gap:5px;min-width:0;padding:0;border:0;background:none;color:var(--ink);text-align:left;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tw-pf img,.tw-pf i{display:block;width:100%;aspect-ratio:1;border-radius:14px;object-fit:cover;background:#fff;outline:1px solid var(--line);outline-offset:-1px}
 .tw-pf i{background:var(--surface-2)}
@@ -5991,7 +5998,7 @@ function showTutorialPopup(force,guest){
       <div class="tw-end-hd"><span class="tw-ok" aria-hidden="true"><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="30"/><path d="M18 31l8 8 16-17"/></svg></span>
       <h2 id="tw-h5" tabindex="-1">You're all set</h2><p class="tw-lead">Your spreadsheet is ready.</p></div>
       <ul class="tw-sum" id="tw-sum"></ul>
-      <div class="tw-pick"><h3 class="tw-lab" id="tw-pick-l">Picked for you</h3><div class="tw-strip" id="tw-strip" role="list" aria-labelledby="tw-pick-l"></div></div></section>
+      <div class="tw-pick"><h3 class="tw-lab" id="tw-pick-l">Recommended finds</h3><div class="tw-strip" id="tw-strip" role="list" aria-labelledby="tw-pick-l"></div></div></section>
     </div>
     <div class="tw-foot"><button type="button" class="tw-text" data-act="skip">Skip, I know how it works</button><button type="button" class="tw-btn tw-ghost" data-act="back">Back</button>
       <span class="tw-sp"></span><button type="button" class="tw-text" data-act="skipsize">Skip</button><button type="button" class="tw-btn" data-act="next">Next</button></div>
@@ -6079,7 +6086,7 @@ function showTutorialPopup(force,guest){
       row("Size","Size",`<span class="t">${sizeV}${shoeV}</span>`,2)+
       row("Agent","Agent",`${a&&a.logo?`<img src="${esc2(a.logo)}" alt="" width="26" height="26">`:""}<span class="t">${esc2(a?a.name:"MyCNBox")}</span>`,3)+
       row("Currency","Currency",`<span class="t">${esc2(sym&&sym!==cur?sym+" "+cur:cur)}</span>`,4);
-    /* Picked for you: the most viewed finds of their style (any find when Everything), one per brand */
+    /* Recommended finds: the most viewed finds of their style (any find when Everything), one per brand */
     const ok=p=>p&&p.img&&!(typeof SOLD!=="undefined"&&SOLD.has(String(p.id)));
     const pool=ALL.filter(p=>ok(p)&&(!sty.length||pcStyleScore(p)===2)).sort((x,y)=>popScore(y)-popScore(x)||(y.qc||0)-(x.qc||0));
     const picks=[], seen=new Set(); for(const p of pool){ if(seen.has(p.brand)) continue; seen.add(p.brand); picks.push(p); if(picks.length===6) break; }
