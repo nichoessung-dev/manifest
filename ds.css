@@ -1503,3 +1503,36 @@ html.js-fade :is(.pimg img,.thumbs img,.qcs img):not(.is-in){opacity:0}
 @media (min-width:1024px){.buybar.ga-bar{display:none}}
 .ga-bar .bb-price{font-size:16px}
 @media print{.ga-side,.ga-toc-m,.ga-bar,.ga-end .ga-cta{display:none!important}}
+/* ---------------------------------------------------------------- design QA pass (25 Nov 2026): polish from the page-by-page
+   check at 390 and 1366 px, light and dark. Small fixes only; the rules above are unchanged. */
+/* phones: the header row is 56px like the app's .mast-row (it was 50px), so nothing jumps between the homepage and a find,
+   guide or tool page. The search button loses its 16px left margin (the logo's auto margin already spaces it): with it the
+   row was 2px too wide at 375px and the globe dropped onto a second row (a 103px header on iPhone SE / mini and 360px
+   Androids). index.html has the same rules. */
+@media (max-width:560px){header.h .w{min-height:56px}header.h .pcs-hd{margin-left:0}}
+@media (max-width:374px){:root.js header.h .tools-btn{padding:0 8px}}
+/* the header search field is 16px wider from 1280px, so "Search 10,600+ finds" is no longer cut off by the Ctrl K hint
+   (index.html has the same number) */
+@media (min-width:1280px){header.h .pcs-hd{flex-basis:256px}}
+/* buy box on phones: the coupon badge pushed "Buy via MyCNBox" onto two lines. The app's find view hides the same badge at
+   480px and below, and the line under the button carries the offer */
+@media (max-width:480px){.buy-main a small{display:none}}
+/* buttons inside article text never take the prose link underline (the guide's closing panel showed one) */
+.prose a.btn{text-decoration:none}
+/* "Guide · Updated 10 Oct 2026": the dot no longer touches the clock icon (the same 4px as on its right) */
+.ga-hero .eyebrow.pill > .ic{margin-left:4px}
+/* phones: three-column tables in tool copy scroll sideways (as the guides' tables do) instead of squeezing every cell to two
+   words a line */
+@media (max-width:640px){
+  .prose > table:has(tr > :nth-child(3)){display:block;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  .prose > table:has(tr > :nth-child(3)) :is(th,td):not(:first-child){min-width:13em}
+  .prose > table:has(tr > :nth-child(3)) :is(th,td):first-child{position:sticky;left:0;z-index:1;white-space:nowrap;background:var(--bg)}   /* like the guides' .ga-tw */
+}
+/* /brands: each letter sits closer to its brands (56px gaps made the A to Z list about five phone screens long) */
+h2.az-h{margin:32px 0 8px}
+/* touch screens: the brand link over a find's title and the small links in a guide's byline and finds heading were 22px
+   tall; their tap area is 44px (DESIGN rule 10), the look is unchanged */
+@media (pointer:coarse){
+  a.pd-brand,.ga-by a,.ga-finds .ga-sh a{position:relative}
+  a.pd-brand::after,.ga-by a::after,.ga-finds .ga-sh a::after{content:"";position:absolute;inset:-11px -4px}
+}
