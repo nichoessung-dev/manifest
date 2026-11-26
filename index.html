@@ -4967,8 +4967,13 @@ function swapFirst(list){
   if(!browse) return (state.sort==="low"||state.sort==="high")?list:(a.length?a.concat(b):list);
   if(a.length<48) return (state.sort==="low"||state.sort==="high")?list:a.concat(b);
   const n=Math.max(1,Math.ceil(a.length*0.03)), keep=b.slice(0,n);
-  if(state.sort==="low"||state.sort==="high"){ const ks=new Set(keep); return list.filter(p=>SWAPPED.has(String(p.id))||ks.has(p)); }
+  /* 26 Nov 2026 (owner: "if you have all filters on it should show 10k not 3k"): browsing keeps the partner mix on top,
+     then every other find follows, so the count is the whole sheet and scrolling reaches all of it. A price sort is plain
+     price order over everything. */
+  if(state.sort==="low"||state.sort==="high") return list;
   const out=[]; let k=0; for(let i=0;i<a.length;i++){ out.push(a[i]); if((i+1)%SW_MIX===0&&k<keep.length) out.push(keep[k++]); }
+  const ks=new Set(keep.slice(0,k));
+  for(const p of b) if(!ks.has(p)) out.push(p);
   return out;
 }
 function filtered(noBrand){ const l=filtered0(noBrand); return noBrand?l:pcStyleFirst(l); }

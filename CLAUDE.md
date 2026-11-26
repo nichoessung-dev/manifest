@@ -55,7 +55,8 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
 - Sign-up checkbox and affiliate or partner wording: unchanged.
 - Welcome tour: no agent sign-up step; MyCNBox is preselected in the agent step.
 - The chat assistant shows on desktop only.
-- Brand and category lists show all their finds, partner finds first. Plain browsing mixes in mostly partner finds.
+- Every list shows all its finds with partner finds first. Plain browsing (no filters) starts with the partner mix
+  (about 3% other finds) and then continues with every other find, so the count is the whole sheet.
 - Agent order starts: mycnbox, kakobuy, oopbuy, litbuy, boonbuy, hipobuy, joyagoo (`AGENT_ORDER` in `index.html` and
   `functions/_lib/site.js`).
 - Size advice without a size chart: the member's usual size; one up only when the listing says Asian sizing.
