@@ -59,7 +59,10 @@ jobs:
           RUG_MODELS: gemini-3.1-flash-image
           RUG_LOOK: claude
           RUG_MIN_SLIDES: '4'                  # 25 Nov 2026: 4 good slides still make a 20 s video; a thin build is no longer thrown away
-          RUG_REAL_MIN: '6'                    # 25 Nov 2026: a second try never beat a 6 (the test run), so a 6 is kept and no credit is spent on retries
+          RUG_REAL_MIN: '8'                    # 26 Nov 2026: owner wants stricter realism (was 6)
+          RUG_NO_WATCH: '1'                    # 26 Nov 2026: owner: the fake-looking products are almost always the watches
+          RUG_SOURCE: mix                      # 26 Nov 2026: the most popular finds plus the puroclassico account's own items (site QC photos, Drive)
+          RUG_POP_N: '120'                     # only the most popular finds (was the top 300)
           RUG_MAX_IMAGES: ${{ inputs.max_images }}
           # main account: the same settings as its daily carousels (finds.yml)
           FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L

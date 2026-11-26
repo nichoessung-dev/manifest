@@ -945,6 +945,8 @@ def main():
                 g = c.get("group") if c.get("group") in ANGLES else group(t)
                 if pid not in picked_ids and not (c.get("fits") and c.get("clear")):      # the owner's picks are never skipped
                     print("  skip (%s): %s" % ("not a fit" if not c.get("fits") else "not clear", c.get("name"))); rejected.add(pid); continue
+                if os.environ.get("RUG_NO_WATCH") and "watch" in ("%s %s" % (c.get("item") or t, c.get("name") or "")).lower():
+                    print("  skip (watch: AI watches look fake, owner 26 Nov 2026):", c.get("name")); continue
                 if groups.get(g, 0) >= cap: continue                                # a mix: not all bags
                 fid = site_find(pid)[1] if pid.startswith("site:") else pid[4:] if pid.startswith("pop:") else ""
                 if fid and any(p.get("find") == fid for p in picks): continue      # one photo per find in a post
