@@ -189,6 +189,16 @@ class Stop(Exception):
     """Stop sending for this run (spending cap, refused key, paused domain, 5 failures in a row)."""
 
 
+class NoSQL(Exception):
+    """The Email v2 tables or columns are not in Supabase yet (scripts/email_v2.sql, scripts/email_v2_engine.sql): nothing
+    is sent, and the run ends green with a warning (the daily health check reports it), not red every 15 minutes."""
+
+
+def missing_sql(e):
+    """A Supabase answer that means the SQL was not run: an unknown table (PGRST205) or column (42703)."""
+    return isinstance(e, SupaError) and e.status in (400, 404) and ("PGRST205" in e.text or "42703" in e.text)
+
+
 STOP_MARK = "[stop] "   # email_sends.error of a send a Stop ended: not the member's failure, so it never counts toward MAX_FAILS
 
 
@@ -777,7 +787,7 @@ def load_members():
     try:
         profiles = sb_all("profiles?select=%s&order=id" % PROFILE_COLS)
     except SupaError as e:
-        if e.status == 400: raise Fatal("profiles is missing the Email v2 columns (%s): run scripts/email_v2.sql in Supabase" % hide(e.text)[:120])
+        if e.status == 400: raise NoSQL("profiles is missing the Email v2 columns (%s): run scripts/email_v2.sql in Supabase" % hide(e.text)[:120])
         raise Fatal("profiles not readable: %s" % e)
     users = auth_users()
     out = [Member(p, users[p["id"]]) for p in profiles if p.get("id") in users]
@@ -2028,6 +2038,7 @@ def mode_run(mode, provs):
     try:
         S.suppressed = {str(r.get("email") or "").lower() for r in sb_all("email_suppression?select=email&order=email")}
     except SupaError as e:
+        if missing_sql(e): raise NoSQL("email_suppression is missing: run scripts/email_v2.sql, then scripts/email_v2_engine.sql, in Supabase")
         raise Fatal("email_suppression not readable (%s): run scripts/email_v2.sql in Supabase" % e)
     members = load_members()
     cat_get = lazy(Catalog)
@@ -2213,9 +2224,14 @@ def main(argv=None):
             if not p: say("::warning::PLUNK_API_KEY is not set: the %s emails are not sent" % grp); gh_output("nokey", "1")
         if mode == "test": return mode_test(provs)
         return mode_run(mode, provs)
+    except NoSQL as e:
+        say("::warning::%s. Nothing is sent until then (the daily health check reports this)." % hide(e)); gh_output("nosql", "1"); return 0
     except Fatal as e:
         say("::error::%s" % hide(e)); return 1
     except SupaError as e:
+        if missing_sql(e):
+            say("::warning::a table or column of Email v2 is missing (%s): run scripts/email_v2.sql, then scripts/email_v2_engine.sql, in Supabase. Nothing more is sent until then." % hide(e)[:160])
+            gh_output("nosql", "1"); return 0
         say("::error::Supabase did not answer as expected: %s" % hide(e)); return 1
 
 

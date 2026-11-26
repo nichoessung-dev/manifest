@@ -78,10 +78,13 @@ jobs:
           TEST_EMAIL: ${{ github.event.inputs.test_email }}
           TEST_TEMPLATE: ${{ github.event.inputs.template }}
           PREVIEW_DIR: email_preview
-      # scripts/health_check.py reads which of these two steps ran in the last run and reports it every morning
+      # scripts/health_check.py reads which of these three steps ran in the last run and reports it every morning
       - name: Plunk key missing
         if: ${{ steps.send.outputs.nokey == '1' }}
         run: echo "PLUNK_API_KEY is not set, so no email went out. Add it under Settings, Secrets and variables, Actions."
+      - name: Email tables missing
+        if: ${{ steps.send.outputs.nosql == '1' }}
+        run: echo "The Email v2 tables are not in Supabase yet, so no email went out. Run scripts/email_v2.sql, then scripts/email_v2_engine.sql, in the Supabase SQL editor."
       - name: Stop line hit
         if: ${{ steps.send.outputs.stopline != '' }}
         run: echo "Marketing email is stopped ($STOPLINE). Check the cause, then set the STOP_LINES_OFF_UNTIL variable to a date."

@@ -125,8 +125,9 @@ def data_age():
 
 def welcome():
     """Email v2 (26 Nov 2026): every email goes out through .github/workflows/email.yml (scripts/mailer.py) every 15
-    minutes. Its last good run must be recent, and must not have run the "Plunk key missing" or "Stop line hit" step:
-    the engine then exits green on purpose (no red run every 15 minutes), so this check is where it shows."""
+    minutes. Its last good run must be recent, and must not have run the "Plunk key missing", "Email tables missing" or
+    "Stop line hit" step: the engine then exits green on purpose (no red run every 15 minutes), so this check is where it
+    shows."""
     tok = os.environ.get("GITHUB_TOKEN")
     hdr = {"Authorization": "Bearer " + tok} if tok else {}
     st, _, body = req("https://api.github.com/repos/%s/actions/workflows/email.yml/runs?status=success&per_page=1" % REPO, headers=hdr)
@@ -137,6 +138,7 @@ def welcome():
     st, _, body = req(runs[0]["jobs_url"], headers=hdr)
     ran = {s.get("name") for j in (json.loads(body or b"{}").get("jobs") or []) for s in (j.get("steps") or []) if s.get("conclusion") == "success"}
     if "Plunk key missing" in ran: return "FAIL", "PLUNK_API_KEY is not set: no emails go out (Settings, Secrets and variables, Actions)"
+    if "Email tables missing" in ran: return "FAIL", "the Email v2 tables are not in Supabase: run scripts/email_v2.sql, then scripts/email_v2_engine.sql (SQL editor)"
     if "Stop line hit" in ran: return "FAIL", "a stop line stopped marketing email (spam complaints or hard bounces): read the last Email run, then set STOP_LINES_OFF_UNTIL"
     return "OK", "last email run %.0f min ago" % (h * 60)
 
