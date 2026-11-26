@@ -71,7 +71,15 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
   badge on QC photos is swapped for our QR code by `scripts/qc_badge.py`. Photo links carry `?b=2`. Sources:
   qualit.ly (key `QUALITLY_KEY`) and the Oopbuy QC API (`scripts/oopbuy_qc.py`, keys `OOPBUY_APP_ID`,
   `OOPBUY_AES_KEY`, `OOPBUY_SIGN_SECRET`, waiting for Oopbuy).
-- Email: `scripts/newsletter.py` with `.github/workflows/welcome.yml` and `newsletter.yml`; one-click unsubscribe in
-  `functions/unsubscribe.js`. The chosen provider is Plunk (secret `PLUNK_API_KEY`).
+- Email (v2, 26 Nov 2026): `scripts/mailer.py` run by `.github/workflows/email.yml` every 15 minutes (welcome series
+  W0 to W4, saved-find alerts, weekly picks, win-back, sunset; warm-up caps and stop lines built in). Provider per
+  stream: Plunk by default, AhaSend as the switchable backup (`PROVIDER_AUTOMATED`, `PROVIDER_NEWS`). Clicks go through
+  our own tracker `functions/e/[[path]].js` and are counted per email and link, not per person (Norwegian and EU rules);
+  per-person tracking only for members who switch it on (`profiles.email_track`). Plunk's own tracking stays Disabled.
+  Webhooks for bounces and complaints: `functions/api/email-hook.js`. Member settings: `/email-settings`. Unsubscribe:
+  `functions/unsubscribe.js` (GET shows a page, POST unsubscribes). Numbers: `scripts/email_stats.py` into the Email
+  section of `/stats`. Database: `scripts/email_v2.sql` then `scripts/email_v2_engine.sql`. Research behind it:
+  the report "Email lifecycle deliverability and tracking". `newsletter.py`, `welcome.yml` and `newsletter.yml` are
+  the old system, kept only for manual test runs.
 - Stats: `/stats` (`stats.html`, data from the stats workflow), visits through `/api/visit`.
 - Preview the sign-up flow as a new visitor: `/?preview=signup`.
