@@ -5953,7 +5953,9 @@ function showTutorialPopup(force,guest){
   const A=(typeof AGENTS!=="undefined"&&AGENTS)||{}, ORDER=((typeof AGENT_ORDER!=="undefined"&&AGENT_ORDER)||Object.keys(A)).filter(k=>A[k]);
   const C=(typeof CUR!=="undefined"&&CUR)||{USD:{sym:"$"}};
   const esc2=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  let agent=(state&&A[state.agent])?state.agent:"mycnbox", cur=(state&&C[state.cur])?state.cur:"USD", step=0, moreOpen=false;
+  /* 26 Nov 2026 (owner): MyCNBox is preselected unless the visitor already picked an agent themselves */
+  let _picked=false; try{ _picked=localStorage.getItem("pc.agent.picked")==="1"; }catch(e){}
+  let agent=(_picked&&state&&A[state.agent])?state.agent:(A.mycnbox?"mycnbox":((state&&A[state.agent])?state.agent:ORDER[0])), cur=(state&&C[state.cur])?state.cur:"USD", step=0, moreOpen=false;
   let sty=pcStyles().slice();
   const body0=(typeof pcBody==="function"&&pcBody())||{}; let cl=body0.l||"", eu=+body0.eu||0;
   /* height and weight (always kept in cm and kg), the fit and the units; a picked usual size (cl) overrides them (lo) */
@@ -6120,6 +6122,7 @@ function showTutorialPopup(force,guest){
     if(t.dataset.k){ agent=t.dataset.k; if(!setSel("agent",agent)){ try{ state.agent=agent; save(); }catch(e){} } try{ typeof pcAgentSave==="function"&&pcAgentSave(1); }catch(e){} markAgents(); return; }
     if(t.dataset.c){ cur=t.dataset.c; if(!setSel("cur",cur)){ try{ window.__curTouched=1; state.cur=cur; save(); }catch(e){} } drawCur(); return; }
   });
+  if(!_picked&&state&&state.agent!==agent){ try{ if(!setSel("agent",agent)){ state.agent=agent; save(); } }catch(e){} }
   go(0);
 }
 try{ if(/[?&]tour=1(&|$)/.test(location.search)) setTimeout(()=>showTutorialPopup(true),1500); }catch(e){}
