@@ -6,6 +6,7 @@ import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMo
 import { imgSrc, navKey, SWAP_VER, setHidden, AGENT_ORDER } from "./_lib/site.js";
 import { spHero, trendItems, SP_CSS, SP_JS } from "./_lib/sp_hero.js";
 import { reportedIds, reportedOk } from "./_lib/reported.js";
+import { TILE_LIGHT_JS } from "./_lib/photo_tiles.js";
 
 // Real static HTML pages (everything else that comes back as HTML is the SPA fallback -> 404).
 const STATIC_HTML = new Set(["/", "/index.html", "/privacy", "/privacy.html", "/terms", "/terms.html", "/stats", "/stats.html",
@@ -158,10 +159,12 @@ async function appFile(ctx, url, kind) {
   return new Response(body, { headers: { ...type, "cache-control": cc } });
 }
 // The homepage's "New finds" block (12 Nov 2026, SEO check) goes before the footer, with the hub styles (HX_CSS) it uses.
+// TILE_LIGHT_JS (every app page, here and in hubApp): the finds whose photo keeps the light tile in dark mode, for the app's
+// pcCut() (photo_tiles.js).
 const slimHtml = (res, ver, cards = "", fresh = "") => withCatalogLink(appSplit(new HTMLRewriter(), ver)
   .on("script#pc-catalog", { element(e) { e.replace(catalogTags(ver), { html: true }); } })
   .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
-  .on("meta[charset]", { element(e) { if (fresh) e.after(HX_CSS, { html: true }); } })
+  .on("meta[charset]", { element(e) { e.after(TILE_LIGHT_JS + (fresh ? HX_CSS : ""), { html: true }); } })
   .on("footer", { element(e) { if (fresh) e.before(`<div class="hx hx-app hx-home">${fresh}</div>`, { html: true }); } })
   .transform(res), ver);
 // Live numbers (12 Nov 2026, SEO check): index.html's fixed "9,000+" and five-agent phrases (title, meta description, og
@@ -499,7 +502,7 @@ async function hubApp(ctx, url, spec) {
     .on('script[type="application/ld+json"]', { element(e) { e.remove(); } })
     .on("script#pc-catalog", { element(e) { e.replace(catalogTags(etagOf(asset)), { html: true }); } })
     .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
-    .on("meta[charset]", { element(e) { e.after(head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
+    .on("meta[charset]", { element(e) { e.after(TILE_LIGHT_JS + head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
     // v8 hero parts (eyebrow, CTA row, stats, Trustpilot badge, agents strip, favourites strip) are no longer in the v9
     // index.html, so their removal rules are gone. The app code still checks for each element before using it.
     // v9 (29 Oct 2026): the homepage sections between the hero and the toolbar, the hero search, the hero buttons and the hero trust row

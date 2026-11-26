@@ -1340,6 +1340,16 @@ header.h .hprefs-l{display:flex;align-items:center;min-height:36px;padding:0 10p
   :root:not([data-theme="light"]) :is(.ci,.hub-p2 .ci,.pimg,.thumbs > a,.thumbs > button){background:#DEDEDE}
   :root:not([data-theme="light"]) :is(.ci img,.pimg img,.thumbs img):not([alt^="QC photo"]){mix-blend-mode:normal;filter:brightness(.8706);border-radius:0}
 }
+/* owner, 26 Nov 2026: now that the photos are cut out (8,851 cleaned on 25 Nov), a transparent cut-out sits on the category grey
+   (#262626, the tile of the category circles) and shows as it is: no brightness filter, no blend. Its photo box carries .pc-cut
+   (functions/_lib/site.js isCut()). Every other photo, the finds on the light list (functions/_lib/photo_tiles.js) and QC photos
+   keep the light tile above. The header search's thumbnails (pcs.js) get the same grey. Its loading skeleton is that grey too. */
+:root[data-theme="dark"] :is(.ci,.pimg,.thumbs > a,.thumbs > button,.pcs-well).pc-cut{--sk-tile:#262626;--sk-band:rgba(255,255,255,.06);background:#262626}
+:root[data-theme="dark"] :is(.ci,.pimg,.thumbs > a,.thumbs > button,.pcs-well).pc-cut img:not([alt*="QC photo"]){mix-blend-mode:normal;filter:none}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) :is(.ci,.pimg,.thumbs > a,.thumbs > button,.pcs-well).pc-cut{--sk-tile:#262626;--sk-band:rgba(255,255,255,.06);background:#262626}
+  :root:not([data-theme="light"]) :is(.ci,.pimg,.thumbs > a,.thumbs > button,.pcs-well).pc-cut img:not([alt*="QC photo"]){mix-blend-mode:normal;filter:none}
+}
 /* 23 Nov 2026 (owner: "make it match the app"): the product page reads like the app's find view. "Buy through your agent"
    over the button, the similar finds as a swipeable row right under the find, the spreadsheet links and Details lower down. */
 .pd-bl{margin:18px 0 8px;font-size:13px;color:var(--muted)}

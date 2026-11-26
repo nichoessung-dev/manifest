@@ -450,6 +450,7 @@ case"updatePriceUI":return updatePriceUI;case"openDetail":return openDetail;case
 case"t":return t;case"T":return T;case"pprice":return pprice;case"thumbOf":return thumbOf;case"catName":return catName;
 case"pcExtract":return pcExtract;case"Q_SYN":return Q_SYN;case"productColors":return productColors;case"isPH":return isPH;
 case"SOLD":return SOLD;case"STATS":return STATS;case"popScore":return popScore;case"pcForYou":return pcForYou;
+case"pcCut":return pcCut;
 }
 }catch(e){}
 return undefined;
@@ -691,6 +692,8 @@ return"<b>"+esc(seg.slice(0,best.length))+"</b>"+esc(seg.slice(best.length));
 function fillProd(e,p,terms){
 var im=e.querySelector("img"),th=G("thumbOf"),src=p.img?(typeof th==="function"?th(p.img):p.img):"";
 if(im.getAttribute("src")!==src){delete im.dataset.r;im.style.visibility="";if(src)im.src=src;else im.removeAttribute("src");}
+/* dark mode photo tiles (26 Nov 2026): a transparent cut-out sits on the category grey (pcCut: the app's, or the flag in /search-index.json) */
+var cut=G("pcCut");im.parentNode.classList.toggle("pc-cut",!!(src&&typeof cut==="function"&&cut(p)));
 e.href="/product/"+encodeURIComponent(p.id);e.__p=p;
 e.querySelector(".pcs-pt").innerHTML=bold(p.title,terms,true);
 var cn=G("catName");e.querySelector(".pcs-ps").textContent=[p.brand,typeof cn==="function"?cn(p.cat):p.cat].filter(Boolean).join(" · ");
@@ -963,12 +966,14 @@ catName:function(c){return c;},
 priceH:function(p){return SA.isPH(p.price)?"Ask seller":"$"+Math.max(1,p.usd||Math.round(p.price*0.14)).toLocaleString("en-US")+' <small class="pcs-cny">\u00a5'+esc(p.price)+"</small>";},
 /* resized thumbs on the live site only, as the app's thumbOf (Supabase photos through our /api/img proxy) */
 thumbOf:function(u){if(!u||!prod)return u;if(/^\/img\//.test(u))return TH+u;if(/\.supabase\.co\/storage\/v1\/object\/public\//.test(u))return TH+"/api/img?u="+encodeURIComponent(u);return u;},
-pcExtract:function(u){var m=String(u||"").match(/(\d{6,})/);return m?{id:m[1]}:{};}};
+pcExtract:function(u){var m=String(u||"").match(/(\d{6,})/);return m?{id:m[1]}:{};},
+/* a transparent cut-out (the 13th column of /search-index.json, site.js isCut): its thumbnail sits on the category grey in dark mode */
+pcCut:function(p){return!!(p&&p.cut);}};
 /* the icons pcs.js draws, once, when the page has no sprite of its own */
 try{if(!d.getElementById("i-search")){var sv='<svg id="pc-icons" xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">';
 Object.keys(SA_ICONS).forEach(function(k){sv+='<symbol id="i-'+k+'" viewBox="0 0 24 24">'+SA_ICONS[k]+"</symbol>";});
 var hold=d.createElement("div");hold.innerHTML=sv+"</svg>";d.body.insertBefore(hold.firstChild,d.body.firstChild);}}catch(e){}
-var got=function(j){var x=A.decode(j);SA.ALL=x.items;SA.brandSlug=x.brandSlug;SA.catSlug=x.catSlug;},
+var got=function(j){var x=A.decode(j),r=(j&&j.rows)||[],i;for(i=0;i<x.items.length;i++)if(r[i]&&r[i][12]===1)x.items[i].cut=1;SA.ALL=x.items;SA.brandSlug=x.brandSlug;SA.catSlug=x.catSlug;},
 fin=function(){var q=idxWait;idxWait=[];q.forEach(function(f){try{f();}catch(e){}});if(open)paint();};
 (B.idx||(w.fetch?fetch("/search-index.json").then(function(r){if(!r.ok)throw 0;return r.json();}):Promise.reject()))
 .then(function(j){got(j);warm();fin();},function(){SA.failed=true;fin();});

@@ -3,12 +3,14 @@
 // Built from the server catalogue P on the first request per isolate and kept in memory until the view stats change.
 // Columnar and gzip friendly: brands, categories, platforms and image folders are tables, each row points into them.
 //   {"v":BUILT,"n":count,"pre":[image folder, ...,""],"cats":[[CATS key, slug]],"brands":[[name, hub slug or ""]],
-//    "plat":["weidian",...],"rows":[[id,title,brandIdx|-1,catIdx,platIdx,cny,usd,qc,preIdx,imgRest,pop,itemId|0]]}
+//    "plat":["weidian",...],"rows":[[id,title,brandIdx|-1,catIdx,platIdx,cny,usd,qc,preIdx,imgRest,pop,itemId|0(,1)]]}
+// A 13th column 1 (26 Nov 2026): the photo is a transparent cut-out, which sits on the category grey in dark mode
+// (site.js isCut, photo_tiles.js); the column is left out for every other photo.
 // Listings the weekly link check found dead are left out (the app hides them); sold-out ones stay.
 // pop = score(p) rounded (views and favourites when stats are loaded), usd = Math.round(cny * USD_RATE) as money() does.
 // P leaves out the look-alikes of partner-swapped finds (site.js SWAP_HIDE); a swapped find carries its partner price in
 // cny, and score() puts it above every other find (pop column), so the header search lists it first among its matches.
-import { P, gone, score, BUILT, CATS, idx, USD_RATE, rawImg } from "./site.js";
+import { P, gone, score, BUILT, CATS, idx, USD_RATE, rawImg, isCut } from "./site.js";
 
 // FNV-1a 32-bit as 8 hex characters (the ETag suffix, and the stats fingerprint in the cache key).
 export function fnv8(s) {
@@ -52,8 +54,10 @@ export function buildSearchIndex() {
     let k = pre.length - 1;
     for (let j = 0; j < pre.length - 1; j++) if (u.indexOf(pre[j]) === 0) { k = j; break; }
     const cny = +p.cny || 0;
-    rows.push([String(p.id), p.title, bi, ci, pi, cny, Math.round(cny * USD_RATE), p.qc || 0, k, u.slice(pre[k].length), Math.round(score(p)),
-      p.itemId && String(p.itemId) !== String(p.id) ? String(p.itemId) : 0]);
+    const row = [String(p.id), p.title, bi, ci, pi, cny, Math.round(cny * USD_RATE), p.qc || 0, k, u.slice(pre[k].length), Math.round(score(p)),
+      p.itemId && String(p.itemId) !== String(p.id) ? String(p.itemId) : 0];
+    if (isCut(p, u)) row.push(1);
+    rows.push(row);
   }
   const body = JSON.stringify({ v: BUILT, n: rows.length, pre, cats, brands, plat, rows });
   MEM = { ix, ver: statsVersion(), body, etag: `"${BUILT}-${fnv8(body)}"` };
