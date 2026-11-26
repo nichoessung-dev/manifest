@@ -343,6 +343,18 @@ function niceMax(v){ if(v<=5) return 5; const p=Math.pow(10,Math.floor(Math.log1
 function shortDate(s){ const d=new Date(s+"T12:00:00"); return d.toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
 
 /* one SVG chart: series = [{data, color, fill, type:'area'|'line'|'bar'}]; colours are ds tokens (--c1 ink, --c2 grey) */
+/* a monotone cubic curve through the points (Fritsch-Carlson): smooth, never overshoots below 0 or above a peak */
+function smoothPath(P){
+  const n=P.length; if(n<3) return P.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const dx=[],dy=[],m=[],t=new Array(n);
+  for(let i=0;i<n-1;i++){ dx.push(P[i+1][0]-P[i][0]); dy.push(P[i+1][1]-P[i][1]); m.push(dy[i]/(dx[i]||1)); }
+  t[0]=m[0]; t[n-1]=m[n-2];
+  for(let i=1;i<n-1;i++) t[i]=(m[i-1]*m[i]<=0)?0:(m[i-1]+m[i])/2;
+  for(let i=0;i<n-1;i++){ if(m[i]===0){ t[i]=t[i+1]=0; continue; } const a=t[i]/m[i], b=t[i+1]/m[i], h=a*a+b*b; if(h>9){ const k=3/Math.sqrt(h); t[i]=k*a*m[i]; t[i+1]=k*b*m[i]; } }
+  let d="M"+P[0][0].toFixed(1)+" "+P[0][1].toFixed(1);
+  for(let i=0;i<n-1;i++){ const h=dx[i]/3; d+=" C"+(P[i][0]+h).toFixed(1)+" "+(P[i][1]+t[i]*h).toFixed(1)+" "+(P[i+1][0]-h).toFixed(1)+" "+(P[i+1][1]-t[i+1]*h).toFixed(1)+" "+P[i+1][0].toFixed(1)+" "+P[i+1][1].toFixed(1); }
+  return d;
+}
 function chart(el, labels, series, opts={}){
   const W=el.clientWidth||600, H=el.clientHeight||240, L=36, R=8, T=10, B=24, w=W-L-R, h=H-T-B, n=labels.length;
   const max=niceMax(Math.max(1,...series.flatMap(s=>s.data)));
@@ -357,9 +369,9 @@ function chart(el, labels, series, opts={}){
     const c=css(s.color);
     if(s.type==='bar'){ s.data.forEach((v,i)=>{ const hh=Math.max(v?2:0,(v/max)*h); g+=`<rect x="${(bx(i)-bw/2).toFixed(1)}" y="${(T+h-hh).toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" rx="${Math.min(3,bw/2).toFixed(1)}" fill="${c}"/>`; }); continue; }
     const pts=s.data.map((v,i)=>[x(i),y(v)]);
-    const path=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+    const path=opts.smooth? smoothPath(pts) : pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
     if(s.type==='area'){ const id="g"+Math.random().toString(36).slice(2);
-      g+=`<defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".14"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs>`;
+      g+=`<defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".22"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs>`;
       g+=`<path d="${path} L${x(n-1)} ${T+h} L${x(0)} ${T+h} Z" fill="url(#${id})"/>`; }
     g+=`<path d="${path}" fill="none" stroke="${c}" stroke-width="${s.type==='area'?2:1.75}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
   }
@@ -404,7 +416,9 @@ function liveSlots(){
   /* a gap of up to 3 slots (15 min) between two samples is a missed sample, not an empty site: filled in between them */
   for(let i=0;i<out.length;i++){ if(out[i][1]!==null) continue; let j=i; while(j<out.length&&out[j][1]===null) j++;
     const a=i>0?out[i-1][1]:null, b=j<out.length?out[j][1]:null, gap=j-i;
-    for(let k=i;k<j;k++) out[k][1]=(gap<=3&&a!==null&&b!==null)? Math.round((a+(b-a)*(k-i+1)/(gap+1))*10)/10 : 0;
+    /* 26 Nov 2026 (owner: "stop going to 0 and then to 30 and then to 0"): the sampler misses runs, so a gap of up to 2
+       hours between two samples is a missed sample, filled in between them; only a longer gap counts as an empty site */
+    for(let k=i;k<j;k++) out[k][1]=(gap<=24&&a!==null&&b!==null)? Math.round((a+(b-a)*(k-i+1)/(gap+1))*10)/10 : 0;
     i=j-1; }
   return out;
 }
@@ -435,7 +449,8 @@ function drawLive(){
   const lab=t=>{ const d=new Date(t*1000); return r<=1? d.toLocaleTimeString("en-US",{hour:"numeric"}) : d.toLocaleDateString("en-US",{month:"short",day:"numeric"}); };
   const series=[{name:"average", data:B.avg, color:"--c1", type:"area"}]; if(B.peak) series.push({name:"peak", data:B.peak, color:"--c2", type:"line"});
   const tipf=t=>{ const d=new Date(t*1000); return d.toLocaleDateString("en-US",{month:"short",day:"numeric"})+(r<=7?", "+d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}):""); };
-  chart(el, B.labels, series, {label:lab, tip:tipf});
+  if(r<=1){ const a=series[0].data; series[0].data=a.map((v,i)=>{ const w=a.slice(Math.max(0,i-1),i+2); return Math.round(w.reduce((x,y)=>x+y,0)/w.length*10)/10; }); }
+  chart(el, B.labels, series, {label:lab, tip:tipf, smooth:true});
 }
 function drawCharts(){
   try{ drawLive(); }catch(e){}
