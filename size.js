@@ -101,8 +101,8 @@
     var letters = sold.filter(function (z) { return letterIdx(z) >= 0; });
     function snap(k) { if (!letters.length) return L[k]; return letters.filter(function (z) { return letterIdx(z) >= k; })[0] || letters[letters.length - 1]; }
     var lo = snap(x), hi = snap(a); if (norm(hi) !== L[a]) hi = lo;   // no exact one-up in this listing: the usual size, not two up
-    var two = norm(lo) !== norm(hi);
-    return { size: two ? lo + " or " + hi : hi, chart: false, why: "You'd be " + L[x] + " in EU/US sizes. " + "Chinese sizes tend to run small" + (two ? ", so " + hi + " is the safer pick. If the listing says true to size, take " + lo + "." : ". " + hi + " is the closest size this listing sells.") };
+    var two = norm(lo) !== norm(hi);   // 26 Nov 2026 (owner: "dont say m or l decide for them"): one size, one up when the listing sells it
+    return { size: hi, chart: false, why: "You'd be " + L[x] + " in EU/US sizes. Chinese sizes tend to run small" + (two ? ", so we went one size up." : ". " + hi + " is the closest size this listing sells.") };
   }
 
   /* 23 Nov 2026 (owner: "a step in the signup where we ask for weight and height once, and then a subtle 'we recommend
@@ -251,7 +251,7 @@
         note = r && r.chart ? "From this listing's size chart" : "An estimate: this listing has no size chart we could read, so when in doubt ask the seller through your agent";
       }
       if (!r || r.ask || !r.size) { el.innerHTML = ""; return; }
-      var head = shoes ? esc(r.pre) + "<b>" + esc(r.em) + "</b>" + esc(r.post) : (/ or /.test(r.size) ? "Your size: <b>" : "We recommend size <b>") + esc(r.size) + "</b>";
+      var head = shoes ? esc(r.pre) + "<b>" + esc(r.em) + "</b>" + esc(r.post) : "We recommend size <b>" + esc(r.size) + "</b>";
       el.innerHTML = '<button type="button" class="pcrec" aria-expanded="' + open + '" aria-controls="' + did + '">' + RULER + "<span>" + head + '</span><span class="pcrec-c">' + CHEV + "</span></button>" +
         '<div class="pcrec-d" id="' + did + '" role="region" aria-label="Your size" aria-hidden="' + !open + '">' + (shoes && r.line ? "<p><b>" + esc(r.line) + ".</b></p>" : "") + "<p>" + r.why + '</p><p class="pcrec-s">' + note +
         ". For " + (shoes ? "your usual " + euText(+b0.eu, wmn) : bodyText(b)) + ".</p>" + (r.chart ? chartHtml(data, shoes ? (r.eu != null ? String(r.eu) : "") : r.size, b && b.u === "i") : "") + '<button type="button" class="pcrec-e">Change my size</button></div>';

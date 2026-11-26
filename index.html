@@ -4148,7 +4148,7 @@ function pcCut(p,u){
   u=String((u===undefined?p.img:u)||"");
   const q=u.indexOf("/api/img?"); if(q>=0){ try{ u=new URLSearchParams(u.slice(q+9)).get("u")||""; }catch(e){ u=""; } }
   u=u.replace(/^https?:\/\/[^/]+/,"").replace(/^\/cdn-cgi\/image\/[^/]+/,"").replace(/[?#].*$/,"");
-  return /^\/(?:storage\/v1\/object\/public\/products|img\/m)\/pc2\/[\w-]+-[et]1(?:\.v[\w-]+)?\.webp$|^\/img\/(?:rl|fr)\/[\w-]+-e1\.webp$|^\/storage\/v1\/object\/public\/products\/store2\/[\w.-]+-t1\.webp$/.test(u);
+  return /^\/(?:storage\/v1\/object\/public\/products|img\/m)\/pc2\/[\w-]+-[et]1(?:\.v[\w-]+)?\.webp$|^\/img\/(?:rl|fr)\/[\w-]+-e1\.webp$|^\/storage\/v1\/object\/public\/products\/store2\/[\w.-]+-t1\.webp$|^\/storage\/v1\/object\/public\/products\/pc\/[\w-]+\.webp$|^\/img\/p2?\/[\w-]+\.webp$/.test(u);
 }
 ALL.forEach(p=>{
   if(p.img && SB_IMG.test(p.img)) p.img = location.origin + "/api/img?u=" + encodeURIComponent(p.img);  /* serve photos via Cloudflare edge cache, not Supabase per visitor */
@@ -5499,7 +5499,7 @@ function pcBetaAsk(p){
 function pcSizeLoad(cb){
   if(window.pcSize){ cb(); return; }
   let s=document.getElementById("pcsz-js");
-  if(!s){ s=document.createElement("script"); s.id="pcsz-js"; s.src="/size.js?v=9"; s.async=true; document.head.appendChild(s); }
+  if(!s){ s=document.createElement("script"); s.id="pcsz-js"; s.src="/size.js?v=10"; s.async=true; document.head.appendChild(s); }
   s.addEventListener("load",cb);
 }
 function pcSizeRow(p){

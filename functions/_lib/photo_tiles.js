@@ -7,8 +7,9 @@
 
 // A cut-out is a photo at one of these addresses (photo-edge run of 25 Nov 2026 and the earlier cut-outs):
 //   products/pc2/<id>-e1.webp or <id>-t1.webp (Supabase, or the site's copy img/m/pc2/<id>-e1[.v<n>].webp),
-//   img/rl/<id>-e1.webp, img/fr/<id>-e1.webp, and products/store2/<name>-t1.webp (store photos).
-export const CUT_RX = /^\/(?:storage\/v1\/object\/public\/products|img\/m)\/pc2\/[\w-]+-[et]1(?:\.v[\w-]+)?\.webp$|^\/img\/(?:rl|fr)\/[\w-]+-e1\.webp$|^\/storage\/v1\/object\/public\/products\/store2\/[\w.-]+-t1\.webp$/;
+//   img/rl/<id>-e1.webp, img/fr/<id>-e1.webp, and products/store2/<name>-t1.webp (store photos),
+//   products/pc/<id>.webp, img/p/ and img/p2/ (26 Nov 2026: every one of the 1,845 that loads is a cut-out, checked).
+export const CUT_RX = /^\/(?:storage\/v1\/object\/public\/products|img\/m)\/pc2\/[\w-]+-[et]1(?:\.v[\w-]+)?\.webp$|^\/img\/(?:rl|fr)\/[\w-]+-e1\.webp$|^\/storage\/v1\/object\/public\/products\/store2\/[\w.-]+-t1\.webp$|^\/storage\/v1\/object\/public\/products\/pc\/[\w-]+\.webp$|^\/img\/p2?\/[\w-]+\.webp$/;
 // The path of a photo address as CUT_RX reads it: the Supabase address inside /api/img?u=, without host, Cloudflare
 // resize prefix (/cdn-cgi/image/...) or query.
 export function cutPath(u) {
