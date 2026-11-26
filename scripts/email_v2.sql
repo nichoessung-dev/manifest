@@ -65,7 +65,10 @@ alter table public.profiles
   add column if not exists email_sunset_at    timestamptz,             -- marketing stopped for inactivity (a visit or click resumes it)
   add column if not exists unsubscribed_at    timestamptz,
   add column if not exists unsub_source       text,                    -- header | link | complaint | settings
-  add column if not exists style              text;                    -- the welcome tour's style pick (old, archive, street, women, or all)
+  add column if not exists style              text,                    -- the welcome tour's style pick (old, archive, street, women, or all)
+  add column if not exists email_track        boolean default false,   -- yes to "Measure my email clicks" (personal ids in links)
+  add column if not exists email_personal     boolean default false,   -- yes to "Personalise my emails from finds I view"
+  add column if not exists email_consents     jsonb default '[]'::jsonb; -- every yes and no: [{what, value, at, text_version, via}]
 
 -- 5. profiles.agent: the site has 18 agents now. Drop the old check that allowed only a few, so a pick saves.
 do $$
