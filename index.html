@@ -3259,6 +3259,70 @@ html.sub-pre #sub-row[hidden]{display:flex!important;visibility:hidden;min-heigh
 #drawer .sim-skel .sim-t{background:linear-gradient(var(--sk-line),var(--sk-line)) 0 .2em/92% .9em no-repeat,linear-gradient(var(--sk-line),var(--sk-line)) 0 1.5em/62% .9em no-repeat}
 #drawer .sim-skel .sim-p{background:linear-gradient(var(--sk-line),var(--sk-line)) 0 50%/40% .9em no-repeat}
 </style>
+<style data-split="css" id="pc-rail-css">/* home rows (Popular Now and the category rows), 26 Nov 2026 (owner: "make the items on these way nicer"). The cards
+   buildRows() draws carry .rc. A real card with a hairline, the photo on its tile (dark: the #262626 cut-out tile, light: no
+   well, as Round 6), more room around the photo so every find sits the same way, the brand as a small capitals label, a
+   two-line title, a prominent price and a light outlined Buy pill on the price line instead of the full-width grey one. The
+   Save star and the QC camera are quiet chips on the photo. Mouse hover lifts the card 3px with a soft shadow. Everything
+   here is scoped to .v9-rail>.card.rc, so the grid and the product view keep their cards. */
+html body .v9-home .v9-rail>.card.rc{display:flex;flex-direction:column;padding:8px!important;border:1px solid var(--line)!important;border-radius:16px!important;background:var(--surface)!important;box-shadow:none!important;
+  -webkit-tap-highlight-color:transparent;transition:transform var(--dur-2,200ms) var(--ease-out),box-shadow var(--dur-2,200ms) var(--ease-out),border-color var(--dur-1,120ms) linear!important}
+html body .v9-home .v9-rail>.card.rc .thumb{aspect-ratio:1/1!important;border-radius:9px!important;overflow:hidden}
+html body .v9-home .v9-rail>.card.rc .thumb img.pimg{box-sizing:border-box;width:100%!important;height:100%!important;padding:8%!important;object-fit:contain!important;border-radius:0!important}
+/* Save: a bare star on the photo, a soft chip behind it on hover, solid once saved */
+html body .v9-home .v9-rail>.card.rc .fav{top:6px!important;right:6px!important;width:30px!important;height:30px!important;background:transparent!important;color:var(--ink)!important;opacity:.45;box-shadow:none!important;border:0!important}
+html body .v9-home .v9-rail>.card.rc .fav svg{width:15px;height:15px}
+html body .v9-home .v9-rail>.card.rc .fav::after{content:"";position:absolute;inset:-7px}
+html body .v9-home .v9-rail>.card.rc .fav[aria-pressed="true"]{opacity:1}
+@media (hover:hover){html body .v9-home .v9-rail>.card.rc:hover .fav{opacity:.8}html body .v9-home .v9-rail>.card.rc .fav:hover{opacity:1;background:color-mix(in srgb,var(--surface) 88%,transparent)!important}}
+@media (hover:none){html body .v9-home .v9-rail>.card.rc .fav{opacity:.6}}
+/* QC: a small camera chip on the star's centre line, same weight as the star */
+html body .v9-home .v9-rail>.card.rc .tbadges{top:9px;left:9px}
+html body .v9-home .v9-rail>.card.rc .tbadges .qcb{width:24px;height:24px;background:color-mix(in srgb,var(--surface) 90%,transparent);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink)}
+html body .v9-home .v9-rail>.card.rc .tbadges .qcb .ic{width:13px;height:13px;opacity:.8}
+@media (hover:hover){html body .v9-home .v9-rail>.card.rc .tbadges .qcb:hover{background:var(--surface)}}
+/* text: brand label, title, then price and Buy on one line */
+html body .v9-home .v9-rail>.card.rc .body{display:grid!important;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;row-gap:0!important;flex:1 1 auto;align-content:start;padding:12px 4px 2px!important}
+html body .v9-home .v9-rail>.card.rc .brand-line{grid-column:1/-1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:600 10.5px/16px var(--f-body)!important;letter-spacing:.09em!important;text-transform:uppercase!important;color:var(--muted)!important}
+html body .v9-home .v9-rail>.card.rc .title{grid-column:1/-1;margin-top:3px;font-size:14px!important;font-weight:500!important;line-height:19px!important;min-height:38px!important;letter-spacing:-.005em!important;color:var(--ink)!important;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+html body .v9-home .v9-rail>.card.rc .price-row{grid-column:1;align-self:end;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px!important;min-width:0;padding-top:12px!important}
+html body .v9-home .v9-rail>.card.rc .price{font-size:17px!important;font-weight:650!important;letter-spacing:-.015em!important;font-variant-numeric:tabular-nums;color:var(--ink)!important}
+html body .v9-home .v9-rail>.card.rc .card-acts{grid-column:2;align-self:end;margin:12px 0 0!important}
+html body .v9-home .v9-rail>.card.rc .buy-pill{flex:none!important;height:30px;padding:0 14px;border:1px solid var(--line-2);background:transparent;color:var(--ink);font-size:12.5px;font-weight:600}
+@media (hover:hover){html body .v9-home .v9-rail>.card.rc .buy-pill:hover{background:var(--fill);border-color:var(--fill);color:var(--fill-ink)}}
+@media (pointer:coarse){html body .v9-home .v9-rail>.card.rc .buy-pill{height:32px}html body .v9-home .v9-rail>.card.rc .buy-pill::before{inset:-6px -4px}}
+/* light: the hairline reads a touch firmer on white, the Buy outline matches it */
+:root:not([data-theme="dark"]) body .v9-home .v9-rail>.card.rc{border-color:color-mix(in srgb,var(--ink) 9%,transparent)!important}
+:root:not([data-theme="dark"]) body .v9-home .v9-rail>.card.rc .buy-pill{border-color:color-mix(in srgb,var(--ink) 16%,transparent)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="dark"]) body .v9-home .v9-rail>.card.rc{border-color:var(--line)!important}:root:not([data-theme="light"]):not([data-theme="dark"]) body .v9-home .v9-rail>.card.rc .buy-pill{border-color:var(--line-2)}}
+/* hover lift (mouse only) */
+@media (hover:hover) and (pointer:fine){
+  html body .v9-home .v9-rail>.card.rc:hover{transform:translateY(-3px)!important;border-color:var(--line-2)!important;box-shadow:0 14px 30px -16px rgba(0,0,0,.28),0 2px 6px -2px rgba(0,0,0,.06)!important}
+  html body .v9-home .v9-rail>.card.rc:hover:active{transform:translateY(-3px) scale(.985)!important}
+  :root[data-theme="dark"] body .v9-home .v9-rail>.card.rc:hover{box-shadow:0 16px 34px -14px rgba(0,0,0,.7)!important}
+}
+@media (hover:hover) and (pointer:fine) and (prefers-color-scheme:dark){:root:not([data-theme="light"]) body .v9-home .v9-rail>.card.rc:hover{box-shadow:0 16px 34px -14px rgba(0,0,0,.7)!important}}
+@media (prefers-reduced-motion:reduce){html body .v9-home .v9-rail>.card.rc,html body .v9-home .v9-rail>.card.rc:hover,html body .v9-home .v9-rail>.card.rc:hover:active{transform:none!important}}
+/* phones: a little tighter, same layout */
+@media (max-width:560px){
+  html body .v9-home .v9-rail>.card.rc{padding:6px!important;border-radius:14px!important}
+  html body .v9-home .v9-rail>.card.rc .thumb{border-radius:9px!important}
+  html body .v9-home .v9-rail>.card.rc .thumb img.pimg{padding:7%!important}
+  html body .v9-home .v9-rail>.card.rc .body{padding:10px 3px 2px!important}
+  html body .v9-home .v9-rail>.card.rc .title{font-size:13.5px!important}
+  html body .v9-home .v9-rail>.card.rc .price{font-size:16px!important}
+  html body .v9-home .v9-rail>.card.rc .buy-pill{padding:0 12px}
+}
+/* the rows' skeleton cards take the same shape, so nothing moves when the cards come in */
+html .v9-home .v9-rail>.sk-card{padding:8px;border:1px solid var(--line);border-radius:16px}
+html .v9-home .v9-rail>.sk-card .sk-im{border-radius:9px}
+html .v9-home .v9-rail>.sk-card .sk-l1{width:40%;height:10px;margin:15px 4px 6px}
+html .v9-home .v9-rail>.sk-card .sk-l2{width:88%;height:13px;margin:4px 4px 6px}
+html .v9-home .v9-rail>.sk-card .sk-l3{width:55%;height:13px;margin:0 4px}
+html .v9-home .v9-rail>.sk-card .sk-pr{width:30%;height:16px;margin:24px 4px 6px}
+html .v9-home .v9-rail>.sk-card .sk-p{display:none}
+@media (max-width:560px){html .v9-home .v9-rail>.sk-card{padding:6px;border-radius:14px}}
+</style>
 <svg id="pc-icons" xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13.5" r="3.5"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol><symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5Z"/><path d="M3 7.5 12 12l9-4.5"/><path d="M12 12v9"/></symbol><symbol id="i-ruler" viewBox="0 0 24 24"><path d="M3 15.5 15.5 3 21 8.5 8.5 21Z"/><path d="m7 12 1.5 1.5"/><path d="m10 9 2 2"/><path d="m13 6 1.5 1.5"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5"/><path d="M12 16h.01"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></symbol><symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></symbol><symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></symbol><symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol><symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol><symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-paste" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9z"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.9 6.9 19.3l1-5.7-4.1-4 5.7-.8z"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol><symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol><symbol id="i-shoe" viewBox="0 0 24 24"><path d="M2.5 9.5 6 10.5l2.5-2 2.5 2.5 2.5 2.5 5.5 1.5a2.5 2.5 0 0 1 2 2.5V18H2.5Z"/><path d="M2.5 15h19"/><path d="M9.5 11.5l1.5-1"/><path d="M11.5 13.5l1.5-1"/></symbol><symbol id="i-tee" viewBox="0 0 24 24"><path d="M8.5 3.5 4 6 2.5 10l3.5 1.5V20.5h12V11.5L21.5 10 20 6l-4.5-2.5a3.5 3.5 0 0 1-7 0Z"/></symbol><symbol id="i-jacket" viewBox="0 0 24 24"><path d="M8.5 3.5 4 6 2.5 10l3.5 1.5V20.5h12V11.5L21.5 10 20 6l-4.5-2.5L12 7Z"/><path d="M12 7v13.5"/><path d="M8.5 3.5 12 7l3.5-3.5"/></symbol><symbol id="i-hoodie" viewBox="0 0 24 24"><path d="M8 4 3.5 7 5 11.5l2-.8V21h10V10.7l2 .8L20.5 7 16 4"/><path d="M8 4a4 4 0 0 0 8 0"/><path d="M10.5 8.5v3M13.5 8.5v3"/></symbol><symbol id="i-pants" viewBox="0 0 24 24"><path d="M6.5 3h11l1 18h-5L12 10l-1.5 11h-5Z"/><path d="M6.5 6.5h11"/></symbol><symbol id="i-shorts" viewBox="0 0 24 24"><path d="M5.5 5h13l1.5 10.5h-6L12 10.5l-2 5H4Z"/><path d="M5.5 8h13"/></symbol><symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8.5h14l-1 12H6Z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/></symbol><symbol id="i-watch" viewBox="0 0 24 24"><path d="M9 7.5 9.7 3h4.6l.7 4.5"/><path d="M9 16.5l.7 4.5h4.6l.7-4.5"/><path d="M12 10v2.2l1.4 1"/><circle cx="12" cy="12" r="5"/></symbol><symbol id="i-cap" viewBox="0 0 24 24"><path d="M4 15.5a8 8 0 0 1 16 0Z"/><path d="M12 7.5V6"/><path d="M15 15.5h6.5"/></symbol><symbol id="i-store" viewBox="0 0 24 24"><path d="M4 10v10h16V10"/><path d="M3 10 5 4h14l2 6a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0Z"/><path d="M10 20v-5h4v5"/></symbol><symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9Z"/><circle cx="7.5" cy="7.5" r="1.5"/></symbol><symbol id="i-coins" viewBox="0 0 24 24"><circle cx="9" cy="9" r="6"/><path d="M15.5 9.2A6 6 0 1 1 9.2 15.5"/><path d="M9 6.5v5M7.5 8h3"/></symbol><symbol id="i-hash" viewBox="0 0 24 24"><path d="M5 9h14M5 15h14M10 4 8 20M16 4l-2 16"/></symbol><symbol id="i-scale" viewBox="0 0 24 24"><path d="M6.5 8h11l2.5 12H4Z"/><circle cx="12" cy="5.5" r="2.5"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-6M3 20h18"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 13 9 5 9-5"/></symbol><symbol id="i-sheet" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol><symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 21a6.5 6.5 0 0 0 6.5-6.5c0-4-3-6-3.5-9.5-2 1.5-3 3.5-3 5.5-1-1-1.5-2-1.5-3.5C8 9 5.5 11.5 5.5 14.5A6.5 6.5 0 0 0 12 21Z"/></symbol><symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 7 5-2.5 5 2.5-1.5-7"/></symbol><symbol id="i-truck" viewBox="0 0 24 24"><path d="M2.5 6.5h11v10h-11Z"/><path d="M13.5 10h4l3 3.5v3h-7"/><circle cx="7" cy="17.5" r="1.75"/><circle cx="17" cy="17.5" r="1.75"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 10.5 12 4l8.5 6.5V20H15v-5.5H9V20H3.5Z"/></symbol><symbol id="i-warehouse" viewBox="0 0 24 24"><path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7M7 16.5h10"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol><symbol id="i-user-plus" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20a6.5 6.5 0 0 1 13 0"/><path d="M19 8v6M16 11h6"/></symbol><symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></symbol><symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.25"/><circle cx="18" cy="20" r="1.25"/><path d="M2.5 3.5H5l2.5 12h11l2-8.5H6"/></symbol><symbol id="i-card" viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="19" height="13" rx="2"/><path d="M2.5 10h19M6.5 15h3"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.2 3 7.8 7 9.5 4-1.7 7-5.3 7-9.5V6Z"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.5h.01"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3Z"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.5C10.5 5 8 4.5 3 4.5v14c5 0 7.5.5 9 2 1.5-1.5 4-2 9-2v-14c-5 0-7.5.5-9 2Z"/><path d="M12 6.5v14"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4Z"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2.5 4.5 13.5H12l-1 8 8.5-11H12Z"/></symbol><symbol id="i-gift" viewBox="0 0 24 24"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8.5h14V12M12 8v12.5"/><path d="M12 8c-2 0-4.5-.6-4.5-2.6A1.9 1.9 0 0 1 9.4 3.5C11.3 3.5 12 8 12 8Zm0 0c2 0 4.5-.6 4.5-2.6a1.9 1.9 0 0 0-1.9-1.9C12.7 3.5 12 8 12 8Z"/></symbol><symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol><symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol><symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></symbol><symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6.5" r="2.5"/><circle cx="6" cy="17.5" r="2.5"/><path d="M8 8.5 20 18M8 15.5 20 6"/></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c1.1 0 1.5-.8 1.5-1.5 0-1.2-1-1.5-1-2.5s.7-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-4.1-4-7.5-9-7.5Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></symbol><symbol id="i-type" viewBox="0 0 24 24"><path d="M5 6.5V4.5h14v2M12 4.5v15M9 19.5h6"/></symbol><symbol id="i-split" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.5 4.5L20 16"/><path d="M20 20v-4h-4"/></symbol><symbol id="i-grid-lg" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></symbol><symbol id="i-grid-sm" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="4.5" height="4.5" rx="1.2"/><rect x="9.75" y="3.5" width="4.5" height="4.5" rx="1.2"/><rect x="16" y="3.5" width="4.5" height="4.5" rx="1.2"/><rect x="3.5" y="9.75" width="4.5" height="4.5" rx="1.2"/><rect x="9.75" y="9.75" width="4.5" height="4.5" rx="1.2"/><rect x="16" y="9.75" width="4.5" height="4.5" rx="1.2"/><rect x="3.5" y="16" width="4.5" height="4.5" rx="1.2"/><rect x="9.75" y="16" width="4.5" height="4.5" rx="1.2"/><rect x="16" y="16" width="4.5" height="4.5" rx="1.2"/></symbol></svg>
 <div class="masthead" role="banner">
   <a class="skip-link" href="#q" onclick="var q=document.getElementById('q'),r;if(q&&q.offsetParent){event.preventDefault();q.focus({preventScroll:true});r=q.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)q.scrollIntoView({block:'center'});}">Skip to search</a>
@@ -7725,36 +7789,99 @@ function wirePPFilters(){
 
   /* ---------- carousels ---------- */
   var PER = 16;
-  function byPop(a, b) {
-    var ps = (typeof popScore === "function") ? popScore : function () { return 0; };
-    return (ps(b) - ps(a)) || ((b.favs || 0) - (a.favs || 0)) || ((b.viewsAll || 0) - (a.viewsAll || 0)) ||
-      ((b.best || 0) - (a.best || 0)) || ((b.ft || 0) - (a.ft || 0)) || ((a._rnd || 0) - (b._rnd || 0));
-  }
   function sold(p) { try { return SOLD && SOLD.has(String(p.id)); } catch (e) { return false; } }
-  /* partner swaps (12 Nov 2026): hid = a look-alike of a swapped find; swTop puts the swapped finds (of that category, all of
-     them in Popular Now) before a row's cards, keeping the row's brand caps for the rest */
+  /* partner swaps (12 Nov 2026): hid = a look-alike of a swapped find (it never shows in a row) */
   function hid(p) { try { return !!(p && SWAP_HIDE_OF[String(p.id)]); } catch (e) { return false; } }
-  function swTop(items, cat, caps) {
-    var s = []; try { s = Array.from(SWAPPED).map(function (id) { return BY_ID[id]; }).filter(function (p) { return p && p.img && !sold(p) && !hid(p) && (!cat || p.cat === cat); }); } catch (e) {}
-    if (!s.length) return items;
-    /* perf (19 Nov 2026): a row holds PER cards. With 2,600 swaps every row put all of them in (4,700 cards, 83,000 page
-       elements, seconds of freeze on load). The row takes PER of the most popular swaps, a different mix each load. */
-    s.sort(byPop);
-    if (s.length > PER) { var top = s.slice(0, PER * 3), keep = {}; top.map(function (p) { return [Math.random(), p]; }).sort(function (x, y) { return x[0] - y[0]; }).slice(0, PER).forEach(function (x) { keep[x[1].id] = 1; }); s = top.filter(function (p) { return keep[p.id]; }); }
-    var ids = {}, used = {};
-    s.forEach(function (p) { ids[p.id] = 1; used[p.brand || ""] = (used[p.brand || ""] || 0) + 1; });
-    var rest = items.filter(function (p) {
-      if (ids[p.id] || hid(p)) return false;
-      var b = p.brand || ""; if (caps && caps[b]) { if ((used[b] || 0) >= caps[b]) return false; used[b] = (used[b] || 0) + 1; }
-      return true;
+  /* best of the best (owner, 26 Nov 2026: "make the items on these way nicer and only make it be the best of the best photos
+     and products on here"). A row shows only finds that pass railOk(), best first (railScore), from data the page already has:
+       - photo: a clean transparent cut-out (pcCut(), the dark #262626 tile; functions/_lib/photo_tiles.js) and not flagged
+         by the photo check (p.pq under 0.3, data/photo_quality.json);
+       - price: a real price (not a placeholder, isPH) between a quarter and five times the median of its category;
+       - proof: buyers took QC photos of it (the catalogue's qc count, kept as qcAll when the QC bank has none stored, so
+         the bar does not move when data/qc_bank.json comes in) and real interest (popScore() 5 or more: views in the
+         last 30 days, the last 7 counting double);
+       - not sold out at the last link check and not a look-alike of a partner find (hid).
+     railScore: views first, then saves, QC photos and a bonus when the QC photos are stored (they show on the find).
+     railOk(p, true) is the looser bar (photo and price only) for the owner's own picks, and to top a row up to RAIL_MIN
+     cards when fewer pass (before the view stats are in, for instance). Order in a row: partner finds that pass, the
+     owner's picks, then the other finds that pass; railMix() keeps one listing per model (same brand and the same words in
+     the title the card shows, colours left out), the same brand at most once in any 5 cards in a row and RAIL_CAP times
+     in a row (where the finds allow it). */
+  var RAIL_VIEWS = 5, RAIL_MIN = 8, RAIL_CAP = 3, _railMed = { n: -1, m: {} };
+  function railMed() {
+    var a = list(); if (_railMed.n === a.length) return _railMed.m;
+    var by = {}, m = {};
+    a.forEach(function (p) { var u = +p.usd || 0; if (u > 0) (by[p.cat] = by[p.cat] || []).push(u); });
+    Object.keys(by).forEach(function (c) { var v = by[c].sort(function (x, y) { return x - y; }); m[c] = v[Math.floor(v.length / 2)]; });
+    _railMed = { n: a.length, m: m }; return m;
+  }
+  function railOk(p, loose) {
+    if (!p || !p.img || sold(p) || hid(p)) return false;
+    try { if (!pcCut(p)) return false; } catch (e) { return false; }
+    if ((p.pq || 0) >= 0.3) return false;
+    try { if (isPH(p.price)) return false; } catch (e) {}
+    var md = railMed()[p.cat], u = +p.usd || 0;
+    if (md && (u < md * 0.25 || u > md * 5)) return false;
+    if (loose) return true;
+    var ps = 0; try { ps = popScore(p); } catch (e) {}
+    return railQc(p) >= 1 && ps >= RAIL_VIEWS;
+  }
+  function railQc(p) { return Math.max(p.qc || 0, p.qcAll || 0); }
+  function railScore(p) {
+    var ps = 0; try { ps = popScore(p); } catch (e) {}
+    return Math.log(1 + ps) + 0.6 * Math.log(1 + (p.favs || 0)) + 0.5 * Math.log(1 + Math.min(railQc(p), 30)) + ((p.qcN || 0) > 0 ? 0.3 : 0) + (p._rnd || 0) * 0.01;
+  }
+  function byRail(a, b) { return (b._rs || 0) - (a._rs || 0); }
+  var RAIL_COLOURS = /^(black|white|grey|gray|navy|blue|red|green|brown|tan|beige|cream|ivory|pink|purple|yellow|orange|olive|khaki|silver|gold|camel|burgundy|charcoal|light|dark|multi|multicolor|multicolour|off|and|with|the)$/;
+  function railModel(p) {
+    if (p._rm && p._rmT === p.title) return p._rm;
+    var b = (p.brand || "").toLowerCase(), bw = {};
+    b.split(/[^a-z0-9']+/).forEach(function (w) { if (w) bw[w] = 1; });
+    var ws = railTitle(p).toLowerCase().split(/[^a-z0-9'+-]+/).filter(function (w) { return w && !bw[w] && !RAIL_COLOURS.test(w); });
+    var u = {}; ws.forEach(function (w) { w = w.replace(/[-']/g, ""); if (w.length > 3) w = w.replace(/s$/, ""); if (w) u[w] = 1; });   /* Super-Star = Superstar, Sneaker = Sneakers */
+    p._rmT = p.title; return (p._rm = b + "|" + Object.keys(u).sort().join(" "));
+  }
+  /* stages: lists in the order they lead the row; out and its counters carry on from stage to stage */
+  function railMix(stages, caps) {
+    var out = [], ids = {}, models = {}, used = {};
+    var full = function (b) { return (used[b] || 0) >= ((caps && caps[b]) || RAIL_CAP); };
+    stages.forEach(function (st) {
+      var left = st.filter(function (p) { return p && !ids[p.id] && !models[railModel(p)]; });
+      while (out.length < PER && left.length) {
+        var recent = out.slice(-4).map(function (q) { return q.brand || ""; }), k = -1, i;
+        for (i = 0; i < left.length && k < 0; i++) { var b = left[i].brand || ""; if (!full(b) && recent.indexOf(b) < 0) k = i; }
+        for (i = 0; i < left.length && k < 0; i++) { if (!full(left[i].brand || "")) k = i; }
+        if (k < 0) break;
+        var p = left.splice(k, 1)[0], m = railModel(p);
+        if (ids[p.id] || models[m]) continue;
+        ids[p.id] = 1; models[m] = 1; used[p.brand || ""] = (used[p.brand || ""] || 0) + 1; out.push(p);
+      }
     });
-    return s.concat(rest).slice(0, PER);
+    return out;
+  }
+  function isSw(p) { try { return SWAPPED.has(String(p.id)); } catch (e) { return false; } }
+  /* one row: c = a category, or "" for Popular Now; picks = the owner's own ids for it; skip = finds (and models, "m:" keys)
+     an earlier row shows */
+  function railFor(best, loose, c, picks, skip, caps) {
+    var B = {}; try { B = BY_ID || {}; } catch (e) {}
+    var inC = function (p) { return !c || p.cat === c; }, off = function (p) { return skip[p.id] || skip["m:" + railModel(p)]; };
+    var mine = (picks || []).map(function (id) { return B[id]; }).filter(function (p) { return p && inC(p) && !off(p) && railOk(p, true); });
+    mine.forEach(function (p) { p._rs = railScore(p); }); mine.sort(byRail);
+    var cat = best.filter(inC);
+    var out = railMix([
+      cat.filter(function (p) { return isSw(p) && !off(p); }),   /* partner finds first, only those that pass (12 Nov 2026 rule) */
+      mine,
+      cat.filter(function (p) { return !isSw(p) && !off(p); })
+    ], caps);
+    if (out.length < RAIL_MIN) out = railMix([out, cat, loose.filter(inC)], caps).slice(0, RAIL_MIN);   /* a short row: up to RAIL_MIN with the best of the rest */
+    return out;
   }
   /* their style first (the welcome tour, 26 Nov 2026): a row leads with the finds of their styles (core matches, then softer
-     ones; partner swaps first within each, as swTop), at most 3 of one brand, then the row's own cards fill the rest */
+     ones; partner swaps first within each, as railFor), at most 3 of one brand, then the row's own cards fill the rest */
   function styleTop(items, pool, cat, taken) {
     var on = false; try { on = typeof pcStyleOn === "function" && pcStyleOn(); } catch (e) {} if (!on) return items;
-    var sw = []; try { sw = Array.from(SWAPPED).map(function (id) { return BY_ID[id]; }).filter(function (p) { return p && p.img && !sold(p) && !hid(p); }).sort(byPop); } catch (e) {}
+    /* 26 Nov 2026: only finds that pass the rows' bar (railOk), best first */
+    var sw = []; try { sw = Array.from(SWAPPED).map(function (id) { return BY_ID[id]; }).filter(function (p) { return railOk(p); }).sort(byRail); } catch (e) {}
     var cand = sw.concat(pool), seen = {}, used = {}, tiers = [[], [], [], []];
     cand.forEach(function (p) {
       if ((cat && p.cat !== cat) || seen[p.id] || taken[p.id] || hid(p)) return; seen[p.id] = 1;
@@ -7766,16 +7893,6 @@ function wirePPFilters(){
     var out = [], ids = {};
     tiers.forEach(function (t) { t.forEach(function (p) { var b = p.brand || ""; if (out.length >= PER || (used[b] || 0) >= 3) return; used[b] = (used[b] || 0) + 1; out.push(p); ids[p.id] = 1; taken[p.id] = 1; }); });
     return out.concat(items.filter(function (p) { return !ids[p.id]; })).slice(0, PER);
-  }
-  /* pool: every find with a photo that is not sold out, most popular first (sorted once for all rows, 5 Nov 2026) */
-  function pick(pool, cat, skip) {
-    var seen = {}, out = [];
-    for (var i = 0; i < pool.length && out.length < PER; i++) {
-      var p = pool[i]; if ((cat && p.cat !== cat) || skip[p.id]) continue;
-      var k = (p.brand || "") + "|" + (p.title || "");
-      if (seen[k]) continue; seen[k] = 1; out.push(p);
-    }
-    return out;
   }
   function arrows(sec) {
     var rail = sec.querySelector(".v9-rail"), prev = sec.querySelector('.v9-arr[data-dir="-1"]'), next = sec.querySelector('.v9-arr[data-dir="1"]');
@@ -7797,8 +7914,8 @@ function wirePPFilters(){
       });
     });
   }
-  /* owner, 9 Nov 2026: "Popular Now" shows the owner's own picks, in a new random order every 30 minutes (owner, 9 Nov 2026; the same
-     order for every visitor in that window). Add find ids to POP_PICKS to add them to the rotation. */
+  /* the owner's picks for Popular Now (owner, 9 Nov 2026). Since 26 Nov 2026 they follow the partner finds in the row, best
+     first, when their photo and price pass (railOk(p, true)); add find ids to POP_PICKS to add them. */
   var POP_PICKS = ["7774498099","805059071491","950754050761","935096845323","7563973209","867265954871","7630051831",
     "6716583439","7663734281","7647547734","977682146752","7447925231","891428294916","7731148188","7739786803",
     "893315757292","1023952915683","7231806587","964484272869","1004752923420",
@@ -7807,33 +7924,13 @@ function wirePPFilters(){
     "983503433481","7720217254","7746528290","7483420160"];
   /* owner swaps inside a row: { row: { find to take out: find to put in its place } } */
   var ROW_SWAP = { Shoes: { "7766598269": "7563973209" } };
-  function shuffled(a, seed) { a = a.slice(); var x = (seed >>> 0) || 1;
-    for (var i = a.length - 1; i > 0; i--) { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; var j = x % (i + 1), t = a[i]; a[i] = a[j]; a[j] = t; }
-    return a; }
-  /* owner, 9 Nov 2026: "only have 1 Acne Studios at the time": at most ONE_BRAND[b] cards of brand b in Popular Now, and in
-     every picks row the same brand never twice within 5 cards in a row (when the picks allow it) */
+  /* owner, 9 Nov 2026: "only have 1 Acne Studios at the time": at most ONE_BRAND[b] cards of brand b in Popular Now */
   var ONE_BRAND = { "Acne Studios": 1 };
-  /* owner's own picks for a category row, shuffled every 30 minutes like Popular Now (owner, 9 Nov 2026) */
+  /* owner's own picks for a category row (owner, 9 Nov 2026), placed like POP_PICKS */
   var ROW_PICKS = { Tops: ["7630051831","7774498099","760438413422","829815347538","7231806587","1023952915683","891428294916",
     "997515775709","7746528290","740333013030","976896164628"],
     /* owner, 9 Nov 2026: "on outerwear just make it show these" */
     Outerwear: ["837655077198","893315757292","7663734281","1003749286954","7728738210"] };
-  function rotPicks(ids, caps) {
-    var B = {}; try { B = BY_ID || {}; } catch (e) {}
-    var left = shuffled(ids, Math.floor(Date.now() / 1800000)).map(function (id) { return B[id]; })
-      .filter(function (p) { return p && p.img && !sold(p) && !hid(p); });
-    var out = [], used = {};
-    var full = function (b) { return caps[b] && (used[b] || 0) >= caps[b]; };
-    while (out.length < PER && left.length) {
-      var recent = out.slice(-4).map(function (q) { return q.brand || ""; }), k = -1, i;
-      for (i = 0; i < left.length && k < 0; i++) { var b = left[i].brand || ""; if (!full(b) && recent.indexOf(b) < 0) k = i; }
-      for (i = 0; i < left.length && k < 0; i++) { if (!full(left[i].brand || "")) k = i; }
-      if (k < 0) break;
-      var p = left.splice(k, 1)[0]; used[p.brand || ""] = (used[p.brand || ""] || 0) + 1; out.push(p);
-    }
-    return out;   /* 16 of the picks per 30-minute window */
-  }
-  function popPicks() { return rotPicks(POP_PICKS, ONE_BRAND); }
   function swapIn(items, c) {
     var sw = ROW_SWAP[c]; if (!sw) return items; var B = {}; try { B = BY_ID || {}; } catch (e) {}
     Object.keys(sw).forEach(function (from) {
@@ -7843,6 +7940,22 @@ function wirePPFilters(){
       if (items.some(function (p) { return String(p.id) === sw[from]; })) items.splice(i, 1); else items[i] = to;
     });
     return items;
+  }
+  /* a row's card (26 Nov 2026): the brand already sits above the title, so the title shows without it, and without words
+     we keep out of copy ("Replica", the name of a Margiela line, and the like); the full title stays in the labels */
+  var RAIL_DROP = /(^|\s)(replicas?|reps?|fakes?|1:1)(?=\s|$)/gi;
+  function railTitle(p) {
+    var t = String(p.title || ""), b = String(p.brand || "");
+    if (b && t.toLowerCase().indexOf(b.toLowerCase() + " ") === 0) t = t.slice(b.length + 1);
+    t = t.replace(RAIL_DROP, " ").replace(/\s+/g, " ").trim();
+    if (!t) t = String(p.title || "").replace(RAIL_DROP, " ").replace(/\s+/g, " ").trim();
+    return t ? t.charAt(0).toUpperCase() + t.slice(1) : "";
+  }
+  function railCard(el, p) {
+    if (!el) return;
+    el.classList.add("rc");
+    var a = el.querySelector("a.title"), t = railTitle(p);
+    if (a && t && a.textContent !== t) a.textContent = t;
   }
   var built = false;
   function keepOrder(items, rail) {   /* the finds the row already shows first, in their order, then the new ones */
@@ -7859,26 +7972,31 @@ function wirePPFilters(){
     var skip = {}, styTaken = {}, secs = [].slice.call(home.querySelectorAll("section[data-row]"));
     /* perf (5 Nov 2026): one sort for all rows (was one per row), every scroll position read before any row is rebuilt and
        the arrows set after, so the rows cost one layout instead of one per row */
-    var pool = list().filter(function (p) { return p && p.img && !sold(p); }).sort(byPop);
+    var pool = list().filter(function (p) { return p && p.img && !sold(p); });
+    /* the rows' bar (26 Nov 2026): best = every find that passes railOk(), loose = photo and price only; both best first */
+    var best = [], loose = [];
+    pool.forEach(function (p) { if (!railOk(p, true)) return; p._rs = railScore(p); loose.push(p); if (railOk(p)) best.push(p); });
+    best.sort(byRail); loose.sort(byRail);
     var sl = secs.map(function (sec) { var rail = sec.querySelector(".v9-rail"); return rail ? rail.scrollLeft : 0; });
     secs.forEach(function (sec, n) {
       var rail = sec.querySelector(".v9-rail"); if (!rail) return;
       wireRow(sec);
-      var c = sec.getAttribute("data-row"), items;
-      /* the most popular 16 are still set aside first, as before, so the category rows below keep the finds they had */
-      if (c === "pop") { var top = pick(pool, "", skip); top.forEach(function (p) { skip[p.id] = 1; }); items = popPicks(); if (items.length < 4) items = top; }
-      else if (ROW_PICKS[c]) { var rp = rotPicks(ROW_PICKS[c], {}); items = rp.length >= 4 ? rp : swapIn(pick(pool, c, skip), c); pick(pool, c, skip).forEach(function (p) { skip[p.id] = 1; }); }
-      else { items = swapIn(pick(pool, c, skip), c); items.forEach(function (p) { skip[p.id] = 1; }); }
+      var c = sec.getAttribute("data-row"), pop = c === "pop", caps = pop ? ONE_BRAND : null, items;
+      /* best of the best (26 Nov 2026): partner finds that pass, the owner's picks, the other finds that pass (railFor);
+         the category rows leave out what Popular Now shows */
+      items = railFor(best, loose, pop ? "" : c, pop ? POP_PICKS : ROW_PICKS[c], pop ? {} : skip, caps);
+      items = swapIn(items, c);
+      items = styleTop(items, best, pop ? "" : c, styTaken);   /* their style first (26 Nov 2026) */
+      items = railMix([items], caps);   /* one listing per model, brands spread out, after the style and owner swaps */
+      if (pop) items.forEach(function (p) { skip[p.id] = 1; skip["m:" + railModel(p)] = 1; });
       /* a row the visitor has scrolled keeps its cards when only the background data changed */
-      items = swTop(items, c === "pop" ? "" : c, c === "pop" ? ONE_BRAND : null);   /* partner swaps first (12 Nov 2026) */
-      items = styleTop(items, pool, c === "pop" ? "" : c, styTaken);   /* their style first (26 Nov 2026) */
       if (!force && built && sl[n] > 4) return;
       /* calm loading (24 Nov 2026): a row keeps the cards it shows, in their order (finds it gains go after them), and each
          card keeps its node and photo (withReuse and _place, from the grid's code), so data that arrives later never
          reshuffles a row or reloads its photos */
       if (built) items = keepOrder(items, rail);
       var nodes = [];
-      withReuse(rail.children, function () { items.forEach(function (p, i) { guard(function () { nodes.push(card(p, 8 + i)); }); }); });   /* index 8+: lazy images, the hero h1 stays the LCP */
+      withReuse(rail.children, function () { items.forEach(function (p, i) { guard(function () { var el = card(p, 8 + i); railCard(el, p); nodes.push(el); }); }); });   /* index 8+: lazy images, the hero h1 stays the LCP */
       _place(rail, nodes);
       sec.hidden = !items.length;
       if (sl[n]) rail.scrollLeft = 0;

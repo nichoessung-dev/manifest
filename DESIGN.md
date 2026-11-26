@@ -146,6 +146,13 @@ Server pages: `header.h.scrolled` and `.rv` (layout script in `site.js`). App (m
 - Rails (`.v9-rail`): `scroll-snap-type:x proximity`, arrows fade at the ends. Home rails ship 6 `.sk-card`
   skeletons each (image well + text bars in `--_mut`, opacity pulse 1.2s, static under reduced motion), replaced when
   the rows are built.
+- Home row cards (`.v9-rail>.card.rc`, `#pc-rail-css` in index.html, 26 Nov 2026): 1px hairline card, 16px radius (14px
+  on phones) around an 8px (6px) inset photo tile, photo padded 8% (7%) so every find sits the same way, brand as an
+  uppercase 10.5px label, title without the brand (two lines, height kept), price 17px (16px) with a light outlined Buy
+  pill on the same line (fills with ink on hover). Save star and QC camera are quiet chips on the photo. Mouse hover lifts
+  3px with a soft shadow. The row skeletons have the same shape and height. Which finds a row shows: `railOk()` and
+  `railFor()` in the rows script (clean cut-out photo, unflagged, sane price, QC photos and real views; partner finds
+  first, one listing per model, brands spread out).
 - Reduced motion: no view transitions, no transforms, no fades, no pulses (both stylesheets).
 
 ### Category circles
