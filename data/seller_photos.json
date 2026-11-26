@@ -506,6 +506,26 @@
    "reason": "picker found no clean photo of this item",
    "status": "skipped"
   },
+  "5014331360": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/open492094931-1234478995-607b0000018177af538b0a23116d_1080_1080.jpg",
+     1080,
+     1080,
+     ""
+    ]
+   ],
+   "choice": -1,
+   "confidence": 0.3,
+   "date": "2026-11-26T23:32:57Z",
+   "dropped": {},
+   "found": 1,
+   "item": "5014331360",
+   "model": "claude-haiku-5-5",
+   "picker": "Only candidate 0 has a Gucci tag card and wood-panel background, so it is not a clean product photo.",
+   "reason": "picker found no clean photo of this item",
+   "status": "skipped"
+  },
   "5022666896": {
    "candidates": [
     [
@@ -1014,6 +1034,18 @@
    "model": "claude-haiku-5-5",
    "picker": "Only candidate 0 is shown held in a hand with boxes and packaging behind it, failing the clean product photo rules.",
    "reason": "picker found no clean photo of this item",
+   "status": "skipped"
+  },
+  "6636749467": {
+   "candidates": [],
+   "date": "2026-11-26T23:33:02Z",
+   "dropped": {
+    "under 900 px (by name)": 3
+   },
+   "found": 3,
+   "item": "6636749467",
+   "model": "claude-haiku-5-5",
+   "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 3)",
    "status": "skipped"
   },
   "6814018137": {
@@ -1657,6 +1689,29 @@
    "picker": "Candidate 0 shows the same Supreme hoodie in ash grey, but the background has an Essentials watermark-style text pattern, so it is not clean.",
    "reason": "picker unsure: clean not true",
    "status": "skipped"
+  },
+  "7291656463": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/weidian332477526-2d5600000192bc6749b60a8134f0_1080_1080.jpg",
+     1080,
+     1080,
+     ""
+    ]
+   ],
+   "choice": 0,
+   "confidence": 0.9,
+   "date": "2026-11-26T23:33:04Z",
+   "dropped": {},
+   "found": 1,
+   "h": 1080,
+   "item": "7291656463",
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 0 shows the white Amiri boots alone, whole item visible, single view, plain light background, no text or packaging.",
+   "reason": "quality gate: item cut off at the photo edge",
+   "src": "https://si.geilicdn.com/weidian332477526-2d5600000192bc6749b60a8134f0_1080_1080.jpg",
+   "status": "skipped",
+   "w": 1080
   },
   "7314898217": {
    "candidates": [
@@ -2407,7 +2462,7 @@
   },
   "7509414855": {
    "candidates": [],
-   "date": "2026-11-19T14:08:11Z",
+   "date": "2026-11-26T23:33:55Z",
    "dropped": {
     "under 900 px (by name)": 3
    },
@@ -5314,6 +5369,38 @@
    "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 3)",
    "status": "skipped"
   },
+  "7592879251": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/pcitem2005654965-7eac0000019a4f237bd10a239846_3024_4032.jpg",
+     2560,
+     3413,
+     ""
+    ],
+    [
+     "https://si.geilicdn.com/pcitem2005654965-01660000019a4f2365e30a2396f4_3024_4032.jpg",
+     2560,
+     3413,
+     "black 黑色 飞禽和宫殿冷帽"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem2005654965-64f60000019a4f2371600a2304aa_3024_4032.jpg",
+     2560,
+     3413,
+     "绿色 green 飞禽和宫殿冷帽"
+    ]
+   ],
+   "choice": -1,
+   "confidence": 0.9,
+   "date": "2026-11-26T23:34:30Z",
+   "dropped": {},
+   "found": 3,
+   "item": "7592879251",
+   "model": "claude-haiku-5-5",
+   "picker": "All candidates show different Arc'teryx Palace beanies in navy/black with green or yellow designs, not the Palace camo Black Grey beanie.",
+   "reason": "picker found no clean photo of this item",
+   "status": "skipped"
+  },
   "7593340786": {
    "candidates": [
     [
@@ -8207,6 +8294,401 @@
    },
    "w": 1920
   },
+  "7672165473": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/pcitem901940024420-606400000197a06051680a239646_2160_2160.jpg",
+     2160,
+     2160,
+     "1 / 1;S / 1;M / 1;L / 1;XL / 1;XXL"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem901940024420-716f00000197a06055e20a2395a3_2160_2160.jpg",
+     2160,
+     2160,
+     "2 / 2;S / 2;M / 2;L / 2;XL / 2;XXL"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem901940024420-6a2e00000197a0605b4b0a2315ef_1080_1080.jpg",
+     1080,
+     1080,
+     "3 / 3;S / 3;M / 3;L / 3;XL / 3;XXL"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem901940024420-68bf00000197a06221700a2102c5_2160_2160.jpg",
+     2160,
+     2160,
+     "4 / 4;S / 4;M / 4;L / 4;XL / 4;XXL"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem901940024420-64ec00000197a062adf00a23057e_1284_1284.jpg",
+     1284,
+     1284,
+     "7 / 7;S / 7;M / 7;L / 7;XL / 7;XXL"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem901940024420-726700000197a062deca0a2395a3_2160_2160.jpg",
+     2160,
+     2160,
+     "8 / 8;S / 8;M / 8;L / 8;XL / 8;XXL"
+    ]
+   ],
+   "choice": 0,
+   "confidence": 0.95,
+   "date": "2026-11-26T23:35:58Z",
+   "dropped": {
+    "same photo twice": 2
+   },
+   "found": 40,
+   "h": 2160,
+   "item": "7672165473",
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 0 shows the white Supreme tee flat on a plain white background, front view, no added text or person.",
+   "reason": "quality gate: main piece only 52%; item only 673 px in the photo (under 800; never upscaled)",
+   "src": "https://si.geilicdn.com/pcitem901940024420-606400000197a06051680a239646_2160_2160.jpg",
+   "status": "skipped",
+   "w": 2160
+  },
+  "7672715493": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/pcitem901862100388-23300000018fa8ac798f0a2303ee_1064_1064.jpg",
+     1064,
+     1064,
+     ""
+    ]
+   ],
+   "choice": -1,
+   "confidence": 0.9,
+   "date": "2026-11-26T23:36:20Z",
+   "dropped": {
+    "under 900 px (by name)": 2
+   },
+   "found": 3,
+   "item": "7672715493",
+   "model": "claude-haiku-5-5",
+   "picker": "Only candidate 0 is a worn lifestyle photo with a person, hand and background, violating the clean product photo rule.",
+   "reason": "picker found no clean photo of this item",
+   "status": "skipped"
+  },
+  "7672922711": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-6a860000019bfd3e49480a8133b0-unadjust_1200_1200.png",
+     1200,
+     1200,
+     ""
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-62270000019bfd3de8db0a8115c2_1794_1715.jpg",
+     1794,
+     1715,
+     "1 / 1;S / 1;M / 1;L / 1;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-7c050000019bfd3deb9b0a22d249_1794_1715.jpg",
+     1794,
+     1715,
+     "2 / 2;S / 2;M / 2;L / 2;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-6d990000019bfd3dee490aa08676_1794_1715.jpg",
+     1794,
+     1715,
+     "3 / 3;S / 3;M / 3;L / 3;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-78630000019bfd3df0810a23b4de_1794_1715.jpg",
+     1794,
+     1715,
+     "4 / 4;S / 4;M / 4;L / 4;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-6de50000019bfd3df2b00aa08676_1794_1715.jpg",
+     1794,
+     1715,
+     "5 / 5;S / 5;M / 5;L / 5;XL"
+    ]
+   ],
+   "choice": 1,
+   "confidence": 0.9,
+   "date": "2026-11-26T23:36:24Z",
+   "dropped": {},
+   "found": 40,
+   "h": 1715,
+   "item": "7672922711",
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 1 shows the cream graphic tee alone, front view, plain background, print on product only; the bag in the corner is a small inset-free accessory, minor",
+   "reason": "quality gate: hazy mask (84% half-transparent); 22 pieces, 3.3% of the item cut loose",
+   "src": "https://si.geilicdn.com/open1836032619-252808396-62270000019bfd3de8db0a8115c2_1794_1715.jpg",
+   "status": "skipped",
+   "w": 1794
+  },
+  "7675220264": {
+   "candidates": [],
+   "date": "2026-11-26T23:35:56Z",
+   "dropped": {
+    "under 900 px (by name)": 37
+   },
+   "found": 37,
+   "item": "7675220264",
+   "model": "claude-haiku-5-5",
+   "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 37)",
+   "status": "skipped"
+  },
+  "7675241904": {
+   "candidates": [],
+   "date": "2026-11-26T23:35:54Z",
+   "dropped": {
+    "under 900 px (by name)": 13
+   },
+   "found": 13,
+   "item": "7675241904",
+   "model": "claude-haiku-5-5",
+   "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 13)",
+   "status": "skipped"
+  },
+  "7675295262": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/pcitem901940024420-18090000019787129d240a20e273_1080_1080.jpg",
+     1080,
+     1080,
+     ""
+    ],
+    [
+     "https://si.geilicdn.com/pcitem901940024420-04e40000019786eac1f30a811411_1080_1080.jpg",
+     1080,
+     1080,
+     "2 / 2;XS / 2;S / 2;M / 2;L"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem901940024420-08da0000019786eada050a20e273_1080_1080.jpg",
+     1080,
+     1080,
+     "3 / 3;XS / 3;S / 3;M / 3;L"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem901940024420-14db0000019786eaf2da0a23037f_1074_1074.jpg",
+     1074,
+     1074,
+     "4 / 4;XS / 4;S / 4;M / 4;L"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem901940024420-147f0000019786eb1b0d0a20e672_1074_1074.jpg",
+     1074,
+     1074,
+     "5 / 5;XS / 5;S / 5;M / 5;L"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem901940024420-06a30000019786eb36520a23111a_1080_1080.jpg",
+     1080,
+     1080,
+     "6 / 6;XS / 6;S / 6;M / 6;L"
+    ]
+   ],
+   "choice": 0,
+   "confidence": 0.8,
+   "date": "2026-11-26T23:36:10Z",
+   "dropped": {
+    "same photo twice": 1
+   },
+   "found": 36,
+   "h": 1080,
+   "item": "7675295262",
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 0 shows the white Fendi tee alone, front view, plain background; a small tag is attached but no added text or watermark.",
+   "reason": "quality gate: item cut off at the photo edge",
+   "src": "https://si.geilicdn.com/pcitem901940024420-18090000019787129d240a20e273_1080_1080.jpg",
+   "status": "skipped",
+   "w": 1080
+  },
+  "7675803344": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-5dca0000019bfd3d8dde0a8133b0_1919_1919.jpg",
+     1919,
+     1919,
+     ""
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-6ff10000019bfd3d82200a23b4de_1920_1920.jpg",
+     1920,
+     1920,
+     "白色 / 白色;S / 白色;M / 白色;L / 白色;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-740f0000019bfd3d84920a22d249_1920_1920.jpg",
+     1920,
+     1920,
+     "灰色 / 灰色;S / 灰色;M / 灰色;L / 灰色;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-70e90000019bfd3d880a0a231226_1920_1920.jpg",
+     1920,
+     1920,
+     "黑色 / 黑色;S / 黑色;M / 黑色;L / 黑色;XL"
+    ]
+   ],
+   "choice": 1,
+   "confidence": 0.93,
+   "date": "2026-11-26T23:35:44Z",
+   "dropped": {
+    "same photo twice": 1
+   },
+   "found": 5,
+   "h": 1920,
+   "item": "7675803344",
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 1 shows the white Gallery Dept tee alone, front view, plain light background, whole item visible, blue print only.",
+   "reason": "final check: not clearly better or damaged (Same white Gallery Dept tee with blue print; new image is slightly sharper but not clearly better.)",
+   "src": "https://si.geilicdn.com/open1836032619-252808396-6ff10000019bfd3d82200a23b4de_1920_1920.jpg",
+   "status": "skipped",
+   "verdict": {
+    "clearly_better": false,
+    "confidence": 0.7,
+    "cutout_damage": false,
+    "reason": "Same white Gallery Dept tee with blue print; new image is slightly sharper but not clearly better.",
+    "same_item_and_colour": true
+   },
+   "w": 1920
+  },
+  "7676232932": {
+   "candidates": [],
+   "date": "2026-11-26T23:36:38Z",
+   "dropped": {
+    "under 900 px (by name)": 23
+   },
+   "found": 23,
+   "item": "7676232932",
+   "model": "claude-haiku-5-5",
+   "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 23)",
+   "status": "skipped"
+  },
+  "7677393501": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-29640000019c02a1831c0aa08239_1920_1920.jpg",
+     1920,
+     1920,
+     ""
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-0dbb0000019c02a153080a8115c2_1920_1920.jpg",
+     1920,
+     1920,
+     "黑黑 / 黑黑;S / 黑黑;M / 黑黑;L / 黑黑;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-190c0000019c02a157cb0aa08676_1920_1920.jpg",
+     1920,
+     1920,
+     "灰色 / 灰色;S / 灰色;M / 灰色;L / 灰色;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-28590000019c02a15b410a22d249_1920_1920.jpg",
+     1920,
+     1920,
+     "杏色 / 杏色;S / 杏色;M / 杏色;L / 杏色;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-19880000019c02a15e0e0aa08676_1920_1920.jpg",
+     1920,
+     1920,
+     "燕麦 / 燕麦;S / 燕麦;M / 燕麦;L / 燕麦;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-28d70000019c02a161ac0a22d249_1920_1920.jpg",
+     1920,
+     1920,
+     "藏青色 / 藏青色;S / 藏青色;M / 藏青色;L / 藏青色;XL"
+    ]
+   ],
+   "choice": 0,
+   "confidence": 0.9,
+   "date": "2026-11-26T23:35:29Z",
+   "dropped": {
+    "same photo twice": 3
+   },
+   "found": 18,
+   "h": 1920,
+   "item": "7677393501",
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 0 shows the white AMI tee alone, front view, plain light background, no text or person.",
+   "reason": "final check: not clearly better or damaged (Image 2 has chopped sleeves, missing chunks and jagged edges; the logo style differs from image 1.)",
+   "src": "https://si.geilicdn.com/open1836032619-252808396-29640000019c02a1831c0aa08239_1920_1920.jpg",
+   "status": "skipped",
+   "verdict": {
+    "clearly_better": false,
+    "confidence": 0.9,
+    "cutout_damage": true,
+    "reason": "Image 2 has chopped sleeves, missing chunks and jagged edges; the logo style differs from image 1.",
+    "same_item_and_colour": false
+   },
+   "w": 1920
+  },
+  "7677515795": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-36de0000019c02a236230aa08239_1280_1280.jpg",
+     1280,
+     1280,
+     ""
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-35ef0000019c02a2079f0a22d249_1280_1280.jpg",
+     1280,
+     1280,
+     "C35白色 / C35白色;S / C35白色;M / C35白色;L / C35白色;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-31690000019c02a20a710a23b491_1280_1280.jpg",
+     1280,
+     1280,
+     "C35黑色 / C35黑色;S / C35黑色;M / C35黑色;L / C35黑色;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-36a50000019c02a20ff90a22d249_1280_1280.jpg",
+     1280,
+     1280,
+     "C62黑色 / C62黑色;S / C62黑色;M / C62黑色;L / C62黑色;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-27b60000019c02a2129f0aa08676_1280_1280.jpg",
+     1280,
+     1280,
+     "C29白色 / C29白色;S / C29白色;M / C29白色;L / C29白色;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-200e0000019c02a214e40a8133b0_1280_1280.jpg",
+     1280,
+     1280,
+     "C29黑色 / C29黑色;S / C29黑色;M / C29黑色;L / C29黑色;XL"
+    ]
+   ],
+   "choice": 1,
+   "confidence": 0.93,
+   "date": "2026-11-26T23:35:14Z",
+   "dropped": {
+    "same photo twice": 1
+   },
+   "found": 19,
+   "h": 1280,
+   "item": "7677515795",
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 1 shows the same white Casablanca floral logo tee alone, front view, plain background, no text or packaging.",
+   "reason": "final check: not clearly better or damaged (Image 2 shows same white Casablanca tee, but the cutout looks rough with leftover background and softer detail.)",
+   "src": "https://si.geilicdn.com/open1836032619-252808396-35ef0000019c02a2079f0a22d249_1280_1280.jpg",
+   "status": "skipped",
+   "verdict": {
+    "clearly_better": false,
+    "confidence": 0.7,
+    "cutout_damage": true,
+    "reason": "Image 2 shows same white Casablanca tee, but the cutout looks rough with leftover background and softer detail.",
+    "same_item_and_colour": true
+   },
+   "w": 1280
+  },
   "7678959013": {
    "candidates": [],
    "date": "2026-11-12T19:15:13Z",
@@ -8269,6 +8751,175 @@
    "model": "claude-haiku-5-5",
    "picker": "Candidate 4 is a clean white shorts photo, but find is grey joggers; no candidate matches grey pants exactly.",
    "reason": "picker unsure: same_colour not true",
+   "status": "skipped"
+  },
+  "7680428832": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-30090000019c02a1ed160a231226_2560_2560.jpg",
+     2560,
+     2560,
+     "15"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-309f0000019c02a1f3270a231226_2560_2560.jpg",
+     2560,
+     2560,
+     "16"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-25fc0000019c02a1fa4d0aa08676_2560_2560.jpg",
+     2560,
+     2560,
+     "17"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-30bd0000019c02a1ffdb0a23b491_2560_2560.jpg",
+     2560,
+     2560,
+     "18"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-31290000019c02a207520a23b491_2560_2560.jpg",
+     2560,
+     2560,
+     "19"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-32c50000019c02a20d930a23b4de_2560_2560.jpg",
+     2560,
+     2560,
+     "20"
+    ]
+   ],
+   "choice": -1,
+   "confidence": 0.3,
+   "date": "2026-11-26T23:36:47Z",
+   "dropped": {
+    "under 900 px (by name)": 15
+   },
+   "found": 32,
+   "item": "7680428832",
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 4 is a clean product shot but shows black croc-embossed strap, not brown; no candidate matches brown colour well.",
+   "reason": "picker unsure: same_colour not true",
+   "status": "skipped"
+  },
+  "7680468108": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-28d40000019c02a28dad0a8133b0-unadjust_1267_950.png",
+     1267,
+     950,
+     ""
+    ]
+   ],
+   "choice": -1,
+   "confidence": 0.9,
+   "date": "2026-11-26T23:35:25Z",
+   "dropped": {
+    "under 900 px (by name)": 4
+   },
+   "found": 5,
+   "item": "7680468108",
+   "model": "claude-haiku-5-5",
+   "picker": "Only candidate 0 shows multiple stacked phones in mixed colours, with a cardboard background and multiple items, not a clean single-item photo.",
+   "reason": "picker found no clean photo of this item",
+   "status": "skipped"
+  },
+  "7680482098": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-04340000019bfd3edd4d0a23b491_2000_2000.jpg",
+     2000,
+     2000,
+     "1 / 1;M / 1;L / 1;XL / 1;XXL / 1;XXXL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-7b070000019bfd3ee09c0aa08676_2000_2000.jpg",
+     2000,
+     2000,
+     "2 / 2;M / 2;L / 2;XL / 2;XXL / 2;XXXL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-7b330000019bfd3ee40f0aa08676_2000_2000.jpg",
+     2000,
+     2000,
+     "3 / 3;M / 3;L / 3;XL / 3;XXL / 3;XXXL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-078c0000019bfd3eeb6f0aa08239_2000_2000.jpg",
+     2000,
+     2000,
+     "5 / 5;M / 5;L / 5;XL / 5;XXL / 5;XXXL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-73480000019bfd3eee5e0a8133b0_2000_2000.jpg",
+     2000,
+     2000,
+     "6 / 6;M / 6;L / 6;XL / 6;XXL / 6;XXXL"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-736e0000019bfd3ef1140a8133b0_2000_2000.jpg",
+     2000,
+     2000,
+     "7 / 7;M / 7;L / 7;XL / 7;XXL / 7;XXXL"
+    ]
+   ],
+   "choice": 0,
+   "confidence": 0.9,
+   "date": "2026-11-26T23:34:55Z",
+   "dropped": {
+    "same photo twice": 1,
+    "under 900 px (by name)": 1
+   },
+   "found": 41,
+   "h": 2000,
+   "item": "7680482098",
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 0 shows the white Philipp Plein tee alone on plain background, front view, no added text or person.",
+   "reason": "final check: not clearly better or damaged (Image 2 has visible leftover background smudges and a chopped right sleeve edge, so it is not cleaner.)",
+   "src": "https://si.geilicdn.com/open1836032619-252808396-04340000019bfd3edd4d0a23b491_2000_2000.jpg",
+   "status": "skipped",
+   "verdict": {
+    "clearly_better": false,
+    "confidence": 0.85,
+    "cutout_damage": true,
+    "reason": "Image 2 has visible leftover background smudges and a chopped right sleeve edge, so it is not cleaner.",
+    "same_item_and_colour": true
+   },
+   "w": 2000
+  },
+  "7680499900": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-7cb70000019bfd3f00060aa08676-unadjust_1200_1200.png",
+     1200,
+     1200,
+     ""
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-05920000019bfd3ef7890a23b491_1080_1440.jpg",
+     1080,
+     1440,
+     "红色red / 红色red;欧规插头Euro plug / 红色red;美规插头US plug / 红色red;英规插头UK plug"
+    ],
+    [
+     "https://si.geilicdn.com/open1836032619-252808396-0af80000019bfd3efa0c0a22d249_2560_2560.jpg",
+     2560,
+     2560,
+     "马卡龙macarons / 马卡龙macarons;欧规插头Euro plug / 马卡龙macarons;美规插头US plug / 马卡龙macarons;"
+    ]
+   ],
+   "choice": -1,
+   "confidence": 0.6,
+   "date": "2026-11-26T23:35:09Z",
+   "dropped": {},
+   "found": 3,
+   "item": "7680499900",
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 1 shows the red Dyson dryer with accessories beside it in a case, so not alone; still closest match to the find",
+   "reason": "picker unsure: clean not true",
    "status": "skipped"
   },
   "7680982633": {
@@ -8709,6 +9360,26 @@
    "reason": "picker unsure: clean not true",
    "status": "skipped"
   },
+  "7704571152": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/open1868209451-1234478995-14830000019be0ab1cb90a8133b0_1080_1435.jpg",
+     1080,
+     1435,
+     ""
+    ]
+   ],
+   "choice": -1,
+   "confidence": 0.85,
+   "date": "2026-11-26T23:34:36Z",
+   "dropped": {},
+   "found": 1,
+   "item": "7704571152",
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 0 shows the scarf on a textured grey armchair with a visible tag and a bit of background clutter; not a clean isolated product photo.",
+   "reason": "picker found no clean photo of this item",
+   "status": "skipped"
+  },
   "7704905327": {
    "candidates": [
     [
@@ -9127,6 +9798,18 @@
    "model": "claude-haiku-5-5",
    "picker": "All candidates show the shoes with the orange Hermes box and dust bag in frame, so none is a clean item-only photo.",
    "reason": "picker found no clean photo of this item",
+   "status": "skipped"
+  },
+  "7708648884": {
+   "candidates": [],
+   "date": "2026-11-26T23:36:40Z",
+   "dropped": {
+    "under 900 px (by name)": 29
+   },
+   "found": 29,
+   "item": "7708648884",
+   "model": "claude-haiku-5-5",
+   "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 29)",
    "status": "skipped"
   },
   "7708653540": {
@@ -10164,6 +10847,18 @@
    "model": "claude-haiku-5-5",
    "picker": "All candidates show the jacket hanging on a rack or hanger, with a visible background and rack, so none meet the clean product photo rule.",
    "reason": "picker found no clean photo of this item",
+   "status": "skipped"
+  },
+  "7717221359": {
+   "candidates": [],
+   "date": "2026-11-26T23:34:39Z",
+   "dropped": {
+    "under 900 px (by name)": 13
+   },
+   "found": 13,
+   "item": "7717221359",
+   "model": "claude-haiku-5-5",
+   "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 13)",
    "status": "skipped"
   },
   "7717221479": {
@@ -16720,6 +17415,30 @@
    "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 23)",
    "status": "skipped"
   },
+  "7732142571": {
+   "candidates": [],
+   "date": "2026-11-26T23:36:43Z",
+   "dropped": {
+    "under 900 px (by name)": 2
+   },
+   "found": 2,
+   "item": "7732142571",
+   "model": "claude-haiku-5-5",
+   "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 2)",
+   "status": "skipped"
+  },
+  "7732170137": {
+   "candidates": [],
+   "date": "2026-11-26T23:36:42Z",
+   "dropped": {
+    "under 900 px (by name)": 2
+   },
+   "found": 2,
+   "item": "7732170137",
+   "model": "claude-haiku-5-5",
+   "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 2)",
+   "status": "skipped"
+  },
   "7732681520": {
    "candidates": [
     [
@@ -16792,6 +17511,18 @@
    "model": "claude-haiku-5-5",
    "picker": "Candidate 0 shows multiple Nike shirts in many colours together, not a single clean white item photo.",
    "reason": "picker found no clean photo of this item",
+   "status": "skipped"
+  },
+  "7734557503": {
+   "candidates": [],
+   "date": "2026-11-26T23:36:46Z",
+   "dropped": {
+    "under 900 px (by name)": 2
+   },
+   "found": 2,
+   "item": "7734557503",
+   "model": "claude-haiku-5-5",
+   "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 2)",
    "status": "skipped"
   },
   "7735280075": {
@@ -16912,6 +17643,18 @@
    "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 2)",
    "status": "skipped"
   },
+  "7737657814": {
+   "candidates": [],
+   "date": "2026-11-26T23:36:44Z",
+   "dropped": {
+    "under 900 px (by name)": 2
+   },
+   "found": 2,
+   "item": "7737657814",
+   "model": "claude-haiku-5-5",
+   "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 2)",
+   "status": "skipped"
+  },
   "7738121301": {
    "candidates": [
     [
@@ -16966,7 +17709,7 @@
    ],
    "choice": 1,
    "confidence": 0.9,
-   "date": "2026-11-19T14:00:39Z",
+   "date": "2026-11-26T23:34:48Z",
    "dropped": {
     "under 900 px (by name)": 1
    },
@@ -16974,15 +17717,15 @@
    "h": 1639,
    "item": "7742892345",
    "model": "claude-haiku-5-5",
-   "picker": "Candidate 1 shows the red Supreme balaclava alone on a white mannequin head with a plain light background, sharp and fully visible.",
-   "reason": "final check: not clearly better or damaged (Image 2 is the same red balaclava but shows a mannequin face through the opening and rough mesh edges.)",
+   "picker": "Candidate 1 shows the red Supreme balaclava alone on a mannequin head with a plain light background, fully visible and sharp.",
+   "reason": "final check: not clearly better or damaged (Image 2 shows same red balaclava but the mannequin face is faintly visible and edges look jagged; not clearly better.)",
    "src": "https://si.geilicdn.com/pcitem1919750623-34690000019d7013b0b20a2315ef_1280_1639.jpg",
    "status": "skipped",
    "verdict": {
     "clearly_better": false,
-    "confidence": 0.8,
+    "confidence": 0.7,
     "cutout_damage": true,
-    "reason": "Image 2 is the same red balaclava but shows a mannequin face through the opening and rough mesh edges.",
+    "reason": "Image 2 shows same red balaclava but the mannequin face is faintly visible and edges look jagged; not clearly better.",
     "same_item_and_colour": true
    },
    "w": 1280
@@ -17019,8 +17762,8 @@
     ]
    ],
    "choice": 0,
-   "confidence": 0.9,
-   "date": "2026-11-12T13:37:16Z",
+   "confidence": 0.93,
+   "date": "2026-11-26T23:34:41Z",
    "dropped": {
     "under 900 px (by name)": 1
    },
@@ -17028,15 +17771,15 @@
    "h": 1429,
    "item": "7742967747",
    "model": "claude-haiku-5-5",
-   "picker": "Candidate 0 shows the same black Nike balaclava alone on a mannequin, full item visible, plain grey background, no text or packaging.",
-   "reason": "final check: not clearly better or damaged (Both show the same black Nike balaclava on a mannequin; new image is similar quality with no clear improvement.)",
+   "picker": "Candidate 0 shows the same black Nike balaclava alone on a plain light background, front-angled, fully visible, no text or hanger.",
+   "reason": "final check: not clearly better or damaged (Same black Nike balaclava on mannequin; new cutout is clean but not clearly better.)",
    "src": "https://si.geilicdn.com/pcitem1919750623-5faa0000019d7000be760a2394a4_1035_1429.jpg",
    "status": "skipped",
    "verdict": {
     "clearly_better": false,
     "confidence": 0.8,
     "cutout_damage": false,
-    "reason": "Both show the same black Nike balaclava on a mannequin; new image is similar quality with no clear improvement.",
+    "reason": "Same black Nike balaclava on mannequin; new cutout is clean but not clearly better.",
     "same_item_and_colour": true
    },
    "w": 1035
@@ -17517,6 +18260,82 @@
    "model": "claude-haiku-5-5",
    "reason": "no seller photo with a short side of 900 px or more (under 900 px (by name) 5)",
    "status": "skipped"
+  },
+  "7759262976": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/open1665003965-1234478995-45440000019e011b32ce0a231226_1920_1920.jpg",
+     1920,
+     1920,
+     ""
+    ],
+    [
+     "https://si.geilicdn.com/open1665003965-1234478995-48200000019e011b4e540a23b4de_1920_1920.jpg",
+     1920,
+     1920,
+     "花灰色 / 花灰色;S / 花灰色;M / 花灰色;L / 花灰色;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1665003965-1234478995-317f0000019e011b54cd0a8115c2_1920_1920.jpg",
+     1920,
+     1920,
+     "黑色 / 黑色;S / 黑色;M / 黑色;L / 黑色;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1665003965-1234478995-482f0000019e011b5a3d0a23b491_1920_1920.jpg",
+     1920,
+     1920,
+     "燕麦灰 / 燕麦灰;S / 燕麦灰;M / 燕麦灰;L / 燕麦灰;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1665003965-1234478995-29a10000019e011b66e20a8133b0_1920_1920.jpg",
+     1920,
+     1920,
+     "花灰短裤 / 花灰短裤;S / 花灰短裤;M / 花灰短裤;L / 花灰短裤;XL"
+    ],
+    [
+     "https://si.geilicdn.com/open1665003965-1234478995-29a30000019e011b6ccc0a8133b0_1920_1920.jpg",
+     1920,
+     1920,
+     "黑色短裤 / 黑色短裤;S / 黑色短裤;M / 黑色短裤;L / 黑色短裤;XL"
+    ]
+   ],
+   "choice": 2,
+   "confidence": 0.93,
+   "date": "2026-11-26T23:33:57Z",
+   "dropped": {},
+   "fidelity": 0.0,
+   "file": "img/p2/7759262976.webp",
+   "found": 10,
+   "h": 1920,
+   "item": "7759262976",
+   "kb": 41,
+   "mask": {
+    "cover": 0.467,
+    "fill": 0.865,
+    "largest_share": 1.0,
+    "off_x": -0.01,
+    "off_y": 0.018,
+    "parts": 1,
+    "soft": 0.043,
+    "solidity": 0.695,
+    "specks": 0,
+    "touches": 0
+   },
+   "model": "claude-haiku-5-5",
+   "picker": "Candidate 2 shows the black Essentials Fear of God tee alone on a plain white background, front view, fully visible, no added text or packaging.",
+   "reason": "rembg:isnet-general-use; clean mask",
+   "src": "https://si.geilicdn.com/open1665003965-1234478995-317f0000019e011b54cd0a8115c2_1920_1920.jpg",
+   "status": "ok",
+   "v": 1,
+   "verdict": {
+    "clearly_better": true,
+    "confidence": 0.85,
+    "cutout_damage": false,
+    "reason": "Image 2 is a clean, centred cutout of the same black Essentials tee, sharper and cleaner.",
+    "same_item_and_colour": true
+   },
+   "w": 1920
   },
   "7763066419": {
    "candidates": [
@@ -22638,6 +23457,44 @@
    "reason": "picker found no clean photo of this item",
    "status": "skipped"
   },
+  "7778420206": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/wdseller1625165561-24130000019cc194c1db0a23057e_1290_1720.jpg",
+     1290,
+     1720,
+     ""
+    ],
+    [
+     "https://si.geilicdn.com/wdseller1625165561-48490000019cc19720250a2103bd_1440_1440.jpg",
+     1440,
+     1440,
+     "型号2"
+    ],
+    [
+     "https://si.geilicdn.com/wdseller1625165561-322e0000019cc19736000a23038e_1440_1440.jpg",
+     1440,
+     1440,
+     "型号3"
+    ],
+    [
+     "https://si.geilicdn.com/wdseller1625165561-29600000019cc19750400a23037f_1440_1440.jpg",
+     1440,
+     1440,
+     "型号4"
+    ]
+   ],
+   "choice": -1,
+   "confidence": 0.9,
+   "date": "2026-11-26T23:34:24Z",
+   "dropped": {},
+   "found": 4,
+   "item": "7778420206",
+   "model": "claude-haiku-5-5",
+   "picker": "All candidates show a hand holding the watch or other items; none is a clean standalone product photo of the silver model.",
+   "reason": "picker found no clean photo of this item",
+   "status": "skipped"
+  },
   "7778423900": {
    "candidates": [
     [
@@ -24339,6 +25196,58 @@
    "src": "https://si.geilicdn.com/wdseller324145052-03820000019e9b7bd0ef0a2301b4_1080_1440.jpg",
    "status": "skipped",
    "w": 1080
+  },
+  "7780725454": {
+   "candidates": [
+    [
+     "https://si.geilicdn.com/pcitem1842056477-6abf0000018e6c6058470a2104c1_1512_1512.jpg",
+     1512,
+     1512,
+     "04"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem1842056477-6a5a0000018e6c605b660a20e284_1512_1512.jpg",
+     1512,
+     1512,
+     "05"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem1842056477-6d220000018e6c605e910a22d246_1512_1512.jpg",
+     1512,
+     1512,
+     "06"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem1842056477-6f600000018e6c6062030a231418_1512_1512.jpg",
+     1512,
+     1512,
+     "07"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem1842056477-6c050000018e6c6066ed0a20e273_1512_1512.jpg",
+     1512,
+     1512,
+     "08"
+    ],
+    [
+     "https://si.geilicdn.com/pcitem1842056477-700d0000018e6c6070e10a231447_1080_1080.jpg",
+     1080,
+     1080,
+     "11"
+    ]
+   ],
+   "choice": -1,
+   "confidence": 0.9,
+   "date": "2026-11-26T23:34:16Z",
+   "dropped": {
+    "under 900 px (by name)": 5
+   },
+   "found": 15,
+   "item": "7780725454",
+   "model": "claude-haiku-5-5",
+   "picker": "No candidate is a clean photo of the light blue Hourglass bag; candidates are other models, colours, or have boxes, bags and text.",
+   "reason": "picker found no clean photo of this item",
+   "status": "skipped"
   },
   "7780770710": {
    "candidates": [
@@ -32359,7 +33268,21 @@
    "tokens_in": 317755,
    "tokens_out": 11943,
    "usd": 0.0377
+  },
+  {
+   "asked": 31,
+   "date": "2026-11-26T23:37:08Z",
+   "errors": 0,
+   "model": "claude-haiku-5-5",
+   "ok": 1,
+   "picks": 27,
+   "requests": 116,
+   "skipped": 30,
+   "stopped": "",
+   "tokens_in": 64553,
+   "tokens_out": 2340,
+   "usd": 0.0076
   }
  ],
- "updated": "2026-11-26T14:22:29Z"
+ "updated": "2026-11-26T23:37:08Z"
 }
