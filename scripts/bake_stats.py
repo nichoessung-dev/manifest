@@ -320,6 +320,25 @@ def engagement():
     return out
 
 
+def devices():
+    """Phone or computer (26 Nov 2026, owner: "show me the % that is on phone vs on a computer"). The one log that knows
+    the device is link_clicks: every agent click through /go/ (functions/go/[agent].js) stores "phone" or "desktop" from
+    the browser's user agent (tablets count as phones), and the in-app browser if any. Aggregates only."""
+    now = datetime.datetime.now(datetime.timezone.utc)
+    rows = fetch_all("link_clicks?select=device,inapp,created_at&order=created_at.asc")
+    out = {}
+    for label, since in (("d7", now - datetime.timedelta(days=7)), ("d30", now - datetime.timedelta(days=30)), ("all", None)):
+        dev, app, n = collections.Counter(), collections.Counter(), 0
+        for r in rows:
+            t = parse_ts(r.get("created_at"))
+            if since and (not t or t < since): continue
+            n += 1; dev[r.get("device") or "unknown"] += 1
+            if r.get("inapp"): app[r["inapp"]] += 1
+        out[label] = {"n": n, "device": dict(dev), "inapp": app.most_common(8)}
+    first = parse_ts(rows[0].get("created_at")) if rows else None
+    out["since"] = first.date().isoformat() if first else None
+    return out
+
 def dashboard():
     """data/dashboard.json for the private /stats page: daily and monthly aggregates only (no user ids, no addresses).
     Active users = distinct signed-in members who opened a find that day / month; guests carry no id, so they show only in views."""
@@ -370,6 +389,8 @@ def dashboard():
     out["buy_clicks"] = clicks
     try: out["engagement"] = engagement()
     except Exception as e: print("engagement not made:", str(e)[:80]); out["engagement"] = {}
+    try: out["devices"] = devices()
+    except Exception as e: print("devices not made:", str(e)[:80]); out["devices"] = {}
     new =json.dumps(out, separators=(",", ":"))
     old = open("data/dashboard.json").read() if os.path.exists("data/dashboard.json") else ""
     strip = lambda s: s.split(',"days"', 1)[-1]

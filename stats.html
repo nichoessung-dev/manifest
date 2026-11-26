@@ -385,6 +385,11 @@
       <div><div class="sublabel">From which page</div><div class="bars" id="buy-pages"><div class="muted">No clicks yet</div></div></div>
     </section>
     <div class="ch-sub" id="buy-kinds"></div>
+    <section class="grid2c" style="margin-top:20px">
+      <div><div class="sublabel">Phone or computer, last 30 days</div><div class="bars" id="dev-split"><div class="muted">Not counted yet</div></div></div>
+      <div><div class="sublabel">In-app browsers, last 30 days</div><div class="bars" id="dev-inapp"><div class="muted">Not counted yet</div></div></div>
+    </section>
+    <div class="ch-sub" id="dev-note"></div>
   </section>
 
   <section class="card" id="mail-card">
@@ -655,7 +660,18 @@ function barList(el, rows, label){
   const top=rows.length?rows[0][1]:1;
   el.innerHTML=rows.map(([k,v])=>`<div class="bar"><div class="row"><b>${String(label(k)).replace(/</g,"&lt;")}</b><span>${fmt(v)}</span></div><div class="track"><div class="fill" style="width:${(v/top*100).toFixed(1)}%"></div></div></div>`).join("")||'<div class="muted">No clicks yet</div>';
 }
+/* 26 Nov 2026 (owner: "show me the % that is on phone vs on a computer"): from agent clicks through /go/, the one log
+   that stores the device (scripts/bake_stats.py devices()). */
+function renderDevices(){
+  const d=D&&D.devices&&D.devices.d30; if(!d||!d.n) return;
+  const ph=(d.device.phone||0), dk=(d.device.desktop||0), tot=ph+dk||1, pc=v=>Math.round(v/tot*100)+"%";
+  barList($("dev-split"), [["phone",ph],["desktop",dk]].sort((a,b)=>b[1]-a[1]), k=>k==="phone"?"Phone or tablet ("+pc(ph)+")":"Computer ("+pc(dk)+")");
+  if(d.inapp&&d.inapp.length) barList($("dev-inapp"), d.inapp, k=>k.charAt(0).toUpperCase()+k.slice(1));
+  else $("dev-inapp").innerHTML='<div class="muted">None in the last 30 days</div>';
+  const w=D.devices.d7; $("dev-note").textContent=fmt(d.n)+" agent clicks through our counted links in the last 30 days"+(w&&w.n?", "+Math.round((w.device.phone||0)/(w.n||1)*100)+"% on a phone in the last 7 days":"")+". Tablets count as phones.";
+}
 function renderBuys(){
+  try{ renderDevices(); }catch(e){}
   const b=D&&D.buy_clicks; if(!b||!b.days) return;
   $("buy-sub").textContent=fmt(b.total)+' clicks on "Buy via …" buttons in the last 30 days, by agent and visitor country';
   chart($("c-buy"), b.days, [{name:"buy clicks", data:b.per_day, color:"--c1", type:"bar"}]);

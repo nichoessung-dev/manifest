@@ -3455,7 +3455,7 @@ html #drawer .pp-filters{margin-top:14px}
       <button type="submit" class="v9-s-go" aria-label="Search"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></button>
     </form>
     <div class="v9-hero-actions">
-      <a class="v9-btn v9-btn-primary" id="v9-browse" href="#v9-all"><span data-i18n="v9_browse">Browse Finds</span></a>
+      <a class="v9-btn v9-btn-primary" id="v9-browse" href="/spreadsheet"><span data-i18n="v9_browse">Browse Finds</span></a>
     </div>
     <div class="v9-trust">
       <a class="v9-tp" href="https://www.trustpilot.com/review/mycnbox.com" target="_blank" rel="noopener noreferrer"><span class="v9-tp-stars" aria-hidden="true"><i><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2.6l1.6 3.4 3.7.4-2.8 2.5.8 3.6L8 10.6l-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z"/></svg></i><i><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2.6l1.6 3.4 3.7.4-2.8 2.5.8 3.6L8 10.6l-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z"/></svg></i><i><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2.6l1.6 3.4 3.7.4-2.8 2.5.8 3.6L8 10.6l-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z"/></svg></i><i><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2.6l1.6 3.4 3.7.4-2.8 2.5.8 3.6L8 10.6l-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z"/></svg></i><i><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2.6l1.6 3.4 3.7.4-2.8 2.5.8 3.6L8 10.6l-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z"/></svg></i></span><b>4.8<span class="v9-vh"> out of 5</span></b><span class="v9-tp-l" data-i18n="tp_label">MyCNBox on Trustpilot</span></a>
@@ -7757,16 +7757,8 @@ function wirePPFilters(){
   });
 
   /* ---------- hero buttons ---------- */
-  guard(function () {
-    var b = $("v9-browse"); if (!b) return;
-    b.addEventListener("click", function (e) {
-      if (!plain(e)) return;
-      e.preventDefault();   /* never a #hash: the app's router listens to hashchange */
-      toAll();
-      var q = $("q");
-      if (q && mq("(hover: hover) and (pointer: fine)")) setTimeout(function () { try { q.focus({ preventScroll: true }); } catch (x) {} }, 480);
-    });
-  });
+  /* 26 Nov 2026 (owner: "make the browse finds go to /spreadsheet"): the hero's Browse Finds is a plain link to
+     /spreadsheet now, so it has no click handler here. */
 
   if (!home) return;
 
