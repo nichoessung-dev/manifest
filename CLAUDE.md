@@ -1,0 +1,76 @@
+# Working on puroclassico.com
+
+Read this first. It is the memory of how this site is built and of the owner's standing rules. The full architecture
+and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`; the design system is in `DESIGN.md`.
+
+## What this is
+- A rep finds spreadsheet: about 10,600 fashion finds from Weidian, Taobao and 1688. Every find opens on 17 shopping
+  agents through the site's invite links. Revenue: agent referral commissions and a partner store's sales.
+- Static app `index.html` (one large file) on Cloudflare Pages, project `manifest`, live at https://www.puroclassico.com.
+- `functions/`: Pages Functions. `functions/_middleware.js` renders and edge-caches the server pages (product pages,
+  brand and category hubs, agent spreadsheets, guides, tools, sitemaps) with HTMLRewriter. `functions/api/*` are the
+  APIs, `functions/go/*` the counted agent redirects.
+- Supabase: auth and data. GitHub Actions (`.github/workflows/`) run the Python jobs in `scripts/`.
+
+## How the owner wants answers
+- Short. Most important thing first. Steps, not essays. Plain English (English is the owner's second language).
+- Never use em dashes or en dashes, anywhere: chat, site copy, emails, code comments, commit messages.
+- If you can do it, do it. Ask with clickable questions (AskUserQuestion) when a choice is the owner's.
+- Any English text that goes to outside people (DMs, partner emails) is a draft the owner reviews before sending.
+- Never put the owner's personal details in requests to outside services or in this public repository.
+
+## Shipping a change
+1. Work on `main` and deploy directly (this project does not use pull requests).
+2. Push with the retry loop:
+   `ok=0; for i in 1 2 3 4 5; do if git pull -q --rebase origin main && git push -q origin HEAD:main; then ok=1; break; fi; sleep $((i*3)); done`
+3. Wait for the deploy: `bash scripts/wait_live.sh <commit>` (prints `live in <hash>`).
+4. Check the live site with Playwright (Chromium is preinstalled; `require('playwright')`). Look at a screenshot
+   before saying something is fixed.
+5. Version bumps, every time they apply:
+   - `PRODUCT_TPL` in `functions/_lib/pages.js` after any change to `index.html` or server-rendered HTML. It keys the
+     edge cache. Add a short dated entry at the front of its comment.
+   - `DS_VER` in `functions/_lib/site.js` after a `ds.css` change, plus the `?v=` in `how-to-order.html`,
+     `privacy.html` and `terms.html`.
+   - The `?v=` on `size.js`, `chat.js`, `track.js`, the `pcs.js` hash and `favicon.png` when those files change.
+6. Never hand-edit the generated catalogue. Change the scripts and regenerate (`scripts/gen_catalog.py`,
+   `scripts/sync_catalog.py`).
+
+## Session limits to know
+- GitHub: REST only (GraphQL is blocked). Run a workflow with
+  `gh api -X POST repos/nichoessung-dev/manifest/actions/workflows/<file>/dispatches -f ref=main`.
+  Secrets cannot be read or set from a session: the owner sets them in GitHub, Settings, Secrets and variables, Actions.
+- Supabase: no management API from sessions. Database changes go in a `.sql` file in `scripts/`; the owner runs it in
+  the Supabase SQL editor.
+- Helper agents cannot push. They prepare a patch (`git format-patch -1 --stdout > file.patch`); the main session
+  applies it with `git apply --3way`, bumps versions, pushes and verifies. Never commit another agent's unfinished
+  work. `.claude/` is local only.
+
+## Copy rules
+- Avoid the words "replica", "fake" and "1:1" in site copy, emails and subjects.
+- Sentence case. Short, calm copy.
+- English is the default language and USD the default currency. Each changes only when the visitor picks one.
+
+## Owner decisions (do not change unless the owner asks)
+- Keep the current homepage layout. Under the rows, the tools are one slim strip of links.
+- Sign-up checkbox and affiliate or partner wording: unchanged.
+- Welcome tour: no agent sign-up step; MyCNBox is preselected in the agent step.
+- The chat assistant shows on desktop only.
+- Brand and category lists show all their finds, partner finds first. Plain browsing mixes in mostly partner finds.
+- Agent order starts: mycnbox, kakobuy, oopbuy, litbuy, boonbuy, hipobuy, joyagoo (`AGENT_ORDER` in `index.html` and
+  `functions/_lib/site.js`).
+- Size advice without a size chart: the member's usual size; one up only when the listing says Asian sizing.
+- "View more" on homepage rows opens `/spreadsheet?cat=<category>` and glides down to the finds.
+- Homepage rows show only top finds (clean cut-out photo, sane price, QC photos, real views), at most once per model.
+- Favicon and app icons: white serif "PC" on black.
+
+## Systems worth knowing
+- Dark-mode photo tiles: cut-outs sit on #262626. Rules in `functions/_lib/photo_tiles.js` (`CUT_RX`, `TILE_CUT_IDS`,
+  `TILE_LIGHT`), mirrored in `index.html` (`pcCut()`).
+- QC photos: banked once per find in Supabase storage `products/qc/` by `scripts/qc_bank.py` (nightly). The corner
+  badge on QC photos is swapped for our QR code by `scripts/qc_badge.py`. Photo links carry `?b=2`. Sources:
+  qualit.ly (key `QUALITLY_KEY`) and the Oopbuy QC API (`scripts/oopbuy_qc.py`, keys `OOPBUY_APP_ID`,
+  `OOPBUY_AES_KEY`, `OOPBUY_SIGN_SECRET`, waiting for Oopbuy).
+- Email: `scripts/newsletter.py` with `.github/workflows/welcome.yml` and `newsletter.yml`; one-click unsubscribe in
+  `functions/unsubscribe.js`. The chosen provider is Plunk (secret `PLUNK_API_KEY`).
+- Stats: `/stats` (`stats.html`, data from the stats workflow), visits through `/api/visit`.
+- Preview the sign-up flow as a new visitor: `/?preview=signup`.
