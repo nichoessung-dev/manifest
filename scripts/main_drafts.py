@@ -43,7 +43,7 @@ def main():
             dst = "%s-end.jpg" % vid; shutil.copy(END, os.path.join(out, dst)); imgs.append(dst)
         cap = (pk.get("caption") or "").split("\n", 1)
         meta = {"file": "", "images": imgs, "format": "main-draft",
-                "caption": cap[0].strip() + ("\n" + cap[1].strip() if len(cap) > 1 else "")}     # short (owner, 27 Nov 2026): a long description shrinks the photos; the end slide carries the CTA
+                "caption": "\n" + (cap[1].strip() if len(cap) > 1 else "")}     # hashtags only (owner, 27 Nov 2026): no title, no text; the end slide carries the CTA
         mp = os.path.join(out, vid + ".json"); json.dump(meta, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
         sent_to = st["sent"].setdefault(vid, {}) if isinstance(st["sent"].get(vid), dict) else st["sent"].setdefault(vid, {})
         for acct in ACCOUNTS:
