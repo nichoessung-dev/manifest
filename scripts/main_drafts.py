@@ -18,13 +18,15 @@ TAG = "month-content"
 STATE = os.path.join(ROOT, "main_drafts.json")
 N = int(os.environ.get("DRAFTS_PER_DAY", "4")); DRY = bool(os.environ.get("DRY_RUN", "").strip())
 CTA = "check out puroclassico.com for finds like this"
+ACCOUNTS = [a.strip() for a in os.environ.get("DRAFT_ACCOUNTS", "puroclassico.com,qualityfinds").split(",") if a.strip()]   # owner, 27 Nov 2026: the same slideshows on both accounts
 
 
 def main():
     try: st = json.load(open(STATE, encoding="utf-8"))
     except Exception: st = {"sent": {}}
     r = subprocess.run(["gh", "release", "view", TAG, "--json", "assets", "-q", ".assets[].name"], capture_output=True, text=True, cwd=ROOT)
-    packs = sorted(n[:-4] for n in r.stdout.split() if n.startswith("pcr-") and n.endswith(".zip") and n[:-4] not in st["sent"])
+    done = lambda v: isinstance(st["sent"].get(v), dict) and all(a in st["sent"][v] for a in ACCOUNTS)
+    packs = sorted(n[:-4] for n in r.stdout.split() if n.startswith("pcr-") and n.endswith(".zip") and not done(n[:-4]))
     print("rug slideshows not sent yet:", len(packs))
     out = os.path.join(ROOT, "out", "drafts"); os.makedirs(out, exist_ok=True); sent = 0
     for vid in packs[:N]:
@@ -40,17 +42,20 @@ def main():
         meta = {"file": "", "images": imgs, "format": "main-draft",
                 "caption": cap[0].strip() + "\n\n" + CTA + ("\n\n" + cap[1].strip() if len(cap) > 1 else "")}
         mp = os.path.join(out, vid + ".json"); json.dump(meta, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-        at = (datetime.now(timezone.utc) + timedelta(minutes=3)).strftime("%Y-%m-%dT%H:%M:00.000Z")
-        env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS="tiktok", TIKTOK_ACCOUNT="puroclassico.com", TIKTOK_METHOD="UPLOAD")
-        p = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), mp], env=env, capture_output=True, text=True)
-        print(p.stdout[-500:]); print(p.stderr[-300:])
+        sent_to = st["sent"].setdefault(vid, {}) if isinstance(st["sent"].get(vid), dict) else st["sent"].setdefault(vid, {})
+        for acct in ACCOUNTS:
+            if acct in sent_to: continue
+            at = (datetime.now(timezone.utc) + timedelta(minutes=3)).strftime("%Y-%m-%dT%H:%M:00.000Z")
+            env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS="tiktok", TIKTOK_ACCOUNT=acct, TIKTOK_METHOD="UPLOAD")
+            p = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), mp], env=env, capture_output=True, text=True)
+            print(p.stdout[-500:]); print(p.stderr[-300:])
+            if p.returncode: print("::warning::could not send", vid, "to", acct); continue
+            sent_to[acct] = at; json.dump(st, open(STATE, "w", encoding="utf-8"), indent=1)
+            print("sent as a draft:", vid, "to", acct, flush=True); time.sleep(20)
         for x in [vid + ".zip", vid + ".json"] + imgs:
             try: os.remove(os.path.join(out, x))
             except OSError: pass
-        if p.returncode: print("::warning::could not send", vid); continue
-        st["sent"][vid] = at; sent += 1
-        json.dump(st, open(STATE, "w", encoding="utf-8"), indent=1)
-        print("sent as a draft:", vid, flush=True); time.sleep(20)
+        if all(a in sent_to for a in ACCOUNTS): sent += 1
     left = len(packs) - sent
     print("drafts sent:", sent, "| rug slideshows left:", left)
     s = os.environ.get("GITHUB_STEP_SUMMARY")
