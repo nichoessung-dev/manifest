@@ -1,0 +1,17 @@
+name: Postiz status
+on:
+  workflow_dispatch:
+    inputs:
+      hours:
+        default: '3'
+jobs:
+  s:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - env:
+          POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+        run: python scripts/postiz_status.py "${{ inputs.hours }}"
