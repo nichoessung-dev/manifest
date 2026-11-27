@@ -59,7 +59,7 @@ jobs:
           RUG_MODELS: ${{ inputs.account == 'main-rug' && 'gemini-nano-banana-2.1,gemini-3.1-flash-image' || 'gemini-3.1-flash-image' }}     # 27 Nov 2026: Nano Banana 2.1 is half the price and ranks higher (research report)
           RUG_LOOK: claude
           RUG_MIN_SLIDES: '4'                  # 25 Nov 2026: 4 good slides still make a 20 s video; a thin build is no longer thrown away
-          RUG_REAL_MIN: '8'                    # 26 Nov 2026: owner wants stricter realism (was 6)
+          RUG_REAL_MIN: ${{ inputs.account == 'main-rug' && '6' || '8' }}     # 27 Nov 2026: owner: 6 for the main account's mixed slides                    # 26 Nov 2026: owner wants stricter realism (was 6)
           RUG_NO_WATCH: '1'                    # 26 Nov 2026: owner: the fake-looking products are almost always the watches
           RUG_SOURCE: mix                      # 26 Nov 2026: the most popular finds plus the puroclassico account's own items (site QC photos, Drive)
           RUG_POP_N: '120'                     # only the most popular finds (was the top 300)

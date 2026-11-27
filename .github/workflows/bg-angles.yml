@@ -1,0 +1,24 @@
+name: Background angles
+# Closer and angled versions of the main account's rug photo to try as backgrounds (scripts/make_bg_angles.py).
+on:
+  workflow_dispatch:
+jobs:
+  make:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow numpy
+      - env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RUG_ENGINE: gemini
+          RUG_MODELS: gemini-nano-banana-2.1,gemini-3.1-flash-image
+          RUG_MAX_IMAGES: '6'
+        run: python scripts/make_bg_angles.py --out bg-angles
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bg-angles
+          path: bg-angles
