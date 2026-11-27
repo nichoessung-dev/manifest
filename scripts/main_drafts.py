@@ -49,7 +49,7 @@ def main():
         for acct in ACCOUNTS:
             if acct in sent_to: continue
             at = (datetime.now(timezone.utc) + timedelta(minutes=3)).strftime("%Y-%m-%dT%H:%M:00.000Z")
-            env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS="tiktok", TIKTOK_ACCOUNT=acct, TIKTOK_METHOD="UPLOAD")
+            env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS="tiktok", TIKTOK_ACCOUNT=acct, TIKTOK_METHOD="UPLOAD", TIKTOK_AUTO_MUSIC="no")     # auto-music on made TikTok drop photo drafts (27 Nov 2026)
             p = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), mp], env=env, capture_output=True, text=True)
             print(p.stdout[-500:]); print(p.stderr[-300:])
             if p.returncode: print("::warning::could not send", vid, "to", acct); continue
