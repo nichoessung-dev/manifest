@@ -24,7 +24,7 @@ TAG = "month-videos"
 STATE = os.path.join(ROOT, "month_queue.json")
 SLOTS = {"main": ["09:23", "13:23", "17:23", "21:23"], "second": ["10:43", "14:43", "18:43", "22:43"]}     # Norwegian time, 4 a day each
 ACCOUNT = {"main": "puroclassico.com", "second": "qualityfinds"}
-CHANNELS = "tiktok,youtube,instagram-standalone"
+CHANNELS = "tiktok"                 # owner, 27 Nov 2026: TikTok drafts only (no YouTube videos, no Instagram)
 DAYS = int(os.environ.get("MONTH_DAYS", "7")); MAX_NEW = int(os.environ.get("MONTH_MAX_NEW", "20")); DRY = bool(os.environ.get("DRY_RUN", "").strip())
 
 
@@ -75,14 +75,14 @@ def old(delete):
     print("deleted:", gone)
 
 
-SLIDES_REV = "slides1"          # owner, 26 Nov 2026: TikTok and Instagram get photo slideshows, YouTube the voiced video
+SLIDES_REV = "drafts1"          # owner, 27 Nov 2026: every post lands in the TikTok app as a draft at its time slot; the owner adds the music and posts
 CTA = "check out puroclassico.com for finds like this"
 
 
 def queue_one(vid, acct, at, out):
     """Schedule a finished pack at `at` as a photo slideshow (TikTok, Instagram) plus its voiced video (YouTube);
     returns the Postiz post ids, or None when it failed."""
-    if subprocess.run(["gh", "release", "download", TAG, "-p", vid + ".*", "-D", out, "--clobber"], cwd=ROOT).returncode:
+    if subprocess.run(["gh", "release", "download", TAG, "-p", vid + ".json", "-D", out, "--clobber"], cwd=ROOT).returncode:     # the caption; no video
         print("::warning::could not download", vid); return None
     if subprocess.run(["gh", "release", "download", "month-content", "-p", vid + ".zip", "-D", out, "--clobber"], cwd=ROOT).returncode:
         print("::warning::could not download the pack", vid); return None
@@ -95,7 +95,7 @@ def queue_one(vid, acct, at, out):
     cap = (pk.get("caption") or meta.get("caption") or "").split("\n", 1)
     meta.update(images=imgs, format="month-slides", caption=cap[0] + "\n\n" + CTA + ("\n\n" + cap[1].strip() if len(cap) > 1 else ""))
     json.dump(meta, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS=CHANNELS, TIKTOK_ACCOUNT=ACCOUNT[acct], TIKTOK_METHOD="DIRECT_POST", TIKTOK_VIDEO_METHOD="DIRECT_POST")
+    env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS=CHANNELS, TIKTOK_ACCOUNT=ACCOUNT[acct], TIKTOK_METHOD="UPLOAD", TIKTOK_VIDEO_METHOD="UPLOAD")
     r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), mp], env=env, capture_output=True, text=True)
     print(r.stdout[-600:]); print(r.stderr[-400:])
     for x in [vid + ".mp4", vid + ".zip"] + imgs:
@@ -120,9 +120,9 @@ def redo():
         try: m = json.load(open(os.path.join(md, vid + ".json"), encoding="utf-8")); voice[vid] = m.get("rev") or m.get("voice") or "chatterbox"
         except Exception: voice[vid] = None
     rows = sorted((v["at"], vid) for vid, v in q.items()
-                  if voice.get(vid) and voice[vid].endswith("|half") and v.get("rev") not in (SLIDES_REV, "slides1-cover2-done")
+                  if voice.get(vid) and voice[vid].endswith("|half") and v.get("rev") != SLIDES_REV
                   and datetime.strptime(v["at"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc) > now + timedelta(minutes=25))
-    print("queued posts to swap to slideshows:", len(rows))
+    print("queued posts to swap to TikTok drafts:", len(rows))
     if DRY or not rows: return
     live = {}
     for p in posts(now, now + timedelta(days=40)):
@@ -138,7 +138,7 @@ def redo():
             time.sleep(1)
         ids = queue_one(vid, v["account"], at, out)
         if ids is None: v["posts"] = []; save(st); print("::warning::slot left empty, the next run tries again:", vid, at); break
-        v["posts"] = ids; v["rev"] = "slides1-cover2-done" if v.get("rev") == "slides1-cover2" else SLIDES_REV; made += 1; save(st)
+        v["posts"] = ids; v["rev"] = SLIDES_REV; made += 1; save(st)
         print("swapped %s at %s" % (vid, at), flush=True); time.sleep(20)
     left = len(rows) - made
     print("swapped:", made, "| still to swap:", left)
