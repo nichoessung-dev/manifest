@@ -56,7 +56,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}   # every image made is saved for good (make_rug save_all_made / save_library)
           RUG_ENGINE: gemini
-          RUG_MODELS: gemini-3.1-flash-image
+          RUG_MODELS: ${{ inputs.account == 'main-rug' && 'gemini-nano-banana-2.1,gemini-3.1-flash-image' || 'gemini-3.1-flash-image' }}     # 27 Nov 2026: Nano Banana 2.1 is half the price and ranks higher (research report)
           RUG_LOOK: claude
           RUG_MIN_SLIDES: '4'                  # 25 Nov 2026: 4 good slides still make a 20 s video; a thin build is no longer thrown away
           RUG_REAL_MIN: '8'                    # 26 Nov 2026: owner wants stricter realism (was 6)

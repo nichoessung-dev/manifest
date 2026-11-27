@@ -53,7 +53,10 @@ def group(t):
     return "small" if t in SMALL else "shoes" if t in SHOES else "bags" if t in BAGS else "jackets"
 
 
-MULTI = {"small": 2, "shoes": 1, "bags": 1, "jackets": 1}       # items per slide (owner, 18 Nov 2026: "this looks too AI": fewer items per slide, one pair, one bag)
+MULTI = {"small": 2, "shoes": 1, "bags": 1, "jackets": 1}
+MIX = os.environ.get("RUG_MIX", "") == "1"     # mixed slides (main account): a jacket with a pair of shoes, shoes with a bag and two small things ...
+MIX_SETS = [("jackets", "shoes"), ("jackets", "small"), ("shoes", "bags"), ("shoes", "small", "small"), ("bags", "small", "small"),
+            ("jackets", "shoes", "small"), ("bags", "shoes", "small"), ("jackets", "bags")]     # never two jackets, two pairs or two bags on one slide       # items per slide (owner, 18 Nov 2026: "this looks too AI": fewer items per slide, one pair, one bag)
 
 
 def prompt(items, angle, product=False):
@@ -886,12 +889,14 @@ def main():
     cands = list(cands.items()); rnd.shuffle(cands); cands.sort(key=lambda c: (rc.get(c[0], 0), c[1] == "other"))      # least used on the rug first; known kinds before maybe-bottles
     try: chosen = [x[3:] if x.startswith("qc:") else x for x in json.load(open(PICKS))["ids"]]      # the owner's own picks (picker page): these go first
     except Exception: chosen = []
-    fresh = [pid for pid in chosen if (pid in live or pid.startswith("pop:")) and not rc.get(pid)]
+    fresh = [pid for pid in chosen if (pid in live or pid.startswith("pop:")) and (SOURCE == "picks" or not rc.get(pid))]
+    if SOURCE == "picks":                                      # owner, 27 Nov 2026: the picks are used again and again in new combinations, least used first
+        rnd.shuffle(fresh); fresh.sort(key=lambda p: rc.get(p, 0))
     if fresh:                                                  # only picks until every pick has been on the rug once, then the normal pool again
         rnd.shuffle(fresh); cands = [(pid, (items.get(pid + ":0") or {}).get("i", "other")) for pid in fresh]
         print("using the owner's picks: %d not posted yet" % len(fresh))
     if SOURCE == "picks":                                      # main account (owner, 27 Nov 2026): only the owner's picks, nothing else
-        if not fresh: sys.exit("NO PICKS LEFT: every picked item has been made. Pick more items on the picker page.")
+        if not fresh: sys.exit("NO PICKS: pick items on the picker page.")
     elif SOURCE == "pop":                                      # only the most popular finds with a clean shop photo, kinds taking turns
         fresh = []; pool = [c for c in pop_cands(no) if flat_ok(c[0])[0]]
         rnd.shuffle(pool); pool.sort(key=lambda c: rc.get(c[0], 0))     # random, least used on the rug first
@@ -936,6 +941,7 @@ def main():
         try: return c, qc, check(qc if pid.startswith(("site:", "pop:")) else top_shot(qc))      # only the shot the image model gets: the lower one is often another item
         except Exception as e: return c, qc, "check: %s" % str(e)[:300]
     want, cap = (a.n * 2 + 2, a.n) if MULTI_ON else (a.n + 3, max(2, a.n // 3))
+    if MIX: want, cap = a.n * 3 + 2, a.n * 2             # mixed slides take up to three items each
     t_pick = time.time()
     def pick_from(cl):
         nonlocal fails
@@ -991,6 +997,15 @@ def main():
     chunks = {g: [ps[k:k + (MULTI.get(g, 1) if MULTI_ON else 1)] for k in range(0, len(ps), MULTI.get(g, 1) if MULTI_ON else 1)] for g, ps in by.items()}
     if AI_OUT[0]: chunks["small"] = [c for c in chunks.get("small", []) if len(c) > 1]     # one bracelet alone on the rug looks empty
     slides = []
+    if MIX:                                                    # owner, 27 Nov 2026: different products together on one slide, a new combination each time
+        q = {g: list(ps) for g, ps in by.items()}
+        for t in rnd.sample(MIX_SETS, len(MIX_SETS)) * 4:
+            if len(slides) >= a.n + 1: break
+            need = {g: t.count(g) for g in set(t)}
+            if all(len(q.get(g, [])) >= k for g, k in need.items()): slides.append([q[g].pop(0) for g in t])
+        chunks = {}
+        left = [p for ps in q.values() for p in ps]            # what is left goes two by two
+        while len(left) >= 2 and len(slides) < a.n + 1: slides.append([left.pop(0), left.pop(0)])
     while any(chunks.values()) and len(slides) < a.n + 1:
         for g in ["small", "shoes", "jackets", "bags"]:
             if chunks.get(g) and len(slides) < a.n + 1: slides.append(chunks[g].pop(0))
