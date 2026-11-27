@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       account:
-        description: 'main (puroclassico.com, real QC photos) or second (Qualityfinds, rug pictures from Google credit)'
+        description: 'main-rug (puroclassico.com, AI closet-rug photos of the owner picks), main (real QC photos) or second (Qualityfinds, rug pictures from Google credit)'
         type: choice
-        options: ['second', 'main']
+        options: ['second', 'main', 'main-rug']
         default: 'second'
       count:
         description: 'How many slideshows'
@@ -67,7 +67,8 @@ jobs:
           # main account: the same settings as its daily carousels (finds.yml)
           FINDS_FOLDER: 10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L
           FINDS_BEST: '1'
-          FINDS_SLIDES: ${{ inputs.account == 'second' && '6' || '9' }}
+          FINDS_SLIDES: ${{ inputs.account == 'main' && '9' || '6' }}
+          MAIN_RUG: ${{ inputs.account == 'main-rug' && '1' || '' }}     # 27 Nov 2026: owner's picks on the closet rug (scripts/main_picks.json)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -75,5 +76,5 @@ jobs:
             n=1; [ "${{ inputs.account }}" = "main" ] && n=6
             python scripts/month_build.py --account "${{ inputs.account }}" --replace --shard "${{ matrix.shard }}/$n" --minutes 330
           else
-            python scripts/month_build.py --account "${{ inputs.account }}" --count "${{ inputs.count }}" --minutes 320
+            python scripts/month_build.py --account "${{ inputs.account == 'main-rug' && 'main' || inputs.account }}" --count "${{ inputs.count }}" --minutes 320
           fi

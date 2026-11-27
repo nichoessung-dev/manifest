@@ -1,0 +1,54 @@
+name: Main drafts
+# Every morning: the next puroclassico.com rug slideshows go to the TikTok app as drafts (scripts/main_drafts.py, owner 27 Nov 2026).
+on:
+  schedule:
+    - cron: '0 5 * * *'          # 06:00 Oslo (winter time)
+  workflow_dispatch:
+    inputs:
+      count:
+        description: 'How many drafts'
+        type: string
+        default: '4'
+      dry_run:
+        description: 'Only show what would be sent'
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency: main-drafts
+jobs:
+  drafts:
+    if: github.event_name == 'workflow_dispatch' || vars.MAIN_DRAFTS_LIVE == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Send drafts
+        env:
+          POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          PYTHONUNBUFFERED: '1'
+          DRAFTS_PER_DAY: ${{ inputs.count || vars.DRAFTS_PER_DAY || '4' }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+        run: python scripts/main_drafts.py
+      - name: Save the record
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          [ -f main_drafts.json ] || exit 0
+          cp main_drafts.json "$RUNNER_TEMP/md.json"
+          for n in 1 2 3 4 5; do
+            git fetch -q origin "$GITHUB_REF_NAME" && git reset -q --hard FETCH_HEAD
+            cp "$RUNNER_TEMP/md.json" main_drafts.json.new
+            [ -f main_drafts.json ] && python scripts/merge_state.py main_drafts.json.new main_drafts.json || mv main_drafts.json.new main_drafts.json
+            rm -f main_drafts.json.new
+            git add main_drafts.json; git diff --cached --quiet && exit 0
+            git commit -q -m "chore: main drafts [skip ci]"
+            git push -q origin HEAD:"$GITHUB_REF_NAME" && exit 0
+            sleep $((n * 6))
+          done
+          exit 1

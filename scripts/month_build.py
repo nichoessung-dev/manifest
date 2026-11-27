@@ -96,16 +96,23 @@ def library_packs(ids, shard):
     return made
 
 
+MAIN_RUG = os.environ.get("MAIN_RUG", "") == "1"     # owner, 27 Nov 2026: main account gets AI rug photos too (closet background, the owner's picks only)
+MAIN_RUG_ENV = {"RUG_BG": os.path.join(ROOT, "scripts", "rug", "main_bg.png"), "RUG_SOURCE": "picks",
+                "RUG_PICKS": os.path.join(ROOT, "scripts", "main_picks.json"),
+                "RUG_SCENE": "on a cream woven carpet in my walk-in closet, under a wooden shelf full of shoes",
+                "RUG_ROOM": "a rug on a cream woven carpet under a wooden shelf full of shoes, with a green shoe box at the right edge"}
+
+
 def pack(account, out, meta_path, k, pid=None):
     meta = json.load(open(meta_path, encoding="utf-8"))
     images = [os.path.join(out, os.path.basename(i)) for i in meta.get("images") or []]
-    if account == "second":
+    if account == "second" or MAIN_RUG:
         says = rug_lines(out)
     else:
         names, prices = meta.get("names") or [], meta.get("prices") or []
         says = [(str(n).lower() + (", %d dollars" % p if isinstance(p, (int, float)) and p else "")) if n else "" for n, p in zip(names, prices + [None] * len(names))]
     if len(images) < 4 or len(says) < len(images) - 1: raise RuntimeError("pack: %d images, %d lines" % (len(images), len(says)))
-    pid = pid or "%s-%s-%02d" % ("qf" if account == "second" else "pc", datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S"), k)
+    pid = pid or "%s-%s-%02d" % ("qf" if account == "second" else "pcr" if MAIN_RUG else "pc", datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S"), k)
     pk = {"id": pid, "account": account, "caption": meta.get("caption") or "", "cover": "00.jpg", "prices": "half",
           "slides": [{"img": "%02d.jpg" % (j + 1), "say": says[j]} for j in range(len(images) - 1)]}
     z = os.path.join(ROOT, "out", pid + ".zip")
@@ -116,9 +123,9 @@ def pack(account, out, meta_path, k, pid=None):
 
 
 def build_cmd(account, out):
-    if account == "second":
+    if account == "second" or MAIN_RUG:
         return [sys.executable, os.path.join(ROOT, "scripts", "make_rug.py"), "--n", os.environ.get("FINDS_SLIDES", "6"), "--own", "0",
-                "--state", "slides_used.json", "--commit-state", "--avoid", "scripts/slides_exclude.json", "--out", out]
+                "--state", "slides_used.json" if account == "second" else "main_rug_used.json", "--commit-state", "--avoid", "scripts/slides_exclude.json", "--out", out]
     cmd = [sys.executable, os.path.join(ROOT, "scripts", "make_finds.py"), "--folder", os.environ["FINDS_FOLDER"], "--slides", os.environ.get("FINDS_SLIDES", "9"),
            "--hold", "0.8", "--own", "1", "--state", "finds_used.json", "--commit-state", "--out", out]
     covers = os.environ.get("FINDS_COVERS", "1gRUw48kSbbNU5RKjFUdPdgwR8SQvjSyM")
@@ -131,7 +138,8 @@ def main():
     ap.add_argument("--replace", action="store_true", help="remake the queued, not yet posted slideshows under their own names (half prices, 25 Nov 2026)")
     ap.add_argument("--shard", default="0/1", help="i/n: only every n-th of them (parallel jobs)")
     a = ap.parse_args(); t0 = time.time(); ensure_release(); made = 0; fails = 0
-    state = "slides_used.json" if a.account == "second" else "finds_used.json"
+    state = "slides_used.json" if a.account == "second" else "main_rug_used.json" if MAIN_RUG else "finds_used.json"
+    if MAIN_RUG and a.account == "main": os.environ.update(MAIN_RUG_ENV)
     shard = tuple(int(x) for x in a.shard.split("/")); ids = None
     if a.replace:
         ids = targets(a.account); print("queued slideshows to remake:", len(ids))
@@ -151,7 +159,7 @@ def main():
         if r.returncode or not metas:
             print("::endgroup::"); print("::warning::slideshow %d was not made" % (k + 1))
             fails += 1
-            if a.account == "second" and fails >= 2: print("stopping: two Qualityfinds builds in a row failed, more would only spend images"); break
+            if (a.account == "second" or MAIN_RUG) and fails >= 2: print("stopping: two Qualityfinds builds in a row failed, more would only spend images"); break
             continue
         fails = 0
         try:

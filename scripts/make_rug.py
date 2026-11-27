@@ -13,8 +13,11 @@ import argparse, base64, hashlib, unicodedata, json, os, random, re, html, stati
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RUG = os.path.join(ROOT, "scripts", "rug", "rug.jpg")
-BOXES = os.path.join(ROOT, "scripts", "rug", "boxes.jpg")
+RUG = os.environ.get("RUG_BG") or os.path.join(ROOT, "scripts", "rug", "rug.jpg")          # main account (owner, 27 Nov 2026): scripts/rug/main_bg.png, the rug in the closet
+BOXES = os.environ.get("RUG_COVER") or os.path.join(ROOT, "scripts", "rug", "boxes.jpg")
+SCENE = os.environ.get("RUG_SCENE") or "on the wooden floor of my room"                  # where the rug lies, in the image prompt
+ROOM = os.environ.get("RUG_ROOM") or "a rug, a wooden floor, white drawers and a hanging plant"   # what the judge sees in image 1
+PICKS = os.environ.get("RUG_PICKS") or os.path.join(ROOT, "scripts", "rug_picks.json")     # the owner's picks (picker page)
 YELLOW = (252, 250, 190)                                   # TikTok's pale caption yellow (owner's reference, 22 Oct 2026)
 TTS = os.path.join(ROOT, "scripts", "fonts", "TikTokSans.ttf")   # TikTok Sans (OFL), the app's own caption font
 FOLDER = "10IZ-ip4UjlEy5UMyhXaznvjsfSYZeH6L"
@@ -64,7 +67,7 @@ def prompt(items, angle, product=False):
         what = ("Images 2 to %d are %s of %d different items: %s. Edit image 1: lay all %d items on the rug together like a haul I am showing off, "
                 "side by side with a little space between them so each one is fully visible, %s. " % (n + 1, srcn, n, ", ".join("image %d: %s" % (k + 2, t) for k, t in enumerate(items)), n, angle))
         count = "Exactly these %d items, each exactly once%s, nothing else. " % (n, "; shoes come as pairs, so exactly %d shoes in total" % (2 * shoes) if shoes else "")
-    return ("Image 1 is a photo of my cream Maison Margiela rug (black numbers 0 to 23, 'Maison Margiela PARIS') on the wooden floor of my room, taken standing up with my iPhone. "
+    return ("Image 1 is a photo of my cream Maison Margiela rug (black numbers 0 to 23, 'Maison Margiela PARIS') " + SCENE + ", taken standing up with my iPhone. "
             + what + "Keep everything else of image 1: the same camera position, height and angle, the same room, light and colours. "
             "It must look like a plain photo from my camera roll, not an ad, not a render and not a close-up: natural light, a real soft shadow under each item, "
             "natural creases in the fabric, real rug fibres, a little iPhone noise. Every item has weight: it rests on the rug, a bag slumps a little, "
@@ -75,12 +78,12 @@ def prompt(items, angle, product=False):
             "No feet, legs, hands or people. No green mat, no ruler, no round stamp, no other objects. Vertical 9:16 photo.")
 
 
-JUDGE = ("Image 1 is the real photo of my room: a rug, a wooden floor, white drawers and a hanging plant. Images 2 to {last} are quality-check photos of {n} fashion item(s). "
+JUDGE = ("Image 1 is the real photo of my room: {room}. Images 2 to {last} are quality-check photos of {n} fashion item(s). "
          "Image {res} is a photo made from them for TikTok: the item(s) placed on the rug of image 1. Compare image {res} with the quality-check photos for the items and with image 1 for the room. Reply as JSON "
          "{{\"same_item\": true/false, \"logos_ok\": true/false, \"count_ok\": true/false, \"no_people\": true/false, \"no_extra\": true/false, "
          "\"standing_view\": true/false, \"real_photo\": 1-10, \"why\": \"...\"}}. same_item: every item from the quality-check photos is in image {res} and matches its photo (shape, colours, materials). "
          "logos_ok: logos and text match the photos and none are invented. count_ok: exactly {n} item(s), each once; shoes as pairs (two shoes per pair, never three). "
-         "no_people: no feet, legs, hands or people. no_extra: nothing was added that is not in image 1 or the quality-check photos (the room's plant, drawers and floor are fine). "
+         "no_people: no feet, legs, hands or people. no_extra: nothing was added that is not in image 1 or the quality-check photos (everything already in image 1 is fine). "
          "standing_view: shot from standing height looking down at the rug like image 1, with every item fully in view, not a close-up and not a low or dramatic angle. "
          "real_photo: how much image {res} looks like a plain iPhone photo from someone's camera roll (10) versus AI, a render or an ad (1). Be strict.")
 
@@ -118,7 +121,7 @@ def judge(shots, png):
     """A strict second look at a made image (Gemini Flash): True when it may be posted. The owner's slop rules (22 Oct 2026)."""
     if LOOK == "claude":
         try:
-            text = JUDGE.format(n=len(shots), last=len(shots) + 1, res=len(shots) + 2)
+            text = JUDGE.format(n=len(shots), last=len(shots) + 1, res=len(shots) + 2, room=ROOM)
             v = claude_json(text, [Image.open(RUG)] + list(shots) + [Image.open(io.BytesIO(png))])
         except Exception as e: return True, "judge failed: %s" % str(e)[:300]
         ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= int(os.environ.get("RUG_REAL_MIN", "7"))
@@ -126,7 +129,7 @@ def judge(shots, png):
     if ENGINE != "gemini": return True, "no judge"
     enc = lambda im: {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(im, 768)).decode()}}
     try:
-        text = JUDGE.format(n=len(shots), last=len(shots) + 1, res=len(shots) + 2)
+        text = JUDGE.format(n=len(shots), last=len(shots) + 1, res=len(shots) + 2, room=ROOM)
         j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": text}, enc(Image.open(RUG))] + [enc(x) for x in shots] + [enc(Image.open(io.BytesIO(png)))],
                    {"responseMimeType": "application/json", "temperature": 0}, 90)
         v = json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
@@ -874,13 +877,15 @@ def main():
         pid = sid.split(":")[0]
         if sid.endswith(":0") and v.get("i") in FITS and pid in live and pid not in no and (not a.own or owner(pid) == a.own): cands[pid] = v["i"]
     cands = list(cands.items()); rnd.shuffle(cands); cands.sort(key=lambda c: (rc.get(c[0], 0), c[1] == "other"))      # least used on the rug first; known kinds before maybe-bottles
-    try: chosen = json.load(open(os.path.join(ROOT, "scripts", "rug_picks.json")))["ids"]      # the owner's own picks (picker page): these go first
+    try: chosen = [x[3:] if x.startswith("qc:") else x for x in json.load(open(PICKS))["ids"]]      # the owner's own picks (picker page): these go first
     except Exception: chosen = []
-    fresh = [pid for pid in chosen if pid in live and not rc.get(pid)]
+    fresh = [pid for pid in chosen if (pid in live or pid.startswith("pop:")) and not rc.get(pid)]
     if fresh:                                                  # only picks until every pick has been on the rug once, then the normal pool again
         rnd.shuffle(fresh); cands = [(pid, (items.get(pid + ":0") or {}).get("i", "other")) for pid in fresh]
         print("using the owner's picks: %d not posted yet" % len(fresh))
-    if SOURCE == "pop":                                        # only the most popular finds with a clean shop photo, kinds taking turns
+    if SOURCE == "picks":                                      # main account (owner, 27 Nov 2026): only the owner's picks, nothing else
+        if not fresh: sys.exit("NO PICKS LEFT: every picked item has been made. Pick more items on the picker page.")
+    elif SOURCE == "pop":                                      # only the most popular finds with a clean shop photo, kinds taking turns
         fresh = []; pool = [c for c in pop_cands(no) if flat_ok(c[0])[0]]
         rnd.shuffle(pool); pool.sort(key=lambda c: rc.get(c[0], 0))     # random, least used on the rug first
         kinds = {}
@@ -891,7 +896,7 @@ def main():
                 cands += kinds.get(g, [])[:MULTI[g]]; kinds[g] = kinds.get(g, [])[MULTI[g]:]
         print("popular finds with a clean photo:", len(cands))
     picked_ids = set(fresh)
-    if SITE_ON and not fresh and SOURCE != "pop":                                  # the site's QC photos take turns with the Drive photos, least used first
+    if SITE_ON and not fresh and SOURCE not in ("pop", "picks"):                                  # the site's QC photos take turns with the Drive photos, least used first
         site = site_cands(no); rnd.shuffle(site); site.sort(key=lambda c: rc.get(c[0], 0))
         pop = pop_cands(no); rnd.shuffle(pop); pop.sort(key=lambda c: rc.get(c[0], 0))     # random among the popular ones, least used first
         mix = []
@@ -916,7 +921,7 @@ def main():
             if qc.mode in ("RGBA", "LA", "P"):                 # the product photos are cut-outs: put them on white
                 qc = qc.convert("RGBA"); CUT[pid] = qc.copy(); bg = Image.new("RGB", qc.size, (255, 255, 255)); bg.paste(qc, mask=qc.split()[-1]); qc = bg
             else: qc = qc.convert("RGB")
-        if SOURCE == "pop" and pid.startswith("pop:") and not AI_OUT[0]: return c, qc, pop_check(pid)     # facts from the catalogue: no green-mat check
+        if SOURCE in ("pop", "picks") and pid.startswith("pop:") and not AI_OUT[0]: return c, qc, pop_check(pid)     # facts from the catalogue: no green-mat check
         if AI_OUT[0] and pid.startswith("pop:"):
             cut, why = cut_clean(CUT[pid], pid) if pid in CUT else (None, "not a cut-out")
             if cut is None: CUT.pop(pid, None); return c, None, "flat-lay: skip %s (%s)" % (pid, why)

@@ -1,0 +1,62 @@
+# -*- coding: utf-8 -*-
+"""Every morning: send the next puroclassico.com rug slideshows to the TikTok app as drafts (owner, 27 Nov 2026).
+
+Takes the "pcr-" packs (month_build.py with MAIN_RUG=1) from the release "month-content", oldest first, and hands each to
+Postiz for TikTok puroclassico.com with TIKTOK_METHOD=UPLOAD: the post lands in the TikTok inbox as a draft, and the owner
+picks a sound and posts it. main_drafts.json records the packs sent, so a pack is never sent twice.
+
+  python scripts/main_drafts.py            # send DRAFTS_PER_DAY (4) drafts
+Env: POSTIZ_API_KEY, GH_TOKEN, DRAFTS_PER_DAY, DRY_RUN=1.
+"""
+import json, os, subprocess, sys, time, zipfile
+from datetime import datetime, timedelta, timezone
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import post_short as P
+
+ROOT = P.ROOT
+TAG = "month-content"
+STATE = os.path.join(ROOT, "main_drafts.json")
+N = int(os.environ.get("DRAFTS_PER_DAY", "4")); DRY = bool(os.environ.get("DRY_RUN", "").strip())
+CTA = "check out puroclassico.com for finds like this"
+
+
+def main():
+    try: st = json.load(open(STATE, encoding="utf-8"))
+    except Exception: st = {"sent": {}}
+    r = subprocess.run(["gh", "release", "view", TAG, "--json", "assets", "-q", ".assets[].name"], capture_output=True, text=True, cwd=ROOT)
+    packs = sorted(n[:-4] for n in r.stdout.split() if n.startswith("pcr-") and n.endswith(".zip") and n[:-4] not in st["sent"])
+    print("rug slideshows not sent yet:", len(packs))
+    out = os.path.join(ROOT, "out", "drafts"); os.makedirs(out, exist_ok=True); sent = 0
+    for vid in packs[:N]:
+        if DRY: print("DRY_RUN: would send", vid); continue
+        if subprocess.run(["gh", "release", "download", TAG, "-p", vid + ".zip", "-D", out, "--clobber"], cwd=ROOT).returncode:
+            print("::warning::could not download", vid); continue
+        imgs = []
+        with zipfile.ZipFile(os.path.join(out, vid + ".zip")) as f:
+            pk = json.loads(f.read("slides.json"))
+            for j, name in enumerate([pk.get("cover", "00.jpg")] + [x["img"] for x in pk["slides"]]):
+                dst = "%s-%02d.jpg" % (vid, j); open(os.path.join(out, dst), "wb").write(f.read(name)); imgs.append(dst)
+        cap = (pk.get("caption") or "").split("\n", 1)
+        meta = {"file": "", "images": imgs, "format": "main-draft",
+                "caption": cap[0].strip() + "\n\n" + CTA + ("\n\n" + cap[1].strip() if len(cap) > 1 else "")}
+        mp = os.path.join(out, vid + ".json"); json.dump(meta, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        at = (datetime.now(timezone.utc) + timedelta(minutes=3)).strftime("%Y-%m-%dT%H:%M:00.000Z")
+        env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS="tiktok", TIKTOK_ACCOUNT="puroclassico.com", TIKTOK_METHOD="UPLOAD")
+        p = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), mp], env=env, capture_output=True, text=True)
+        print(p.stdout[-500:]); print(p.stderr[-300:])
+        for x in [vid + ".zip", vid + ".json"] + imgs:
+            try: os.remove(os.path.join(out, x))
+            except OSError: pass
+        if p.returncode: print("::warning::could not send", vid); continue
+        st["sent"][vid] = at; sent += 1
+        json.dump(st, open(STATE, "w", encoding="utf-8"), indent=1)
+        print("sent as a draft:", vid, flush=True); time.sleep(20)
+    left = len(packs) - sent
+    print("drafts sent:", sent, "| rug slideshows left:", left)
+    s = os.environ.get("GITHUB_STEP_SUMMARY")
+    if s: open(s, "a").write("### puroclassico drafts: %d sent, %d left%s\n" % (sent, left, " (pick more items!)" if left < N * 3 else ""))
+
+
+if __name__ == "__main__":
+    if not P.KEY: raise SystemExit("POSTIZ_API_KEY is not set")
+    main()
