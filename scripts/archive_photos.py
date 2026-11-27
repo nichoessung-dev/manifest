@@ -23,9 +23,12 @@ Per find the record is one of:
   failed   an error: tried again on the next run
 Records: data/archive_photos/<k>-of-<n>.json. Review sheets (the original photo | the cut-out on #262626 | title and
 status) go to --sheets.
+--set murphy (27 Nov 2026) does the same for the Da Murphy finds sheet (scripts/import_sheet.py): its staged finds
+(data/sheet_import/), its records data/sheet_photos/<k>-of-<n>.json (import_archive.py SETS). Their photos are Weidian's
+(geilicdn), fetched with Weidian as the referrer as import_friend.py does.
 
-  python scripts/archive_photos.py [--shard 0/1] [--limit 0] [--max-minutes 0] [--ids 1,2] [--no-upload] [--no-vision]
-                                   [--max-usd 1.5] [--retry-kept] [--sheets out/archive-sheets]
+  python scripts/archive_photos.py [--set archive] [--shard 0/1] [--limit 0] [--max-minutes 0] [--ids 1,2] [--no-upload]
+                                   [--no-vision] [--max-usd 1.5] [--retry-kept] [--sheets out/archive-sheets]
 """
 import argparse, base64, hashlib, io, json, os, re, sys, time, urllib.error, urllib.request
 from datetime import datetime, timezone
@@ -35,9 +38,8 @@ from PIL import Image, ImageDraw, ImageOps
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from catalog_common import ROOT, load_json, save_json  # noqa: E402
 import store_photos_shards as shards  # noqa: E402
+import import_archive as IA  # noqa: E402
 
-STAGE = os.path.join(ROOT, "data", "archive_import.json")
-DIR = os.path.join(ROOT, "data", "archive_photos")
 SUPA = "https://uptpghuduqjqmrxwatbm.supabase.co"
 PUB = SUPA + "/storage/v1/object/public/"
 H = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"}
@@ -55,9 +57,10 @@ def now(): return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 def fetch(url):
     """The photo as RGB (EXIF turned), at most 2600 px; None when it is gone (403, 404, 410)."""
     last = None
+    hd = dict(H, Referer="https://weidian.com/") if "geilicdn.com" in url else H
     for k in range(3):
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=H), timeout=45) as r: data = r.read()
+            with urllib.request.urlopen(urllib.request.Request(url, headers=hd), timeout=45) as r: data = r.read()
             im = Image.open(io.BytesIO(data))
             if im.format == "JPEG": im.draft("RGB", (2600, 2600))
             im.load()
@@ -183,6 +186,7 @@ def contact(rows, path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
+    ap.add_argument("--set", default="archive", choices=sorted(IA.SETS), help="which import (scripts/import_archive.py)")
     ap.add_argument("--shard", default="0/1"); ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--max-minutes", type=float, default=0); ap.add_argument("--ids", default="")
     ap.add_argument("--no-upload", action="store_true", help="make the cut-outs and sheets, upload and record nothing")
@@ -198,15 +202,16 @@ def main(argv=None):
     a.bg, a.recut, a.fill = "none", False, a.max_fill
     shard = shards.parse(a.shard)
     k, n = shard
-    log_path = os.path.join(DIR, "%d-of-%d.json" % (k, n))
+    folder = IA.set_of(a.set)["photos"]
+    log_path = os.path.join(folder, "%d-of-%d.json" % (k, n))
     log = load_json(log_path, {}) or {}
     recs = log.setdefault("items", {})
-    staged = (load_json(STAGE, {}) or {}).get("items") or {}
+    staged = IA.staged(a.set)
     want = {x for x in a.ids.replace(" ", "").split(",") if x}
     done_elsewhere = {}
-    for f in os.listdir(DIR) if os.path.isdir(DIR) else []:
-        if f.endswith(".json") and os.path.join(DIR, f) != log_path:
-            for i, r in ((load_json(os.path.join(DIR, f), {}) or {}).get("items") or {}).items():
+    for f in os.listdir(folder) if os.path.isdir(folder) else []:
+        if f.endswith(".json") and os.path.join(folder, f) != log_path:
+            for i, r in ((load_json(os.path.join(folder, f), {}) or {}).get("items") or {}).items():
                 if r.get("status") == "cut": done_elsewhere[i] = r
     mine = [i for i in staged if shards.mine(i, shard) and (not want or i in want) and i not in done_elsewhere]
     todo = [i for i in mine if (recs.get(i) or {}).get("status") not in FINAL
@@ -214,8 +219,8 @@ def main(argv=None):
     if a.limit: todo = todo[:a.limit]
     vision = bool(os.environ.get("ANTHROPIC_API_KEY")) and not a.no_vision
     upload_on = not a.no_upload and bool(os.environ.get("SUPABASE_SERVICE_KEY"))
-    print("archive photos, shard %d/%d: staged %d, this shard %d, to do now %d (vision %s, upload %s)"
-          % (k, n, len(staged), len(mine), len(todo), "on" if vision else "off", "on" if upload_on else "off"), flush=True)
+    print("%s photos, shard %d/%d: staged %d, this shard %d, to do now %d (vision %s, upload %s)"
+          % (a.set, k, n, len(staged), len(mine), len(todo), "on" if vision else "off", "on" if upload_on else "off"), flush=True)
     if not a.no_upload and not upload_on: print("  SUPABASE_SERVICE_KEY is not set: nothing is uploaded or recorded", flush=True)
     t0, count, sheet_rows, n_sheet = time.time(), {}, [], 0
     for j, oid in enumerate(todo):

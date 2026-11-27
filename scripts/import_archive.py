@@ -28,9 +28,14 @@ The flow, one stage at a time (each is safe to run again; nothing already done i
 
   python scripts/import_archive.py stage <scored.csv> [--names names.json] [--jsonl 'dir/*.jsonl'] [--map map.json]
                                           [--dupes dupes.json] [--min-sim 0.80] [--dry-run]
-  python scripts/import_archive.py apply [--dry-run] [--test-src-photos --out preview.html]
-  python scripts/import_archive.py report
+  python scripts/import_archive.py apply [--set archive] [--dry-run] [--test-src-photos --out preview.html]
+  python scripts/import_archive.py report [--set archive]
 These are not partner finds: no swap, no partner mark.
+
+Sets (27 Nov 2026): photos, apply, report and drop also run other imports through the same code, each with its own
+stage and photo records (SETS below). "murphy" is the Da Murphy finds sheet (scripts/import_sheet.py stages it, one file
+per shard in data/sheet_import/): normal finds, so apply adds them WITHOUT "ar", and checks the same brand + model words
++ colour again against the catalogue and the finds it adds (shards stage in parallel and cannot see each other).
 """
 import argparse, collections, csv, glob, json, os, re, sys, time, urllib.parse
 
@@ -54,9 +59,32 @@ BANNED = re.compile(r"(?i)\b(replicas?|reps?|fake|batch)\b|1\s*:\s*1|[\u2014\u20
 PHOTO_OK = ("cut",)
 # a sheet name for a group of items ("Multiple Electronics", "All Jeans Brand", "Moncler Jackets, Hoodie, Pants, etc.")
 GROUP = re.compile(r"(?i)\b(multiple|various|assorted|mixed brands?|no ?name|etc)\b|^all\b.*\bbrands?\b")      # photo records that go on the site (scripts/archive_photos.py)
+# the imports that run through photos and apply: the stage (one file, or a folder of shard files), the photo records,
+# the mark apply gives each find, the platforms its rows may have, and whether apply checks the same model again
+SETS = {"archive": {"label": "Archive", "mark": {"ar": 1}, "platforms": ("1688", "taobao"), "recheck": False},
+        "murphy": {"label": "Da Murphy sheet", "stage": os.path.join(ROOT, "data", "sheet_import"),
+                   "photos": os.path.join(ROOT, "data", "sheet_photos"), "mark": {}, "platforms": ("weidian", "taobao", "1688"),
+                   "recheck": True}}
 
 
 def now(): return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+def set_of(name):
+    """A set's settings; the Archive's paths are read when called (the tests point STAGE and PHOTOS_DIR elsewhere)."""
+    s = dict(SETS[name]); s.setdefault("stage", STAGE); s.setdefault("photos", PHOTOS_DIR)
+    return s
+
+
+def staged(name="archive", every=False):
+    """{id: entry} of a set's stage: its one file, or every shard file of its folder (a staged record wins, an error loses).
+    Only the staged entries (a row and "src") unless every; the Archive's entries have no status: all staged."""
+    path, out = set_of(name)["stage"], {}
+    for f in [path] if path.endswith(".json") else sorted(glob.glob(os.path.join(path, "*.json"))):
+        for k, v in ((load_json(f, {}) or {}).get("items") or {}).items():
+            cur = out.get(k)
+            if cur is None or v.get("status", "staged") == "staged" or cur.get("status") == "error": out[k] = v
+    return out if every else {k: v for k, v in out.items() if v.get("row") and v.get("status", "staged") == "staged"}
 
 
 def original(link):
@@ -104,26 +132,31 @@ def price_of(cny):
     return int(round(cny)) if cny >= 10 else round(cny, 1)
 
 
-def row_problems(row):
+def row_problems(row, platforms=tuple(SELLER)):
     bad = []
     if not row.get("title") or len(row["title"]) > 80: bad.append("title")
     if BANNED.search(row.get("title") or "") or BANNED.search(row.get("brand") or ""): bad.append("banned word or dash")
     if row.get("cat") not in CATS: bad.append("category %r" % row.get("cat"))
     if not isinstance(row.get("price"), (int, float)) or not 5 <= row["price"] < 99999: bad.append("price %r" % row.get("price"))
-    if row.get("platform") not in SELLER: bad.append("platform %r" % row.get("platform"))
+    if row.get("platform") not in platforms: bad.append("platform %r" % row.get("platform"))
     if not re.fullmatch(r"[0-9]{6,15}", str(row.get("id") or "")): bad.append("id")
     return bad
 
 
+def model_key(p, N):
+    """(brand, model words, colour) of a find whose model words name a model, else None (the same-model check)."""
+    b = N.fold(p.get("brand") or "")
+    mw = N.model_words(p.get("title") or "", p.get("brand") or "") if b else ()
+    if not mw or not N.distinctive(mw): return None
+    return (b, mw, N.colour_in(p.get("title") or "", p.get("brand") or ""))
+
+
 def visible_keys(items, N):
-    """(brand, model words, colour) of every catalogue find whose model words name a model (the same-model check)."""
+    """{model key: id} of every catalogue find whose model words name a model."""
     keys = {}
     for p in items:
-        b = N.fold(p.get("brand") or "")
-        if not b: continue
-        mw = N.model_words(p.get("title") or "", p.get("brand") or "")
-        if not mw or not N.distinctive(mw): continue
-        keys.setdefault((b, mw, N.colour_in(p.get("title") or "", p.get("brand") or "")), p["id"])
+        k = model_key(p, N)
+        if k: keys.setdefault(k, p["id"])
     return keys
 
 
@@ -216,8 +249,8 @@ def stage(a):
                "variants": [["Standard", price]], "g": "w" if women else "m"}
         bad = row_problems(row)
         if bad: skip("; ".join(bad)); continue
-        key = (N.fold(brand), N.model_words(title, brand), N.colour_in(title, brand))
-        if brand and key[1] and N.distinctive(key[1]) and key in same_model: skip("on the site (same model and colour)"); continue
+        key = model_key(row, N)
+        if key and key in same_model: skip("on the site (same model and colour)"); continue
         staged[oid] = {"row": row, "src": https(c["img"]), "match": r.get("match"),
                        "similarity": num(r.get("similarity")), "staged": now()}
         by_orig[oid] = sid
@@ -244,26 +277,36 @@ def stage(a):
     print("written %s and the private map %s" % (os.path.relpath(STAGE, ROOT), map_path), flush=True)
 
 
-def photo_records():
+def photo_records(name="archive"):
     out = {}
-    for f in sorted(glob.glob(os.path.join(PHOTOS_DIR, "*.json"))):
+    for f in sorted(glob.glob(os.path.join(set_of(name)["photos"], "*.json"))):
         for k, v in ((load_json(f, {}) or {}).get("items") or {}).items():
             if (out.get(k) or {}).get("status") not in PHOTO_OK: out[k] = v
     return out
 
 
+def in_set(p, S, st):
+    """A catalogue find of this import: it has the set's mark, or (a set without one) its id is staged by it."""
+    return all(p.get(k) == v for k, v in S["mark"].items()) if S["mark"] else str(p.get("id")) in st
+
+
 def apply(a):
-    st = (load_json(STAGE, {}) or {}).get("items") or {}
-    recs = photo_records()
+    S = set_of(a.set)
+    st = staged(a.set)
+    recs = photo_records(a.set)
     path = os.path.join(ROOT, "index.html")
     html = open(path, encoding="utf-8").read()
     i = html.find(TAG)
     if i < 0: sys.exit("pc-catalog block not found in index.html")
     s = i + len(TAG); e = html.find("</script>", s); raw = html[s:e]
-    have = set()
-    for p in json.loads(raw):
+    have, items = set(), json.loads(raw)
+    for p in items:
         have.add(str(p["id"]))
         if p.get("itemId"): have.add(str(p["itemId"]))
+    keys = None
+    if S["recheck"]:
+        import archive_names as N
+        keys = visible_keys(items, N)
     add, why = [], collections.Counter()
     for oid, v in st.items():
         if oid in have: why["in the catalogue"] += 1; continue
@@ -274,14 +317,18 @@ def apply(a):
             url = rec["url"]
         else:
             why["photo " + (rec.get("status") or "not made yet")] += 1; continue
-        row = dict(v["row"]); row["img"] = url; row["ar"] = 1
-        bad = row_problems(row)
+        row = dict(v["row"]); row["img"] = url; row.update(S["mark"])
+        bad = row_problems(row, S["platforms"])
         m = IMG.match(url or "")
         if not a.test_src_photos and (not m or (m.group(1) or m.group(2)) != oid): bad.append("photo address")
         if bad: why["; ".join(bad)] += 1; print("  not added", oid, bad, row.get("title")); continue
+        if keys is not None:
+            k = model_key(row, N)
+            if k in keys: why["same model and colour as another find"] += 1; continue
+            if k: keys[k] = oid
         add.append(row); have.add(oid)
-    print("archive apply: %d finds to add (%d from the women's tab); left out: %s%s" % (
-        len(add), sum(1 for r in add if r["g"] == "w"), dict(why.most_common()),
+    print("%s apply: %d finds to add (%d from the women's tab); left out: %s%s" % (
+        a.set, len(add), sum(1 for r in add if r["g"] == "w"), dict(why.most_common()),
         " [TEST: original photos, do not commit]" if a.test_src_photos else ""), flush=True)
     if not add or a.dry_run: return
     body = raw.rstrip()
@@ -297,26 +344,29 @@ def apply(a):
 
 
 def report(a):
-    st = (load_json(STAGE, {}) or {}).get("items") or {}
-    recs = photo_records()
+    S = set_of(a.set)
+    st = staged(a.set)
+    recs = photo_records(a.set)
     _, items, _, _ = load_catalog()
-    have = {str(p["id"]) for p in items if p.get("ar")}
+    have = {str(p["id"]) for p in items if in_set(p, S, st)}
     c = collections.Counter()
     for oid in st:
         c["on the site" if oid in have else "photo " + ((recs.get(oid) or {}).get("status") or "not made yet")] += 1
-    print("archive: staged %d; %s; Archive finds in the catalogue %d" % (len(st), dict(c.most_common()), len(have)))
+    print("%s: staged %d; %s; %s finds in the catalogue %d" % (a.set, len(st), dict(c.most_common()), S["label"], len(have)))
 
 
 def drop(a):
     """Take Archive finds off the site (a broken cut-out seen after it went live): out of the pc-catalog block, and their
-    photo record marked "kept" with the reason, so apply never adds them back. Only finds marked "ar" can be dropped."""
+    photo record marked "kept" with the reason, so apply never adds them back. Only finds marked "ar" can be dropped
+    (with --set, only finds of that import)."""
+    S = set_of(a.set); st = staged(a.set)
     ids = {x.strip() for x in a.csv.split(",") if x.strip()}
     path = os.path.join(ROOT, "index.html"); html = open(path, encoding="utf-8").read()
     i = html.find(TAG); s = i + len(TAG); e = html.find("</script>", s)
     rows = json.loads(html[s:e]); keep, gone = [], []
     for p in rows:
         if str(p.get("id")) in ids:
-            if not p.get("ar"): sys.exit("%s is not an Archive find: not dropped" % p.get("id"))
+            if not in_set(p, S, st): sys.exit("%s is not a find of the %s import: not dropped" % (p.get("id"), S["label"]))
             gone.append(str(p["id"])); continue
         keep.append(p)
     raw = html[s:e]
@@ -333,7 +383,7 @@ def drop(a):
         raw = raw[:k] + raw[j:]
     json.loads(raw)
     open(path, "w", encoding="utf-8").write(html[:s] + raw + html[e:])
-    for f in glob.glob(os.path.join(ROOT, "data", "archive_photos", "*.json")):
+    for f in glob.glob(os.path.join(S["photos"], "*.json")):
         orig = open(f).read(); d = json.loads(orig); ch = False
         for pid in gone:
             r = d.get("items", {}).get(pid)
@@ -341,7 +391,7 @@ def drop(a):
         if ch:
             lines = orig.splitlines(); ind = len(lines[1]) - len(lines[1].lstrip()) if len(lines) > 1 else None
             open(f, "w").write(json.dumps(d, ensure_ascii=False, indent=ind) + ("\n" if orig.endswith("\n") else ""))
-    print("archive drop: %d finds taken off (%s)" % (len(gone), ", ".join(gone)))
+    print("%s drop: %d finds taken off (%s)" % (a.set, len(gone), ", ".join(gone)))
 
 
 def main(argv=None):
@@ -356,8 +406,10 @@ def main(argv=None):
                     help="apply: use the original listing photos instead of the cut-outs (local preview only, with --out)")
     ap.add_argument("--out", default="", help="apply: write the result here instead of index.html")
     ap.add_argument("--why", default="", help="drop: the reason, kept in the photo record")
+    ap.add_argument("--set", default="archive", choices=sorted(SETS), help="apply, report, drop: which import")
     a = ap.parse_args(argv)
     if a.stage == "stage":
+        if a.set != "archive": ap.error("stage here is the Archive's; the %s set is staged by scripts/import_sheet.py" % a.set)
         if not a.csv: ap.error("stage needs the scored CSV")
         return stage(a)
     if a.stage == "apply": return apply(a)

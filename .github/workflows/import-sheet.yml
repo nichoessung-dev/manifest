@@ -1,0 +1,216 @@
+name: Import sheet finds
+# The Da Murphy finds sheet (owner, 27 Nov 2026): about 2,600 direct seller listings (data/sheet_murphy_list.json) added
+# as NORMAL finds, ranked like every other find (no Archive mark, no partner swap). One job per shard:
+#   1. scripts/import_sheet.py stage: Weidian getItemSkuInfo (the Chinese title, the photos, the price rule), Taobao and
+#      1688 from data/sheet_murphy_details.json (else they wait as "needs details"); one vision call per item
+#      (ANTHROPIC_API_KEY) for the title, brand, category, gender and colour; the duplicate checks.
+#      -> data/sheet_import/<k>-of-<n>.json
+#   2. scripts/archive_photos.py --set murphy on the same shard: the vision look, the cut-out with clean_photos.py's
+#      pipeline, Supabase products/pc2/<id>-t1.webp (SUPABASE_SERVICE_KEY), new objects only (not repository files: Pages
+#      is near its 20,000 file limit). -> data/sheet_photos/<k>-of-<n>.json
+# Each shard commits its two files ([skip ci]); review sheets (the photo | the cut-out on #262626) are the artifacts
+# sheet-photos-<k>-of-<n>. With apply=yes a last job adds every find whose cut-out is in storage (scripts/import_archive.py
+# apply --set murphy, no "ar"), makes the catalogue files again and pushes (Cloudflare deploys). With limit 0, a run that
+# made progress and still has work left starts the next run itself.
+# Order: first shards 8, limit 3, apply no (about 24 finds, a few minutes): look at the stage files and the sheets. Then
+# limit 0, apply yes. After a new details file, run it again the same way: items already done are skipped.
+on:
+  workflow_dispatch:
+    inputs:
+      shards:
+        description: 'Parallel shards (1 to 20)'
+        default: '8'
+      limit:
+        description: 'Items per shard and step this run (0 = all; try 3 first)'
+        default: '3'
+      apply:
+        description: 'Add the finished finds to the site when the shards are done'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+      max_usd:
+        description: 'Vision spend per shard and step at most (USD)'
+        default: '3'
+      ids:
+        description: 'Only these item ids (comma separated, optional)'
+        default: ''
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: import-sheet
+  cancel-in-progress: false
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.p.outputs.list }}
+      left: ${{ steps.p.outputs.left }}
+    env:
+      N: ${{ inputs.shards || '8' }}
+      LIMIT: ${{ inputs.limit || '3' }}
+      USD: ${{ inputs.max_usd || '3' }}
+      IDS: ${{ inputs.ids }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          sparse-checkout: |
+            scripts
+            data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - id: p
+        run: |
+          [[ "$N" =~ ^([1-9]|1[0-9]|20)$ ]] || { echo "::error::shards must be 1 to 20"; exit 1; }
+          [[ "$LIMIT" =~ ^[0-9]{1,4}$ ]] || { echo "::error::limit must be a number"; exit 1; }
+          [[ "$USD" =~ ^[0-9]{1,2}(\.[0-9]{1,2})?$ ]] || { echo "::error::bad max_usd"; exit 1; }
+          [[ -z "$IDS" || "$IDS" =~ ^[0-9,\ ]+$ ]] || { echo "::error::bad ids"; exit 1; }
+          echo "list=$(python3 -c "import json;print(json.dumps(list(range($N))))")" >> "$GITHUB_OUTPUT"
+          python -u scripts/import_sheet.py report | tee report.log
+          echo "left=$(grep -oP '^left \K[0-9]+' report.log)" >> "$GITHUB_OUTPUT"
+  shards:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix:
+        k: ${{ fromJSON(needs.plan.outputs.list) }}
+    env:
+      SHARD: ${{ matrix.k }}/${{ inputs.shards || '8' }}
+      LIMIT: ${{ inputs.limit || '3' }}
+      USD: ${{ inputs.max_usd || '3' }}
+      IDS: ${{ inputs.ids }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          sparse-checkout: |
+            scripts
+            data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install pillow numpy "rembg[cpu]>=2.0.59,<3"
+      - name: Cache background-removal model
+        uses: actions/cache@v4
+        with:
+          path: ~/.u2net
+          key: u2net-isnet-general-use-v1
+      - name: Shard tag
+        id: tag
+        run: echo "tag=${SHARD/\//-of-}" >> "$GITHUB_OUTPUT"
+      - name: Save helper
+        run: |
+          cat > /tmp/save.sh <<'EOF'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for d in data/sheet_import data/sheet_photos; do [ -d "$d" ] && git add "$d"; done
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "data: sheet import, shard $SHARD [skip ci]"
+          for n in 1 2 3 4 5 6 7 8 9 10; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 5 + RANDOM % 10))
+          done
+          echo "::error::the records could not be saved"; exit 1
+          EOF
+      - name: Stage and photos
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set -o pipefail
+          IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
+          # two passes of about 2 hours (stage, then the photos of what is staged), each saved, so a stopped job loses little
+          for pass in 1 2; do
+            python -u scripts/import_sheet.py stage --shard "$SHARD" --limit "$LIMIT" --max-minutes 60 --max-usd "$USD" $IDA \
+              2>&1 | tee -a sheet-stage.log
+            bash /tmp/save.sh
+            python -u scripts/archive_photos.py --set murphy --shard "$SHARD" --limit "$LIMIT" --max-minutes 70 --max-usd "$USD" \
+              $IDA --sheets out/sheet-photos 2>&1 | grep -v -i -E 'warning|warn\(' | tee -a sheet-photos.log
+            bash /tmp/save.sh
+            if [ "$LIMIT" != "0" ] || { tail -1 sheet-stage.log | grep -q '^left 0' && tail -1 sheet-photos.log | grep -q '^left 0'; }; then break; fi
+          done
+      - name: Keep the logs with the sheets
+        if: always()
+        run: mkdir -p out/sheet-photos && cp sheet-stage.log sheet-photos.log out/sheet-photos/ || true
+      - name: Save what is done
+        if: failure() || cancelled()
+        run: bash /tmp/save.sh || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sheet-photos-${{ steps.tag.outputs.tag }}
+          path: |
+            out/sheet-photos/*.jpg
+            out/sheet-photos/*.log
+          if-no-files-found: warn
+          retention-days: 30
+  apply:
+    needs: shards
+    if: always() && inputs.apply == 'yes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - name: Add the finds and make the catalogue files again
+        run: |
+          set -o pipefail
+          git pull -q --rebase origin "$GITHUB_REF_NAME"
+          python -u scripts/import_archive.py apply --set murphy | tee out-apply.log
+          python scripts/gen_catalog.py
+          python scripts/sync_catalog.py --no-thumbs
+          python -u scripts/import_archive.py report --set murphy
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html functions/_lib/catalog.js products.json sitemap.xml
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          # no [skip ci]: Cloudflare Pages must deploy the new finds
+          git commit -q -m "feat: import sheet finds ($(grep -oP 'murphy apply: \K[0-9]+' out-apply.log) finds from the Da Murphy sheet)"
+          for n in 1 2 3 4 5 6; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::the import could not be saved"; exit 1
+  # limit 0 and work left: the next run, but only when this one made progress (an item that keeps failing stops it)
+  next:
+    needs: [plan, shards, apply]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && inputs.limit == '0' && inputs.ids == '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          sparse-checkout: |
+            scripts
+            data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - name: Go on when there is work left
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LEFT0: ${{ needs.plan.outputs.left }}
+          N: ${{ inputs.shards }}
+          APPLY: ${{ inputs.apply }}
+          USD: ${{ inputs.max_usd }}
+        run: |
+          python -u scripts/import_sheet.py report | tee report.log
+          LEFT=$(grep -oP '^left \K[0-9]+' report.log)
+          echo "left at the start $LEFT0, now $LEFT"
+          if [ -n "$LEFT" ] && [ -n "$LEFT0" ] && [ "$LEFT" -gt 0 ] && [ "$LEFT" -lt "$LEFT0" ]; then
+            gh workflow run import-sheet.yml --ref "$GITHUB_REF_NAME" -f shards="$N" -f limit=0 -f apply="$APPLY" -f max_usd="$USD"
+          fi

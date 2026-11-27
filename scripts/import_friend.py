@@ -59,16 +59,18 @@ def jpg64(im, side=512):
     return base64.b64encode(b.getvalue()).decode()
 
 
-def classify(photos, zh, hint):
+def classify(photos, zh, hint, about="", shop="Weidian"):
     """One call: pick the clean single-product photo among the listing's photos (main + colour options) and name it.
-    photos: [(label, PIL image)]. hint: the matcher's naming of the listing (brand/title), used when it fits."""
+    photos: [(label, PIL image)]. hint: the matcher's naming of the listing (brand/title), used when it fits. about: said
+    instead of the Chinese title and the matcher's naming (scripts/import_sheet.py: the listing's title and the finds
+    sheet's name and tab). shop: the listing's platform."""
     global spent
     content = []
     for k, (lab, im) in enumerate(photos):
         content += [{"type": "text", "text": f"Photo {k}: {lab}"}, {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": jpg64(im)}}]
     content.append({"type": "text", "text":
-        "These are the photos of one Chinese Weidian listing (photo 0 is its main photo, the others are its colour options). "
-        "Chinese title: " + json.dumps(zh, ensure_ascii=False) + ". An earlier look named it: " + json.dumps(hint, ensure_ascii=False) + ".\n"
+        "These are the photos of one Chinese " + shop + " listing (photo 0 is its main photo, the others are its colour options). "
+        + (about or "Chinese title: " + json.dumps(zh, ensure_ascii=False) + ". An earlier look named it: " + json.dumps(hint, ensure_ascii=False) + ".") + "\n"
         "1) photo: the number of the best photo for a shop catalogue that shows ONE single product only, fully visible: no collage or "
         "grid of several products, no text or watermark over the photo, no packaging or box as the subject, no person wearing it, no "
         "hand. -1 if no photo qualifies.\n2) Name the product in that photo in English: title 'Brand Item Colour' (2-7 words, Title "

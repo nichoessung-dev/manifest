@@ -93,5 +93,9 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
   cut-outs (`scripts/archive_photos.py`, Supabase `products/pc2/<id>-t1.webp`) and adds the finds with `"ar": 1`.
   `ar` = Archive style whatever the brand (`pcStyleMatch`) and ranks right after partner finds (`swapFirst`, `score()`).
   Never put a reseller id or link in the repo.
+- Sheet import (27 Nov 2026): the Da Murphy finds sheet (`data/sheet_murphy_list.json`) as NORMAL finds (no `ar`, no
+  swap; rugs and room decor under Accessories). `.github/workflows/import-sheet.yml`: `scripts/import_sheet.py stage`
+  (Weidian via getItemSkuInfo, Taobao / 1688 from `data/sheet_murphy_details.json`, else "needs details"; one vision
+  call names each find), then the Archive's photos and apply with `--set murphy`. Run until the report says `left 0`.
 - Stats: `/stats` (`stats.html`, data from the stats workflow), visits through `/api/visit`.
 - Preview the sign-up flow as a new visitor: `/?preview=signup`.
