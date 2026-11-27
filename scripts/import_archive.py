@@ -47,7 +47,9 @@ SELLER = {"1688": "1688 Marketplace", "taobao": "Taobao Marketplace"}
 LINK = {"1688": re.compile(r"^https?://detail\.1688\.com/offer/(\d{6,15})\.html"),
         "taobao": re.compile(r"^https?://(?:item\.taobao\.com/item\.htm|detail\.tmall\.com/item\.htm)\?(?:[^#]*&)?id=(\d{6,15})")}
 PUB = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/"
-IMG = re.compile(r"^" + re.escape(PUB) + r"products/pc2/([0-9]{6,15})-t1\.webp$")
+# the cut-out: on Supabase (the workflow's own), or a site file /img/p2/<id>.webp (made from another photo of the same
+# listing and checked by hand, 27 Nov 2026)
+IMG = re.compile(r"^(?:" + re.escape(PUB) + r"products/pc2/([0-9]{6,15})-t1\.webp|/img/p2/([0-9]{6,15})\.webp)$")
 BANNED = re.compile(r"(?i)\b(replicas?|reps?|fake|batch)\b|1\s*:\s*1|[\u2014\u2013]")
 PHOTO_OK = ("cut",)
 # a sheet name for a group of items ("Multiple Electronics", "All Jeans Brand", "Moncler Jackets, Hoodie, Pants, etc.")
@@ -275,7 +277,7 @@ def apply(a):
         row = dict(v["row"]); row["img"] = url; row["ar"] = 1
         bad = row_problems(row)
         m = IMG.match(url or "")
-        if not a.test_src_photos and (not m or m.group(1) != oid): bad.append("photo address")
+        if not a.test_src_photos and (not m or (m.group(1) or m.group(2)) != oid): bad.append("photo address")
         if bad: why["; ".join(bad)] += 1; print("  not added", oid, bad, row.get("title")); continue
         add.append(row); have.add(oid)
     print("archive apply: %d finds to add (%d from the women's tab); left out: %s%s" % (
