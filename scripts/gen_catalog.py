@@ -4,7 +4,8 @@
 index.html is the source of truth. Re-run after every catalogue change:  python scripts/gen_catalog.py
 Running it again without a catalogue change is safe: the file, including its BUILT date, comes out identical.
 Row format (see functions/_lib/site.js):
-  [id, title, brand, cat, platform, seller, usd, cny, qc, best, views, img, g, itemId, variants]
+  [id, title, brand, cat, platform, seller, usd, cny, qc, best, views, img, g, itemId, variants(, ar)]
+ar (the Archive mark, scripts/import_archive.py) is a 16th field on the rows that have it, 1; the other rows have 15.
 img is stored with a short host prefix (A/B/C = the Supabase storage hosts) to keep the bundle small.
 """
 import datetime, json, os, re, sys
@@ -62,10 +63,12 @@ def main():
         for k, pre in PREFIX.items():
             if img.startswith(pre): img = k + img[len(pre):]; break
         variants = "|".join(v[0] for v in (p.get("variants") or []) if v and v[0])[:160]
-        rows.append([p["id"], p.get("title", ""), p.get("brand", ""), p.get("cat", ""), p.get("platform", "weidian"),
-                     p.get("seller", ""), round(float(p.get("usd") or 0), 2), p.get("price") or 0, int(p.get("qc") or 0),
-                     1 if p["id"] in best else 0, int(p.get("views") or views.get(p["id"], 0) or 0), img, p.get("g", ""),
-                     p.get("itemId", ""), variants])
+        row = [p["id"], p.get("title", ""), p.get("brand", ""), p.get("cat", ""), p.get("platform", "weidian"),
+               p.get("seller", ""), round(float(p.get("usd") or 0), 2), p.get("price") or 0, int(p.get("qc") or 0),
+               1 if p["id"] in best else 0, int(p.get("views") or views.get(p["id"], 0) or 0), img, p.get("g", ""),
+               p.get("itemId", ""), variants]
+        if p.get("ar"): row.append(1)
+        rows.append(row)
     prefix_js = json.dumps(PREFIX)
     rows_js = json.dumps(rows, ensure_ascii=False, separators=(",", ":"))
     old = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else None

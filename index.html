@@ -5157,21 +5157,31 @@ var SWAPPED=new Set(), SWAP_HIDE_OF={};
    25 Nov 2026 (owner): a chosen brand is a search too (a brand picked in the search suggestions, the Brands menu, a brand
    hub): all its finds, partner finds first, so "Burberry, 228 finds" opens 228 finds and not 49 plus a few. */
 const SW_MIX=33;
+/* Archive finds (owner, 26 Nov 2026: "i want the real links we get to rank high"): the finds marked "ar" (the Archive
+   import, scripts/import_archive.py: the sheet's items on their ORIGINAL 1688 / Taobao listings) come right after the
+   partner finds, never before them: browsing, a chosen brand or category, every sort but the price sorts. A text search
+   keeps its relevance order (partner finds first, as before). The server does the same in score() (site.js). */
+function arFirst(l){ const x=[], y=[]; for(const p of l)(p.ar?x:y).push(p); return x.length?x.concat(y):l; }
 function swapFirst(list){
-  if(!SWAPPED.size||!list||!list.length) return list;
+  if(!list||!list.length) return list;
+  const psort=state.sort==="low"||state.sort==="high", arOn=!psort&&!(state.q||"").trim();
+  if(!SWAPPED.size) return arOn?arFirst(list):list;
   const a=[], b=[]; for(const p of list)(SWAPPED.has(String(p.id))?a:b).push(p);
+  const b2=arOn?arFirst(b):b;
   // 26 Nov 2026 (owner): a chosen category is a search too, like a brand: all its finds, partner finds first.
   const browse=!(state.q||"").trim()&&!state.saved&&!(Array.isArray(state.brand)?state.brand.length:(state.brand&&state.brand!=="all"))&&!(Array.isArray(state.cats)&&state.cats.length);
-  if(!browse) return (state.sort==="low"||state.sort==="high")?list:(a.length?a.concat(b):list);
-  if(a.length<48) return (state.sort==="low"||state.sort==="high")?list:a.concat(b);
-  const n=Math.max(1,Math.ceil(a.length*0.03)), keep=b.slice(0,n);
+  if(!browse) return psort?list:(a.length||b2!==b?a.concat(b2):list);
+  if(a.length<48) return psort?list:a.concat(b2);
+  /* the ~3% mixed in are the most popular other finds, as before (not Archive finds: those follow the partner block) */
+  const c=b2===b?b:b.filter(p=>!p.ar);
+  const n=Math.max(1,Math.ceil(a.length*0.03)), keep=c.slice(0,n);
   /* 26 Nov 2026 (owner: "if you have all filters on it should show 10k not 3k"): browsing keeps the partner mix on top,
      then every other find follows, so the count is the whole sheet and scrolling reaches all of it. A price sort is plain
      price order over everything. */
-  if(state.sort==="low"||state.sort==="high") return list;
+  if(psort) return list;
   const out=[]; let k=0; for(let i=0;i<a.length;i++){ out.push(a[i]); if((i+1)%SW_MIX===0&&k<keep.length) out.push(keep[k++]); }
   const ks=new Set(keep.slice(0,k));
-  for(const p of b) if(!ks.has(p)) out.push(p);
+  for(const p of b2) if(!ks.has(p)) out.push(p);
   return out;
 }
 function filtered(noBrand){ const l=filtered0(noBrand); return noBrand?l:pcStyleFirst(l); }
@@ -5210,7 +5220,8 @@ function _styTables(){   /* normalised brand -> style keys, built once (PC_OLD_M
   return (_styBrand=m);
 }
 function pcStyleMatch(p,k){   /* 2 core, 1 soft, 0 none, for one style */
-  if(!p) return 0; const d=PC_STY_DEF[k], bs=_styTables().get(_styN(p.brand)), own=!!(bs&&bs.has(k));
+  if(!p) return 0; if(k==="archive"&&p.ar) return 2;   /* an Archive import (scripts/import_archive.py) is Archive whatever its brand */
+  const d=PC_STY_DEF[k], bs=_styTables().get(_styN(p.brand)), own=!!(bs&&bs.has(k));
   if(k==="women"){ if(p.g==="w"||own||d.word.test(p.title||"")) return 2;
     if(p.cat==="Bags"&&!/backpack|duffle|duffel|messenger|waist ?bag|belt ?bag|sling|luggage|suitcase|trolley/i.test(p.title||"")) return 1;
     if(p.cat==="Accessories"&&/\b(necklace|bracelet|earrings?|rings?|pendant|scarf|sunglass(es)?|hair|jewel(le)?ry|charm|brooch|anklet)\b/i.test(p.title||"")) return 1;
@@ -5231,7 +5242,7 @@ function pcStyleFirst(l){
   if(state.sort==="low"||state.sort==="high"){   /* a price sort stays in price order; the partner-only mix keeps the style matches */
     const sf=swapFirst(l); if(sf.length===l.length) return sf; const keep=new Set(sf); return l.filter(p=>keep.has(p)||pcStyleScore(p)>0); }
   const g2=[], g1=[], n=[]; for(const p of l){ const s=pcStyleScore(p); (s===2?g2:s?g1:n).push(p); }
-  const pf=a=>{ if(!SWAPPED.size) return a; const x=[], y=[]; for(const p of a)(SWAPPED.has(String(p.id))?x:y).push(p); return x.concat(y); };
+  const pf=a=>{ if(!SWAPPED.size) return arFirst(a); const x=[], y=[]; for(const p of a)(SWAPPED.has(String(p.id))?x:y).push(p); return x.concat(arFirst(y)); };   /* partner, then Archive (swapFirst) */
   return pf(g2).concat(pf(g1),swapFirst(n));
 }
 /* a new choice (the tour, the chip): saved, then the grid, the home rows and the chip follow */

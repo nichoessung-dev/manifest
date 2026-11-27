@@ -52,7 +52,7 @@ export const swapped = p => !!p && SWAPPED.has(String(p.id));
 export const SWAP_VER = (s => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return ("0000000" + h.toString(16)).slice(-8); })(JSON.stringify([SWAPS, SWAP_PRICE, SWAP_HIDE]));
 // Every find, look-alikes included (idx().byId: their product pages still answer); P is the visible spreadsheet.
 export const P_ALL = ROWS.map(r => normBrand({ id: r[0], title: r[1], brand: r[2], cat: r[3], platform: r[4], seller: r[5], usd: r[6], cny: r[7],
-  qc: NO_QC.has(r[0]) ? 0 : r[8], best: r[9], views: r[10], img: r[11], g: r[12], itemId: r[13], variants: r[14] }));
+  qc: NO_QC.has(r[0]) ? 0 : r[8], best: r[9], views: r[10], img: r[11], g: r[12], itemId: r[13], variants: r[14], ar: r[15] ? 1 : 0 }));
 export const SWAP_KEY = {};   // find id -> "item id-price" of a swapped find (functions/product/[id].js cache key)
 for (const p of P_ALL) {
   const s = SWAPS[p.id]; if (!s) continue;
@@ -89,8 +89,10 @@ export const statsLoaded = () => VIEWS_VER > 0;
 // A bad main photo (photo_quality.js, from the vision labels) ranks lower: views x (1 - 0.6 x score). Owner, 10 Nov 2026.
 // Partner-swapped finds (SWAPPED) get 1e15 on top, above any popularity (at most ~1e14), so they come first in every list
 // sorted by score(): the homepage cards, hubs, product page rows, search index, AI chat (owner, 12 Nov 2026: "insane priority").
+// Archive finds (p.ar, the Archive import of scripts/import_archive.py: original 1688 / Taobao listings) get 5e14: right
+// after the partner finds, above every other find (owner, 26 Nov 2026: "i want the real links we get to rank high").
 export const score = p => { const v = VIEWS[p.id] || [0, 0, 0, 0], q = SG_MAIN.has(p.id) ? 0 : PQ[p.id] || 0;
-  return (SWAPPED.has(p.id) ? 1e15 : 0) + Math.min(Math.floor((v[1] + v[2]) * (1 - 0.6 * q)), 99999) * 1e9 + Math.min(v[3], 999) * 1e6 + Math.min(v[0], 999) * 1e3 + p.best * 500 + Math.min(p.qc, 499); };
+  return (SWAPPED.has(p.id) ? 1e15 : p.ar ? 5e14 : 0) + Math.min(Math.floor((v[1] + v[2]) * (1 - 0.6 * q)), 99999) * 1e9 + Math.min(v[3], 999) * 1e6 + Math.min(v[0], 999) * 1e3 + p.best * 500 + Math.min(p.qc, 499); };
 // The same numbers for pages that print them (the "top picks" on brand hubs): [views all time, last 30 days, last 7 days, favourites].
 const NO_VIEWS = [0, 0, 0, 0];
 export const views = p => VIEWS[p.id] || NO_VIEWS;

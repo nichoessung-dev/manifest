@@ -589,6 +589,7 @@ def style_match(p, k):
             for b in d["brands"]:
                 n = sty_norm(b)
                 if n: _STY_BRAND.setdefault(n, set()).add(key)
+    if k == "archive" and p.get("ar"): return 2     # an Archive import (scripts/import_archive.py), whatever its brand
     d = STYLES[k]; bs = _STY_BRAND.get(sty_norm(p.get("brand"))); own = bool(bs and k in bs); title = p.get("title") or ""
     if k == "women":
         if p.get("g") == "w" or own or d["word"].search(title): return 2

@@ -87,5 +87,11 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
   section of `/stats`. Database: `scripts/email_v2.sql` then `scripts/email_v2_engine.sql`. Research behind it:
   the report "Email lifecycle deliverability and tracking". `newsletter.py`, `welcome.yml` and `newsletter.yml` are
   the old system, kept only for manual test runs.
+- Archive import (26 Nov 2026): a reseller's sheet matched by image search to the ORIGINAL 1688 / Taobao listings.
+  `scripts/import_archive.py stage <scored.csv>` (local, inputs outside the repo) writes `data/archive_import.json`
+  (original listings only; the reseller map stays outside the repo); `.github/workflows/import-archive.yml` makes the
+  cut-outs (`scripts/archive_photos.py`, Supabase `products/pc2/<id>-t1.webp`) and adds the finds with `"ar": 1`.
+  `ar` = Archive style whatever the brand (`pcStyleMatch`) and ranks right after partner finds (`swapFirst`, `score()`).
+  Never put a reseller id or link in the repo.
 - Stats: `/stats` (`stats.html`, data from the stats workflow), visits through `/api/visit`.
 - Preview the sign-up flow as a new visitor: `/?preview=signup`.

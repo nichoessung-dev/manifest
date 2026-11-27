@@ -60,6 +60,8 @@ def build_products_json(items):
             row["img"] = SITE + row["img"]
         if p.get("itemId"):
             row["itemId"] = p["itemId"]
+        if p.get("ar"):                  # the Archive mark (scripts/import_archive.py): the Archive style in emails
+            row["ar"] = 1
         out[p["id"]] = row
     return json.dumps(out, ensure_ascii=False, separators=(",", ":"))
 

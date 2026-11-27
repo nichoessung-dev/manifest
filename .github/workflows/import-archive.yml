@@ -1,0 +1,177 @@
+name: Import Archive finds
+# The Archive import (owner, 26 Nov 2026): the sheet's items matched to their ORIGINAL 1688 / Taobao listings
+# (scripts/import_archive.py stage made data/archive_import.json; original listings only). scripts/archive_photos.py,
+# one shard per job: the original listing's main photo, a vision look (ANTHROPIC_API_KEY: one product alone, no person,
+# hand, collage or box), the cut-out with clean_photos.py's pipeline (rembg isnet-general-use, tidy, gate, fidelity; no
+# upscaling, nothing drawn), Supabase products/pc2/<id>-t1.webp, new objects only. Each shard commits its records
+# (data/archive_photos/<k>-of-<n>.json, [skip ci]); review sheets (the original photo | the cut-out on #262626) are the
+# artifacts archive-photos-<k>-of-<n>. With apply=yes a last job adds every find whose cut-out is in storage to index.html
+# (scripts/import_archive.py apply, with the Archive mark "ar": 1), makes the catalogue files again and pushes
+# (Cloudflare deploys).
+# Order: first shards 8, limit 3, apply no (24 finds, about 5 minutes): look at the sheets. Then shards 8, limit 0,
+# apply yes (all). Run again with apply yes until every shard log says "left 0". After a new stage (a newer CSV), run
+# it again the same way: finds already done are skipped.
+on:
+  workflow_dispatch:
+    inputs:
+      shards:
+        description: 'Parallel shards (1 to 20)'
+        default: '8'
+      limit:
+        description: 'Finds per shard this run (0 = all; try 3 first)'
+        default: '3'
+      apply:
+        description: 'Add the finished finds to the site when the shards are done'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+      vision:
+        description: 'Let the vision model check each photo first (ANTHROPIC_API_KEY)'
+        type: choice
+        options: ['yes', 'no']
+        default: 'yes'
+      max_usd:
+        description: 'Vision spend per shard at most (USD)'
+        default: '1.5'
+      retry_kept:
+        description: 'Look again at finds kept out before'
+        type: choice
+        options: ['no', 'yes']
+        default: 'no'
+      ids:
+        description: 'Only these original item ids (comma separated, optional)'
+        default: ''
+permissions:
+  contents: write
+concurrency:
+  group: import-archive
+  cancel-in-progress: false
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.p.outputs.list }}
+    env:
+      N: ${{ inputs.shards || '8' }}
+      LIMIT: ${{ inputs.limit || '3' }}
+      USD: ${{ inputs.max_usd || '1.5' }}
+      IDS: ${{ inputs.ids }}
+    steps:
+      - id: p
+        run: |
+          [[ "$N" =~ ^([1-9]|1[0-9]|20)$ ]] || { echo "::error::shards must be 1 to 20"; exit 1; }
+          [[ "$LIMIT" =~ ^[0-9]{1,4}$ ]] || { echo "::error::limit must be a number"; exit 1; }
+          [[ "$USD" =~ ^[0-9]{1,2}(\.[0-9]{1,2})?$ ]] || { echo "::error::bad max_usd"; exit 1; }
+          [[ -z "$IDS" || "$IDS" =~ ^[0-9,\ ]+$ ]] || { echo "::error::bad ids"; exit 1; }
+          echo "list=$(python3 -c "import json;print(json.dumps(list(range($N))))")" >> "$GITHUB_OUTPUT"
+  photos:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        k: ${{ fromJSON(needs.plan.outputs.list) }}
+    env:
+      SHARD: ${{ matrix.k }}/${{ inputs.shards || '8' }}
+      LIMIT: ${{ inputs.limit || '3' }}
+      USD: ${{ inputs.max_usd || '1.5' }}
+      IDS: ${{ inputs.ids }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          sparse-checkout: |
+            scripts
+            data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install pillow numpy "rembg[cpu]>=2.0.59,<3"
+      - name: Cache background-removal model
+        uses: actions/cache@v4
+        with:
+          path: ~/.u2net
+          key: u2net-isnet-general-use-v1
+      - name: Shard tag
+        id: tag
+        run: echo "tag=${SHARD/\//-of-}" >> "$GITHUB_OUTPUT"
+      - name: Save helper
+        run: |
+          cat > /tmp/save.sh <<'EOF'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          [ -d data/archive_photos ] && git add data/archive_photos
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "data: archive photos, shard $SHARD [skip ci]"
+          for n in 1 2 3 4 5 6 7 8 9 10; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 5 + RANDOM % 10))
+          done
+          echo "::error::the records could not be saved"; exit 1
+          EOF
+      - name: Photos
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          ANTHROPIC_API_KEY: ${{ inputs.vision != 'no' && secrets.ANTHROPIC_API_KEY || '' }}
+        run: |
+          set -o pipefail
+          IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
+          RK=""; [ "${{ inputs.retry_kept }}" = "yes" ] && RK="--retry-kept"
+          # passes of about 80 minutes, each saved, so a stopped job loses little
+          for pass in 1 2 3; do
+            python -u scripts/archive_photos.py --shard "$SHARD" --limit "$LIMIT" --max-minutes 80 --max-usd "$USD" $IDA $RK \
+              --sheets out/archive-photos 2>&1 | grep -v -i -E 'warning|warn\(' | tee -a archive-photos.log
+            bash /tmp/save.sh
+            if [ "$LIMIT" != "0" ] || [ -n "$RK" ] || tail -1 archive-photos.log | grep -q '^left 0'; then break; fi
+          done
+      - name: Keep the log with the sheets
+        if: always()
+        run: mkdir -p out/archive-photos && cp archive-photos.log out/archive-photos/ || true
+      - name: Save what is done
+        if: failure() || cancelled()
+        run: bash /tmp/save.sh || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: archive-photos-${{ steps.tag.outputs.tag }}
+          path: |
+            out/archive-photos/*.jpg
+            out/archive-photos/archive-photos.log
+          if-no-files-found: warn
+          retention-days: 30
+  apply:
+    needs: photos
+    if: always() && inputs.apply == 'yes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - name: Add the finds and make the catalogue files again
+        run: |
+          set -o pipefail
+          git pull -q --rebase origin "$GITHUB_REF_NAME"
+          python -u scripts/import_archive.py apply | tee out-apply.log
+          python scripts/gen_catalog.py
+          python scripts/sync_catalog.py --no-thumbs
+          python -u scripts/import_archive.py report
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html functions/_lib/catalog.js products.json sitemap.xml
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          # no [skip ci]: Cloudflare Pages must deploy the new finds
+          git commit -q -m "feat: import Archive finds ($(grep -oP 'archive apply: \K[0-9]+' out-apply.log) finds, original listings)"
+          for n in 1 2 3 4 5 6; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 7))
+          done
+          echo "::error::the import could not be saved"; exit 1
