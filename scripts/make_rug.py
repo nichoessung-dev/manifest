@@ -372,23 +372,24 @@ def caption(im, text, cy=None, size=72, width=0.78):
 
 
 EMOJI = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"          # apt: fonts-noto-color-emoji
-MAINS = ["{kg}KG Unique {season} Haul unboxing", "Unboxing my {kg}KG {season} haul", "{kg}KG Old Money Haul unboxing",
-         "My {kg}KG {season} haul finally came", "{kg}KG Grisch Haul unboxing", "{kg}KG {season} Haul, all grisch"]
-SIDES = ["Old Money& Grisch Style", "Stockholm Style", "Quiet luxury only", "Grisch season", "Old money only", "Grisch & Old Money"]
-EMOJIS = ["\U0001F342\U0001F3CC\U0001F37E", "⛳\U0001F942", "\U0001F342⛳\U0001F37E", "\U0001F40E\U0001F942", "\U0001F3BE\U0001F342", "\U0001F3CC\U0001F942"]
-SIDE_EMOJI = ["\U0001F40E", "⛳", "\U0001F942", "\U0001F531"]      # no hearts or soft emojis (owner, 22 Oct 2026)
+MAINS = ["{kg}KG Unique Taobao Haul Unboxing", "{kg}KG Unique Taobao haul Unboxing", "{kg}KG Unique {season} Haul unboxing",
+         "{kg}KG Taobao haul Unboxing"]                    # the owner's own covers (27 Nov 2026)
+SIDES = ["Old Money& Grisch Style"]
+EMOJIS = [["🍂", "☀️", "🏌️"], ["🍂", "🥂", "☀️"],
+          ["❄️", "🏌️", "☀️"], ["🥂", "🇨🇳", "🍾"]]
+SIDE_EMOJI = ["🔱"]      # the trident, like the owner's covers
 
 
 def season():
-    return ["Winter", "Winter", "Spring", "Spring", "Spring", "Summer", "Summer", "Summer", "Fall/Autumn", "Fall/Autumn", "Fall/Autumn", "Winter"][time.localtime().tm_mon - 1]
+    return ["Winter", "Winter", "Spring", "Spring", "Spring", "Summer", "Summer", "Summer", "Fall/Autumn", "Fall/Autumn", "Fall/Winter", "Fall/Winter"][time.localtime().tm_mon - 1]
 
 
 def emoji_strip(chars, h):
     """Colour emojis side by side, h pixels tall (Noto Color Emoji only draws at 109 px, so scale)."""
     if not os.path.exists(EMOJI): return None
     f = ImageFont.truetype(EMOJI, 109); tiles = []
-    for c in chars:
-        t = Image.new("RGBA", (150, 150), (0, 0, 0, 0)); ImageDraw.Draw(t).text((10, 10), c, font=f, embedded_color=True)
+    for c in ([chars] if isinstance(chars, str) and len(chars) <= 2 else chars):      # a list of emojis (flags and ☀️ are two code points)
+        t = Image.new("RGBA", (190, 150), (0, 0, 0, 0)); ImageDraw.Draw(t).text((10, 10), c, font=f, embedded_color=True)
         bb = t.getbbox()
         if bb: tiles.append(t.crop(bb))
     if not tiles: return None
@@ -414,21 +415,25 @@ def cover(rnd, last=None, img=None):
     im = ImageOps.fit(Image.open(img or BOXES).convert("RGB"), (1080, 1920), Image.LANCZOS).convert("RGBA")
     pick = [k for k in range(len(MAINS)) if k != last] or [0]; k = rnd.choice(pick)
     kg = rnd.randint(14, 34); main = MAINS[k].replace("{kg}", str(kg)).replace("{season}", season())
-    d = ImageDraw.Draw(im); size = 94; f = tt(size, 700); words = main.split(); rows, cur = [], ""
+    d = ImageDraw.Draw(im); size = 80; f = tt(size, 700); words = main.split(); rows, cur = [], ""
     for w in words:                                            # two lines like the reference, the second one shorter
         t = (cur + " " + w).strip()
-        if cur and d.textlength(t, font=f) > 1080 * 0.80: rows.append(cur); cur = w
+        if cur and d.textlength(t, font=f) > 1080 * 0.86: rows.append(cur); cur = w
         else: cur = t
     rows.append(cur); y = int(1920 * 0.44)
-    em = emoji_strip(rnd.choice(EMOJIS), int(size * 0.95))
+    em = emoji_strip(rnd.choice(EMOJIS), int(size * 0.95)); arr = outlined(">>>", size)
+    inline = len(rows) > 1 and rnd.random() < 0.5 and d.textlength(rows[-1] + " >>>", font=f) + (em.width if em is not None else 0) < 1080 * 0.86   # ">>>" right after the emojis, like the owner's covers
     for n, r in enumerate(rows):
         layer = outlined(r, size)
-        if n == len(rows) - 1 and em is not None:              # the emojis follow the last line
-            both = Image.new("RGBA", (layer.width + 2 + em.width, max(layer.height, em.height)), (0, 0, 0, 0))
-            both.paste(layer, (0, both.height - layer.height), layer); both.paste(em, (layer.width + 2, both.height - em.height - 6), em); layer = both
+        if n == len(rows) - 1:                                 # the emojis (and maybe ">>>") follow the last line
+            extra = [x for x in (em, arr if inline else None) if x is not None]
+            if extra:
+                both = Image.new("RGBA", (layer.width + sum(x.width + 10 for x in extra), max([layer.height] + [x.height for x in extra])), (0, 0, 0, 0))
+                both.paste(layer, (0, both.height - layer.height), layer); xx = layer.width + 4
+                for x in extra: both.paste(x, (xx, both.height - x.height - 6), x); xx += x.width + 10
+                layer = both
         im.alpha_composite(layer, ((1080 - layer.width) // 2, y)); y += int(size * 1.22)
-    arr = outlined(">>>", size)
-    im.alpha_composite(arr, ((1080 - arr.width) // 2 + 60, y + 14))
+    if not inline: im.alpha_composite(arr, ((1080 - arr.width) // 2 + 40, y + 14))
     side = rnd.choice(SIDES); words = side.split(); half = (len(words) + 1) // 2
     lines = [" ".join(words[:half]), " ".join(words[half:])] if len(words) > 2 else [side]
     sz = 72; parts = [outlined(l, sz) for l in lines]
@@ -438,8 +443,9 @@ def cover(rnd, last=None, img=None):
         both.paste(p, (0, both.height - p.height), p); both.paste(se, (p.width + 6, both.height - se.height), se); parts[-1] = both
     blk = Image.new("RGBA", (max(p.width for p in parts) + 40, sum(p.height + 8 for p in parts)), (0, 0, 0, 0)); yy = 0
     for n, p in enumerate(parts): blk.paste(p, (n * 30 if n else 50, yy), p); yy += p.height + 8
-    blk = blk.rotate(-14, resample=Image.BICUBIC, expand=True)
-    im.alpha_composite(blk, (90, int(1920 * 0.64)))
+    blk = blk.rotate(rnd.choice([-13, 13]), resample=Image.BICUBIC, expand=True)      # tilted up or down, in a different place each time
+    top = max(y + 120, int(1920 * 0.6))                         # under the haul line, never over it
+    im.alpha_composite(blk, (min(1080 - blk.width - 20, rnd.randint(60, 480)), min(1920 - blk.height - 60, rnd.randint(top, top + 180))))
     return im.convert("RGB"), k, kg
 
 
