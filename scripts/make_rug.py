@@ -18,6 +18,7 @@ BOXES = os.environ.get("RUG_COVER") or os.path.join(ROOT, "scripts", "rug", "box
 COVERS = sorted(os.path.join(ROOT, "scripts", "rug", "covers", f) for f in os.listdir(os.path.join(ROOT, "scripts", "rug", "covers")) if f.endswith(".jpg"))     if not os.environ.get("RUG_COVER") and os.path.isdir(os.path.join(ROOT, "scripts", "rug", "covers")) else [BOXES]     # owner, 27 Nov 2026: 5 boxes photos taking turns, both accounts
 SCENE = os.environ.get("RUG_SCENE") or "on the wooden floor of my room"                  # where the rug lies, in the image prompt
 ROOM = os.environ.get("RUG_ROOM") or "a rug, a wooden floor, white drawers and a hanging plant"   # what the judge sees in image 1
+BGS = [os.path.join(os.environ["RUG_BGS"], f) for f in sorted(os.listdir(os.environ["RUG_BGS"])) if f.endswith(".jpg")] if os.environ.get("RUG_BGS") else []   # several views of the rug, one per slide (owner, 27 Nov 2026)
 PICKS = os.environ.get("RUG_PICKS") or os.path.join(ROOT, "scripts", "rug_picks.json")     # the owner's picks (picker page)
 YELLOW = (252, 250, 190)                                   # TikTok's pale caption yellow (owner's reference, 22 Oct 2026)
 TTS = os.path.join(ROOT, "scripts", "fonts", "TikTokSans.ttf")   # TikTok Sans (OFL), the app's own caption font
@@ -121,12 +122,13 @@ def claude_json(text, ims, max_tokens=2000, side=768):
     return json.loads(m.group(0))
 
 
-def judge(shots, png):
+def judge(shots, png, bg=None, close=False):
     """A strict second look at a made image (Gemini Flash): True when it may be posted. The owner's slop rules (22 Oct 2026)."""
     if LOOK == "claude":
         try:
             text = JUDGE.format(n=len(shots), last=len(shots) + 1, res=len(shots) + 2, room=ROOM)
-            v = claude_json(text, [Image.open(RUG)] + list(shots) + [Image.open(io.BytesIO(png))])
+            if close: text = text.replace("not a close-up and not", "a close-up is fine, but not")
+            v = claude_json(text, [Image.open(bg or RUG)] + list(shots) + [Image.open(io.BytesIO(png))])
         except Exception as e: return True, "judge failed: %s" % str(e)[:300]
         ok = all(v.get(k) for k in ("same_item", "logos_ok", "count_ok", "no_people", "no_extra", "standing_view")) and int(v.get("real_photo") or 0) >= int(os.environ.get("RUG_REAL_MIN", "7"))
         return ok, json.dumps(v)[:300]
@@ -134,7 +136,7 @@ def judge(shots, png):
     enc = lambda im: {"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(jpeg(im, 768)).decode()}}
     try:
         text = JUDGE.format(n=len(shots), last=len(shots) + 1, res=len(shots) + 2, room=ROOM)
-        j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": text}, enc(Image.open(RUG))] + [enc(x) for x in shots] + [enc(Image.open(io.BytesIO(png)))],
+        j = gemini(os.environ.get("RUG_CHECK_MODEL") or newest_flash(), [{"text": text}, enc(Image.open(bg or RUG))] + [enc(x) for x in shots] + [enc(Image.open(io.BytesIO(png)))],
                    {"responseMimeType": "application/json", "temperature": 0}, 90)
         v = json.loads(j["candidates"][0]["content"]["parts"][0]["text"])
     except Exception as e: return True, "judge failed: %s" % str(e)[:80]          # never block on a broken judge; the owner still reviews the draft
@@ -1014,15 +1016,20 @@ def main():
     def make(sl):                                              # 3. the images, three at a time; each one judged, one retry, then the slide is dropped
         shots = [p["img"] if p.get("single") else top_shot(p["img"]) for p in sl]; label = " + ".join(p["name"] for p in sl)
         angle = rnd.choice(ANGLES["several"]) if len(sl) > 1 else sl[0]["angle"]
+        bgp, close = None, False
+        if BGS:                                                # a view per slide; the close-up only for small things, which would be lost in the wide views
+            small = all(p["group"] == "small" for p in sl)
+            bgp = random.Random(label).choice([b for b in BGS if ("detail" in os.path.basename(b)) == small] or BGS); close = "detail" in os.path.basename(bgp)
+            if close: angle = angle.replace("standing viewpoint", "viewpoint").replace(" one small step closer,", "")
         if AI_OUT[0]: return sl, composite(sl, random.Random("%s %s" % (a.seed, label))), "rug flat-lay (no AI credit)", {}     # its own dice: the slides are made side by side
         if GOT[0] >= a.n: print("  enough slides already, not making", label); return sl, None, None, {}     # 25 Nov 2026: the spare slide only costs images
         best = None                                            # 19 Nov 2026: the best near miss is used, not thrown away
         for attempt in range(2):
             if time.time() - t0 > budget: print("  out of time, skipping", label); break
             print("  making", label, "try", attempt + 1, "%.0fs in" % (time.time() - t0))
-            png, model, use = generate([rug] + [jpeg(x) for x in shots], prompt([p["item"] for p in sl], angle, all(p["qc"].startswith("pop:") for p in sl)))
+            png, model, use = generate([jpeg(Image.open(bgp), 1536) if bgp else rug] + [jpeg(x) for x in shots], prompt([p["item"] for p in sl], angle, all(p["qc"].startswith("pop:") for p in sl)))
             if not png: break
-            ok, why = judge(shots, png); print("  %s, try %d: %s %s" % (label, attempt + 1, "OK" if ok else "REJECTED", why))
+            ok, why = judge(shots, png, bgp, close); print("  %s, try %d: %s %s" % (label, attempt + 1, "OK" if ok else "REJECTED", why))
             try: v = json.loads(why) if why.startswith("{") else {}
             except Exception: v = {}
             score = int(v.get("real_photo") or 0)

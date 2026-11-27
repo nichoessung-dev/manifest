@@ -97,7 +97,7 @@ def library_packs(ids, shard):
 
 
 MAIN_RUG = os.environ.get("MAIN_RUG", "") == "1"     # owner, 27 Nov 2026: main account gets AI rug photos too (closet background, the owner's picks only)
-MAIN_RUG_ENV = {"RUG_BG": os.path.join(ROOT, "scripts", "rug", "main_bg.png"), "RUG_SOURCE": "picks", "RUG_MIX": "1",
+MAIN_RUG_ENV = {"RUG_BG": os.path.join(ROOT, "scripts", "rug", "main_bg.png"), "RUG_SOURCE": "picks", "RUG_MIX": "1", "RUG_BGS": os.path.join(ROOT, "scripts", "rug", "main_bgs"),
                 "RUG_PICKS": os.path.join(ROOT, "scripts", "main_picks.json"),
                 "RUG_SCENE": "on a cream woven carpet in my walk-in closet, under a wooden shelf full of shoes",
                 "RUG_ROOM": "a rug on a cream woven carpet under a wooden shelf full of shoes, with a green shoe box at the right edge"}
