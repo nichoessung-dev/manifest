@@ -45,7 +45,6 @@ export const TILE_LIGHT = {
   "7676232932": "the old cut-out leaves the item half see-through: murky on #262626 (needs a new cut-out)",
   "7677515795": "the old cut-out leaves the item half see-through: murky on #262626 (needs a new cut-out)",
   "7680468108": "the old cut-out leaves the item half see-through: murky on #262626 (needs a new cut-out)",
-  "7680482098": "the old cut-out leaves the item half see-through: murky on #262626 (needs a new cut-out)",
   "7737657814": "the old cut-out leaves the item half see-through: murky on #262626 (needs a new cut-out)",
   "6636749467": "white pieces of the stand at the bottom, plain on #262626",
 };
