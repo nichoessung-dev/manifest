@@ -8,7 +8,7 @@ picks a sound and posts it. main_drafts.json records the packs sent, so a pack i
   python scripts/main_drafts.py            # send DRAFTS_PER_DAY (4) drafts
 Env: POSTIZ_API_KEY, GH_TOKEN, DRAFTS_PER_DAY, DRY_RUN=1.
 """
-import json, os, subprocess, sys, time, zipfile
+import json, os, shutil, subprocess, sys, time, zipfile
 from datetime import datetime, timedelta, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import post_short as P
@@ -18,6 +18,7 @@ TAG = "month-content"
 STATE = os.path.join(ROOT, "main_drafts.json")
 N = int(os.environ.get("DRAFTS_PER_DAY", "4")); DRY = bool(os.environ.get("DRY_RUN", "").strip())
 CTA = "check out puroclassico.com for finds like this"
+END = os.path.join(ROOT, "scripts", "rug", "cta_end.jpg")
 ACCOUNTS = [a.strip() for a in os.environ.get("DRAFT_ACCOUNTS", "puroclassico.com,qualityfinds").split(",") if a.strip()]   # owner, 27 Nov 2026: the same slideshows on both accounts
 
 
@@ -38,6 +39,8 @@ def main():
             pk = json.loads(f.read("slides.json"))
             for j, name in enumerate([pk.get("cover", "00.jpg")] + [x["img"] for x in pk["slides"]]):
                 dst = "%s-%02d.jpg" % (vid, j); open(os.path.join(out, dst), "wb").write(f.read(name)); imgs.append(dst)
+        if os.path.exists(END):                                # the owner's "All finds in bio" slide closes every slideshow (27 Nov 2026)
+            dst = "%s-end.jpg" % vid; shutil.copy(END, os.path.join(out, dst)); imgs.append(dst)
         cap = (pk.get("caption") or "").split("\n", 1)
         meta = {"file": "", "images": imgs, "format": "main-draft",
                 "caption": cap[0].strip() + "\n\n" + CTA + ("\n\n" + cap[1].strip() if len(cap) > 1 else "")}
