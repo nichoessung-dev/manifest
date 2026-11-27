@@ -97,9 +97,9 @@ def look(im, title):
                 "This is the main photo of a shop listing for: " + json.dumps(title) + ". It will be cut out (background "
                 "removed) for a product catalogue. Is it a good photo for that? ok is true only when the photo shows the "
                 "product ALONE and whole: no person or body part wearing or holding it, no hand, not a collage or grid of "
-                "several photos, not several different products, not a box or packaging as the subject, no large text, "
-                "price tag or watermark over the product itself (small text on the background is fine: the background is "
-                "removed), and it is the product named (not a size chart, not a detail close-up). A pair of shoes, a set "
+                "several photos, not several different products, not a box or packaging as the subject, and NO added text, "
+                "number, price tag, stamp or watermark anywhere in the photo (Chinese or English captions next to the item "
+                "survive the cut-out, so they count too; only text printed on the product itself is fine), and it is the product named (not a size chart, not a detail close-up). A pair of shoes, a set "
                 "worn as one outfit laid flat, or one item shown with its own strap is fine. several: true when the product "
                 "is a pair or a set of two or more pieces. issue: '' when ok, else a few words. "
                 'Answer only JSON, no code fence: {"ok":true,"several":false,"issue":""}'}]
