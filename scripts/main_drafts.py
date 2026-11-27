@@ -19,19 +19,20 @@ STATE = os.path.join(ROOT, "main_drafts.json")
 N = int(os.environ.get("DRAFTS_PER_DAY", "4")); DRY = bool(os.environ.get("DRY_RUN", "").strip())
 CTA = "check out puroclassico.com for finds like this"
 END = os.path.join(ROOT, "scripts", "rug", "cta_end.jpg")
-ACCOUNTS = [a.strip() for a in os.environ.get("DRAFT_ACCOUNTS", "puroclassico.com,qualityfinds").split(",") if a.strip()]   # owner, 27 Nov 2026: the same slideshows on both accounts
+ACCOUNTS = [a.strip() for a in os.environ.get("DRAFT_ACCOUNTS", "puroclassico.com,qualityfinds").split(",") if a.strip()]   # each account gets its OWN packs, never the same one (owner, 27 Nov 2026)
 
 
 def main():
     try: st = json.load(open(STATE, encoding="utf-8"))
     except Exception: st = {"sent": {}}
     r = subprocess.run(["gh", "release", "view", TAG, "--json", "assets", "-q", ".assets[].name"], capture_output=True, text=True, cwd=ROOT)
-    done = lambda v: isinstance(st["sent"].get(v), dict) and all(a in st["sent"][v] for a in ACCOUNTS)
+    done = lambda v: bool(st["sent"].get(v))           # owner, 27 Nov 2026: never the same slideshow on both accounts, so a pack sent anywhere is used up
     packs = sorted(n[:-4] for n in r.stdout.split() if n.startswith("pcr-") and n.endswith(".zip") and not done(n[:-4]))
     print("rug slideshows not sent yet:", len(packs))
     out = os.path.join(ROOT, "out", "drafts"); os.makedirs(out, exist_ok=True); sent = 0
-    for vid in packs[:N]:
-        if DRY: print("DRY_RUN: would send", vid); continue
+    plan = [(vid, ACCOUNTS[i % len(ACCOUNTS)]) for i, vid in enumerate(packs[:N * len(ACCOUNTS)])]   # N each, every account its own packs
+    for vid, acct in plan:
+        if DRY: print("DRY_RUN: would send", vid, "to", acct); continue
         if subprocess.run(["gh", "release", "download", TAG, "-p", vid + ".zip", "-D", out, "--clobber"], cwd=ROOT).returncode:
             print("::warning::could not download", vid); continue
         imgs = []
@@ -45,24 +46,20 @@ def main():
         meta = {"file": "", "images": imgs, "format": "main-draft",
                 "caption": "\n" + (cap[1].strip() if len(cap) > 1 else "")}     # hashtags only (owner, 27 Nov 2026): no title, no text; the end slide carries the CTA
         mp = os.path.join(out, vid + ".json"); json.dump(meta, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-        sent_to = st["sent"].setdefault(vid, {}) if isinstance(st["sent"].get(vid), dict) else st["sent"].setdefault(vid, {})
-        for acct in ACCOUNTS:
-            if acct in sent_to: continue
-            at = (datetime.now(timezone.utc) + timedelta(minutes=3)).strftime("%Y-%m-%dT%H:%M:00.000Z")
-            env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS="tiktok", TIKTOK_ACCOUNT=acct, TIKTOK_METHOD="UPLOAD", TIKTOK_AUTO_MUSIC="no")     # auto-music on made TikTok drop photo drafts (27 Nov 2026)
-            p = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), mp], env=env, capture_output=True, text=True)
-            print(p.stdout[-500:]); print(p.stderr[-300:])
-            if p.returncode: print("::warning::could not send", vid, "to", acct); continue
-            sent_to[acct] = at; json.dump(st, open(STATE, "w", encoding="utf-8"), indent=1)
-            print("sent as a draft:", vid, "to", acct, flush=True); time.sleep(20)
+        at = (datetime.now(timezone.utc) + timedelta(minutes=3)).strftime("%Y-%m-%dT%H:%M:00.000Z")
+        env = dict(os.environ, SCHEDULE_AT=at, SHORTS_CHANNELS="tiktok", TIKTOK_ACCOUNT=acct, TIKTOK_METHOD="UPLOAD", TIKTOK_AUTO_MUSIC="no")     # auto-music on made TikTok drop photo drafts (27 Nov 2026)
+        p = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_short.py"), mp], env=env, capture_output=True, text=True)
+        print(p.stdout[-500:]); print(p.stderr[-300:])
         for x in [vid + ".zip", vid + ".json"] + imgs:
             try: os.remove(os.path.join(out, x))
             except OSError: pass
-        if all(a in sent_to for a in ACCOUNTS): sent += 1
+        if p.returncode: print("::warning::could not send", vid, "to", acct); continue
+        st["sent"][vid] = {acct: at}; json.dump(st, open(STATE, "w", encoding="utf-8"), indent=1)
+        print("sent as a draft:", vid, "to", acct, flush=True); sent += 1; time.sleep(20)
     left = len(packs) - sent
     print("drafts sent:", sent, "| rug slideshows left:", left)
     s = os.environ.get("GITHUB_STEP_SUMMARY")
-    if s: open(s, "a").write("### puroclassico drafts: %d sent, %d left%s\n" % (sent, left, " (pick more items!)" if left < N * 3 else ""))
+    if s: open(s, "a").write("### puroclassico drafts: %d sent, %d left%s\n" % (sent, left, " (pick more items!)" if left < N * len(ACCOUNTS) * 3 else ""))
 
 
 if __name__ == "__main__":
