@@ -307,9 +307,46 @@ def report(a):
     print("archive: staged %d; %s; Archive finds in the catalogue %d" % (len(st), dict(c.most_common()), len(have)))
 
 
+def drop(a):
+    """Take Archive finds off the site (a broken cut-out seen after it went live): out of the pc-catalog block, and their
+    photo record marked "kept" with the reason, so apply never adds them back. Only finds marked "ar" can be dropped."""
+    ids = {x.strip() for x in a.csv.split(",") if x.strip()}
+    path = os.path.join(ROOT, "index.html"); html = open(path, encoding="utf-8").read()
+    i = html.find(TAG); s = i + len(TAG); e = html.find("</script>", s)
+    rows = json.loads(html[s:e]); keep, gone = [], []
+    for p in rows:
+        if str(p.get("id")) in ids:
+            if not p.get("ar"): sys.exit("%s is not an Archive find: not dropped" % p.get("id"))
+            gone.append(str(p["id"])); continue
+        keep.append(p)
+    raw = html[s:e]
+    # every object's span, parsed in order (key order and nesting differ between importers), then the dropped ones cut out
+    dec, k, spans = json.JSONDecoder(), raw.index("[") + 1, []
+    while True:
+        while raw[k] in " \n\r\t,": k += 1
+        if raw[k] == "]": break
+        obj, j = dec.raw_decode(raw, k); spans.append((k, j, str(obj.get("id")))); k = j
+    for k, j, pid in reversed(spans):
+        if pid not in gone: continue
+        if raw[j:j + 1] == ",": j += 1
+        elif raw[k - 1:k] == ",": k -= 1
+        raw = raw[:k] + raw[j:]
+    json.loads(raw)
+    open(path, "w", encoding="utf-8").write(html[:s] + raw + html[e:])
+    for f in glob.glob(os.path.join(ROOT, "data", "archive_photos", "*.json")):
+        orig = open(f).read(); d = json.loads(orig); ch = False
+        for pid in gone:
+            r = d.get("items", {}).get(pid)
+            if r: r["status"] = "kept"; r["why"] = [a.why or "dropped after review"]; ch = True
+        if ch:
+            lines = orig.splitlines(); ind = len(lines[1]) - len(lines[1].lstrip()) if len(lines) > 1 else None
+            open(f, "w").write(json.dumps(d, ensure_ascii=False, indent=ind) + ("\n" if orig.endswith("\n") else ""))
+    print("archive drop: %d finds taken off (%s)" % (len(gone), ", ".join(gone)))
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=["stage", "apply", "report"])
+    ap.add_argument("stage", choices=["stage", "apply", "report", "drop"])
     ap.add_argument("csv", nargs="?", default="")
     ap.add_argument("--names", default=""); ap.add_argument("--jsonl", action="append", default=[])
     ap.add_argument("--map", default=""); ap.add_argument("--dupes", default="")
@@ -318,11 +355,13 @@ def main(argv=None):
     ap.add_argument("--test-src-photos", action="store_true",
                     help="apply: use the original listing photos instead of the cut-outs (local preview only, with --out)")
     ap.add_argument("--out", default="", help="apply: write the result here instead of index.html")
+    ap.add_argument("--why", default="", help="drop: the reason, kept in the photo record")
     a = ap.parse_args(argv)
     if a.stage == "stage":
         if not a.csv: ap.error("stage needs the scored CSV")
         return stage(a)
     if a.stage == "apply": return apply(a)
+    if a.stage == "drop": return drop(a)
     return report(a)
 
 
