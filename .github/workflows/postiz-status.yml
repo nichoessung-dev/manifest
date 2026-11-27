@@ -14,4 +14,4 @@ jobs:
           python-version: '3.12'
       - env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
-        run: python scripts/postiz_status.py "${{ inputs.hours }}"
+        run: python scripts/postiz_status.py "${{ inputs.hours }}"; python scripts/postiz_channels.py
