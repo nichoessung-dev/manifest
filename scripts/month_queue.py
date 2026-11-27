@@ -147,6 +147,24 @@ def redo():
     save(st)
 
 
+def manual(ids):
+    """Unbook these packs (owner posts them by hand): delete their Postiz posts and mark them used, so they never post twice."""
+    st = load(); q = st["queued"]; now = datetime.now(timezone.utc)
+    live = {}
+    for p in posts(now, now + timedelta(days=40)):
+        if p.get("state") in (None, "QUEUE"): live.setdefault((p.get("publishDate") or "")[:16], []).append(p["id"])
+    for vid in ids:
+        v = q[vid]
+        for pid in set(v.get("posts", [])) | set(live.get(v["at"][:16], [])):
+            if DRY: print("DRY_RUN: delete", pid); continue
+            try: P.call("DELETE", "/posts/" + pid)
+            except SystemExit as e:
+                if "404" not in str(e): print("could not delete", pid, str(e)[:120])
+            time.sleep(1)
+        print("unbooked %s (was %s)" % (vid, v["at"]))
+        if not DRY: v.update(booked=v["at"], at=now.strftime("%Y-%m-%dT%H:%M:%S.000Z"), manual=True); save(st)
+
+
 def fill():
     st = load(); q = st.setdefault("queued", {}); now = datetime.now(timezone.utc)
     taken = {(v["account"], v["at"]) for v in q.values()}
@@ -181,5 +199,5 @@ def fill():
 if __name__ == "__main__":
     if not P.KEY: raise SystemExit("POSTIZ_API_KEY is not set")
     ap = argparse.ArgumentParser(); ap.add_argument("--old", action="store_true"); ap.add_argument("--delete", action="store_true")
-    ap.add_argument("--redo", action="store_true"); a = ap.parse_args()
-    old(a.delete) if a.old else redo() if a.redo else fill()
+    ap.add_argument("--redo", action="store_true"); ap.add_argument("--manual", default=""); a = ap.parse_args()
+    manual(a.manual.split(",")) if a.manual else old(a.delete) if a.old else redo() if a.redo else fill()

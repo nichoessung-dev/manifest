@@ -11,6 +11,9 @@ on:
         type: choice
         options: ['fill', 'redo', 'old', 'old-delete']
         default: 'fill'
+      manual:
+        description: 'Pack ids to unbook (comma separated), owner posts them by hand'
+        default: ''
       dry_run:
         description: 'Only show the plan'
         type: boolean
@@ -37,7 +40,9 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
           MODE: ${{ inputs.mode || 'fill' }}
           MONTH_DAYS: ${{ vars.MONTH_DAYS || '7' }}
+          MANUAL: ${{ inputs.manual || '' }}
         run: |
+          if [ -n "$MANUAL" ]; then python scripts/month_queue.py --manual "$MANUAL"; exit $?; fi
           case "$MODE" in
             old) python scripts/month_queue.py --old ;;
             old-delete) python scripts/month_queue.py --old --delete ;;
