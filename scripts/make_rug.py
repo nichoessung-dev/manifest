@@ -15,6 +15,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUG = os.environ.get("RUG_BG") or os.path.join(ROOT, "scripts", "rug", "rug.jpg")          # main account (owner, 27 Nov 2026): scripts/rug/main_bg.png, the rug in the closet
 BOXES = os.environ.get("RUG_COVER") or os.path.join(ROOT, "scripts", "rug", "boxes.jpg")
+COVERS = sorted(os.path.join(ROOT, "scripts", "rug", "covers", f) for f in os.listdir(os.path.join(ROOT, "scripts", "rug", "covers")) if f.endswith(".jpg"))     if not os.environ.get("RUG_COVER") and os.path.isdir(os.path.join(ROOT, "scripts", "rug", "covers")) else [BOXES]     # owner, 27 Nov 2026: 5 boxes photos taking turns, both accounts
 SCENE = os.environ.get("RUG_SCENE") or "on the wooden floor of my room"                  # where the rug lies, in the image prompt
 ROOM = os.environ.get("RUG_ROOM") or "a rug, a wooden floor, white drawers and a hanging plant"   # what the judge sees in image 1
 PICKS = os.environ.get("RUG_PICKS") or os.path.join(ROOT, "scripts", "rug_picks.json")     # the owner's picks (picker page)
@@ -407,10 +408,10 @@ def outlined(text, size, weight=700):
     return im.crop(im.getbbox())
 
 
-def cover(rnd, last=None):
+def cover(rnd, last=None, img=None):
     """The boxes photo with a haul line in white (a random weight, the season, emojis), >>> under it, and a tilted side text.
     The wording changes every post (owner's reference, 22 Oct 2026)."""
-    im = ImageOps.fit(Image.open(BOXES).convert("RGB"), (1080, 1920), Image.LANCZOS).convert("RGBA")
+    im = ImageOps.fit(Image.open(img or BOXES).convert("RGB"), (1080, 1920), Image.LANCZOS).convert("RGBA")
     pick = [k for k in range(len(MAINS)) if k != last] or [0]; k = rnd.choice(pick)
     kg = rnd.randint(14, 34); main = MAINS[k].replace("{kg}", str(kg)).replace("{season}", season())
     d = ImageDraw.Draw(im); size = 94; f = tt(size, 700); words = main.split(); rows, cur = [], ""
@@ -1036,7 +1037,8 @@ def main():
     if len(log) < min(a.n, int(os.environ.get("RUG_MIN_SLIDES", "5"))):      # never post a thin carousel (month videos: 4 is fine, 25 Nov 2026)
         if state_path and a.commit_state: json.dump(used, open(state_path, "w"), indent=0)
         sys.exit("only %d slides made" % len(log))
-    cv, k, kg = cover(rnd, used.get("rug_cover")); cover_path = os.path.join(a.out, "00-cover.jpg"); cv.save(cover_path, quality=94)
+    ci = (int(used.get("rug_cover_img", -1)) + 1) % len(COVERS); used["rug_cover_img"] = ci      # the boxes photos take turns
+    cv, k, kg = cover(rnd, used.get("rug_cover"), COVERS[ci]); cover_path = os.path.join(a.out, "00-cover.jpg"); cv.save(cover_path, quality=94)
     images = [cover_path]
     for x in log:
         p = os.path.join(a.out, x["file"]); raw = phone_look(Image.open(p[:-4] + "-raw.jpg"))
