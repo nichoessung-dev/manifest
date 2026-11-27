@@ -101,9 +101,19 @@ class Resp(io.BytesIO):
     pass
 
 
+def snap():
+    """The real photo records as they are on disk (the tests must never change them)."""
+    return {f: open(f, "rb").read() for f in sorted(glob.glob(os.path.join(ROOT, "data", "sheet_photos", "*")))}
+
+
+REAL_PHOTOS = snap()
+
+
 def fake_urlopen(req, timeout=None):
     url = req.full_url if isinstance(req, urllib.request.Request) else req
     CALLS.append(url)
+    if "getDetailDesc" in url or url.startswith("https://weidian.com/item.html"):
+        raise urllib.error.URLError("no gallery in the test")
     if url.startswith("https://thor.weidian.com/"):
         iid = json.loads(urllib.parse.unquote(url.split("param=", 1)[1]))["itemId"]
         if iid == ERR: return Resp(json.dumps({"status": {"code": 2, "message": "Login Error"}}).encode())
@@ -172,7 +182,7 @@ def test_stage():
         ok(S["2055316446993086619623"] == "skipped", "an id that cannot be a Weidian item")
         ok(S["7999300000001"] == "needs details" and S["719154287380"] == "needs details", "Taobao and 1688 wait for details")
         ok(S[ERR] == "error" and st[ERR]["tries"] == 1, "an error is kept and tried again: %s" % st[ERR])
-        asked = {json.loads(urllib.parse.unquote(u.split("param=", 1)[1]))["itemId"] for u in CALLS if "thor." in u}
+        asked = {json.loads(urllib.parse.unquote(u.split("param=", 1)[1]))["itemId"] for u in CALLS if "getItemSkuInfo" in u}
         ok(asked == NET, "Weidian asked only for the Weidian items that need it: %s" % sorted(asked ^ NET))
         ok(not any("taobao" in u or "1688" in u for u in CALLS), "no call for Taobao or 1688")
         ok(sorted(os.listdir(os.path.join(tmp, "stage"))) == ["0-of-1.json"], "one stage file for the shard")
@@ -237,7 +247,7 @@ def test_photos_set():
             else: os.environ["SUPABASE_SERVICE_KEY"] = old_key
         recs = json.load(open(os.path.join(tmp, "photos", "0-of-1.json")))["items"]
         ok(set(recs) == set(IA.staged("murphy")) and all(r["status"] == "gone" for r in recs.values()), "photo records of the sheet's staged finds: %s" % sorted(recs))
-        ok(not glob.glob(os.path.join(ROOT, "data", "sheet_photos", "*")), "nothing written to the real records")
+        ok(snap() == REAL_PHOTOS, "nothing written to the real records")
     seen = []
 
     def grab(req, timeout=None):
@@ -259,7 +269,7 @@ def test_apply():
         extra = {}
         for k, x in enumerate(("7999200001", "7999200002")):
             row = dict(staged[HOODIE]["row"], id=x, itemId=x, title="Stussy Zorblax Quantum Hoodie Black")
-            extra[x] = {"status": "staged", "row": row, "src": "https://si.geilicdn.com/z%d.jpg" % k}
+            extra[x] = {"status": "staged", "row": row, "src": "https://si.geilicdn.com/z%d.jpg" % k, "rule": IS.RULE}
         IA.save_json(os.path.join(tmp, "stage", "1-of-2.json"), {"items": extra})
         cut = [HOODIE, RUG, CARPET, "7999200001", "7999200002"]
         recs = {x: {"status": "cut", "url": IA.PUB + "products/pc2/%s-t1.webp" % x} for x in cut}
@@ -301,7 +311,42 @@ def test_apply():
     ok(IA.row_problems(dict(row, platform="weidian")), "never weidian for the Archive")
 
 
+def test_photo_rule():
+    """Photo rule 2 (27 Nov 2026): the gallery and description photos, an older staged record staged again, a changed photo
+    cut again under a new name."""
+    page = ('<script>x={&#34;imgs&#34;:[&#34;https://si.geilicdn.com/open1-a_1284_1284.jpg&#34;,'
+            '&#34;https://si.geilicdn.com/open1-b_1000_1000.jpg&#34;]}</script>')
+    desc = {"status": {"code": 0}, "result": {"item_detail": {"desc_content": [
+        {"type": 2, "url": "https://si.geilicdn.com/open1-b_1000_1000.jpg"},          # the same as the gallery's
+        {"type": 2, "url": "https://si.geilicdn.com/img-c_750_4000.jpg"},             # a long strip: left out
+        {"type": 2, "url": "https://si.geilicdn.com/open1-d_800_800.jpg"}, {"type": 1, "text": "x"}]}}}
+
+    def net(req, timeout=None):
+        u = req.full_url
+        if u.startswith("https://weidian.com/item.html"): return Resp(page.encode())
+        if "getDetailDesc" in u: return Resp(json.dumps(desc).encode())
+        raise AssertionError(u)
+    old = urllib.request.urlopen; urllib.request.urlopen = net
+    try:
+        got = IS.more_photos("7999100001", ["https://si.geilicdn.com/open1-a_1284_1284.jpg.webp?w=750&h=750"])
+    finally:
+        urllib.request.urlopen = old
+    ok([u for _, u in got] == ["https://si.geilicdn.com/open1-b_1000_1000.jpg", "https://si.geilicdn.com/open1-d_800_800.jpg"],
+       "gallery and description photos, new ones only, no strips: %s" % got)
+    ok([l for l, _ in got] == ["gallery photo 1", "description photo 1"], "labelled for the vision call: %s" % got)
+    ok(not IS.is_done({"status": "staged", "row": {}}, "1", {}), "a staged record of rule 1 is staged again")
+    ok(IS.is_done({"status": "staged", "row": {}}, "1", {}, {"1"}), "never once the find is on the site")
+    ok(IS.is_done({"status": "staged", "row": {}, "rule": IS.RULE}, "1", {}), "a record of the current rule is done")
+    ok(not IS.is_done({"status": "badphoto"}, "1", {}) and IS.is_done({"status": "sold out"}, "1", {}), "badphoto again, sold out not")
+    a, b = "https://si.geilicdn.com/a.jpg", "https://si.geilicdn.com/b.jpg"
+    ok(AP.new_photo({"status": "cut", "src": a}, {"src": b}) and not AP.new_photo({"status": "cut", "src": a}, {"src": a}), "a changed photo is cut again")
+    n = AP.object_name("7999100001", {"status": "cut", "src": a}, b)
+    ok(n.startswith("products/pc2/7999100001-t1.v") and IA.IMG.match(IA.PUB + n) and AP.object_name("7999100001", None, b) == "products/pc2/7999100001-t1.webp",
+       "a new object name for a changed photo, accepted by apply: %s" % n)
+
+
 if __name__ == "__main__":
+    test_photo_rule()
     test_stage()
     test_details()
     test_photos_set()

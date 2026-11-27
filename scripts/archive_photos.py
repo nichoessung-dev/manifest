@@ -92,6 +92,19 @@ def border_plain(im, tol=18):
     return hit / max(1, n)
 
 
+def new_photo(rec, entry):
+    """The stage chose another photo since this record was made (import_sheet.py photo RULE 2, 27 Nov 2026)."""
+    return bool(rec and rec.get("src") and entry.get("src") and rec["src"] != entry["src"])
+
+
+def object_name(oid, prev, src):
+    """products/pc2/<id>-t1.webp; for a find whose photo changed after an earlier record, <id>-t1.v<6 hex of the photo
+    link>.webp, because a stored object is never replaced (x-upsert false) and the edge caches the old one."""
+    if prev and prev.get("src") and prev["src"] != src:
+        return "products/pc2/%s-t1.v%s.webp" % (oid, hashlib.sha1((src or "").encode()).hexdigest()[:6])
+    return "products/pc2/%s-t1.webp" % oid
+
+
 def look(im, title):
     """One vision call: {"ok": bool, "issue": str, "several": bool}. {} when the call fails."""
     sm = im.copy(); sm.thumbnail((512, 512)); b = io.BytesIO(); sm.save(b, "JPEG", quality=85)
@@ -102,7 +115,9 @@ def look(im, title):
                 "product ALONE and whole: no person or body part wearing or holding it, no hand, not a collage or grid of "
                 "several photos, not several different products, not a box or packaging as the subject, and NO added text, "
                 "number, price tag, stamp or watermark anywhere in the photo (Chinese or English captions next to the item "
-                "survive the cut-out, so they count too; only text printed on the product itself is fine), and it is the product named (not a size chart, not a detail close-up). A pair of shoes, a set "
+                "survive the cut-out, so they count too; only text printed on the product itself is fine), NO blurred, smudged, "
+                "pixelated or painted-over patch hiding a logo or print (sellers often blur the logo; a real painted, "
+                "splattered or distressed design printed on the product is fine), and it is the product named (not a size chart, not a detail close-up). A pair of shoes, a set "
                 "worn as one outfit laid flat, or one item shown with its own strap is fine. several: true when the product "
                 "is a pair or a set of two or more pieces. issue: '' when ok, else a few words. "
                 'Answer only JSON, no code fence: {"ok":true,"several":false,"issue":""}'}]
@@ -212,9 +227,9 @@ def main(argv=None):
     for f in os.listdir(folder) if os.path.isdir(folder) else []:
         if f.endswith(".json") and os.path.join(folder, f) != log_path:
             for i, r in ((load_json(os.path.join(folder, f), {}) or {}).get("items") or {}).items():
-                if r.get("status") == "cut": done_elsewhere[i] = r
+                if r.get("status") == "cut" and not new_photo(r, staged.get(i) or {}): done_elsewhere[i] = r
     mine = [i for i in staged if shards.mine(i, shard) and (not want or i in want) and i not in done_elsewhere]
-    todo = [i for i in mine if (recs.get(i) or {}).get("status") not in FINAL
+    todo = [i for i in mine if (recs.get(i) or {}).get("status") not in FINAL or new_photo(recs.get(i), staged[i])
             or (a.retry_kept and recs[i].get("status") == "kept") or (want and recs.get(i, {}).get("status") != "cut")]
     if a.limit: todo = todo[:a.limit]
     vision = bool(os.environ.get("ANTHROPIC_API_KEY")) and not a.no_vision
@@ -254,7 +269,7 @@ def main(argv=None):
                         after = out
                         buf = io.BytesIO(); out.save(buf, "WEBP", quality=a.quality, method=5); data = buf.getvalue()
                         sha = hashlib.sha1(data).hexdigest()
-                        name = "products/pc2/%s-t1.webp" % oid
+                        name = object_name(oid, recs.get(oid), v.get("src"))
                         rec.update(kb=len(data) // 1024, sha1=sha, object=name)
                         if upload_on:
                             res = upload(name, data)

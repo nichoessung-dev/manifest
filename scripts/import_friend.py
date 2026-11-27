@@ -69,11 +69,14 @@ def classify(photos, zh, hint, about="", shop="Weidian"):
     for k, (lab, im) in enumerate(photos):
         content += [{"type": "text", "text": f"Photo {k}: {lab}"}, {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": jpg64(im)}}]
     content.append({"type": "text", "text":
-        "These are the photos of one Chinese " + shop + " listing (photo 0 is its main photo, the others are its colour options). "
+        "These are the photos of one Chinese " + shop + " listing (photo 0 is its main photo; each other photo is labelled: a "
+        "colour option, a gallery photo or a description photo). "
         + (about or "Chinese title: " + json.dumps(zh, ensure_ascii=False) + ". An earlier look named it: " + json.dumps(hint, ensure_ascii=False) + ".") + "\n"
         "1) photo: the number of the best photo for a shop catalogue that shows ONE single product only, fully visible: no collage or "
         "grid of several products, no text or watermark over the photo, no packaging or box as the subject, no person wearing it, no "
-        "hand. -1 if no photo qualifies.\n2) Name the product in that photo in English: title 'Brand Item Colour' (2-7 words, Title "
+        "hand, and NO blurred, smudged, pixelated or painted-over patch hiding a logo or print (sellers often blur the logo: such a "
+        "photo never qualifies, take another photo of the same product where the logo shows clearly; a real painted, splattered "
+        "or distressed design printed on the product is fine). -1 if no photo qualifies.\n2) Name the product in that photo in English: title 'Brand Item Colour' (2-7 words, Title "
         "Case, no seller codes like DX1-7 or CY, never the words replica, fake, rep, 1:1, custom). brand: the designer brand of the "
         "design, read from logos, monograms, signature designs and the title (e.g. Yeezy, Louis Vuitton, Off-White, Chrome Hearts, "
         "Ralph Lauren, Bape); football kits: the kit maker if its logo shows, else the club or team. '' only when there is truly no "

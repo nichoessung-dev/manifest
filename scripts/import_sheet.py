@@ -45,6 +45,13 @@ DETAILS = os.path.join(ROOT, "data", "sheet_murphy_details.json")
 FINAL = ("staged", "needs details", "gone", "sold out", "no price", "badphoto", "skipped", "failed")
 TRIES = 3                # an item that errors this many times is given up
 OPTIONS = 5              # colour option photos the vision call sees next to the main photo
+EXTRA = 8                # Weidian: the listing's gallery and description photos it also sees (a clean one may be there)
+# The photo rule. 2 (owner, 27 Nov 2026): a photo with a blurred-out logo never qualifies (about 40% of the first 537
+# cut-outs had one); the listing's gallery and description photos are looked at too. A "staged" or "badphoto" record of
+# an older rule is staged again (never once the find is on the site).
+RULE = 2
+REDO = ("staged", "badphoto")
+MOBILE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148"
 GBP_CNY = 9.1            # yuan per pound, only for the sheet price check
 SHOP = {"weidian": "Weidian", "taobao": "Taobao", "1688": "1688"}
 ROOM_TABS = ("Rugs", "Room Decor")
@@ -99,12 +106,57 @@ def weidian(it, rec):
     opts = [v for at in (res.get("attrList") or []) for v in (at.get("attrValues") or []) if v.get("img")][:OPTIONS]
     urls = [("main photo", IA.https(res.get("itemMainPic")))] + [
         ("colour option " + str(v.get("attrValue") or ""), IA.https(v["img"])) for v in opts]
+    urls += more_photos(it["id"], [u for _, u in urls])
     photos, srcs = [], []
     for lab, u in urls:
         try: photos.append((lab, IF.get_img(u))); srcs.append(u)
         except Exception:   # noqa: BLE001 (an option photo that does not load is left out; the main photo must load)
             if not photos: raise
     return {"price": pr["price"], "photos": photos, "srcs": srcs, "words": {"zh": zh}}
+
+
+def photo_key(u):
+    """One key per photo whatever its size or format suffix (geilicdn serves x.jpg, x.jpg.webp?w=750...)."""
+    return re.sub(r"(\.(?:jpe?g|png))(?:\.webp)?(?:\?.*)?$", r"\1", re.sub(r"^https?://", "", u or ""), flags=re.I)
+
+
+def usable(u):
+    """A product photo, not a banner, a size-chart strip or an icon: by the size geilicdn puts in the name (_W_H.ext)."""
+    m = re.search(r"_(\d{2,5})_(\d{2,5})\.(?:jpe?g|png|webp)", u or "", re.I)
+    if not m: return True
+    w, h = int(m.group(1)), int(m.group(2))
+    return min(w, h) >= 400 and 0.5 <= h / w <= 2.0
+
+
+def more_photos(x, seen):
+    """The listing's other photos, new ones only, at most EXTRA: the item page's gallery ("imgs") and its description's
+    photos (getDetailDesc). Both answer without a login; [] when either fails (the main and option photos still go)."""
+    import html as H
+    import urllib.parse, urllib.request
+    keys, out = {photo_key(u) for u in seen}, []
+
+    def get(u):
+        req = urllib.request.Request(u, headers={"User-Agent": MOBILE_UA, "Referer": "https://weidian.com/"})
+        with urllib.request.urlopen(req, timeout=25) as r: return r.read().decode("utf-8", "ignore")
+
+    found = []
+    try:
+        m = re.search(r'"imgs":\[(.*?)\]', H.unescape(get("https://weidian.com/item.html?itemID=" + x)))
+        found += [("gallery photo", u) for u in re.findall(r'"(https?://[^"]+)"', m.group(1))] if m else []
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        d = json.loads(get("https://thor.weidian.com/detail/getDetailDesc/1.0?param=" + urllib.parse.quote(json.dumps({"vItemId": x}))))
+        found += [("description photo", c["url"]) for c in (((d.get("result") or {}).get("item_detail") or {}).get("desc_content") or [])
+                  if c.get("type") == 2 and c.get("url")]
+    except Exception:  # noqa: BLE001
+        pass
+    for lab, u in found:
+        u = IA.https(u)
+        if photo_key(u) in keys or not usable(u): continue
+        keys.add(photo_key(u)); out.append(("%s %d" % (lab, sum(1 for l, _ in out if l.startswith(lab)) + 1), u))
+        if len(out) >= EXTRA: break
+    return out
 
 
 def from_file(it, d, rec):
@@ -149,9 +201,13 @@ def stage_one(it, N, keys, d=None):
     return dict(rec, status="staged", row=row, src=srcs[k], item=str(c.get("item") or ""), **words)
 
 
-def is_done(r, x, details):
-    """A final state, except "needs details" once the details file has the item."""
-    return (r or {}).get("status") in FINAL and not ((r or {}).get("status") == "needs details" and x in details)
+def is_done(r, x, details, on=()):
+    """A final state, except "needs details" once the details file has the item, and a "staged" or "badphoto" record of an
+    older photo RULE while the find is not on the site (on: the catalogue's ids)."""
+    s = (r or {}).get("status")
+    if s == "needs details" and x in details: return False
+    if s in REDO and int((r or {}).get("rule") or 1) < RULE and x not in on: return False
+    return s in FINAL
 
 
 def ready(it, details):
@@ -167,9 +223,9 @@ def stage(a):
     log = load_json(log_path, {}) or {}
     recs = log.setdefault("items", {})
     details = load_details()
-    done = {x for x, r in IA.staged(SET, every=True).items() if is_done(r, x, details)}   # every shard's file
     _, items, _, _ = load_catalog()
     have = {str(p["id"]) for p in items} | {str(p.get("itemId")) for p in items if p.get("itemId")}
+    done = {x for x, r in IA.staged(SET, every=True).items() if is_done(r, x, details, have)}   # every shard's file
     other = {x for name in IA.SETS if name != SET for x in IA.staged(name)}
     want = {x for x in a.ids.replace(" ", "").split(",") if x}
     mine = [it for it in load_list() if shards.mine(it["id"], shard) and (not want or it["id"] in want)]
@@ -202,6 +258,7 @@ def stage(a):
             rec = stage_one(it, N, keys, details.get(x))
         except Exception as e:  # noqa: BLE001 (recorded, tried again next run)
             rec = {"at": IA.now(), "status": "error", "why": str(e)[:160]}
+        rec["rule"] = RULE
         if rec["status"] == "error":
             rec["tries"] = int((recs.get(x) or {}).get("tries") or 0) + 1
             if rec["tries"] >= TRIES: rec["status"] = "failed"
@@ -214,7 +271,7 @@ def stage(a):
                     "staged one with its catalogue row without the photo plus 'src', the chosen photo." % (k, n))
     log["spent_usd"] = round(float(log.get("spent_usd") or 0) + IF.spent, 4); log["at"] = IA.now()
     save_json(log_path, log)
-    left = sum(1 for it in mine if it["id"] not in done and ready(it, details) and not is_done(recs.get(it["id"]), it["id"], details))
+    left = sum(1 for it in mine if it["id"] not in done and ready(it, details) and not is_done(recs.get(it["id"]), it["id"], details, have))
     print("done: %s in %.0f s, vision $%.2f; this shard's states %s" % (
         ", ".join("%s %d" % kv for kv in sorted(count.items())) or "nothing", time.time() - t0, IF.spent,
         dict(collections.Counter(r.get("status") for r in recs.values()).most_common())), flush=True)
@@ -226,12 +283,14 @@ def report(a):
     every, st, recs = IA.staged(SET, every=True), IA.staged(SET), IA.photo_records(SET)
     on = {str(p["id"]) for p in load_catalog()[1]}
     c = collections.Counter((every.get(it["id"]) or {}).get("status") or "not looked at" for it in lst)
+    old_rule = sum(1 for it in lst if (every.get(it["id"]) or {}).get("status") in REDO and it["id"] not in on
+                   and int((every.get(it["id"]) or {}).get("rule") or 1) < RULE)
     ph = collections.Counter("on the site" if x in on else "photo " + ((recs.get(x) or {}).get("status") or "not made yet") for x in st)
-    to_stage = sum(1 for it in lst if ready(it, details) and not is_done(every.get(it["id"]), it["id"], details))
+    to_stage = sum(1 for it in lst if ready(it, details) and not is_done(every.get(it["id"]), it["id"], details, on))
     to_photo = sum(1 for x in st if x not in on and (recs.get(x) or {}).get("status") not in AP.FINAL)
     print("murphy sheet: list %d %s, details for %d; states %s" % (
         len(lst), dict(collections.Counter(it["platform"] for it in lst)), len(details), dict(c.most_common())))
-    print("  staged %d: %s" % (len(st), dict(ph.most_common())))
+    print("  staged %d: %s; to look at again under photo rule %d: %d" % (len(st), dict(ph.most_common()), RULE, old_rule))
     print("left %d" % (to_stage + to_photo))
 
 

@@ -97,5 +97,7 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
   swap; rugs and room decor under Accessories). `.github/workflows/import-sheet.yml`: `scripts/import_sheet.py stage`
   (Weidian via getItemSkuInfo, Taobao / 1688 from `data/sheet_murphy_details.json`, else "needs details"; one vision
   call names each find), then the Archive's photos and apply with `--set murphy`. Run until the report says `left 0`.
+  Photo rule 2 (owner): a photo with a blurred-out logo never goes live; the vision call also sees the listing's gallery
+  and description photos to find a clean one (`RULE` in `import_sheet.py`; older staged records are staged again).
 - Stats: `/stats` (`stats.html`, data from the stats workflow), visits through `/api/visit`.
 - Preview the sign-up flow as a new visitor: `/?preview=signup`.

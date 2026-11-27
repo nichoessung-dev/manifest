@@ -54,7 +54,7 @@ LINK = {"1688": re.compile(r"^https?://detail\.1688\.com/offer/(\d{6,15})\.html"
 PUB = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/"
 # the cut-out: on Supabase (the workflow's own), or a site file /img/p2/<id>.webp (made from another photo of the same
 # listing and checked by hand, 27 Nov 2026)
-IMG = re.compile(r"^(?:" + re.escape(PUB) + r"products/pc2/([0-9]{6,15})-t1\.webp|/img/p2/([0-9]{6,15})\.webp)$")
+IMG = re.compile(r"^(?:" + re.escape(PUB) + r"products/pc2/([0-9]{6,15})-t1(?:\.v[0-9a-f]{6})?\.webp|/img/p2/([0-9]{6,15})\.webp)$")
 BANNED = re.compile(r"(?i)\b(replicas?|reps?|fake|batch)\b|1\s*:\s*1|[\u2014\u2013]")
 PHOTO_OK = ("cut",)
 # a sheet name for a group of items ("Multiple Electronics", "All Jeans Brand", "Moncler Jackets, Hoodie, Pants, etc.")
@@ -64,7 +64,7 @@ GROUP = re.compile(r"(?i)\b(multiple|various|assorted|mixed brands?|no ?name|etc
 SETS = {"archive": {"label": "Archive", "mark": {"ar": 1}, "platforms": ("1688", "taobao"), "recheck": False},
         "murphy": {"label": "Da Murphy sheet", "stage": os.path.join(ROOT, "data", "sheet_import"),
                    "photos": os.path.join(ROOT, "data", "sheet_photos"), "mark": {}, "platforms": ("weidian", "taobao", "1688"),
-                   "recheck": True}}
+                   "recheck": True, "rule": 2}}   # rule: import_sheet.py RULE; an older staged entry waits to be staged again
 
 
 def now(): return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -84,7 +84,9 @@ def staged(name="archive", every=False):
         for k, v in ((load_json(f, {}) or {}).get("items") or {}).items():
             cur = out.get(k)
             if cur is None or v.get("status", "staged") == "staged" or cur.get("status") == "error": out[k] = v
-    return out if every else {k: v for k, v in out.items() if v.get("row") and v.get("status", "staged") == "staged"}
+    rule = int(SETS[name].get("rule") or 0)
+    return out if every else {k: v for k, v in out.items() if v.get("row") and v.get("status", "staged") == "staged"
+                              and int(v.get("rule") or 1) >= rule}
 
 
 def original(link):
