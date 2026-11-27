@@ -120,7 +120,7 @@ def redo():
         try: m = json.load(open(os.path.join(md, vid + ".json"), encoding="utf-8")); voice[vid] = m.get("rev") or m.get("voice") or "chatterbox"
         except Exception: voice[vid] = None
     rows = sorted((v["at"], vid) for vid, v in q.items()
-                  if voice.get(vid) and voice[vid].endswith("|half") and v.get("rev") != SLIDES_REV
+                  if voice.get(vid) and voice[vid].endswith("|half") and v.get("rev") not in (SLIDES_REV, "slides1-cover2-done")
                   and datetime.strptime(v["at"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc) > now + timedelta(minutes=25))
     print("queued posts to swap to slideshows:", len(rows))
     if DRY or not rows: return
@@ -138,7 +138,7 @@ def redo():
             time.sleep(1)
         ids = queue_one(vid, v["account"], at, out)
         if ids is None: v["posts"] = []; save(st); print("::warning::slot left empty, the next run tries again:", vid, at); break
-        v["posts"] = ids; v["rev"] = SLIDES_REV; made += 1; save(st)
+        v["posts"] = ids; v["rev"] = "slides1-cover2-done" if v.get("rev") == "slides1-cover2" else SLIDES_REV; made += 1; save(st)
         print("swapped %s at %s" % (vid, at), flush=True); time.sleep(20)
     left = len(rows) - made
     print("swapped:", made, "| still to swap:", left)

@@ -1,0 +1,43 @@
+name: Swap covers
+# Gives the booked slideshows the new boxes covers (scripts/swap_covers.py); Month queue "redo" then books them again.
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        type: choice
+        options: ['second', 'main']
+        default: 'second'
+permissions:
+  contents: write
+concurrency: month-queue
+jobs:
+  swap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow numpy && sudo apt-get install -y -q fonts-noto-color-emoji
+      - name: Swap
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONUNBUFFERED: '1'
+        run: python scripts/swap_covers.py --account "${{ inputs.account }}"
+      - name: Save the queue record
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp month_queue.json "$RUNNER_TEMP/mq.json"
+          for n in 1 2 3 4 5; do
+            git fetch -q origin "$GITHUB_REF_NAME" && git reset -q --hard FETCH_HEAD
+            cp "$RUNNER_TEMP/mq.json" month_queue.json.new
+            python scripts/merge_state.py month_queue.json.new month_queue.json; rm -f month_queue.json.new
+            git add month_queue.json; git diff --cached --quiet && exit 0
+            git commit -q -m "chore: new covers [skip ci]"
+            git push -q origin HEAD:"$GITHUB_REF_NAME" && exit 0
+            sleep $((n * 6))
+          done
+          exit 1
