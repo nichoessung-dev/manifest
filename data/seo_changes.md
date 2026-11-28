@@ -6,6 +6,28 @@ data/seo_ranks_markets.json (the spreadsheet searches in ten countries, 23 Nov 2
 searches of the model pages added on 23 Nov 2026, checked before they existed) and data/seo_page_clicks.json (buy clicks
 per page by visit source and country, buy clicks per find, site searches; scripts/seo_page_clicks.py).
 
+## 28 Nov 2026: best finds tables, brand sizing, shipping for ten countries (SEO report, bigger items)
+
+- What: (1) every agent spreadsheet (/mycnbox, /kakobuy, /oopbuy, /lovegobuy, /sugargoo, /hipobuy-spreadsheet) opens
+  its About block with "Best <agent> finds by category, <month>": one row per category, a top pick and a cheaper pick,
+  each with price, QC photos and a direct buy link for that agent. Same bar as the homepage rows (clean cut-out, photo
+  score under 0.3, sane price, QC photos, 5+ views in 30 days); the k-th agent takes the k-th of the top 6, so the six
+  tables differ. (2) Every brand hub with 6+ finds opens with "Best <brand> reps by item type" (or a top 5 list for a
+  one-type brand like Golden Goose), and 13 brands (Arc'teryx, Golden Goose, Essentials, Rick Owens, Ralph Lauren,
+  Moncler, Maison Margiela, Acne Studios, Stone Island, Chrome Hearts, Lululemon, CP Company, The North Face) get a
+  "Sizing <brand> reps" section (BRAND_SIZING in content3.js). (3) KakoBuy, Sugargoo and Oopbuy shipping estimators
+  read again for ten countries (US, UK, Germany, Sweden, Denmark, Poland, Netherlands, Czechia, Canada, Australia), one
+  row per country with the cheapest and fastest line; the best shopping agent guide's table follows. (4)
+  CollectionPage dateModified is the later of the link check and the catalogue update. (5) Counts 11,500+ everywhere
+  (bake_counts.py; the Reports cron had not run since the Murphy import).
+- Why: the SEO report of 28 Nov 2026: "kakobuy spreadsheet" 32,000 impressions at position 8.3, "best <brand> reps"
+  searches at 6 to 8, Europe outside the UK brings more clicks than the US.
+- Check: Search Console in 2 to 3 weeks, same queries ("kakobuy spreadsheet", "sugargoo spreadsheet", "oopbuy
+  spreadsheet", "best golden goose reps", "best ralph lauren reps", "arcteryx reps").
+- IndexNow: data/indexnow_2026-11-28.txt (124 URLs, answered 200).
+- Undo: pages.js agentBestHtml / brandBestHtml (the first entries of the agent and brand hubSpec about lists), BRAND_SIZING,
+  shipping_lines.js (git history has the 23 Nov 2026 rows). Commits 4bc11725, 21ed53ff, d695e9e9.
+
 ## 26 Nov 2026: /hipobuy-spreadsheet
 
 - What: a sixth agent spreadsheet, /hipobuy-spreadsheet, built like /sugargoo-spreadsheet: the app with the Buy buttons

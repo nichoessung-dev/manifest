@@ -118,5 +118,10 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
 - Subcategories (28 Nov 2026): `functions/_lib/subcats.js` maps each category's item types (`weights.js itemTypeOf`) to
   subcategories (12+ finds); chips on the category hubs and in the app (`?sub=`), hubs at `/category/<cat>/<sub>`.
   `index.html` gets a copy through `scripts/sync_weights.py` (run it after editing the table). Nothing is stored per find.
+- SEO tables (28 Nov 2026): agent spreadsheets open with "Best <agent> finds by category" and brand hubs with "Best <brand>
+  reps by item type" (`agentBestHtml`, `brandBestHtml` in `functions/_lib/pages.js`, homepage-row quality bar), plus
+  "Sizing <brand> reps" for 13 brands (`BRAND_SIZING` in `content3.js`). Shipping tables (`shipping_lines.js`) were read
+  from the KakoBuy, Sugargoo and Oopbuy estimators for ten countries on 28 Nov 2026; read them again every few weeks.
+  Change log: `data/seo_changes.md`.
 - Stats: `/stats` (`stats.html`, data from the stats workflow), visits through `/api/visit`.
 - Preview the sign-up flow as a new visitor: `/?preview=signup`.
