@@ -105,5 +105,17 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
   call names each find), then the Archive's photos and apply with `--set murphy`. Run until the report says `left 0`.
   Photo rule 2 (owner): a photo with a blurred-out logo never goes live; the vision call also sees the listing's gallery
   and description photos to find a clean one (`RULE` in `import_sheet.py`; older staged records are staged again).
+- Photo copies (28 Nov 2026): never use Cloudflare image resizing (`/cdn-cgi/image/`): it billed $59.50 in November. Cards,
+  rails, search and product pages ask for `/img/r/<400|720>/<key>.webp` (`rsKey()` in index.html, site.js, pcs.js);
+  `functions/_middleware.js` (`photoCopy`) fetches them from the Pages projects `pc-photos-400` and `pc-photos-720`
+  (branches `photos-400` and `photos-720`, made nightly by `.github/workflows/resize-photos.yml` and
+  `scripts/resize_photos.py`) and falls back to the original. This site may hold only 20,000 files (the account is not on
+  a paid zone plan), so the copies must never go on `main`.
+- Partner portal `/partner`: Priority tab (`data/partner_priority.json`, the niche sheet's finds with an original seller,
+  without repeats or finds the site already had), All finds hides repeats of the same item (`data/partner_hide.json`:
+  same brand and category, CLIP photo similarity 0.97+; swapped and friend-store finds always stay, else the cheapest
+  with a clean photo), swapped finds sit at the bottom of every list. The public site keeps every find.
+- AI chat (`functions/api/chat.js`): tools `search_finds` and `shipping_estimate` (the shipping calculator's sums in
+  `tools9.js shipBallpark`); the visitor's country comes from `request.cf.country`, never stored.
 - Stats: `/stats` (`stats.html`, data from the stats workflow), visits through `/api/visit`.
 - Preview the sign-up flow as a new visitor: `/?preview=signup`.
