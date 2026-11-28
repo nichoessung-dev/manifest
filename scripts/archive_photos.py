@@ -156,7 +156,7 @@ def blur_check(im):
                 "design that is meant to look painted, splattered, distressed, faded or washed is NOT blurring: it has crisp "
                 "edges and fabric texture inside it. where: '' when false, else a few words. "
                 'Answer only JSON, no code fence: {"blurred":false,"where":""}'}]
-    body = json.dumps({"model": BLUR_MODEL, "max_tokens": 200, "messages": [{"role": "user", "content": content}]}).encode()
+    body = json.dumps({"model": BLUR_MODEL, "max_tokens": 1200, "messages": [{"role": "user", "content": content}]}).encode()
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=body, headers={
         "x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01", "content-type": "application/json"})
     try:
@@ -165,10 +165,13 @@ def blur_check(im):
         print("  blur check failed: %s" % str(e)[:120], flush=True); return {}
     u = d.get("usage") or {}; ri, ro = BLUR_RATES.get(BLUR_MODEL, (3.0, 15.0))
     spent[0] += (u.get("input_tokens", 0) * ri + u.get("output_tokens", 0) * ro) / 1e6
-    m = re.search(r"\{.*\}", "".join(c.get("text", "") for c in d.get("content", [])), re.S)
-    try: v = json.loads(m.group(0)) if m else {}
-    except ValueError: return {}
-    return {"blurred": bool(v.get("blurred")), "where": str(v.get("where") or "")[:60]} if "blurred" in v else {}
+    text = "".join(c.get("text", "") for c in d.get("content", []))
+    m = re.findall(r"\{[^{}]*\"blurred\"[^{}]*\}", text)
+    try: v = json.loads(m[-1]) if m else {}
+    except ValueError: v = {}
+    if "blurred" not in v:
+        print("  blur check: no answer (%s): %s" % (d.get("stop_reason"), text[:160].replace("\n", " ")), flush=True); return {}
+    return {"blurred": bool(v.get("blurred")), "where": str(v.get("where") or "")[:60]}
 
 
 def recheck_blur(a, shard, staged, recs, log, log_path):
