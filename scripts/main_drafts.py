@@ -30,7 +30,12 @@ def main():
     packs = sorted(n[:-4] for n in r.stdout.split() if n.startswith("pcr-") and n.endswith(".zip") and not done(n[:-4]))
     print("rug slideshows not sent yet:", len(packs))
     out = os.path.join(ROOT, "out", "drafts"); os.makedirs(out, exist_ok=True); sent = 0
-    plan = [(vid, ACCOUNTS[i % len(ACCOUNTS)]) for i, vid in enumerate(packs[:N * len(ACCOUNTS)])]   # N each, every account its own packs
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")      # backup crons re-run this: only fill what today still lacks (28 Nov 2026)
+    need = {a: N - sum(1 for v in st["sent"].values() if isinstance(v, dict) and str(v.get(a, "")).startswith(today)) for a in ACCOUNTS}
+    if os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch": need = {a: N for a in ACCOUNTS}
+    print("drafts still due today:", need)
+    order = [a for k in range(N) for a in ACCOUNTS if need[a] > k]
+    plan = list(zip(packs, order))                             # every account its own packs, alternating
     for vid, acct in plan:
         if DRY: print("DRY_RUN: would send", vid, "to", acct); continue
         if subprocess.run(["gh", "release", "download", TAG, "-p", vid + ".zip", "-D", out, "--clobber"], cwd=ROOT).returncode:
