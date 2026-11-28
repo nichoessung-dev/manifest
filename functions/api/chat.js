@@ -239,10 +239,14 @@ async function loadBank(env, origin) {
 }
 function qcPhotos(p, max = 6) {
   if (!BANK || !p) return [];
-  const id = String(p.itemId || p.id).replace(/^0+/, ""), e = BANK[p.platform + "/" + id];
-  if (!e || !e[1]) return [];
-  const out = [];
-  for (let k = 0; k < Math.min(e[1], max); k++) out.push("/api/img?u=" + encodeURIComponent(BANK_PHOTO + p.platform + "-" + id + "-" + k + ".webp?b=2"));
+  // the listing the Buy button opens (a swapped find's partner item) first, then the find's own original listing (its id;
+  // a swapped find no longer carries the original platform, so each is tried), as scripts/apply_qc_counts.py does
+  const own = String(p.id).replace(/^0+/, ""), keys = [p.platform + "/" + String(p.itemId || p.id).replace(/^0+/, ""),
+    p.platform + "/" + own, "taobao/" + own, "weidian/" + own, "1688/" + own];
+  const key = keys.find(k => BANK[k] && BANK[k][1] > 0);
+  if (!key) return [];
+  const e = BANK[key], name = key.replace("/", "-"), out = [];
+  for (let k = 0; k < Math.min(e[1], max); k++) out.push("/api/img?u=" + encodeURIComponent(BANK_PHOTO + name + "-" + k + ".webp?b=2"));
   return out;
 }
 const forQc = p => ({ id: String(p.id), title: p.title, url: "/product/" + encodeURIComponent(p.id) + "#qc", photos: qcPhotos(p) });
