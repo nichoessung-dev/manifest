@@ -115,8 +115,6 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
   without repeats or finds the site already had), All finds hides repeats of the same item (`data/partner_hide.json`:
   same brand and category, CLIP photo similarity 0.97+; swapped and friend-store finds always stay, else the cheapest
   with a clean photo), swapped finds sit at the bottom of every list. The public site keeps every find.
-- AI chat (`functions/api/chat.js`): tools `search_finds` and `shipping_estimate` (the shipping calculator's sums in
-  `tools9.js shipBallpark`); the visitor's country comes from `request.cf.country`, never stored.
 - Subcategories (28 Nov 2026): `functions/_lib/subcats.js` maps each category's item types (`weights.js itemTypeOf`) to
   subcategories (12+ finds); chips on the category hubs and in the app (`?sub=`), hubs at `/category/<cat>/<sub>`.
   `index.html` gets a copy through `scripts/sync_weights.py` (run it after editing the table). Nothing is stored per find.

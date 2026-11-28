@@ -35,8 +35,6 @@
  * obvious bots refused.
  */
 import { P, gone, score, views, idx, ensureStats, CATS, AGENTS, USD_RATE, isPH, imgSrc, thumbSrc, SITE } from "../_lib/site.js";
-import { shipBallpark, shipCountry, shipNote } from "../_lib/tools9.js";
-import { itemTypeOf, typeGrams } from "../_lib/weights.js";
 import { loadKb, pickTips, tipsNote } from "../_lib/reddit_kb.js";
 
 const API = "https://api.anthropic.com/v1/messages";
@@ -236,8 +234,7 @@ const forCard = (p, agent) => {
 
 // ------------------------------------------------------------------ prompt and tool (static: the cached prefix)
 const AGENT_NAMES = Object.values(AGENTS).map(a => a.name).join(", ");
-const FINDS_N = (Math.floor(P.length / 100) * 100).toLocaleString("en-US");
-const SYSTEM = `You are the shopping assistant on Puro Classico (puroclassico.com), a free "rep spreadsheet": about ${FINDS_N} fashion finds from Weidian, Taobao and 1688 with prices, QC photos and links. The site sells nothing itself. Visitors buy through a shopping agent (${AGENT_NAMES}), which buys the item in China, checks it at its warehouse and ships it to them. Most visitors are new to reps, so talk like a friend who has ordered many times: plain English, practical, no jargon without a short explanation.
+const SYSTEM = `You are the shopping assistant on Puro Classico (puroclassico.com), a free "rep spreadsheet": about 10,800 replica fashion finds from Weidian, Taobao and 1688 with prices, QC photos and links. The site sells nothing itself. Visitors buy through a shopping agent (${AGENT_NAMES}), which buys the item in China, checks it at its warehouse and ships it to them. Most visitors are new to reps, so talk like a friend who has ordered many times: plain English, practical, no jargon without a short explanation.
 
 How to write:
 - The first sentence is the direct answer: yes or no, a size, a number, a pick or the first step. No warm-up, no "Great question", no "It depends" or "Often" as an opener, never "As an AI".
@@ -291,16 +288,12 @@ What you can explain (link the guide when it helps):
   - No measurements given: never answer only that you cannot tell. Give the usual rule for that item type (one size up for most tops, hoodies, jackets and pants; the cm check for sneakers), then ask one short question: their height and weight, or their usual size.
   - Guide: [sizing guide](/guides/sizing) and the [size estimator](/tools/size-estimator).
 - Shipping: priced by weight and parcel size, often roughly 10 to 20 days by the common lines; removing shoe boxes and extra packaging saves money. Estimate it with the [shipping calculator](/tools/shipping-calculator), and see [shipping lines explained](/guides/shipping-lines).
-  - For any shipping cost or total question, call shipping_estimate with the country they name (or the one in the visitor context) and answer from its result: the price range per line with its days, as a ballpark, and link its calculator path. Do not say you have no price for a country.
-  - When the visitor context has a "Shipping ballpark", answer shipping questions with it: the price range per line with its days, in their currency, for their country (and for the find on screen when one is given). Say it is a ballpark from the site's calculator and that their agent's estimate at checkout is the real price. Link the prefilled calculator path it gives. Mention the tax note for their country in one short sentence when they ask about cost or customs.
-  - "Is it worth it" or "how much in total" on a find: when a ballpark for that find is given, add one line with the item price plus the cheapest line's shipping range as a rough total.
 - Agents: every agent in the visitor's settings works with every find; do not rank agents or call one the best or cheapest. If they ask which to use, explain what to compare (fees, shipping lines to their country, QC photos, support) and that they can switch agent in the site settings.
 - You cannot see images. For "GL or RL?" questions, list what to check on that kind of item and link the QC guide.
 - Questions about the site, the [Discord](/discord) or the tools.
 
 Rules:
-- These are reps: independent listings, not made by the brand. Never say or suggest an item is authentic, original or made by the brand.
-- Never write the words "replica", "fake" or "1:1" (owner's rule for everything on the site); say "rep", "find" or "this version" instead.
+- These are replicas and independent listings. Never say or suggest an item is authentic, original or made by the brand.
 - No legal advice: for customs, import rules or taxes, say they depend on the visitor's country and that they should check the local rules themselves.
 - Do not help with anything unrelated to shopping for finds, ordering, QC, sizing or shipping; say briefly what you can help with.
 - A "Community tips" list may follow in the visitor context: short summaries of what people on rep subreddits say. Use a tip only when it answers the question, and present it as community opinion ("on r/FashionReps people often say Stussy hoodies run big"), never as a guarantee. Never make up a tip, a subreddit or a batch name, and do not link Reddit.
@@ -309,7 +302,7 @@ Rules:
 
 const TOOLS = [{
   name: "search_finds",
-  description: "Search the Puro Classico catalogue of finds. Returns total_matches and up to 6 finds, best first: id, title, brand, category, " +
+  description: "Search the Puro Classico catalogue of replica finds. Returns total_matches and up to 6 finds, best first: id, title, brand, category, " +
     "price (already formatted in the visitor's currency), price_usd, qc_photos (photos of real orders: more means people bought and checked it), " +
     "views_30d (popularity), colours (the seller's colour options), url, and sold_out or partial when they apply. Understands brand nicknames " +
     "(rl, lv, tnf, cdg, ysl), plurals, colour words and item words (hoodie, puffer, sneakers, jeans, cap, bag).",
@@ -325,50 +318,7 @@ const TOOLS = [{
     },
     required: ["query"],
   },
-}, {
-  name: "shipping_estimate",
-  description: "The site's shipping calculator ballpark for one parcel from the agent's warehouse in China to a country: price range per line " +
-    "(economy, registered/special line, express) in the visitor's currency with typical days, the packed weight, the country's tax note and a " +
-    "prefilled calculator link. Use it for any shipping cost or total cost question, for any country the visitor names.",
-  input_schema: {
-    type: "object",
-    properties: {
-      country: { type: "string", description: "The destination country as the visitor wrote it, in English, e.g. \"Norway\", \"UK\", \"Germany\"." },
-      grams: { type: "number", description: "Optional weight of the items in grams. Leave it out for the find on screen (its weight is known) or for a 1 kg parcel." },
-    },
-    required: ["country"],
-  },
 }];
-// Country words the calculator does not list by name (its destinations are tools9.js ZONES keys).
-const COUNTRY_WORDS = { uk: "United Kingdom", "great britain": "United Kingdom", britain: "United Kingdom", england: "United Kingdom", scotland: "United Kingdom",
-  wales: "United Kingdom", us: "United States", usa: "United States", america: "United States", "united states of america": "United States",
-  norge: "Norway", sverige: "Sweden", danmark: "Denmark", suomi: "Finland", deutschland: "Germany", holland: "Netherlands", "the netherlands": "Netherlands",
-  nederland: "Netherlands", espana: "Spain", "españa": "Spain", italia: "Italy", polska: "Poland", czech: "Czechia", "czech republic": "Czechia",
-  schweiz: "Switzerland", suisse: "Switzerland", osterreich: "Austria", "österreich": "Austria", nz: "New Zealand", aus: "Australia", oz: "Australia" };
-const EUROPE_REST = /^(luxembourg|lithuania|latvia|estonia|slovakia|slovenia|croatia|hungary|bulgaria|cyprus|malta|serbia|bosnia|montenegro|north macedonia|albania|ukraine|moldova|liechtenstein|monaco|andorra|san marino)$/;
-function shipDest(name) {
-  const n = String(name || "").trim().toLowerCase();
-  if (!n) return "";
-  const known = ["United States", "Canada", "United Kingdom", "Germany", "France", "Netherlands", "Belgium", "Austria", "Switzerland", "Italy", "Spain",
-    "Portugal", "Poland", "Czechia", "Ireland", "Greece", "Romania", "Norway", "Sweden", "Denmark", "Finland", "Iceland", "Australia", "New Zealand"];
-  const hit = known.find(k => k.toLowerCase() === n);
-  if (hit) return hit;
-  if (COUNTRY_WORDS[n]) return COUNTRY_WORDS[n];
-  if (/^[a-z]{2}$/.test(n)) return shipCountry(n);
-  return EUROPE_REST.test(n) ? "Rest of Europe" : "Rest of world";
-}
-function shippingEstimate(inp, ctx) {
-  const country = shipDest(inp.country) || ctx.country || "Rest of world";
-  const p = ctx.pid && idx().byId.get(ctx.pid);
-  let grams = +inp.grams > 0 && +inp.grams < 60000 ? Math.round(+inp.grams) : 0, what = grams ? grams + " g of items" : "";
-  if (!grams && p && gone(p) !== "dead") { grams = typeGrams(itemTypeOf(p)); if (grams) what = "the find on screen (about " + grams + " g)"; }
-  if (!grams) { grams = 850; what = "a parcel of about 1 kg"; }
-  const b = shipBallpark(country, grams), cur = CUR[ctx.cur] || CUR.USD, m = usd => cur[0] + Math.round(usd / USD_RATE * cur[1]);
-  return { country_used: country, for: what, packed_grams: b.packed,
-    lines: b.lines.map(l => ({ line: l[0], price: m(l[1]) + " to " + m(l[2]), days: l[3] })),
-    tax_note: shipNote(country) || undefined, calculator: "/tools/shipping-calculator?to=" + encodeURIComponent(country) + "&kg=" + (b.packed / 1000).toFixed(2),
-    note: "A ballpark from the site's calculator (real weight, before coupons); the agent's own estimate at checkout is the real price." };
-}
 
 // ------------------------------------------------------------------ size estimate (same maths as the size estimator)
 // SIZE_FN, SIZE_L, SIZE_EU, SIZE_WA and GADJ in functions/_lib/tools9.js; keep the two in step.
@@ -428,7 +378,7 @@ export function sizeHint(messages, ctx) {
 
 // The per-visitor part of the system prompt (after the cached prefix): currency, agent, the find on screen, a size estimate
 // when they gave height and weight, and community tips.
-export function contextNote(ctx, tips, size) {
+function contextNote(ctx, tips, size) {
   const lines = ["Visitor context:", "- Currency: " + ctx.cur + ". The price field from search_finds is already in " + ctx.cur + "; quote it as given."];
   const ag = AGENTS[ctx.agent];
   if (ag) lines.push("- Their shopping agent: " + ag.name + ". The cards' buy button opens " + ag.name + "; use " + ag.name + " when you explain ordering.");
@@ -439,19 +389,6 @@ export function contextNote(ctx, tips, size) {
       category: f.category, price: f.price, qc_photos: f.qc_photos, views_30d: f.views_30d || undefined, colours: f.colours || "", sold_out: !!f.sold_out, url: f.url }) +
       ". " + (f.qc_photos ? f.qc_photos + " QC photo" + (f.qc_photos === 1 ? "" : "s") + " from real orders are on its page." : "No QC photos from real orders yet.") +
       " For similar or cheaper finds, search with its brand and item type.");
-  }
-  if (ctx.country) {
-    const cur = CUR[ctx.cur] || CUR.USD, m = usd => cur[0] + Math.round(usd / USD_RATE * cur[1]);
-    const fmt = b => b.lines.map(l => l[0] + " " + m(l[1]) + " to " + m(l[2]) + " (" + l[3] + ")").join("; ");
-    const to = encodeURIComponent(ctx.country);
-    lines.push("- Shipping ballpark (the site's shipping calculator, real weight, before coupons) to " + ctx.country + ", where they connect from (they may ship elsewhere: use another country if they name one, and then point them to the calculator): a 1 kg parcel costs about " +
-      fmt(shipBallpark(ctx.country, 850)) + ". Prefilled calculator: [shipping calculator](/tools/shipping-calculator?to=" + to + ")." + (shipNote(ctx.country) ? " Tax note for " + ctx.country + ": " + shipNote(ctx.country) : ""));
-    const g = p && gone(p) !== "dead" ? typeGrams(itemTypeOf(p)) : 0;
-    if (g) {
-      const b = shipBallpark(ctx.country, g);
-      lines.push("- Shipping ballpark for the find on screen alone (about " + g + " g, about " + b.packed + " g packed): " + fmt(b) +
-        ". Prefilled: [shipping calculator](/tools/shipping-calculator?to=" + to + "&kg=" + (b.packed / 1000).toFixed(2) + ").");
-    }
   }
   if (size) lines.push(size);
   const t = tipsNote(tips || []);
@@ -626,10 +563,6 @@ async function run(env, messages, ctx, v2, write, stop, kb, rec = { searches: []
     convo.push({ role: "assistant", content: r.content.map(b => { const c = { ...b }; delete c.bad; return c; }) });
     const results = uses.map(u => {
       const inp = u.input || {};
-      if (u.name === "shipping_estimate" && !u.bad && typeof inp.country === "string") {
-        if (rec.searches.length < 8) rec.searches.push("ship: " + String(inp.country).slice(0, 40));
-        return { type: "tool_result", tool_use_id: u.id, content: JSON.stringify(shippingEstimate(inp, ctx)) };
-      }
       if (u.name !== "search_finds" || u.bad || typeof inp.query !== "string") {
         return { type: "tool_result", tool_use_id: u.id, is_error: true, content: "Invalid input: send {\"query\": \"words\"}." };
       }
@@ -677,7 +610,6 @@ export async function onRequestPost(context) {
   const messages = cleanMessages(b && b.messages);
   if (!messages) return json(400, { error: "Bad request." });
   const ctx = cleanCtx(b.ctx), v2 = +b.v >= 2;
-  ctx.country = shipCountry(request.cf && request.cf.country);   // for the shipping ballpark; never stored
   if (await limited(request.headers.get("cf-connecting-ip") || "")) return json(429, { error: MSG.limit }, { "retry-after": "600" });
 
   const origin = new URL(request.url).origin;

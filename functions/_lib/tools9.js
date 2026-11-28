@@ -64,23 +64,6 @@ const DEST_NOTE = { "United States": "Since August 2025 parcels of any value can
   "Rest of Europe": "Most European countries charge VAT on delivery or include it in tax-included lines.",
   "Rest of world": "Import rules differ by country. Your agent's line description says what is included." };
 for (const c of ["Germany", "France", "Netherlands", "Belgium", "Austria", "Italy", "Spain", "Portugal", "Poland", "Czechia", "Ireland", "Greece", "Romania", "Sweden", "Denmark", "Finland"]) DEST_NOTE[c] = EU_TAX;
-// The shipping calculator's ballpark for one parcel, for the chat assistant (functions/api/chat.js, 28 Nov 2026): the same
-// sums as the calculator in the browser (quote() below, real weight only): [[line, low USD, high USD, typical days], ...]
-// for a parcel of `grams` of items to `country` (a ZONES name), plus the packed weight in grams.
-export function shipBallpark(country, grams) {
-  const z = ZONES[country] || "row", g = Math.max(0, +grams || 0);
-  const pack = g > 0 ? Math.round((PACK_G + g * PACK_SHARE) / 10) * 10 : 0, kg = (g + pack) / 1000;
-  return { packed: g + pack, lines: RATES[z].map((x, i) => [x[0], Math.round(x[1] + x[2] * kg * 0.85), Math.round(x[1] + x[2] * kg * 1.2), LINE_INFO[i][0]]) };
-}
-// A country code (CF-IPCountry, ISO 3166 alpha-2) to the calculator's destination; "" when it has none.
-export function shipCountry(code) {
-  const c = String(code || "").toUpperCase();
-  if (!/^[A-Z]{2}$/.test(c)) return "";
-  if (LANG_DEST[c]) return LANG_DEST[c];
-  if (/^(LU|LT|LV|EE|SK|SI|HR|HU|BG|CY|MT|RS|BA|ME|MK|AL|UA|MD|LI|MC|AD|SM)$/.test(c)) return "Rest of Europe";
-  return "Rest of world";
-}
-export const shipNote = country => DEST_NOTE[country] || "";
 // Browser language region (or language) to destination, used once when nothing is stored. No network call.
 const LANG_DEST = { US: "United States", CA: "Canada", GB: "United Kingdom", UK: "United Kingdom", DE: "Germany", AT: "Austria", CH: "Switzerland", FR: "France", BE: "Belgium",
   NL: "Netherlands", IT: "Italy", ES: "Spain", PT: "Portugal", PL: "Poland", CZ: "Czechia", IE: "Ireland", GR: "Greece", RO: "Romania", NO: "Norway", SE: "Sweden", DK: "Denmark",
