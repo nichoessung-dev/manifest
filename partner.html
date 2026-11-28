@@ -361,7 +361,7 @@ const orig=(p,id)=>p==="taobao"?"https://item.taobao.com/item.htm?id="+id:p==="1
 /* the Swaps workflow's file (scripts/bake_swaps.py every 15 minutes): the price the site shows for a swapped find (12 Nov 2026) */
 let BAKED=null;
 const sitePrice=(p,s)=>{ const pr=BAKED&&BAKED.price&&BAKED.price[p.id]; return s&&Array.isArray(pr)&&String(pr[0])===String(s.item_id)&&+pr[1]>0?+pr[1]:0; };
-let CODE="", ME=null, ROLE=null, CAT=null, BYID={}, ROWS=[], LIVE={}, TAB="store", SHOWN=60, FRIEND=new Set(), LIST=[], PRIO=[];
+let CODE="", ME=null, ROLE=null, CAT=null, BYID={}, ROWS=[], LIVE={}, TAB="store", SHOWN=60, FRIEND=new Set(), LIST=[], PRIO=[], HIDE=new Set();
 const err=m=>{ $("err").hidden=!m; $("err").textContent=m||""; };
 let tt; function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("on"),2600); }
 
@@ -397,6 +397,9 @@ async function loadPriority(){
   try{ const d=await fetch("/data/partner_priority.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null);
     PRIO=((d&&d.items)||[]).map((e,n)=>Object.assign({n,k2:(String(e.n||"")+" "+String(e.t||"")+" "+String(e.id||"")).toLowerCase()},e)); }catch(e){ PRIO=[]; }
   $("n-pr").textContent=PRIO.length.toLocaleString("en-US");
+  /* All finds shows unique finds only (owner, 28 Nov 2026): the repeats of the same item in data/partner_hide.json are left
+     out there; a swapped or friend-store find is never on that list, and the public site keeps every find */
+  try{ const h=await fetch("/data/partner_hide.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null); HIDE=new Set(((h&&h.hide)||[]).map(String)); }catch(e){ HIDE=new Set(); }
 }
 function ptile(e){
   const link=e.id&&e.pl?orig(e.pl,e.id):(e.img||""), tb=!e.id;
@@ -458,7 +461,7 @@ function render(reset){
     $("more").hidden=all.length<=SHOWN;
     return;
   }
-  LIST=CAT.filter(p=>ok(p)&&(TAB!=="store"||mine(p)));
+  LIST=CAT.filter(p=>ok(p)&&(TAB!=="store"||mine(p))&&(TAB!=="all"||!HIDE.has(p.id)||mine(p)||LIVE[p.id]));
   if(so==="low") LIST.sort((a,b)=>a.price-b.price); else if(so==="high") LIST.sort((a,b)=>b.price-a.price); else if(so==="az") LIST.sort((a,b)=>a.t.localeCompare(b.t)); else if(so==="new") LIST.sort((a,b)=>b.n-a.n); else LIST.sort((a,b)=>b.pop-a.pop||a.n-b.n);
   $("grid").innerHTML=LIST.slice(0,SHOWN).map(tile).join("")||`<div class="empty" style="grid-column:1/-1">${esc(tr("No finds match these filters"))}</div>`;
   $("count").innerHTML=LANG==="zh"?"<b>"+LIST.length.toLocaleString("en-US")+"</b> 个商品":"<b>"+LIST.length.toLocaleString("en-US")+"</b> finds";
