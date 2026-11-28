@@ -1,6 +1,6 @@
 {
  "about": "The Da Murphy finds sheet import (scripts/import_sheet.py), shard 3 of 8: one record per item, a staged one with its catalogue row without the photo plus 'src', the chosen photo.",
- "at": "2026-11-28T01:40:48Z",
+ "at": "2026-11-28T02:33:59Z",
  "items": {
   "1009171040654": {
    "at": "2026-11-27T12:52:09Z",
@@ -457,7 +457,8 @@
    "why": "staged by another import"
   },
   "7341451443": {
-   "at": "2026-11-27T18:08:30Z",
+   "at": "2026-11-28T02:26:17Z",
+   "rule": 2,
    "status": "badphoto",
    "why": "no clean single-product photo in the listing",
    "zh": "C-特价星球外太空圆帽"
@@ -572,9 +573,32 @@
    "zh": "C-棒球棉服"
   },
   "7341552175": {
-   "at": "2026-11-27T18:04:31Z",
-   "status": "badphoto",
-   "why": "no clean single-product photo in the listing",
+   "at": "2026-11-28T02:21:40Z",
+   "item": "Tracksuit",
+   "row": {
+    "brand": "",
+    "cat": "Tops",
+    "g": "m",
+    "id": "7341552175",
+    "itemId": "7341552175",
+    "platform": "weidian",
+    "price": 175,
+    "qc": 0,
+    "rating": 0,
+    "seller": "Weidian",
+    "title": "Tracksuit Army Green Black",
+    "usd": 24.5,
+    "variants": [
+     [
+      "Army Green",
+      175
+     ]
+    ],
+    "views": 0
+   },
+   "rule": 2,
+   "src": "https://si.geilicdn.com/open1621342910-1234478995-5b21000001941e34b8210aa0834c_1284_1284.jpg",
+   "status": "staged",
    "zh": "C-DC黑绿卫衣套装"
   },
   "7341582399": {
@@ -643,7 +667,7 @@
    "zh": "C-DC双色拉链套装"
   },
   "7342578554": {
-   "at": "2026-11-27T18:08:25Z",
+   "at": "2026-11-28T02:26:08Z",
    "item": "Beanie",
    "row": {
     "brand": "",
@@ -656,7 +680,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Beanie Black",
+    "title": "Painted Beanie Black",
     "usd": 2.66,
     "variants": [
      [
@@ -666,6 +690,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/open1621342910-1234478995-15a3000001941e36e2500a232357_800_800.jpg",
    "status": "staged",
    "zh": "W-DC双色圆帽"
@@ -733,8 +758,8 @@
    "zh": "Z-月球卫衣"
   },
   "7427052519": {
-   "at": "2026-11-27T17:11:30Z",
-   "item": "T-shirt",
+   "at": "2026-11-28T01:52:53Z",
+   "item": "T-Shirt",
    "row": {
     "brand": "",
     "cat": "Tops",
@@ -746,7 +771,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Wisteria Graphic Tee Black",
+    "title": "Oversized Wisteria T-Shirt Black",
     "usd": 6.3,
     "variants": [
      [
@@ -756,6 +781,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-2ad200000195a814fb2e0a230417_2560_2560.jpg",
    "status": "staged",
    "zh": "特价DS紫藤花T恤"
@@ -765,7 +791,7 @@
    "status": "sold out"
   },
   "7473253479": {
-   "at": "2026-11-27T17:13:44Z",
+   "at": "2026-11-28T01:55:13Z",
    "item": "T-Shirt",
    "row": {
     "brand": "ME",
@@ -778,7 +804,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "ME Camo Logo Tee White",
+    "title": "ME T-Shirt White",
     "usd": 9.94,
     "variants": [
      [
@@ -788,12 +814,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-1f1c00000196eeeb664c0a23037f_1284_1284.jpg",
    "status": "staged",
    "zh": "ME迷彩logo白色短袖"
   },
   "7477020227": {
-   "at": "2026-11-27T17:56:51Z",
+   "at": "2026-11-28T02:13:57Z",
    "item": "Shorts",
    "row": {
     "brand": "W-ME",
@@ -806,7 +833,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "W-ME Sweat Shorts Black",
+    "title": "W-ME Shorts Black",
     "usd": 16.1,
     "variants": [
      [
@@ -816,6 +843,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1746487736-53cb000001970caa23d30a23138d_2560_2560.jpg",
    "status": "staged",
    "zh": "W-ME刺绣短裤"
@@ -828,8 +856,8 @@
    "zh": "W-ME格子短袖衬衫"
   },
   "7490327781": {
-   "at": "2026-11-27T17:10:53Z",
-   "item": "T-shirt",
+   "at": "2026-11-28T01:52:13Z",
+   "item": "T-Shirt",
    "row": {
     "brand": "",
     "cat": "Tops",
@@ -841,7 +869,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Graphic T-Shirt Black",
+    "title": "Black Graphic T-Shirt",
     "usd": 6.3,
     "variants": [
      [
@@ -851,6 +879,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-4614000001976496dafa0a239839_2560_2560.jpg",
    "status": "staged",
    "zh": "特价DS画家短袖"
@@ -892,7 +921,7 @@
    "zh": "Z-蓝字母基础T恤"
   },
   "7496506830": {
-   "at": "2026-11-27T18:08:14Z",
+   "at": "2026-11-28T02:25:51Z",
    "item": "Shorts",
    "row": {
     "brand": "",
@@ -905,7 +934,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Black Colour Block Shorts",
+    "title": "Black Colourblock Shorts",
     "usd": 17.08,
     "variants": [
      [
@@ -915,6 +944,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-5d570000019796fe4ee00a21146b_1320_1320.jpg",
    "status": "staged",
    "zh": "ME拼色短裤"
@@ -949,10 +979,10 @@
    "zh": "特价U水洗拉链卫衣"
   },
   "7520574634": {
-   "at": "2026-11-27T18:08:52Z",
+   "at": "2026-11-28T02:26:53Z",
    "item": "Socks",
    "row": {
-    "brand": "",
+    "brand": "UVU",
     "cat": "Accessories",
     "g": "m",
     "id": "7520574634",
@@ -962,7 +992,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Training Socks White",
+    "title": "UVU Training Socks White",
     "usd": 1.96,
     "variants": [
      [
@@ -972,12 +1002,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-0f460000019866002c520a2304a0_1320_1320.jpg",
    "status": "staged",
    "zh": "U-训练长袜毛圈"
   },
   "7521891933": {
-   "at": "2026-11-27T17:10:48Z",
+   "at": "2026-11-28T01:52:05Z",
    "item": "T-Shirt",
    "row": {
     "brand": "",
@@ -990,7 +1021,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Pink Door Graphic T-Shirt",
+    "title": "Door Graphic T-Shirt Pink",
     "usd": 7.7,
     "variants": [
      [
@@ -1000,6 +1031,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-7073000001988b38a7280a2304aa_1320_1320.jpg",
    "status": "staged",
    "zh": "特价DS开门T恤"
@@ -1332,7 +1364,7 @@
    "status": "sold out"
   },
   "7630649741": {
-   "at": "2026-11-27T17:17:53Z",
+   "at": "2026-11-28T02:02:36Z",
    "item": "Sweatpants",
    "row": {
     "brand": "",
@@ -1345,22 +1377,23 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Skull Anti-War Sweatpants Black",
+    "title": "Skull Sweatpants Washed Black",
     "usd": 28.84,
     "variants": [
      [
-      "Black",
+      "Washed Black",
       206
      ]
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1995625455-7f440000019b0db144a60a2304a0_1290_1720.jpg",
    "status": "staged",
    "zh": "骷髅反战水洗卫裤"
   },
   "7632850032": {
-   "at": "2026-11-27T17:10:44Z",
+   "at": "2026-11-28T01:51:56Z",
    "item": "T-Shirt",
    "row": {
     "brand": "PT",
@@ -1373,7 +1406,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "PT Cartoon T-Shirt Black",
+    "title": "PT Graphic T-Shirt Black",
     "usd": 4.9,
     "variants": [
      [
@@ -1383,6 +1416,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-4ecf0000019b0949d36c0a23c191_1320_1320.jpg",
    "status": "staged",
    "zh": "特价PT白色卡通短袖"
@@ -1417,8 +1451,8 @@
    "zh": "U慢跑背心"
   },
   "7638744707": {
-   "at": "2026-11-27T17:10:39Z",
-   "item": "T-Shirt",
+   "at": "2026-11-28T01:51:48Z",
+   "item": "T-shirt",
    "row": {
     "brand": "Dolomiti",
     "cat": "Tops",
@@ -1430,7 +1464,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Dolomiti Logo Tee Black",
+    "title": "Dolomiti T-Shirt Black",
     "usd": 6.3,
     "variants": [
      [
@@ -1440,6 +1474,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-40770000019b46197bf70a23b5fa_1320_1320.jpg",
    "status": "staged",
    "zh": "特价U多洛双印花短袖"
@@ -1546,7 +1581,7 @@
    "zh": "ME锦鲤防水夹克"
   },
   "7648079612": {
-   "at": "2026-11-27T17:10:34Z",
+   "at": "2026-11-28T01:51:38Z",
    "item": "T-Shirt",
    "row": {
     "brand": "Santos",
@@ -1559,7 +1594,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Santos Player Graphic Tee White",
+    "title": "Santos Graphic Tee White",
     "usd": 13.58,
     "variants": [
      [
@@ -1569,6 +1604,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-6d0c0000019b63df59700a230246_1320_1320.jpg",
    "status": "staged",
    "zh": "TL-冠军奖杯短袖"
@@ -1733,7 +1769,7 @@
    "zh": "ME滑轨拼缝卫衣"
   },
   "7690095281": {
-   "at": "2026-11-27T17:15:57Z",
+   "at": "2026-11-28T01:59:34Z",
    "item": "Jeans",
    "row": {
     "brand": "",
@@ -1746,7 +1782,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Distressed Light Blue Jeans",
+    "title": "Wide Leg Jeans Light Blue",
     "usd": 11.06,
     "variants": [
      [
@@ -1756,13 +1792,14 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-03a60000019c3f2ed7930a2302e6_1320_1320.jpg",
    "status": "staged",
    "zh": "特价DP-001牛仔裤"
   },
   "7691359788": {
-   "at": "2026-11-27T17:56:32Z",
-   "item": "Shorts",
+   "at": "2026-11-28T02:13:25Z",
+   "item": "Sweat Shorts",
    "row": {
     "brand": "",
     "cat": "Shorts",
@@ -1774,23 +1811,24 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Light Grey Shorts",
+    "title": "Heather Grey Sweat Shorts",
     "usd": 16.1,
     "variants": [
      [
-      "Light Grey",
+      "Grey",
       115
      ]
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1746487736-45600000019c32dba6090a231177_1179_1179.jpg",
    "status": "staged",
    "zh": "W-ME白花灰运动短裤"
   },
   "7692088980": {
-   "at": "2026-11-27T17:03:32Z",
-   "item": "T-Shirt",
+   "at": "2026-11-28T01:44:33Z",
+   "item": "T-shirt",
    "row": {
     "brand": "UVU",
     "cat": "Tops",
@@ -1802,7 +1840,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "UVU Spiral Logo T-Shirt Grey",
+    "title": "UVU Spiral Tee Grey",
     "usd": 8.26,
     "variants": [
      [
@@ -1812,6 +1850,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-76c80000019c37d5045f0a2102b1_2560_2560.jpg",
    "status": "staged",
    "zh": "U-白印花短袖"
@@ -1846,7 +1885,7 @@
    "zh": "特价UP-黑色圆领卫衣"
   },
   "7693150216": {
-   "at": "2026-11-27T17:15:52Z",
+   "at": "2026-11-28T01:59:23Z",
    "item": "Jeans",
    "row": {
     "brand": "",
@@ -1869,6 +1908,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-3eed0000019cae2c94cc0a23b5fa_1320_1320.jpg",
    "status": "staged",
    "zh": "特价PT-005牛仔裤"
@@ -2088,31 +2128,10 @@
    "zh": "74水洗喷漆拉链外套"
   },
   "7739670025": {
-   "at": "2026-11-27T17:56:38Z",
-   "item": "Side Pleat Shorts",
-   "row": {
-    "brand": "Mutime",
-    "cat": "Shorts",
-    "g": "m",
-    "id": "7739670025",
-    "itemId": "7739670025",
-    "platform": "weidian",
-    "price": 109,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "Mutime Side Pleat Shorts Black",
-    "usd": 15.26,
-    "variants": [
-     [
-      "Black",
-      109
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller211957776-4e020000019da63a5a5e0a20e273_1179_1179.jpg",
-   "status": "staged",
+   "at": "2026-11-28T02:13:36Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "L-MT黑色褶边休闲短裤"
   },
   "7740039984": {
@@ -2381,7 +2400,7 @@
    "zh": "L-MT白色芭蕾舞短袖Tee"
   },
   "7764321904": {
-   "at": "2026-11-27T17:56:08Z",
+   "at": "2026-11-28T02:12:48Z",
    "item": "Cargo Pants",
    "row": {
     "brand": "REA",
@@ -2394,17 +2413,18 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "REA Desert Camo Cargo Pants",
+    "title": "REA Cargo Pants Beige Camo",
     "usd": 33.74,
     "variants": [
      [
-      "Beige",
+      "Beige Camo",
       241
      ]
     ],
     "views": 0
    },
-   "src": "https://si.geilicdn.com/wdseller2018810290-4a2d0000019e66c5df530a210256_1320_1760.jpg",
+   "rule": 2,
+   "src": "https://si.geilicdn.com/wdseller2018810290-3e030000019e2b36a7ca0a23038e_1320_1760.jpg",
    "status": "staged",
    "zh": "REA沙漠迷彩工装裤"
   },
@@ -2413,7 +2433,7 @@
    "status": "sold out"
   },
   "7765739637": {
-   "at": "2026-11-27T17:15:48Z",
+   "at": "2026-11-28T01:59:15Z",
    "item": "Jeans",
    "row": {
     "brand": "",
@@ -2426,7 +2446,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Washed Black Baggy Jeans",
+    "title": "Washed Black Jeans",
     "usd": 10.5,
     "variants": [
      [
@@ -2436,15 +2456,16 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-03f20000019e2faf804e0a231316_1320_1320.jpg",
    "status": "staged",
    "zh": "特价UP-黑色水洗牛仔裤"
   },
   "7767371482": {
-   "at": "2026-11-27T18:08:08Z",
-   "item": "Cargo Shorts",
+   "at": "2026-11-28T02:25:42Z",
+   "item": "Shorts",
    "row": {
-    "brand": "ME",
+    "brand": "",
     "cat": "Shorts",
     "g": "m",
     "id": "7767371482",
@@ -2454,7 +2475,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "ME Camo Grid Cargo Shorts Green",
+    "title": "Camo Grid Shorts Green",
     "usd": 18.34,
     "variants": [
      [
@@ -2464,6 +2485,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-5e070000019e2adcbb110a207569_1320_1320.jpg",
    "status": "staged",
    "zh": "ME短裤迷彩格"
@@ -2498,10 +2520,10 @@
    "zh": "L-Exp水洗灰手表Tee"
   },
   "7770928305": {
-   "at": "2026-11-27T17:56:14Z",
+   "at": "2026-11-28T02:12:59Z",
    "item": "Carpenter Trousers",
    "row": {
-    "brand": "EXP",
+    "brand": "",
     "cat": "Pants",
     "g": "m",
     "id": "7770928305",
@@ -2511,7 +2533,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "EXP Double Knee Carpenter Trousers Green",
+    "title": "Carpenter Trousers Green",
     "usd": 28.84,
     "variants": [
      [
@@ -2521,12 +2543,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-2e690000019e54b650680a240147_1320_1760.jpg",
    "status": "staged",
    "zh": "EXP5双膝木工长裤-绿色"
   },
   "7771287375": {
-   "at": "2026-11-27T17:16:02Z",
+   "at": "2026-11-28T01:59:45Z",
    "item": "Jeans",
    "row": {
     "brand": "PDS",
@@ -2539,7 +2562,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "PDS Embroidered Baggy Jeans Black",
+    "title": "PDS Embroidered Black Jeans",
     "usd": 30.1,
     "variants": [
      [
@@ -2549,6 +2572,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-4f4f0000019e59222d350a2303ee_1320_1320.jpg",
    "status": "staged",
    "zh": "PDS花丛鸟兽牛仔裤"
@@ -2648,7 +2672,7 @@
    "zh": "L-Exp黑色小格短袖衬衫"
   },
   "7780245323": {
-   "at": "2026-11-27T17:56:20Z",
+   "at": "2026-11-28T02:13:08Z",
    "item": "Carpenter Pants",
    "row": {
     "brand": "Fyredwrld",
@@ -2661,7 +2685,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Fyredwrld Carpenter Pants Brown",
+    "title": "Fyredwrld Workwear Pants Brown",
     "usd": 31.78,
     "variants": [
      [
@@ -2671,6 +2695,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/pcitem1914636722-3e6e0000019e9739a48f0a239833_1280_1280.jpg",
    "status": "staged",
    "zh": "Fyredwrld小众潮流工装裤『咖啡』"
@@ -2767,7 +2792,7 @@
    "status": "sold out"
   },
   "7783653112": {
-   "at": "2026-11-27T17:17:08Z",
+   "at": "2026-11-28T02:01:27Z",
    "item": "Sweatpants",
    "row": {
     "brand": "GV",
@@ -2790,6 +2815,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-6fb90000019e9b9c22b70a23c191_1320_1760.jpg",
    "status": "staged",
    "zh": "GV小印花束脚卫裤-灰色"
@@ -2824,10 +2850,10 @@
    "zh": "74-疲劳水洗夹克-军绿色"
   },
   "7783959174": {
-   "at": "2026-11-27T17:56:44Z",
+   "at": "2026-11-28T02:13:45Z",
    "item": "Shorts",
    "row": {
-    "brand": "",
+    "brand": "GA",
     "cat": "Shorts",
     "g": "m",
     "id": "7783959174",
@@ -2837,7 +2863,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Signature Embroidered Shorts Black",
+    "title": "GA Signature Embroidered Shorts Black",
     "usd": 16.52,
     "variants": [
      [
@@ -2847,36 +2873,16 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller211957776-142f0000019e9dcf3a230a23047e_1206_1206.jpg",
    "status": "staged",
    "zh": "L-黑色GA签名刺绣短裤"
   },
   "7787504064": {
-   "at": "2026-11-27T17:14:31Z",
-   "item": "T-Shirt",
-   "row": {
-    "brand": "",
-    "cat": "Tops",
-    "g": "m",
-    "id": "7787504064",
-    "itemId": "7787504064",
-    "platform": "weidian",
-    "price": 88,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "Brushstroke Print T-Shirt White",
-    "usd": 12.32,
-    "variants": [
-     [
-      "White",
-      88
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller2018810290-5c690000019ebb18f2140a23c286_1320_1760.jpg",
-   "status": "staged",
+   "at": "2026-11-28T01:57:19Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "YM感觉不一样短袖-白色"
   },
   "7789399058": {
@@ -2909,13 +2915,36 @@
    "zh": "RL 经典短袖"
   },
   "7790219624": {
-   "at": "2026-11-27T18:04:38Z",
-   "status": "badphoto",
-   "why": "no clean single-product photo in the listing",
+   "at": "2026-11-28T02:21:52Z",
+   "item": "Shorts",
+   "row": {
+    "brand": "Dragon Union",
+    "cat": "Shorts",
+    "g": "m",
+    "id": "7790219624",
+    "itemId": "7790219624",
+    "platform": "weidian",
+    "price": 53,
+    "qc": 0,
+    "rating": 0,
+    "seller": "Weidian",
+    "title": "Dragon Union Shorts Black",
+    "usd": 7.42,
+    "variants": [
+     [
+      "Black",
+      53
+     ]
+    ],
+    "views": 0
+   },
+   "rule": 2,
+   "src": "https://si.geilicdn.com/pcitem2053026584-51870000019ed56700620a8132bd_4000_4000.jpg",
+   "status": "staged",
    "zh": "Creast Shorts - Brazil Exclusive巴西限定刺绣徽标短裤"
   },
   "7790364953": {
-   "at": "2026-11-27T17:17:44Z",
+   "at": "2026-11-28T02:02:21Z",
    "item": "Sweatpants",
    "row": {
     "brand": "",
@@ -2928,7 +2957,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Black Split Seam Sweatpants",
+    "title": "Black Sweatpants",
     "usd": 26.32,
     "variants": [
      [
@@ -2938,6 +2967,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-51100000019ef3ce0bd80a23038e_1320_1320.jpg",
    "status": "staged",
    "zh": "ME分割版卫裤"
@@ -3034,31 +3064,10 @@
    "zh": "U-拉链套头尼龙"
   },
   "7797581370": {
-   "at": "2026-11-27T17:14:37Z",
-   "item": "Long Sleeve Shirt",
-   "row": {
-    "brand": "",
-    "cat": "Tops",
-    "g": "m",
-    "id": "7797581370",
-    "itemId": "7797581370",
-    "platform": "weidian",
-    "price": 143,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "Long Sleeve Shirt White",
-    "usd": 20.02,
-    "variants": [
-     [
-      "White",
-      143
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller2018810290-7a510000019ef9b2150c0a230449_2560_3413.jpg",
-   "status": "staged",
+   "at": "2026-11-28T01:57:29Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "YM足球长袖衫"
   },
   "7797701698": {
@@ -3091,7 +3100,7 @@
    "zh": "EXP5 乔治夹克-海军蓝"
   },
   "7798845125": {
-   "at": "2026-11-27T17:15:41Z",
+   "at": "2026-11-28T01:59:08Z",
    "item": "Jeans",
    "row": {
     "brand": "",
@@ -3104,7 +3113,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Light Blue Flared Jeans",
+    "title": "Embroidered Wide Leg Jeans Light Blue",
     "usd": 39.06,
     "variants": [
      [
@@ -3114,36 +3123,16 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2047317788-2fe30000019f1e31716d0a23b6ac_1320_1320.jpg",
    "status": "staged",
    "zh": "VCT025三刀流武士牛仔裤"
   },
   "7799226300": {
-   "at": "2026-11-27T18:08:18Z",
-   "item": "Denim Shorts",
-   "row": {
-    "brand": "",
-    "cat": "Shorts",
-    "g": "m",
-    "id": "7799226300",
-    "itemId": "7799226300",
-    "platform": "weidian",
-    "price": 64,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "Indigo Denim Shorts",
-    "usd": 8.96,
-    "variants": [
-     [
-      "Indigo",
-      64
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller902046301379-0d750000019f091f40850a20e7c7_1024_1021.jpg",
-   "status": "staged",
+   "at": "2026-11-28T02:25:59Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "Up黄线短裤"
   },
   "7799843995": {
@@ -3306,8 +3295,8 @@
    "zh": "W-RV黑色排扣长袖T"
   },
   "7804323577": {
-   "at": "2026-11-27T18:04:58Z",
-   "item": "Running Shorts",
+   "at": "2026-11-28T02:22:32Z",
+   "item": "Split Hem Shorts",
    "row": {
     "brand": "",
     "cat": "Shorts",
@@ -3319,7 +3308,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Split Hem Running Shorts Grey",
+    "title": "Split Hem Shorts Grey",
     "usd": 13.3,
     "variants": [
      [
@@ -3329,12 +3318,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-5cc60000019f47cdff460a207569_1320_1320.jpg",
    "status": "staged",
    "zh": "U-格子分叉短裤"
   },
   "7805161587": {
-   "at": "2026-11-27T17:16:42Z",
+   "at": "2026-11-28T02:00:52Z",
    "item": "Jeans",
    "row": {
     "brand": "",
@@ -3347,7 +3337,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Western Embroidered Jeans Black",
+    "title": "Fast Draw Denim Jeans Black",
     "usd": 35.14,
     "variants": [
      [
@@ -3357,7 +3347,8 @@
     ],
     "views": 0
    },
-   "src": "https://si.geilicdn.com/wdseller1995625455-36790000019fb736d7210a23010f_3019_3021.jpg",
+   "rule": 2,
+   "src": "https://si.geilicdn.com/wdseller1995625455-4ecd0000019f505c18c90a230449_2560_3413.jpg",
    "status": "staged",
    "zh": "VCT033新西部牛仔裤\n"
   },
@@ -3485,31 +3476,10 @@
    "zh": "Y-SY圆领深灰色针织衫"
   },
   "7811916156": {
-   "at": "2026-11-27T17:17:38Z",
-   "item": "Sweatpants",
-   "row": {
-    "brand": "",
-    "cat": "Pants",
-    "g": "m",
-    "id": "7811916156",
-    "itemId": "7811916156",
-    "platform": "weidian",
-    "price": 153,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "Dragon Embroidered Sweatpants Purple",
-    "usd": 21.42,
-    "variants": [
-     [
-      "Purple",
-      153
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller2073272636-55330000019f79752ec30a20e284_1320_1320.jpg",
-   "status": "staged",
+   "at": "2026-11-28T02:02:12Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "DS紫色神龙卫裤"
   },
   "7812911479": {
@@ -3600,8 +3570,8 @@
    "zh": "Bullrep Kr 染色运动套装"
   },
   "7813251123": {
-   "at": "2026-11-27T18:08:47Z",
-   "item": "Performance Socks",
+   "at": "2026-11-28T02:26:43Z",
+   "item": "Socks",
    "row": {
     "brand": "U",
     "cat": "Accessories",
@@ -3613,7 +3583,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "U Performance Socks White",
+    "title": "U London Performance Socks White",
     "usd": 1.96,
     "variants": [
      [
@@ -3623,6 +3593,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-2e660000019fa24496ec0a8132bd_1320_1320.jpg",
    "status": "staged",
    "zh": "U-伦敦性能袜"
@@ -3751,10 +3722,10 @@
    "zh": "ME网格泡芙夹克"
   },
   "7816325491": {
-   "at": "2026-11-27T17:14:14Z",
+   "at": "2026-11-28T01:56:44Z",
    "item": "T-Shirt",
    "row": {
-    "brand": "",
+    "brand": "Vale",
     "cat": "Tops",
     "g": "m",
     "id": "7816325491",
@@ -3764,7 +3735,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Graphic T-Shirt Black",
+    "title": "Vale Graphic Tee Black",
     "usd": 32.62,
     "variants": [
      [
@@ -3774,12 +3745,13 @@
     ],
     "views": 0
    },
-   "src": "https://si.geilicdn.com/wdseller2018810290-1b1f0000019fb91b716a0a23138d_1320_1760.jpg",
+   "rule": 2,
+   "src": "https://si.geilicdn.com/wdseller2018810290-5bca0000019fb910a5310a23b54f_1320_1760.jpg",
    "status": "staged",
    "zh": "Vale瓦尔世界短袖T恤黑色"
   },
   "7817261696": {
-   "at": "2026-11-27T17:16:07Z",
+   "at": "2026-11-28T01:59:53Z",
    "item": "Jeans",
    "row": {
     "brand": "",
@@ -3792,7 +3764,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Wide Leg Jeans Black",
+    "title": "Baggy Wide Leg Jeans Black",
     "usd": 20.86,
     "variants": [
      [
@@ -3802,6 +3774,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/pcitem2088921286-5d4f0000019fa8b519da0a811411-unadjust_888_842.png",
    "status": "staged",
    "zh": "SUV开口牛仔长裤"
@@ -3872,14 +3845,15 @@
    "zh": "TL-卷毛足球短袖"
   },
   "7819857039": {
-   "at": "2026-11-27T17:13:49Z",
+   "at": "2026-11-28T01:56:02Z",
+   "rule": 2,
    "status": "badphoto",
    "why": "no clean single-product photo in the listing",
    "zh": "Vale 本能短袖"
   },
   "7820686877": {
-   "at": "2026-11-27T17:13:38Z",
-   "item": "T-Shirt",
+   "at": "2026-11-28T01:55:05Z",
+   "item": "T-shirt",
    "row": {
     "brand": "",
     "cat": "Tops",
@@ -3891,7 +3865,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Black Henley T-Shirt",
+    "title": "Henley T-Shirt Black",
     "usd": 7.42,
     "variants": [
      [
@@ -3901,6 +3875,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2088921286-33e70000019fdb3a958a0a2315ef_1320_1320.jpg",
    "status": "staged",
    "zh": "Rea黑色圆领纽扣短袖"
@@ -4022,10 +3997,10 @@
    "zh": "Rea条纹长袖T恤"
   },
   "7822744520": {
-   "at": "2026-11-27T17:13:54Z",
+   "at": "2026-11-28T01:56:14Z",
    "item": "T-Shirt",
    "row": {
-    "brand": "Vale",
+    "brand": "Valestar",
     "cat": "Tops",
     "g": "m",
     "id": "7822744520",
@@ -4035,7 +4010,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Vale T-Shirt Yellow",
+    "title": "Valestar T-Shirt Yellow",
     "usd": 30.1,
     "variants": [
      [
@@ -4045,36 +4020,16 @@
     ],
     "views": 0
    },
-   "src": "https://si.geilicdn.com/wdseller2018810290-7e6e0000019fd2416e450a2102b1_1320_1760.jpg",
+   "rule": 2,
+   "src": "https://si.geilicdn.com/wdseller2018810290-03720000019fd22a60dc0a240147_1320_1760.jpg",
    "status": "staged",
    "zh": "Vale瓦莱星短袖黄色"
   },
   "7823303920": {
-   "at": "2026-11-27T17:14:01Z",
-   "item": "T-Shirt",
-   "row": {
-    "brand": "Vale",
-    "cat": "Tops",
-    "g": "m",
-    "id": "7823303920",
-    "itemId": "7823303920",
-    "platform": "weidian",
-    "price": 233,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "Vale Monster Tee Black",
-    "usd": 32.62,
-    "variants": [
-     [
-      "Black",
-      233
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller2018810290-278b0000019fd76ff3a20a210247_1320_1760.jpg",
-   "status": "staged",
+   "at": "2026-11-28T01:56:25Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "Vale 怪兽短袖黑色"
   },
   "7823659262": {
@@ -4085,7 +4040,7 @@
    "zh": "VSZ斜杠polo短袖"
   },
   "7826274256": {
-   "at": "2026-11-27T17:15:19Z",
+   "at": "2026-11-28T01:58:35Z",
    "item": "Jeans",
    "row": {
     "brand": "",
@@ -4098,24 +4053,48 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Raw Selvedge Jeans Dark Blue",
+    "title": "Raw Denim Jeans Indigo",
     "usd": 42.0,
     "variants": [
      [
-      "Dark Blue",
+      "Dark Indigo",
       300
      ]
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/pcitem2030468061-2e900000019ff15eb44d0a22d1a4_1280_1280.jpg",
    "status": "staged",
    "zh": "布林布林深蓝牛仔"
   },
   "7829878413": {
-   "at": "2026-11-27T18:08:41Z",
-   "status": "badphoto",
-   "why": "no clean single-product photo in the listing",
+   "at": "2026-11-28T02:26:34Z",
+   "item": "Belt",
+   "row": {
+    "brand": "Fyredwrld",
+    "cat": "Accessories",
+    "g": "m",
+    "id": "7829878413",
+    "itemId": "7829878413",
+    "platform": "weidian",
+    "price": 136,
+    "qc": 0,
+    "rating": 0,
+    "seller": "Weidian",
+    "title": "Fyredwrld Thin Leather Belt Black",
+    "usd": 19.04,
+    "variants": [
+     [
+      "Black",
+      136
+     ]
+    ],
+    "views": 0
+   },
+   "rule": 2,
+   "src": "https://si.geilicdn.com/pcitem1914636722-14eb000001a00db2fe6c0a22d535-unadjust_1276_1276.png",
+   "status": "staged",
    "zh": "Fyredwrld皮革细腰带"
   },
   "7831097514": {
@@ -4264,10 +4243,10 @@
    "zh": "T-AN排扣领长袖T"
   },
   "7841328111": {
-   "at": "2026-11-27T17:17:14Z",
+   "at": "2026-11-28T02:01:36Z",
    "item": "Sweatpants",
    "row": {
-    "brand": "Gradberry",
+    "brand": "Grayberry",
     "cat": "Pants",
     "g": "m",
     "id": "7841328111",
@@ -4277,7 +4256,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Gradberry Smiley Sweatpants Grey",
+    "title": "Grayberry Sweatpants Grey",
     "usd": 29.96,
     "variants": [
      [
@@ -4287,15 +4266,16 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-4b9f000001a04e1c9d580a23b54f_1320_1760.jpg",
    "status": "staged",
    "zh": "GV贪婪联名笑脸束脚卫裤灰色"
   },
   "7842601786": {
-   "at": "2026-11-27T17:17:48Z",
+   "at": "2026-11-28T02:02:29Z",
    "item": "Sweatpants",
    "row": {
-    "brand": "SUV",
+    "brand": "",
     "cat": "Pants",
     "g": "m",
     "id": "7842601786",
@@ -4305,7 +4285,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "SUV Sweatpants White",
+    "title": "Camo Sweatpants White",
     "usd": 27.72,
     "variants": [
      [
@@ -4315,6 +4295,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2088921286-7914000001a0429f8c4a0a2394a4_1320_1320.jpg",
    "status": "staged",
    "zh": "SUV白色迷彩休闲裤"
@@ -4349,7 +4330,8 @@
    "zh": "DP-迷彩格子外套"
   },
   "7844493509": {
-   "at": "2026-11-27T17:14:22Z",
+   "at": "2026-11-28T01:56:55Z",
+   "rule": 2,
    "status": "badphoto",
    "why": "no clean single-product photo in the listing",
    "zh": "w夜光龙刺绣T"
@@ -4384,7 +4366,7 @@
    "zh": "布林破烂牛仔夹克"
   },
   "7847957810": {
-   "at": "2026-11-27T17:17:34Z",
+   "at": "2026-11-28T02:02:04Z",
    "item": "Track Pants",
    "row": {
     "brand": "DP",
@@ -4397,7 +4379,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "DP Wide Leg Track Pants Black",
+    "title": "DP Coach Pants Black",
     "usd": 22.12,
     "variants": [
      [
@@ -4407,14 +4389,38 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-7744000001a0673e91a60a23047e_1320_1320.jpg",
    "status": "staged",
    "zh": "DP-教练休闲裤"
   },
   "7850155454": {
-   "at": "2026-11-27T17:16:12Z",
-   "status": "badphoto",
-   "why": "no clean single-product photo in the listing",
+   "at": "2026-11-28T02:00:01Z",
+   "item": "Jeans",
+   "row": {
+    "brand": "SOLVA",
+    "cat": "Pants",
+    "g": "m",
+    "id": "7850155454",
+    "itemId": "7850155454",
+    "platform": "weidian",
+    "price": 349,
+    "qc": 0,
+    "rating": 0,
+    "seller": "Weidian",
+    "title": "SOLVA Tide Mark Jeans Blue",
+    "usd": 48.86,
+    "variants": [
+     [
+      "Blue",
+      349
+     ]
+    ],
+    "views": 0
+   },
+   "rule": 2,
+   "src": "https://si.geilicdn.com/pcitem2099618254-26fa000001a07af70c150a2304aa_4000_4000.jpg",
+   "status": "staged",
    "zh": "SOLVA \"Tide Mark\" Slim Bootcut Denim jeans修身微喇牛仔裤"
   },
   "7852124847": {
@@ -4509,7 +4515,7 @@
    "zh": "L-MU轰炸机飞行棉服夹克"
   },
   "7860289486": {
-   "at": "2026-11-27T18:08:35Z",
+   "at": "2026-11-28T02:26:25Z",
    "item": "Belt",
    "row": {
     "brand": "SUV",
@@ -4522,7 +4528,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "SUV Monogram Belt Black",
+    "title": "SUV Belt Black",
     "usd": 24.64,
     "variants": [
      [
@@ -4532,6 +4538,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2088921286-29d7000001a0c3d222af0a811258_1320_1320.jpg",
    "status": "staged",
    "zh": "SUV马毛皮带"
@@ -4660,10 +4667,10 @@
    "zh": "红白运动套装"
   },
   "7869347206": {
-   "at": "2026-11-27T17:16:17Z",
+   "at": "2026-11-28T02:00:19Z",
    "item": "Jeans",
    "row": {
-    "brand": "Supreme",
+    "brand": "",
     "cat": "Pants",
     "g": "m",
     "id": "7869347206",
@@ -4673,7 +4680,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Supreme Denim Jeans Light Blue",
+    "title": "Denim Jeans Light Blue",
     "usd": 14.0,
     "variants": [
      [
@@ -4683,6 +4690,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/pcitem1285810690-21ff000001a0f767c6c20a23041a-unadjust_1162_1295.png",
    "status": "staged",
    "zh": "SUP 牛仔长裤"
@@ -4717,10 +4725,10 @@
    "zh": "灰黄 运动套装"
   },
   "7869412996": {
-   "at": "2026-11-27T17:17:26Z",
+   "at": "2026-11-28T02:01:54Z",
    "item": "Sweatpants",
    "row": {
-    "brand": "Ralph Lauren",
+    "brand": "",
     "cat": "Pants",
     "g": "m",
     "id": "7869412996",
@@ -4730,7 +4738,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Ralph Lauren Sweatpants White",
+    "title": "Sweatpants White",
     "usd": 14.0,
     "variants": [
      [
@@ -4740,6 +4748,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/pcitem1285810690-79e5000001a0f7aedf650a231316-unadjust_949_889.png",
    "status": "staged",
    "zh": "小马刺绣卫裤长裤"
@@ -4774,10 +4783,10 @@
    "zh": "D-5Mc拉链连帽衫"
   },
   "7871722082": {
-   "at": "2026-11-27T17:17:58Z",
+   "at": "2026-11-28T02:02:43Z",
    "item": "Compression Tights",
    "row": {
-    "brand": "",
+    "brand": "Dayone",
     "cat": "Pants",
     "g": "m",
     "id": "7871722082",
@@ -4787,7 +4796,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Compression Tights Black",
+    "title": "Dayone Compound Tights Black",
     "usd": 13.72,
     "variants": [
      [
@@ -4797,18 +4806,42 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller211957776-5d1d000001a1128a53430a22c11f_2560_2560.jpg",
    "status": "staged",
    "zh": "T10-day*ne健身跑者运动速干长袜裤"
   },
   "7872113069": {
-   "at": "2026-11-27T17:15:29Z",
-   "status": "badphoto",
-   "why": "no clean single-product photo in the listing",
+   "at": "2026-11-28T01:58:50Z",
+   "item": "Double-Knee Jeans",
+   "row": {
+    "brand": "Fyredwrld",
+    "cat": "Pants",
+    "g": "m",
+    "id": "7872113069",
+    "itemId": "7872113069",
+    "platform": "weidian",
+    "price": 268,
+    "qc": 0,
+    "rating": 0,
+    "seller": "Weidian",
+    "title": "Fyredwrld Double-Knee Jeans Black",
+    "usd": 37.52,
+    "variants": [
+     [
+      "Black",
+      268
+     ]
+    ],
+    "views": 0
+   },
+   "rule": 2,
+   "src": "https://si.geilicdn.com/pcitem2113280699-7978000001a1334d91250a2394a4-unadjust_1279_1706.png",
+   "status": "staged",
    "zh": "Fyredwrld工装牛仔『双膝』"
   },
   "7872298193": {
-   "at": "2026-11-27T17:15:08Z",
+   "at": "2026-11-28T01:58:18Z",
    "item": "Jeans",
    "row": {
     "brand": "Raspberry",
@@ -4821,16 +4854,17 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Raspberry Jeans Dark Blue",
+    "title": "Raspberry Embroidered Jeans Navy",
     "usd": 29.96,
     "variants": [
      [
-      "Dark Blue",
+      "Navy",
       214
      ]
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-38c2000001a1340a2f670a2313e2_1322_1764.jpg",
    "status": "staged",
    "zh": "GV 腰带牛仔裤"
@@ -4865,10 +4899,10 @@
    "zh": "logo三色华夫格长袖"
   },
   "7875881057": {
-   "at": "2026-11-27T17:15:14Z",
+   "at": "2026-11-28T01:58:26Z",
    "item": "Jeans",
    "row": {
-    "brand": "GV RIZO",
+    "brand": "",
     "cat": "Pants",
     "g": "m",
     "id": "7875881057",
@@ -4878,7 +4912,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "GV RIZO Jeans Black",
+    "title": "Wide Leg Jeans Black",
     "usd": 32.62,
     "variants": [
      [
@@ -4888,13 +4922,14 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-0e67000001a17367ab630a23c17b_1320_1760.jpg",
    "status": "staged",
    "zh": "GV RIZO牛仔裤"
   },
   "7875919929": {
-   "at": "2026-11-27T18:04:43Z",
-   "item": "3/4 Sweat Shorts",
+   "at": "2026-11-28T02:22:08Z",
+   "item": "Shorts",
    "row": {
     "brand": "HMDD",
     "cat": "Shorts",
@@ -4906,7 +4941,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "HMDD Chim Army Green Shorts",
+    "title": "HMDD Army Green Shorts",
     "usd": 23.38,
     "variants": [
      [
@@ -4916,6 +4951,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-2777000001a1543e7dd10a240147_1320_1760.jpg",
    "status": "staged",
    "zh": "HMDD奇姆军用绿色3/4短裤"
@@ -4928,7 +4964,7 @@
    "zh": "T-SY红包扣条纹长袖衬衫"
   },
   "7877061168": {
-   "at": "2026-11-27T17:15:24Z",
+   "at": "2026-11-28T01:58:43Z",
    "item": "Jeans",
    "row": {
     "brand": "Fyredwrld",
@@ -4951,6 +4987,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/pcitem2113280699-4075000001a14340ff4c0a2315ef_4284_4284.jpg",
    "status": "staged",
    "zh": "Fyredwrld后腰红边v2"
@@ -5014,7 +5051,7 @@
    "zh": "阴阳卫衣"
   },
   "7878829035": {
-   "at": "2026-11-27T17:14:50Z",
+   "at": "2026-11-28T01:57:50Z",
    "item": "T-Shirt",
    "row": {
     "brand": "",
@@ -5037,12 +5074,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1995625455-6d170000019f744b27960a23c1e0_4284_4287.jpg",
    "status": "staged",
    "zh": "PW037樱花树短袖"
   },
   "7878885787": {
-   "at": "2026-11-27T17:14:55Z",
+   "at": "2026-11-28T01:57:59Z",
    "item": "T-Shirt",
    "row": {
     "brand": "One Chance",
@@ -5065,12 +5103,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1995625455-64850000019ef3e272cf0a2102b1_3025_3026.jpg",
    "status": "staged",
    "zh": "幺三零002机会短袖"
   },
   "7878895729": {
-   "at": "2026-11-27T17:16:50Z",
+   "at": "2026-11-28T02:01:01Z",
    "item": "Jeans",
    "row": {
     "brand": "",
@@ -5083,7 +5122,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Tsuru Denim Jeans Black",
+    "title": "Crane Waterfall Jeans Black",
     "usd": 46.48,
     "variants": [
      [
@@ -5093,12 +5132,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1995625455-74410000019f5063a6510a23b5fa_2560_3413.jpg",
    "status": "staged",
    "zh": "VCT027仙鹤瀑布牛仔裤"
   },
   "7879069071": {
-   "at": "2026-11-27T17:56:26Z",
+   "at": "2026-11-28T02:13:17Z",
    "item": "Trousers",
    "row": {
     "brand": "",
@@ -5111,7 +5151,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Woven Flag Trousers Black",
+    "title": "Flag Print Woven Trousers Black",
     "usd": 26.32,
     "variants": [
      [
@@ -5121,6 +5161,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1995625455-27b7000001a042eaef020a2303ea_1320_1760.jpg",
    "status": "staged",
    "zh": "GS007梭织国旗长裤"
@@ -5155,8 +5196,8 @@
    "zh": "WK001迷彩爆炸拉链衫"
   },
   "7879114281": {
-   "at": "2026-11-27T17:16:33Z",
-   "item": "Jeans",
+   "at": "2026-11-28T02:00:43Z",
+   "item": "Baggy Jeans",
    "row": {
     "brand": "",
     "cat": "Pants",
@@ -5178,6 +5219,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1995625455-7941000001a0b91b1f4a0a23c191_1320_1760.jpg",
    "status": "staged",
    "zh": "ATR002空岛牛仔裤"
@@ -5212,10 +5254,10 @@
    "zh": "PW038大脑条纹卫衣"
   },
   "7881794934": {
-   "at": "2026-11-27T17:16:56Z",
+   "at": "2026-11-28T02:01:09Z",
    "item": "Jeans",
    "row": {
-    "brand": "UGOD",
+    "brand": "Sakura Knight",
     "cat": "Pants",
     "g": "m",
     "id": "7881794934",
@@ -5225,22 +5267,23 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "UGOD Sakura Knight Jeans Blue",
+    "title": "Sakura Knight Jeans Light Blue",
     "usd": 41.44,
     "variants": [
      [
-      "Blue",
+      "Light Blue",
       296
      ]
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1995625455-65010000019cd1ba1ddb0a239839_2560_3413.jpg",
    "status": "staged",
    "zh": "樱花骑士牛仔裤"
   },
   "7881794936": {
-   "at": "2026-11-27T17:15:04Z",
+   "at": "2026-11-28T01:58:10Z",
    "item": "T-Shirt",
    "row": {
     "brand": "",
@@ -5253,7 +5296,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Anti-War Skull T-Shirt Black",
+    "title": "Anti-War Skull Tee Black",
     "usd": 10.78,
     "variants": [
      [
@@ -5263,6 +5306,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1995625455-53a30000019d19e9c52e0a239839_1320_1760.jpg",
    "status": "staged",
    "zh": "细狗反战骷髅TEE"
@@ -5355,7 +5399,7 @@
    "zh": "PW045月桂花枝国际卫衣"
   },
   "7884237230": {
-   "at": "2026-11-27T17:17:21Z",
+   "at": "2026-11-28T02:01:44Z",
    "item": "Sweatpants",
    "row": {
     "brand": "Kroen",
@@ -5368,7 +5412,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Kroen Sweatpants Black",
+    "title": "Kroen Two-Tone Sweatpants Black",
     "usd": 23.38,
     "variants": [
      [
@@ -5378,12 +5422,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-1ca5000001a17d65f1350a22c196_1320_1760.jpg",
    "status": "staged",
    "zh": "克伦双色拼接卫裤"
   },
   "7884760808": {
-   "at": "2026-11-27T17:14:43Z",
+   "at": "2026-11-28T01:57:39Z",
    "item": "T-Shirt",
    "row": {
     "brand": "",
@@ -5396,7 +5441,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Monogram Print T-Shirt Black",
+    "title": "Monogram Print Tee Black",
     "usd": 14.98,
     "variants": [
      [
@@ -5406,6 +5451,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1433625426-44f4000001a181d0a65d0a2313e2_2500_2502.jpg",
    "status": "staged",
    "zh": "iHS015-帝帝帝短袖\n"
@@ -5440,7 +5486,7 @@
    "zh": "\"Diffusion\" Double-Breasted Faux Suede Jacket - Black---双排扣麂皮夹克黑色"
   },
   "7887555597": {
-   "at": "2026-11-27T17:14:08Z",
+   "at": "2026-11-28T01:56:36Z",
    "item": "T-Shirt",
    "row": {
     "brand": "Valley",
@@ -5453,7 +5499,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Valley Forecast Alert T-Shirt Black",
+    "title": "Valley Weatherman Tee Black",
     "usd": 30.1,
     "variants": [
      [
@@ -5463,15 +5509,16 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-104b000001a196ebd34a0a23138d_1320_1760.jpg",
    "status": "staged",
    "zh": "Vale天气预报短袖"
   },
   "7888304856": {
-   "at": "2026-11-27T17:16:27Z",
+   "at": "2026-11-28T02:00:32Z",
    "item": "Jeans",
    "row": {
-    "brand": "",
+    "brand": "Elporto",
     "cat": "Pants",
     "g": "m",
     "id": "7888304856",
@@ -5481,7 +5528,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Distressed Blue Denim Jeans",
+    "title": "Elporto Selvedge Jeans Blue",
     "usd": 40.18,
     "variants": [
      [
@@ -5491,6 +5538,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-6549000001a18b7859de0a22d58f_1320_1760.jpg",
    "status": "staged",
    "zh": "YM P001 SELV“ELPORTO”牛仔裤"
@@ -5525,8 +5573,8 @@
    "zh": "Be 黑灰条纹 卫衣"
   },
   "7890998125": {
-   "at": "2026-11-27T18:04:48Z",
-   "item": "Shorts",
+   "at": "2026-11-28T02:22:18Z",
+   "item": "Compression Shorts",
    "row": {
     "brand": "U",
     "cat": "Shorts",
@@ -5548,15 +5596,16 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-20b0000001a1ac803ab30a22d535_1320_1320.jpg",
    "status": "staged",
    "zh": "U-精英竖条短裤"
   },
   "7891049961": {
-   "at": "2026-11-27T18:04:53Z",
+   "at": "2026-11-28T02:22:25Z",
    "item": "Compression Shorts",
    "row": {
-    "brand": "UNU",
+    "brand": "UVU",
     "cat": "Shorts",
     "g": "m",
     "id": "7891049961",
@@ -5566,7 +5615,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "UNU Red Compression Shorts",
+    "title": "UVU Red Compression Shorts",
     "usd": 17.08,
     "variants": [
      [
@@ -5576,6 +5625,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-7afb000001a1ac7efec60a210256_1320_1320.jpg",
    "status": "staged",
    "zh": "U-红色线条紧身短裤"
@@ -5610,7 +5660,7 @@
    "zh": "FLW001-水洗手写破坏卫衣\n"
   },
   "7897256931": {
-   "at": "2026-11-27T17:14:27Z",
+   "at": "2026-11-28T01:57:11Z",
    "item": "T-Shirt",
    "row": {
     "brand": "",
@@ -5623,7 +5673,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Plain White T-Shirt",
+    "title": "White Slub Cotton T-Shirt",
     "usd": 7.42,
     "variants": [
      [
@@ -5633,12 +5683,14 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2088921286-0633000001a1d02c0f090a813272_1280_1280.jpg",
    "status": "staged",
    "zh": "2/TM-纯色竹节棉短袖"
   },
   "7897927484": {
-   "at": "2026-11-27T17:17:03Z",
+   "at": "2026-11-28T02:01:19Z",
+   "rule": 2,
    "status": "badphoto",
    "why": "no clean single-product photo in the listing",
    "zh": "2/ME绿色拼接休闲裤"
@@ -5650,10 +5702,10 @@
    "why": "no detail source for taobao listings yet"
   },
   "7899548618": {
-   "at": "2026-11-27T17:15:34Z",
-   "item": "Wide Leg Jeans",
+   "at": "2026-11-28T01:58:59Z",
+   "item": "Jeans",
    "row": {
-    "brand": "",
+    "brand": "GV",
     "cat": "Pants",
     "g": "m",
     "id": "7899548618",
@@ -5663,7 +5715,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Wide Leg Jeans Green",
+    "title": "GV Skunk Denim Green",
     "usd": 41.3,
     "variants": [
      [
@@ -5673,6 +5725,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-005e000001a1ce60d02f0a2394ee_1320_1760.jpg",
    "status": "staged",
    "zh": "GV臭Y宽腿牛仔裤"
@@ -5733,5 +5786,5 @@
    "why": "no clean single-product photo in the listing"
   }
  },
- "spent_usd": 1.6358
+ "spent_usd": 2.0096
 }
