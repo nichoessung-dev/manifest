@@ -18,6 +18,8 @@ for good, without touching the quota. Each month the quota goes to finds that ar
 Order (25 Nov 2026, SEO pass): the swapped finds' old listings, then the finds whose product page is in the live product
 sitemap (indexable) and is not hidden, most viewed first: their pages show the banked photos in their HTML. Then the rest.
 
+Sources, in order: Oopbuy (scripts/oopbuy_qc.py, when its keys are set), repsapi.pl (scripts/repsapi_qc.py, REPSAPI_KEY,
+2,000 a day free; owner 28 Nov 2026), then qualit.ly with what is left of its monthly quota.
 Needs QUALITLY_KEY (qualit.ly API key) and SUPABASE_SERVICE_KEY (storage upload), both GitHub secrets.
 data/qc_bank.json: {"updated": ..., "items": {"weidian/123456": [qc_count, stored_thumbs], ...}}. [n, 0] means qualit.ly
 had no usable photos; such finds are not looked up again for 90 days ("checked" dates).
@@ -118,14 +120,15 @@ def upload(name, data):
     urllib.request.urlopen(req, timeout=60).read()
 
 
-def store(key, thumbs):
-    """Download, shrink and upload up to MAX_THUMBS photos; returns how many were stored (in order, k = 0..n-1)."""
+def store(key, thumbs, badge=True):
+    """Download, shrink and upload up to MAX_THUMBS photos; returns how many were stored (in order, k = 0..n-1).
+    badge: swap qualit.ly's corner badge for ours (only qualit.ly's own photos; another source's photos stay as sent)."""
     n = 0; name = key.replace("/", "-")
     for u in thumbs:
         if n >= MAX_THUMBS: break
         try:
             im = Image.open(io.BytesIO(get(u, timeout=20))).convert("RGB"); im.thumbnail((900, 900))
-            im = rebadge(im)
+            if badge: im = rebadge(im)
             buf = io.BytesIO(); im.save(buf, "WEBP", quality=80)
             upload("%s-%d.webp" % (name, n), buf.getvalue()); n += 1
         except Exception as e:
@@ -218,7 +221,7 @@ def main():
                     print("Oopbuy QC not answering (%s): skipped this run" % st); break
                 checked["oop:" + key] = now.date().isoformat()
                 if ph:
-                    n = store(key, ph)
+                    n = store(key, ph, badge=False)
                     if n: items[key] = [max(len(ph), n), n]; checked[key] = now.date().isoformat(); found += 1
                     print("%-28s oopbuy photos %d stored %d" % (key, len(ph), n))
                 time.sleep(0.4)
@@ -228,8 +231,46 @@ def main():
             todo = [t for t in todo if not (t[1] in items and items[t[1]][1] > 0)]
     except Exception as e:
         print("Oopbuy QC pass failed: %s" % str(e)[:160])
+    # repsapi.pl next (owner, 28 Nov 2026): 2,000 lookups a day on the free plan, every find not banked yet (also those
+    # with no QC on record), most important first; what it does not have goes on to qualit.ly below
+    try:
+        import repsapi_qc
+        if repsapi_qc.ready():
+            rmax = arg("--repsapi-max", 1200); asked = found = 0
+            seen = {k for k, x in items.items() if x[1] > 0}
+            allf = [t for t in ([("fr:" + k, k, 1) for k in sorted(fkeys)] + catalogue(True))
+                    if t[1] not in seen and checked.get("rep:" + t[1], "") < old]
+            allf.sort(key=lambda t: (t[0].startswith("fr:"), t[0] not in swapped, t[0] not in ix or t[0] in hid, -v.get(t[0], 0), -t[2]))
+            for pid, key, qc in list({t[1]: t for t in allf}.values())[:rmax]:
+                sf, sid = key.split("/")
+                rst, total, ph = repsapi_qc.photos(sf, sid); asked += 1
+                if rst == 429:
+                    print("repsapi.pl: rate limited, waiting a minute"); time.sleep(62)
+                    rst, total, ph = repsapi_qc.photos(sf, sid)
+                if rst in (401, 403): print("repsapi.pl refused the key (%s): check REPSAPI_KEY" % rst); break
+                if rst == 429: print("repsapi.pl: daily allowance used up, the next run goes on"); break
+                if rst not in (200, 404):
+                    if asked <= 3 and not found: print("repsapi.pl not answering (%s): skipped this run" % rst); break
+                    continue
+                checked["rep:" + key] = now.date().isoformat()
+                if ph:
+                    n = store(key, ph, badge=False)
+                    if n: items[key] = [max(total, n), n]; checked[key] = now.date().isoformat(); found += 1
+                    print("%-28s repsapi photos %d stored %d" % (key, total, n))
+                elif key not in items:
+                    items[key] = [0, 0]; checked[key] = now.date().isoformat()
+                time.sleep(repsapi_qc.PAUSE)
+                if asked % 50 == 0: save(bank, now)
+            save(bank, now)
+            print("repsapi.pl: asked %d, finds with photos stored %d" % (asked, found))
+            todo = [t for t in todo if not (t[1] in items and items[t[1]][1] > 0)]
+        else:
+            print("repsapi.pl: REPSAPI_KEY is not set, skipped")
+    except Exception as e:
+        print("repsapi.pl pass failed: %s" % str(e)[:160])
     left = month.get("remaining")
-    if left is None: raise SystemExit("could not read the qualit.ly quota (status %s): nothing looked up" % st)
+    if left is None:
+        save(bank, now); print("could not read the qualit.ly quota (status %s): no qualit.ly lookups this run" % st); return
     # the visitors' share for the days left until the quota resets (reset_at, else the 1st of next month, UTC)
     try: rdt = datetime.fromisoformat(str(month.get("reset_at")).replace("Z", "+00:00"))
     except Exception: rdt = None

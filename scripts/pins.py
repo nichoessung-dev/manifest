@@ -26,6 +26,7 @@ PROFILE = "puroclassicocom"                                  # the Pinterest acc
 BOARD_NAMES = {"Sneaker finds": ["Shoes"], "Hoodie and tee finds": ["Tops"], "Jacket and coat finds": ["Outerwear"],
                "Pants and shorts finds": ["Pants", "Shorts"], "Bag finds": ["Bags"],
                "Accessories and jewelry finds": ["Accessories", "Headwear", "Toys"]}
+CATCH_ALL = "Fashion finds"                                  # one board for every find the boards above do not take
 BOARDS_FILE = os.path.join(ROOT, "data", "pinterest_boards.json")
 # a clean cut-out photo, as functions/_lib/photo_tiles.js CUT_RX (the path of the photo link)
 CUT_RX = re.compile(r"^/(?:storage/v1/object/public/products|img/m)/pc2/[\w-]+-[et]1(?:\.v[\w-]+)?\.webp$|^/img/(?:rl|fr|cut)/[\w-]+-e1\.webp$"
@@ -70,7 +71,7 @@ def board_of(p, m):
 def find_boards():
     """The ids of BOARD_NAMES on PROFILE, from Pinterest's public board widget (no login), into BOARDS_FILE."""
     out, missing = {}, []
-    for name, cats in BOARD_NAMES.items():
+    for name, cats in list(BOARD_NAMES.items()) + [(CATCH_ALL, ["*"])]:
         slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
         try:
             d = json.loads(get("https://widgets.pinterest.com/v3/pidgets/boards/%s/%s/pins/" % (PROFILE, slug)))
@@ -82,7 +83,7 @@ def find_boards():
         print("board %s: %s" % (name, bid))
     if out:
         json.dump({"profile": PROFILE, "boards": out, "names": BOARD_NAMES}, open(BOARDS_FILE, "w"), indent=1)
-    print("boards found %d of %d%s" % (len(BOARD_NAMES) - len(missing), len(BOARD_NAMES), ("; missing: " + ", ".join(missing)) if missing else ""))
+    print("boards found %d of %d%s" % (len(BOARD_NAMES) + 1 - len(missing), len(BOARD_NAMES) + 1, ("; missing: " + ", ".join(missing)) if missing else ""))
 
 
 def sane(p):

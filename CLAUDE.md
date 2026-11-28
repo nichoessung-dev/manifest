@@ -70,13 +70,19 @@ and the guide to launching more sites from this engine are in `docs/PLAYBOOK.md`
   Logo watches, monogram bags and the luxury brands may go in emails, and alert and weekly-picks subjects name the
   brand. `EMAIL_LOGOS=0` takes out both.
 
+## Owner plans (remember, not started)
+- 28 Nov 2026: make the categories much better first. Then 3 new domains, each its own spreadsheet site built from this
+  engine (`docs/PLAYBOOK.md`), with finds from only one group each. Ask the owner which groups and domains when starting.
+
 ## Systems worth knowing
 - Dark-mode photo tiles: cut-outs sit on #262626. Rules in `functions/_lib/photo_tiles.js` (`CUT_RX`, `TILE_CUT_IDS`,
   `TILE_LIGHT`), mirrored in `index.html` (`pcCut()`).
 - QC photos: banked once per find in Supabase storage `products/qc/` by `scripts/qc_bank.py` (nightly). The corner
   badge on QC photos is swapped for our QR code by `scripts/qc_badge.py`. Photo links carry `?b=2`. Sources:
-  qualit.ly (key `QUALITLY_KEY`) and the Oopbuy QC API (`scripts/oopbuy_qc.py`, keys `OOPBUY_APP_ID`,
-  `OOPBUY_AES_KEY`, `OOPBUY_SIGN_SECRET`, waiting for Oopbuy).
+  the Oopbuy QC API (`scripts/oopbuy_qc.py`, keys `OOPBUY_APP_ID`, `OOPBUY_AES_KEY`, `OOPBUY_SIGN_SECRET`, waiting for
+  Oopbuy), then repsapi.pl (`scripts/repsapi_qc.py`, key `REPSAPI_KEY`, 2,000 a day free; owner's choice 28 Nov 2026;
+  its photos keep their own badge), then qualit.ly (key `QUALITLY_KEY`, 1,000 a month). Options and risks: the report
+  "QC photo source options".
 - Email (v2, 26 Nov 2026): `scripts/mailer.py` run by `.github/workflows/email.yml` every 15 minutes (welcome series
   W0 to W3, saved-find alerts, weekly picks, win-back, sunset; warm-up caps and stop lines built in). Provider per
   stream: Plunk by default, AhaSend as the switchable backup (`PROVIDER_AUTOMATED`, `PROVIDER_NEWS`). Clicks go through
