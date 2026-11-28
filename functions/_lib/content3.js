@@ -209,3 +209,25 @@ export const MODEL_TERM = {
   "represent-hoodie": "Represent Hoodie", "palm-angels-tracksuit": "Palm Angels Tracksuit", "off-white-hoodie": "Off-White Hoodie", "supreme-box-logo": "Supreme Box Logo",
   "cp-company-jacket": "C.P. Company Jacket", "rick-owens-sneakers": "Rick Owens", "celine-bag": "Celine Bag",
 };
+
+// How the most searched brands size (28 Nov 2026, SEO report: Arc'teryx, Golden Goose, Essentials, Rick Owens, Ralph Lauren,
+// Moncler, Margiela, Acne Studios, Stone Island, Chrome Hearts, Lululemon, CP Company and The North Face bring most of the
+// brand clicks). Shown as "Sizing <brand> reps" on the brand hub (pages.js). Only the brands' own size systems and cuts,
+// as their retail size guides describe them, plus the site's one size rule (owner, also the chat assistant's): start from
+// your usual size, one up only when the listing says Asian sizing. No promises about a seller's batch. No em or en dashes.
+const SIZE_RULE = `Start from your usual size and go one size up only when the listing says Asian sizing. Then compare the seller's size chart with a piece you own, measured flat, or use the <a href="/tools/size-estimator">size estimator</a>.`;
+export const BRAND_SIZING = {
+  "Arc'teryx": `<p>Arc'teryx uses letter sizes (XS to XXL). Its shells, such as the Beta and the Alpha, are cut to fit over a fleece or a light mid layer, so leave room if you wear a thick hoodie under one. ${SIZE_RULE}</p>`,
+  "Golden Goose": `<p>Golden Goose sneakers use EU sizes. Take your usual EU size; when you are between two sizes, compare your foot length in centimetres with the seller's chart rather than going by the number. ${SIZE_RULE}</p>`,
+  "Essentials": `<p>Essentials hoodies, sweatpants and T-shirts are cut oversized on purpose, with dropped shoulders. Your usual size gives the intended loose fit; one size down sits closer to the body. Compare the chest width in the seller's chart with a hoodie you own. ${SIZE_RULE}</p>`,
+  "Rick Owens": `<p>Rick Owens sneakers, such as the Geobasket and the Ramones, use EU or Italian shoe sizes and are often said to run large. Compare your foot length in centimetres with the seller's chart instead of going by the number alone. Clothing is cut long and slim. ${SIZE_RULE}</p>`,
+  "Ralph Lauren": `<p>Ralph Lauren polos and Oxford shirts come in different cuts: Classic Fit is roomy and Custom Slim Fit sits closer to the body, and the listing or the label usually says which. Cable knits and quarter-zips follow normal letter sizes. ${SIZE_RULE}</p>`,
+  "Moncler": `<p>Moncler puffers are sized in numbers: 0 is about XS, 1 is S, 2 is M, 3 is L, 4 is XL and 5 is XXL. The jackets are cut slim, so if you want a hoodie underneath, take the next number up. ${SIZE_RULE}</p>`,
+  "Maison Margiela": `<p>The Margiela GAT (German Army Trainer) and the Tabi use EU sizes. Take your usual EU size and compare your foot length in centimetres with the seller's chart when you are between sizes. ${SIZE_RULE}</p>`,
+  "Acne Studios": `<p>Acne Studios jeans are sized by waist and leg length in inches (for example 32/32), and each fit has its own name and cut, so check the fit named in the listing and its measurements before you pick a size. ${SIZE_RULE}</p>`,
+  "Stone Island": `<p>Stone Island uses letter sizes with a regular fit on most overshirts, sweatshirts and jackets. Some listings give Italian sizes instead, where 48 is about M, 50 about L and 52 about XL. ${SIZE_RULE}</p>`,
+  "Chrome Hearts": `<p>Chrome Hearts hoodies and T-shirts follow letter sizes with a relaxed fit. Rings use US ring sizes: measure the inside diameter of a ring you already wear and match it with the seller's chart. ${SIZE_RULE}</p>`,
+  "Lululemon": `<p>Lululemon's women's leggings and tops are sized in numbers (0 to 20) rather than letters, and its men's pants come in waist sizes, so use the seller's chart in centimetres instead of guessing from a letter. ${SIZE_RULE}</p>`,
+  "CP Company": `<p>CP Company jackets, including the Goggle jackets, are often labelled in Italian sizes, where 48 is about M, 50 about L and 52 about XL; sweatshirts and overshirts mostly use letter sizes. ${SIZE_RULE}</p>`,
+  "The North Face": `<p>The North Face Nuptse is cut short and boxy, and most jackets use letter sizes, so your usual size gives the intended roomy fit. ${SIZE_RULE}</p>`,
+};

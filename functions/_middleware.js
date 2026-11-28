@@ -551,7 +551,10 @@ async function hubApp(ctx, url, spec) {
     const checks = spec.linkCheck !== false;
     if (lh.checked && !isNaN(d)) {
       if (checks) spec = { ...spec, sub: `${spec.sub} Links checked ${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}.` };
-      fresh = '<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage", name: spec.h, url: canon, dateModified: checks ? d.toISOString() : undefined, primaryImageOfPage: img ? { "@type": "ImageObject", contentUrl: img } : undefined }).replace(/</g, "\\u003c") + "</script>";
+      // 28 Nov 2026 (SEO report): dateModified is the later of the link check and the catalogue update (BUILT), the day
+      // the subtitle's "Updated" names; it was the link check alone, so Google saw 23 Nov on pages updated on the 28th.
+      const built = new Date(BUILT + "T00:00:00Z"), mod = !isNaN(built) && built > d ? built : d;
+      fresh = '<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage", name: spec.h, url: canon, dateModified: checks ? mod.toISOString() : undefined, primaryImageOfPage: img ? { "@type": "ImageObject", contentUrl: img } : undefined }).replace(/</g, "\\u003c") + "</script>";
     }
   } catch (e) {}
   const { crumbHtml, seo, head, after, subRow } = hubParts(spec, more, await reportedIds(ctx.env, url.origin));
