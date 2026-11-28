@@ -455,7 +455,7 @@ function render(reset){
     const on=[], off=[];
     PRIO.forEach(e=>{ const p=e.pid&&BYID[e.pid]; if(p){ if(ok(p)) on.push(p); } else if(pok(e)) off.push(e); });
     on.sort((a,b)=>b.pop-a.pop||a.n-b.n); off.sort((a,b)=>(a.k==="taobao")-(b.k==="taobao")||a.n-b.n);
-    const all=on.map(p=>({p})).concat(off.map(e=>({e})));
+    const all=on.filter(p=>!LIVE[p.id]).map(p=>({p})).concat(off.map(e=>({e})),on.filter(p=>LIVE[p.id]).map(p=>({p})));   /* swapped at the bottom */
     $("grid").innerHTML=all.slice(0,SHOWN).map(x=>x.p?tile(x.p):ptile(x.e)).join("")||`<div class="empty" style="grid-column:1/-1">${esc(tr("No finds match these filters"))}</div>`;
     $("count").innerHTML=LANG==="zh"?"<b>"+all.length.toLocaleString("en-US")+"</b> 个商品":"<b>"+all.length.toLocaleString("en-US")+"</b> finds";
     $("more").hidden=all.length<=SHOWN;
@@ -463,6 +463,7 @@ function render(reset){
   }
   LIST=CAT.filter(p=>ok(p)&&(TAB!=="store"||mine(p))&&(TAB!=="all"||!HIDE.has(p.id)||mine(p)||LIVE[p.id]));
   if(so==="low") LIST.sort((a,b)=>a.price-b.price); else if(so==="high") LIST.sort((a,b)=>b.price-a.price); else if(so==="az") LIST.sort((a,b)=>a.t.localeCompare(b.t)); else if(so==="new") LIST.sort((a,b)=>b.n-a.n); else LIST.sort((a,b)=>b.pop-a.pop||a.n-b.n);
+  LIST=LIST.filter(p=>!LIVE[p.id]).concat(LIST.filter(p=>LIVE[p.id]));   /* swapped finds at the bottom (owner, 28 Nov 2026) */
   $("grid").innerHTML=LIST.slice(0,SHOWN).map(tile).join("")||`<div class="empty" style="grid-column:1/-1">${esc(tr("No finds match these filters"))}</div>`;
   $("count").innerHTML=LANG==="zh"?"<b>"+LIST.length.toLocaleString("en-US")+"</b> 个商品":"<b>"+LIST.length.toLocaleString("en-US")+"</b> finds";
   $("more").hidden=LIST.length<=SHOWN;
