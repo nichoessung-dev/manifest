@@ -52,11 +52,16 @@ export const GUIDES3 = {
     // (renderGuide in pages.js). Its title says both. The numbers follow the catalogue (liveCopy in site.js).
     // 26 Nov 2026 (Search Console, 6 months: 14,946 impressions at 4.1%; "rep spreadsheet" 3,724 at 5.4%, position 7.3): "Best"
     // and "checked weekly" answer why to click this result over an old Google Sheet; the description leads with what you can do.
-    title: "Best Rep Spreadsheet 2026: 10,600+ Finds, Checked Weekly",
-    desc: "Search 10,600+ finds in one free rep spreadsheet: shoes, jackets, Chrome Hearts, Arc'teryx and more. 1,300+ with real QC photos, dead links removed weekly.",
-    h1: "Rep spreadsheet: 10,600+ finds and how to use one",
-    updated: "2026-11-23",   // the day this text was revised; change it only when it is revised again
-    body: `<p class="lead">A <strong>rep spreadsheet</strong> (or finds spreadsheet) is a curated list of product links from Chinese marketplaces (Weidian, Taobao and 1688), usually with photos, prices and links that open each item in a shopping agent. Most started as Google Sheets shared on Reddit's FashionReps and Discord servers; Puro Classico is a searchable <a href="/">rep spreadsheet</a> with 9,000+ finds.</p>
+    // 28 Nov 2026 (Search Console, 3 months: the "rep spreadsheet" searches, about 9,100 impressions at positions 7 to 10,
+    // split between this guide and the homepage): one page per search. The homepage is the page for "rep spreadsheet"; this
+    // guide answers "what is a rep spreadsheet" and how to use one (title, h1, description), and its first paragraph links
+    // to the homepage as "rep spreadsheet". Links elsewhere that say "rep spreadsheet" go to the homepage; links to this
+    // guide say "What is a rep spreadsheet?" or "How to use one".
+    title: "What Is a Rep Spreadsheet? How to Use One in 2026",
+    desc: "What a rep spreadsheet is and how to use one: browse the finds, check QC photos and buy through a shopping agent. Plus what makes a good one.",
+    h1: "What is a rep spreadsheet? How to use one",
+    updated: "2026-11-28",   // the day this text was revised; change it only when it is revised again
+    body: `<p class="lead">A <strong>rep spreadsheet</strong> (or finds spreadsheet) is a curated list of product links from Chinese marketplaces (Weidian, Taobao and 1688), usually with photos, prices and links that open each item in a shopping agent. Most started as Google Sheets shared on Reddit's FashionReps and Discord servers. Puro Classico is a free, searchable <a href="/">rep spreadsheet</a> with 9,000+ finds.</p>
 <h2>How to use a rep spreadsheet</h2><ol class="steps">
 <li><strong>Browse or search.</strong> Filter by brand, category or price, or sort by most viewed.</li>
 <li><strong>Check the QC photos.</strong> Finds marked "QC" have real warehouse photos from earlier buyers (<a href="/guides/how-to-qc">how to read them</a>); the <a href="/qc-spreadsheet">QC photos spreadsheet</a> lists only finds with buyer QC photos.</li>
@@ -71,11 +76,17 @@ export const GUIDES3 = {
   "pandabuy-alternatives": {
     // 26 Nov 2026 (Search Console, 6 months: 12,867 impressions at 2.4%; "pandabuy alternative" 2,961 at 2.6%, position 5.8):
     // the exact search first, then the question people ask ("what replaced Pandabuy").
-    title: "Pandabuy Alternative 2026: What Replaced Pandabuy (5 Agents)",
+    // 28 Nov 2026 (Search Console, 3 months: "pandabuy alternative" 3,087 impressions at position 5.8 and 2.7% clicks; the
+    // page 13,492 at 2.5%): the title answers at once ("best", the year, "the 5 agents"), and a table of the five agents
+    // (glance: agentGlance in pages.js, facts from AGENT_FACTS) sits right after the intro.
+    title: "Best Pandabuy Alternative 2026: The 5 Agents to Use Now",
     // 24 Nov 2026 (Search Console): 12,200 impressions at 2.5% clicks; the title now answers the search ("best ... that still work").
-    desc: "Pandabuy is gone. These 5 agents took its place: same Weidian and Taobao links, up to $500 in coupons, real QC photos. Convert old Pandabuy links free.",
-    h1: "Pandabuy alternatives in 2026: agents that still work",
-    updated: "2026-10-10",   // the day the agents' status below was checked; change it only when they are re-checked
+    desc: "Pandabuy is gone. The 5 agents that replaced it, compared: QC photos, free storage and new-user coupons up to $500. Convert old Pandabuy links free.",
+    h1: "Pandabuy alternatives in 2026: 5 agents that still work",
+    // the day this text was last revised (28 Nov 2026: the title and the table). Each agent status check keeps its own date
+    // in the text (10 Oct 2026 for the five agents, later dates for CNFans), so re-date those only when they are re-checked.
+    updated: "2026-11-28",
+    glance: ["mycnbox", "kakobuy", "oopbuy", "lovegobuy", "sugargoo"], glanceTitle: "Pandabuy alternatives compared",
     body: `<p class="lead">Pandabuy no longer works, but you can buy the same items through agents that do: MyCNBox, KakoBuy, Oopbuy, LoveGoBuy and Sugargoo were all operating on 10 October 2026, and our link converter turns an old Pandabuy product link into a link for any of them. Pandabuy has been out of business since 2024: its warehouses in China were reported raided in April of that year, and pandabuy.com did not load when we checked on 10 October 2026.</p><p>Every item behind an old Pandabuy link was an ordinary Weidian, Taobao or 1688 listing, which is why it can still be bought elsewhere.</p>
 <p><a class="btn light" href="/tools/link-converter">Convert an old Pandabuy link →</a></p>
 <h2>Agents that still work</h2><p>All five had a working site, a sign-up page and Trustpilot reviews dated within the previous four weeks when we checked on 10 October 2026. Recent reviews show that people are still ordering, not that an agent is good: Trustpilot shows no score for Oopbuy and says it removed fake reviews from that page. They work the way Pandabuy did: paste a link, pay for the item, check the QC photos, then ship.</p><ul>
