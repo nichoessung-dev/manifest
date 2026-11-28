@@ -219,13 +219,33 @@ export function searchFinds(input = {}, cur = "USD", limit = MAX_RESULTS) {
 }
 const forModel = (p, cur, partial) => {
   const o = { id: String(p.id), title: p.title, brand: p.brand || "", category: p.cat, price: fmt(p, cur), price_usd: priceUsd(p),
-    qc_photos: p.qc || 0, views_30d: views(p)[1] || 0, url: SITE + "/product/" + encodeURIComponent(p.id) };
+    qc_photos: p.qc || 0, url: SITE + "/product/" + encodeURIComponent(p.id) };
+  if (qcPhotos(p).length) o.qc_photos_in_chat = true;
   const cols = String(p.variants || "").split("|").filter(c => c && !/^(standard|default|one colou?r)$/i.test(c.trim()));
   if (cols.length) o.colours = cols.slice(0, 8).join(", ");
   if (gone(p) === "sold_out") o.sold_out = true;
   if (partial) o.partial = true;
   return o;
 };
+// QC photos from the photo bank (owner, 28 Nov 2026: "show the QC photos in the chat if the find has them"): the same file
+// and photo addresses as functions/api/qc.js (data/qc_bank.json, products/qc/<platform>-<item id>-<k>.webp?b=2 through the
+// image proxy), read once per isolate for 10 minutes. Only banked photos: nothing here spends a QC lookup.
+const BANK_PHOTO = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/qc/";
+let BANK = null, bankAt = 0;
+async function loadBank(env, origin) {
+  if (BANK && Date.now() - bankAt < 600000) return;
+  const r = await env.ASSETS.fetch(new Request(origin + "/data/qc_bank.json"));
+  BANK = r.ok ? ((await r.json()).items || {}) : {}; bankAt = Date.now();
+}
+function qcPhotos(p, max = 6) {
+  if (!BANK || !p) return [];
+  const id = String(p.itemId || p.id).replace(/^0+/, ""), e = BANK[p.platform + "/" + id];
+  if (!e || !e[1]) return [];
+  const out = [];
+  for (let k = 0; k < Math.min(e[1], max); k++) out.push("/api/img?u=" + encodeURIComponent(BANK_PHOTO + p.platform + "-" + id + "-" + k + ".webp?b=2"));
+  return out;
+}
+const forQc = p => ({ id: String(p.id), title: p.title, url: "/product/" + encodeURIComponent(p.id) + "#qc", photos: qcPhotos(p) });
 const forCard = (p, agent) => {
   const src = imgSrc(p), ag = AGENTS[agent] || AGENTS.mycnbox;
   return { id: String(p.id), title: p.title, brand: p.brand || "", price: priceUsd(p), cny: isPH(p.cny) ? 0 : +p.cny || 0, qc: p.qc || 0,
@@ -247,9 +267,12 @@ How to write:
 - Answer in the language the visitor writes in.
 - Tone (owner, 9 Nov 2026): warm, positive and objective. Lead with what is good about a find: its price, how popular it is, its QC photos, its sizes or colours. Never call a find a gamble, risky, sketchy, a bad buy or "the less safe" one, and never talk the visitor out of the find they are looking at. State facts neutrally ("no buyer QC photos posted yet" is a fact, not a warning). Put checks as the normal steps everyone does on every order ("as with any order, look at the stitching and size tag in your agent's QC photos"), not as alarms. Only suggest a different find when they ask for alternatives or for something safer, and then as a friendly extra option ("if you'd like to compare, the [X](/product/..) has 32 QC photos"), never as "the safer buy".
 - Never write the em dash character. Use commas, colons or full stops instead.
+- Never mention view counts, how many people viewed a find or how popular it is in numbers (owner, 28 Nov 2026).
+- QC photos in the chat: when a find has qc_photos_in_chat, its real QC photos are shown right under your answer. Say so in a few words ("its QC photos are below") and tell them what to look at in them for that item (logo, stitching, shape, size tag). You cannot see the photos, so never describe or judge them.
+- Sizing: when the visitor asks about a find (is it good, should I buy it, what to check), always add one short sizing line for that item type, from the sizing facts below.
 
 Example, "Do Chinese sizes run small?":
-Yes, usually by about one size, so if you wear M in EU/US, look for L on the seller's chart.
+Often, when the seller uses Asian sizing: then go one size up, so an M wearer looks for L. Otherwise start from your usual size.
 
 - Lay a top that fits you flat and measure in cm: chest pit to pit, and length.
 - Pick the seller's size that matches, or is up to 2 cm bigger.
@@ -257,14 +280,14 @@ Yes, usually by about one size, so if you wear M in EU/US, look for L on the sel
 The [size estimator](/tools/size-estimator) gives you a starting size from your height and weight.
 
 Example, "What size should I get?" on a hoodie with no measurements given:
-Go **one size up** from your usual EU/US size: most Weidian and Taobao sellers use Asian sizing that runs about a size small. For an oversized look, go two up.
+Start with your **usual size**. Go one size up only if the listing or its size chart says Asian sizing, which runs about a size small.
 
 What's your height and weight? Then I can work out your size.
 
 Finding products:
 - For any request about products (a brand, an item type, a style, a budget, "something like this"), call search_finds before you answer. Do not announce the search, just call it.
 - Recommend only finds that search_finds returned in this conversation, or the find on screen from the visitor context. Never invent a product, price, link, size, QC count or seller detail.
-- The visitor sees a row of cards (photo, price, buy button) for the finds you link, so do not list every result. Pick the one to three best and link each as markdown with its title, like [Moncler Puffer Jacket Black](https://www.puroclassico.com/product/7564484817), with its "price" exactly as given (it is already in the visitor's currency). Add a few words on why it is a good pick: most QC photos (people have bought and checked it), cheapest, most viewed, or the colour they asked for. Several picks go one per "- " line.
+- The visitor sees a row of cards (photo, price, buy button) for the finds you link, so do not list every result. Pick the one to three best and link each as markdown with its title, like [Moncler Puffer Jacket Black](https://www.puroclassico.com/product/7564484817), with its "price" exactly as given (it is already in the visitor's currency). Add a few words on why it is a good pick: most QC photos (people have bought and checked it), cheapest, or the colour they asked for. Several picks go one per "- " line.
 - Search words: brand plus item type, plus colour or model if they gave one ("moncler puffer black", "jordan 4", "stussy hoodie"). Put budgets in max_price or min_price (in the visitor's currency unless they named another, then set price_currency), not in the query. Use sort "cheapest" for cheap or budget requests, "popular" for the most popular, "most_qc" for the safest picks.
 - Vague requests ("shoes", "something for winter"): search anyway (sort "popular"), show the best picks, then ask one short question that narrows it down (budget, colour, style or brand).
 - If a search finds nothing useful, search again with fewer or broader words (drop the colour, model or price) before you answer. If still nothing fits, say so in one sentence and suggest other words or the search at the top of the page.
@@ -273,19 +296,19 @@ Finding products:
 
 The find on screen (when the visitor context has one):
 - "this", "it" and "this one" mean that find. Use its name, price and QC photo count in the answer when they matter.
-- "Is this a good find?": answer positively and from what the site knows, in two or three lines: start with its strengths (the price, its views when given, how many QC photos people have posted: many means people have bought and checked it), then whether it is sold out, then the usual checks. With no QC photos posted yet, say so neutrally and that their agent's QC photos will show the actual item before it ships. You cannot see the item, so do not judge its quality or accuracy.
+- "Is this a good find?": answer positively and from what the site knows, in two or three lines: start with its strengths (the price, how many QC photos people have posted: many means people have bought and checked it), then whether it is sold out, then one sizing line, then the usual checks. With no QC photos posted yet, say so neutrally and that their agent's QC photos will show the actual item before it ships. You cannot see the item, so do not judge its quality or accuracy.
 - "How do I order this?": the short order steps below, with the buy button on this page as step one and their agent by name.
 
 What you can explain (link the guide when it helps):
 - Ordering through an agent: open the find's page and press the buy button (it opens the visitor's agent with the item), pick size and colour on the agent's site and pay for the item. The agent buys it, it arrives at their warehouse in a few days, the agent takes QC photos, you approve them, and then you ship one or more items together in a parcel. Step by step guide: [how to order](/how-to-order). New MyCNBox accounts get coupons through [the MyCNBox invite link](https://www.puroclassico.com/go/mycnbox?k=invite&p=chat)
 - QC photos: real photos of the actual item taken at the agent's warehouse before it ships. Check shape, stitching, logos, colour and the size tag; ask for an exchange or return before shipping if something is off. A find with many QC photos on the site is one people have bought before. Guide: [how to check QC photos](/guides/how-to-qc) and the [QC checker](/tools/qc-checker).
 - Sizing, the facts to use:
-  - Most Weidian and Taobao sellers use Asian sizing that runs about one size small, so the label to look for is usually one size up from the visitor's EU/US size (an M wearer looks for L, an L wearer for XL).
+  - The site's rule (owner): without a size chart, the visitor's usual size; one size up only when the listing says Asian sizing (Asian sizing runs about one size small, so then an M wearer looks for L).
   - The safest check: lay a garment that fits flat and measure in cm, chest pit to pit and length (collar to hem for tops, waist and inseam for pants), then pick the seller's size that matches or is up to 2 cm bigger.
   - Brands cut oversized or boxy (Essentials, Represent, Balenciaga tees and hoodies, Corteiz, Cole Buxton, Hellstar) are the exception: there the usual label often already fits loose, so compare the chest on the chart instead of sizing up by habit. Arc'teryx runs trim.
   - Sneakers: measure the foot heel to longest toe in cm and match it to the seller's chart. Balenciaga sneakers often run large; Golden Goose is usually true to size in EU.
-  - When a "Size estimate" line is in the visitor context, it is the site's size estimator maths for their height and weight: give that size as the answer, in bold, with the EU/US size in brackets, and link the prefilled estimator path it gives. When they only give their usual size, suggest one size up on the seller's chart. Always say it is a starting point to check against the chart's chest measurement.
-  - No measurements given: never answer only that you cannot tell. Give the usual rule for that item type (one size up for most tops, hoodies, jackets and pants; the cm check for sneakers), then ask one short question: their height and weight, or their usual size.
+  - When a "Size estimate" line is in the visitor context, it is the site's size estimator maths for their height and weight: give that size as the answer, in bold, with the EU/US size in brackets, and link the prefilled estimator path it gives. When they only give their usual size, suggest that size, and one up only if the listing says Asian sizing. Always say it is a starting point to check against the chart's chest measurement.
+  - No measurements given: never answer only that you cannot tell. Give the rule for that item type (their usual size, one up only with Asian sizing; the cm check for sneakers), then ask one short question: their height and weight, or their usual size.
   - Guide: [sizing guide](/guides/sizing) and the [size estimator](/tools/size-estimator).
 - Shipping: priced by weight and parcel size, often roughly 10 to 20 days by the common lines; removing shoe boxes and extra packaging saves money. Estimate it with the [shipping calculator](/tools/shipping-calculator), and see [shipping lines explained](/guides/shipping-lines).
 - Agents: every agent in the visitor's settings works with every find; do not rank agents or call one the best or cheapest. If they ask which to use, explain what to compare (fees, shipping lines to their country, QC photos, support) and that they can switch agent in the site settings.
@@ -304,7 +327,7 @@ const TOOLS = [{
   name: "search_finds",
   description: "Search the Puro Classico catalogue of replica finds. Returns total_matches and up to 6 finds, best first: id, title, brand, category, " +
     "price (already formatted in the visitor's currency), price_usd, qc_photos (photos of real orders: more means people bought and checked it), " +
-    "views_30d (popularity), colours (the seller's colour options), url, and sold_out or partial when they apply. Understands brand nicknames " +
+    "colours (the seller's colour options), url, qc_photos_in_chat (its QC photos are shown in the chat under your answer), and sold_out or partial when they apply. Understands brand nicknames " +
     "(rl, lv, tnf, cdg, ysl), plurals, colour words and item words (hoodie, puffer, sneakers, jeans, cap, bag).",
   input_schema: {
     type: "object",
@@ -386,7 +409,7 @@ function contextNote(ctx, tips, size) {
   if (p && gone(p) !== "dead") {
     const f = forModel(p, ctx.cur);
     lines.push("- They are looking at this find, so \"this\", \"it\" or \"this one\" means it: " + JSON.stringify({ title: f.title, brand: f.brand,
-      category: f.category, price: f.price, qc_photos: f.qc_photos, views_30d: f.views_30d || undefined, colours: f.colours || "", sold_out: !!f.sold_out, url: f.url }) +
+      category: f.category, price: f.price, qc_photos: f.qc_photos, qc_photos_in_chat: f.qc_photos_in_chat || undefined, colours: f.colours || "", sold_out: !!f.sold_out, url: f.url }) +
       ". " + (f.qc_photos ? f.qc_photos + " QC photo" + (f.qc_photos === 1 ? "" : "s") + " from real orders are on its page." : "No QC photos from real orders yet.") +
       " For similar or cheaper finds, search with its brand and item type.");
   }
@@ -588,6 +611,13 @@ async function run(env, messages, ctx, v2, write, stop, kb, rec = { searches: []
     if (linked.length) { const ids = new Set(linked.map(p => String(p.id))); write({ t: "finds", v: cardsOf(linked.concat([...finds.values()].filter(p => !ids.has(String(p.id))))) }); }
     else if (sentCards) write({ t: "finds", v: [] });
   } else if (linked.length) write({ t: "finds", v: cardsOf(linked).slice(0, 6) });
+  // QC photos under the answer (v >= 2): the finds it links that have banked photos (at most two), else the find on screen
+  if (v2) {
+    const onScreen = ctx.pid && idx().byId.get(ctx.pid);
+    let qc = linked.filter(p => qcPhotos(p).length).slice(0, 2);
+    if (!qc.length && onScreen && gone(onScreen) !== "dead" && qcPhotos(onScreen).length) qc = [onScreen];
+    if (qc.length) write({ t: "qc", v: qc.map(forQc) });
+  }
   write({ t: "done" });
 }
 
@@ -617,6 +647,7 @@ export async function onRequestPost(context) {
   await Promise.all([
     ensureStats(origin).catch(() => {}),                       // popularity tie-breaks; the search works without it
     loadKb(env, origin).then(k => { kb = k; }, () => {}),       // community tips; the answer works without them
+    loadBank(env, origin).catch(() => {}),                     // banked QC photos for the chat; the answer works without them
   ]);
   const ts = new TransformStream(), w = ts.writable.getWriter(), enc = new TextEncoder();
   const stop = new AbortController();   // the visitor pressed Stop or left: the stream is cancelled, so stop paying for the answer

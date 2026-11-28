@@ -110,6 +110,12 @@
     // cards
     ".pcc-cards{flex-shrink:0;display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:2px 16px 6px;scroll-padding:0 16px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}.pcc-cards::-webkit-scrollbar{display:none}" +
     ".pcc-cwrap{position:relative;flex-shrink:0}" +
+    // QC photos under an answer (28 Nov 2026): the banked QC photos of the find the answer is about, tap for full size
+    ".pcc-qc-set{flex-shrink:0;display:flex;flex-direction:column;gap:6px;margin:2px 0 4px}" +
+    ".pcc-qc-h{font-size:12.5px;color:var(--pc-mut);display:flex;gap:6px;align-items:center;min-width:0}.pcc-qc-h a{color:inherit;text-decoration:underline;text-underline-offset:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+    ".pcc-qc-row{display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.pcc-qc-row::-webkit-scrollbar{display:none}" +
+    ".pcc-qc-row a{flex:0 0 76px;height:76px;border-radius:10px;overflow:hidden;background:var(--pc-s2);border:1px solid var(--pc-line)}" +
+    ".pcc-qc-row img{display:block;width:100%;height:100%;object-fit:cover}" +
     ".pcc-arr{position:absolute;top:calc(50% - 16px);z-index:2;display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid var(--pc-line);border-radius:50%;background:var(--pc-bg);color:var(--pc-ink);box-shadow:0 2px 10px rgba(0,0,0,.22);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .15s,transform .1s}" +
     ".pcc-arr svg{width:16px;height:16px}.pcc-arr.l{left:-6px}.pcc-arr.r{right:-6px}.pcc-arr:active{transform:scale(.94)}" +
     "@media (hover:hover){.pcc-cwrap:hover .pcc-arr.on{opacity:1;pointer-events:auto}}" +
@@ -285,7 +291,30 @@
     v.turn.appendChild(v.bubble);
     paint(v, false);
     if (m.finds && m.finds.length) setCards(v, m.finds, false);
+    if (m.qc && m.qc.length) setQc(v, m.qc);
     return v;
+  }
+  // QC photos: one titled row per find (at most two), each photo opens full size in a new tab
+  function setQc(v, list) {
+    if (v.qc) { v.qc.remove(); v.qc = null; }
+    list = (list || []).filter(function (q) { return q && q.photos && q.photos.length; }).slice(0, 2);
+    if (!list.length) return;
+    v.qc = el("div", "pcc-qc-wrap");
+    list.forEach(function (q) {
+      var set = el("div", "pcc-qc-set"), href = safeUrl(q.url) || "/";
+      set.innerHTML = '<span class="pcc-qc-h">' + ICON_CAM + '<span>QC photos: <a href="' + esc(href) + '">' + esc(q.title || "this find") + "</a></span></span>";
+      var row = el("div", "pcc-qc-row"); row.setAttribute("role", "list"); row.setAttribute("aria-label", "QC photos of " + (q.title || "this find"));
+      q.photos.slice(0, 6).forEach(function (u, i) {
+        u = safeUrl(u); if (!u) return;
+        var a = D.createElement("a"); a.href = u; a.target = "_blank"; a.rel = "noopener"; a.setAttribute("role", "listitem");
+        a.setAttribute("aria-label", "QC photo " + (i + 1) + ", opens full size");
+        a.innerHTML = '<img src="' + esc(u) + '" alt="" loading="lazy" decoding="async" width="76" height="76">';
+        var im = a.querySelector("img"); im.addEventListener("error", function () { a.remove(); });
+        row.appendChild(a);
+      });
+      set.appendChild(row); v.qc.appendChild(set);
+    });
+    v.turn.insertBefore(v.qc, v.cwrap || null);
   }
   function paint(v, live) {
     var m = v.m, b = v.bubble;
@@ -479,6 +508,7 @@
           if (o.t === "text" && typeof o.v === "string") { me.content += o.v; later(); }
           else if (o.t === "status") { v.status = o.v; if (!me.content) paint(v, true); }
           else if (o.t === "finds" && Array.isArray(o.v)) { me.finds = o.v.slice(0, 8); setCards(v, me.finds, true); follow(); }
+          else if (o.t === "qc" && Array.isArray(o.v)) { me.qc = o.v.slice(0, 2); setQc(v, me.qc); follow(); }
           else if (o.t === "error") { fail(o.v, true); }
         };
         var pump = function () {
