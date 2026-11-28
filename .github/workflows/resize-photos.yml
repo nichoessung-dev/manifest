@@ -1,0 +1,46 @@
+name: Photo copies
+# Our own small copies of the finds' photos (scripts/resize_photos.py, owner 28 Nov 2026): img/r/400 and img/r/720, so
+# Cloudflare's paid image resizing is not used. Nightly after the imports, and by hand after a big import. A find whose
+# copy is not made yet shows its original photo (functions/_middleware.js), so nothing breaks in between.
+on:
+  schedule:
+    - cron: '41 5 * * *'
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: resize-photos
+  cancel-in-progress: false
+jobs:
+  copies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ["0/4", "1/4", "2/4", "3/4"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - name: Make the copies
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: python -u scripts/resize_photos.py --shard "$SHARD"
+      - name: Save
+        if: always()
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A img/r data/resized
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "data: photo copies, shard $SHARD"
+          for n in 1 2 3 4 5 6 7 8 9 10; do
+            if git pull --rebase -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 6 + RANDOM % 10))
+          done
+          echo "::error::the copies could not be saved"; exit 1
