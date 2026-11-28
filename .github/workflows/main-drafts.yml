@@ -29,6 +29,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - run: pip install -q pillow
       - name: Send drafts
         env:
           POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}

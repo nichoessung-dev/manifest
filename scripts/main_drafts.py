@@ -12,6 +12,7 @@ import json, os, shutil, subprocess, sys, time, zipfile
 from datetime import datetime, timedelta, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import post_short as P
+from hook_cover import hook_cover, wants_hook
 
 ROOT = P.ROOT
 TAG = "month-content"
@@ -45,6 +46,8 @@ def main():
             pk = json.loads(f.read("slides.json"))
             for j, name in enumerate([pk.get("cover", "00.jpg")] + [x["img"] for x in pk["slides"]]):
                 dst = "%s-%02d.jpg" % (vid, j); open(os.path.join(out, dst), "wb").write(f.read(name)); imgs.append(dst)
+        if wants_hook(vid):                                    # owner, 28 Nov 2026: switch it up, a bold hook cover on about 2 in 5
+            hook_cover(vid).save(os.path.join(out, imgs[0]), "JPEG", quality=93); print("hook cover:", vid)
         if os.path.exists(END):                                # the owner's "All finds in bio" slide closes every slideshow (27 Nov 2026)
             dst = "%s-end.jpg" % vid; shutil.copy(END, os.path.join(out, dst)); imgs.append(dst)
         cap = (pk.get("caption") or "").split("\n", 1)
