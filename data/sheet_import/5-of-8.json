@@ -1,6 +1,6 @@
 {
  "about": "The Da Murphy finds sheet import (scripts/import_sheet.py), shard 5 of 8: one record per item, a staged one with its catalogue row without the photo plus 'src', the chosen photo.",
- "at": "2026-11-28T00:10:56Z",
+ "at": "2026-11-28T01:36:37Z",
  "items": {
   "1002132553917": {
    "at": "2026-11-27T12:52:05Z",
@@ -1298,35 +1298,14 @@
    "zh": "DS灰色华夫格长袖"
   },
   "7485908055": {
-   "at": "2026-11-27T16:34:08Z",
-   "item": "T-Shirt",
-   "row": {
-    "brand": "W-ME3D",
-    "cat": "Tops",
-    "g": "m",
-    "id": "7485908055",
-    "itemId": "7485908055",
-    "platform": "weidian",
-    "price": 49,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "W-ME3D T-Shirt White",
-    "usd": 6.86,
-    "variants": [
-     [
-      "White",
-      49
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller1746487736-2c56000001973b5c811f0a230215_2560_2560.jpg",
-   "status": "staged",
+   "at": "2026-11-28T00:57:40Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "W-ME3D字母T恤"
   },
   "7487355665": {
-   "at": "2026-11-27T16:40:01Z",
+   "at": "2026-11-28T01:03:43Z",
    "item": "T-Shirt",
    "row": {
     "brand": "",
@@ -1339,7 +1318,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Graphic Print T-Shirt White",
+    "title": "White Painted Graphic T-Shirt",
     "usd": 8.26,
     "variants": [
      [
@@ -1349,6 +1328,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1746487736-486a0000019745bf25a70a2302e6_1170_1170.jpg",
    "status": "staged",
    "zh": "Z-PT黑logoT恤"
@@ -1411,12 +1391,12 @@
    "zh": "W-ME基础运动裤"
   },
   "7494867672": {
-   "at": "2026-11-27T16:39:56Z",
+   "at": "2026-11-28T01:03:36Z",
    "item": "Shirt",
    "row": {
     "brand": "",
     "cat": "Tops",
-    "g": "w",
+    "g": "m",
     "id": "7494867672",
     "itemId": "7494867672",
     "platform": "weidian",
@@ -1434,6 +1414,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1746487736-1ff10000019783263b770a239839_1170_1170.jpg",
    "status": "staged",
    "zh": "W-ME粉色格子衬衫"
@@ -1640,32 +1621,11 @@
    "zh": "DS鲜花牛仔裤"
   },
   "7529883094": {
-   "at": "2026-11-27T16:43:03Z",
-   "item": "T-Shirt",
-   "row": {
-    "brand": "",
-    "cat": "Tops",
-    "g": "m",
-    "id": "7529883094",
-    "itemId": "7529883094",
-    "platform": "weidian",
-    "price": 59,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "Running T-Shirt Light Green",
-    "usd": 8.26,
-    "variants": [
-     [
-      "Light Green",
-      59
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller1940384309-1c4d00000198be9b711e0a230417_2560_2560.jpg",
-   "status": "staged",
-   "zh": "特价U跑步短袖"
+   "at": "2026-11-28T01:09:21Z",
+   "rule": 2,
+   "status": "error",
+   "tries": 1,
+   "why": "IncompleteRead(1318912 bytes read, 692665 more expected)"
   },
   "7550080158": {
    "at": "2026-11-27T18:08:23Z",
@@ -1839,10 +1799,10 @@
    "zh": "Z-6P花灰小标刺绣套装"
   },
   "7605665033": {
-   "at": "2026-11-27T16:29:02Z",
+   "at": "2026-11-28T00:52:33Z",
    "item": "T-Shirt",
    "row": {
-    "brand": "W-ME",
+    "brand": "",
     "cat": "Tops",
     "g": "m",
     "id": "7605665033",
@@ -1852,7 +1812,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "W-ME Monogram T-Shirt White",
+    "title": "Monogram Tee White",
     "usd": 6.86,
     "variants": [
      [
@@ -1862,6 +1822,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1746487736-008c0000019a87997a4c0a23010f_2522_2522.jpg",
    "status": "staged",
    "zh": "W-ME满印logo短袖T恤"
@@ -2065,10 +2026,10 @@
    "zh": "W-ME蛇纹拉链连帽衫"
   },
   "7630859384": {
-   "at": "2026-11-27T16:42:50Z",
+   "at": "2026-11-28T01:06:49Z",
    "item": "Tank Top",
    "row": {
-    "brand": "U",
+    "brand": "",
     "cat": "Tops",
     "g": "m",
     "id": "7630859384",
@@ -2078,7 +2039,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "U NY Tank Top Black",
+    "title": "Black Sleeveless Tank Top",
     "usd": 5.46,
     "variants": [
      [
@@ -2088,6 +2049,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-5bdf0000019afef6ef6d0a230215_1320_1320.jpg",
    "status": "staged",
    "zh": "特价U纽约无袖"
@@ -2414,8 +2376,8 @@
    "zh": "DS神女皮带"
   },
   "7691582367": {
-   "at": "2026-11-27T17:08:07Z",
-   "item": "T-Shirt",
+   "at": "2026-11-28T01:29:28Z",
+   "item": "T-shirt",
    "row": {
     "brand": "",
     "cat": "Tops",
@@ -2427,7 +2389,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Prayer Beads Hands Tee Blue",
+    "title": "Hand Bead Graphic T-Shirt Blue",
     "usd": 14.56,
     "variants": [
      [
@@ -2437,6 +2399,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-0ba10000019cab13c4a30a240147_1320_1320.jpg",
    "status": "staged",
    "zh": "U-手串短袖"
@@ -2482,13 +2445,14 @@
    "zh": "W-ME明线深海蓝连帽衫"
   },
   "7695729574": {
-   "at": "2026-11-27T15:20:32Z",
+   "at": "2026-11-28T00:36:18Z",
+   "rule": 2,
    "status": "badphoto",
    "why": "no clean single-product photo in the listing",
    "zh": "DE名片印花短袖T恤"
   },
   "7709665316": {
-   "at": "2026-11-27T16:49:57Z",
+   "at": "2026-11-28T01:09:39Z",
    "item": "T-Shirt",
    "row": {
     "brand": "",
@@ -2501,7 +2465,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Spider-Man Tee Black",
+    "title": "Spider-Man Graphic Tee Black",
     "usd": 12.6,
     "variants": [
      [
@@ -2511,12 +2475,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller902036441686-50560000019ce7186fc80a2396f4_1024_1024.jpg",
    "status": "staged",
    "zh": "Spider tee蜘蛛侠短袖"
   },
   "7714740944": {
-   "at": "2026-11-27T16:40:19Z",
+   "at": "2026-11-28T01:04:08Z",
    "item": "T-Shirt",
    "row": {
     "brand": "",
@@ -2529,7 +2494,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "White Graphic T-Shirt",
+    "title": "Splatter Print T-Shirt White",
     "usd": 11.34,
     "variants": [
      [
@@ -2539,6 +2504,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller902037129329-5cd80000019d06d9e4d60a20e273_1206_1206.jpg",
    "status": "staged",
    "zh": "彩色猴子头短袖T恤"
@@ -2548,8 +2514,8 @@
    "status": "sold out"
   },
   "7719926611": {
-   "at": "2026-11-27T17:08:01Z",
-   "item": "T-Shirt",
+   "at": "2026-11-28T01:29:19Z",
+   "item": "T-shirt",
    "row": {
     "brand": "",
     "cat": "Tops",
@@ -2561,7 +2527,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Valencia Logo T-Shirt White",
+    "title": "Valencia Tee White",
     "usd": 6.3,
     "variants": [
      [
@@ -2571,43 +2537,23 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-013b0000019d366f2c490a20e273_1320_1320.jpg",
    "status": "staged",
    "zh": "特价U白蓝短袖"
   },
   "7722262324": {
-   "at": "2026-11-27T16:50:02Z",
-   "item": "T-Shirt",
-   "row": {
-    "brand": "",
-    "cat": "Tops",
-    "g": "m",
-    "id": "7722262324",
-    "itemId": "7722262324",
-    "platform": "weidian",
-    "price": 81,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "White Short Sleeve T-Shirt",
-    "usd": 11.34,
-    "variants": [
-     [
-      "White",
-      81
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller902037129329-38990000019d30142ae40a2315ef_606_604.jpg",
-   "status": "staged",
+   "at": "2026-11-28T01:09:47Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "对位短袖T恤"
   },
   "7728674488": {
-   "at": "2026-11-27T16:50:21Z",
+   "at": "2026-11-28T01:10:14Z",
    "item": "Tank Top",
    "row": {
-    "brand": "",
+    "brand": "Based",
     "cat": "Tops",
     "g": "m",
     "id": "7728674488",
@@ -2617,7 +2563,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Basketball Jersey White",
+    "title": "Based Basketball Tank White",
     "usd": 4.9,
     "variants": [
      [
@@ -2627,12 +2573,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2055781279-6cdb000001a1012ab3dd0a2396f4_1290_1290.jpg",
    "status": "staged",
    "zh": "99b运动背心"
   },
   "7730236620": {
-   "at": "2026-11-27T17:07:54Z",
+   "at": "2026-11-28T01:29:11Z",
    "item": "T-Shirt",
    "row": {
     "brand": "Deputy",
@@ -2645,7 +2592,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Deputy Cancel Department Tee White",
+    "title": "Deputy Cancel Sign T-Shirt White",
     "usd": 4.9,
     "variants": [
      [
@@ -2655,6 +2602,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-436e0000019d5fdf3ff50a231177_1320_1320.jpg",
    "status": "staged",
    "zh": "特价DP-圆圈禁止短袖"
@@ -2718,10 +2666,10 @@
    "zh": "DE基础华夫格长袖衫"
   },
   "7737077673": {
-   "at": "2026-11-27T17:07:49Z",
+   "at": "2026-11-28T01:29:00Z",
    "item": "T-Shirt",
    "row": {
-    "brand": "U",
+    "brand": "Uniqlo",
     "cat": "Tops",
     "g": "m",
     "id": "7737077673",
@@ -2731,7 +2679,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "U White Running T-Shirt",
+    "title": "Uniqlo Running T-Shirt White",
     "usd": 7.7,
     "variants": [
      [
@@ -2741,6 +2689,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-5a7f0000019d951c07340a23038e_1320_1320.jpg",
    "status": "staged",
    "zh": "特价U白色跑步短袖"
@@ -2752,7 +2701,7 @@
    "zh": "墙壁皮带"
   },
   "7748579664": {
-   "at": "2026-11-27T16:40:14Z",
+   "at": "2026-11-28T01:04:02Z",
    "item": "Baby Tee",
    "row": {
     "brand": "",
@@ -2775,12 +2724,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/pcitem2030468061-35090000019dc35b0c810a23047e-unadjust_1268_1268.png",
    "status": "staged",
    "zh": "加州修身短袖 白色"
   },
   "7748825466": {
-   "at": "2026-11-27T16:57:18Z",
+   "at": "2026-11-28T01:17:42Z",
    "item": "T-Shirt",
    "row": {
     "brand": "ME",
@@ -2803,6 +2753,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-442d0000019dc71714680a23983c_2560_2560.jpg",
    "status": "staged",
    "zh": "ME蝎子短袖"
@@ -2977,10 +2928,10 @@
    "zh": "ME棒球帽"
   },
   "7760662720": {
-   "at": "2026-11-27T15:29:41Z",
+   "at": "2026-11-28T00:45:33Z",
    "item": "T-Shirt",
    "row": {
-    "brand": "",
+    "brand": "W-Me",
     "cat": "Tops",
     "g": "m",
     "id": "7760662720",
@@ -2990,7 +2941,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Face Grid Graphic Tee Black",
+    "title": "W-Me Graphic Tee Black",
     "usd": 12.88,
     "variants": [
      [
@@ -3000,40 +2951,20 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller211957776-69ea0000019e07ee4d9d0a2304aa_1179_1179.jpg",
    "status": "staged",
    "zh": "W-Me鬼脸短袖Tee"
   },
   "7762994235": {
-   "at": "2026-11-27T15:29:50Z",
-   "item": "T-Shirt",
-   "row": {
-    "brand": "Mutim*r",
-    "cat": "Tops",
-    "g": "m",
-    "id": "7762994235",
-    "itemId": "7762994235",
-    "platform": "weidian",
-    "price": 76,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "Mutim*r Ballet T-Shirt Black",
-    "usd": 10.64,
-    "variants": [
-     [
-      "Black",
-      76
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller211957776-43640000019e2176c1550a2315ef_1179_1179.jpg",
-   "status": "staged",
+   "at": "2026-11-28T00:45:45Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "L-MT黑色芭蕾短袖T恤"
   },
   "7765840110": {
-   "at": "2026-11-27T17:04:38Z",
+   "at": "2026-11-28T01:25:47Z",
    "item": "T-Shirt",
    "row": {
     "brand": "",
@@ -3046,7 +2977,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "All Over Print T-Shirt Grey",
+    "title": "All-Over Print T-Shirt Grey",
     "usd": 6.3,
     "variants": [
      [
@@ -3056,6 +2987,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-6f520000019e20c1f3b20a231177_1320_1320.jpg",
    "status": "staged",
    "zh": "特价ME满印短袖"
@@ -3090,7 +3022,7 @@
    "zh": "特价DP-双拼印花拉链卫衣"
   },
   "7776016017": {
-   "at": "2026-11-27T16:39:50Z",
+   "at": "2026-11-28T01:03:27Z",
    "item": "T-Shirt",
    "row": {
     "brand": "",
@@ -3103,7 +3035,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Green Watch Graphic Tee",
+    "title": "Green Watch Print T-Shirt",
     "usd": 9.38,
     "variants": [
      [
@@ -3113,6 +3045,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller211957776-034c0000019e7a193e710a2102c5_1204_1204.jpg",
    "status": "staged",
    "zh": "L-E绿色手表短袖Tee"
@@ -3175,7 +3108,7 @@
    "zh": "U-东京长袖"
   },
   "7780876077": {
-   "at": "2026-11-27T17:04:32Z",
+   "at": "2026-11-28T01:25:37Z",
    "item": "Short Sleeve Shirt",
    "row": {
     "brand": "",
@@ -3198,6 +3131,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller1940384309-77a40000019e9c1700c30a2315ef_1320_1320.jpg",
    "status": "staged",
    "zh": "TM-天蓝色短袖衬衫"
@@ -3373,10 +3307,10 @@
    "zh": "ME变色羽绒夹克"
   },
   "7790332785": {
-   "at": "2026-11-27T16:57:11Z",
+   "at": "2026-11-28T01:17:30Z",
    "item": "T-Shirt",
    "row": {
-    "brand": "Mentar",
+    "brand": "ME",
     "cat": "Tops",
     "g": "w",
     "id": "7790332785",
@@ -3386,7 +3320,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Mentar Black Contrast Seam Tee",
+    "title": "ME Seamed T-Shirt Black",
     "usd": 9.8,
     "variants": [
      [
@@ -3396,6 +3330,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-4d630000019ef3cad09c0a23038e_1320_1320.jpg",
    "status": "staged",
    "zh": "ME女款拼缝短袖"
@@ -3515,8 +3450,8 @@
    "zh": "ME反光条卫裤"
   },
   "7796594287": {
-   "at": "2026-11-27T16:50:51Z",
-   "item": "T-shirt",
+   "at": "2026-11-28T01:11:05Z",
+   "item": "T-Shirt",
    "row": {
     "brand": "",
     "cat": "Tops",
@@ -3538,6 +3473,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-6f260000019f0d1995f90a230417_2560_2560.jpg",
    "status": "staged",
    "zh": "TM-条纹T恤"
@@ -3647,8 +3583,8 @@
    "zh": "W-RV白色排扣长袖T"
   },
   "7802964714": {
-   "at": "2026-11-27T16:50:46Z",
-   "item": "T-Shirt",
+   "at": "2026-11-28T01:10:56Z",
+   "item": "T-shirt",
    "row": {
     "brand": "",
     "cat": "Tops",
@@ -3660,7 +3596,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Graphic Tee Slate Grey",
+    "title": "Graphic T-Shirt Grey",
     "usd": 13.58,
     "variants": [
      [
@@ -3670,6 +3606,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-341d0000019f271feffa0a210256_1320_1320.jpg",
    "status": "staged",
    "zh": "DS蓝色阿奇扎短袖"
@@ -3760,7 +3697,7 @@
    "zh": "YM人环短袖黑色"
   },
   "7810296094": {
-   "at": "2026-11-27T16:50:40Z",
+   "at": "2026-11-28T01:10:48Z",
    "item": "Shirt",
    "row": {
     "brand": "",
@@ -3773,7 +3710,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Desert Camel Embroidered Shirt Black",
+    "title": "Embroidered Desert Camel Shirt Black",
     "usd": 16.24,
     "variants": [
      [
@@ -3783,12 +3720,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-5cf10000019f66e2330a0a210256_1320_1320.jpg",
    "status": "staged",
    "zh": "DS沙漠骆驼衬衫"
   },
   "7811853122": {
-   "at": "2026-11-27T16:50:35Z",
+   "at": "2026-11-28T01:10:40Z",
    "item": "T-Shirt",
    "row": {
     "brand": "",
@@ -3801,7 +3739,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Washed Black T-Shirt",
+    "title": "Distressed Black T-Shirt",
     "usd": 9.8,
     "variants": [
      [
@@ -3811,36 +3749,16 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-56490000019f797022bf0a22d1a4_1320_1320.jpg",
    "status": "staged",
    "zh": "DP-做旧黑色短袖"
   },
   "7812374895": {
-   "at": "2026-11-27T16:49:41Z",
-   "item": "T-Shirt",
-   "row": {
-    "brand": "",
-    "cat": "Tops",
-    "g": "m",
-    "id": "7812374895",
-    "itemId": "7812374895",
-    "platform": "weidian",
-    "price": 86,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "Spider Graphic Tee Black",
-    "usd": 12.04,
-    "variants": [
-     [
-      "Black",
-      86
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller2073272636-44ca0000019f96c802ad0a81347d_1320_1320.jpg",
-   "status": "staged",
+   "at": "2026-11-28T01:09:22Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "ME蜘蛛短袖"
   },
   "7812553472": {
@@ -3900,31 +3818,10 @@
    "zh": "ME 科技长裤"
   },
   "7813172593": {
-   "at": "2026-11-27T16:49:51Z",
-   "item": "Hoodie",
-   "row": {
-    "brand": "Bullrep",
-    "cat": "Tops",
-    "g": "m",
-    "id": "7813172593",
-    "itemId": "7813172593",
-    "platform": "weidian",
-    "price": 250,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "Bullrep Pinstripe Zip Hoodie Navy",
-    "usd": 35.0,
-    "variants": [
-     [
-      "Navy",
-      250
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/pcitem1409545599-6fad0000019efee6d3dd0a23037f-unadjust_1254_1254.png",
-   "status": "staged",
+   "at": "2026-11-28T01:09:31Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "Bullrep S线条卫衣"
   },
   "7813643946": {
@@ -4096,35 +3993,15 @@
    "zh": "U-精英袜子"
   },
   "7816391863": {
-   "at": "2026-11-27T16:42:56Z",
-   "item": "T-Shirt",
-   "row": {
-    "brand": "VSZ",
-    "cat": "Tops",
-    "g": "m",
-    "id": "7816391863",
-    "itemId": "7816391863",
-    "platform": "weidian",
-    "price": 77,
-    "qc": 0,
-    "rating": 0,
-    "seller": "Weidian",
-    "title": "VSZ Photo Sleeve Tee White",
-    "usd": 10.78,
-    "variants": [
-     [
-      "White",
-      77
-     ]
-    ],
-    "views": 0
-   },
-   "src": "https://si.geilicdn.com/wdseller2088921286-7dfb0000019fb98cc1c20a2315ef_1280_1280.jpg",
-   "status": "staged",
+   "at": "2026-11-28T01:06:59Z",
+   "rule": 2,
+   "status": "badphoto",
+   "why": "no clean single-product photo in the listing",
    "zh": "VSZ彩印袖短袖"
   },
   "7816400927": {
-   "at": "2026-11-27T16:50:30Z",
+   "at": "2026-11-28T01:10:33Z",
+   "rule": 2,
    "status": "badphoto",
    "why": "no clean single-product photo in the listing",
    "zh": "DS祥云神龙短袖"
@@ -4406,7 +4283,7 @@
    "zh": "DS红龙牛仔短裤"
   },
   "7832333836": {
-   "at": "2026-11-27T15:17:04Z",
+   "at": "2026-11-28T00:32:46Z",
    "item": "Tank Top",
    "row": {
     "brand": "Day One",
@@ -4419,7 +4296,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Day One Perform Gym Tank White",
+    "title": "Day One Perform Tank White",
     "usd": 10.64,
     "variants": [
      [
@@ -4429,6 +4306,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller211957776-5c2a000001a006104bcd0a23138d_2560_2560.jpg",
    "status": "staged",
    "zh": "T03-Day*速干暗格白色运动背心Tee"
@@ -4727,8 +4605,8 @@
    "zh": "Vale雕刻师拉链外套"
   },
   "7850673106": {
-   "at": "2026-11-27T16:50:26Z",
-   "item": "Short Sleeve Shirt",
+   "at": "2026-11-28T01:10:23Z",
+   "item": "Shirt",
    "row": {
     "brand": "",
     "cat": "Tops",
@@ -4740,7 +4618,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Striped Short Sleeve Shirt White",
+    "title": "Striped Short-Sleeve Shirt White",
     "usd": 17.5,
     "variants": [
      [
@@ -4750,6 +4628,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2073272636-3d5d000001a07d3f730d0a23038e_1320_1320.jpg",
    "status": "staged",
    "zh": "DS细条纹白色衬衫短袖"
@@ -4784,7 +4663,7 @@
    "zh": "F-Exp2.0版深海蓝两穿拉链衫"
   },
   "7862455768": {
-   "at": "2026-11-27T16:42:38Z",
+   "at": "2026-11-28T01:06:29Z",
    "item": "T-Shirt",
    "row": {
     "brand": "HMDD",
@@ -4807,6 +4686,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-0724000001a0fb3e399c0a210247_1320_1760.jpg",
    "status": "staged",
    "zh": "HMDD小偷短袖T恤"
@@ -5137,7 +5017,7 @@
    "zh": "Fyredwrld宽条格羊毛毛衣"
   },
   "7875375635": {
-   "at": "2026-11-27T16:50:13Z",
+   "at": "2026-11-28T01:10:04Z",
    "item": "T-Shirt",
    "row": {
     "brand": "2/ME",
@@ -5150,16 +5030,17 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "2/ME Spider T-Shirt Green",
+    "title": "2/ME Spider T-Shirt Dark Green",
     "usd": 12.04,
     "variants": [
      [
-      "Green",
+      "Dark Green",
       86
      ]
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2088921286-5f52000001a14f085d420a2103bd_1284_1284.jpg",
    "status": "staged",
    "zh": "2/ME绿色蜘蛛短袖"
@@ -5658,10 +5539,10 @@
    "zh": "iHS016仇恨者卫衣"
   },
   "7881423576": {
-   "at": "2026-11-27T16:25:43Z",
+   "at": "2026-11-28T00:45:57Z",
    "item": "T-Shirt",
    "row": {
-    "brand": "Mutime",
+    "brand": "Mutimer",
     "cat": "Tops",
     "g": "m",
     "id": "7881423576",
@@ -5671,7 +5552,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "Mutime Jagger Heather Grey T-Shirt",
+    "title": "Mutimer Jagger T-Shirt Heather Grey",
     "usd": 8.26,
     "variants": [
      [
@@ -5681,6 +5562,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller211957776-603d000001a1641e39d30a22c148_2560_2560.jpg",
    "status": "staged",
    "zh": "L-Mu贾格尔浅花灰空白Tee"
@@ -5885,10 +5767,10 @@
    "zh": "SH棕色拉链夹克外套"
   },
   "7886337044": {
-   "at": "2026-11-27T16:42:44Z",
+   "at": "2026-11-28T01:06:40Z",
    "item": "Sweatshirt",
    "row": {
-    "brand": "KROEN",
+    "brand": "Kroen",
     "cat": "Tops",
     "g": "m",
     "id": "7886337044",
@@ -5898,7 +5780,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "KROEN Piped Crew Sweatshirt Black",
+    "title": "Kroen Crewneck Sweatshirt Black",
     "usd": 24.64,
     "variants": [
      [
@@ -5908,12 +5790,13 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2018810290-797f000001a1866aacae0a23b4e0_1320_1760.jpg",
    "status": "staged",
    "zh": "克伦刺绣圆领卫衣黑色"
   },
   "7886692055": {
-   "at": "2026-11-27T16:50:07Z",
+   "at": "2026-11-28T01:09:55Z",
    "item": "T-Shirt",
    "row": {
     "brand": "2/U",
@@ -5926,7 +5809,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "2/U Training T-Shirt Grey",
+    "title": "2/U Grey Training Tee",
     "usd": 10.78,
     "variants": [
      [
@@ -5936,6 +5819,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2088921286-06f9000001a1914e815f0a21146b_1320_1320.jpg",
    "status": "staged",
    "zh": "2/U-灰色训练短袖"
@@ -6028,10 +5912,10 @@
    "zh": "L-RV花灰色水洗拉链衫"
   },
   "7896265520": {
-   "at": "2026-11-27T15:20:40Z",
-   "item": "Jersey",
+   "at": "2026-11-28T00:36:28Z",
+   "item": "T-Shirt",
    "row": {
-    "brand": "EXP5",
+    "brand": "Experiment",
     "cat": "Tops",
     "g": "m",
     "id": "7896265520",
@@ -6041,17 +5925,18 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "EXP5 Warm Up Jersey Red",
+    "title": "Experiment Warm Up Jersey Black",
     "usd": 18.9,
     "variants": [
      [
-      "Red",
+      "Black",
       135
      ]
     ],
     "views": 0
    },
-   "src": "https://si.geilicdn.com/wdseller211957776-0eb1000001a1bbbd5a060a22d58f_2560_2560.jpg",
+   "rule": 2,
+   "src": "https://si.geilicdn.com/wdseller211957776-0ea7000001a1bbbda89f0a2301ec_2560_2560.jpg",
    "status": "staged",
    "zh": "Y-Exp热身球衣（红/黑/蓝）"
   },
@@ -6141,7 +6026,7 @@
    "zh": "T-AH激情澎湃长袖T"
   },
   "7900215406": {
-   "at": "2026-11-27T16:40:08Z",
+   "at": "2026-11-28T01:03:53Z",
    "item": "T-Shirt",
    "row": {
     "brand": "2/ME",
@@ -6154,7 +6039,7 @@
     "qc": 0,
     "rating": 0,
     "seller": "Weidian",
-    "title": "2/ME Winged T-Shirt Black",
+    "title": "2/ME T-Shirt Black",
     "usd": 12.32,
     "variants": [
      [
@@ -6164,6 +6049,7 @@
     ],
     "views": 0
    },
+   "rule": 2,
    "src": "https://si.geilicdn.com/wdseller2088921286-7f77000001a1d02b66b70a2104e1_1280_1280.jpg",
    "status": "staged",
    "zh": "2/ME黑色3D翅膀短袖"
@@ -6299,5 +6185,5 @@
    "why": "no detail source for taobao listings yet"
   }
  },
- "spent_usd": 1.5469
+ "spent_usd": 1.7382
 }
