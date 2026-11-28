@@ -35,6 +35,8 @@
  * obvious bots refused.
  */
 import { P, gone, score, views, idx, ensureStats, CATS, AGENTS, USD_RATE, isPH, imgSrc, thumbSrc, SITE } from "../_lib/site.js";
+import { shipBallpark, shipCountry, shipNote } from "../_lib/tools9.js";
+import { itemTypeOf, typeGrams } from "../_lib/weights.js";
 import { loadKb, pickTips, tipsNote } from "../_lib/reddit_kb.js";
 
 const API = "https://api.anthropic.com/v1/messages";
@@ -234,7 +236,8 @@ const forCard = (p, agent) => {
 
 // ------------------------------------------------------------------ prompt and tool (static: the cached prefix)
 const AGENT_NAMES = Object.values(AGENTS).map(a => a.name).join(", ");
-const SYSTEM = `You are the shopping assistant on Puro Classico (puroclassico.com), a free "rep spreadsheet": about 10,800 replica fashion finds from Weidian, Taobao and 1688 with prices, QC photos and links. The site sells nothing itself. Visitors buy through a shopping agent (${AGENT_NAMES}), which buys the item in China, checks it at its warehouse and ships it to them. Most visitors are new to reps, so talk like a friend who has ordered many times: plain English, practical, no jargon without a short explanation.
+const FINDS_N = (Math.floor(P.length / 100) * 100).toLocaleString("en-US");
+const SYSTEM = `You are the shopping assistant on Puro Classico (puroclassico.com), a free "rep spreadsheet": about ${FINDS_N} fashion finds from Weidian, Taobao and 1688 with prices, QC photos and links. The site sells nothing itself. Visitors buy through a shopping agent (${AGENT_NAMES}), which buys the item in China, checks it at its warehouse and ships it to them. Most visitors are new to reps, so talk like a friend who has ordered many times: plain English, practical, no jargon without a short explanation.
 
 How to write:
 - The first sentence is the direct answer: yes or no, a size, a number, a pick or the first step. No warm-up, no "Great question", no "It depends" or "Often" as an opener, never "As an AI".
@@ -288,12 +291,15 @@ What you can explain (link the guide when it helps):
   - No measurements given: never answer only that you cannot tell. Give the usual rule for that item type (one size up for most tops, hoodies, jackets and pants; the cm check for sneakers), then ask one short question: their height and weight, or their usual size.
   - Guide: [sizing guide](/guides/sizing) and the [size estimator](/tools/size-estimator).
 - Shipping: priced by weight and parcel size, often roughly 10 to 20 days by the common lines; removing shoe boxes and extra packaging saves money. Estimate it with the [shipping calculator](/tools/shipping-calculator), and see [shipping lines explained](/guides/shipping-lines).
+  - When the visitor context has a "Shipping ballpark", answer shipping questions with it: the price range per line with its days, in their currency, for their country (and for the find on screen when one is given). Say it is a ballpark from the site's calculator and that their agent's estimate at checkout is the real price. Link the prefilled calculator path it gives. Mention the tax note for their country in one short sentence when they ask about cost or customs.
+  - "Is it worth it" or "how much in total" on a find: when a ballpark for that find is given, add one line with the item price plus the cheapest line's shipping range as a rough total.
 - Agents: every agent in the visitor's settings works with every find; do not rank agents or call one the best or cheapest. If they ask which to use, explain what to compare (fees, shipping lines to their country, QC photos, support) and that they can switch agent in the site settings.
 - You cannot see images. For "GL or RL?" questions, list what to check on that kind of item and link the QC guide.
 - Questions about the site, the [Discord](/discord) or the tools.
 
 Rules:
-- These are replicas and independent listings. Never say or suggest an item is authentic, original or made by the brand.
+- These are reps: independent listings, not made by the brand. Never say or suggest an item is authentic, original or made by the brand.
+- Never write the words "replica", "fake" or "1:1" (owner's rule for everything on the site); say "rep", "find" or "this version" instead.
 - No legal advice: for customs, import rules or taxes, say they depend on the visitor's country and that they should check the local rules themselves.
 - Do not help with anything unrelated to shopping for finds, ordering, QC, sizing or shipping; say briefly what you can help with.
 - A "Community tips" list may follow in the visitor context: short summaries of what people on rep subreddits say. Use a tip only when it answers the question, and present it as community opinion ("on r/FashionReps people often say Stussy hoodies run big"), never as a guarantee. Never make up a tip, a subreddit or a batch name, and do not link Reddit.
@@ -302,7 +308,7 @@ Rules:
 
 const TOOLS = [{
   name: "search_finds",
-  description: "Search the Puro Classico catalogue of replica finds. Returns total_matches and up to 6 finds, best first: id, title, brand, category, " +
+  description: "Search the Puro Classico catalogue of finds. Returns total_matches and up to 6 finds, best first: id, title, brand, category, " +
     "price (already formatted in the visitor's currency), price_usd, qc_photos (photos of real orders: more means people bought and checked it), " +
     "views_30d (popularity), colours (the seller's colour options), url, and sold_out or partial when they apply. Understands brand nicknames " +
     "(rl, lv, tnf, cdg, ysl), plurals, colour words and item words (hoodie, puffer, sneakers, jeans, cap, bag).",
@@ -378,7 +384,7 @@ export function sizeHint(messages, ctx) {
 
 // The per-visitor part of the system prompt (after the cached prefix): currency, agent, the find on screen, a size estimate
 // when they gave height and weight, and community tips.
-function contextNote(ctx, tips, size) {
+export function contextNote(ctx, tips, size) {
   const lines = ["Visitor context:", "- Currency: " + ctx.cur + ". The price field from search_finds is already in " + ctx.cur + "; quote it as given."];
   const ag = AGENTS[ctx.agent];
   if (ag) lines.push("- Their shopping agent: " + ag.name + ". The cards' buy button opens " + ag.name + "; use " + ag.name + " when you explain ordering.");
@@ -389,6 +395,19 @@ function contextNote(ctx, tips, size) {
       category: f.category, price: f.price, qc_photos: f.qc_photos, views_30d: f.views_30d || undefined, colours: f.colours || "", sold_out: !!f.sold_out, url: f.url }) +
       ". " + (f.qc_photos ? f.qc_photos + " QC photo" + (f.qc_photos === 1 ? "" : "s") + " from real orders are on its page." : "No QC photos from real orders yet.") +
       " For similar or cheaper finds, search with its brand and item type.");
+  }
+  if (ctx.country) {
+    const cur = CUR[ctx.cur] || CUR.USD, m = usd => cur[0] + Math.round(usd / USD_RATE * cur[1]);
+    const fmt = b => b.lines.map(l => l[0] + " " + m(l[1]) + " to " + m(l[2]) + " (" + l[3] + ")").join("; ");
+    const to = encodeURIComponent(ctx.country);
+    lines.push("- Shipping ballpark (the site's shipping calculator, real weight, before coupons) to " + ctx.country + ", where they connect from (they may ship elsewhere: use another country if they name one, and then point them to the calculator): a 1 kg parcel costs about " +
+      fmt(shipBallpark(ctx.country, 850)) + ". Prefilled calculator: [shipping calculator](/tools/shipping-calculator?to=" + to + ")." + (shipNote(ctx.country) ? " Tax note for " + ctx.country + ": " + shipNote(ctx.country) : ""));
+    const g = p && gone(p) !== "dead" ? typeGrams(itemTypeOf(p)) : 0;
+    if (g) {
+      const b = shipBallpark(ctx.country, g);
+      lines.push("- Shipping ballpark for the find on screen alone (about " + g + " g, about " + b.packed + " g packed): " + fmt(b) +
+        ". Prefilled: [shipping calculator](/tools/shipping-calculator?to=" + to + "&kg=" + (b.packed / 1000).toFixed(2) + ").");
+    }
   }
   if (size) lines.push(size);
   const t = tipsNote(tips || []);
@@ -610,6 +629,7 @@ export async function onRequestPost(context) {
   const messages = cleanMessages(b && b.messages);
   if (!messages) return json(400, { error: "Bad request." });
   const ctx = cleanCtx(b.ctx), v2 = +b.v >= 2;
+  ctx.country = shipCountry(request.cf && request.cf.country);   // for the shipping ballpark; never stored
   if (await limited(request.headers.get("cf-connecting-ip") || "")) return json(429, { error: MSG.limit }, { "retry-after": "600" });
 
   const origin = new URL(request.url).origin;
