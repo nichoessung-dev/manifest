@@ -61,8 +61,10 @@ def main():
     if not KEY: sys.exit("SUPABASE_SERVICE_KEY is not set")
     us = users()
     now = datetime.now(timezone.utc); since = now - timedelta(days=21)
-    favs = collections.Counter(column("favorites", "user_id"))
-    views = collections.Counter(column("product_views", "user_id", "&user_id=not.is.null&created_at=gte." + since.strftime("%Y-%m-%dT%H:%M:%SZ")))
+    try: favs = collections.Counter(column("favorites", "user_id"))
+    except Exception as e: print("favorites not read:", str(e)[:80]); favs = collections.Counter()
+    try: views = collections.Counter(column("product_views", "user_id", "&user_id=not.is.null&viewed_at=gte." + since.strftime("%Y-%m-%dT%H:%M:%SZ")))
+    except Exception as e: print("product_views not read:", str(e)[:80]); views = collections.Counter()
     print("members in all: %d; with a saved find: %d; viewed a find in the last 21 days while signed in: %d" % (len(us), len(favs), len(views)))
     day = collections.defaultdict(collections.Counter)
     times, domains, rnd, throw = [], collections.Counter(), 0, 0
