@@ -1,0 +1,67 @@
+name: Blur check of sheet photos
+# The focused blur check (scripts/archive_photos.py --recheck-blur, owner 28 Nov 2026: no photo with a blurred-out logo
+# goes live) on the cut finds of an import that have none yet. 8 shards, as the photo records of import-sheet.yml.
+# report_only yes: the verdicts are recorded, no find is taken out (for review first).
+on:
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "import set (murphy or archive)"
+        default: murphy
+      report_only:
+        description: "yes: record the verdicts only"
+        default: "yes"
+      ids:
+        description: "optional ids to check again (comma separated)"
+        default: ""
+      max_usd:
+        description: "vision budget per shard, USD"
+        default: "2"
+permissions:
+  contents: write
+concurrency:
+  group: blur-check
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ["0/8", "1/8", "2/8", "3/8", "4/8", "5/8", "6/8", "7/8"]
+    env:
+      SET: ${{ inputs.set }}
+      IDS: ${{ inputs.ids }}
+      USD: ${{ inputs.max_usd }}
+      SHARD: ${{ matrix.shard }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pillow numpy
+      - name: Check
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          REPORT: ${{ inputs.report_only }}
+        run: |
+          [[ "$SET" =~ ^(murphy|archive)$ ]] || { echo "::error::bad set"; exit 1; }
+          [[ "$USD" =~ ^[0-9]{1,2}(\.[0-9]{1,2})?$ ]] || { echo "::error::bad max_usd"; exit 1; }
+          [[ "$IDS" =~ ^[0-9,\ ]*$ ]] || { echo "::error::bad ids"; exit 1; }
+          RO=""; [ "$REPORT" = "yes" ] && RO="--report-only"
+          IDA=""; [ -n "$IDS" ] && IDA="--ids ${IDS// /}"
+          python -u scripts/archive_photos.py --set "$SET" --shard "$SHARD" --recheck-blur $RO $IDA --max-usd "$USD" --max-minutes 100
+      - name: Save
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for d in data/sheet_photos data/archive_photos; do [ -d "$d" ] && git add "$d"; done
+          git diff --cached --quiet && { echo "nothing new"; exit 0; }
+          git commit -q -m "data: blur check, shard $SHARD [skip ci]"
+          for n in 1 2 3 4 5 6 7 8 9 10; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
+            sleep $((n * 5 + RANDOM % 10))
+          done
+          echo "::error::the records could not be saved"; exit 1

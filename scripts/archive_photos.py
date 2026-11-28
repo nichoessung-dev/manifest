@@ -138,6 +138,66 @@ def look(im, title):
     except ValueError: return {}
 
 
+BLUR_MODEL = os.environ.get("BLUR_VISION_MODEL", "claude-sonnet-5-5")
+BLUR_RATES = {"claude-sonnet-5-5": (3.0, 15.0), "claude-haiku-5-5": (1.0, 5.0)}   # USD per million tokens in, out
+
+
+def blur_check(im):
+    """One focused vision call (owner, 28 Nov 2026: no photo with a blurred-out logo goes live; the stage's many-rule
+    look missed most of them): {"blurred": bool, "where": str}. {} when the call fails."""
+    sm = im.convert("RGB"); sm.thumbnail((1024, 1024)); b = io.BytesIO(); sm.save(b, "JPEG", quality=88)
+    content = [{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.b64encode(b.getvalue()).decode()}},
+               {"type": "text", "text":
+                "This is a seller's product photo from a Chinese shop. Sellers often hide a brand logo, a print or a tag by "
+                "blurring, smudging, pixelating or painting over it with a soft brush in an editor. That leaves a smeared, "
+                "out-of-focus or blocky patch with soft edges on an item that is otherwise sharp. Look closely at the whole "
+                "item: chest, back, sleeves, legs, hood, collar, tags. blurred: true if ANY part of the item has such a "
+                "patch, even a small one. false only when everything on the item is sharp. A real printed or embroidered "
+                "design that is meant to look painted, splattered, distressed, faded or washed is NOT blurring: it has crisp "
+                "edges and fabric texture inside it. where: '' when false, else a few words. "
+                'Answer only JSON, no code fence: {"blurred":false,"where":""}'}]
+    body = json.dumps({"model": BLUR_MODEL, "max_tokens": 200, "messages": [{"role": "user", "content": content}]}).encode()
+    req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=body, headers={
+        "x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01", "content-type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=90) as r: d = json.load(r)
+    except Exception as e:  # noqa: BLE001
+        print("  blur check failed: %s" % str(e)[:120], flush=True); return {}
+    u = d.get("usage") or {}; ri, ro = BLUR_RATES.get(BLUR_MODEL, (3.0, 15.0))
+    spent[0] += (u.get("input_tokens", 0) * ri + u.get("output_tokens", 0) * ro) / 1e6
+    m = re.search(r"\{.*\}", "".join(c.get("text", "") for c in d.get("content", [])), re.S)
+    try: v = json.loads(m.group(0)) if m else {}
+    except ValueError: return {}
+    return {"blurred": bool(v.get("blurred")), "where": str(v.get("where") or "")[:60]} if "blurred" in v else {}
+
+
+def recheck_blur(a, shard, staged, recs, log, log_path):
+    """--recheck-blur: the blur check on this shard's cut finds that have none yet (with --ids, those again). The verdict
+    goes in the record ("blur"); a blurred one becomes "kept" unless --report-only."""
+    k, n = shard
+    want = {x for x in a.ids.replace(" ", "").split(",") if x}
+    todo = [i for i in sorted(staged) if shards.mine(i, shard) and (recs.get(i) or {}).get("status") == "cut"
+            and (i in want if want else "blur" not in recs[i])]
+    print("%s blur check, shard %d/%d: %d to check (%s)" % (a.set, k, n, len(todo), BLUR_MODEL), flush=True)
+    t0, c = time.time(), {}
+    for j, i in enumerate(todo):
+        if (a.max_minutes and time.time() - t0 > a.max_minutes * 60) or spent[0] >= a.max_usd:
+            print("time or budget limit reached; the next run goes on", flush=True); break
+        rec = recs[i]; im = fetch(rec.get("src") or staged[i].get("src"))
+        if im is None: continue
+        v = blur_check(im)
+        if not v: continue
+        rec["blur"] = dict(v, at=now(), model=BLUR_MODEL)
+        if v["blurred"]:
+            print("  %s blurred: %s" % (i, v["where"]), flush=True)
+            if not a.report_only: rec.update(status="kept", why=["blurred logo: " + v["where"]])
+        c[v["blurred"]] = c.get(v["blurred"], 0) + 1
+        if (j + 1) % 20 == 0: save_json(log_path, log); print("  %d checked, $%.2f" % (j + 1, spent[0]), flush=True)
+    save_json(log_path, log)
+    left = sum(1 for i in staged if shards.mine(i, shard) and (recs.get(i) or {}).get("status") == "cut" and "blur" not in recs[i])
+    print("done: blurred %d, clean %d, $%.2f; left %d" % (c.get(True, 0), c.get(False, 0), spent[0], left), flush=True)
+
+
 def upload(name, data):
     """'uploaded' or 'exists' (an object is never replaced)."""
     key = os.environ["SUPABASE_SERVICE_KEY"]
@@ -207,6 +267,8 @@ def main(argv=None):
     ap.add_argument("--no-upload", action="store_true", help="make the cut-outs and sheets, upload and record nothing")
     ap.add_argument("--no-vision", action="store_true"); ap.add_argument("--max-usd", type=float, default=1.5)
     ap.add_argument("--retry-kept", action="store_true", help="look again at finds kept out before")
+    ap.add_argument("--recheck-blur", action="store_true", help="only the blur check on cut finds (see recheck_blur)")
+    ap.add_argument("--report-only", action="store_true", help="--recheck-blur: record the verdicts, change no status")
     ap.add_argument("--rembg-model", default="isnet-general-use")
     ap.add_argument("--max-fill", type=float, default=0.86); ap.add_argument("--shadow", type=float, default=0.16)
     ap.add_argument("--max-parts", type=int, default=3); ap.add_argument("--min-plain", type=float, default=0.80)
@@ -222,6 +284,9 @@ def main(argv=None):
     log = load_json(log_path, {}) or {}
     recs = log.setdefault("items", {})
     staged = IA.staged(a.set)
+    if a.recheck_blur:
+        if not os.environ.get("ANTHROPIC_API_KEY"): sys.exit("ANTHROPIC_API_KEY is not set: the blur check is a vision call")
+        return recheck_blur(a, shard, staged, recs, log, log_path)
     want = {x for x in a.ids.replace(" ", "").split(",") if x}
     done_elsewhere = {}
     for f in os.listdir(folder) if os.path.isdir(folder) else []:
