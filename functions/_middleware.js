@@ -318,12 +318,17 @@ async function searchIndexJson(ctx, url) {
 }
 
 async function photoCopy(ctx, path) {
-  const r = await ctx.next();
-  if (r.ok && (r.headers.get("content-type") || "").startsWith("image/")) return r;
-  const m = /^\/img\/r\/(?:400|720)\/(s\/)?([\w.\/-]+?)(?:\.v([\w-]{1,20}))?\.webp$/.exec(path);
+  const m = /^\/img\/r\/(400|720)\/((s\/)?([\w.\/-]+?)(?:\.v([\w-]{1,20}))?)\.webp$/.exec(path);
   if (!m) return new Response("not found", { status: 404, headers: { "cache-control": "no-store" } });
-  const to = m[1] ? "/api/img?u=" + encodeURIComponent(RS_SB + m[2] + ".webp" + (m[3] ? "?v=" + m[3] : ""))
-    : "/img/" + m[2] + (m[3] ? ".v" + m[3] : "") + ".webp";
+  try {
+    const r = await fetch("https://pc-photos-" + m[1] + ".pages.dev/" + m[2] + ".webp", { cf: { cacheEverything: true, cacheTtl: 2592000 } });
+    if (r.ok && (r.headers.get("content-type") || "").startsWith("image/")) {
+      return new Response(r.body, { status: 200, headers: { "content-type": "image/webp", "cache-control": "public, max-age=2592000, stale-while-revalidate=604800", "x-content-type-options": "nosniff" } });
+    }
+  } catch (e) { /* the original below */ }
+  m.splice(1, 1);   // [all, key, "s/", sub, version]
+  const to = m[2] ? "/api/img?u=" + encodeURIComponent(RS_SB + m[3] + ".webp" + (m[4] ? "?v=" + m[4] : ""))
+    : "/img/" + m[3] + (m[4] ? ".v" + m[4] : "") + ".webp";
   return new Response(null, { status: 302, headers: { location: to, "cache-control": "public, max-age=900" } });
 }
 
@@ -346,7 +351,9 @@ async function route(ctx) {
   // Browsers, Bing and feed readers ask for /favicon.ico whatever the page declares; without a file each request rendered the full 404 page.
   if (path === "/favicon.ico") return Response.redirect(url.origin + "/favicon.png", 301);
   if (PRIVATE.test(path) || PRIVATE.test(decoded(path))) return notFound(path);
-  // 28 Nov 2026: our own photo copies (img/r/, scripts/resize_photos.py). A copy not made yet (a find added since the
+  // 28 Nov 2026: our own photo copies (/img/r/<400|720>/<key>.webp, scripts/resize_photos.py). They live in two photo
+  // sites of their own (Pages projects pc-photos-400 and pc-photos-720, branches photos-400 and photos-720: this site may
+  // hold 20,000 files and has about 18,700), fetched and kept at the edge. A copy not made yet (a find added since the
   // last nightly run) goes to its original photo, cached briefly, so the copy is used as soon as it exists.
   if (path.startsWith("/img/r/")) return photoCopy(ctx, path);
   if (PASS.test(path)) {

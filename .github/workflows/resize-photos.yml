@@ -1,7 +1,8 @@
 name: Photo copies
-# Our own small copies of the finds' photos (scripts/resize_photos.py, owner 28 Nov 2026): img/r/400 and img/r/720, so
-# Cloudflare's paid image resizing is not used. Nightly after the imports, and by hand after a big import. A find whose
-# copy is not made yet shows its original photo (functions/_middleware.js), so nothing breaks in between.
+# Our own small copies of the finds' photos (scripts/resize_photos.py, owner 28 Nov 2026), so Cloudflare's paid image
+# resizing is not used. They live on the branches photos-400 and photos-720 (Pages projects pc-photos-400 and
+# pc-photos-720), not in this site, which may hold 20,000 files. Nightly after the imports, and by hand after a big import.
+# A find whose copy is not made yet shows its original photo (functions/_middleware.js photoCopy), so nothing breaks.
 on:
   schedule:
     - cron: '41 5 * * *'
@@ -21,6 +22,16 @@ jobs:
         shard: ["0/4", "1/4", "2/4", "3/4"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: site
+      - uses: actions/checkout@v4
+        with:
+          ref: photos-400
+          path: p400
+      - uses: actions/checkout@v4
+        with:
+          ref: photos-720
+          path: p720
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -28,19 +39,25 @@ jobs:
       - name: Make the copies
         env:
           SHARD: ${{ matrix.shard }}
-        run: python -u scripts/resize_photos.py --shard "$SHARD"
+        run: python -u site/scripts/resize_photos.py --shard "$SHARD" --dir400 p400 --dir720 p720 --logs p400/_log
       - name: Save
         if: always()
         env:
           SHARD: ${{ matrix.shard }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A img/r data/resized
-          git diff --cached --quiet && { echo "nothing new"; exit 0; }
-          git commit -q -m "data: photo copies, shard $SHARD"
-          for n in 1 2 3 4 5 6 7 8 9 10; do
-            if git pull --rebase -q origin "$GITHUB_REF_NAME" && git push -q; then exit 0; fi
-            sleep $((n * 6 + RANDOM % 10))
+          for d in p400 p720; do
+            (
+              cd "$d"
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add -A
+              git diff --cached --quiet && { echo "$d: nothing new"; exit 0; }
+              git commit -q -m "Photo copies, shard $SHARD"
+              b=$(git rev-parse --abbrev-ref HEAD)
+              for n in 1 2 3 4 5 6 7 8 9 10; do
+                if git pull --rebase -q origin "$b" && git push -q origin "HEAD:$b"; then exit 0; fi
+                sleep $((n * 6 + RANDOM % 10))
+              done
+              echo "::error::$d could not be saved"; exit 1
+            )
           done
-          echo "::error::the copies could not be saved"; exit 1

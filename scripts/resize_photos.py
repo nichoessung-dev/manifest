@@ -8,10 +8,14 @@ The site now asks for these files instead, so Cloudflare resizes nothing.
                          a Supabase product photo .../public/products/<sub>.webp[?v=n] -> s/<sub>[.v<n>]
 Same rule as rsKey() in index.html and functions/_lib/site.js, and rsOrigin() in functions/_middleware.js (which sends a
 copy not made yet to the original photo). The source is read from the repository (img/..., the img/m mirror of Supabase),
-else downloaded. data/resized/<k>-of-<n>.json {key: sha1 of the source, first 12}: an unchanged source is not made again.
+else downloaded. <logs>/<k>-of-<n>.json {key: sha1 of the source, first 12}: an unchanged source is not made again.
 Sharded by key (store_photos_shards.py), so parallel jobs (.github/workflows/resize-photos.yml) never write the same file.
 
-  python scripts/resize_photos.py [--shard 0/1] [--limit N] [--check]      --check: only count what is missing
+Where they live: NOT in this site (Cloudflare Pages allows this site 20,000 files and it has about 18,700). The copies are
+the branches photos-400 and photos-720 of this repository (one tier each, the key as the path; the logs in photos-400
+under _log/), deployed as the Pages projects pc-photos-400 and pc-photos-720; functions/_middleware.js fetches them.
+
+  python scripts/resize_photos.py --dir400 D --dir720 D --logs D [--shard 0/1] [--limit N] [--check]
 """
 import hashlib, io, json, os, re, sys, time, urllib.request
 from concurrent.futures import ProcessPoolExecutor
@@ -25,8 +29,8 @@ import store_photos_shards as shards  # noqa: E402
 TIERS = (400, 720)
 QUALITY = {400: 76, 720: 78}
 SB = "https://uptpghuduqjqmrxwatbm.supabase.co/storage/v1/object/public/products/"
-OUT = os.path.join(ROOT, "img", "r")
-LOGS = os.path.join(ROOT, "data", "resized")
+DIRS = {400: os.path.join(ROOT, "out", "photos-400"), 720: os.path.join(ROOT, "out", "photos-720")}
+LOGS = os.path.join(ROOT, "out", "photos-400", "_log")
 UA = {"User-Agent": "Mozilla/5.0 PuroClassicoResize/1.0"}
 
 
@@ -59,17 +63,17 @@ def source_bytes(img):
 
 def make(job):
     """(key, sha or None, error) for one photo: writes its copies."""
-    key, img, old = job
+    key, img, old, dirs = job
     try:
         data = source_bytes(img)
         sha = hashlib.sha1(data).hexdigest()[:12]
-        if sha == old and all(os.path.exists(os.path.join(OUT, str(w), key + ".webp")) for w in TIERS): return key, sha, ""
+        if sha == old and all(os.path.exists(os.path.join(dirs[w], key + ".webp")) for w in TIERS): return key, sha, ""
         im = Image.open(io.BytesIO(data)); im.load()
         im = im.convert("RGBA") if im.mode in ("RGBA", "LA", "P") or "transparency" in im.info else im.convert("RGB")
         for w in TIERS:
             c = im.copy()
             if c.width > w: c = c.resize((w, max(1, round(c.height * w / c.width))), Image.LANCZOS)
-            dest = os.path.join(OUT, str(w), key + ".webp"); os.makedirs(os.path.dirname(dest), exist_ok=True)
+            dest = os.path.join(dirs[w], key + ".webp"); os.makedirs(os.path.dirname(dest), exist_ok=True)
             b = io.BytesIO(); c.save(b, "WEBP", quality=QUALITY[w], method=4)
             open(dest + ".part", "wb").write(b.getvalue()); os.replace(dest + ".part", dest)
         return key, sha, ""
@@ -79,7 +83,11 @@ def make(job):
 
 def main():
     a = sys.argv[1:]
+    global LOGS
     limit = int(a[a.index("--limit") + 1]) if "--limit" in a else 0
+    for w in TIERS:
+        if "--dir%d" % w in a: DIRS[w] = os.path.abspath(a[a.index("--dir%d" % w) + 1])
+    if "--logs" in a: LOGS = os.path.abspath(a[a.index("--logs") + 1])
     shard = shards.parse(a[a.index("--shard") + 1] if "--shard" in a else "0/1")
     LOG = os.path.join(LOGS, "%d-of-%d.json" % shard)
     _, items, _, _ = load_catalog()
@@ -91,8 +99,8 @@ def main():
         img = p.get("img") or ""; key = key_of(img)
         if not key or key in seen or not shards.mine(key, shard): continue
         seen.add(key)
-        if key in done and all(os.path.exists(os.path.join(OUT, str(w), key + ".webp")) for w in TIERS) and "--deep" not in a: continue
-        jobs.append((key, img, done.get(key)))
+        if key in done and all(os.path.exists(os.path.join(DIRS[w], key + ".webp")) for w in TIERS) and "--deep" not in a: continue
+        jobs.append((key, img, done.get(key), dict(DIRS)))
     print("photos with a copy key %d, to make now %d" % (len(seen), len(jobs)), flush=True)
     if "--check" in a: return
     if limit: jobs = jobs[:limit]
@@ -106,7 +114,7 @@ def main():
     gone = [k for k in done if k not in seen]
     for k in gone:
         for w in TIERS:
-            try: os.remove(os.path.join(OUT, str(w), k + ".webp"))
+            try: os.remove(os.path.join(DIRS[w], k + ".webp"))
             except FileNotFoundError: pass
         done.pop(k, None)
     log["about"] = "Our own small copies of the finds' photos (scripts/resize_photos.py): key -> sha1 of the source, first 12."
