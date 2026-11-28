@@ -304,7 +304,10 @@ def main():
 
 def save(bank, now):
     bank["updated"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    bank["items"] = dict(sorted(bank["items"].items())); bank["checked"] = dict(sorted(bank["checked"].items()))
+    # sorted IN PLACE (28 Nov 2026): main() keeps references to these two dicts, and replacing them here left every
+    # lookup after the first save out of the file (a whole repsapi.pl run was lost that way)
+    for k in ("items", "checked"):
+        d = bank[k]; srt = sorted(d.items()); d.clear(); d.update(srt)
     json.dump(bank, open(BANK, "w", encoding="utf-8"), separators=(",", ":"))
 
 
