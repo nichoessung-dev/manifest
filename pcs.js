@@ -957,7 +957,7 @@ PCS.close=function(){close(true);};
 PCS.popular=function(){return new Promise(function(res){if(POP){res(POP.slice(0,8));return;}popWait.push(res);loadPop();});};
 /* ---- standalone mode (round 6): server pages have no app globals ---- */
 if(G("ALL")===undefined&&G("state")===undefined){
-var B=w.PCS_BOOT||{},TH="/cdn-cgi/image/width=96,quality=70,format=auto",prod=/(^|\.)puroclassico\.com$/.test(location.hostname);
+var B=w.PCS_BOOT||{},TH="/img/r/400/",prod=/(^|\.)puroclassico\.com$/.test(location.hostname);
 SA={ALL:null,failed:false,brandSlug:{},catSlug:{},Q_SYN:SA_SYN,
 isPH:function(c){return!(c>=5&&c<99999);},
 popScore:function(p){return p._pop||0;},
@@ -965,7 +965,8 @@ catName:function(c){return c;},
 /* the server card's price: $N with the CNY price small, "Ask seller" for placeholder prices */
 priceH:function(p){return SA.isPH(p.price)?"Ask seller":"$"+Math.max(1,p.usd||Math.round(p.price*0.14)).toLocaleString("en-US")+' <small class="pcs-cny">\u00a5'+esc(p.price)+"</small>";},
 /* resized thumbs on the live site only, as the app's thumbOf (Supabase photos through our /api/img proxy) */
-thumbOf:function(u){if(!u||!prod)return u;if(/^\/img\//.test(u))return TH+u;if(/\.supabase\.co\/storage\/v1\/object\/public\//.test(u))return TH+"/api/img?u="+encodeURIComponent(u);return u;},
+/* 28 Nov 2026: our own 400 px copies (scripts/resize_photos.py), not Cloudflare resizing; the same key rule as rsKey() in site.js */
+thumbOf:function(u){if(!u||!prod)return u;var m=/^\/img\/((?:rl|fr|p|p2|cut|white)\/[\w.\/-]+?)\.webp$/.exec(u);if(m)return TH+m[1]+".webp";m=/^https:\/\/uptpghuduqjqmrxwatbm\.supabase\.co\/storage\/v1\/object\/public\/products\/((?:pc|pc2|store|store2)\/[\w.\/-]+?)\.webp(?:\?v=([\w-]{1,20}))?$/.exec(u);if(m)return TH+"s/"+m[1]+(m[2]?".v"+m[2]:"")+".webp";if(/\.supabase\.co\/storage\/v1\/object\/public\//.test(u))return "/api/img?u="+encodeURIComponent(u);return u;},
 pcExtract:function(u){var m=String(u||"").match(/(\d{6,})/);return m?{id:m[1]}:{};},
 /* a transparent cut-out (the 13th column of /search-index.json, site.js isCut): its thumbnail sits on the category grey in dark mode */
 pcCut:function(p){return!!(p&&p.cut);}};

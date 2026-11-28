@@ -12,12 +12,14 @@
 //   products/pc/<id>.webp, img/p/ and img/p2/ (26 Nov 2026: every one of the 1,845 that loads is a cut-out, checked).
 export const CUT_RX = /^\/(?:storage\/v1\/object\/public\/products|img\/m)\/pc2\/[\w-]+-[et]1(?:\.v[\w-]+)?\.webp$|^\/img\/(?:rl|fr|cut)\/[\w-]+-e1\.webp$|^\/storage\/v1\/object\/public\/products\/store2\/[\w.-]+-t1\.webp$|^\/storage\/v1\/object\/public\/products\/pc\/[\w-]+\.webp$|^\/img\/p2?\/[\w-]+\.webp$/;
 // The path of a photo address as CUT_RX reads it: the Supabase address inside /api/img?u=, without host, Cloudflare
-// resize prefix (/cdn-cgi/image/...) or query.
+// resize prefix (/cdn-cgi/image/...) or query; our own copy (img/r/<w>/<key>.webp, 28 Nov 2026) reads as its original.
 export function cutPath(u) {
   u = String(u || "");
   const q = u.indexOf("/api/img?");
   if (q >= 0) { try { u = new URLSearchParams(u.slice(q + 9)).get("u") || ""; } catch (e) { u = ""; } }
-  return u.replace(/^https?:\/\/[^/]+/, "").replace(/^\/cdn-cgi\/image\/[^/]+/, "").replace(/[?#].*$/, "");
+  u = u.replace(/^https?:\/\/[^/]+/, "").replace(/^\/cdn-cgi\/image\/[^/]+/, "").replace(/[?#].*$/, "");
+  const r = /^\/img\/r\/\d+\/(s\/)?([\w.\/-]+?)(?:\.v([\w-]{1,20}))?\.webp$/.exec(u);
+  return r ? (r[1] ? "/storage/v1/object/public/products/" + r[2] + (r[3] ? ".v" + r[3] : "") + ".webp" : "/img/" + r[2] + (r[3] ? ".v" + r[3] : "") + ".webp") : u;
 }
 
 // The finds whose photo keeps the light tile in dark mode although it may be a cut-out, with the reason (review of the

@@ -4318,6 +4318,8 @@ function pcCut(p,u){
   u=String((u===undefined?p.img:u)||"");
   const q=u.indexOf("/api/img?"); if(q>=0){ try{ u=new URLSearchParams(u.slice(q+9)).get("u")||""; }catch(e){ u=""; } }
   u=u.replace(/^https?:\/\/[^/]+/,"").replace(/^\/cdn-cgi\/image\/[^/]+/,"").replace(/[?#].*$/,"");
+  const r=/^\/img\/r\/\d+\/(s\/)?([\w.\/-]+?)(?:\.v([\w-]{1,20}))?\.webp$/.exec(u);  /* our own copy (28 Nov 2026) reads as its original */
+  if(r) u=(r[1]?"/storage/v1/object/public/products/":"/img/")+r[2]+(r[3]?".v"+r[3]:"")+".webp";
   return /^\/(?:storage\/v1\/object\/public\/products|img\/m)\/pc2\/[\w-]+-[et]1(?:\.v[\w-]+)?\.webp$|^\/img\/(?:rl|fr|cut)\/[\w-]+-e1\.webp$|^\/storage\/v1\/object\/public\/products\/store2\/[\w.-]+-t1\.webp$|^\/storage\/v1\/object\/public\/products\/pc\/[\w-]+\.webp$|^\/img\/p2?\/[\w-]+\.webp$/.test(u);
 }
 ALL.forEach(p=>{
@@ -6687,15 +6689,19 @@ function renderFeatured(){
 /* 15 Nov 2026: the RepLibrary photos (img/rl/) were cut out in place on 11 Nov, but Cloudflare's resize cache kept the old
    white-square copies; a new source URL makes it resize the transparent file. Bump c= if they are rewritten again. */
 function rlBust(p){ return /^\/img\/rl\/[^?]+$/.test(p)?p+"?c=1":p; }
-function thumbOf(u){ if(!u||!/(^|\.)puroclassico\.com$/.test(location.hostname)) return u; const o=location.origin, path=u.indexOf(o+"/")===0?u.slice(o.length):u;
-  return /^\/(img\/|api\/img\?)/.test(path)?o+"/cdn-cgi/image/width=400,quality=75,format=auto"+rlBust(path):u; }
-/* 8 Nov 2026, sharper photos: a 720 px copy for retina screens next to the 400 px one (the browser picks), and the product
-   view's photo as a 1400 px AVIF/WebP from Cloudflare (smaller and faster than the stored original, never upscaled) */
-function cdnOf(u,w,q){ if(!u||!/(^|\.)puroclassico\.com$/.test(location.hostname)) return u; const o=location.origin, path=u.indexOf(o+"/")===0?u.slice(o.length):u;
-  return /^\/(img\/|api\/img\?)/.test(path)?o+"/cdn-cgi/image/width="+w+",quality="+q+",format=auto"+rlBust(path):u; }
+/* 28 Nov 2026 (owner): our own copies of the finds' photos (scripts/resize_photos.py, img/r/<400|720>/<key>.webp) instead of
+   Cloudflare image resizing, which billed $59.50 in November (every photo in every size, once a month). Only a find's own
+   photo has a copy; anything larger than 720 px, QC photos and other photos are the original. rsKey: the same rule as
+   rsKey() in functions/_lib/site.js; a copy not made yet answers with its original (functions/_middleware.js). */
+function rsKey(path){ let m=/^\/img\/((?:rl|fr|p|p2|cut|white)\/[\w.\/-]+?)\.webp(?:\?c=1)?$/.exec(path); if(m) return m[1];
+  if(path.indexOf("/api/img?u=")!==0) return ""; let u=""; try{ u=decodeURIComponent(path.slice(11).split("&")[0]); }catch(e){ return ""; }
+  m=/^https:\/\/uptpghuduqjqmrxwatbm\.supabase\.co\/storage\/v1\/object\/public\/products\/((?:pc|pc2|store|store2)\/[\w.\/-]+?)\.webp(?:\?v=([\w-]{1,20}))?$/.exec(u);
+  return m?"s/"+m[1]+(m[2]?".v"+m[2]:""):""; }
+function cdnOf(u,w,q){ if(!u||!/(^|\.)puroclassico\.com$/.test(location.hostname)||w>720) return u; const o=location.origin, path=u.indexOf(o+"/")===0?u.slice(o.length):u;
+  const k=rsKey(path); return k?o+"/img/r/"+(w<=400?400:720)+"/"+k+".webp":u; }
+function thumbOf(u){ return cdnOf(u,400,75); }
 function thumbSet(u){ const a=thumbOf(u), b=cdnOf(u,720,80); return a===b?"":a+" 400w, "+b+" 720w"; }
-/* 9 Nov 2026: "&hd=2" gives the product view fresh Cloudflare copies, made from the full-size site photos (1200 px) */
-function bigOf(u){ const b=cdnOf(u,1400,85); return b!==u&&/\/api\/img\?/.test(b)?b+"&hd=2":b; }
+function bigOf(u){ return u; }
 function imgFallback(im,p,seed){
   if(!im.dataset.r){ im.dataset.r="1"; const u=p.img||im.getAttribute("src")||"";  /* the full-size original when the resized copy failed */ if(u){ setTimeout(()=>{ if(im.isConnected) im.src=u+(u.indexOf("?")<0?"?":"&")+"r=1"; },700); return; } }
   if(!im.isConnected) return;
@@ -8944,7 +8950,7 @@ function wirePPFilters(){
 (function(){try{if(!(window.CSS&&CSS.supports&&CSS.supports("selector(::details-content)"))){var DS="details.v9-more,details.v9-step-d,#seo details.seo-q,.hub-seo details,details.more,details.tk-more,.faq details,details.faq-d",DRM=matchMedia("(prefers-reduced-motion: reduce)");document.addEventListener("click",function(e){var s=e.target&&e.target.closest&&e.target.closest("summary"),d=s&&s.parentElement;if(!d||d.tagName!=="DETAILS"||d.firstElementChild!==s||!d.matches(DS)||DRM.matches||!d.animate)return;e.preventDefault();var h0=d.getBoundingClientRect().height,A=d._pcA,want=A?!d._pcW:!d.open;if(A){A.onfinish=null;A.cancel()}d._pcW=want;d.open=false;var hc=d.getBoundingClientRect().height;d.open=true;var ho=d.getBoundingClientRect().height;d.style.overflow="hidden";d.style.boxSizing="border-box";var a=d.animate({height:[h0+"px",(want?ho:hc)+"px"]},{duration:240,easing:"cubic-bezier(.22,1,.36,1)"});d._pcA=a;if(want)[].forEach.call(d.children,function(c){if(c!==s)try{c.animate({opacity:[0,1]},{duration:220,easing:"ease-out"})}catch(x){}});a.onfinish=function(){d.open=want;d.style.overflow="";d.style.boxSizing="";d._pcA=null}})}}catch(e){}
 try{var AC=null,AH=matchMedia("(hover: hover)"),afp=function(l){var p=l.querySelector(".aff-pop");if(!p)return;l.classList.remove("up");var r=p.getBoundingClientRect(),t=l.getBoundingClientRect().top;if(r.bottom>innerHeight-8&&t>r.height+16)l.classList.add("up")},afs=function(l,o){var b=l&&l.querySelector(".aff-btn");if(!b)return;if(o){if(AC&&AC!==l)afs(AC,false);AC=l;l.classList.remove("shut");l.classList.add("open");afp(l)}else{l.classList.remove("open");if(AC===l)AC=null}b.setAttribute("aria-expanded",o?"true":"false")};document.addEventListener("click",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b){var l=b.closest(".aff-lb");e.preventDefault();afs(l,AH.matches?true:!l.classList.contains("open"));return}if(AC&&!AC.contains(e.target))afs(AC,false)});document.addEventListener("mouseover",function(e){if(!AH.matches)return;var l=e.target&&e.target.closest&&e.target.closest(".aff-lb");if(l&&!l.classList.contains("open")&&!l.classList.contains("shut"))afs(l,true)});document.addEventListener("mouseout",function(e){if(!AH.matches)return;var l=e.target&&e.target.closest&&e.target.closest(".aff-lb");if(l&&!l.contains(e.relatedTarget)){l.classList.remove("shut");if(!l.contains(document.activeElement))afs(l,false)}});document.addEventListener("focusin",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b&&b.matches(":focus-visible"))afs(b.closest(".aff-lb"),true)});document.addEventListener("focusout",function(e){var b=e.target&&e.target.closest&&e.target.closest(".aff-btn");if(b){var l=b.closest(".aff-lb");if(!l.matches(":hover"))afs(l,false)}});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&AC){var l=AC;e.stopPropagation();afs(l,false);l.classList.add("shut")}},true)}catch(e){}})();
 </script>
-<script id="pc-search" src="/pcs.js?v=dc911e61"></script>
+<script id="pc-search" src="/pcs.js?v=7a6a3d53"></script>
 <script src="/track.js?v=7" defer></script>
 <script src="/feedback.js?v=2" defer></script>
 <script src="/also.js?v=2" defer></script>

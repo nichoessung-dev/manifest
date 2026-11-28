@@ -33,10 +33,10 @@ UA = {"User-Agent": "Mozilla/5.0 PuroClassicoResize/1.0"}
 def key_of(img):
     """The copy's key for a catalogue photo address, '' when it has none (the original is used)."""
     img = img or ""
-    m = re.fullmatch(r"/img/(?!r/)([\w./-]+?)\.webp", img)
+    m = re.fullmatch(r"/img/((?:rl|fr|p|p2|cut|white)/[\w./-]+?)\.webp", img)
     if m: return m.group(1)
     if img.startswith(SB):
-        m = re.fullmatch(r"([\w./-]+?)\.webp(?:\?v=([\w-]{1,20}))?", img[len(SB):])
+        m = re.fullmatch(r"((?:pc|pc2|store|store2)/[\w./-]+?)\.webp(?:\?v=([\w-]{1,20}))?", img[len(SB):])
         if m: return "s/" + m.group(1) + (".v" + m.group(2) if m.group(2) else "")
     return ""
 

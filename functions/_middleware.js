@@ -3,7 +3,7 @@
 import { notFound, ensureStats, statsLoaded, BRAND_ALIAS, slug, idx, DISCORD_INVITE, BUILT, liveCopy, newest, FINDS_PLUS, QC_PLUS, AGENT_NAMES_ALL } from "./_lib/site.js";
 import { renderBrand, renderCategory, renderAgent, renderAgentBrand, renderOldMoney, renderBrands, renderAbout, renderGuides, renderGuide, renderModels, renderModel, renderTools, renderTool,
   sitemapIndex, sitemapPages, sitemapProducts, mergedBest, hubSpec, hubParts, hubList, appCards, appPager, APP_CARDS, PRODUCT_TPL, renderPlat, fitTitle, renderNew, newFindsHtml, NEW_LINKS, HX_CSS } from "./_lib/pages.js";
-import { imgSrc, navKey, SWAP_VER, setHidden, AGENT_ORDER } from "./_lib/site.js";
+import { imgSrc, navKey, SWAP_VER, setHidden, AGENT_ORDER, RS_SB } from "./_lib/site.js";
 import { spHero, trendItems, SP_CSS, SP_JS } from "./_lib/sp_hero.js";
 import { reportedIds, reportedOk } from "./_lib/reported.js";
 import { TILE_LIGHT_JS } from "./_lib/photo_tiles.js";
@@ -317,6 +317,16 @@ async function searchIndexJson(ctx, url) {
   return new Response(ctx.request.method === "HEAD" ? null : body, { headers });
 }
 
+async function photoCopy(ctx, path) {
+  const r = await ctx.next();
+  if (r.ok && (r.headers.get("content-type") || "").startsWith("image/")) return r;
+  const m = /^\/img\/r\/(?:400|720)\/(s\/)?([\w.\/-]+?)(?:\.v([\w-]{1,20}))?\.webp$/.exec(path);
+  if (!m) return new Response("not found", { status: 404, headers: { "cache-control": "no-store" } });
+  const to = m[1] ? "/api/img?u=" + encodeURIComponent(RS_SB + m[2] + ".webp" + (m[3] ? "?v=" + m[3] : ""))
+    : "/img/" + m[2] + (m[3] ? ".v" + m[3] : "") + ".webp";
+  return new Response(null, { status: 302, headers: { location: to, "cache-control": "public, max-age=900" } });
+}
+
 async function route(ctx) {
   const { request } = ctx;
   if (request.method !== "GET" && request.method !== "HEAD") return ctx.next();
@@ -336,6 +346,9 @@ async function route(ctx) {
   // Browsers, Bing and feed readers ask for /favicon.ico whatever the page declares; without a file each request rendered the full 404 page.
   if (path === "/favicon.ico") return Response.redirect(url.origin + "/favicon.png", 301);
   if (PRIVATE.test(path) || PRIVATE.test(decoded(path))) return notFound(path);
+  // 28 Nov 2026: our own photo copies (img/r/, scripts/resize_photos.py). A copy not made yet (a find added since the
+  // last nightly run) goes to its original photo, cached briefly, so the copy is used as soon as it exists.
+  if (path.startsWith("/img/r/")) return photoCopy(ctx, path);
   if (PASS.test(path)) {
     if (path.startsWith("/api/")) {
       if (request.method === "HEAD" && path === "/api/qc") return new Response(null, { status: 405, headers: { allow: "GET" } }); // don't spend QC quota
