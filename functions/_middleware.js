@@ -554,7 +554,7 @@ async function hubApp(ctx, url, spec) {
       fresh = '<script type="application/ld+json">' + JSON.stringify({ "@context": "https://schema.org", "@type": "CollectionPage", name: spec.h, url: canon, dateModified: checks ? d.toISOString() : undefined, primaryImageOfPage: img ? { "@type": "ImageObject", contentUrl: img } : undefined }).replace(/</g, "\\u003c") + "</script>";
     }
   } catch (e) {}
-  const { crumbHtml, seo, head, after } = hubParts(spec, more, await reportedIds(ctx.env, url.origin));
+  const { crumbHtml, seo, head, after, subRow } = hubParts(spec, more, await reportedIds(ctx.env, url.origin));
   const content = v => ({ element(e) { e.setAttribute("content", v); } });
   // Same rule as page() in site.js: Google shows about 60 characters of a title, so a longer one drops the site name
   // (Google prints the site name above every result anyway), then "Compared" and the year (fitTitle in pages.js).
@@ -579,6 +579,8 @@ async function hubApp(ctx, url, spec) {
     .on('script[type="application/ld+json"]', { element(e) { e.remove(); } })
     .on("script#pc-catalog", { element(e) { e.replace(catalogTags(etagOf(asset)), { html: true }); } })
     .on("#grid", { element(e) { if (cards) e.setInnerContent(cards, { html: true }); } })
+    // 28 Nov 2026: the category and subcategory hubs' subcategory chips (hubParts subRow), shown from the first paint
+    .on("div#sub-row", { element(e) { if (subRow) { e.removeAttribute("hidden"); e.setInnerContent(subRow, { html: true }); } } })
     .on("meta[charset]", { element(e) { e.after(TILE_LIGHT_JS + STYLE_JS + head + fresh, { html: true }); } })   // index.html has no <head> tag, so this is the first thing in it
     // v8 hero parts (eyebrow, CTA row, stats, Trustpilot badge, agents strip, favourites strip) are no longer in the v9
     // index.html, so their removal rules are gone. The app code still checks for each element before using it.

@@ -122,6 +122,7 @@ Find parts by id or comment; line numbers move.
 | `_lib/pages.js` | Every server page and sitemap; `hubSpec()`; `PRODUCT_TPL` |
 | `_lib/content.js` to `content5.js` | Editorial copy: category, agent and brand intros, model pages, guides |
 | `_lib/tools9.js`, `weights.js` | Shipping calculator, size estimator, parcel tracker; item weights |
+| `_lib/subcats.js` | Subcategories (T-shirts, Hoodies ...): the chips on the category hubs and above All Finds, the `/category/<cat>/<sub>` hubs. One table on top of `weights.js` item types, copied into `index.html` by `sync_weights.py` |
 | `_lib/sp_hero.js`, `photo_tiles.js`, `seo_canon.js` | `/spreadsheet` hero; dark-tile rules; canonical exceptions |
 | `_lib/search_index.js`, `search_vocab.js`, `views.js`, `reported.js`, `also.js`, `reddit_kb.js`, `shipping_lines.js` | Search index; AI search words; page view counter; hidden finds; related finds; chat tips; agent shipping prices |
 | Generated `_lib` files | `catalog.js`, `rowdays.js`, `counts.js`, `signals.js`, `link_swaps.js`, `price_checks.js`, `photo_quality.js`, `store_gallery.js` |
@@ -135,7 +136,7 @@ Every script explains itself in its first lines.
 
 | Job | Scripts |
 |---|---|
-| Catalogue | `gen_catalog.py`, `sync_catalog.py`, `gen_rowdays.py`, `clean_catalog.py`, `catalog_common.py`, `import_*.py`, `match_friend.py`, `catalog_ai.py`, `apply_catalog_ai.py`, `claude_enrich.py`, `bake_subcats.py` |
+| Catalogue | `gen_catalog.py`, `sync_catalog.py`, `gen_rowdays.py`, `clean_catalog.py`, `catalog_common.py`, `import_*.py`, `match_friend.py`, `catalog_ai.py`, `apply_catalog_ai.py`, `claude_enrich.py`, `sync_weights.py` (item types and subcategories into `index.html`) |
 | Prices, links, sizes | `prices.py`, `price_rule.py`, `check_links.py`, `listing_details.py`, `bake_sizes.py` |
 | Photos | `clean_photos.py`, `mirror_photos.py`, `photo_quality.py`, `photo_hide.py`, `photo_fix.py`, `seller_photos.py`, `store_photos_*.py`, `photo_white.py`, `photo_edge*.py`, `photo_cut_*.py`, `rate_photos.py` |
 | QC photos | `qc_bank.py`, `apply_qc_counts.py`, `qc_best.py`, `qc_ai.py`, `qc_badge.py`, `qc_rebadge.py`, `oopbuy_qc.py` |
@@ -150,7 +151,7 @@ Every script explains itself in its first lines.
 |---|---|---|
 | `catalog-sync.yml` | on push of `index.html` | Regenerates the catalogue files |
 | `stats.yml` | every 6 h | `data/stats.json`, `data/dashboard.json`, `data/also.json`, `signals.js` |
-| `reports.yml` | every 2 h | Hidden finds (`data/reported.json`), counts, subcategories |
+| `reports.yml` | every 2 h | Hidden finds (`data/reported.json`), counts |
 | `swaps.yml` | every 15 min | Partner swaps |
 | `prices.yml`, `link-check.yml` | twice a day; Mondays | Weidian prices; dead listings (`data/link_health.json`) |
 | `qc-bank.yml`, `mirror-photos.yml` | nightly; hourly | QC photos into storage; photo copies into `img/m/` |
@@ -169,7 +170,7 @@ ElevenLabs, image models); a new site needs none of them at launch. A few more r
 | `stats.json`, `dashboard.json` | `bake_stats.py` | Ranking everywhere; `/stats`, trending searches |
 | `link_health.json` | `check_links.py` | Dead listings, "Links checked" dates |
 | `reported.json` | `bake_reports.py` | Hidden finds on every list |
-| `link_swaps.json`, `photo_quality.json`, `subcats.json`, `qc_best.json` | their scripts | The app |
+| `link_swaps.json`, `photo_quality.json`, `qc_best.json` | their scripts | The app |
 | `also.json` | `bake_also.py` | Related finds (app and product pages) |
 | `qc_bank.json`, `qc_ai.json` | `qc_bank.py`, `qc_ai.py` | QC photos and AI QC notes |
 | `sizes/NN.json`, `reddit_kb.json` | `bake_sizes.py`, `reddit_kb.py` | Size advice; chat tips |
@@ -202,7 +203,7 @@ for the refactor in section 3.
 | Email sender | Secrets `PLUNK_FROM`, `PLUNK_FROM_NAME`; defaults and the Brevo sender in `newsletter.py` | `news@` |
 | Partner copy | `fb.` rules in `_middleware.js`, `go/[agent].js`, `newsletter.py`; `logo-fb-wordmark.png` | `AADAXV` |
 | Repo, project | `REPO` in `scripts/health_check.py`; project `manifest` in `scripts/wait_live.sh`; the gh command in `CLAUDE.md` | |
-| Niche data | `CATS`, `BRAND_ALIAS`, `FOOTER_BRANDS`, `BRAND_ALLOW`, `GUIDE_LINKS` (`site.js`); `CAT_QC`, `STYLE_HUBS`, `AGENT_STYLES` (`pages.js`); `OLD_MONEY` (`content.js`); `weights.js`; `PCS_ALIAS` (`pcs.js`); `POP_BRANDS` and category tiles (`index.html`); the category list in about 20 files | `Outerwear` |
+| Niche data | `CATS`, `BRAND_ALIAS`, `FOOTER_BRANDS`, `BRAND_ALLOW`, `GUIDE_LINKS` (`site.js`); `CAT_QC`, `STYLE_HUBS`, `AGENT_STYLES` (`pages.js`); `OLD_MONEY` (`content.js`); `weights.js`; `subcats.js`; `PCS_ALIAS` (`pcs.js`); `POP_BRANDS` and category tiles (`index.html`); the category list in about 20 files | `Outerwear` |
 
 ### Silent failures
 

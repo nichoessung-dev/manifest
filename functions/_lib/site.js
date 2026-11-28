@@ -517,10 +517,11 @@ export function card(p, lazy = true) {
 // The spreadsheet banner (26 Nov 2026, owner: "convert more to the main page"): one calm card at the end of the server
 // pages that sends visitors into /spreadsheet, filtered to what they were looking at. q: a search (a brand), cat: a
 // category key (Shoes, Outerwear ...), label: the main button. A search field submits to /spreadsheet?q=. No popups.
+// sub (28 Nov 2026): a subcategory slug of that category (functions/_lib/subcats.js), picked in the sheet too (?sub=).
 // page() adds a plain one to any page without one (and without a guide's own closing panel); the hubs and the product
 // page place theirs. SX_CSS is self-contained (only the shared colour tokens), so it works in ds.css pages and the app hubs.
-export function sheetCta({ q = "", cat = "", label = "", h = "", p = "" } = {}) {
-  const href = q ? `/spreadsheet?q=${encodeURIComponent(q)}` : cat ? `/spreadsheet?cat=${encodeURIComponent(cat)}` : "/spreadsheet";
+export function sheetCta({ q = "", cat = "", sub = "", label = "", h = "", p = "" } = {}) {
+  const href = q ? `/spreadsheet?q=${encodeURIComponent(q)}` : cat ? `/spreadsheet?cat=${encodeURIComponent(cat)}${sub ? `&amp;sub=${encodeURIComponent(sub)}` : ""}` : "/spreadsheet";
   const main = label || (q || cat ? "See them all" : "Browse all finds");
   return `<aside class="sx" aria-label="The spreadsheet"><div class="sx-t"><p class="sx-e">${ic("sheet", "sm")}The spreadsheet</p>` +
     `<h2 class="sx-h">${esc(h || `All ${FINDS_PLUS} finds in one place`)}</h2>` +

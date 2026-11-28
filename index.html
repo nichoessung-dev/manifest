@@ -574,8 +574,10 @@ footer a:hover{color:var(--ink)}
 .agent .agent-name{flex:0 1 auto}
 .buy-dd-item .agent-name{flex:1}
 .af-row{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 14px}.af-chip,.af-clear{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:999px;font:inherit;font-size:13px;cursor:pointer;transition:background-color .15s ease,transform .15s ease}.af-chip{border:0;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--ink)}.af-chip:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}.af-chip svg{width:13px;height:13px;color:var(--accent)}.af-clear{border:1px solid var(--line-2);background:transparent;color:var(--muted)}.af-clear:hover{color:var(--ink)}.af-chip:active,.af-clear:active{transform:scale(.96)}
-/* subcategory chips (owner, 15 Nov 2026): T-shirts, Hoodies ... above the grid when one category is picked; data/subcats.json */
-.sub-row{display:flex;gap:8px;margin:0 0 16px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:1px}.sub-row::-webkit-scrollbar{display:none}.sub-chip{flex:none;display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:transparent;color:var(--ink);font:inherit;font-size:13.5px;cursor:pointer;white-space:nowrap;transition:background-color .15s ease,border-color .15s ease,transform .15s ease}.sub-chip:hover{border-color:var(--muted)}.sub-chip:active{transform:scale(.96)}.sub-chip[aria-pressed="true"]{background:var(--fill);border-color:var(--fill);color:var(--fill-ink)}
+/* subcategory chips (owner, 15 Nov 2026; 28 Nov 2026: several at once, with counts): T-shirts, Hoodies ... above the grid when
+   one category is picked (functions/_lib/subcats.js). Category hubs get them from the server as links (a.sub-chip, the
+   current page's marked aria-current); the app draws buttons with the same look. */
+.sub-row{display:flex;gap:8px;margin:0 0 16px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:1px}.sub-row::-webkit-scrollbar{display:none}.sub-chip{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:36px;text-decoration:none;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:transparent;color:var(--ink);font:inherit;font-size:13.5px;cursor:pointer;white-space:nowrap;transition:background-color .15s ease,border-color .15s ease,transform .15s ease}.sub-chip:hover{border-color:var(--muted)}.sub-chip:active{transform:scale(.96)}.sub-chip[aria-pressed="true"],.sub-chip[aria-current="page"]{background:var(--fill);border-color:var(--fill);color:var(--fill-ink)}.sub-chip .sub-n{color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}.sub-chip[aria-pressed="true"] .sub-n,.sub-chip[aria-current="page"] .sub-n{color:inherit;opacity:.7}
 .buy-hint{display:flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:12px;font-size:12.5px;line-height:1.35;color:var(--ink);text-decoration:none;background:color-mix(in srgb,var(--accent) 10%,transparent);transition:background-color .15s ease}.buy-hint:hover{background:color-mix(in srgb,var(--accent) 18%,transparent)}.buy-hint span{flex:1;min-width:0}.buy-hint svg{width:16px;height:16px;flex:none;color:var(--accent)}
 .agent-badge{font-family:var(--f-mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
 .agent.primary .agent-badge{background:var(--brand-red);color:#fff}
@@ -3222,8 +3224,6 @@ html.pc-cover #grid>.card .buy-pill{opacity:.88}
    language, instead of switching from US dollars in front of the visitor */
 html.pc-fmt #grid>.card[data-ssr] .price{color:transparent!important;border-radius:6px;background:var(--sk-line)}
 html.pc-fmt #grid>.card[data-ssr] .buy-pill{color:transparent!important}
-/* category hubs: the type chips row (#sub-row) keeps its space from the first paint, like html.af-pre does for #af-row */
-html.sub-pre #sub-row[hidden]{display:flex!important;visibility:hidden;min-height:38px}
 /* the toolbar's filter chips are built by the app (custom dropdowns over empty selects): until a chip is built it shows as
    a skeleton pill of its usual width (English labels), so the row does not grow from three chips to eight at start-up */
 #pc-fsheet .fsel:not(:has(>.csel)){flex:none;height:34px;border-radius:999px;background:var(--sk-line)}
@@ -4742,6 +4742,9 @@ function productColors(p){ if(p.__cols)return p.__cols; const out=[]; (p.variant
    scripts/sync_weights.py after changing that file): the same item types and weights as the /product/ pages and the shipping
    calculator. Type from the title words (first match wins), else the category; rounded to 50 g under 1 kg, 0.1 kg above. */
 const WT_DATA=/*WT-DATA-BEGIN*/{"types":[["","\\bbox set\\b"],["caps and beanies","\\bcaps?\\b|\\bhats?\\b|\\bbeanies?\\b|\\bbalaclavas?\\b|\\bvisors?\\b"],["scarves","\\bscar(f|ves)\\b"],["sunglasses","\\bsunglasses\\b|\\bglasses\\b"],["suitcases","\\bsuitcases?\\b|\\bluggage\\b"],["bags","\\bbags?\\b|\\bbackpacks?\\b|\\btotes?\\b|\\bduff(le|el)s?\\b|\\bpouch(es)?\\b|\\bkeepall\\b|\\bhandbags?\\b|\\bbriefcases?\\b|\\bspeedy\\b"],["wallets and cardholders","\\bwallets?\\b|\\bcard ?holders?\\b"],["belts","\\bbelts?\\b"],["watches","\\bwatch(es)?\\b|\\bdial\\b"],["jewellery","\\brings?\\b|\\bnecklaces?\\b|\\bbracelets?\\b|\\bchains?\\b|\\bpendants?\\b|\\bearrings?\\b"],["socks and underwear","\\bsocks\\b|\\bboxers\\b|\\bunderwear\\b|\\bbriefs\\b"],["perfumes","\\bperfumes?\\b|\\bfragrances?\\b|\\bcologne\\b"],["T-shirts and tops","\\bgraphic (?:t-?shirts?|tees?)\\b"],["boots","\\bboots?\\b|\\bbooties?\\b"],["loafers","\\bloafers?\\b"],["sandals and slides","\\bsandals?\\b|\\bslides?\\b|\\bslippers?\\b|\\bclogs?\\b|\\bflip flops?\\b|\\bmules\\b"],["heels","\\bheels?\\b|\\bpumps\\b"],["sneakers and shoes","\\bsneakers?\\b|\\btrainers?\\b|\\brunners?\\b|\\bshoes?\\b|\\bhigh-?tops?\\b"],["dresses and skirts","\\bdress(es)?\\b|\\bskirts?\\b"],["short sets","\\bshorts? sets?\\b|\\b(?:tees?|t-?shirts?|polos?)\\b.*\\bshorts\\b.*\\bsets?\\b"],["tracksuits and sets","\\btracksuits?\\b|\\btrack suits?\\b|\\bsets?\\b"],["shorts","\\bshorts\\b"],["jeans","\\bjeans\\b"],["pants and joggers","\\bpants\\b|\\btrousers\\b|\\bjoggers\\b|\\bsweatpants\\b|\\bleggings\\b|\\bcargos?\\b|\\boveralls\\b"],["vests and gilets","\\bvests?\\b(?! top)|\\bgilets?\\b"],["puffer jackets","\\bpuffers?\\b|(?:^| )down (?:jackets?|coats?|parkas?|vests?|gilets?|cardigans?)\\b|(?:^| )down$"],["jackets and coats","\\bjackets?\\b|\\bcoats?\\b|\\bparkas?\\b|\\bwindbreakers?\\b|\\bbombers?\\b|\\bovershirts?\\b|\\bblazers?\\b"],["hoodies","\\bhoodies?\\b"],["quarter-zips","\\bquarter.?zips?\\b|\\bhalf.?zips?\\b"],["polo shirts","\\bpolo shirts?\\b|\\bpolos?(?: (?:light |dark )?(?:black|white|grey|gray|navy|blue|cream|green|brown|pink|red|beige|tan|yellow|orange|purple|burgundy|olive|khaki|camel))?$"],["T-shirts and tops","\\bt-?shirts?\\b|\\btees?\\b|\\blong.?sleeves?\\b|\\btank tops?\\b|\\bvest tops?\\b"],["sweaters and cardigans","\\bsweaters?\\b|\\bcardigans?\\b|\\bknit(ted|wear)?\\b|\\bjumpers?\\b"],["sweatshirts and crewnecks","\\bsweatshirts?\\b|\\bcrewnecks?\\b"],["jerseys","\\bjerseys?\\b"],["shirts","\\bshirts?\\b|\\bblouses?\\b"],["fleeces","\\bfleeces?\\b"],["ties","\\bties?\\b(?![ -]?dye)"]],"accessoryOnly":["jewellery","ties"],"catType":{"Tops":"other tops","Outerwear":"other outerwear","Shoes":"sneakers and shoes","Pants":"pants and joggers","Shorts":"shorts","Bags":"bags","Accessories":"other accessories","Headwear":"caps and beanies","Toys":"building sets and toys"},"grams":{"T-shirts and tops":250,"polo shirts":330,"shirts":330,"jerseys":300,"shorts":350,"hoodies":700,"sweaters and cardigans":700,"sweatshirts and crewnecks":700,"quarter-zips":700,"fleeces":700,"pants and joggers":600,"jeans":600,"tracksuits and sets":1100,"short sets":600,"dresses and skirts":400,"vests and gilets":600,"jackets and coats":700,"puffer jackets":1100,"sneakers and shoes":900,"boots":1300,"loafers":800,"sandals and slides":600,"heels":700,"bags":550,"suitcases":3500,"caps and beanies":220,"scarves":250,"belts":200,"wallets and cardholders":200,"jewellery":200,"watches":250,"sunglasses":200,"ties":150,"socks and underwear":200,"perfumes":450,"other tops":400,"other outerwear":900,"other accessories":200},"boxed":{"sneakers and shoes":1300,"boots":1800,"loafers":1200},"calc":[["T-shirt","T-shirts and tops"],["Shirt / polo","polo shirts"],["Shorts","shorts"],["Hoodie / sweater","hoodies"],["Pants / jeans","pants and joggers"],["Light jacket","jackets and coats"],["Puffer / heavy jacket","puffer jackets"],["Sneakers (no box)","sneakers and shoes"],["Sneakers (with box)","sneakers and shoes","boxed"],["Bag","bags"],["Cap / beanie","caps and beanies"],["Belt / small accessory","belts"]]}/*WT-DATA-END*/;
+/* subcategories (28 Nov 2026): SUB_DATA is a generated copy of functions/_lib/subcats.js (run scripts/sync_weights.py after
+   changing that file): which item types make each category's subcategories (subOf, renderSubs below). */
+const SUB_DATA=/*SUB-DATA-BEGIN*/{"min":12,"cats":{"Tops":[["t-shirts","T-shirts",["T-shirts and tops"]],["hoodies","Hoodies",["hoodies"]],["jerseys","Jerseys",["jerseys"]],["sweatshirts","Sweatshirts",["sweatshirts and crewnecks"]],["sweaters","Sweaters and cardigans",["sweaters and cardigans"]],["tracksuits","Tracksuits and sets",["tracksuits and sets","short sets"]],["polos","Polo shirts",["polo shirts"]],["shirts","Shirts",["shirts"]],["quarter-zips","Quarter-zips",["quarter-zips"]]],"Outerwear":[["coats","Jackets and coats",["jackets and coats"]],["puffers","Puffer jackets",["puffer jackets"]],["vests","Vests and gilets",["vests and gilets"]]],"Shoes":[["trainers","Sneakers",["sneakers and shoes"]],["slides","Slides and sandals",["sandals and slides"]],["boots","Boots",["boots"]],["loafers","Loafers",["loafers"]],["heels","Heels",["heels"]]],"Pants":[["joggers","Pants and joggers",["pants and joggers"]],["jeans","Jeans",["jeans"]]],"Accessories":[["jewellery","Jewellery",["jewellery"]],["belts","Belts",["belts"]],["watches","Watches",["watches"]],["socks","Socks and underwear",["socks and underwear"]],["sunglasses","Sunglasses",["sunglasses"]],["scarves","Scarves",["scarves"]],["wallets","Wallets",["wallets and cardholders"]],["ties","Ties",["ties"]],["perfume","Perfume",["perfumes"]]]}}/*SUB-DATA-END*/;
 let _wtRe=null;
 function itemTypeOf(p){ if(!_wtRe)_wtRe=WT_DATA.types.map(x=>[x[0],new RegExp(x[1],"i")]);
   let s=p.title||""; if(p.brand&&s.toLowerCase().startsWith(p.brand.toLowerCase()+" "))s=s.slice(p.brand.length+1);
@@ -5262,37 +5265,67 @@ function pcStyleSet(keys){
 }
 function pcStyleLabel(ks){ ks=ks||pcStyles(); if(!ks.length) return "Everything"; return ks.length>2?ks.length+" styles":ks.map(k=>PC_STY_DEF[k].name).join(", "); }
 try{ document.readyState==="loading"?document.addEventListener("DOMContentLoaded",()=>pcStyleChip()):setTimeout(()=>pcStyleChip(),0); }catch(e){}
-/* subcategories (owner, 15 Nov 2026): data/subcats.json, loaded when exactly one category is picked. The pick lives
-   outside state on purpose: it is not saved as a preference and clears when the category changes. */
-var SUBC=null, SUBSEL="", _subLoading=false;
+/* subcategories (owner, 15 Nov 2026; 28 Nov 2026, owner: "make the categories way better"): when exactly one category is
+   picked, a row of its subcategories (T-shirts, Hoodies ...) above the grid. SUB_DATA (a copy of functions/_lib/subcats.js,
+   next to WT_DATA above) maps the category's item types (itemTypeOf) to subcategories: the same table and the same rule as
+   the server's /category/<cat>/<sub> pages, so the two always agree, with nothing to load. Several can be picked (none =
+   all of the category), and each chip counts its finds under the other filters. The pick lives outside state on purpose:
+   it is not saved as a preference and clears when the category changes. ?sub= keeps it in the address (replaceState, like
+   ?q=), so a link, a reload or coming back from another page opens the same view. A subcategory hub
+   (/category/tops/hoodies, window.PC_PAGE.subcat) starts with its own one picked. */
+var SUBSEL=[];
+const SUB_OF=Object.create(null), SUB_T=Object.create(null);   /* slug -> [category, name]; category -> item type -> slug */
+for(const c in SUB_DATA.cats) for(const [s,n,ts] of SUB_DATA.cats[c]){ SUB_OF[s]=[c,n]; ts.forEach(x=>{ (SUB_T[c]||(SUB_T[c]=Object.create(null)))[x]=s; }); }
+/* a find's subcategory slug, "" for none (a type its category does not list: "other tops", a jacket filed under Tops) */
+function subOf(p){ if(p._sub===undefined){ const m=SUB_T[p.cat]; p._sub=(m&&m[itemTypeOf(p)])||""; } return p._sub; }
+/* the subcategories of category c that exist: SUB_DATA.min finds in the sheet, and at least two of them (else no row) */
+const _subAv={k:-1,m:Object.create(null)};
+function subsAvail(c){ if(_subAv.k!==ALL.length){ _subAv.k=ALL.length; _subAv.m=Object.create(null); } if(_subAv.m[c]) return _subAv.m[c];
+  const L=SUB_DATA.cats[c]||[], n=Object.create(null); if(L.length) for(const p of ALL) if(p.cat===c){ const s=subOf(p); if(s) n[s]=(n[s]||0)+1; }
+  const out=L.map(x=>x[0]).filter(s=>(n[s]||0)>=SUB_DATA.min); return (_subAv.m[c]=out.length>=2?out:[]); }
 function subCat(){ return state.cats&&state.cats.length===1?state.cats[0]:(state.cat&&state.cat!=="all"?state.cat:""); }
-function subActive(){ const c=subCat(); return SUBC&&SUBSEL&&c&&(SUBC.subs[c]||[]).includes(SUBSEL)?SUBSEL:""; }
-function loadSubs(){ if(SUBC||_subLoading) return; _subLoading=true;
-  fetch("/data/subcats.json").then(r=>r.ok?r.json():null).then(d=>{ if(d&&d.subs&&d.m){ SUBC=d; try{ if(subActive()) softRender(); else renderSubs(); }catch(e){} } }).catch(()=>{}); }
+/* the picked subcategories that apply now (table order), or null */
+function subActive(){ const c=subCat(); if(!c||state.saved||!SUBSEL.length) return null; const on=subsAvail(c).filter(s=>SUBSEL.includes(s)); return on.length?on:null; }
+/* ?sub=hoodies,jeans in the address; on a subcategory hub only when the pick differs from the page's own ("all" for none) */
+function syncSubParam(){ try{ const onP=location.pathname.indexOf("/product/")===0; const u=new URL(onP?(window.__pcBase||"/"):(location.pathname+location.search+location.hash),location.origin);
+  const on=subActive()||[], own=PCP&&PCP.subcat&&SUB_OF[PCP.subcat]?PCP.subcat:"", v=own?(on.length===1&&on[0]===own?"":(on.join(",")||"all")):on.join(",");
+  if(v) u.searchParams.set("sub",v); else u.searchParams.delete("sub");
+  const n=u.pathname+u.search.replace(/%2C/gi,",")+u.hash; if(onP){ window.__pcBase=n; } else if(n!==location.pathname+location.search+location.hash){ history.replaceState(history.state,"",n); } }catch(e){} }
 function renderSubs(){ const row=document.getElementById("sub-row"); if(!row) return; const c=subCat();
-  const pre=document.documentElement.classList;   /* sub-pre (category hubs): the row's space is kept until it is known */
-  if(!c||state.saved){ row.hidden=true; SUBSEL=""; pre.remove("sub-pre"); return; }
-  if(!SUBC){ row.hidden=true; loadSubs(); return; }
-  pre.remove("sub-pre");
-  const L=SUBC.subs[c]||[]; if(L.length<2){ row.hidden=true; SUBSEL=""; return; }
-  if(SUBSEL&&!L.includes(SUBSEL)) SUBSEL="";
-  const sig=c+"|"+SUBSEL; if(row.__sig===sig&&!row.hidden) return; row.__sig=sig;
-  row.innerHTML=`<button type="button" class="sub-chip" data-sub="" aria-pressed="${!SUBSEL}">${esc(t("all_types"))}</button>`+L.map(x=>`<button type="button" class="sub-chip" data-sub="${esc(x)}" aria-pressed="${SUBSEL===x}">${esc(x)}</button>`).join("");
+  /* one handler for the app's buttons and the server's links (category hubs send the row as a.sub-chip links to the
+     subcategory pages, for visitors without scripts and for crawlers): a plain click picks in place, a click that opens a
+     new tab keeps the link */
+  if(!row.__wired){ row.__wired=true; row.addEventListener("click",e=>{ const b=e.target.closest(".sub-chip"); if(!b||!row.contains(b)) return;
+    if(b.tagName==="A"&&(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button>0)) return;
+    e.preventDefault(); const v=b.getAttribute("data-sub")||"";
+    SUBSEL=!v?[]:SUBSEL.includes(v)?SUBSEL.filter(x=>x!==v):SUBSEL.concat(v);
+    syncSubParam(); render(); }); }
+  if(state.saved){ row.hidden=true; row.__sig=""; return; }
+  const av=c?subsAvail(c):[];
+  if(SUBSEL.some(s=>!av.includes(s))){ SUBSEL=SUBSEL.filter(s=>av.includes(s)); syncSubParam(); }   /* another category: its own subcategories */
+  if(!av.length){ row.hidden=true; row.__sig=""; return; }
+  /* calm loading: the server's chips stay until the app draws its first full view (its counts then include the hidden finds) */
+  if(_calm&&row.querySelector("a.sub-chip")){ row.hidden=false; return; }
+  const n=Object.create(null); for(const p of filtered0("sub")){ const s=subOf(p); if(s) n[s]=(n[s]||0)+1; }
+  const L=av.filter(s=>n[s]||SUBSEL.includes(s));   /* a subcategory the other filters leave empty has no chip, unless it is picked */
+  if(!L.length){ row.hidden=true; row.__sig=""; return; }
+  const sig=JSON.stringify([c,SUBSEL,L.map(s=>n[s]||0),state.lang]); if(row.__sig===sig&&!row.hidden) return; row.__sig=sig;
+  row.innerHTML=`<button type="button" class="sub-chip" data-sub="" aria-pressed="${!SUBSEL.length}">${esc(t("all_types"))}</button>`+
+    L.map(s=>`<button type="button" class="sub-chip" data-sub="${esc(s)}" aria-pressed="${SUBSEL.includes(s)}">${esc(SUB_OF[s][1])}<span class="sub-n">${(n[s]||0).toLocaleString(state.lang)}</span></button>`).join("");
   row.hidden=false;
-  if(!row.__wired){ row.__wired=true; row.addEventListener("click",e=>{ const b=e.target.closest(".sub-chip"); if(!b) return; const v=b.getAttribute("data-sub")||""; SUBSEL=(v===SUBSEL?"":v); render(); }); }
 }
-function filtered0(noBrand){   /* noBrand: unsorted list matching every filter except brand (brand menu counts); r6: or "brand" / "color" / "price" to leave out that one filter */
+function filtered0(noBrand){   /* noBrand: unsorted list matching every filter except brand (brand menu counts); r6: or "brand" / "color" / "price" to leave out that one filter; "sub": the subcategory chips' counts */
   normState();
   const _ex=noBrand===true?"brand":(typeof noBrand==="string"?noBrand:"");
   const _qm=state.q?qMatcher(state.q):null;
-  const _sub=subActive();
+  const _sub=_ex==="sub"?null:subActive(), _subs=_sub?new Set(_sub):null;
   const _bs=_ex!=="brand"&&state.brand.length?new Set(state.brand):null, _cs=_ex!=="color"&&state.color.length?state.color:null, _pr=_ex!=="price";
   let list=ALL.filter(p=>{
     if(state.saved && !FAVES.has(p.id)) return false;
     if(state.plat!=="all"&&p.platform!==state.plat)return false;
     if(state.cats&&state.cats.length){ if(!state.cats.includes(p.cat))return false; }
-    if(_sub&&SUBC.m[p.id]!==_sub)return false;
-    else if(state.cat!=="all"&&p.cat!==state.cat)return false;
+    if(_subs&&!_subs.has(subOf(p)))return false;
+    if(state.cat!=="all"&&p.cat!==state.cat)return false;
     if(state.gender&&state.gender!=="all"&&(p.g||"m")!==state.gender)return false;
     if(state.qc&&!((p.qc||0)>=1))return false;
     if(_bs&&!_bs.has(p.brand))return false;   /* OR within brands */
@@ -6745,6 +6778,13 @@ if(PCP){
   /* marketplace hubs (/weidian-spreadsheet, /taobao-spreadsheet, /1688-spreadsheet, 9 Nov 2026): only that marketplace's finds */
   if(PCP.plat){ const sub=ALL.filter(p=>p.platform===PCP.plat); if(sub.length) ALL=sub; }
 }
+/* subcategories: a subcategory hub starts with its own one picked; ?sub= (the app's address for a pick, "all" for none) wins.
+   A pick names its category: the first one's category is picked, and picks of another category are dropped. */
+{ let sel=PCP&&PCP.subcat&&SUB_OF[PCP.subcat]?[PCP.subcat]:[], had=false;
+  try{ const v=new URLSearchParams(location.search).get("sub"); if(v!=null){ had=true; sel=v==="all"?[]:v.split(",").filter(x=>SUB_OF[x]); } }catch(e){}
+  if(sel.length){ const c=SUB_OF[sel[0]][0]; sel=sel.filter((x,i,a)=>SUB_OF[x][0]===c&&a.indexOf(x)===i);
+    if(ALL.some(p=>p.cat===c)){ state.cats=[c]; state.cat="all"; } else sel=[]; }
+  SUBSEL=sel; if(had) syncSubParam(); }
 buildFilters();
 $("#q").value=state.q||"";
 /* PERF: on a /product/ page, skip the heavy homepage grid + marquee entirely (they render on "back"); on the homepage, render the grid now and defer the image-heavy marquee to idle so first paint is fast */
